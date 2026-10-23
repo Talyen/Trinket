@@ -20,20 +20,20 @@ public extension EncounterPlayMode {
         origin: PlayEncounterOrigin,
         forcedEventID: String? = nil,
     ) -> StageMapMessage? {
-        playerSave.performSaveAction(key: SaveRetryKey.mysteryOpen) { [weak self] _ -> StageMapMessage? in
-            guard let self else { return nil }
+        playerSave.performSaveAction(key: SaveRetryKey.mysteryOpen) { [weak self] _ -> SaveActionAttempt<StageMapMessage?> in
+            guard let self else { return SaveActionAttempt(nil) }
             if let restriction = playerSave.encounterAccessRestriction(for: origin) {
-                return restriction
+                return SaveActionAttempt(restriction)
             }
-            guard canBeginTransientEncounter else { return nil }
+            guard canBeginTransientEncounter else { return SaveActionAttempt(nil) }
             isOpeningTransientEncounter = true
             defer { isOpeningTransientEncounter = false }
 
             guard let event = previewMysteryEvent(origin: origin, forcedEventID: forcedEventID) else {
-                return Self.mysteryPinFailureMessage
+                return SaveActionAttempt(Self.mysteryPinFailureMessage)
             }
             if let paywall = mysteryPaywallMessage(for: event) {
-                return paywall
+                return SaveActionAttempt(paywall)
             }
             let encounter = origin.identity(in: playerSave.currentSave)
             let prepared: PreparedMysteryEncounter
@@ -41,11 +41,11 @@ public extension EncounterPlayMode {
                 encounter: encounter, forcedEventID: forcedEventID, using: &mysteryRandom, at: currentDate(),
             ) {
             case let .committed(value): prepared = value
-            case .rejected: return Self.mysteryPinFailureMessage
-            case .persistFailed:
-                return nil
+            case .rejected: return SaveActionAttempt(Self.mysteryPinFailureMessage)
+            case let .persistFailed(error):
+                return SaveActionAttempt(nil, failure: error)
             }
-            guard canPublishTransientEncounter(encounter) else { return nil }
+            guard canPublishTransientEncounter(encounter) else { return SaveActionAttempt(nil) }
             let session = MysteryEncounterSession(
                 origin: origin, encounter: encounter, event: prepared.event,
                 combatant: GameContent.combatant(forMysteryEvent: prepared.event),
@@ -56,20 +56,20 @@ public extension EncounterPlayMode {
                 if activeMysteryEncounter === session {
                     activeMysteryEncounter = nil
                 }
-                return nil
+                return SaveActionAttempt(nil)
             }
             sfxPlayer.play(SFXID.mysteryEvent, volume: options.effectsVolume)
             if session.event.isRecruit {
                 guard resolveMysteryChoice(session: session, choiceID: nil) else {
                     if session.isResolvingChoice {
-                        return nil
+                        return SaveActionAttempt(nil)
                     }
                     let detail = session.persistFailureMessage ?? Self.mysteryPinFailureMessage.message
                     activeMysteryEncounter = nil
-                    return StageMapMessage(title: Self.mysteryPinFailureMessage.title, message: detail)
+                    return SaveActionAttempt(StageMapMessage(title: Self.mysteryPinFailureMessage.title, message: detail))
                 }
             }
-            return nil
+            return SaveActionAttempt(nil)
         }
     }
 
@@ -115,24 +115,24 @@ public extension EncounterPlayMode {
         at date: Date,
     ) -> Bool {
         playerSave.performSaveAction(key: SaveRetryKey.mysteryResolution) { [weak self] _ in
-            guard let self else { return false }
-            guard owns(mysterySession) else { return false }
+            guard let self else { return SaveActionAttempt(false) }
+            guard owns(mysterySession) else { return SaveActionAttempt(false) }
 
             mysterySession.markChoiceStarted()
-            guard owns(mysterySession) else { return false }
+            guard owns(mysterySession) else { return SaveActionAttempt(false) }
             switch playerSave.resolveMysteryEncounter(
                 mysterySession.resolutionRequest, action: action, using: &mysteryRandom, at: date,
             ) {
             case let .committed(outcome):
-                return applyMysteryOutcome(outcome, session: mysterySession)
+                return SaveActionAttempt(applyMysteryOutcome(outcome, session: mysterySession))
             case .rejected:
                 mysterySession.markChoiceUnavailable()
-                return false
+                return SaveActionAttempt(false)
             case let .persistFailed(error):
                 if !error.isRetryable {
                     mysterySession.markChoiceUnavailable()
                 }
-                return false
+                return SaveActionAttempt(false, failure: error)
             }
         }
     }

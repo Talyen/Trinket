@@ -123,45 +123,44 @@ public final class AppState {
     }
 
     @discardableResult
-    public func confirmStarterHero(_ heroID: String) -> Bool {
+    public func confirmStarterHero(_ heroID: String) -> SaveActionAttempt<Bool> {
         playerSave.confirmStarterHero(heroID)
     }
 
     @discardableResult
-    public func completeStarterSelection(companionID: String) -> Bool {
-        guard playerSave.completeStarterSelection(companionID: companionID) else {
-            return false
+    public func completeStarterSelection(companionID: String) -> SaveActionAttempt<Bool> {
+        playerSave.completeStarterSelection(companionID: companionID).map { committed in
+            if committed {
+                shellSession.selectedTab = .play
+            }
+            return committed
         }
-        shellSession.selectedTab = .play
-        return true
     }
 
     @discardableResult
-    public func resetGameplayProgress() -> Bool {
-        do {
+    public func resetGameplayProgress() -> SaveActionAttempt<Bool> {
+        let result = SaveActionAttempt.catching(failureValue: false) {
             try playerSave.resetGameplayProgress()
-        } catch {
-            appStateLogger.error(
-                "Failed to reset gameplay progress: \(error.localizedDescription, privacy: .public)",
-            )
-            return false
+            clearTransientPlaySession()
+            return true
         }
-        clearTransientPlaySession()
-        return true
+        if let error = result.failure {
+            appStateLogger.error("Failed to reset gameplay progress: \(error.localizedDescription, privacy: .public)")
+        }
+        return result
     }
 
     @discardableResult
-    public func unlockAllContent() -> Bool {
-        do {
+    public func unlockAllContent() -> SaveActionAttempt<Bool> {
+        let result = SaveActionAttempt.catching(failureValue: false) {
             try playerSave.unlockAllContent()
-        } catch {
-            appStateLogger.error(
-                "Failed to unlock all content: \(error.localizedDescription, privacy: .public)",
-            )
-            return false
+            clearTransientPlaySession()
+            return true
         }
-        clearTransientPlaySession()
-        return true
+        if let error = result.failure {
+            appStateLogger.error("Failed to unlock all content: \(error.localizedDescription, privacy: .public)")
+        }
+        return result
     }
 
     private func clearTransientPlaySession() {

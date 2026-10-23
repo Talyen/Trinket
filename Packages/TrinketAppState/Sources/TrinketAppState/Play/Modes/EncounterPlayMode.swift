@@ -73,85 +73,89 @@ public final class EncounterPlayMode {
     }
 
     @discardableResult
-    func beginShopEncounter(origin: PlayEncounterOrigin) -> ShopEncounterOpenResult {
+    func beginShopEncounter(origin: PlayEncounterOrigin) -> SaveActionAttempt<ShopEncounterOpenResult> {
         if let restriction = playerSave.encounterAccessRestriction(for: origin) {
-            return .failed(restriction)
+            return SaveActionAttempt(.failed(restriction))
         }
-        guard canBeginTransientEncounter else { return .unavailable }
+        guard canBeginTransientEncounter else { return SaveActionAttempt(.unavailable) }
         isOpeningTransientEncounter = true
         defer { isOpeningTransientEncounter = false }
 
         let encounter = origin.identity(in: playerSave.currentSave)
         switch playerSave.prepareShop(encounter: encounter) {
         case let .committed(stock):
-            guard canPublishTransientEncounter(encounter) else { return .unavailable }
-            guard !stock.offers.isEmpty else { return .autoCompleted }
+            guard canPublishTransientEncounter(encounter) else { return SaveActionAttempt(.unavailable) }
+            guard !stock.offers.isEmpty else { return SaveActionAttempt(.autoCompleted) }
             let session = ShopEncounterSession(origin: origin, encounter: encounter, offers: stock.offers)
             activeShopEncounter = session
             guard owns(session) else {
                 if activeShopEncounter === session {
                     activeShopEncounter = nil
                 }
-                return .unavailable
+                return SaveActionAttempt(.unavailable)
             }
-            return .opened(session)
+            return SaveActionAttempt(.opened(session))
         case .rejected:
-            return .failed(StageMapMessage(title: "Shop Unavailable", message: "The shop could not be opened. Your progress is preserved."))
-        case .persistFailed:
+            return SaveActionAttempt(.failed(StageMapMessage(
+                title: "Shop Unavailable",
+                message: "The shop could not be opened. Your progress is preserved.",
+            )))
+        case let .persistFailed(error):
             // Transient write failure: beginShopOrAutoComplete schedules a
             // silent retry; the session opens late via observation instead of
             // surfacing an error for a passing blip.
-            return .unavailable
+            return SaveActionAttempt(.unavailable, failure: error)
         }
     }
 
     @discardableResult
     public func purchaseShopOffer(session shopSession: ShopEncounterSession, offerID: String) -> ShopPurchaseOutcome {
         guard owns(shopSession) else { return .rejected }
-        return playerSave.performSaveAction(key: SaveRetryKey.shopPurchase(offerID)) { [weak self] _ -> ShopPurchaseOutcome in
-            guard let self else { return .rejected }
-            guard owns(shopSession) else { return .rejected }
-            guard !shopSession.isPurchasing else { return .rejected }
-            shopSession.markPurchaseStarted()
-            guard owns(shopSession) else {
-                shopSession.markPurchaseFinished()
-                return .rejected
+        return playerSave
+            .performSaveAction(key: SaveRetryKey.shopPurchase(offerID)) { [weak self] _ -> SaveActionAttempt<ShopPurchaseOutcome> in
+                guard let self else { return SaveActionAttempt(.rejected) }
+                guard owns(shopSession) else { return SaveActionAttempt(.rejected) }
+                guard !shopSession.isPurchasing else { return SaveActionAttempt(.rejected) }
+                shopSession.markPurchaseStarted()
+                guard owns(shopSession) else {
+                    shopSession.markPurchaseFinished()
+                    return SaveActionAttempt(.rejected)
+                }
+                switch playerSave.purchaseShopOffer(offerID: offerID, encounter: shopSession.encounter) {
+                case .committed:
+                    shopSession.markPurchaseFinished()
+                    guard owns(shopSession) else { return SaveActionAttempt(.committed) }
+                    shopSession.publishPurchase(offerID: offerID)
+                    sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
+                    return SaveActionAttempt(.committed)
+                case .rejected:
+                    shopSession.markPurchaseFinished()
+                    guard owns(shopSession) else { return SaveActionAttempt(.rejected) }
+                    sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
+                    return SaveActionAttempt(.rejected)
+                case let .persistFailed(error):
+                    // The mutation rolled back and the store retries silently, so this
+                    // attempt is accepted rather than failed; the board is already
+                    // disabled while `isRetryingSaveAction`.
+                    shopSession.markPurchaseFinished()
+                    return SaveActionAttempt(.retrying, failure: error)
+                }
             }
-            switch playerSave.purchaseShopOffer(offerID: offerID, encounter: shopSession.encounter) {
-            case .committed:
-                shopSession.markPurchaseFinished()
-                guard owns(shopSession) else { return .committed }
-                shopSession.publishPurchase(offerID: offerID)
-                sfxPlayer.play(SFXID.uiBuySell, volume: options.effectsVolume)
-                return .committed
-            case .rejected:
-                shopSession.markPurchaseFinished()
-                guard owns(shopSession) else { return .rejected }
-                sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
-                return .rejected
-            case .persistFailed:
-                // The mutation rolled back and the store retries silently, so this
-                // attempt is accepted rather than failed; the board is already
-                // disabled while `isRetryingSaveAction`.
-                shopSession.markPurchaseFinished()
-                return .retrying
-            }
-        }
     }
 
     @discardableResult
     func beginShopOrAutoComplete(origin: PlayEncounterOrigin) -> StageMapMessage? {
-        playerSave.performSaveAction(key: SaveRetryKey.shopOpen) { [weak self] _ -> StageMapMessage? in
-            guard let self else { return nil }
-            switch beginShopEncounter(origin: origin) {
-            case .autoCompleted:
-                return Self.emptyShopClosedMessage(identifier: origin.identity(in: playerSave.currentSave).stageID)
-            case .opened:
-                return nil
-            case .unavailable:
-                return nil
-            case let .failed(message):
-                return message
+        playerSave.performSaveAction(key: SaveRetryKey.shopOpen) { [weak self] _ -> SaveActionAttempt<StageMapMessage?> in
+            guard let self else { return SaveActionAttempt(nil) }
+            return beginShopEncounter(origin: origin).map { result in
+                switch result {
+                case .autoCompleted:
+                    Self.emptyShopClosedMessage(identifier: origin.identity(in: playerSave.currentSave).stageID)
+                case .opened, .unavailable:
+                    nil
+                case let .failed(message):
+                    message
+                }
             }
         }
     }
@@ -160,17 +164,17 @@ public final class EncounterPlayMode {
     public func finishShopEncounter(session shopSession: ShopEncounterSession) -> Bool {
         guard owns(shopSession) else { return false }
         return playerSave.performSaveAction(key: SaveRetryKey.shopLeave) { [weak self] _ in
-            guard let self else { return false }
-            guard owns(shopSession) else { return false }
+            guard let self else { return SaveActionAttempt(false) }
+            guard owns(shopSession) else { return SaveActionAttempt(false) }
 
             switch playerSave.finishShop(encounter: shopSession.encounter) {
             case .committed, .rejected:
                 if owns(shopSession) {
                     activeShopEncounter = nil
                 }
-                return true
-            case .persistFailed:
-                return false
+                return SaveActionAttempt(true)
+            case let .persistFailed(error):
+                return SaveActionAttempt(false, failure: error)
             }
         }
     }

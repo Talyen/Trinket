@@ -46,8 +46,9 @@ catalog or Inventory snapshots. Content owns `PlayerRosterState` and its candida
 rules in `Roster/RosterEdits.swift`; they resolve those IDs against current content,
 unlocks, purchase access, and the inventory supplied by Persistence inside the
 transaction. Persistence owns admission, hydration/migration, and durable publication.
-Loadout, party, and talent commands return `RosterEditResult`;
-only `persistenceFailed` schedules a save retry. Unavailable intents do not write
+Loadout, party, and talent commands return `SaveActionAttempt<RosterEditResult>`,
+retaining the product result and its typed storage cause. Only a retryable failure
+returned by the attempt schedules a save retry. Unavailable intents do not write
 or silently select a fallback; save hydration still repairs older data.
 
 Options are deliberately separate: `OptionsStore` uses app-storage-compatible `UserDefaults`, not player-save/CloudKit state. Packages must not import app or SwiftUI feature code.

@@ -28,9 +28,9 @@ struct RosterEditPersistenceTests {
         for command in commands {
             let before = playerSave.roster
             playerSave.forcesNextSaveFailure = true
-            #expect(playerSave.editCombatant(command, for: hero.id) == .persistenceFailed)
+            #expect(playerSave.editCombatant(command, for: hero.id).value == .persistenceFailed)
             #expect(playerSave.roster == before)
-            #expect(playerSave.editCombatant(command, for: hero.id) == .committed)
+            #expect(playerSave.editCombatant(command, for: hero.id).value == .committed)
             let reloaded = try SaveTestSupport.makeSaveStore(directoryURL: directory)
             #expect(reloaded.roster == playerSave.roster)
             switch command {
@@ -64,10 +64,10 @@ struct RosterEditPersistenceTests {
         // Rejections must not reach storage or consume the next write failure.
         store.forcesNextSaveFailure = true
         #endif
-        #expect(store.editCombatant(.selectAbility(abilityID: Ability.slash.id), for: "ranger") == .unavailable)
-        #expect(store.editCombatant(.equipItem(itemID: "salvaged-item", slot: .weapon), for: knight.id) == .unavailable)
-        #expect(store.selectParty(heroID: knight.id, companionID: "missing-companion") == .unavailable)
-        #expect(store.unlockTalent(nodeID: node.id, treeID: tree.id, for: premium.id) == .unavailable)
+        #expect(store.editCombatant(.selectAbility(abilityID: Ability.slash.id), for: "ranger").value == .unavailable)
+        #expect(store.editCombatant(.equipItem(itemID: "salvaged-item", slot: .weapon), for: knight.id).value == .unavailable)
+        #expect(store.selectParty(heroID: knight.id, companionID: "missing-companion").value == .unavailable)
+        #expect(store.unlockTalent(nodeID: node.id, treeID: tree.id, for: premium.id).value == .unavailable)
         #expect(store.currentSave == before)
         store.contentAccess = .fullGame
         // Removing the recruit while an intent is retained must also revoke permission.
@@ -79,8 +79,8 @@ struct RosterEditPersistenceTests {
             save.roster.unlockedHeroIDs.remove(premium.id)
         }
         let withoutRecruit = store.currentSave
-        #expect(store.unlockTalent(nodeID: node.id, treeID: tree.id, for: premium.id) == .unavailable)
-        #expect(store.editCombatant(.resetTalents, for: premium.id) == .unavailable)
+        #expect(store.unlockTalent(nodeID: node.id, treeID: tree.id, for: premium.id).value == .unavailable)
+        #expect(store.editCombatant(.resetTalents, for: premium.id).value == .unavailable)
         #expect(store.currentSave == withoutRecruit)
         #expect(store.roster.activeHeroID == before.roster.activeHeroID)
         let reloaded = try context.makeReloadedStore()

@@ -25,7 +25,6 @@ public final class PlayerSaveStore {
     let pendingSaveRecovery: PendingSaveRecovery?
     var root: PlayerSaveRoot
     let saveActionRetries = SaveActionRetryQueue()
-    @ObservationIgnored var saveActionAttempt: SaveActionAttempt?
     @ObservationIgnored var commitRevision: UInt64 = 0
     @ObservationIgnored var isCommittingGraph = false
 

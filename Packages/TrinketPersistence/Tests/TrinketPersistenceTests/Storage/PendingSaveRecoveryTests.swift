@@ -196,20 +196,20 @@ struct PendingSaveRecoveryTests {
         var attempts = 0
         store.forcesNextSaveFailure = true
         store.performSaveAction(key: "claim") { [weak store] isRetry in
-            guard let store else { return }
+            guard let store else { return SaveActionAttempt(false) }
             if isRetry {
                 attempts += 1
             }
-            _ = store.persistFixtureBatch(logging: "Retry fixture") { $0.roster.gold += 3 }
+            return store.persistFixtureAction(logging: "Retry fixture") { $0.roster.gold += 3 }
         }
         // A newer failed submission owns the retry; reset still cancels it.
         store.forcesNextSaveFailure = true
         store.performSaveAction(key: "claim") { [weak store] isRetry in
-            guard let store else { return }
+            guard let store else { return SaveActionAttempt(false) }
             if isRetry {
                 attempts += 100
             }
-            _ = store.persistFixtureBatch(logging: "Retry fixture") { $0.roster.gold += 3 }
+            return store.persistFixtureAction(logging: "Retry fixture") { $0.roster.gold += 3 }
         }
         if reset {
             try store.resetGameplayProgress()
@@ -233,12 +233,14 @@ struct PendingSaveRecoveryTests {
         let latestID = alreadySelected ? store.roster.activeHeroID : druid.id
         store.forcesNextSaveFailure = true
         store.performSaveAction(key: "party-Hero") { [weak store] _ in
-            _ = store?.selectParty(heroID: knight.id)
+            store?.selectParty(heroID: knight.id) ?? SaveActionAttempt(.unavailable)
         }
         #expect(store.isRetryingSaveAction)
         store.performSaveAction(key: "party-Hero") { [weak store] _ in
-            guard let store, store.roster.activeHeroID != latestID else { return }
-            #expect(store.selectParty(heroID: latestID) == .committed)
+            guard let store, store.roster.activeHeroID != latestID else { return SaveActionAttempt(RosterEditResult.unavailable) }
+            let result = store.selectParty(heroID: latestID)
+            #expect(result.value == .committed)
+            return result
         }
         #expect(!store.isRetryingSaveAction)
         try await waitUntilSettled(store, \.isRetryingSaveAction)
@@ -251,15 +253,15 @@ struct PendingSaveRecoveryTests {
         let store = try context.makeSaveStore()
         store.forcesNextSaveFailure = true
         store.performSaveAction(key: "claim") { [weak store] isRetry in
-            guard let store else { return }
+            guard let store else { return SaveActionAttempt(false) }
             if !isRetry {
-                _ = store.persistFixtureBatch(logging: "Original fixture") { $0.roster.gold += 3 }
-                return
+                return store.persistFixtureAction(logging: "Original fixture") { $0.roster.gold += 3 }
             }
             store.forcesNextSaveFailure = true
             store.performSaveAction(key: "claim") { [weak store] _ in
-                _ = store?.persistFixtureBatch(logging: "Replacement fixture") { $0.roster.gold += 7 }
+                store?.persistFixtureAction(logging: "Replacement fixture") { $0.roster.gold += 7 } ?? SaveActionAttempt(false)
             }
+            return SaveActionAttempt(true)
         }
         try await waitUntilSettled(store, \.isRetryingSaveAction)
         #expect(!store.isRetryingSaveAction)
@@ -274,9 +276,9 @@ struct PendingSaveRecoveryTests {
         store.performSaveAction(key: "closed-encounter") { [weak store] isRetry in
             if isRetry {
                 attempts += 1
-                return
+                return SaveActionAttempt(false)
             }
-            _ = store?.persistFixtureBatch(logging: "Retry fixture") { $0.roster.gold += 3 }
+            return store?.persistFixtureAction(logging: "Retry fixture") { $0.roster.gold += 3 } ?? SaveActionAttempt(false)
         }
         #expect(!store.persistFixtureBatch(logging: "Invalid action fixture") { $0.schemaVersion = 0 })
         let failure = try #require(store.lastPersistenceError)
@@ -298,15 +300,17 @@ struct PendingSaveRecoveryTests {
         var openings = 0
         var claims = 0
         store.performSaveAction(key: "open") { [weak store] _ in
-            guard let store else { return }
+            guard let store else { return SaveActionAttempt(false) }
             openings += 1
-            #expect(store.persistFixtureBatch(logging: "Opening fixture") { $0.roster.gold += 10 })
+            let opening = store.persistFixtureAction(logging: "Opening fixture") { $0.roster.gold += 10 }
+            #expect(opening.value)
             store.forcesNextSaveFailure = true
             store.performSaveAction(key: "reward") { [weak store] _ in
-                guard let store else { return }
+                guard let store else { return SaveActionAttempt(false) }
                 claims += 1
-                _ = store.persistFixtureBatch(logging: "Reward fixture") { $0.roster.gold += 3 }
+                return store.persistFixtureAction(logging: "Reward fixture") { $0.roster.gold += 3 }
             }
+            return opening
         }
         #expect(store.roster.gold == 10)
         #expect(store.isRetryingSaveAction)
@@ -323,12 +327,12 @@ struct PendingSaveRecoveryTests {
         let store = try context.makeSaveStore()
         var attempts = 0
         store.performSaveAction(key: "claim") { [weak store] isRetry in
-            guard let store else { return }
+            guard let store else { return SaveActionAttempt(false) }
             if isRetry {
                 attempts += 1
             }
             store.forcesNextSaveFailure = !isRetry || (!invalid && attempts == 1)
-            let committed = store.persistFixtureBatch(logging: "Retry fixture") { save in
+            let committed = store.persistFixtureAction(logging: "Retry fixture") { save in
                 if isRetry, invalid {
                     save.schemaVersion = 0
                 } else {
@@ -336,11 +340,12 @@ struct PendingSaveRecoveryTests {
                 }
             }
             if !isRetry {
-                #expect(!committed)
+                #expect(!committed.value)
             }
             // Clearing the shared diagnostic must not conceal a failed reward,
             // including on the initial attempt before registration.
             #expect(store.persistFixtureBatch(logging: "Other command fixture") { $0.corruptionAltarCooldownRemaining = 1 })
+            return committed
         }
         try await waitUntilSettled(store, \.isRetryingSaveAction)
         #expect(!store.isRetryingSaveAction)

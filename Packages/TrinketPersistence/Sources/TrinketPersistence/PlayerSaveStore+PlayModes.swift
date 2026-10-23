@@ -4,7 +4,7 @@ import TrinketCore
 @MainActor
 public extension PlayerSaveStore {
     @discardableResult
-    func enterLabyrinth() -> Bool {
+    func enterLabyrinth() -> SaveActionAttempt<Bool> {
         persistBatch(logging: "Failed to enter Labyrinth") { save in
             LabyrinthCompletion.enter(save: &save, access: contentAccess)
         }
@@ -13,7 +13,7 @@ public extension PlayerSaveStore {
     @discardableResult
     func prepareContracts(
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
-    ) -> Bool {
+    ) -> SaveActionAttempt<Bool> {
         persistBatch(logging: "Failed to open Contracts") { save in
             save.contracts.ensureBoard(eligibleModifiers: RewardOwnership(save.inventory).eligibleModifiers, makeOffer: makeOffer)
         }
@@ -22,14 +22,14 @@ public extension PlayerSaveStore {
     @discardableResult
     func refreshContracts(
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
-    ) -> Bool {
+    ) -> SaveActionAttempt<Bool> {
         persistBatch(logging: "Failed to refresh Contracts") { save in
             _ = save.contracts.refresh(eligibleModifiers: RewardOwnership(save.inventory).eligibleModifiers, makeOffer: makeOffer)
         }
     }
 
     @discardableResult
-    func prepareVoyage() -> Bool {
+    func prepareVoyage() -> SaveActionAttempt<Bool> {
         persistBatch(logging: "Failed to save Voyage") { save in
             save.voyage.ensureBoard(access: contentAccess, eligibleModifiers: RewardOwnership(save).eligibleModifiers)
             Self.refreshVoyageRecruits(save: &save, access: contentAccess)
@@ -37,14 +37,14 @@ public extension PlayerSaveStore {
     }
 
     @discardableResult
-    func refreshVoyage() -> Bool {
+    func refreshVoyage() -> SaveActionAttempt<Bool> {
         persistBatch(logging: "Failed to save Voyage") { save in
             save.voyage.refresh(access: contentAccess, eligibleModifiers: RewardOwnership(save).eligibleModifiers)
         }
     }
 
     @discardableResult
-    func embarkVoyage(offerID: String) -> Bool {
+    func embarkVoyage(offerID: String) -> SaveActionAttempt<Bool> {
         persistBatch(logging: "Failed to save Voyage") { save in
             _ = save.voyage.embark(
                 offerID: offerID, eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs(access: contentAccess),
@@ -54,14 +54,14 @@ public extension PlayerSaveStore {
     }
 
     @discardableResult
-    func abandonVoyage(runID: String) -> Bool {
+    func abandonVoyage(runID: String) -> SaveActionAttempt<Bool> {
         persistBatch(logging: "Failed to save Voyage") { save in
             _ = save.voyage.abandon(runID: runID, access: contentAccess, eligibleModifiers: RewardOwnership(save).eligibleModifiers)
         }
     }
 
     @discardableResult
-    func dismissCompletedVoyage() -> Bool {
+    func dismissCompletedVoyage() -> SaveActionAttempt<Bool> {
         persistBatch(logging: "Failed to save Voyage") { $0.voyage.dismissCompleted() }
     }
 }

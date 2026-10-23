@@ -311,7 +311,7 @@ struct AppStatePlayFlowTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         _ = state.play.journey.startBattle(for: stage)
 
-        #expect(state.unlockAllContent())
+        #expect(state.unlockAllContent().value)
 
         #expect(state.play.battle.activeBattle == nil)
         #expect(state.play.shellSession.selectedTab == .play)

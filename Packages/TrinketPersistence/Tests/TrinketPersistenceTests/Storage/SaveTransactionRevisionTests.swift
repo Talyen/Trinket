@@ -10,7 +10,7 @@ struct SaveTransactionRevisionTests {
         let store = try context.makeSaveStore()
         let mutate: (inout PlayerSave) -> Result<Void, Never> = { save in
             save.corruptionAltarCooldownRemaining = 1
-            #expect(store.persistBatch(logging: "Nested command") { $0.corruptionAltarCooldownRemaining = 3 })
+            #expect(store.persistBatch(logging: "Nested command") { $0.corruptionAltarCooldownRemaining = 3 }.value)
             return .success(())
         }
         let result: SaveTransactionResult<Void, Never> = if recordsReceipts {

@@ -173,7 +173,7 @@ struct AppStateShopEncounterTests {
         let stipend = encounter.labyrinthNodeID.flatMap { state.playerSave.labyrinth.node(id: $0) }
             .map(LabyrinthCompletion.nonCombatGoldStipend) ?? 0
 
-        guard case .autoCompleted = state.encounters.beginShopEncounter(origin: origin) else {
+        guard case .autoCompleted = state.encounters.beginShopEncounter(origin: origin).value else {
             Issue.record("Expected an empty Shop to complete during opening")
             return
         }

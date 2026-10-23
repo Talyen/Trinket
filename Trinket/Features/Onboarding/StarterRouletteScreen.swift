@@ -21,7 +21,7 @@ struct StarterRouletteScreen: View {
     let role: Combatant.Role
     let combatants: [Combatant]
     let screenAccessibilityID: String
-    let onConfirm: (String) -> Bool
+    let onConfirm: (String) -> SaveActionAttempt<Bool>
 
     @State private var scrollEntryID: String?
     @State private var selectionFeedbackTrigger = 0
@@ -32,7 +32,7 @@ struct StarterRouletteScreen: View {
         combatants: [Combatant],
         screenAccessibilityID: String,
         initialSelectionID: String? = nil,
-        onConfirm: @escaping (String) -> Bool,
+        onConfirm: @escaping (String) -> SaveActionAttempt<Bool>,
     ) {
         self.role = role
         self.combatants = combatants
@@ -274,8 +274,8 @@ struct StarterRouletteScreen: View {
             return
         }
         playerSave.performSaveAction(key: "starter-\(selectedCombatant.id)") { _ in
-            guard playerSave.contentAccess.allowsCombatant(selectedCombatant.id) else { return }
-            _ = onConfirm(selectedCombatant.id)
+            guard playerSave.contentAccess.allowsCombatant(selectedCombatant.id) else { return SaveActionAttempt(false) }
+            return onConfirm(selectedCombatant.id)
         }
     }
 }

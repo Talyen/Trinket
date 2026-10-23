@@ -5,11 +5,11 @@ import TrinketCore
 @MainActor
 public extension PlayerSaveStore {
     @discardableResult
-    func confirmStarterHero(_ heroID: String) -> Bool {
+    func confirmStarterHero(_ heroID: String) -> SaveActionAttempt<Bool> {
         guard contentAccess.allowsCombatant(heroID),
               starterSelection.phase != .complete,
               GameContent.hero(matching: heroID) != nil
-        else { return false }
+        else { return SaveActionAttempt(false) }
         return persistBatch(logging: "Failed to save starter Hero") { save in
             save.starterSelection = StarterSelectionState(
                 phase: .chooseCompanion,
@@ -19,7 +19,7 @@ public extension PlayerSaveStore {
     }
 
     @discardableResult
-    func completeStarterSelection(companionID: String) -> Bool {
+    func completeStarterSelection(companionID: String) -> SaveActionAttempt<Bool> {
         let selection = starterSelection
         guard selection.phase == .chooseCompanion,
               let heroID = selection.heroID,
@@ -27,7 +27,7 @@ public extension PlayerSaveStore {
               contentAccess.allowsCombatant(companionID),
               GameContent.hero(matching: heroID) != nil,
               GameContent.companion(matching: companionID) != nil
-        else { return false }
+        else { return SaveActionAttempt(false) }
 
         return persistBatch(logging: "Failed to save starter party") { save in
             let previous = save.roster
@@ -50,7 +50,7 @@ public extension PlayerSaveStore {
     internal func mutateRoster(
         logging message: String = "Failed to persist roster edits",
         _ update: (inout PlayerRosterState) -> Void,
-    ) -> Bool {
+    ) -> SaveActionAttempt<Bool> {
         persistBatch(logging: message) { save in
             update(&save.roster)
         }
@@ -60,7 +60,7 @@ public extension PlayerSaveStore {
         nodeID: String,
         treeID: String,
         for combatantID: String,
-    ) -> RosterEditResult {
+    ) -> SaveActionAttempt<RosterEditResult> {
         persistRosterEdit(logging: "Failed to unlock talent") { save in
             save.roster.applyTalentUnlock(nodeID: nodeID, treeID: treeID, for: combatantID, access: contentAccess)
         }
@@ -75,14 +75,14 @@ extension PlayerSaveStore {
 
     /// Rejections discard the candidate before graph/journal writes; only refused
     /// durable commits are retryable. Every interactive roster command uses this path.
-    func persistRosterEdit(logging message: String, _ edit: (inout PlayerSave) -> Bool) -> RosterEditResult {
+    func persistRosterEdit(logging message: String, _ edit: (inout PlayerSave) -> Bool) -> SaveActionAttempt<RosterEditResult> {
         let result: SaveTransactionResult<Void, RosterEditRejection> = persistTransaction(logging: message) { save in
             edit(&save) ? .success(()) : .failure(.unavailable)
         }
         switch result {
-        case .committed: return .committed
-        case .rejected: return .unavailable
-        case .persistFailed: return .persistenceFailed
+        case .committed: return SaveActionAttempt(.committed)
+        case .rejected: return SaveActionAttempt(.unavailable)
+        case let .persistFailed(error): return SaveActionAttempt(.persistenceFailed, failure: error)
         }
     }
 }

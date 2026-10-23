@@ -169,7 +169,7 @@ struct BattleCompletionLifetimeTests {
                 _ = battle.activeBattle
             } onChange: {
                 MainActor.assumeIsolated {
-                    #expect(app.resetGameplayProgress())
+                    #expect(app.resetGameplayProgress().value)
                     published()
                 }
             }

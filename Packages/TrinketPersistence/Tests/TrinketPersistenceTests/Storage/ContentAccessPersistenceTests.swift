@@ -9,8 +9,8 @@ struct ContentAccessPersistenceTests {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
         store.contentAccess = .fullGame
-        #expect(store.confirmStarterHero("warlock"))
-        #expect(store.completeStarterSelection(companionID: "phoenix"))
+        #expect(store.confirmStarterHero("warlock").value)
+        #expect(store.completeStarterSelection(companionID: "phoenix").value)
         let warlock = try #require(GameContent.combatant(matching: "warlock"))
         #expect(store.persistFixtureBatch(logging: "Test premium progress") { save in
             save.roster.gold = 41
@@ -36,10 +36,10 @@ struct ContentAccessPersistenceTests {
     func `premium starter cannot be confirmed without access`() throws {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
-        #expect(!store.confirmStarterHero("warlock"))
-        #expect(store.confirmStarterHero("rogue"))
-        #expect(!store.completeStarterSelection(companionID: "phoenix"))
-        #expect(store.completeStarterSelection(companionID: "library_owl"))
+        #expect(!store.confirmStarterHero("warlock").value)
+        #expect(store.confirmStarterHero("rogue").value)
+        #expect(!store.completeStarterSelection(companionID: "phoenix").value)
+        #expect(store.completeStarterSelection(companionID: "library_owl").value)
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.roster.activeHeroID == "rogue")
         #expect(reloaded.roster.activeCompanionID == "library_owl")

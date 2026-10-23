@@ -8,11 +8,12 @@ public extension PlayerSaveStore {
         guard let enemyID = claim.enemyID, claim.isCurrent(in: self),
               library.isReadable, !library.progress.encounteredEnemyIDs.contains(enemyID) else { return }
         performSaveAction(key: "library-encounter-\(enemyID)") { [weak self] _ in
-            guard let self, claim.isCurrent(in: self), library.isReadable else { return }
-            let _: SaveTransactionResult<Void, Never> = persistTransaction(logging: "Failed to record enemy discovery") { save in
+            guard let self, claim.isCurrent(in: self), library.isReadable else { return SaveActionAttempt(()) }
+            let result: SaveTransactionResult<Void, Never> = persistTransaction(logging: "Failed to record enemy discovery") { save in
                 save.library.encounter(enemyID)
                 return .success(())
             }
+            return SaveActionAttempt((), failure: result.persistenceError)
         }
     }
 }

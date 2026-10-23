@@ -62,8 +62,8 @@ struct AppStateTests {
     @Test func `starter selection completes with chosen party and leaves Play at its root`() throws {
         let state = try context.makeAppState(environment: context.makeOnboardingEnvironment())
 
-        #expect(state.confirmStarterHero("wizard"))
-        #expect(state.completeStarterSelection(companionID: "frost_whelp"))
+        #expect(state.confirmStarterHero("wizard").value)
+        #expect(state.completeStarterSelection(companionID: "frost_whelp").value)
 
         #expect(state.playerSave.starterSelection == .complete)
         #expect(state.playerSave.roster.activeHeroID == "wizard")

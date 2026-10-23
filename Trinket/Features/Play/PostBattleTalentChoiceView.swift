@@ -261,10 +261,10 @@ private struct PostBattleTalentChoiceContent: View {
     }
 
     private func choose(node: TalentNode, tree: TalentTree) -> RosterEditResult {
-        playerSave.performSaveAction(key: "talent-\(combatantID)") { _ -> RosterEditResult in
-            guard play.currentPostBattleTalentCombatantID == combatantID else { return .unavailable }
+        playerSave.performSaveAction(key: "talent-\(combatantID)") { _ -> SaveActionAttempt<RosterEditResult> in
+            guard play.currentPostBattleTalentCombatantID == combatantID else { return SaveActionAttempt(.unavailable) }
             let result = play.choosePostBattleTalent(nodeID: node.id, treeID: tree.id)
-            switch result {
+            switch result.value {
             case .committed:
                 if scenePhase == .active {
                     playSFX(SFXID.talentUnlock, options.effectsVolume)

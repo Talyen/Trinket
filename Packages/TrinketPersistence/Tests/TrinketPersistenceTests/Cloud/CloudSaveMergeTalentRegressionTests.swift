@@ -15,7 +15,7 @@ struct CloudSaveMergeTalentRegressionTests {
         let resetContext = try PersistenceTestContext()
         try SaveTestSupport.writeRoot(base, to: resetContext.storeURL())
         let store = try resetContext.makeReloadedStore()
-        #expect(store.mutateRoster { $0.resetTalents(for: "knight") })
+        #expect(store.mutateRoster { $0.resetTalents(for: "knight") }.value)
         var reset = try resetContext.makeReloadedStore().currentSave
         #expect(reset.roster.unlockedTalents(for: "knight").isEmpty)
         reset.modifiedAt = Date(timeIntervalSince1970: resetMoreRecent ? 3 : 2)

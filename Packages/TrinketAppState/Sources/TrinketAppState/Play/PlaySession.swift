@@ -167,7 +167,7 @@ public final class PlaySession: BattleProgressionDelegate {
         )
     }
 
-    public func choosePostBattleTalent(nodeID: String, treeID: String) -> RosterEditResult {
+    public func choosePostBattleTalent(nodeID: String, treeID: String) -> SaveActionAttempt<RosterEditResult> {
         postBattleTalentChoices.choose(nodeID: nodeID, treeID: treeID, in: playerSave)
     }
 

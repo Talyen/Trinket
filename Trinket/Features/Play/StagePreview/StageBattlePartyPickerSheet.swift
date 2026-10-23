@@ -67,14 +67,17 @@ private func attemptPartySelection(
     onSelected: @escaping () -> Void,
 ) {
     playerSave.performSaveAction(key: "party-\(slot.title)") { _ in
-        guard BattlePartySlot.isEligible(combatant, access: playerSave.contentAccess) else { return }
-        guard combatant.id != slot.selectedID(in: playerSave.roster) else { return }
+        guard BattlePartySlot.isEligible(combatant, access: playerSave.contentAccess) else { return SaveActionAttempt(()) }
+        guard combatant.id != slot.selectedID(in: playerSave.roster) else { return SaveActionAttempt(()) }
         let result = switch slot {
         case .hero: playerSave.selectParty(heroID: combatant.id)
         case .companion: playerSave.selectParty(companionID: combatant.id)
         }
-        guard result == .committed else { return }
-        onSelected()
+        return result.map { value in
+            if value == .committed {
+                onSelected()
+            }
+        }
     }
 }
 

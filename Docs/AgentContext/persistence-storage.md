@@ -139,14 +139,16 @@ Lifecycle and sync checkpoints retry pending recovery files without rolling back
 already accepted progress. Reload tests prove subsequent writes retain the
 recovered values.
 
-`performSaveAction` runs the initial action and registers any retry within one
-failure boundary. Persistence commands record failures in that attempt; the shared
-Progress Status diagnostic never decides whether to start or continue a retry.
-A later successful write cannot hide an earlier failure in the same attempt, and
-an unrelated old error cannot turn a rejection into a queued action. Nested actions
-own their failures and retries independently, so a failed reward does not replay
-an already completed encounter-opening step. The retained closure receives `isRetry`
-for delayed completion feedback; it must recheck its encounter or choice identity.
+`performSaveAction` runs the initial action and registers a retry from its returned
+`SaveActionAttempt`: a product value plus that command's typed storage failure.
+Commit and logging never record into an enclosing action. The shared Progress Status
+diagnostic cannot decide whether to start or continue a retry. Mapping an attempt's
+product value preserves its failure; terminating a stale intent returns an attempt
+without failure. Multi-command workflows explicitly retain the unfinished step's
+result, so a later successful write cannot hide its failure. Nested actions own
+independent results/retries; a failed reward never replays a completed opening.
+The retained closure receives `isRetry` for delayed feedback and rechecks its
+encounter or choice identity.
 Keys identify replaceable player intents. Every submission takes ownership before
 running its initial action and retires the previous callback with that key, even
 when the new intent rejects or needs no write. Only the current submission may

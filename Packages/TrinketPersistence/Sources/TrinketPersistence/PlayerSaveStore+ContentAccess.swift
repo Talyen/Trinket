@@ -20,6 +20,6 @@ public extension PlayerSaveStore {
                 _ = roster.unlockCompanion(id: id)
                 roster.activeCompanionID = id
             }
-        }
+        }.value
     }
 }

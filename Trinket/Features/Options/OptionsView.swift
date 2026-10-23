@@ -98,7 +98,7 @@ struct OptionsView: View {
             Button(String(localized: L10n.ui_optionsview_reset_progress), role: .destructive) {
                 guard !appState.playerSave.isRetryingSaveAction else { return }
                 appState.playerSave.performSaveAction(key: "reset-progress") { _ in
-                    _ = appState.resetGameplayProgress()
+                    appState.resetGameplayProgress()
                 }
             }
             .accessibilityIdentifier(AccessibilityID.Options.resetProgressConfirmation)
@@ -181,7 +181,7 @@ struct OptionsView: View {
 
             Button(String(localized: L10n.ui_optionsview_unlock_all_59b3d)) {
                 appState.playerSave.performSaveAction(key: "unlock-content") { _ in
-                    _ = appState.unlockAllContent()
+                    appState.unlockAllContent()
                 }
             }
             .accessibilityIdentifier(AccessibilityID.Options.unlockAllButton)

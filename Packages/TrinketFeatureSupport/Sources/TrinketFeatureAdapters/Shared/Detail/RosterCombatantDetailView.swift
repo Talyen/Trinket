@@ -62,9 +62,9 @@ public struct RosterCombatantDetailView: View {
     }
 
     private func unlockTalent(node: TalentNode, tree: TalentTree, for id: String) -> RosterEditResult {
-        playerSave.performSaveAction(key: "combatant-talent-\(id)") { _ -> RosterEditResult in
+        playerSave.performSaveAction(key: "combatant-talent-\(id)") { _ -> SaveActionAttempt<RosterEditResult> in
             let result = playerSave.unlockTalent(nodeID: node.id, treeID: tree.id, for: id)
-            switch result {
+            switch result.value {
             case .committed:
                 if scenePhase == .active {
                     playSFX(SFXID.talentUnlock, effectsVolume)

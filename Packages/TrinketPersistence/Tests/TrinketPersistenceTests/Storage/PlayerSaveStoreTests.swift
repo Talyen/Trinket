@@ -17,7 +17,7 @@ struct PlayerSaveStoreTests {
         #expect(store.roster.loadout(for: ranger).abilities.map(\.id)
             == ["fire-arrow", "bounty-shot", "astral-arrow"])
         let oldLoadout = AbilityLoadout(basic: .venomArrow, skill: .pounce, ultimate: .packTactics)
-        #expect(store.mutateRoster { $0.setLoadout(oldLoadout, for: ranger) })
+        #expect(store.mutateRoster { $0.setLoadout(oldLoadout, for: ranger) }.value)
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.roster.loadout(for: ranger) == oldLoadout)
     }
@@ -55,7 +55,7 @@ struct PlayerSaveStoreTests {
             roster.setActiveHero(hero)
             roster.setLoadout(loadout, for: hero)
         }
-        #expect(persisted)
+        #expect(persisted.value)
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.roster.unlockedHeroIDs == existing.union([heroID]))
         #expect(reloaded.roster.activeHeroID == heroID)

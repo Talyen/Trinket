@@ -42,7 +42,7 @@ struct TalentPersistenceTests {
             let keyword: Keyword = combatantID == "wildcard" ? .dodge : .health
             let tree = try #require(CombatantTalentCatalog.config(for: combatantID).tree(for: keyword))
             let introductory = try #require(tree.nodes(forRow: 1).first)
-            #expect(reloaded.unlockTalent(nodeID: introductory.id, treeID: tree.id, for: combatantID) == .committed)
+            #expect(reloaded.unlockTalent(nodeID: introductory.id, treeID: tree.id, for: combatantID).value == .committed)
             let savedAgain = try context.makeReloadedStore()
             #expect(savedAgain.roster.unlockedTalents(for: combatantID) == retained.union([introductory.id]))
         }
@@ -64,7 +64,7 @@ struct TalentPersistenceTests {
             let config = try #require(CombatantTalentCatalog.configIfAvailable(for: combatantID))
             for nodeID in nodeIDs.sorted() {
                 let tree = try #require(config.trees.first { $0.node(matching: nodeID) != nil })
-                #expect(firstStore.unlockTalent(nodeID: nodeID, treeID: tree.id, for: combatantID) == .committed)
+                #expect(firstStore.unlockTalent(nodeID: nodeID, treeID: tree.id, for: combatantID).value == .committed)
             }
         }
 
@@ -89,14 +89,14 @@ struct TalentPersistenceTests {
                 nodeID: knightNode.id,
                 treeID: knightTree.id,
                 for: "knight",
-            ) == .unavailable,
+            ).value == .unavailable,
         )
         #expect(
             store.unlockTalent(
                 nodeID: knightNode.id,
                 treeID: rogueTree.id,
                 for: "knight",
-            ) == .unavailable,
+            ).value == .unavailable,
         )
         #expect(store.roster.unlockedTalents(for: "knight").isEmpty)
     }
@@ -117,7 +117,7 @@ struct TalentPersistenceTests {
                 nodeID: node.id,
                 treeID: tree.id,
                 for: "knight",
-            ) == .persistenceFailed,
+            ).value == .persistenceFailed,
         )
         #expect(store.roster.unlockedTalents(for: "knight").isEmpty)
     }

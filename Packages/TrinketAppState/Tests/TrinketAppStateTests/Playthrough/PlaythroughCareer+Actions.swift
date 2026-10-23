@@ -13,12 +13,12 @@ extension PlaythroughCareer {
     func execute(_ action: PlaythroughAction) async throws {
         switch action {
         case let .starterHero(id):
-            try require(state.confirmStarterHero(id), "starter hero")
+            try require(state.confirmStarterHero(id).value, "starter hero")
         case let .starterCompanion(id):
-            try require(state.completeStarterSelection(companionID: id), "starter companion")
+            try require(state.completeStarterSelection(companionID: id).value, "starter companion")
         case let .talent(id, tree, node):
             try require(play.currentPostBattleTalentCombatantID == id, "talent owner")
-            try require(play.choosePostBattleTalent(nodeID: node, treeID: tree) == .committed, "talent")
+            try require(play.choosePostBattleTalent(nodeID: node, treeID: tree).value == .committed, "talent")
             summary.talents += 1
         case .finishTalent:
             guard let id = play.postBattleTalentConfirmationID else { throw PlaythroughFailure.rejected("talent confirmation") }
@@ -155,7 +155,8 @@ extension PlaythroughCareer {
                 throw PlaythroughFailure.rejected("equipment identity")
             }
             try require(
-                store.editCombatant(.equipItem(itemID: item.id, slot: item.baseType.defaultEquipmentSlot), for: combatant.id) == .committed,
+                store.editCombatant(.equipItem(itemID: item.id, slot: item.baseType.defaultEquipmentSlot), for: combatant.id)
+                    .value == .committed,
                 "equip item",
             )
             summary.equipmentChanges += 1
@@ -166,7 +167,7 @@ extension PlaythroughCareer {
                   store.contentAccess.allowsCombatant(heroID), store.contentAccess.allowsCombatant(companionID) else {
                 throw PlaythroughFailure.rejected("party availability")
             }
-            try require(store.selectParty(heroID: hero.id, companionID: companion.id) == .committed, "party change")
+            try require(store.selectParty(heroID: hero.id, companionID: companion.id).value == .committed, "party change")
         case let .upgrade(id, tier):
             guard let definition = GameContent.homesteadNodes.first(where: { $0.id.rawValue == id }) else {
                 throw PlaythroughFailure.unsupported("Homestead node \(id)")

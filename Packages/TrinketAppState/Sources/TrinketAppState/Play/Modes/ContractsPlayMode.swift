@@ -25,24 +25,22 @@ public final class ContractsPlayMode {
 
     @discardableResult
     public func enter() -> StageMapMessage? {
-        playerSave.performSaveAction(key: SaveRetryKey.contractsEnter) { [weak self] _ -> StageMapMessage? in
-            guard let self else { return nil }
-            guard battle.lifecyclePhase != .active else { return PlayBattleCoordinator.activationFailureMessage }
-            guard encounters.canBeginTransientEncounter else { return nil }
-            _ = playerSave.prepareContracts(makeOffer: makeOffer)
-            return nil
+        playerSave.performSaveAction(key: SaveRetryKey.contractsEnter) { [weak self] _ -> SaveActionAttempt<StageMapMessage?> in
+            guard let self else { return SaveActionAttempt(nil) }
+            guard battle.lifecyclePhase != .active else { return SaveActionAttempt(PlayBattleCoordinator.activationFailureMessage) }
+            guard encounters.canBeginTransientEncounter else { return SaveActionAttempt(nil) }
+            return playerSave.prepareContracts(makeOffer: makeOffer).map { _ in nil }
         }
     }
 
     @discardableResult
     public func refresh() -> StageMapMessage? {
-        playerSave.performSaveAction(key: SaveRetryKey.contractsRefresh) { [weak self] _ -> StageMapMessage? in
-            guard let self else { return nil }
-            guard battle.lifecyclePhase != .active else { return PlayBattleCoordinator.activationFailureMessage }
-            guard encounters.canBeginTransientEncounter else { return nil }
-            guard playerSave.contracts.refreshAvailable else { return nil }
-            _ = playerSave.refreshContracts(makeOffer: makeOffer)
-            return nil
+        playerSave.performSaveAction(key: SaveRetryKey.contractsRefresh) { [weak self] _ -> SaveActionAttempt<StageMapMessage?> in
+            guard let self else { return SaveActionAttempt(nil) }
+            guard battle.lifecyclePhase != .active else { return SaveActionAttempt(PlayBattleCoordinator.activationFailureMessage) }
+            guard encounters.canBeginTransientEncounter else { return SaveActionAttempt(nil) }
+            guard playerSave.contracts.refreshAvailable else { return SaveActionAttempt(nil) }
+            return playerSave.refreshContracts(makeOffer: makeOffer).map { _ in nil }
         }
     }
 

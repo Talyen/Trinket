@@ -10,7 +10,7 @@ struct StarterSelectionTests {
         firstStore.contentAccess = .fullGame
 
         #expect(firstStore.starterSelection == .fresh)
-        #expect(firstStore.confirmStarterHero(heroID))
+        #expect(firstStore.confirmStarterHero(heroID).value)
 
         let resumedStore = try context.makeReloadedStore()
         resumedStore.contentAccess = .fullGame
@@ -18,7 +18,7 @@ struct StarterSelectionTests {
             resumedStore.starterSelection
                 == StarterSelectionState(phase: .chooseCompanion, heroID: heroID),
         )
-        #expect(resumedStore.completeStarterSelection(companionID: "pixie"))
+        #expect(resumedStore.completeStarterSelection(companionID: "pixie").value)
 
         let completedStore = try context.makeReloadedStore()
         #expect(completedStore.starterSelection == .complete)
@@ -40,12 +40,12 @@ struct StarterSelectionTests {
         #expect(StarterSelectionState(phase: .complete, heroID: "knight") == .complete)
 
         let store = try context.makeSaveStore(inMemoryOnly: true)
-        #expect(!store.confirmStarterHero("not-a-hero"))
-        #expect(!store.completeStarterSelection(companionID: "wolf"))
-        #expect(store.confirmStarterHero("knight"))
-        #expect(!store.completeStarterSelection(companionID: "not-a-companion"))
-        #expect(store.completeStarterSelection(companionID: "wolf"))
-        #expect(!store.confirmStarterHero("rogue"))
+        #expect(!store.confirmStarterHero("not-a-hero").value)
+        #expect(!store.completeStarterSelection(companionID: "wolf").value)
+        #expect(store.confirmStarterHero("knight").value)
+        #expect(!store.completeStarterSelection(companionID: "not-a-companion").value)
+        #expect(store.completeStarterSelection(companionID: "wolf").value)
+        #expect(!store.confirmStarterHero("rogue").value)
         #expect(store.starterSelection == .complete)
     }
 }

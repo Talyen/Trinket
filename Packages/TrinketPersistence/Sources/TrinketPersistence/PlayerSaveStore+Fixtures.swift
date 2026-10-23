@@ -33,12 +33,16 @@ extension PlayerSaveStore {
 
     @discardableResult
     func persistFixtureBatch(logging message: String, _ mutation: (inout PlayerSave) -> Void) -> Bool {
+        persistFixtureAction(logging: message, mutation).value
+    }
+
+    func persistFixtureAction(logging message: String, _ mutation: (inout PlayerSave) -> Void) -> SaveActionAttempt<Bool> {
         do {
             try performFixtureMutation(mutation)
-            return true
+            return SaveActionAttempt(true)
         } catch {
             notePersistenceFailure(error, logging: message)
-            return false
+            return SaveActionAttempt(false, failure: PlayerSavePersistenceError.mapped(error))
         }
     }
 }

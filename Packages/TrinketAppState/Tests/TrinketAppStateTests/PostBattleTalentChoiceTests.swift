@@ -44,7 +44,7 @@ struct PostBattleTalentChoiceTests {
             } onChange: {
                 changed()
             }
-            #expect(state.choosePostBattleTalent(nodeID: node.id, treeID: tree.id) == .committed)
+            #expect(state.choosePostBattleTalent(nodeID: node.id, treeID: tree.id).value == .committed)
         }
         #expect(state.postBattleTalentConfirmationID != nil)
     }
@@ -89,15 +89,15 @@ struct PostBattleTalentChoiceTests {
 
         let tree = try #require(CombatantTalentCatalog.allConfigs[hero.id]?.trees.first)
         let node = try #require(tree.nodes.first)
-        #expect(state.choosePostBattleTalent(nodeID: "missing", treeID: tree.id) == .unavailable)
+        #expect(state.choosePostBattleTalent(nodeID: "missing", treeID: tree.id).value == .unavailable)
         #expect(state.currentPostBattleTalentCombatantID == hero.id)
         #if DEBUG
         state.playerSave.forcesNextSaveFailure = true
-        #expect(state.choosePostBattleTalent(nodeID: node.id, treeID: tree.id) == .persistenceFailed)
+        #expect(state.choosePostBattleTalent(nodeID: node.id, treeID: tree.id).value == .persistenceFailed)
         #expect(state.postBattleTalentConfirmationID == nil)
         #expect(state.playerSave.roster.unlockedTalents(for: hero.id).isEmpty)
         #endif
-        #expect(state.choosePostBattleTalent(nodeID: node.id, treeID: tree.id) == .committed)
+        #expect(state.choosePostBattleTalent(nodeID: node.id, treeID: tree.id).value == .committed)
         #expect(state.playerSave.roster.unlockedTalents(for: hero.id) == [node.id])
         #expect(state.currentPostBattleTalentCombatantID == hero.id)
         #expect(state.isGameplayActive)
@@ -128,7 +128,7 @@ struct PostBattleTalentChoiceTests {
 
         let tree = try #require(CombatantTalentCatalog.allConfigs[hero.id]?.trees.first)
         let node = try #require(tree.nodes.first)
-        #expect(state.choosePostBattleTalent(nodeID: node.id, treeID: tree.id) == .committed)
+        #expect(state.choosePostBattleTalent(nodeID: node.id, treeID: tree.id).value == .committed)
         #expect(state.currentPostBattleTalentCombatantID == hero.id)
         let confirmation = try #require(state.postBattleTalentConfirmationID)
         state.finishPostBattleTalentConfirmation(id: confirmation)
@@ -162,19 +162,19 @@ struct PostBattleTalentChoiceTests {
         let firstNode = row1Nodes[0]
         let secondNode = row1Nodes[1]
 
-        #expect(state.choosePostBattleTalent(nodeID: firstNode.id, treeID: tree.id) == .committed)
+        #expect(state.choosePostBattleTalent(nodeID: firstNode.id, treeID: tree.id).value == .committed)
         #expect(state.currentPostBattleTalentCombatantID == hero.id)
         #expect(state.playerSave.roster.availableTalentPoints(for: hero.id) == 1)
 
         let firstConfirmation = try #require(state.postBattleTalentConfirmationID)
-        #expect(state.choosePostBattleTalent(nodeID: secondNode.id, treeID: tree.id) == .committed)
+        #expect(state.choosePostBattleTalent(nodeID: secondNode.id, treeID: tree.id).value == .committed)
         let lastConfirmation = try #require(state.postBattleTalentConfirmationID)
         #expect(firstConfirmation != lastConfirmation)
         #expect(state.playerSave.roster.availableTalentPoints(for: hero.id) == 0)
         state.finishPostBattleTalentConfirmation(id: firstConfirmation)
         #expect(state.currentPostBattleTalentCombatantID == hero.id)
         #expect(state.postBattleTalentConfirmationID == lastConfirmation)
-        #expect(state.choosePostBattleTalent(nodeID: secondNode.id, treeID: tree.id) == .unavailable)
+        #expect(state.choosePostBattleTalent(nodeID: secondNode.id, treeID: tree.id).value == .unavailable)
         state.finishPostBattleTalentConfirmation(id: lastConfirmation)
         #expect(state.currentPostBattleTalentCombatantID == nil)
     }
@@ -236,7 +236,7 @@ struct PostBattleTalentChoiceTests {
 
         let tree = try #require(CombatantTalentCatalog.allConfigs[hero.id]?.trees.first)
         let node = try #require(tree.nodes.first)
-        #expect(state.playerSave.unlockTalent(nodeID: node.id, treeID: tree.id, for: hero.id) == .committed)
+        #expect(state.playerSave.unlockTalent(nodeID: node.id, treeID: tree.id, for: hero.id).value == .committed)
 
         #expect(state.currentPostBattleTalentCombatantID == nil)
         #expect(!state.isGameplayActive)

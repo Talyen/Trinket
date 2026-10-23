@@ -15,11 +15,13 @@ easier to reason about without changing Trinket's rules, saves, presentation, or
 player feedback. Reduce independently maintained representations of the same rule;
 preserve the package DAG and existing ownership boundaries.
 
-Implementation of all four simplifications is authorized. Work proceeds in the
-agreed order: motion recipes, explicit retry results, shared card semantics, then
-damage packets. Motion representation is being migrated first. Shipping-UI
-verification currently awaits the occupied managed simulator slot; independent
-implementation and verification continue.
+Implementation of all four simplifications is authorized, in order: motion
+recipes, explicit retry results, shared card semantics, then damage packets.
+Motion representation and explicit retry-result migration are implemented; static
+checks pass. Compiled/runtime verification remains in progress, and shipping-UI
+inspection awaits the occupied managed simulator slot. The shared card-semantics
+migration is now in progress. Remaining work includes damage packets, complete
+compiled/behavior/visual verification, review, local integration, and plan closure.
 
 Reviewed baseline: committed local main `2ad7f9db7`. Evidence comes from production
 source, callers, contracts, and existing regression tests. These are maintenance

@@ -19,8 +19,8 @@ enum SaveRetryPolicy {
 
 @MainActor
 public extension PlayerSaveStore {
-    /// Runs an action and retains it only if its own persistence commands fail
-    /// transiently. Initial attempts and retries use the same failure boundary;
+    /// Runs an action and retains it only when its returned command result carries
+    /// a transient storage failure. Initial attempts and retries share that result;
     /// `lastPersistenceError` remains a diagnostic, never a scheduling input.
     /// Nested actions own their failures independently. A new submission supersedes
     /// any retained action with its key, even if it rejects or needs no write.
@@ -29,30 +29,21 @@ public extension PlayerSaveStore {
     @discardableResult
     func performSaveAction<Value>(
         key: String,
-        _ action: @escaping @MainActor (_ isRetry: Bool) -> Value,
+        _ action: @escaping @MainActor (_ isRetry: Bool) -> SaveActionAttempt<Value>,
     ) -> Value {
         let generation = sessionGeneration
         let retryKey = "\(generation):\(key)"
         let id = saveActionRetries.begin(key: retryKey)
-        let result = attemptSaveAction { action(false) }
+        let result = action(false)
         if result.failure?.isRetryable == true, sessionGeneration == generation {
             saveActionRetries.schedule(key: retryKey, id: id) { [weak self] in
                 guard let self, sessionGeneration == generation else { return nil }
-                return attemptSaveAction { action(true) }.failure
+                return action(true).failure
             }
         } else {
             saveActionRetries.finish(key: retryKey, id: id)
         }
         return result.value
-    }
-
-    private func attemptSaveAction<Value>(_ action: () -> Value) -> (value: Value, failure: PlayerSavePersistenceError?) {
-        let previous = saveActionAttempt
-        let attempt = SaveActionAttempt()
-        saveActionAttempt = attempt
-        defer { saveActionAttempt = previous }
-        let value = action()
-        return (value, attempt.failure)
     }
 }
 

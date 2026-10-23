@@ -58,7 +58,7 @@ struct EncounterOpeningLifetimeTests {
                 _ = play.encounters.activeMysteryEncounter
             } onChange: {
                 MainActor.assumeIsolated {
-                    #expect(app.resetGameplayProgress())
+                    #expect(app.resetGameplayProgress().value)
                     published()
                 }
             }

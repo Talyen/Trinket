@@ -25,41 +25,36 @@ extension PlayerSaveStore {
         defer {
             Self.performanceSignposter.endInterval("PlayerSaveMutation", mutationInterval)
         }
-        do {
-            try requireCommitAdmission()
-            guard proposed.sourceRevision == commitRevision else {
-                throw PlayerSavePersistenceError.invalidSave("The save changed while preparing this action.")
-            }
-            let snapshot = currentSave
-            let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot, candidate: proposed.save)
-            let actions = try proposed.finalizedActions(at: candidate)
-            let receipts = (accounting ?? .receipts(actions.isEmpty ? proposed.receipts : actions.map(\.receipt))).receipts
-            if let receipts {
-                try SaveEconomicMutation.validate(from: snapshot, to: candidate, receipts: receipts)
-            }
-            try applyCandidate(
-                candidate,
-                replacing: snapshot,
-                slices: changedSlices,
-                receipts: receipts,
-                actions: actions.isEmpty ? nil : actions,
-            )
-        } catch {
-            saveActionAttempt?.record(PlayerSavePersistenceError.mapped(error))
-            throw error
+        try requireCommitAdmission()
+        guard proposed.sourceRevision == commitRevision else {
+            throw PlayerSavePersistenceError.invalidSave("The save changed while preparing this action.")
         }
+        let snapshot = currentSave
+        let (candidate, changedSlices) = try PlayerSaveSlice.prepareCandidate(from: snapshot, candidate: proposed.save)
+        let actions = try proposed.finalizedActions(at: candidate)
+        let receipts = (accounting ?? .receipts(actions.isEmpty ? proposed.receipts : actions.map(\.receipt))).receipts
+        if let receipts {
+            try SaveEconomicMutation.validate(from: snapshot, to: candidate, receipts: receipts)
+        }
+        try applyCandidate(
+            candidate,
+            replacing: snapshot,
+            slices: changedSlices,
+            receipts: receipts,
+            actions: actions.isEmpty ? nil : actions,
+        )
     }
 
     @discardableResult
-    func persistBatch(logging message: String, _ mutation: (inout PlayerSave) -> Void) -> Bool {
+    func persistBatch(logging message: String, _ mutation: (inout PlayerSave) -> Void) -> SaveActionAttempt<Bool> {
         let candidate = makeMutation()
         mutation(&candidate.save)
         do {
             try commit(candidate)
-            return true
+            return SaveActionAttempt(true)
         } catch {
             notePersistenceFailure(error, logging: message)
-            return false
+            return SaveActionAttempt(false, failure: PlayerSavePersistenceError.mapped(error))
         }
     }
 
@@ -69,7 +64,6 @@ extension PlayerSaveStore {
     /// see `PlayerSavePersistenceError.mapped`.
     func notePersistenceFailure(_ error: Error, logging message: String) {
         let mapped = PlayerSavePersistenceError.mapped(error)
-        saveActionAttempt?.record(mapped)
         lastPersistenceError = mapped
         logger.error(
             "\(message, privacy: .public): \(String(describing: error), privacy: .public)",

@@ -66,15 +66,3 @@ final class SaveActionRetryQueue {
         isRetrying = entries.values.contains { $0.task != nil }
     }
 }
-
-/// Commit failures belong to the synchronous action that performed them.
-@MainActor
-final class SaveActionAttempt {
-    private(set) var failure: PlayerSavePersistenceError?
-
-    func record(_ error: PlayerSavePersistenceError) {
-        // A later transient failure cannot make a rejected action retryable.
-        guard failure?.isRetryable != false else { return }
-        failure = error
-    }
-}

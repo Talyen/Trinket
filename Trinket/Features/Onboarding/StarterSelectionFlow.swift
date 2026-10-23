@@ -11,14 +11,14 @@ struct StarterSelectionFlow: View {
 
     @State private var path: [Destination]
 
-    let confirmHero: (String) -> Bool
-    let confirmCompanion: (String) -> Bool
+    let confirmHero: (String) -> SaveActionAttempt<Bool>
+    let confirmCompanion: (String) -> SaveActionAttempt<Bool>
     let initialHeroID: String?
 
     init(
         initialSelection: StarterSelectionState,
-        confirmHero: @escaping (String) -> Bool,
-        confirmCompanion: @escaping (String) -> Bool,
+        confirmHero: @escaping (String) -> SaveActionAttempt<Bool>,
+        confirmCompanion: @escaping (String) -> SaveActionAttempt<Bool>,
     ) {
         _path = State(initialValue: initialSelection.phase == .chooseCompanion ? [.companion] : [])
         initialHeroID = initialSelection.heroID
@@ -46,15 +46,16 @@ struct StarterSelectionFlow: View {
         }
     }
 
-    private func confirmSelectedHero(_ heroID: String) -> Bool {
-        guard confirmHero(heroID) else { return false }
-        if !path.contains(.companion) {
-            path.append(.companion)
+    private func confirmSelectedHero(_ heroID: String) -> SaveActionAttempt<Bool> {
+        confirmHero(heroID).map { committed in
+            if committed, !path.contains(.companion) {
+                path.append(.companion)
+            }
+            return committed
         }
-        return true
     }
 
-    private func confirmSelectedCompanion(_ companionID: String) -> Bool {
+    private func confirmSelectedCompanion(_ companionID: String) -> SaveActionAttempt<Bool> {
         confirmCompanion(companionID)
     }
 }

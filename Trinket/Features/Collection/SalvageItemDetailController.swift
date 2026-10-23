@@ -116,7 +116,7 @@ extension ItemDetailView {
             equippedByName: saveStore.roster.equippedCombatantName(for: item.id),
             onSalvage: { () -> ItemSalvageActionResult in
                 saveStore.performSaveAction(key: "salvage-\(item.id)") { [weak saveStore] isRetry in
-                    guard let saveStore else { return ItemSalvageActionResult.itemNotFound }
+                    guard let saveStore else { return SaveActionAttempt(ItemSalvageActionResult.itemNotFound) }
                     let result = withAnimation(TrinketMotion.Reward.collectionStateChange) {
                         saveStore.salvageItem(id: item.id)
                     }
@@ -128,7 +128,7 @@ extension ItemDetailView {
                     if isRetry, outcome != .persistenceFailure {
                         onFinished(outcome)
                     }
-                    return outcome
+                    return SaveActionAttempt(outcome, failure: result.persistenceError)
                 }
             },
             onSalvageFinished: onFinished,

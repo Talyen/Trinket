@@ -40,7 +40,7 @@ extension CloudSaveSyncTests {
         }
         switch api {
         case "batch":
-            #expect(!store.persistBatch(logging: "Unrecorded effects", mutation))
+            #expect(!store.persistBatch(logging: "Unrecorded effects", mutation).value)
         case "transaction":
             enum Rejection: Error { case unavailable }
             let result: SaveTransactionResult<Void, Rejection> = store.persistTransaction(logging: "Unrecorded effects") { save in
@@ -57,7 +57,7 @@ extension CloudSaveSyncTests {
         #expect(store.cloudDeviceState.account.journal == journal)
         #expect(try context.makeReloadedStore().currentSave == before)
         // The same save-only path still commits a real non-economic edit.
-        #expect(store.persistBatch(logging: "Non-economic edit") { $0.corruptionAltarCooldownRemaining = 1 })
+        #expect(store.persistBatch(logging: "Non-economic edit") { $0.corruptionAltarCooldownRemaining = 1 }.value)
         #expect(try context.makeReloadedStore().corruptionAltarCooldownRemaining == 1)
     }
 
