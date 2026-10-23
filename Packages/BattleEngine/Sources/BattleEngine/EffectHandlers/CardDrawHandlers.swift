@@ -6,19 +6,7 @@ extension EffectApplication {
         guard case let .drawCards(count) = effect, count > 0 else {
             return EffectApplyOutcome(didApply: false)
         }
-        let drawTarget: Combatant
-        if ability.id == Ability.packTactics.id,
-           let sourceOwner = context.roster.participant(for: source), sourceOwner.isPartyMember {
-            let allyOwner: BattleParticipant = sourceOwner == .hero ? .companion : .hero
-            if BattleCardCombatEngine.canDrawFromDeck(for: allyOwner, in: context),
-               !BattleCardCombatEngine.isDeckEmpty(for: allyOwner, in: context) {
-                drawTarget = context.roster[allyOwner].combatant
-            } else {
-                drawTarget = source
-            }
-        } else {
-            drawTarget = target
-        }
+        let drawTarget = drawRecipient(in: context)
         guard let owner = context.roster.participant(for: drawTarget), owner.isPartyMember else {
             return EffectApplyOutcome(didApply: false)
         }

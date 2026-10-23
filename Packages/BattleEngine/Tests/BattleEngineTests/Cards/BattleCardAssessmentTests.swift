@@ -417,3 +417,30 @@ extension BattleCardAssessmentTests {
         #expect(heal.targetID == (hasDebuff || !heroAlive ? state.companion.id : state.hero.id))
     }
 }
+
+extension BattleCardAssessmentTests {
+    @Test func `composite aegis cues and execution retain the same constituent effects`() throws {
+        var state = battle()
+        let ability = Ability(
+            id: "composite-aegis", name: "Composite Aegis", tier: .ultimate,
+            effects: [.blessedAegis(block: 3, holyDamage: 2)],
+        )
+        let card = deal(ability, in: &state)
+        let rng = state.rng
+        let targets = state.assessCard(card).targets
+        #expect(state.rng == rng)
+        let effects: [Effect] = [.shield(.block, 3), .onHitDamage(.holy, 2)]
+        #expect(targets.count == 4)
+        for ally in [state.hero, state.companion] {
+            for effect in effects {
+                #expect(targets.contains { $0.combatantID == ally.id && $0.intent == .effect(effect) })
+            }
+        }
+        _ = try state.playCard(cardID: card.id)
+        for ally in [state.hero, state.companion] {
+            for effect in effects {
+                #expect(state.activeEffects(of: ally).contains { $0.effect == effect })
+            }
+        }
+    }
+}

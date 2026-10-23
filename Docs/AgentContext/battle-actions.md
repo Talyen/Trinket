@@ -261,6 +261,11 @@ affordability, possible outcomes, targeting, and the Mana empowerment budget wit
 resolution. Quotes deduct the card’s Block cost before budgeting empowerment, then
 combine both Block spends against the original balance. Assessment never advances RNG
 or consumes combat preparations.
+Effect application and assessment share composite Aegis constituents, Panacea
+recipient rules, and deferred draw-recipient selection through `EffectApplication`.
+Mana quotes pass operation keywords and empowerment settings directly to the shared
+budget, without constructing synthetic abilities. Repeated-payment certainty keeps
+its conservative trigger check; new unmodeled reactions remain non-quantitative.
 Random damage elements retain a certain recipient with an unspecified damage
 keyword when every outcome damages that recipient. Automatic-play recipients
 remain unresolved until their drawn actions execute.

@@ -10,32 +10,29 @@ extension BattleState {
         if original.blockCost > 0 {
             resources.append(resourceUse(.block, amount: original.blockCost, actor: actor))
         }
-        let damageComponents = branch.damageComponents
+        let hasDamage = branch.operations.contains { $0.damageComponent != nil }
         let healthCost = BattleAbilityRules.healthCost(branch.operations, action: action, in: self)
         if healthCost > 0 {
             resources.append(resourceUse(.health, amount: healthCost, actor: actor))
         }
-        let ability = Ability(
-            id: original.id, name: original.name, tier: original.tier,
-            repeatsManaEmpowerment: original.repeatsManaEmpowerment,
-            operations: branch.operations,
-        )
         let blockOverride = original.blockCost > 0
             ? max(0, DefensePoolEngine.blockPoints(in: roster.activeEffects(for: actor)) - original.blockCost)
             : nil
         for use in empowermentResourceUses(
-            ability, actor: actor, randomKeywords: branch.randomizeDamageKeywords, blockOverride: blockOverride,
+            branch.operations, repeatsManaEmpowerment: original.repeatsManaEmpowerment,
+            actor: actor, randomKeywords: branch.randomizeDamageKeywords, blockOverride: blockOverride,
         ) {
             mergeResource(use, into: &resources)
         }
-        for (effectIndex, targeted) in branch.targetedEffects.enumerated() where targeted.effect == .convertManaToBlock {
+        for (effectIndex, operation) in branch.operations.enumerated() {
+            guard case let .effect(targeted) = operation, targeted.effect == .convertManaToBlock else { continue }
             if let condition = targeted.condition, !BattleConditionEvaluator.isMet(condition, action: action, in: self) {
                 continue
             }
             for (targetIndex, target) in action.targets(targeted.target, in: self).enumerated() where health(of: target) > 0 {
                 // Earlier operations and another recipient's spending reactions can change this balance.
-                let isCertain = damageComponents.isEmpty && effectIndex == 0 && targetIndex == 0
-                    && !ability.hasManaEmpowerableBurnOrFreezeDamage
+                let isCertain = !hasDamage && effectIndex == 0 && targetIndex == 0
+                    && !branch.operations.contains(where: \.isManaEmpowerable)
                 let mana = mana(of: target)
                 guard mana > 0 || !isCertain else { continue }
                 mergeResource(resourceUse(.mana, amount: isCertain ? mana : nil, actor: target), into: &resources)
@@ -47,14 +44,16 @@ extension BattleState {
 
 private extension BattleState {
     func empowermentResourceUses(
-        _ ability: Ability, actor: Combatant, randomKeywords: Bool, blockOverride: Int? = nil,
+        _ operations: [AbilityOperation], repeatsManaEmpowerment: Bool,
+        actor: Combatant, randomKeywords: Bool, blockOverride: Int? = nil,
     ) -> [BattleCardAssessment.ResourceUse] {
-        guard ability.hasManaEmpowerableBurnOrFreezeDamage || randomKeywords else { return [] }
-        let quoted = randomKeywords ? Ability(
-            id: ability.id, name: ability.name, tier: ability.tier,
-            directDamage: 1, damageKeyword: .freeze,
-        ) : ability
-        var budget = ManaEmpowermentBudget(ability: quoted, actor: actor, in: self, blockOverride: blockOverride)
+        guard operations.contains(where: \.isManaEmpowerable) || randomKeywords else { return [] }
+        var budget = ManaEmpowermentBudget(
+            keywords: randomKeywords ? [.freeze] : operations.flatMap(\.keywords),
+            hasBurnDamage: !randomKeywords && operations.contains { $0.keyword == .burn && $0.isManaEmpowerable },
+            repeatsManaEmpowerment: !randomKeywords && repeatsManaEmpowerment,
+            actor: actor, in: self, blockOverride: blockOverride,
+        )
         let isCertain = !randomKeywords && (budget.purchaseLimit == 1 || hasPredictableRepeatedPayments)
         guard let payment = budget.totalPayment() else { return [] }
         var uses: [BattleCardAssessment.ResourceUse] = []

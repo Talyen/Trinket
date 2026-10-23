@@ -21,8 +21,17 @@ struct ManaEmpowermentBudget {
     private var preparedDiscount: Int
 
     init(ability: Ability, actor: Combatant, in context: BattleState, blockOverride: Int? = nil) {
-        let keywords = ability.keywords
-        let hasBurnDamage = ability.hasManaEmpowerableBurnDamage
+        self.init(
+            keywords: ability.keywords, hasBurnDamage: ability.hasManaEmpowerableBurnDamage,
+            repeatsManaEmpowerment: ability.repeatsManaEmpowerment,
+            actor: actor, in: context, blockOverride: blockOverride,
+        )
+    }
+
+    init(
+        keywords: [Keyword], hasBurnDamage: Bool, repeatsManaEmpowerment: Bool,
+        actor: Combatant, in context: BattleState, blockOverride: Int? = nil,
+    ) {
         let runtime = context.roster.runtime(for: actor)
         let triggers = context.modifiers(for: actor.id).triggers
         let patron = keywords.contains(.freeze) && actor.role != .enemy
@@ -49,7 +58,7 @@ struct ManaEmpowermentBudget {
         )
         let maxMana = SaturatedArithmetic.saturatingAdd(runtime?.maxMana ?? 0, patron?.maxMana ?? 0)
         hasCapacity = maxMana > 0 || blockRate > 0
-        let repeats = ability.repeatsManaEmpowerment
+        let repeats = repeatsManaEmpowerment
             || (hasBurnDamage && triggers.repeatManaEmpowerment)
         let discountPurchase = preparedDiscount > 0 || (!hasEmpowered && firstDiscount > 0) ? 1 : 0
         let capacity = SaturatedArithmetic.saturatingAdd(maxMana, blockRate > 0 ? block / blockRate : 0)

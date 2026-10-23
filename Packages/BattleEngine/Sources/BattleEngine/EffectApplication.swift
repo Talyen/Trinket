@@ -98,11 +98,11 @@ struct EffectApplication {
             ).application
         case let .panacea(baseHeal, healPerDebuff):
             let action = BattleActionContext(actor: source, in: context)
-            let cleanseTarget = BattleActionContext.mostDebuffed(in: action.allies(in: context), state: context)
+            let cleanseTarget = Self.panaceaCleanseTarget(action: action, in: context)
             return await EffectRemovalOperation.resolveCleanse(
                 .all(nil), source: source, target: cleanseTarget, abilityID: ability.id, abilityName: ability.name,
                 baseHeal: baseHeal, healPerDebuff: healPerDebuff,
-                healTarget: .lowestHealthAlly, origin: .direct, in: &context,
+                healTarget: Self.panaceaHealTarget, origin: .direct, in: &context,
             ).application
         case let .halveShield(keyword):
             guard DefensePoolEngine.halveBlock(on: target, in: &context) else {

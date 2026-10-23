@@ -88,17 +88,10 @@ private extension BattleState {
         _ branch: AbilityOutcomeBranch, action: BattleActionContext, abilityID: String, keywordOverride: Keyword?,
     ) -> [BattleCardAssessment.Target] {
         let actor = action.actor
-        let damageComponents = branch.damageComponents
-        var targets: [BattleCardAssessment.Target] = []
-        for component in damageComponents {
-            guard BattleDamageRules.isEnabled(component, action: action, in: self),
-                  component.hasPotentialDamage else { continue }
-            let target = action.target(component.target, in: self)
-            guard target.id != actor.id else { continue }
-            let keyword = keywordOverride ?? (branch.randomizeDamageKeywords ? nil : component.keyword)
-            targets.append(.init(combatantID: target.id, intent: .damage(keyword)))
-        }
-        for (index, targeted) in branch.targetedEffects.enumerated() {
+        let hasDamage = branch.operations.contains { $0.damageComponent != nil }
+        var targets = assessmentDamageTargets(branch, action: action, keywordOverride: keywordOverride)
+        for (index, operation) in branch.operations.enumerated() {
+            guard case let .effect(targeted) = operation else { continue }
             if let condition = targeted.condition, !BattleConditionEvaluator.isMet(condition, action: action, in: self) {
                 continue
             }
@@ -111,17 +104,18 @@ private extension BattleState {
                 continue
             }
             // Pack Tactics chooses its draw owner after the hit and its reactions.
-            if abilityID == Ability.packTactics.id, case .drawCards = targeted.effect {
+            if EffectApplication.selectsDrawPartner(abilityID: abilityID), case .drawCards = targeted.effect {
                 continue
             }
-            let recipientCanChange = !damageComponents.isEmpty || index > 0
+            let recipientCanChange = hasDamage || index > 0
             if recipientCanChange, [.lowestHealthAlly, .defeatedAlly].contains(targeted.target) {
                 continue
             }
             if case let .blessedAegis(block, holyDamage) = targeted.effect {
                 for ally in action.allies(in: self) where health(of: ally) > 0 {
-                    targets.append(.init(combatantID: ally.id, intent: .effect(.shield(.block, block))))
-                    targets.append(.init(combatantID: ally.id, intent: .effect(.onHitDamage(.holy, holyDamage))))
+                    targets.append(contentsOf: EffectApplication.aegisEffects(block: block, holyDamage: holyDamage).map {
+                        .init(combatantID: ally.id, intent: .effect($0))
+                    })
                 }
                 continue
             }
@@ -133,7 +127,7 @@ private extension BattleState {
             }
             if case let .panacea(baseHeal, _) = targeted.effect {
                 guard !recipientCanChange else { continue }
-                targets.append(contentsOf: panaceaAssessmentTargets(baseHeal: baseHeal))
+                targets.append(contentsOf: panaceaAssessmentTargets(baseHeal: baseHeal, action: action))
                 continue
             }
             let target = action.target(targeted.target, in: self)
@@ -142,8 +136,25 @@ private extension BattleState {
         return targets
     }
 
-    func panaceaAssessmentTargets(baseHeal: Int) -> [BattleCardAssessment.Target] {
-        let cleanseTarget = BattleConditionEvaluator.mostDebuffedAlly(in: self)
+    func assessmentDamageTargets(
+        _ branch: AbilityOutcomeBranch, action: BattleActionContext, keywordOverride: Keyword?,
+    ) -> [BattleCardAssessment.Target] {
+        let actor = action.actor
+        var targets: [BattleCardAssessment.Target] = []
+        for operation in branch.operations {
+            guard case let .damage(component) = operation else { continue }
+            guard BattleDamageRules.isEnabled(component, action: action, in: self),
+                  component.hasPotentialDamage else { continue }
+            let target = action.target(component.target, in: self)
+            guard target.id != actor.id else { continue }
+            let keyword = keywordOverride ?? (branch.randomizeDamageKeywords ? nil : component.keyword)
+            targets.append(.init(combatantID: target.id, intent: .damage(keyword)))
+        }
+        return targets
+    }
+
+    func panaceaAssessmentTargets(baseHeal: Int, action: BattleActionContext) -> [BattleCardAssessment.Target] {
+        let cleanseTarget = EffectApplication.panaceaCleanseTarget(action: action, in: self)
         var targets: [BattleCardAssessment.Target] = [
             .init(combatantID: cleanseTarget.id, intent: .effect(.cleanse(nil))),
         ]
@@ -152,7 +163,7 @@ private extension BattleState {
            roster.activeEffects(for: cleanseTarget).contains(where: \.effect.isRemovableDebuff) {
             return targets
         }
-        let healTarget = BattleConditionEvaluator.lowestHealthAlly(in: self)
+        let healTarget = action.target(EffectApplication.panaceaHealTarget, in: self)
         targets.append(.init(combatantID: healTarget.id, intent: .effect(.instantHeal(.health, baseHeal))))
         return targets
     }

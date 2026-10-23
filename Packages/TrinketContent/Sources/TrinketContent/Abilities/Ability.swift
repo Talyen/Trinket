@@ -228,11 +228,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
             }
         }
         for targetedEffect in targetedEffects {
-            guard qualifies(targetedEffect.effect) else { continue }
-            result.append(targetedEffect.effect.keyword)
-            if case .blessedAegis = targetedEffect.effect {
-                result.append(.block)
-            }
+            result.append(contentsOf: AbilityOperation.effect(targetedEffect).keywords)
         }
         if let branches = outcomeBranches {
             for branch in branches {

@@ -34,6 +34,20 @@ public enum AbilityOperation: Hashable, Sendable {
         }
     }
 
+    /// Keywords contributed by this operation, excluding self costs and draw-only effects.
+    public var keywords: [Keyword] {
+        switch self {
+        case let .damage(component):
+            component.target == .actor ? [] : [component.keyword]
+        case let .effect(targeted):
+            switch targeted.effect {
+            case .drawCards, .drawAndPlayCards: []
+            case .blessedAegis: [targeted.effect.keyword, .block]
+            default: [targeted.effect.keyword]
+            }
+        }
+    }
+
     public var keyword: Keyword {
         switch self {
         case let .damage(component): component.keyword

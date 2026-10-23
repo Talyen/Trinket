@@ -13,15 +13,10 @@ extension EffectApplication {
             guard context.health(of: source) > 0 else { break }
             // Route through effect dispatch so BlessedAegis always composes the
             // canonical handlers for these kinds rather than a private copy.
-            let shield = await replacingEffect(
-                .shield(.block, block), target: ally,
-            ).apply(in: &context)
-
-            let ward = await replacingEffect(
-                .onHitDamage(.holy, holyDamage), target: ally,
-            ).apply(in: &context)
-
-            didApply = didApply || shield.didApply || ward.didApply
+            for effect in Self.aegisEffects(block: block, holyDamage: holyDamage) {
+                let outcome = await replacingEffect(effect, target: ally).apply(in: &context)
+                didApply = didApply || outcome.didApply
+            }
         }
         return EffectApplyOutcome(didApply: didApply)
     }
