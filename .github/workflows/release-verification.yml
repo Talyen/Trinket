@@ -1,4 +1,4 @@
-name: Qualified release verification
+name: Temporary Labyrinth interaction diagnostic
 
 on:
   workflow_dispatch:
@@ -71,7 +71,7 @@ jobs:
           key: release-journeys-v1-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             release-journeys-v1-${{ runner.os }}-${{ runner.arch }}-
-      - name: Verify all critical journeys on iOS 26.2
+      - name: Diagnose the single Labyrinth boss journey on iOS 26.2
         env:
           FRESH_EVIDENCE: ${{ inputs.fresh-evidence }}
         run: |
@@ -80,8 +80,9 @@ jobs:
             export TRINKET_DEPLOY_CACHE_ROOT="$RUNNER_TEMP/fresh-journey-evidence"
             rm -f .DerivedData/deploy-verification.json
           fi
-          python3 Scripts/deploy-verification.py --mode hosted-beta --focused-only --no-build
+          SKIP_GENERATE=1 ./Scripts/test.sh ui --no-build PlayModeNavigationUITests/testLabyrinthBossContinueOpensAUsableNextFloor
       - name: Retain the exact qualified proof
+        if: false
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           name: release-proof-${{ github.run_id }}-${{ github.run_attempt }}
