@@ -17,10 +17,14 @@ preserve the package DAG and existing ownership boundaries.
 
 Implementation of all four simplifications is authorized, in order: motion
 recipes, explicit retry results, shared card semantics, then damage packets.
-All four simplifications are implemented. Static checks passed through shared card
-semantics; damage-packet checks and complete compiled/behavior/visual verification
-remain in progress. Shipping-UI inspection awaits the occupied managed simulator
-slot. Review, local integration, and plan closure remain outstanding.
+All four simplifications are implemented and reviewed. Static checks, catalog
+generation (no generated changes), and the complete app build against the generic
+iOS Simulator destination passed with Xcode 27.1 RC. Latest local main's
+documentation consolidation was incorporated without source changes or conflicts.
+Package test compilation is in progress. The automatic handoff repeatedly stopped
+before test execution because the managed simulator pool was full (0/1 free).
+Behavior tests, shipping-UI inspection, local integration, and plan closure remain
+outstanding; no visual equivalence is claimed from source or compilation alone.
 
 Reviewed baseline: committed local main `2ad7f9db7`. Evidence comes from production
 source, callers, contracts, and existing regression tests. These are maintenance
@@ -367,15 +371,15 @@ Follow the [standing task workflow](../../AGENTS.md#route-and-read) and
 to this simplification; each finding's verification section defines its behavioral
 and visual acceptance criteria.
 
-- [ ] Refresh the selected evidence, applicable guidance, and actual consumers
+- [x] Refresh the selected evidence, applicable guidance, and actual consumers
       against current main; preserve overlapping unfinished work.
 - [ ] Record baseline behavior for each consequential migration. Add tests only
       for consequential coverage gaps.
-- [ ] Implement one coherent cluster at a time. Delete the replaced path before
+- [x] Implement one coherent cluster at a time. Delete the replaced path before
       declaring its cluster finished.
 - [ ] Complete shipping-UI inspection for motion, cues, and delayed feedback.
       Retain revision-linked artifacts in `.DerivedData/Deliverables/`.
-- [ ] Confirm maintenance improvements: retry follows a result; composite meaning
+- [x] Confirm maintenance improvements: retry follows a result; composite meaning
       has one owner; packet meaning is explicit; shared motion timing is authored
       once. Net deletion is desirable but does not substitute for these outcomes.
 - [ ] Fold final behavior into canonical docs and delete this plan when completed
