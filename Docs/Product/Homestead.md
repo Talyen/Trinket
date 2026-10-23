@@ -69,9 +69,9 @@ checkmark, or Tier N label appears.
 
 ## Next-stage offers
 
-Build/Upgrade opens the next-stage offer. First builds use **Build {building name}**
-and show the resulting bonuses and production. Upgrade offers use only the building
-name and show **Upgrade cost**, resource icons and costs, and the Upgrade button.
+Build/Upgrade opens the next-stage offer. Both headers use only the building name.
+First builds show the resulting bonuses and production. Upgrade offers show
+**Upgrade cost**, resource icons and costs, and the Upgrade button.
 They omit benefits and current → resulting comparisons. Authored stage names are
 not shown. Current benefits remain on the building detail screen.
 

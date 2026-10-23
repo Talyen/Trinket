@@ -58,9 +58,7 @@ struct HomesteadDetailSheetView: View {
         title.locale = locale
         return ScrollView {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-                Text(tier.tier == 1
-                    ? L10n.ui_homesteaddetailsheetviews_build_1_08716(title)
-                    : title)
+                Text(title)
                     .trinketTypography(.sectionDisplay)
                 if tier.tier == 1 {
                     HomesteadBenefitsView(
