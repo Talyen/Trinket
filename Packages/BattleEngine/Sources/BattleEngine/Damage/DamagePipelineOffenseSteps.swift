@@ -240,7 +240,7 @@ package extension DamagePipeline {
                 state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, block)
             }
         }
-        guard keyword == .physical || sharedKeyword == .physical, state.options.isAttackHit, !state.options.isRetaliation else { return }
+        guard keyword == .physical || sharedKeyword == .physical, state.options.isPrimaryAttack else { return }
         var stored = 0
         if CombatTriggerEngine.hasLivingPartyTrigger(\.storedImpact, in: context) {
             for owner in BattleParticipant.party {

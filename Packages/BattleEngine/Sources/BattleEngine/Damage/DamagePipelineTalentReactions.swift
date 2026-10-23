@@ -15,7 +15,7 @@ package extension DamagePipeline {
     }
 
     static func applyBackdraftBonus(to state: inout DamageResolutionState, in context: inout BattleState) {
-        guard state.isCritical, state.options.isAttackHit, !state.options.isRetaliation,
+        guard state.isCritical, state.options.isPrimaryAttack,
               state.combatant.role == .enemy,
               let source = state.partySource(in: context),
               context.modifiers(for: source.id).triggers.backdraft else { return }

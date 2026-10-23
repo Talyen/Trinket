@@ -17,11 +17,10 @@ preserve the package DAG and existing ownership boundaries.
 
 Implementation of all four simplifications is authorized, in order: motion
 recipes, explicit retry results, shared card semantics, then damage packets.
-Motion representation and explicit retry-result migration are implemented; static
-checks pass. Compiled/runtime verification remains in progress, and shipping-UI
-inspection awaits the occupied managed simulator slot. The shared card-semantics
-migration is now in progress. Remaining work includes damage packets, complete
-compiled/behavior/visual verification, review, local integration, and plan closure.
+All four simplifications are implemented. Static checks passed through shared card
+semantics; damage-packet checks and complete compiled/behavior/visual verification
+remain in progress. Shipping-UI inspection awaits the occupied managed simulator
+slot. Review, local integration, and plan closure remain outstanding.
 
 Reviewed baseline: committed local main `2ad7f9db7`. Evidence comes from production
 source, callers, contracts, and existing regression tests. These are maintenance

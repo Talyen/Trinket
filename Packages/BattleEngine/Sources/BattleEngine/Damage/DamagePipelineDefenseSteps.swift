@@ -3,7 +3,7 @@ import TrinketCore
 
 package extension DamagePipeline {
     static func applyPreparedAttackReduction(to state: inout DamageResolutionState, in context: inout BattleState) {
-        guard state.options.isAttackHit, !state.options.isRetaliation else { return }
+        guard state.options.isPrimaryAttack else { return }
         state.remaining -= context.resolution.consumeAttackReduction(for: state.sourceActorID, damage: state.remaining)
         applyFinalCompanionEnemyAttackReduction(to: &state, in: &context)
     }
@@ -180,7 +180,7 @@ package extension DamagePipeline {
         guard state.combatant.role == .hero,
               context.roster.companion.isAlive,
               context.companionModifiers.triggers.guardianHeroBlockFlat > 0,
-              state.options.isAttackHit, !state.options.isRetaliation,
+              state.options.isPrimaryAttack,
               context.claimHeroTalent(.guardian, actorID: context.roster.companion.id, battle: true)
         else { return }
         let block = context.companionModifiers.triggers.guardianHeroBlockFlat

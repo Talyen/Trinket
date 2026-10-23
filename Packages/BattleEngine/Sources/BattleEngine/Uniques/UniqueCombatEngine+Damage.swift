@@ -16,7 +16,7 @@ extension UniqueCombatEngine {
         if context.uniques.card?.guaranteedCritical == true {
             prepared.options.guaranteedCritical = true
         }
-        prepared.options.capturesCardRepeat = context.uniques.card?.repeatDamage == true
+        prepared.options = prepared.options.capturingCardRepeat(context.uniques.card?.repeatDamage == true)
         if request.target.role == .enemy, request.amount > 0 {
             prepared.options.partnerFirstAttackBonus = context.uniques.card?.attackBonus ?? 0
             context.uniques.card?.attackBonus = 0
@@ -33,10 +33,7 @@ extension UniqueCombatEngine {
               damage.options.capturesCardRepeat, !damage.options.isResolvedCardRepeat,
               let sourceID = damage.sourceActorID,
               isOrdinaryAction(actorID: sourceID, in: context) else { return }
-        var options = damage.options.repeated(
-            origin: .cardRepeat, scaling: .resolved, guaranteedCritical: damage.isCritical,
-        )
-        options.capturesCardRepeat = true
+        let options = damage.options.replayingCardDamage(critical: damage.isCritical)
         let request = DamageRequest(
             amount: outgoingAmount,
             target: damage.combatant,

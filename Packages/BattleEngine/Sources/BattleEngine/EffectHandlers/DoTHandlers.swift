@@ -20,8 +20,10 @@ struct DecayingDoTHandler {
         ActiveEffectMutation.finishTurn(active, replacement: nextPotency > 0 ? updated : nil, on: target, in: &context)
         if nextPotency > 0 {
             for tickIndex in 0 ..< progression.ticksPerTurn {
-                var operation = DamageOperation.resolvedPeriodic
-                operation.isNaturalStatusTick = tickIndex == 0 && target == context.enemy && context.resolution.naturalReactionPhase != nil
+                let operation = DamageOperation.statusTick(
+                    scaling: .resolved,
+                    natural: tickIndex == 0 && target == context.enemy && context.resolution.naturalReactionPhase != nil,
+                )
                 let outcome = await DoTDamage.resolveDamage(
                     basePotency: nextPotency,
                     keyword: keyword,
@@ -88,8 +90,9 @@ extension EffectHandlers {
         if target == context.enemy {
             ElementalReactionEngine.beginBleed(in: &context)
         }
-        var operation = DamageOperation.periodic
-        operation.isNaturalStatusTick = target == context.enemy && context.resolution.naturalReactionPhase != nil
+        let operation = DamageOperation.statusTick(
+            scaling: .statsAndItems, natural: target == context.enemy && context.resolution.naturalReactionPhase != nil,
+        )
         _ = await DoTDamage.resolveDamage(
             basePotency: potency,
             keyword: .bleed,
@@ -225,9 +228,9 @@ extension EffectApplication {
             in: &context,
         )
         guard application.didApply else { return application }
-        var operation = DamageOperation.periodic
-        operation.capturesCardRepeat = context.uniques.card?.repeatDamage == true
-            && UniqueCombatEngine.isOrdinaryAction(actorID: source.id, in: context)
+        let operation = DamageOperation.periodic.capturingCardRepeat(
+            context.uniques.card?.repeatDamage == true && UniqueCombatEngine.isOrdinaryAction(actorID: source.id, in: context),
+        )
         _ = await DoTDamage.resolveDamage(
             basePotency: potency,
             keyword: keyword,

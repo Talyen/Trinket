@@ -45,7 +45,7 @@ package extension CombatTriggerEngine {
     }
 
     static func afterAffixAttack(_ state: CommittedDamage, in context: inout BattleState) async {
-        guard state.options.isAttackHit, !state.options.isRetaliation, state.healthLost > 0,
+        guard state.options.isPrimaryAttack, state.healthLost > 0,
               state.combatant.role == .enemy,
               let source = state.partySource(in: context), source.isAlive else { return }
         await kinboundHeal(damage: state.healthLost, attacker: source.combatant, in: &context)

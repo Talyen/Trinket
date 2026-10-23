@@ -7,8 +7,15 @@ Use with [engine ownership](battle-engine.md) for damage, reactions, effect appl
 `DamageOperation` supplies named attack, effect, periodic, reaction, and Health-cost
 operations. Damage type owns Stun/Freeze buildup; callers do not opt into it with
 a flag. Counterattacks and repeated hits carry explicit origins; repeating periodic
-or reaction damage preserves its operation kind. Redirected damage enters the
-recipient's defenses with outgoing scaling already resolved. `DamageDefensePolicy`
+or reaction damage preserves its operation kind. Copied and redirected damage have
+distinct kinds with outgoing scaling already resolved. Status-tick construction
+distinguishes natural ticks from secondary pulses. Card-repeat capture and replay
+have explicit roles; repeating a packet clears capture, natural-tick eligibility,
+and the partner's first-attack bonus while retaining accuracy, critical settings,
+Leech, Thorns, and elemental settlement timing. Elemental attacks defer settlement
+until attachment through a named transformation. Shared packet predicates own
+primary-attack and damage-reward eligibility; live reaction checkpoints remain in
+the ordered pipeline. `DamageDefensePolicy`
 owns mitigation and Block bypass multipliers, while the shield steps in
 `DamagePipeline` resolve borrowed Block before recipient Block through one
 owner-based absorption step, preserving each checkpoint's order and rounding.

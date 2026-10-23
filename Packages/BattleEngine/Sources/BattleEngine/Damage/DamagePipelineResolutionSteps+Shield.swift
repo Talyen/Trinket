@@ -169,7 +169,7 @@ package extension DamagePipeline {
     ) {
         guard absorbed > 0 else { return }
         state.blockAbsorbingOwners.append(owner)
-        guard state.options.isAttackHit, !state.options.isRetaliation, !state.options.isPeriodic,
+        guard state.options.isPrimaryAttack,
               context.modifiers(for: owner.id).triggers.blockPreparesCritical
         else { return }
         guard let participant = context.roster.participant(for: owner), participant.isPartyMember else { return }

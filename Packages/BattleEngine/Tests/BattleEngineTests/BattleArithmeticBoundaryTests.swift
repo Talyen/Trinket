@@ -35,7 +35,7 @@ struct BattleArithmeticBoundaryTests {
         battle.roster.hero.talents.battle.storedBlockedDamage = Int.max
         battle.roster.companion.talents.battle.storedBlockedDamage = Int.max
         var options = DamageOperation.attack(accuracy: .unavoidable, guaranteedCritical: true)
-        options.capturesCardRepeat = true
+        options = options.capturingCardRepeat(true)
         let outcome = battle.resolveTestDamage(Int.max, keyword: keyword, options: options)
         #expect(outcome.healthLost == 20)
         #expect(battle.isEnemyDefeated)

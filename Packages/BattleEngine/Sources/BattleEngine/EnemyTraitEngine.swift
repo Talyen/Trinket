@@ -10,7 +10,7 @@ package enum EnemyTraitEngine {
               context.roster.enemy.isAlive
         else { return }
         await basicFreezeDamage(from: state, context: &context)
-        guard state.options.isAttackHit, !state.options.isRetaliation,
+        guard state.options.isPrimaryAttack,
               context.health(of: state.combatant) > 0,
               context.roster.enemy.isAlive
         else { return }

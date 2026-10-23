@@ -82,7 +82,10 @@ struct BattleMechanicsTests {
         #expect(battle.roster.hero == original)
     }
 
-    @Test(arguments: [DamageOperation.periodic, .reaction()])
+    @Test(arguments: [
+        DamageOperation.periodic, .reaction(), .copiedReaction, .redirected,
+        .statusTick(scaling: .resolved, natural: true),
+    ])
     func `repeating nonattack damage preserves attack resources and rewards`(operation: DamageOperation) {
         var battle = BattleTestFixtures.makePipelineContext(
             heroModifiers: .withTriggers { $0.onAttackStealGold = 2 },

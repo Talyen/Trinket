@@ -4,7 +4,7 @@ import TrinketCore
 
 package extension DamagePipeline {
     static func applyResourceful(to state: CommittedDamage, in context: inout BattleState) {
-        guard state.options.isAttackHit, !state.options.isRetaliation, !state.options.isPeriodic,
+        guard state.options.isPrimaryAttack,
               let attackerID = state.sourceActorID,
               context.roster.combatant(for: attackerID)?.role == .enemy else { return }
         for wearer in state.brokenBlockOwners {
@@ -20,8 +20,7 @@ package extension DamagePipeline {
         to state: CommittedDamage,
         in context: inout BattleState,
     ) async -> Bool {
-        guard !state.options.suppressLeech,
-              let sourceActorID = state.sourceActorID,
+        guard let sourceActorID = state.sourceActorID,
               state.healthLost > 0 || (state.blockedAmount > 0 && context.modifiers(for: sourceActorID).triggers.leechOnBlockDamage),
               sourceActorID != state.combatant.id
         else { return false }

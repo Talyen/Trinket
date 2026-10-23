@@ -291,7 +291,7 @@ extension UniqueCollectionTests {
         }
         DefensePoolEngine.set(4, on: battle.enemy, in: &battle)
         var options = DamageOperation.attack(scaling: .resolved, accuracy: .unavoidable)
-        options.capturesCardRepeat = true
+        options = options.capturingCardRepeat(true)
         let outcome = battle.resolveTestDamage(10, keyword: keyword, options: options)
 
         #expect(outcome.healthLost == 6)

@@ -124,7 +124,7 @@ extension BattleTurnEngine {
         if !isSelfHealthCost {
             request.provenance = context.resolution.damageProvenance(for: actor.id)
         }
-        request.options.defersElementalPayoff = true
+        request.options = request.options.settlingElementalAfterAttachment()
         request = UniqueCombatEngine.prepareDamage(request, in: &context)
         return PreparedDamageComponent(
             request: request, target: target, keyword: keyword, stackPotency: amount,

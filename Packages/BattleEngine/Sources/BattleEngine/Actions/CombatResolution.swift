@@ -406,7 +406,7 @@ enum CombatResolver {
             context.uniques.isDrainingOutOfTurnAttacks = false
             await ElementalReactionEngine.finishControl(in: &context)
         }
-        if !request.options.defersElementalPayoff, let hit = state.elementalHit {
+        if request.options.settlesElementalImmediately, let hit = state.elementalHit {
             let captured = ElementalReactionEngine.captureAttachment(hit, outcome: outcome, in: &context)
             await ElementalReactionEngine.finish(captured, outcome: outcome, in: &context)
         }

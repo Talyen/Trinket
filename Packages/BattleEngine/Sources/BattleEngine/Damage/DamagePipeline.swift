@@ -117,15 +117,13 @@ package enum DamagePipeline {
             await applyReactiveOnHit(to: state, in: &context)
         }
         // Full Basic counterattacks retain damage rewards without reopening counterattack retaliation.
-        if !state.options.isRetaliation || state.options.isCounterattack || state.damageKeyword == .freeze
-            || (state.options.isThornsDamage && state.damageKeyword == .holy)
-            || (state.options.isPeriodic && state.damageKeyword == .burn) {
+        if state.options.allowsKeywordReactions(for: state.damageKeyword) {
             await applyKeywordReactions(to: state, in: &context)
         }
         applyFinalCompanionHolyHitRewards(to: state, in: &context)
         applyCompanionLeechCriticalBlock(to: state, didLeech: didLeech, in: &context)
         await applyThreefoldGrace(to: state, in: &context)
-        if !state.options.isRetaliation || state.options.isCounterattack {
+        if state.options.allowsDamageRewards {
             await applyCriticalReaction(to: state, in: &context)
         }
         await UniqueCombatEngine.afterDamage(state, in: &context)

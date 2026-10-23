@@ -53,7 +53,7 @@ enum AttackerOnHitEngine {
         }
 
         if hit.keyword == .holy {
-            if hit.triggers.blindingLight, state.options.isAttackHit, !state.options.isRetaliation,
+            if hit.triggers.blindingLight, state.options.isPrimaryAttack,
                state.combatant.role == .enemy {
                 let reduction = CombatRounding.scaled(state.healthLost + state.blockedAmount, multiplier: 0.5)
                 let current = context.roster.runtime(for: state.combatant)?.talents.history.blindingReduction ?? 0
