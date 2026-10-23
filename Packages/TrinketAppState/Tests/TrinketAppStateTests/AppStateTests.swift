@@ -5,7 +5,6 @@ import TrinketContentTestSupport
 import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistenceTestSupport
-import UIKit
 @testable import TrinketAppState
 @testable import TrinketPersistence
 
@@ -92,28 +91,30 @@ struct AppStateTests {
     }
 
     @Test func `idle timer stays awake only for a foreground battle on Play`() throws {
-        let original = UIApplication.shared.isIdleTimerDisabled
-        defer { UIApplication.shared.isIdleTimerDisabled = original }
+        var idleTimerDisabled = true
         let browsing = try context.makeAppState()
+        browsing.setIdleTimerDisabled = { idleTimerDisabled = $0 }
         browsing.reconcileShellState(.scenePhaseChanged, scenePhase: .active)
-        #expect(!UIApplication.shared.isIdleTimerDisabled)
+        #expect(!idleTimerDisabled)
 
         let playing = try context.makeAppState(arguments: ["-launch-screen", "battle"])
+        try #require(playing.play.battle.activeBattle != nil)
+        playing.setIdleTimerDisabled = { idleTimerDisabled = $0 }
         playing.reconcileShellState(.activeBattleChanged(started: true), scenePhase: .active)
-        #expect(UIApplication.shared.isIdleTimerDisabled)
+        #expect(idleTimerDisabled)
         playing.selectedTab = .options
         playing.reconcileShellState(.selectedTabChanged, scenePhase: .active)
-        #expect(!UIApplication.shared.isIdleTimerDisabled)
+        #expect(!idleTimerDisabled)
         playing.selectedTab = .play
         playing.reconcileShellState(.selectedTabChanged, scenePhase: .active)
-        #expect(UIApplication.shared.isIdleTimerDisabled)
+        #expect(idleTimerDisabled)
         playing.reconcileShellState(.scenePhaseChanged, scenePhase: .inactive)
-        #expect(!UIApplication.shared.isIdleTimerDisabled)
+        #expect(!idleTimerDisabled)
         playing.reconcileShellState(.scenePhaseChanged, scenePhase: .active)
-        #expect(UIApplication.shared.isIdleTimerDisabled)
+        #expect(idleTimerDisabled)
         playing.play.battle.endBattle()
         playing.reconcileShellState(.activeBattleChanged(started: false), scenePhase: .active)
-        #expect(!UIApplication.shared.isIdleTimerDisabled)
+        #expect(!idleTimerDisabled)
     }
 
     @Test func `scene phase suspends and resumes battle auto end`() throws {

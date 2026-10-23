@@ -22,6 +22,10 @@ public final class AppState {
     public let shellSession: ShellSession
     let musicPlayer: MusicPlayer
     public let sfxPlayer: SFXPlayer
+    @ObservationIgnored var setIdleTimerDisabled: @MainActor (Bool) -> Void = {
+        UIApplication.shared.isIdleTimerDisabled = $0
+    }
+
     public let options: OptionsStore
     public let play: PlaySession
     public let fullGame: FullGameStore
@@ -193,8 +197,7 @@ public final class AppState {
     }
 
     private func applyIdleTimerPolicy(scenePhase: ScenePhase) {
-        UIApplication.shared.isIdleTimerDisabled = scenePhase == .active
-            && selectedTab == .play && play.battle.activeBattle != nil
+        setIdleTimerDisabled(scenePhase == .active && selectedTab == .play && play.battle.activeBattle != nil)
     }
 
     @ObservationIgnored private var memoryPressureObserver: MainActorCleanup?
