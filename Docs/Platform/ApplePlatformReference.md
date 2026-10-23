@@ -84,13 +84,13 @@ clearances. Preserve prepared artwork and the shared interaction hierarchy.
 
 ## Content beside native bars
 
-Hero artwork heights are minimums: native text and footers can grow the header,
-and its measured height owns navigation-title pinning. Stage titles wrap; active
-stage footers stack their actions when title and controls cannot fit side by side.
-Stage metadata stacks and action labels omit their decorative icon when needed
-to fit. Ability and equipment slot grids use a scaled minimum card width so native
-text growth can reduce their column count.
-These adaptations follow available space and intrinsic content at every text size.
+At native accessibility text sizes, hero artwork heights become minimums: text
+and footers can grow the header, and its measured height owns navigation-title
+pinning. Stage titles wrap; active stage footers and metadata stack when needed.
+Action labels omit their decorative icon when needed to fit, and ability/equipment
+slot grids use a scaled minimum card width. Standard text sizes retain the existing
+hero heights, single-line stage titles, horizontal footers, and slot rows. Keep
+these accommodations scoped so the usual game presentation stays unchanged.
 
 Keep Auto-Lock disabled only while an active battle is displayed on Play in an
 active scene. Browsing and Options retain the system idle timer; tab changes,

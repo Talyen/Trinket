@@ -3,6 +3,7 @@ import TrinketDesignSystem
 
 @MainActor
 public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ScaledMetric(relativeTo: .caption) private var minimumSlotWidth: CGFloat = 96
 
     let slots: [Slot]
@@ -35,22 +36,32 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
     }
 
     public var body: some View {
-        LazyVGrid(
-            columns: [GridItem(.adaptive(minimum: minimumSlotWidth), alignment: .top)],
-            spacing: TrinketDesign.Layout.sectionHeaderSpacing,
-        ) {
-            ForEach(slots) { slot in
-                let locked = isLocked(slot)
-                let filled = hasItem(slot)
-                if let onSelect {
-                    interactiveSlot(slot, locked: locked, action: { onSelect(slot) }, inspectFilled: filled)
-                } else if let onView, filled {
-                    interactiveSlot(slot, locked: locked, action: { onView(slot) }, inspectFilled: true)
-                } else {
-                    card(slot)
-                        .frame(maxWidth: .infinity, alignment: .top)
-                        .accessibilityIdentifier(accessibilityIdentifier(slot))
-                }
+        if dynamicTypeSize.isAccessibilitySize {
+            LazyVGrid(
+                columns: [GridItem(.adaptive(minimum: minimumSlotWidth), alignment: .top)],
+                spacing: TrinketDesign.Layout.sectionHeaderSpacing,
+            ) {
+                slotContent
+            }
+        } else {
+            HStack(alignment: .top, spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
+                slotContent
+            }
+        }
+    }
+
+    private var slotContent: some View {
+        ForEach(slots) { slot in
+            let locked = isLocked(slot)
+            let filled = hasItem(slot)
+            if let onSelect {
+                interactiveSlot(slot, locked: locked, action: { onSelect(slot) }, inspectFilled: filled)
+            } else if let onView, filled {
+                interactiveSlot(slot, locked: locked, action: { onView(slot) }, inspectFilled: true)
+            } else {
+                card(slot)
+                    .frame(maxWidth: .infinity, alignment: .top)
+                    .accessibilityIdentifier(accessibilityIdentifier(slot))
             }
         }
     }

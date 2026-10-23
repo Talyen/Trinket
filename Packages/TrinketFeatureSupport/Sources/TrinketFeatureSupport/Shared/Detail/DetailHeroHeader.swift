@@ -2,6 +2,7 @@ import SwiftUI
 import TrinketDesignSystem
 
 public struct DetailHeroHeader<Art: View, Footer: View>: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.detailHeroOverscroll) private var overscroll
     @Environment(\.detailHeroTopInset) private var topInset
 
@@ -50,6 +51,35 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     }
 
     public var body: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            expandingHeader
+        } else {
+            standardHeader
+        }
+    }
+
+    private var standardHeader: some View {
+        Color.clear
+            .frame(height: baseHeight)
+            .overlay {
+                extendedArtwork
+                    .scaleEffect(baseHeight > 0 ? (baseHeight + overscroll) / baseHeight : 1, anchor: .top)
+                    .offset(y: -overscroll)
+                    .allowsHitTesting(false)
+            }
+            .overlay(alignment: .bottomLeading) {
+                VStack(alignment: .leading) {
+                    titleBlock
+                    footer()
+                }
+                .padding(.horizontal, horizontalPadding)
+                .padding(.bottom, bottomPadding)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                .clipped()
+            }
+    }
+
+    private var expandingHeader: some View {
         VStack(alignment: .leading) {
             titleBlock
             footer()

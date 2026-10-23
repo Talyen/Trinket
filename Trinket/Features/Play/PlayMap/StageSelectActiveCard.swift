@@ -13,6 +13,7 @@ struct StageSelectActiveCard<
 >: View {
     @Environment(OptionsStore.self) private var options
     @Environment(\.isBattleActive) private var isBattleActive
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let presentation: StageSelectRowPresentation<Item>
     let hapticsEnabledOverride: Bool?
@@ -120,6 +121,25 @@ struct StageSelectActiveCard<
     }
 
     private var footerDock: some View {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                fittingFooter
+            } else {
+                HStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
+                    titleBlock.frame(maxWidth: .infinity, alignment: .leading)
+                    actionControls.fixedSize(horizontal: true, vertical: false)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+        .padding(.vertical, TrinketDesign.Spacing.medium)
+        .background(TrinketDesign.Colors.surface)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(presentation.activeDetailAccessibilityID)
+    }
+
+    private var fittingFooter: some View {
         ViewThatFits(in: .horizontal) {
             HStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
                 titleBlock.fixedSize(horizontal: true, vertical: false)
@@ -131,12 +151,6 @@ struct StageSelectActiveCard<
                 actionControls
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-        .padding(.vertical, TrinketDesign.Spacing.medium)
-        .background(TrinketDesign.Colors.surface)
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier(presentation.activeDetailAccessibilityID)
     }
 
     private var titleBlock: some View {
@@ -145,13 +159,13 @@ struct StageSelectActiveCard<
                 GameLabel(presentation.activeEyebrow, balanced: true)
                     .trinketTypography(.eyebrow)
                     .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .modifier(StageTitleFit())
             }
 
             GameLabel(presentation.title, balanced: true)
                 .trinketTypography(.sectionDisplay)
                 .foregroundStyle(.primary)
-                .fixedSize(horizontal: false, vertical: true)
+                .modifier(StageTitleFit())
                 .gameAccessibilityLabel(presentation.title)
         }
     }
@@ -172,12 +186,19 @@ struct StageSelectActiveCard<
                 actionFeedbackTrigger &+= 1
             }
         } label: {
-            ViewThatFits(in: .horizontal) {
-                primaryActionLabel.fixedSize(horizontal: true, vertical: false)
-                GameLabel(primaryActionTitle)
-                    .fixedSize(horizontal: false, vertical: true)
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    ViewThatFits(in: .horizontal) {
+                        primaryActionLabel.fixedSize(horizontal: true, vertical: false)
+                        GameLabel(primaryActionTitle)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                } else {
+                    primaryActionLabel
+                }
             }
             .trinketTypography(.button)
+            .fixedSize(horizontal: false, vertical: true)
             .padding(.vertical, TrinketDesign.Spacing.extraSmall)
         }
         .trinketPrimaryActionButton(
@@ -258,28 +279,42 @@ extension StageSelectActiveCard where ArtworkAccessory == EmptyView {
 }
 
 struct StageSelectMetaLine<Item: Identifiable>: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let presentation: StageSelectRowPresentation<Item>
 
     var body: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: TrinketDesign.Spacing.extraSmall) {
-                if !presentation.mapLabel.isEmpty {
-                    GameLabel(presentation.mapLabel)
-                    Text("·")
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                ViewThatFits(in: .horizontal) {
+                    standardLine.fixedSize(horizontal: true, vertical: false)
+                    VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
+                        if !presentation.mapLabel.isEmpty {
+                            GameLabel(presentation.mapLabel)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        encounterKind
+                    }
                 }
-                encounterKind
-            }
-            .fixedSize(horizontal: true, vertical: false)
-            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
-                if !presentation.mapLabel.isEmpty {
-                    GameLabel(presentation.mapLabel)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                encounterKind
+            } else {
+                standardLine
             }
         }
         .trinketTypography(.footnote)
         .foregroundStyle(.secondary)
+    }
+
+    private var standardLine: some View {
+        HStack(spacing: TrinketDesign.Spacing.extraSmall) {
+            if !presentation.mapLabel.isEmpty {
+                GameLabel(presentation.mapLabel)
+                Text("·")
+            }
+            GameLabel(presentation.encounterTypeTitle)
+                .foregroundStyle(presentation.tint)
+            GameIconImage(presentation.icon)
+                .foregroundStyle(presentation.tint)
+                .accessibilityHidden(true)
+        }
     }
 
     private var encounterKind: some View {
@@ -290,5 +325,17 @@ struct StageSelectMetaLine<Item: Identifiable>: View {
                 .accessibilityHidden(true)
         }
         .foregroundStyle(presentation.tint)
+    }
+}
+
+private struct StageTitleFit: ViewModifier {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    func body(content: Content) -> some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            content.fixedSize(horizontal: false, vertical: true)
+        } else {
+            content.trinketSingleLineFittedText()
+        }
     }
 }

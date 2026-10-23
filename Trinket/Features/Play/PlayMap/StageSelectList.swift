@@ -39,6 +39,7 @@ struct StageSelectList<Item: Identifiable, Artwork: View, PartyPickerSheet: View
 }
 
 private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerSheet: View>: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let presentation: StageSelectRowPresentation<Item>
     let hapticsEnabledOverride: Bool?
     let isPrimaryActionDisabled: Bool
@@ -88,7 +89,7 @@ private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerShee
                 GameLabel(presentation.title)
                     .trinketTypography(.rowDisplay)
                     .foregroundStyle(.primary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
 
                 StageSelectMetaLine(presentation: presentation)
                 ForEach(presentation.modifiers) { modifier in
