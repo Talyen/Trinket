@@ -176,6 +176,10 @@ def cleanup(source: Path) -> None:
         remove_integrated_worktree(source, target, branch, head, main_head=main_head)
 
 
+class ReviewRequired(RuntimeError):
+    """The combined revision needs source review before a separate landing attempt."""
+
+
 def integrate(source: Path, *, keep_worktree: bool = False) -> None:
     common, target = checkout_context(source)
     with integration_lock(common):
@@ -187,6 +191,8 @@ def integrate(source: Path, *, keep_worktree: bool = False) -> None:
         clean(source)
         clean(target)
         base = git(target, "rev-parse", "HEAD")
+        previous_head = git(source, 'rev-parse', 'HEAD')
+        new_main = git(source, 'merge-base', previous_head, base) != base
         preserve_ignored(source, base)
         # Preserve existing task commits, including a conflict for its owner to
         # resolve in isolation. Main remains untouched until verification passes.
@@ -199,6 +205,18 @@ def integrate(source: Path, *, keep_worktree: bool = False) -> None:
             if not keep_worktree:
                 remove_integrated_worktree(source, target, branch, head)
             return
+        if new_main:
+            # A clean textual rebase is not semantic review or compiled evidence.
+            # Retry the ordinary command after reviewing this combined revision;
+            # another main advance will create another checkpoint.
+            print(git(source, 'diff', '--stat', previous_head, head), flush=True)
+            raise ReviewRequired(
+                f'Incorporated main {base[:12]}; task is now {head[:12]}. Main was not advanced.\n'
+                f'Review incoming changes: git diff {previous_head} {head}\n'
+                'Refresh focused verification and visual evidence affected by these changes, '
+                'then retry node Scripts/agent-worktree.mjs integrate. '
+                'The retry runs the final static handoff once.'
+            )
         paths = subprocess.check_output(
             ["git", "-C", str(source), "diff", "--name-only", "--no-renames", "-z", base, head]
         ).decode().rstrip("\0").split("\0")
@@ -244,6 +262,9 @@ if __name__ == "__main__":
             cleanup(source)
         else:
             sys.exit('Usage: agent-integrate.py [--keep-worktree | --cleanup | --evidence [path...]]')
+    except ReviewRequired as error:
+        print(str(error), file=sys.stderr)
+        sys.exit(3)
     except (RuntimeError, subprocess.CalledProcessError, OSError) as error:
         if sys.argv[1:2] == ['--evidence']:
             sys.exit(f'Evidence preservation stopped: {error}\nOriginal task files were retained.')

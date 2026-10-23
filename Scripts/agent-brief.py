@@ -23,7 +23,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     parser.add_argument('--task')
     for flag in ('agent', 'full', 'status', 'smoke', 'allow-broad-scope', 'read-command'):
         parser.add_argument('--' + flag, action='store_true')
-    parser.add_argument('--read', action='store_true', help='include safeguards, ownership and focused contracts; root is already injected, broad behavior and skills remain conditional')
+    parser.add_argument('--read', action='store_true', help='read safeguards and concise ownership; add --full to expand behavior contracts')
     args = parser.parse_args(argv)
     try:
         task = select_task(root, args.task) if args.task else None
@@ -37,10 +37,9 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             parser.exit(3, f'working-tree scope has {len(paths)} paths; use explicit --paths or --allow-broad-scope\n')
         route = classify(paths, root, base=args.base)
         focus = task['contracts'] if task else []
-        # Expand focused contracts alongside safeguards; broad behavior cards stay
-        # references so a shared owner does not load every combat/save rule.
-        initial = [*route.guides, *(card for card in route.cards if '#' in card or card not in BEHAVIOR_CARDS)]
-        read = guidance_command(root, task, initial) if task or initial else None
+        # Initial reads cover ownership; behavior depth is an explicit expansion.
+        initial = [*route.guides, *(card for card in route.cards if args.full or card.partition('#')[0] not in BEHAVIOR_CARDS)]
+        read = guidance_command(root, task, initial, full=args.full) if task or initial else None
         if args.read_command:
             if args.status or args.read: parser.error('--read-command cannot combine with --status or --read')
             if read: print(read)
@@ -79,7 +78,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         if args.full: emit('Plan detail (sequential under that tenant)', [check.command + (' (deferred to CI locally)' if check.deferred else '') for check in verification_plan(route, root=root, smoke=args.smoke)])
         if route.smoke_unresolved: print('UI note: no single smoke owner was inferred. Apply the Testing rubric; add coverage only for a qualifying unique shipping outcome. Do not substitute bare smoke.')
         if args.read and read:
-            print('Initial guidance (complete reads; skills and other relevant behavior references still apply):')
+            print('Initial guidance (complete reads; follow behavior links for the change):')
             return load_sibling('brief_reader', 'agent-read.py').main(shlex.split(read)[2:], root=root)
         return 0
     except (OSError, ValueError, subprocess.SubprocessError) as error:

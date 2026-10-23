@@ -72,14 +72,3 @@ def exclusivity(scan: SourceScan) -> list[str]:
                     continue
             findings.append(scan.location(path, index, line))
     return findings
-
-
-def artwork(scan: SourceScan) -> list[str]:
-    path = 'Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift'
-    text = scan.text(scan.root / path)
-    rules = (
-        (r'residentArtworkByteCount = 320 \* 1024 \* 1024', 'residentArtworkByteCount must be 320 MiB (6 GB typical). See PerformanceInvestigationPlaybook § Artwork Budgets.'),
-        (r'steadyStateProcessByteCount = 550 \* 1024 \* 1024', 'steadyStateProcessByteCount must be 550 MiB (6 GB typical).'),
-        (r'^\s*return min\(max\(adaptiveBudget, 160 \* 1024 \* 1024\), 260 \* 1024 \* 1024\)', 'NSCache adaptive budget must stay clamped to 160-260 MiB.'),
-    )
-    return [f'{path}: {message}' for pattern, message in rules if not re.search(pattern, text, re.MULTILINE)]

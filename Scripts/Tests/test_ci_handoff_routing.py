@@ -29,7 +29,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
         self.assertNotIn('./Scripts/check-artwork-budget.sh', shop)
         self.assertNotIn('./Scripts/release-notes.sh validate', shop)
         artwork = commands(['Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift'])
-        self.assertIn('./Scripts/check-artwork-budget.sh', artwork)
+        self.assertNotIn('./Scripts/check-artwork-budget.sh', artwork)
         full = commands(['Scripts/internal/change_routing.py'])
         self.assertEqual(commands(['unknown-input.config']), full)
         self.assertEqual(commands(['Unknown/Probe.swift', 'Docs/README.md']), full)
@@ -45,6 +45,8 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
         from script_test_support import load_script
         verify = load_script('explicit_route_verifier', 'verify.py')
         cases = (
+            (['--package', 'TrinketCore'], ('./Scripts/test-package.sh', 'TrinketCore')),
+            (['--route', 'focused', '--package', 'TrinketCore'], ('./Scripts/test-package.sh', 'TrinketCore')),
             (['--route', 'diagnostic', '--package', 'TrinketCore'], ('./Scripts/test-package.sh', 'TrinketCore')),
             (['--route', 'diagnostic', '--app-only'], ('./Scripts/test.sh', 'unit', '--app-only')),
             (['--route', 'diagnostic', '--ui', 'SmokeShopTests/testPurchase'], ('./Scripts/test.sh', 'smoke', 'SmokeShopTests/testPurchase')),
@@ -67,7 +69,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                 if arguments[1] == 'release':
                     self.assertEqual(environment['TRINKET_ALLOW_FULL_UI'], '1')
         with contextlib.redirect_stderr(io.StringIO()):
-            for arguments in (['--route', 'diagnostic'], ['--package', 'TrinketCore'], ['--route', 'visual', '--smoke']):
+            for arguments in (['--route', 'diagnostic'], ['--route', 'focused'], ['--route', 'static', '--package', 'TrinketCore'], ['--route', 'visual', '--smoke']):
                 with self.assertRaises(SystemExit):
                     verify.main([*arguments, '--paths', 'Docs/README.md'])
 

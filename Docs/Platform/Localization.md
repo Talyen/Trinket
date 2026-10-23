@@ -25,19 +25,19 @@ For optional routed pointers, use `python3 Scripts/agent-brief.py --task localiz
    (actors, targets, conditions, timing, quantities and chance), terminology,
    placeholders/markup, and grammar. Correct defects. When delegating translation
    or review, use high-reasoning subagents. After actually completing every check
-   for every pending supplied entry, run `python3 Scripts/localization.py review
-   <response.json> --rationale '<what the separate review checked>'`. This records
-   your attestation and binds it to the translated values; it does not perform AI
-   review. Existing matching hash-bound reviews retain their original rationale;
-   they need no repeated review. Trim a batch to the entries you reviewed when necessary.
-4. Run `python3 Scripts/localization.py apply <response.json>`. It applies the
-   reviewed results, generates resources, then validates the complete inventory.
-   An incomplete batch remains applied but exits nonzero with its remaining queue;
-   resume with `prepare`. `check` remains available as a standalone read-only gate.
-   Commit catalogs, review fingerprints, generated resources, and the English change together.
+   for every pending supplied entry, run `python3 Scripts/localization.py finish
+   <response.json> --rationale '<what the separate review checked>'`. `prepare`
+   prints this command with the draft path. It records your attestation, binds it
+   to the translated values, applies the results, generates resources, and validates
+   the complete inventory. It does not perform AI review. Existing matching
+   hash-bound reviews retain their original rationale and need no repeated review.
+   Trim a batch to the entries you reviewed when necessary.
+4. Commit catalogs, review fingerprints, generated resources, and the English
+   change together. An incomplete batch remains applied but exits nonzero with its
+   remaining queue; resume with `prepare`. `check` is a standalone read-only gate.
 
-The existing `plan` and `template` stdout commands and manually authored review
-records remain supported. Preparation never marks translations reviewed. The
+The existing `review` and `apply` steps, `plan` and `template` stdout commands,
+and manually authored review records remain supported. Preparation never marks translations reviewed. The
 review command rejects stale sources and incomplete or mechanically invalid
 translations; apply rejects edits to translations after a recorded review.
 Actual separate review remains mandatory for every configured language.

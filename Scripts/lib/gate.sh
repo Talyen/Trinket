@@ -40,7 +40,7 @@ trinket_run_full_gate() {
   trinket_log_section "Script checks"
   ./Scripts/test-scripts.sh
 
-  trinket_log_section "Cheap slices (boundaries, API bans, release notes, artwork-budget)"
+  trinket_log_section "Cheap slices (boundaries, API bans, release notes)"
   trinket_run_gate_slices --style-checked
 
   trinket_log_section "Gate checks passed"

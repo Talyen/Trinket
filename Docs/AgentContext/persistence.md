@@ -65,8 +65,8 @@ existing persistence tests may suffice for a new API. Apply
 | Graph, schema, sanitization and failure recovery | [Storage](persistence-storage.md) |
 | Rewards, claims, Shop stock, encounter identity and Homestead transactions | [Progression](persistence-progression.md) |
 
-`agent-context.sh` suggests references for known domain paths; store hubs, tests
-and unknown paths list both for discovery. Read relevant sections and follow the
+`agent-context.sh` lists both contracts for this owner; leaf renames do not change
+that guidance. Read relevant sections and follow the
 storage contract when a domain change touches
 graph reconciliation or serialization. Current-data validation and corruption
 recovery remain required; schema changes must follow the storage contract.

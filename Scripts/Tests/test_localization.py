@@ -56,6 +56,29 @@ class LocalizationTests(unittest.TestCase):
         result = run_python('localization.py', *prefix, 'check', expected=0)
         self.assertIn('Localization PASS', result.stdout)
 
+    def test_finish_requires_valid_translations_and_records_only_explicit_review(self):
+        prefix = ['--root', str(self.root)]
+        response = prepare(self.root) / 'response.json'
+        pending = json.loads(response.read_text())
+        run_python('localization.py', *prefix, 'finish', str(response), expected=2)
+        run_python('localization.py', *prefix, 'finish', str(response),
+                            '--rationale', 'Fixture separate review.', expected=2)
+        self.assertEqual(json.loads(response.read_text()), pending)
+        self.assertNotEqual(check(self.root), [])
+        for item, translated in zip(pending['translations'], self.response()['translations']):
+            item['translation'] = translated['translation']
+        response.write_bytes(encoded(pending))
+        run_python('localization.py', *prefix, 'finish', str(response), '--rationale',
+                   'Fixture completed separate review of all required checks.', expected=0)
+        self.assertEqual(check(self.root), [])
+        # Later English changes cannot be attested or applied through an old draft.
+        catalog = json.loads((self.root / self.name).read_text())
+        catalog['strings']['deal.burn']['localizations']['en']['stringUnit']['value'] = 'Take %1$lld Burn damage'
+        self.write(self.name, catalog)
+        run_python('localization.py', *prefix, 'finish', str(response), '--rationale',
+                   'Fixture separate review.', expected=2)
+        self.assertNotEqual(check(self.root), [])
+
     def test_same_key_english_edit_invalidates_every_translation(self):
         apply(self.root, self.response())
         self.assertEqual(check(self.root), [])

@@ -13,7 +13,7 @@ reuse it when already loaded and unchanged. This repository's
 controls when local device work is authorized. Apple's automatic trigger after a
 UI edit does not override Trinket's CI-owned verification policy.
 
-## Main agent
+## Session ownership
 
 - Hold a managed simulator lease under
   [Simulator operations](../../../Docs/Platform/SimulatorOperations.md#inspection-lease-and-capture)
@@ -27,15 +27,14 @@ UI edit does not override Trinket's CI-owned verification policy.
   already-installed app; use `DeviceInteractionStartWorkspaceSession` only when
   the task needs a workspace build/install. Native session creation supplements
   the repository lease; it does not replace it.
-- Delegate all native captures and input events to one subagent with exclusive use
-  of that session. Give it this skill's path, the returned session key, exact
-  device identity, and bounded verification task. The subagent must read this
-  skill and the Apple reference itself. The main agent retains lease ownership.
+- One agent operates each native session. Direct use is sufficient; delegation is
+  optional when useful and authorized. If delegated, pass this skill, the session
+  key, exact leased device and bounded task; the parent retains lease ownership.
 - End the native session with `DeviceInteractionEndSession` before releasing the
   lease, including failed or cancelled checks. Do not leave a session open between
   unrelated tasks; its runtime is expensive.
 
-## Device subagent
+## Capture and input
 
 Use the tools actually exposed in this chat. Apple's snapshot calls the capture
 tool `DeviceEventSynthesize`; the current Xcode tool is
@@ -48,8 +47,8 @@ Capture with no interaction command first. Read the hierarchy and inspect the
 screenshot before acting; prefer hierarchy hit points and observe again after
 input. Follow the Apple reference's bounded retries and application activation
 rules. Stay within the requested flow; do not edit code, rebuild, or reset saves
-as an inspection workaround. Report findings to the main agent and let it close
-the session and release the lease.
+as an inspection workaround. The session owner closes the native session before
+releasing its lease; a delegated operator reports evidence to that owner.
 
 Report device/build identity, what was visible, which interactions were actually
 exercised, and any missing evidence. Capturing SpringBoard does not verify Trinket.

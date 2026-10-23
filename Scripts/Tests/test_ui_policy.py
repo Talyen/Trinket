@@ -74,32 +74,23 @@ class UiPolicyTests(ScriptRegressionTestCase):
                 self.assertEqual(checker.main(["check-ui-style.py", directory]), 1)
 
 
-    def test_artwork_budget_enforces_process_constants_and_actual_cache_clamp(self) -> None:
-        live = (ROOT / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift").read_text(encoding="utf-8")
+    def test_artwork_budget_uses_bounded_behavior_tests_and_respects_local_limits(self) -> None:
+        from script_test_support import write_executable
         with tempfile.TemporaryDirectory() as directory:
             root = self.make_repo_fixture(directory, ("Scripts/check-artwork-budget.sh",))
-            fixture = root / "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift"
-            fixture.parent.mkdir(parents=True)
-            cases = (
-                ("live constants pass", live, None),
-                ("resident drift",
-                 live.replace("320 * 1024 * 1024", "321 * 1024 * 1024"), "residentArtworkByteCount must be 320"),
-                ("steady drift",
-                 live.replace("550 * 1024 * 1024", "551 * 1024 * 1024"), "steadyStateProcessByteCount must be 550"),
-                ("floor lowered while assertion and prose still name 160",
-                 live.replace("max(adaptiveBudget, 160 * 1024 * 1024)", "max(adaptiveBudget, 80 * 1024 * 1024)"),
-                 "NSCache adaptive budget must stay clamped to 160-260"),
-                ("cap lowered",
-                 live.replace("260 * 1024 * 1024", "160 * 1024 * 1024"), "NSCache adaptive budget must stay clamped to 160-260"),
-            )
-            for label, source, failure in cases:
-                with self.subTest(label=label):
-                    fixture.write_text(source, encoding="utf-8")
-                    result = run_captured([str(root / "Scripts/check-artwork-budget.sh")], cwd=root)
-                    self.assertEqual(result.returncode, 1 if failure else 0, result.stdout + result.stderr)
-                    if failure:
-                        self.assertIn(failure, result.stderr)
-
+            write_executable(root / 'Scripts/test-package.sh',
+                             '#!/bin/sh\nprintf "%s\\n" "$@" > arguments.txt\nprintf "%s" "$TRINKET_ISOLATE" > isolation.txt\n')
+            command = [str(root / 'Scripts/check-artwork-budget.sh')]
+            run_captured([*command, '--help'], cwd=root, env=self.verification_environment(), expected=0)
+            self.assertFalse((root / 'arguments.txt').exists())
+            rejected = run_captured(command, cwd=root, env=self.verification_environment())
+            self.assertEqual(rejected.returncode, 2, rejected.stdout + rejected.stderr)
+            self.assertFalse((root / 'arguments.txt').exists())
+            run_captured(command, cwd=root,
+                         env=self.verification_environment(TRINKET_ALLOW_HEAVY_LOCAL='1'), expected=0)
+            self.assertEqual((root / 'isolation.txt').read_text(), '1')
+            self.assertEqual((root / 'arguments.txt').read_text().splitlines(),
+                             ['--only-suite', 'PreparedArtworkCacheTests', 'TrinketFeatureSupport'])
 
     def test_accessibility_ids_failure_fixture_rejects_duplicates_and_raw_literals(self) -> None:
         checker = load_script("check_accessibility_ids", "check-accessibility-ids.py")

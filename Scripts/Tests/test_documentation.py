@@ -293,7 +293,6 @@ class DocumentationTests(ScriptRegressionTestCase):
                 "python3 Scripts/localization.py check",
                 "./Scripts/check-api-bans.sh",
                 "./Scripts/release-notes.sh validate",
-                "./Scripts/check-artwork-budget.sh",
             ],
         )
         # Script infrastructure keeps the full registry; pure docs have no local slices.

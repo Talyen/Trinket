@@ -136,7 +136,7 @@ def report_evidence(checks, outcomes: dict[str, str], *, preview: bool, status: 
     elif preview:
         print('Next: execute this handoff to establish the planned evidence.')
     elif route != 'static':
-        print('Next: review the captured results; focused diagnostics and inspection do not replace static handoff or hosted qualification.')
+        print('Next: review the captured results; focused verification and inspection do not replace static handoff or hosted qualification.')
     elif any(check.deferred for check in checks):
         print('Next: local integration is permitted after review; after an authorized push, inspect hosted CI for deferred checks.')
     else:
@@ -149,12 +149,12 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     scope.add_argument('--paths', nargs='+')
     scope.add_argument('--working-tree', action='store_true')
     scope.add_argument('--base', help='include task commits since the shared ancestor of REF and HEAD, plus dirty files')
-    parser.add_argument('--route', choices=('static', 'diagnostic', 'visual', 'release'), default='static',
-                        help='static handoff (default), focused verification/diagnosis, managed visual inspection, or full release verification')
+    parser.add_argument('--route', choices=('static', 'focused', 'diagnostic', 'visual', 'release'),
+                        help='static handoff by default; selectors choose focused verification; diagnostic remains an alias')
     target = parser.add_mutually_exclusive_group()
-    target.add_argument('--package', help='diagnostic: run this package only')
-    target.add_argument('--ui', help='diagnostic: run one existing UI class or method selector')
-    target.add_argument('--app-only', action='store_true', help='diagnostic: compile the app only')
+    target.add_argument('--package', help='focused: run this package only')
+    target.add_argument('--ui', help='focused: run one existing UI class or method selector')
+    target.add_argument('--app-only', action='store_true', help='focused: compile the app only')
     for flag in ('dry-run', 'quiet', 'isolate', 'smoke', 'mirror', 'final', 'keep-plan'):
         parser.add_argument('--' + flag, action='store_true')
     args = parser.parse_args(argv)
@@ -162,9 +162,12 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         parser.error('handoff requires --paths <file...> or --base <ref>; use --working-tree for intentional whole-tree scope')
     if args.paths == []:
         parser.error('--paths requires at least one repository-relative path')
-    diagnostic = bool(args.package or args.ui or args.app_only)
-    if diagnostic != (args.route == 'diagnostic'):
-        parser.error('--route diagnostic requires exactly one of --package, --ui, --app-only; selectors apply only to diagnostics')
+    selected = bool(args.package or args.ui or args.app_only)
+    args.route = args.route or ('focused' if selected else 'static')
+    if args.route == 'diagnostic':
+        args.route = 'focused'
+    if selected != (args.route == 'focused'):
+        parser.error('focused verification requires exactly one of --package, --ui, --app-only')
     if args.route != 'static' and (args.smoke or args.mirror or args.final or args.keep_plan):
         parser.error('--smoke, --mirror, --final and --keep-plan apply only to the static route')
     environment = dict(os.environ)
@@ -184,18 +187,18 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             checks = verification_plan(route, root=root, environment=environment, smoke=args.smoke or environment.get('TRINKET_ENABLE_SMOKE') == 'true', final=args.final, keep_plan=args.keep_plan, mirror=args.mirror)
         else:
             environment['TRINKET_ALLOW_HEAVY_LOCAL'] = '1'
-            if args.route == 'diagnostic':
+            if args.route == 'focused':
                 if args.package:
-                    checks = [Check('package', 'focused package diagnostic', ('./Scripts/test-package.sh', args.package))]
+                    checks = [Check('package', 'focused package verification', ('./Scripts/test-package.sh', args.package))]
                 elif args.ui:
                     suite = next((row['suite'] for row in registrations(root)
                                   if row['name'] == args.ui.partition('/')[0]), None)
                     if suite not in {'Smoke', 'FullUI'}:
                         raise ValueError('--ui requires one registered Smoke or FullUI Class[/method] selector')
                     mode = 'smoke' if suite == 'Smoke' else 'ui'
-                    checks = [Check('smoke', 'focused UI diagnostic', ('./Scripts/test.sh', mode, args.ui))]
+                    checks = [Check('smoke', 'focused UI verification', ('./Scripts/test.sh', mode, args.ui))]
                 else:
-                    checks = [Check('build', 'app compilation diagnostic', ('./Scripts/test.sh', 'unit', '--app-only'))]
+                    checks = [Check('build', 'focused app compilation', ('./Scripts/test.sh', 'unit', '--app-only'))]
             elif args.route == 'visual':
                 checks = [Check('visual', 'managed visual inspection', ('./Scripts/run-simulator.sh', '--isolate', '--inspect'))]
             else:

@@ -9,4 +9,3 @@
 python3 Scripts/localization.py check  # local-paths=*.swift,*.xcstrings,Localization/*,ContentManifest/*,Scripts/*,.github/*,project.yml
 ./Scripts/check-api-bans.sh  # skip-when-style-checked local-paths=*.swift,Packages/*/Package.swift,Scripts/*,.github/*,.swiftlint.yml,.swiftformat
 ./Scripts/release-notes.sh validate  # local-paths=ReleaseNotes/*,CHANGELOG.md,cliff.toml,Scripts/*,.github/*
-./Scripts/check-artwork-budget.sh  # local-paths=Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift,Scripts/*,.github/*

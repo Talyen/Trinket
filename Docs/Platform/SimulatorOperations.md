@@ -55,7 +55,8 @@ prints `Inspection ready` with the simulator name, UDID, bundle ID, product
 path, and device UI path. Xcode 27 uses Device Hub; older Xcode uses Simulator.
 It keeps its lease until you send `stop\n` through standard input, close
 terminal input, or cancel the process. Confirm process exit after finishing.
-Do not wait for this command to exit before beginning Computer Use. Keep its
+Begin inspection while the command is running. Prefer native Xcode device tools
+when exposed; otherwise use Computer Use. Keep its
 session alive across tool calls; do not run another simulator job against its
 slot during inspection.
 
@@ -91,10 +92,11 @@ report the limitation rather than claiming its feel was verified.
 
 For requested local device diagnostics or UI verification, the
 [device-interaction skill](../../.agents/skills/device-interaction/SKILL.md) provides
-Xcode's native screenshot, hierarchy, and input route. Use it when Computer Use
-cannot attach to Device Hub or native device events better fit the task. Keep the
+Xcode's native screenshot, hierarchy, and input route. Prefer it when its tools
+are exposed, avoiding the recorded Device Hub attachment failure; otherwise use
+Computer Use. Neither route guarantees correct Duo display routing. Keep the
 same managed simulator lease alive and target its exact UDID; an Xcode interaction
-session does not reserve a Trinket simulator slot. The skill owns delegation,
+session does not reserve a Trinket simulator slot. The skill owns session operation,
 session cleanup, tool mapping, and Apple's exported interaction reference.
 
 Reuse one native interaction session for the owned inspection. Record its session
@@ -109,8 +111,11 @@ source editing can continue. Preserve foreign sessions under the
 
 ### Optional evidence capture
 
-Computer Use observations are sufficient for routine inspection. When a saved
-screenshot or recording is needed as an artifact, the
+Type `capture` in the live inspection terminal to save the leased display and
+product identity under `.DerivedData/Deliverables/Inspection/`. The metadata records
+the checkout revision observed at launch, not a compiled-source freshness proof;
+retain the build/revision and relevant screen/state in the review. For recording
+or an explicit capture destination, the
 [ios-simulator skill](../../.agents/skills/ios-simulator/SKILL.md#evidence-capture)
 owns the exact simctl capture commands against the leased device. A full pool means
 another run owns the capacity, not permission to take its device.

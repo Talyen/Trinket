@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shlex
 from pathlib import Path
 import sys
 
@@ -22,6 +23,9 @@ def main(argv=None) -> int:
     review = commands.add_parser('review', help='Record your completed separate review of pending translations; preserve matching completed reviews; does not perform AI review')
     review.add_argument('response', type=Path)
     review.add_argument('--rationale', required=True, help='What you checked in the completed separate review of each pending entry')
+    finish = commands.add_parser('finish', help='After separate AI review, record your attestation and apply the response with validation')
+    finish.add_argument('response', type=Path)
+    finish.add_argument('--rationale', required=True, help='What the completed separate AI review checked; this command does not perform review')
     update = commands.add_parser('apply', help='Validate an entire response before replacing catalogs and receipts')
     update.add_argument('response', type=Path)
     validation = commands.add_parser('check', help='Read-only freshness, coverage, and resource validation')
@@ -36,11 +40,18 @@ def main(argv=None) -> int:
             directory = prepare(args.root, args.resume)
             print(f'Queue: {directory / "plan.json"}')
             print(f'Translate and separately review: {directory / "response.json"}')
-            print('Matching drafts and hash-bound reviews are retained when available. Translate/review pending entries, record the review, then apply (includes validation).')
+            queue = load(directory / 'plan.json')
+            print(f"Pending: {len(queue['requests'])} translations across {len({item['locale'] for item in queue['requests']})} locales.")
+            print('After translating and completing a separate AI review, finish with:')
+            print(shlex.join(['python3', 'Scripts/localization.py', '--root', str(args.root),
+                              'finish', str(directory / 'response.json'), '--rationale',
+                              '<what the completed separate review checked>']))
         elif args.operation == 'review':
             record_review(args.root, args.response, args.rationale)
             print(f'Recorded the caller-attested review: {args.response}')
-        elif args.operation == 'apply':
+        elif args.operation in {'apply', 'finish'}:
+            if args.operation == 'finish':
+                record_review(args.root, args.response, args.rationale)
             apply(args.root, load(args.response))
             errors = check(args.root)
             if errors:

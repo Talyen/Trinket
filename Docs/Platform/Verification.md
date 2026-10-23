@@ -8,31 +8,33 @@ setup: [SimulatorOperations.md](SimulatorOperations.md).
 
 ## Confidence ladder
 
-Choose one route based on the question. Isolation is automatic in handoff;
-existing `--isolate` calls remain supported. Static checks are the routine route.
-The other routes are explicit, bounded verification/diagnostics, interactive visual work, or
-requested release verification; they never run as a side effect of static checks.
+Use static handoff for inexpensive checks, focused verification for compiled
+behavior, visual inspection for changed presentation, and release verification
+only when requested. Isolation and resource limits are automatic. Static handoff
+never starts Swift compilation or a simulator.
 
-| Question | Explicit route | Evidence |
+| Question | Command | Evidence |
 |---|---|---|
-| Ready to land the task? | Commit reviewed work, then `node Scripts/agent-worktree.mjs integrate` | Runs the final static handoff after incorporating main under the lock; no redundant pre-commit handoff required |
-| Standalone or focused static check? | `handoff.sh --quiet --base main` (or `--paths <files...>`) | Scoped style, script/docs and relevant cheap checks; compilation and journeys remain CI-owned |
-| Consequential logic change or package/test failure? | `handoff.sh --route diagnostic --package <Package> --paths <files...>` | Compiles/tests only the selected package; also available before a failure is known |
-| Concrete app or UI failure? | `handoff.sh --route diagnostic --app-only --paths <files...>` or `--ui <Class[/method]>` | App compilation or one existing UI selector; no full suite |
-| Changed visuals need inspection? | `handoff.sh --route visual --paths <files...>` in a persistent terminal | Managed build/launch/inspection lease; inspect and exercise the result before stopping the session |
-| Requested full release verification? | `handoff.sh --route release --paths <files...>` | Runs `test-deploy.sh --mode ui`; does not version, tag, sign, upload, or publish |
+| Ready to land? | Commit reviewed work, then `node Scripts/agent-worktree.mjs integrate` | Incorporates main; pauses for review if main advanced; runs one final static handoff before landing |
+| Static checks? | `handoff.sh --quiet --base main` (or `--paths <files...>`) | Scoped style, script/docs and cheap checks |
+| Verify a package? | `handoff.sh --package <Package> --paths <files...>` | Compiles/tests one selected package |
+| Compile the app or exercise a journey? | `handoff.sh --app-only --paths <files...>` or `--ui <Class[/method]>` | App compilation or one existing UI selector |
+| Inspect changed visuals? | `handoff.sh --route visual --paths <files...>` in a persistent terminal | Managed build/launch/inspection lease; inspect and exercise the result |
+| Requested release verification? | `handoff.sh --route release --paths <files...>` | Full release verification, without publishing |
 
-Use `--dry-run` with any route to inspect its command without executing it.
-Diagnostic selectors are required and mutually exclusive. Explicit non-static
-routes set the existing local-execution flags for their selected wrapper; callers
-need not discover environment overrides. Use the diagnostic route for one bounded
-package verification or a concrete app/UI failure, the visual route for the visual
-completion gate, and release only for
-requested release qualification. The execution limits below still apply.
-`--smoke` on the static route reports selected hosted journey obligations; it does
-not run them locally. Direct package, UI, play, performance, and release commands
-remain supported under the same policy. A focused diagnostic does not replace
-static handoff, hosted qualification, or visual review.
+`--package`, `--app-only`, and `--ui` select the focused route and are mutually
+exclusive. `--route focused` is optional; the previous `--route diagnostic` remains
+an alias. Focused verification is available during ordinary implementation; no
+prior failure or additional approval is required for a task-relevant check.
+It runs one package or UI selector at a time, with serialized package/UI workers.
+Use an app compile as well when a shared API's consumers are outside the package.
+
+Use `--dry-run` to preview the same command that execution will use. Focused,
+visual and release routes set their execution flags automatically. Broad suites,
+performance measurements and repository-wide freshness remain hosted work under
+the execution limits below. `--smoke` on static handoff reports hosted journey
+obligations; it does not run them locally. A focused pass establishes its selected
+behavior, separately from static, hosted and visual evidence.
 
 Briefing and handoff accept `--base main` to derive the full task scope: committed
 changes since the shared ancestor of the base and `HEAD`, plus staged, unstaged and
@@ -149,15 +151,13 @@ Swift compilation, simulator boot, UI tests, performance measurements, or broad
 asset/project generation. `handoff.sh --isolate --quiet --paths <files...>` reports
 heavy checks as deferred to CI; a local PASS is not compile or interaction proof.
 
-CI owns package tests, app compilation, critical smoke, nightly/manual FullUI,
+CI owns broad package/app qualification, critical smoke, nightly/manual FullUI,
 generation/idempotence, and manual performance measurements. Review hosted results
 after the next authorized push. Keep missing CI evidence explicit in handoff; do
-not run broad hosted suites on the laptop to fill that gap. For consequential logic
-changes, a bounded package compile/test through the focused route is authorized
-before landing; it need not wait for an observed failure. Choose the owning package
-and state the scope/purpose. This is deliberate verification, not an automatic
-compile for every changed file. Shared API changes may need a focused app compile
-when the package does not compile its consumers.
+not run broad hosted suites on the laptop to fill that gap. Use the focused route
+before landing when compiled evidence is useful. Choose one owning package and state the scope/purpose; compilation is explicit
+rather than an automatic cost for every edited file. Shared API changes may need
+a focused app compile when the package does not compile its consumers.
 
 Changed interaction wiring and accessibility identifiers require the relevant
 hosted journey evidence. `--smoke` selects the routed smoke owner for the handoff
@@ -207,11 +207,10 @@ satisfy the gate. Guidance-only edits use scenario review, not a synthetic UI bu
   this policy. Controlled script fixtures may simulate those environments with
   stubbed commands; they must not start real builds or simulators.
 - Agents may choose bounded, task-relevant local compile, test, or simulator
-  verification/diagnostics without separate user approval for consequential logic
-  changes (one owning package, plus an app compile when shared API consumers need
-  it), to reproduce or resolve a concrete failure, or to satisfy the visual
-  completion gate above. Use
-  the explicit diagnostic or visual route above, or set
+  verification without separate user approval for task-relevant work: one owning
+  package or UI selector, plus an app compile when shared API consumers need it,
+  or the visual completion gate above. Use
+  the focused or visual route above, or set
   `TRINKET_ALLOW_HEAVY_LOCAL=1` with a focused selector for direct compiled
   wrappers. State the scope and purpose before running.
   Keep simulator work isolated and release owned leases when finished. The
@@ -308,7 +307,7 @@ CI OK. The watch command attempts one such recovery, not a blanket test retry.
 | Gate | Composition |
 |---|---|
 | `handoff.sh` (static route) | Locally: scoped style, fast selected script regressions, docs, cheap static slices and selected prepared-asset integrity; reports content/project generation, compilation, package and UI work as CI-owned; local cheap slices use declared input scopes |
-| `ci-gate.sh` | Pinned-tool ensure, generation and idempotence, assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, API-ban policy (incl. XCTest migration), release-note validation, artwork budget |
+| `ci-gate.sh` | Pinned-tool ensure, generation and idempotence, assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, API-ban policy (incl. XCTest migration), release-note validation; compiled artwork-budget behavior belongs to FeatureSupport package tests |
 | `ci-gate.sh --fast` | Only the ordered commands in [the cheap-slice registry](../../Scripts/config/cheap-slices.txt) |
 | `ci-assets-gate.sh` | Check committed prepared assets and manifest/resource integrity without Asset Library |
 | `test-deploy.sh` | Full CI/release evidence with exact-commit hosted proof reuse and local phase checkpoints; local `ui`/`smoke` execution uses the deliberate heavy-local flag and diagnostic limits, while `--mode beta` consumes hosted proof without a local heavy run. [Release recovery](Release.md#options-and-recovery) owns checkpoint identity and invalidation |

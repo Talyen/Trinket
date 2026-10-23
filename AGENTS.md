@@ -42,8 +42,9 @@ and do not reopen a task.
 Use ordinary scoped `rg`, file reads, and `git diff` for discovery and review.
 Before editing intended files, run
 `python3 Scripts/agent-brief.py --status --read --paths <files...>` once for
-applicable safeguards and initial contracts. This is the only required retrieval
-command. Reuse unchanged guidance already in context; follow linked contracts and
+applicable safeguards and concise ownership. Read linked behavior contracts for
+the change; `--full --read` expands them explicitly. This is the only required
+retrieval command. Reuse unchanged guidance already in context; follow linked contracts and
 skills only for the behavior being changed. Index pages are lookup aids, not
 additional reading requirements. Follow callers and assertions as needed.
 
@@ -82,8 +83,8 @@ caused by the change without another approval checkpoint. Stop when complete or
 blocked by a required decision or unavailable prerequisite.
 
 - Add tests only for consequential gaps in existing protection; use the three questions in [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior). Verification does not require new test code.
-- Static handoff stays resource-light. For consequential logic changes, one bounded package compile/test through the existing focused route is authorized without another approval. Broad compilation, UI/performance suites and freshness generation remain CI-owned; [Verification](Docs/Platform/Verification.md#execution-limits) owns selection and limits.
-- Integration runs the final static handoff for the full rebased task under the lock; do not duplicate it before committing solely for landing. Use `./Scripts/handoff.sh --quiet --base main` for standalone handoff or `--paths <files...>` for focused checks. Isolation is automatic; existing `--isolate` calls remain valid. Add `--final` when closing an execution plan. [Verification](Docs/Platform/Verification.md) owns explicit static, diagnostic, visual, and release routes and their evidence limits.
+- Static handoff stays resource-light. Use `handoff.sh --package <Package> --paths <files...>` for one task-relevant package compile/test without another approval. Broad compilation, UI/performance suites and freshness generation remain CI-owned; [Verification](Docs/Platform/Verification.md#execution-limits) owns selection and limits.
+- Integration pauses for combined review if main advanced, then runs the final static handoff under the lock on retry; do not duplicate it before committing solely for landing. Use `./Scripts/handoff.sh --quiet --base main` for standalone handoff or `--paths <files...>` for focused checks. Isolation is automatic; existing `--isolate` calls remain valid. Add `--final` when closing an execution plan. [Verification](Docs/Platform/Verification.md) owns static, focused, visual, and release routes and their evidence limits.
 - Review the final diff and generated consistency. Report results, verification, adopted fixes, and exact blockers/skips; distinguish task changes from pre-existing work. A local handoff proves only its lightweight checks; report CI-owned checks as pending until hosted evidence confirms them.
 - Handoff records verification evidence automatically; integration adds a task report and preserves `.DerivedData/Deliverables/` outside the checkout before cleanup. Save visual artifacts there too. `node Scripts/agent-worktree.mjs evidence [path...]` preserves other files or prints the durable directory. After a successful landing, `cleanup` retries only checkout removal.
 

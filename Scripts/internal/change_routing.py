@@ -58,7 +58,8 @@ def collect_paths(paths: list[str] | None, root: Path = ROOT, *, base: str | Non
     return sorted({path for entry in changes(root) for path in (entry.path, entry.original) if path})
 
 
-# Ordered, first-match guidance rules. These same definitions are validated by check-docs.
+# Guidance follows stable owners. Behavior depth is read on demand; renaming a
+# source leaf must not silently change its contracts.
 ACTION = 'Docs/AgentContext/battle-actions.md'
 PRESENTATION = 'Docs/AgentContext/battle-presentation.md'
 STORAGE = 'Docs/AgentContext/persistence-storage.md'
@@ -79,67 +80,31 @@ def sections(document: str, *names: str) -> tuple[str, ...]:
     return tuple(document + '#' + name for name in names)
 
 
-def actions(*names: str) -> tuple[str, ...]:
-    return sections(ACTION, 'shared-action-invariants', *names)
-
-
-def presentation(*names: str) -> tuple[str, ...]:
-    return sections(PRESENTATION, 'display-lifetime', 'display-work-lifecycle', *names)
-
-
-def storage(*names: str) -> tuple[str, ...]:
-    return sections(STORAGE, 'save-compatibility', 'durable-acceptance-and-recovery', *names)
-
-
-RUNTIME_RULES = (
-    (('*.md',), ()),
-    (('*/PlaySession.swift', '*/PlaySession+BattleCompletion.swift', '*/PlayBattleLaunch+Configuration.swift', '*/BattleSession+Progression.swift'), (LAUNCH,)),
-    (('*/Features/Feedback/*', '*/State/Feedback/*'), presentation('floating-combat-feedback')),
-    (('*/Features/BattleAbilityCardView.swift', '*/Features/BattleHandView.swift', '*/Features/BattleFieldLane+CardPlay.swift'), presentation('continuous-card-input', 'card-visibility')),
-    (('*/Features/Battlefield/*', '*/Features/Effects/*'), presentation('attack-and-impact-presentation', 'card-visibility')),
-    (('*/Features/BattleCombatantProjectionPane.swift', '*/Features/BattleLogSheet.swift', '*/Features/BattleAutoToggle.swift', '*/Features/Layout/*', '*/State/BattleCard*.swift', '*/State/BattlePresentationState.swift', '*/State/BattleCommandState.swift', '*/State/BattleMotion.swift', '*/State/BattleSpectacle*.swift', '*/State/BattleSession+CardCues.swift', '*/State/BattleSession+Transitions.swift'), (PRESENTATION,)),
-    (('*',), (LAUNCH, PRESENTATION)),
+OWNER_GUIDANCE = (
+    (('Packages/BattleEngine',), (ENGINE, ACTION, 'Docs/AgentContext/battle-damage.md', 'Docs/AgentContext/battle-healing.md')),
+    (('Packages/BattleEngine/Sources/BattleBalanceTools', 'Packages/BattleEngine/Sources/BalanceSweepCLI'), (BALANCE,)),
+    (('Packages/TrinketPersistence',), (PERSISTENCE, STORAGE, PROGRESSION)),
+    (('Packages/TrinketBattleFeature',), (RUNTIME, PRESENTATION, LAUNCH)),
+    (('Packages/TrinketAppState/Sources/TrinketAppState/Play', 'Packages/TrinketAppState/Sources/TrinketAppState/App',
+      'Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts',
+      'Packages/BattleEngine/Sources/BattleEngine/Runtime', 'Trinket/App'), (RUNTIME, LAUNCH)),
+    (('Packages/TrinketAppState/Sources/TrinketAppState/Audio',), (AUDIO,)),
+    (('Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork', 'Trinket/App', 'Trinket/Features/Collection'), (UI_PERFORMANCE,)),
 )
-ENGINE_RULES = (
-    (('*/Sources/BattleEngine/ManaEmpowermentBudget.swift',), actions('card-preparations', 'action-identity-and-selected-outcomes', 'mana-payments-and-cadence', 'card-assessment')),
-    (('*/Sources/BattleEngine/Cards/BattleCardCombatEngine+OpeningHand.swift', '*/Sources/BattleEngine/Cards/BattleCardCombatEngine.swift'), actions('hand-contract', 'turn-ordering')),
-    (('*/Sources/BattleEngine/Cards/BattleCardAssessment.swift', '*/Sources/BattleEngine/Cards/BattleCardAssessment+Resources.swift'), actions('action-identity-and-selected-outcomes', 'mana-payments-and-cadence', 'card-assessment')),
-    (('*/Sources/BattleBalanceTools/*', '*/Sources/BalanceSweepCLI/*', '*/Tests/BattleBalanceToolsTests/*'), (BALANCE,)),
-    (('*/Triggers/CombatTriggerEngine+Damage.swift', '*/Triggers/CombatTriggerEngine+BlockAndDefense.swift', '*/Triggers/CombatTriggerEngine+Dodge.swift', '*/Turns/BattleTurnEngine+Resolution.swift', '*/Damage/*', '*/EffectHandlers/*', '*DoT*', '*EffectTurnEngine*', '*DamagePipeline*'), ('Docs/AgentContext/battle-damage.md',)),
-    (('*Healing*', '*Leech*'), ('Docs/AgentContext/battle-healing.md',)),
-    (('*/Cards/*', '*BattleHand*', '*CombatDeck*', '*Mana*', '*CardPlay*', '*CombatResolution*', '*BattleActionContext*'), (ACTION,)),
-    (('*.md',), ()),
-    (('*',), ('Docs/AgentContext/battle-damage.md', ACTION, 'Docs/AgentContext/battle-healing.md')),
-)
-PERSISTENCE_RULES = (
-    (('*/Sources/TrinketPersistence/Encounters/ShopPurchaseApplier.swift', '*/Sources/TrinketPersistence/Encounters/ShopStockPersistence.swift'), sections(PROGRESSION, 'shop-stock-and-encounter-identity', 'noncombat-completion', 'voyage-identities')),
-    (('*/Sources/TrinketPersistence/PlayerSaveStore+Homestead.swift',), sections(PROGRESSION, 'shop-stock-and-encounter-identity', 'homestead-transactions')),
-    (('*/Sources/TrinketPersistence/PlayerSaveStore+Roster.swift',), (*storage('schema-and-sanitization'), PROGRESSION)),
-    (('*/Sources/TrinketPersistence/PlayerSaveSanitizer.swift', '*/Sources/TrinketPersistence/PlayerSaveGraph/InventoryModel+ValueMapping.swift', '*/Sources/TrinketPersistence/PlayerSaveGraph/RosterModel+ValueMapping.swift'), storage('schema-and-sanitization', 'voyage-payload')),
-    (('*/Sources/TrinketPersistence/Progression/*', '*/Sources/TrinketPersistence/Encounters/*'), (PROGRESSION,)),
-    (('*/PlayerSaveGraph/*', '*/ModelContainerBootstrap.swift', '*/PlayerSaveSanitizer.swift', '*/PlayerSaveStoreConfiguration.swift'), (STORAGE,)),
-    (('*.md',), ()),
-    (('*',), (STORAGE, PROGRESSION)),
-)
-CONTENT_RULES = (
-    (('Packages/TrinketContent/Sources/TrinketContent/Abilities/*', 'Scripts/internal/content/abilities.py'), sections(CONTENT, 'abilities')),
-    (('ContentManifest/*',), sections(CONTENT, 'manifests')),
-    (('Scripts/internal/content/trigger_families/*', 'Scripts/internal/content/modifiers.json', 'Scripts/internal/content/modifier_schema.py', 'Scripts/internal/content/content_codegen_triggers.py', 'Scripts/internal/content/content_codegen_modifiers.py', 'Scripts/internal/content/affix_rolling.py'), sections(CONTENT, 'trigger-schemas')),
-    (('ArtManifest/*', 'MusicManifest/*', 'SoundManifest/*', 'Raw Assets/*', 'Trinket/Assets.xcassets/*', 'Trinket/Media/*', 'Scripts/prepare-*-assets.sh', 'Scripts/prepare-app-icon.sh', 'Scripts/prepare-media.py', 'Scripts/internal/media_templates/*', 'Scripts/asset-library.py', '*/PreparedAssets.generated.json'), sections(CONTENT, 'media-assets')),
+CONTENT_GUIDANCE = (
+    (('ContentManifest',), sections(CONTENT, 'manifests')),
+    (('Packages/TrinketContent/Sources/TrinketContent/Abilities',), sections(CONTENT, 'abilities')),
+    (('ArtManifest', 'MusicManifest', 'SoundManifest', 'Raw Assets', 'Trinket/Assets.xcassets', 'Trinket/Media'), sections(CONTENT, 'media-assets')),
+    (('Scripts/internal/content',), sections(CONTENT, 'generation-tooling')),
 )
 VISUAL_PATHS = ('Trinket/Features/*', 'Packages/TrinketBattleFeature/Sources/*/Features/*', 'Packages/TrinketBattleFeature/Sources/*/Views/*', 'Packages/TrinketFeatureSupport/Sources/*/Features/*', 'Packages/TrinketFeatureSupport/Sources/*/FeatureAdapters/*', *(f'Packages/TrinketFeatureSupport/Sources/*/Shared/{part}/*' for part in ('Cards', 'Detail', 'Forms', 'Encounters', 'Rewards')), 'Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/*')
-KNOWLEDGE_RULES = (
-    (('*PreparedArtwork*', 'Trinket/App/TrinketApp.swift', '*PerformanceInvestigationPlaybook.md', 'Scripts/check-artwork-budget.sh', 'Scripts/check-agent-invariants.sh', 'Scripts/prepare-art-assets.sh', 'ArtManifest/*', 'Raw Assets/*'), '.agents/knowledge/patterns/artwork-working-set.md'),
-    (('*/Package.swift', 'Packages/BattleEngine/*BattleState*', 'Packages/TrinketPersistence/*PlayerSaveStore*', 'Packages/TrinketAppState/*AppState*', 'Packages/TrinketAppState/*PlayBattle*', 'Packages/BattleEngine/EffectHandlers/*', 'Packages/BattleEngine/*DamagePipeline*', 'Docs/Platform/Architecture.md'), '.agents/knowledge/patterns/module-dag-containment.md'),
-    (('*CloudKit*', 'Packages/TrinketContent/Package.swift', 'Packages/TrinketFeatureSupport/Package.swift', 'Packages/TrinketBattleFeature/*Feedback*', 'Packages/TrinketBattleFeature/*Spectacle*', 'Packages/TrinketBattleFeature/*Projection*', 'Packages/TrinketBattleFeature/*Ultimate*', 'Docs/Platform/Architecture.md'), '.agents/knowledge/patterns/architecture-deferred-seams.md'),
-)
 BEHAVIOR_CARDS = {ACTION, PRESENTATION, STORAGE, PROGRESSION, BALANCE, LAUNCH, UI_PERFORMANCE, TALENTS, 'Docs/AgentContext/battle-damage.md', 'Docs/AgentContext/battle-healing.md'}
 
 
 def guidance_references() -> set[str]:
     references = {'Docs/Platform/Localization.md', CONTENT, PERSISTENCE, RUNTIME, LAUNCH, ENGINE, BALANCE, UI, UI_PERFORMANCE, AUDIO, TALENTS, *sections(CONTENT, 'shared-safeguards', 'project-generation', 'generation-tooling')}
-    for rules in (RUNTIME_RULES, ENGINE_RULES, PERSISTENCE_RULES, CONTENT_RULES):
-        references.update(reference for _, values in rules for reference in values)
+    for _, values in (*OWNER_GUIDANCE, *CONTENT_GUIDANCE):
+        references.update(values)
     return references
 
 
@@ -172,11 +137,6 @@ class Route:
             if value not in target:
                 target.append(value)
 
-    def rule(self, path: str, rules: tuple) -> None:
-        for patterns, references in rules:
-            if matches(path, *patterns):
-                self.add('cards', *references)
-                return
 
 
 def classify(paths: list[str], root: Path = ROOT, *, base: str | None = None) -> Route:
@@ -263,7 +223,8 @@ def classify(paths: list[str], root: Path = ROOT, *, base: str | None = None) ->
     if route.features & {'content', 'assets'}:
         route.add('cards', *sections(CONTENT, 'shared-safeguards'))
         for path in paths:
-            route.rule(path, CONTENT_RULES)
+            for owners, references in CONTENT_GUIDANCE:
+                if beneath(path, owners): route.add('cards', *references)
             if matches(path, 'Scripts/content_codegen.py', 'Scripts/internal/content/*', 'Scripts/generate.sh', 'Scripts/assert-generated-output.sh', 'Scripts/config/generated-paths.tsv', 'Packages/TrinketContent/Package.swift'): route.add('cards', *sections(CONTENT, 'generation-tooling'))
     if 'TrinketPersistence' in route.packages: route.add('cards', PERSISTENCE)
     if 'audio' in route.features: route.add('cards', AUDIO)
@@ -276,14 +237,10 @@ def classify(paths: list[str], root: Path = ROOT, *, base: str | None = None) ->
             if re.search(r'//.*(swiftlint:|swiftformat:|[A-Za-z]+Check:\s*allow|Concurrency-Safety:)', diff): route.add('skills', '.agents/skills/doc-budget/SKILL.md')
             public = r'(public\s+(actor|class|enum|struct|protocol|typealias)|(^|\s)protocol\s|@Model|[A-Za-z0-9_]+Schema|@attached)'
             if re.search(r'^\+(?!\+).*' + public if tracked else public, diff, re.MULTILINE): route.add('skills', '.agents/skills/architect/SKILL.md'); route.add('knowledge', '.agents/knowledge/patterns/module-dag-containment.md')
-        runtime_path = matches(path, 'Trinket/App/TrinketApp.swift', 'Packages/BattleEngine/Sources/BattleEngine/Runtime/BattleRuntime*.swift', 'Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts/BattleRuntime.swift', 'Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts/BattlePresentationDependencies.swift', 'Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts/BattleProgressionDelegate.swift', 'Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts/BattlePreparedPreview.swift', 'Packages/TrinketBattleFeature/*') or (path.startswith('Packages/TrinketAppState/') and '/Audio/' not in path and matches(path, '*Battle*', '*/Encounter*', '*/Play/*', '*/App/AppState.swift'))
-        if runtime_path: route.add('cards', RUNTIME); route.rule(path, RUNTIME_RULES)
-        elif path.startswith('Packages/BattleEngine/'): route.add('cards', ENGINE); route.rule(path, ENGINE_RULES)
-        if path.startswith('Packages/TrinketPersistence/'): route.add('cards', PERSISTENCE); route.rule(path, PERSISTENCE_RULES)
-        if path == 'ContentManifest/talents.tsv': route.add('cards', TALENTS)
-        if matches(path, 'Trinket/App/*', '*PreparedArtwork*', '*ArtworkViewportPrewarm*', 'Trinket/Features/Collection/*', '*LaunchWarmup*', '*HiddenTabPrewarm*'): route.add('cards', UI_PERFORMANCE)
-        for patterns, reference in KNOWLEDGE_RULES:
-            if matches(path, *patterns): route.add('knowledge', reference)
+        for owners, references in OWNER_GUIDANCE:
+            if beneath(path, owners): route.add('cards', *references)
+        if path.startswith('ContentManifest/') and Path(path).stem == 'talents': route.add('cards', TALENTS)
+        if path.endswith('/Package.swift'): route.add('knowledge', '.agents/knowledge/patterns/module-dag-containment.md')
         for parent in (root / path).parents:
             if parent == root: break
             if (parent / 'AGENTS.md').is_file(): route.add('guides', (parent / 'AGENTS.md').relative_to(root).as_posix())

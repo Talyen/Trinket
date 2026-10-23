@@ -34,7 +34,7 @@ Usage: ./Scripts/run-simulator.sh [--isolate] [--agent N] [--inspect]
 Builds Trinket and launches it. By default targets Trinket Run (human).
 Use --isolate to acquire an available agent lease or reuse an inherited lease.
 Use --agent N only under an existing parent lease for Trinket Agent N; it does not acquire one.
-Use --inspect in a terminal to hold the lease after launch; type stop to release it.
+Use --inspect in a terminal to hold the lease; type capture to save evidence or stop to release it.
 USAGE
       exit 0
       ;;
@@ -48,6 +48,8 @@ if [[ "$INSPECT" == "1" && ! -t 0 ]]; then
   echo "error: --inspect requires an interactive terminal session." >&2
   exit 1
 fi
+
+INSPECTION_REVISION="$(git rev-parse HEAD 2>/dev/null || true)"
 
 # shellcheck source=run-env.sh
 source ./Scripts/run-env.sh
@@ -203,10 +205,42 @@ if [[ "$INSPECT" == "1" ]]; then
   printf 'Inspection ready: %s (%s)\nApp: %s\nProduct: %s\n' \
     "$TRINKET_SIMULATOR_NAME" "$SIMULATOR_UDID" "$BUNDLE_ID" "$APP_PATH"
   echo "Device UI: $SIMULATOR_APP_NAME ($SIMULATOR_APP_PATH)"
-  echo "Lease held by this process. Use computer use on this simulator; type stop here when finished."
+  echo "Lease held by this process. Use native Xcode device tools when available, otherwise Computer Use."
+  echo "Type capture to save this leased display with product identity, or stop to release the lease."
   while IFS= read -r inspection_command; do
     [[ "$inspection_command" == "stop" ]] && break
-    echo "Inspection still active. Type stop to release the lease."
+    if [[ "$inspection_command" == "capture" ]]; then
+      mkdir -p .DerivedData/Deliverables/Inspection
+      CAPTURE_DIRECTORY="$(mktemp -d .DerivedData/Deliverables/Inspection/capture.XXXXXX)"
+      if xcrun simctl io "$SIMULATOR_UDID" screenshot "$CAPTURE_DIRECTORY/screen.png" --type=png --mask=ignored; then
+        python3 - "$CAPTURE_DIRECTORY" "$SIMULATOR_UDID" "$TRINKET_SIMULATOR_NAME" "$APP_PATH" "$INSPECTION_REVISION" <<'PYCAPTURE' || echo "Capture metadata failed; image retained at $CAPTURE_DIRECTORY/screen.png; inspection remains active." >&2
+from datetime import datetime, timezone
+import json
+from pathlib import Path
+import plistlib
+import sys
+
+directory, udid, name, app, revision = sys.argv[1:]
+with (Path(app) / 'Info.plist').open('rb') as handle:
+    product = plistlib.load(handle)
+metadata = {
+    'captured_at': datetime.now(timezone.utc).isoformat(),
+    'simulator_udid': udid, 'simulator_name': name, 'product_path': app,
+    'bundle_id': product['CFBundleIdentifier'],
+    'product_version': product.get('CFBundleShortVersionString'),
+    'product_build': product.get('CFBundleVersion'),
+    'checkout_revision_at_launch': revision or None,
+    'evidence_limit': 'Inspect the image and record screen/state and build provenance; capture alone is not visual review.',
+}
+(Path(directory) / 'capture.json').write_text(json.dumps(metadata, indent=2) + '\n')
+print(f'Capture saved: {Path(directory).resolve() / "screen.png"}')
+PYCAPTURE
+      else
+        echo "Capture failed for leased simulator $SIMULATOR_UDID; inspection remains active." >&2
+      fi
+      continue
+    fi
+    echo "Inspection still active. Type capture or stop."
   done
   echo "Inspection finished; releasing this process's lease."
 fi

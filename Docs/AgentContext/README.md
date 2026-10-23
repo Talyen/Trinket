@@ -5,15 +5,11 @@ Path-routed domain guides. `./Scripts/agent-context.sh` attaches them from
 cross-package exceptions, not restated root policy. Platform docs own architecture
 and testing; nested `AGENTS.md` files own local hard stops.
 
-Read the root and nested `AGENTS.md` safeguards and the applicable ownership and
-integration constraints. With `--read`, the briefing includes focused behavior
-sections alongside safeguards and ownership. Broad behavior references remain
-available for the relevant concern; follow dependencies across concerns.
-A shared filename does not require reading every listed behavior reference. Skills
-apply by trigger. Route metadata such as `battle.md` appears with `--full` for
-owner discovery. Reuse unchanged guidance already in context.
-All skills live under `../../.agents/skills/`; the design skill below is the one
-most routes attach.
+The required briefing reads local `AGENTS.md` safeguards and concise ownership.
+Behavior cards remain links for the concern being changed; `--full --read` expands
+all routed depth, while optional `--task <concern> --read` reads that concern's
+focused contracts. Guidance follows owner directories rather than source leaf
+names. Skills apply by their own triggers.
 
 Sample briefing shape (exact cards vary by path):
 
@@ -51,7 +47,7 @@ Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/S
 ## Quickstart
 
 Follow [Route and read](../../AGENTS.md#route-and-read) in the root guide. The
-briefing prints local safeguards, ownership and focused contract sections;
+briefing prints local safeguards and concise ownership;
 reuse unchanged guidance and read broader references only for the affected
 behavior. This catalog is for lookup, not an additional reading sequence.
 

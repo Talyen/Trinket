@@ -112,17 +112,19 @@ def related_tests(root: Path, symbol: str, source_files: set[str], test_files: s
 
 
 def initial_reference(reference: str) -> str:
-    if reference in {'Docs/AgentContext/persistence.md', 'Docs/AgentContext/swiftui-features.md', 'Docs/AgentContext/battle-runtime.md'}:
+    if reference.partition('#')[0] == 'Docs/AgentContext/content-and-manifests.md':
+        return reference.partition('#')[0] + '#shared-safeguards'
+    if reference in {'Docs/AgentContext/battle-engine.md', 'Docs/AgentContext/persistence.md', 'Docs/AgentContext/swiftui-features.md', 'Docs/AgentContext/battle-runtime.md'}:
         return reference + '#ownership'
     if reference == 'Docs/Platform/Localization.md':
         return reference + '#agent-workflow'
     return reference
 
 
-def guidance_command(root: Path, task: dict | None, guides: list[str]) -> str:
+def guidance_command(root: Path, task: dict | None, guides: list[str], *, full: bool = False) -> str:
     """Print a stateless batch read; only initial applicable guidance is expanded."""
     command = ['python3', 'Scripts/agent-read.py', '--full']
-    for reference in dict.fromkeys([*(initial_reference(reference) for reference in guides), *(task['contracts'] if task else [])]):
+    for reference in dict.fromkeys([*(reference if full else initial_reference(reference) for reference in guides), *(task['contracts'] if task else [])]):
         validate_reference(root, reference)
         command.append(reference)
     return shlex.join(command)

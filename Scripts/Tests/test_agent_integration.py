@@ -73,12 +73,36 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         self.commit(second)
         for task in (first, second):
             result = self.helper(task, 'integrate')
+            if task == second:
+                self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+                self.assertIn('Review incoming changes:', result.stderr)
+                self.assertTrue(task.exists())
+                self.assertEqual((self.root / 'first').read_text(), 'task work\n')
+                self.assertFalse((self.root / 'second').exists())
+                result = self.helper(task, 'integrate')
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertFalse(task.exists())
             self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), self.git(self.root, 'rev-parse', 'codex/' + task.name))
         self.assertEqual((self.root / 'first').read_text(), 'task work\n')
         self.assertEqual((self.root / 'second').read_text(), 'second task\n')
         self.assertEqual(self.git(self.root, 'status', '--porcelain'), '')
+
+    def test_main_advances_require_review_before_checks_or_landing(self) -> None:
+        task = self.task('task')
+        write_executable(task / 'Scripts/handoff.sh', '#!/bin/sh\necho checked >> "$(git rev-parse --git-common-dir)/checks"\n')
+        self.commit(task)
+        for name in ('first', 'second'):
+            (self.root / name).write_text('incoming\n')
+            self.commit(self.root)
+            main = self.git(self.root, 'rev-parse', 'HEAD')
+            result = self.helper(task, 'integrate')
+            self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+            self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), main)
+            self.assertFalse((self.root / '.git/checks').exists())
+            self.assertEqual(self.git(task, 'merge-base', 'HEAD', 'main'), main)
+        result = self.helper(task, 'integrate')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual((self.root / '.git/checks').read_text(), 'checked\n')
 
     def test_busy_lock_and_dirty_checkouts_preserve_main_and_task(self) -> None:
         task = self.task('task')

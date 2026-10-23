@@ -2,8 +2,9 @@
 
 Use scoped `rg`, ordinary file reads, and `git diff` for discovery and review.
 Before editing, run `python3 Scripts/agent-brief.py --status --read --paths
-<files...>`. The briefing supplies safeguards, ownership, and focused contract
-sections together. Reuse unchanged guidance; load broader references and skills
+<files...>`. The briefing supplies safeguards and concise ownership. Behavior
+links stay on demand; `--full --read` expands routed depth and `--task` selects
+a concern. Reuse unchanged guidance; load broader references and skills
 only for the behavior being changed. Follow source bodies, callers, tests, and
 configuration independently of navigation hints.
 
@@ -27,7 +28,7 @@ navigation and the other optional helpers remain compatible, with flags in
 unstaged and untracked files, deletions and both rename endpoints. Use an explicit
 user-specified base when different. `--working-tree` selects dirty files only.
 Briefings are stateless; reuse unchanged guidance already read. The router uses
-owner directories and focused exceptions; follow dependencies independently.
+stable owner directories; follow dependencies independently.
 
 ### Concern and test pointers
 
@@ -36,9 +37,11 @@ Inspect the assertions; an indexed file is not proof of coverage.
 
 ### Caller navigation
 
-Scoped `rg` is sufficient. `agent-search.py`, `agent-investigate.py` and the source
-modes of `agent-read.py` offer lexical hints without type resolution, indirect-call
-analysis or complete Swift syntax coverage. Use them only when their specific
+Use scoped `rg` for normal caller discovery. Existing `agent-search.py`,
+`agent-investigate.py` and source modes of `agent-read.py` remain compatible for
+bounded bundles and declaration ranges. Search and investigation share one caller
+implementation; these optional modes offer lexical hints without type resolution,
+indirect-call analysis or complete Swift syntax coverage. Use them only when their specific
 output helps. Follow relevant omitted bodies; restart fingerprinted queries when
 inputs change. No task requires learning these modes or using them in sequence.
 

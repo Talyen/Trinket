@@ -12,23 +12,26 @@ with `tty=true`), and retain the returned session ID:
 ./Scripts/run-simulator.sh --isolate --inspect
 ```
 
-Wait for `Inspection ready`, then use **Computer Use** (`mcp__cua_repl`) to view
-and operate the matching device window in **Device Hub** (Xcode 27) or Simulator.
-Use the device UI path printed by the launcher with `cua.getApp(...)`; do not
-assume the old Simulator bundle identifier still resolves after an Xcode upgrade.
-Follow the tool's live documentation;
-its JavaScript calls are the supported interaction interface. Keep the terminal
-session alive throughout inspection. Send `stop\n` to that session using
-`write_stdin` when finished, and confirm the process exits.
+Wait for `Inspection ready`, which identifies the exact leased UDID, bundle ID,
+product and device UI. Choose the available inspection tool directly:
 
-Use managed scripts for building, installing, leases, and logs; Computer Use or
-the [native device-interaction skill](../device-interaction/SKILL.md) for exploratory
-taps, drags, typing, and visual checks; existing XCTest journeys for
-repeatable regression checks under [Verification.md](../../../Docs/Platform/Verification.md#choosing-ui-verification).
-Do not invent AppleScript, Swift, or event-injection programs to operate the UI.
-If Computer Use cannot inspect Device Hub, use the native skill with the same
-managed lease. If neither route is available, report the limitation; existing
-tests establish only the behavior they cover, not interactive inspection.
+- Prefer [native device interaction](../device-interaction/SKILL.md) when Xcode's
+  device-session and capture/input tools are exposed. Target the leased UDID.
+- Otherwise use **Computer Use** (`mcp__cua_repl`) with the printed device UI path.
+  Confirm the selected device matches the leased name before acting. Follow the
+  tool's live documentation; Device Hub attachment is a recorded tooling gap.
+
+Keep the terminal session alive. Type `capture\n` through `write_stdin` to save the
+leased display and product metadata under `.DerivedData/Deliverables/Inspection/`.
+Inspect the actual image and record screen/state and build provenance; a saved
+capture is not visual acceptance. Send `stop\n` when finished and confirm exit.
+
+Managed scripts own builds, installs, leases and logs. Use native device tools or
+Computer Use for exploratory input, and existing XCTest journeys for repeatable
+checks under [Verification.md](../../../Docs/Platform/Verification.md#choosing-ui-verification).
+After an unsuccessful tool action, inspect the current target/state and try one
+relevant alternative. If both inspection routes are unavailable, report the exact
+limitation. Do not invent an input driver or substitute test success for visual review.
 
 [Simulator operations](../../../Docs/Platform/SimulatorOperations.md) owns lease
 isolation, slot recovery, and mirror policy. This skill owns interaction
@@ -63,9 +66,9 @@ failures, and the recovery workflow above for unsuccessful UI actions.
 
 ## Evidence capture
 
-Observations are sufficient for routine inspection. When a saved screenshot or
-recording is needed as an artifact, set `SIMULATOR_UDID` to the UDID printed by
-the still-running inspection session, then:
+The inspection terminal's `capture` command saves a screenshot without copying a
+UDID or choosing a destination. For recording or another explicit destination,
+set `SIMULATOR_UDID` to the UDID printed by the still-running inspection session:
 
 ```bash
 xcrun simctl io "$SIMULATOR_UDID" screenshot /tmp/trinket-screen.png --type=png --mask=ignored

@@ -113,31 +113,6 @@ class AgentContextTests(ScriptRegressionTestCase):
         self.assertIn('Packages/BattleEngine/AGENTS.md:', output)
         self.assertNotIn('Shop offers are pinned', output)
 
-    def test_focused_action_and_storage_sections_keep_shared_contracts_and_broad_hubs(self) -> None:
-        engine = 'Packages/BattleEngine/Sources/BattleEngine/'
-        persistence = 'Packages/TrinketPersistence/Sources/TrinketPersistence/'
-        cases = (
-            (engine + 'ManaEmpowermentBudget.swift', 'battle-actions', {'shared-action-invariants', 'card-preparations', 'action-identity-and-selected-outcomes', 'mana-payments-and-cadence', 'card-assessment'}),
-            (engine + 'Cards/BattleCardCombatEngine+OpeningHand.swift', 'battle-actions', {'shared-action-invariants', 'hand-contract', 'turn-ordering'}),
-            (persistence + 'PlayerSaveStore+Roster.swift', 'persistence-storage', {'save-compatibility', 'durable-acceptance-and-recovery', 'schema-and-sanitization'}),
-        )
-        for path, card, expected in cases:
-            with self.subTest(path=path):
-                output = self.route(path)
-                prefix = f'Docs/AgentContext/{card}.md#'
-                actual = {line.strip().removeprefix(prefix) for line in output.splitlines() if line.strip().startswith(prefix)}
-                self.assertEqual(actual, expected)
-                for section in actual:
-                    run_captured(['python3', 'Scripts/agent-read.py', prefix + section], cwd=ROOT, expected=0)
-        for leaf, hub, card in (
-            (engine + 'ManaEmpowermentBudget.swift', engine + 'State/BattleState.swift', 'battle-actions'),
-            (persistence + 'PlayerSaveStore+Roster.swift', persistence + 'PlayerSaveStore.swift', 'persistence-storage'),
-        ):
-            for paths in ((leaf, hub), (hub, leaf)):
-                output = self.route(*paths)
-                self.assertIn(f'{card}.md\n', output)
-                self.assertNotIn(f'{card}.md#', output)
-
 
     def brief(self, *arguments: str) -> str:
         # Routing matrices exercise the real CLI parser and renderer without a
@@ -158,14 +133,14 @@ class AgentContextTests(ScriptRegressionTestCase):
             ('Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/Feedback/BattleFeedbackLane.swift', ['Docs/AgentContext/battle-runtime.md'], ['apple-design/SKILL.md']),
             ('Packages/BattleEngine/Sources/BattleEngine/State/BattleState.swift', ['Docs/AgentContext/battle-engine.md'], []),
             ('Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/GlassButtons.swift', ['.agents/skills/apple-design/SKILL.md'], ['Docs/AgentContext/swiftui-features.md']),
-            ('Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift', ['Docs/AgentContext/swiftui-features.md', '.agents/knowledge/patterns/artwork-working-set.md'], []),
+            ('Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/PreparedArtworkCache.swift', ['Docs/AgentContext/swiftui-features.md', 'Docs/AgentContext/ui-performance.md'], []),
             ('Packages/TrinketDesignSystem/Tests/TrinketDesignSystemTests/DesignSystemTests.swift', [], ['apple-design/SKILL.md']),
             ('Packages/TrinketAppState/Sources/TrinketAppState/Audio/MusicPlayer.swift', ['Docs/AgentContext/audio.md'], ['Docs/AgentContext/battle']),
             ('project.yml', ['Docs/AgentContext/content-and-manifests.md'], []),
             ('Scripts/check-docs.py', [], ['Ownership and integration']),
             ('TrinketUITests/Smoke/SmokeShellTests.swift', [], ['apple-design/SKILL.md', '.agents/knowledge/patterns/']),
             ('Packages/BattleEngine/Package.swift', ['.agents/knowledge/patterns/module-dag-containment.md'], []),
-            ('Docs/Platform/Architecture.md', ['.agents/knowledge/patterns/architecture-deferred-seams.md'], []),
+            ('Docs/Platform/Architecture.md', [], []),
         )
         for path, required, excluded in cases:
             with self.subTest(path=path):
@@ -187,49 +162,37 @@ class AgentContextTests(ScriptRegressionTestCase):
         deleted = subprocess.check_output([*command, str(ROOT / relative.replace("BattleState", "Deleted"))], cwd=ROOT, text=True)
         self.assertIn("./Scripts/test-package.sh BattleEngine", deleted)
 
-    def test_focused_contracts_keep_unknown_and_cross_concern_paths_conservative(self) -> None:
-        engine = "Packages/BattleEngine/Sources/BattleEngine/"
-        persistence = "Packages/TrinketPersistence/Sources/TrinketPersistence/"
-        cases = (
-            ([engine + "Damage/DamagePipelineOffenseSteps.swift"], {"battle-damage"}),
-            ([engine + "Triggers/CombatTriggerEngine+Damage.swift"], {"battle-damage"}),
-            ([engine + "Triggers/CombatTriggerEngine+Dodge.swift"], {"battle-damage"}),
-            ([engine + "Triggers/CombatTriggerEngine+BlockAndDefense.swift"], {"battle-damage"}),
-            ([engine + "Turns/BattleTurnEngine+Resolution.swift"], {"battle-damage"}),
-            ([engine + "Triggers/CombatTriggerEngine+Unknown.swift"], {"battle-damage", "battle-actions", "battle-healing"}),
-            ([engine + "EffectHandlers/TimedDebuffHandlers.swift"], {"battle-damage"}),
-            ([engine + "Healing/HealingEngine.swift"], {"battle-healing"}),
-            ([engine + "State/BattleState.swift"], {"battle-damage", "battle-actions", "battle-healing"}),
-            ([engine + "Damage/Steps.swift", engine + "BattleHand.swift"], {"battle-damage", "battle-actions"}),
-            ([persistence + "Progression/StageCompletion.swift"], {"persistence-progression"}),
-            ([persistence + "Progression/RewardOwnership+Save.swift"], {"persistence-progression"}),
-            ([persistence + "Encounters/MysteryOfferPersistence.swift"], {"persistence-progression"}),
-            ([persistence + "Inventory/StoredInventoryItem.swift"], {"persistence-storage", "persistence-progression"}),
-            ([persistence + "PlayerSaveGraph/PlayerSaveRoot.swift"], {"persistence-storage"}),
-            ([persistence + "PlayerSaveStore.swift"], {"persistence-storage", "persistence-progression"}),
-        )
-        details = {"battle-damage", "battle-actions", "battle-healing", "persistence-storage", "persistence-progression"}
-        for paths, expected in cases:
-            with self.subTest(paths=paths):
-                output = self.brief('--paths', *paths)
-                self.assertEqual({name for name in details if f"/{name}.md" in output}, expected)
-                self.assertIn("/battle-engine.md" if paths[0].startswith(engine) else "/persistence.md", output)
-                self.assertIn("Source owners (use scoped rg", output)
-                references = output.split("Behavior references", 1)[1].split("Skills", 1)[0].split("Memory", 1)[0].split("Source owners", 1)[0]
-                self.assertTrue(all(f"/{name}.md" in references for name in expected))
-                self.assertNotIn("/battle-engine.md", references)
-                self.assertNotIn("/persistence.md", references)
 
-    def test_file_brief_inlines_focused_contracts_without_reading_broad_cards(self) -> None:
-        output = self.brief('--read', '--paths',
-            'Packages/TrinketPersistence/Sources/TrinketPersistence/Encounters/ShopPurchaseApplier.swift')
+    def test_file_brief_reads_ownership_and_keeps_behavior_depth_on_demand(self) -> None:
+        path = 'Packages/TrinketPersistence/Sources/TrinketPersistence/Encounters/ShopPurchaseApplier.swift'
+        output = self.brief('--read', '--paths', path)
         guidance = output.split('Initial guidance (complete reads;', 1)[1]
-        for invariant in ('Shop offers are pinned', 'Empty Shops prepare stock', 'Voyage encounters use'):
-            self.assertIn(invariant, guidance)
-        self.assertNotIn('Corruption gives', guidance)
-        self.assertIn('Landing (from the task worktree after review/commit; includes final static handoff)', output)
-        self.assertIn('  node Scripts/agent-worktree.mjs integrate\n', output)
-        self.assertIn('Optional iteration or standalone check', output)
+        self.assertIn('persistence.md:', guidance)
+        self.assertNotIn('Shop offers are pinned', guidance)
+        self.assertIn('persistence-progression.md', output)
+        expanded = self.brief('--read', '--full', '--paths', path)
+        self.assertIn('Shop offers are pinned', expanded)
+        self.assertIn('node Scripts/agent-worktree.mjs integrate', output)
+
+    def test_leaf_renames_keep_owner_contracts_and_compact_safeguards(self) -> None:
+        from internal.change_routing import classify
+        for owner in ('Packages/BattleEngine/Sources/BattleEngine/',
+                      'Packages/TrinketPersistence/Sources/TrinketPersistence/',
+                      'Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/'):
+            with self.subTest(owner=owner):
+                before = classify([owner + 'Existing.swift'])
+                after = classify([owner + 'Renamed.swift'])
+                self.assertEqual(before.cards, after.cards)
+                self.assertEqual(before.guides, after.guides)
+        for path in ('Packages/BattleEngine/Sources/BattleEngine/ManaEmpowermentBudget.swift',
+                     'Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore+Roster.swift',
+                     'Trinket/Features/Play/PlayMap/StageSelectModifierCaption.swift'):
+            output = self.brief('--status', '--read', '--paths', path)
+            self.assertLess(len(output.split()), 650, path)
+            self.assertIn('AGENTS.md:', output)
+            self.assertIn('Ownership', output)
+        engine = self.brief('--read', '--paths', 'Packages/BattleEngine/Sources/BattleEngine/ManaEmpowermentBudget.swift')
+        self.assertIn('copy the generator rather than advance live RNG', engine)
 
     def test_directive_skill_does_not_route_ordinary_rationale_comments(self) -> None:
         from internal.change_routing import classify
@@ -248,55 +211,6 @@ class AgentContextTests(ScriptRegressionTestCase):
                     fixture.write_text(source)
                     self.assertEqual('.agents/skills/doc-budget/SKILL.md' in classify(['Probe.swift'], root).skills, expected)
 
-    def test_runtime_contracts_follow_concerns_and_keep_shared_paths_conservative(self) -> None:
-        feature = "Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/"
-        app = "Packages/TrinketAppState/Sources/TrinketAppState/Play/"
-        engine = "Packages/BattleEngine/Sources/BattleEngine/"
-        presentation = feature + "Features/BattleAbilityCardView.swift"
-        launch = feature + "State/BattleSession+Progression.swift"
-        both = {"battle-launch", "battle-presentation"}
-        cases = (
-            ([presentation], {"battle-presentation"}),
-            ([feature + "State/Feedback/CombatFeedbackPresenter.swift"], {"battle-presentation"}),
-            ([feature + "State/Feedback/BattleFeedbackLane.swift"], {"battle-presentation"}),
-            ([feature + "Support/Performance/BattlePerformanceScenarioDriver.swift"], both),
-            ([feature + "State/BattleSession+Transitions.swift"], {"battle-presentation"}),
-            ([launch], {"battle-launch"}),
-            ([app + "PlaySession.swift"], {"battle-launch"}),
-            ([app + "PlaySession+BattleCompletion.swift"], {"battle-launch"}),
-            ([feature + "State/BattleSession.swift"], both),
-            ([feature + "State/BattleSession+Runtime.swift"], both),
-            ([feature + "Features/BattleView.swift"], both),
-            ([feature + "Features/Outcome/VictoryView.swift"], both),
-            ([feature + "Features/UnknownView.swift"], both),
-            ([feature + "State/Unknown.swift"], both),
-            (["Packages/TrinketAppState/Sources/TrinketAppState/App/AppState.swift"], both),
-            (["Trinket/App/TrinketApp.swift"], both),
-            (["Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts/BattleRuntime.swift"], both),
-            (["Packages/TrinketFeatureSupport/Sources/TrinketFeatureContracts/BattlePresentationDependencies.swift"], both),
-            ([presentation, launch], both),
-        )
-        for paths, expected in cases:
-            with self.subTest(paths=paths):
-                output = self.brief('--paths', *paths)
-                self.assertIn("/battle-runtime.md", output)
-                self.assertEqual({name for name in both if f"/{name}.md" in output}, expected)
-                for name in expected:
-                    references = [line.strip() for line in output.splitlines() if f"/{name}.md" in line]
-                    self.assertEqual(len(references), len(set(references)))
-                if paths[0].startswith(engine):
-                    for unrelated in ("battle-damage", "battle-actions", "battle-healing"):
-                        self.assertNotIn(f"/{unrelated}.md", output)
-        plans = []
-        for path in (presentation, launch, feature + "State/BattleSession.swift"):
-            plan = subprocess.check_output(
-                [str(ROOT / "Scripts/handoff.sh"), "--isolate", "--dry-run", "--paths", path],
-                cwd=ROOT, text=True,
-            )
-            self.assertIn("./Scripts/test-package.sh TrinketBattleFeature", plan)
-            plans.append(plan.replace(path, "<changed-file>"))
-        self.assertEqual(plans[0], plans[1])
-        self.assertEqual(plans[0], plans[2])
 
     def test_shared_encounters_and_rewards_keep_visual_guidance(self) -> None:
         for relative_path in (
@@ -465,38 +379,6 @@ class AgentContextTests(ScriptRegressionTestCase):
             self.assertNotIn("Workspace status:", plain)
             self.assertIn('MM "Scripts/mixed name.py"', detailed)
             self.assertTrue(detailed.endswith(plain))
-
-
-    def test_leaf_sections_include_lifecycle_and_mixed_hubs_restore_broad_reference(self) -> None:
-        feature = 'Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/'
-        output = self.brief('--paths', feature + 'Features/Feedback/CombatFeedbackRasterHost.swift')
-        for section in ['display-lifetime', 'display-work-lifecycle', 'floating-combat-feedback']:
-            self.assertIn('battle-presentation.md#' + section, output)
-        self.assertNotIn('battle-launch.md', output)
-        for paths in [(feature + 'Features/Feedback/CombatFeedbackRasterHost.swift', feature + 'State/BattleSession.swift'),
-                      (feature + 'State/BattleSession.swift', feature + 'Features/Feedback/CombatFeedbackRasterHost.swift')]:
-            output = self.brief('--paths', *paths)
-            self.assertIn('battle-presentation.md\n', output)
-            self.assertNotIn('battle-presentation.md#', output)
-
-
-    def test_content_guidance_routes_shared_safeguards_and_only_relevant_sections(self) -> None:
-        cases = {
-            "Packages/TrinketCore/Sources/TrinketCore/Effect.swift": set(),
-            "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+Basic.swift": {"abilities"},
-            "ContentManifest/talents.tsv": {"manifests"},
-            "ArtManifest/art.tsv": {"media-assets"},
-            "project.yml": {"project-generation"},
-            "Scripts/internal/content/trigger_families/damage.json": {"trigger-schemas", "generation-tooling"},
-        }
-        prefix = "Docs/AgentContext/content-and-manifests.md#"
-        for path, sections in cases.items():
-            with self.subTest(path=path):
-                output = self.brief('--paths', path)
-                actual = {line.strip().removeprefix(prefix) for line in output.splitlines()
-                          if line.strip().startswith(prefix)}
-                self.assertEqual(actual, sections | {"shared-safeguards"})
-                self.assertNotIn("content-and-manifests.md\n", output)
 
 
 if __name__ == "__main__":

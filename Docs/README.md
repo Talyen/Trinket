@@ -32,7 +32,7 @@ Indexes and optional navigation helpers add no approval or checklist steps.
 | Current vs banned SwiftUI/observation APIs | [Platform/ApplePlatformReference.md](Platform/ApplePlatformReference.md#current-vs-banned-swiftui) (enforced by `check-api-bans.sh`) |
 | Style and boundary checker split | [Platform/Verification.md](Platform/Verification.md#style-and-boundary-ownership) |
 | AccessibilityID rubric vs launch details | [Test rubric](Platform/Testing.md#ui-keep-drop-rubric), [launch arguments and helpers](../TrinketUITests/README.md), and [feature placement](AgentContext/swiftui-features.md) |
-| Artwork pins and memory budgets | [Pin lifecycle](AgentContext/ui-performance.md); [artwork budgets](Platform/PerformanceInvestigationPlaybook.md#artwork-budgets), enforced by [check-artwork-budget.sh](../Scripts/check-artwork-budget.sh) |
+| Artwork pins and memory budgets | [Pin lifecycle](AgentContext/ui-performance.md); [artwork budgets](Platform/PerformanceInvestigationPlaybook.md#artwork-budgets), verified by `PreparedArtworkCacheTests` ([focused command](../Scripts/check-artwork-budget.sh)) |
 | Balance rules and tuning | [AgentContext/battle-balance.md](AgentContext/battle-balance.md), subject to current [Product decisions](Product/Decisions.md) and their linked mode contracts |
 | Audio routing and playback behavior | [TrinketAppState](../Packages/TrinketAppState/README.md) (routed via [audio context](AgentContext/audio.md)) |
 | Game surfaces and modes | [Product/Overview.md](Product/Overview.md) |

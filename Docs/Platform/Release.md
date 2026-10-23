@@ -434,9 +434,13 @@ node Scripts/agent-worktree.mjs integrate
 `trinket-integration.lock` in Git's common directory, shared by all linked worktrees.
 It requires a clean task checkout on `codex/` and a clean primary checkout already
 on `main`, with no unfinished Git operations. While holding the lock, it rebases
-onto current local `main`, runs `handoff.sh --isolate --quiet --paths` for the full
-rebased task diff (including deletions and both rename endpoints), rechecks both
-checkouts, protects ignored files from incoming tracked-path collisions, and
+onto current local `main`. If that incorporates new main commits, it exits with
+status 3 before verification or landing, prints the incoming comparison, and retains
+the task checkout. Review the combined work and refresh any focused tests or visual
+evidence affected by incoming changes, then retry the same integration command.
+Another main advance creates another review checkpoint. With main already included,
+it runs `handoff.sh --isolate --quiet --paths` for the full rebased task diff
+(including deletions and both rename endpoints), rechecks both checkouts, protects ignored files from incoming tracked-path collisions, and
 fast-forwards primary `main`. All automated local main landings must
 use this command. Keep manual main edits out of the integration window; the lock
 is cooperative. The command does not fetch, push, create a PR, or run hosted checks.

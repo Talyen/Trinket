@@ -229,7 +229,11 @@ recorded measurement.
 decision. A larger catalog alone does not establish a safe cache increase:
 measure the active working set and process footprint on representative devices.
 Any approved budget change must update this section, its implementation, and
-`check-artwork-budget.sh` together. Approval constraints remain in
+`PreparedArtworkCacheTests` together. Those compiled tests exercise the actual
+cache function across device sizes and clamp boundaries, plus the process budget
+values; they do not require a particular Swift expression. The compatibility
+`check-artwork-budget.sh` command selects that suite under focused-verification
+limits and is not a cheap static slice. Approval constraints remain in
 [AGENTS.md](../../AGENTS.md#product-constraints); do not duplicate numeric
 budgets there.
 

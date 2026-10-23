@@ -41,7 +41,7 @@ USAGE
 done
 
 if [[ "$FAST" == true ]]; then
-  trinket_log_section "Cheap slices (boundaries, API bans, release notes, artwork-budget)"
+  trinket_log_section "Cheap slices (boundaries, API bans, release notes)"
   trinket_run_gate_slices
   trinket_log_section "Fast gate checks passed"
   exit 0

@@ -3,6 +3,7 @@
 
 import argparse
 import os
+import subprocess
 import sys
 
 from internal.cli import ROOT
@@ -13,7 +14,6 @@ GATES = {
     'agent-invariants': (mechanical_policy.invariants, 'Agent invariant check failed:', 'Agent invariant check passed.', ''),
     'exclusivity-footguns': (mechanical_policy.exclusivity, 'Exclusivity footgun check found inout of a likely stored property:', 'Exclusivity footgun check passed.', ''),
     'module-boundaries': (module_policy.violations, 'Module boundary violations:', 'Module boundaries OK.', 'Module Boundary Violation'),
-    'artwork-budget': (mechanical_policy.artwork, 'Artwork budget violations:', 'Artwork budgets OK (6 GB typical: 320/550, cache 160-260).', ''),
     'api-bans': (lambda scan: mechanical_policy.token_violations(scan, 'api-bans', ['Trinket', 'TrinketUITests', 'Packages']), 'API ban violations:', 'Platform API bans OK.\nSwift Testing migration gate: OK (no XCTest imports in unit targets)', 'API Ban'),
 }
 REMEDIATION = {
@@ -24,9 +24,11 @@ REMEDIATION = {
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, epilog=' '.join(REMEDIATION.values()))
-    parser.add_argument('gate', choices=GATES)
+    parser.add_argument('gate', choices=(*GATES, 'artwork-budget'))
     args = parser.parse_args()
     os.chdir(ROOT)
+    if args.gate == 'artwork-budget':
+        return subprocess.run([str(ROOT / 'Scripts/check-artwork-budget.sh')], check=False).returncode
     check, header, success, title = GATES[args.gate]
     try:
         return report(check(SourceScan(ROOT)), header, success, title, *([REMEDIATION[args.gate]] if args.gate in REMEDIATION else []))

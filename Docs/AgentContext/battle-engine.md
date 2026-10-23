@@ -2,6 +2,20 @@
 
 Load for `Packages/BattleEngine` rules, effects, decks/hands, damage, triggers, or engine tests.
 
+## Ownership
+
+Keep combat rules, damage, effects, deck/hand behavior and turn mutation in
+BattleEngine. Commands and log lifecycle are its public mutation boundary;
+consumers inspecting future RNG copy the generator rather than advance live RNG.
+Keep package dependencies below app/feature UI. Consequential rules need
+existing or focused deterministic evidence in `BattleEngineTests`.
+
+Read the relevant behavior contract for the change: [actions](battle-actions.md),
+[damage](battle-damage.md), [healing](battle-healing.md), or
+[balance](battle-balance.md). The runtime details below describe the current owners.
+
+## Resolution and state ownership
+
 Start with `BattleState`, the matching `EffectHandlers/` type, or the matching `CombatTriggerEngine+*.swift` cadence extension. `BattleState` is a facade: put shared mutation plumbing in `BattleState+*.swift`; place rule branches in handlers or engines. Do not put feature calls in the engine. BattleState shares its immutable modifier profiles through private storage so nested card resolution does not copy those large values into every state snapshot.
 
 Battle state, roster, and combatant storage are externally read-only. Commands and

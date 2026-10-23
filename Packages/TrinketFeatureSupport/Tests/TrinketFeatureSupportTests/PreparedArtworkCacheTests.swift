@@ -510,17 +510,26 @@ extension PreparedArtworkCacheTests {
 }
 
 extension PreparedArtworkCacheTests {
-    @Test func `cache budget stays within hitch floor and resident cap`() {
-        let floor = 160 * 1024 * 1024
-        let cap = 260 * 1024 * 1024
-        var previous = 0
-        for gigabytes in [1, 4, 6, 8, 16] {
-            let limit = PreparedArtworkCache.totalCostLimit(forPhysicalMemory: gigabytes * 1024 * 1024 * 1024)
-            #expect(limit >= floor)
-            #expect(limit <= cap)
-            #expect(limit <= PreparedArtworkMemoryBudget.residentArtworkByteCount)
-            #expect(limit >= previous)
-            previous = limit
+    @Test func `cache budget preserves device scaling and approved process budgets`() {
+        let mebibyte = 1024 * 1024
+        #expect(PreparedArtworkMemoryBudget.residentArtworkByteCount == 320 * mebibyte)
+        #expect(PreparedArtworkMemoryBudget.steadyStateProcessByteCount == 550 * mebibyte)
+        for (physicalMemory, expected) in [
+            (0, 160 * mebibyte),
+            (mebibyte * 1024, 160 * mebibyte),
+            (4 * 1024 * mebibyte, 4 * 1024 * mebibyte / 24),
+            (6 * 1024 * mebibyte, 256 * mebibyte),
+            (8 * 1024 * mebibyte, 260 * mebibyte),
+            (Int.max, 260 * mebibyte),
+        ] {
+            #expect(PreparedArtworkCache.totalCostLimit(forPhysicalMemory: physicalMemory) == expected)
+        }
+        // Check both sides of the clamp boundaries, including integer rounding.
+        for boundary in [160 * mebibyte * 24, 260 * mebibyte * 24] {
+            for physicalMemory in (boundary - 24) ... (boundary + 24) {
+                let expected = min(max(physicalMemory / 24, 160 * mebibyte), 260 * mebibyte)
+                #expect(PreparedArtworkCache.totalCostLimit(forPhysicalMemory: physicalMemory) == expected)
+            }
         }
     }
 }

@@ -25,7 +25,8 @@ node Scripts/agent-worktree.mjs integrate
 ```
 
 [Verification](../Docs/Platform/Verification.md#confidence-ladder) selects static,
-focused, visual or release work. Integration supplies the final static handoff;
+focused, visual or release work. Integration pauses for review when it incorporates new main commits, then supplies
+the final static handoff on retry;
 there is no duplicate pre-commit handoff. Standalone checks accept `--base main`
 for the full task or `--paths <files...>` for individual files. Preview with
 `handoff.sh --dry-run` when useful. Compact verification and task reports are
@@ -39,7 +40,7 @@ and cleanup; pushes and publication remain separately authorized.
 |---|---|
 | Development | [Generation, builds, discovery, and simulator/device launch](Reference.md#development) |
 | Verification | [Package tests, UI checks, handoff, and gates](Reference.md#verification) |
-| Localization | `python3 Scripts/localization.py plan`, `apply <response.json>`, `check` — [agent workflow](../Docs/Platform/Localization.md) |
+| Localization | `python3 Scripts/localization.py prepare`, `finish <response.json> --rationale …`, `check` — [agent workflow](../Docs/Platform/Localization.md) |
 | Assets | [Artwork and media preparation](Reference.md#assets) |
 | TestFlight | `./Scripts/testflight.sh` — [one-time setup and recovery](../Docs/Platform/Release.md#local-testflight-deployment) |
 | Release | [Release and deploy verification](Reference.md#release) |

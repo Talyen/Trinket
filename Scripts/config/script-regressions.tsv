@@ -163,7 +163,7 @@ Scripts/lib/test-style.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifa
 Scripts/lib/testflight-tools.sh	test_testflight.py
 Scripts/lib/tool-install.sh	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py
 Scripts/lib/tools.sh	test_build_process.py,test_ci_build_scripts.py,test_internal_cli.py,test_project_generation.py
-Scripts/lib/verification-policy.sh	test_package_diagnostics.py,test_verification_policy.py
+Scripts/lib/verification-policy.sh	test_package_diagnostics.py,test_ui_policy.py,test_verification_policy.py
 Scripts/lib/xcode-manifest.sh	test-xcode-runner.sh,test_ci_build_scripts.py,test_ci_session_scripts.py
 Scripts/lib/xcode-watchdog.sh	test-xcode-runner.sh,test_ci_build_scripts.py,test_ci_improvements.py,test_ci_session_scripts.py
 Scripts/lib/xcodebuild-infra.sh	test-xcode-runner.sh,test_ci_build_scripts.py,test_ci_session_scripts.py

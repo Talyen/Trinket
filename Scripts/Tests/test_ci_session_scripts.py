@@ -470,7 +470,7 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
 
     def test_simulator_launcher_installs_resolved_product_and_rejects_missing_outputs(self) -> None:
         for mode in ("valid", "missing-target", "missing-product", "missing-plist", "settings-failed",
-                     "inspect-stop", "inspect-eof", "inspect-cancel", "inspect-no-terminal", "inspect-legacy"):
+                     "inspect-stop", "inspect-capture", "inspect-capture-failed", "inspect-eof", "inspect-cancel", "inspect-no-terminal", "inspect-legacy"):
             with self.subTest(mode=mode), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 scripts = root / "Scripts"
@@ -522,6 +522,11 @@ if sys.argv[1:3] == ['simctl', 'install']:
     pathlib.Path('install.json').write_text(json.dumps(sys.argv[3:]))
     if not pathlib.Path('mode').read_text().startswith('inspect-'):
         raise SystemExit(73)
+if 'screenshot' in sys.argv:
+    assert sys.argv[1:4] == ['simctl', 'io', 'fixture']
+    if pathlib.Path('mode').read_text() == 'inspect-capture-failed':
+        raise SystemExit(74)
+    pathlib.Path(sys.argv[5]).write_bytes(b'fixture capture')
 if 'appearance' in sys.argv:
     print('dark')
 """,
@@ -568,11 +573,31 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
                                 self.assertIsNone(process.poll())
                                 lease = root / ".DerivedData/.active-sim/1.slot"
                                 self.assertTrue(lease.exists())
-                                if mode == "inspect-cancel":
+                                if mode == "inspect-capture-failed":
+                                    os.write(master, b"capture\n")
+                                    deadline = time.monotonic() + 5
+                                    while time.monotonic() < deadline:
+                                        output.seek(0)
+                                        if 'inspection remains active' in output.read():
+                                            break
+                                        time.sleep(0.02)
+                                    output.seek(0)
+                                    self.assertIn('Capture failed for leased simulator fixture', output.read())
+                                    self.assertIsNone(process.poll())
+                                    self.assertTrue(lease.exists())
+                                    os.write(master, b"stop\n")
+                                elif mode == "inspect-cancel":
                                     process.send_signal(signal.SIGTERM)
                                 else:
-                                    os.write(master, b"stop\n" if mode == "inspect-stop" else b"\x04")
+                                    os.write(master, b"capture\nstop\n" if mode == "inspect-capture" else b"stop\n" if mode == "inspect-stop" else b"\x04")
                                 self.assertEqual(process.wait(timeout=10), 143 if mode == "inspect-cancel" else 0)
+                                if mode == "inspect-capture":
+                                    capture = next((root / '.DerivedData/Deliverables/Inspection').glob('*/screen.png'))
+                                    self.assertEqual(capture.read_bytes(), b'fixture capture')
+                                    metadata = json.loads(capture.with_name('capture.json').read_text())
+                                    self.assertEqual(metadata['simulator_udid'], 'fixture')
+                                    self.assertEqual(metadata['bundle_id'], 'fixture.trinket')
+                                    self.assertEqual(metadata['product_path'], str(app))
                                 self.assertFalse(lease.exists())
                             finally:
                                 if process.poll() is None:

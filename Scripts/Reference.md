@@ -8,7 +8,7 @@ For the everyday workflow, start at [Scripts](README.md). Open the section for t
 |---|---|
 | `./Scripts/generate.sh [--assets [--kind art\|music\|sfx\|app-icon\|all]] [--skip-xcodegen]` | Generate the Xcode project without cache reuse and authored derived content (`--assets` also prepares art/music/SFX; `--kind` prepares one asset kind; `--skip-xcodegen` runs content/asset codegen only) |
 | `./Scripts/build.sh` | Compile only the app; `--release-device` verifies unsigned iOS Release compilation |
-| `python3 Scripts/agent-brief.py --base main --status --read` | Stateless full-task briefing (commits plus dirty files); `--paths <files...>` selects intended files before editing and `--task <concern>` is an optional shortcut; `--status` adds scoped changes; `--read` includes safeguards, ownership and focused contracts together when absent from context. [Quickstart](../Docs/AgentContext/README.md#quickstart) |
+| `python3 Scripts/agent-brief.py --base main --status --read` | Stateless full-task briefing (commits plus dirty files); `--paths <files...>` selects intended files before editing and `--task <concern>` is an optional shortcut; `--status` adds scoped changes; `--read` includes safeguards and concise ownership; `--full --read` expands behavior contracts and `--task` selects concern depth. [Quickstart](../Docs/AgentContext/README.md#quickstart) |
 | `python3 Scripts/content-inspect.py --id <id>` | Inspect authored content by exact ID, player-facing `--name <text>`, or canonical `--trigger <field>`; `--references` follows parsed fields to schemas, rule anchors, authored Swift and tests; record and reference pages disclose omissions; `--full` expands record fields |
 | `node Scripts/agent-worktree.mjs create --task <slug> [--base <ref>]` | Independent implementation checkout under primary `.worktrees/<slug>` on `codex/<slug>`, starting from committed local `main` by default; reuse the chat's existing suitable worktree |
 | `node Scripts/agent-worktree.mjs integrate [--keep-worktree]` | From the task worktree: shared integration lock, rebase onto local `main`, scoped handoff, then fast-forward primary `main` and delete the task checkout including local-only files; `--keep-worktree` retains it for continued work. No push. [Policy and recovery](../Docs/Platform/Release.md#isolated-chat-workflow) |
@@ -37,10 +37,10 @@ only when a navigation question arises.
 `python3 Scripts/localization.py prepare` saves one queue and contextual response
 under a fresh `.DerivedData/Localization/` directory, resuming matching work from
 the latest draft (`--resume <response.json>` selects another). Fill translations and perform
-a separate review, then use `review <response.json> --rationale '<completed checks>'`
-to record that attestation; it does not perform AI review. `apply <response.json>`
-validates reviewed results, generates native/store resources and runs the complete
-check; incomplete batches exit nonzero after preserving their reviewed work. `check` validates
+a separate review, then use `finish <response.json> --rationale '<completed checks>'`
+to record that attestation, apply results, generate resources and run the complete
+check. The command does not perform AI review; separate `review` and `apply` steps
+remain supported; incomplete batches exit nonzero after preserving their reviewed work. `check` validates
 freshness and coverage without AI, network, or compilation; `check --paths <files...>`
 limits local checks to affected inputs and consumers. The stdout `plan` and
 `template` commands remain supported. The
@@ -51,7 +51,7 @@ review requirements and compatibility formats.
 
 Routine local checks perform no Swift compilation or Simulator/GPU tests.
 Use focused static/script checks and handoff. Compiled test wrappers require
-CI or a bounded focused verification/diagnostic under
+CI or explicit focused verification under
 [execution limits](../Docs/Platform/Verification.md#execution-limits); separate user
 approval is not required. Your normal Simulator run remains available and uses
 two local build workers.
@@ -62,7 +62,7 @@ two local build workers.
 | `./Scripts/assert-generated-output.sh --idempotent [--assets] [--strict-assets]` | Regenerate once and require generated outputs to remain unchanged; `--strict-assets` includes full media trees in the comparison. `--regenerate` instead runs generation before the default HEAD comparison. Follow [generation policy](../Docs/Platform/Verification.md#generated-project-consistency); routine local handoff defers generation and idempotence to CI |
 | `./Scripts/build-for-testing.sh [--reuse]` | CI-owned compilation of app/package test schemes; `--reuse` validates source snapshots, toolchain, and existing products before avoiding compilation |
 | `./Scripts/build-for-testing.sh --app-only` | Build the app and UI test bundles, skipping package test schemes (CI shared build) |
-| `./Scripts/test-package.sh [--no-build] [--build-for-testing] [--destination …] [--iterations …] [--run-tests-until-failure] [--include-balance-sweep-tests] [--quiet] [--verbose] <Package> [Package...]` | CI-owned package tests on iOS Simulator; `--only-suite NAME` and `--skip-suite NAME` partition one package into disjoint executions without changing compiled coverage; `--destination` allows simulator name/UUID overrides, rejects other platforms, and cannot combine with generic `--build-for-testing`; `--iterations` and `--run-tests-until-failure` support bounded diagnostic repetition; multiple packages emit an aggregate failure summary with retained report paths, `--verbose` expands worker output |
+| `./Scripts/test-package.sh [--no-build] [--build-for-testing] [--destination …] [--iterations …] [--run-tests-until-failure] [--include-balance-sweep-tests] [--quiet] [--verbose] <Package> [Package...]` | Package tests on iOS Simulator (focused locally; broad qualification in CI); `--only-suite NAME` and `--skip-suite NAME` partition one package into disjoint executions without changing compiled coverage; `--destination` allows simulator name/UUID overrides, rejects other platforms, and cannot combine with generic `--build-for-testing`; `--iterations` and `--run-tests-until-failure` support bounded diagnostic repetition; multiple packages emit an aggregate failure summary with retained report paths, `--verbose` expands worker output |
 | `./Scripts/test-package-host.sh [--compare-ios] [BattleEngine\|TrinketCore\|TrinketContent ...]` | Native executed-scope proof; `--compare-ios` checks same-revision iOS timing evidence, or strict same-run/attempt/toolchain proof when `TRINKET_IOS_COMPARATOR_PROOF` is set. Requested native comparators have separate hosted budgets |
 | `./Scripts/test-ci-packages.sh <Package...>` | CI dispatcher: qualified native packages on pushes and standard verified runs; other packages and requested qualification/nightly scopes retain iOS. AppState purchase contracts run separately from its heavier save/career tests, with both scopes required |
 | `gh workflow run diagnostic-ui.yml -f source-run=RUN_ID -f tests='Class/testMethod' [-f mode=smoke\|ui\|soak]` | Bounded exact-build UI diagnosis using the proven producing attempt across partial reruns; original conclusions remain unchanged, and absent/incompatible products fail without rebuilding |
@@ -73,7 +73,7 @@ two local build workers.
 | `./Scripts/test.sh smoke <Class...>` | CI-owned targeted smoke classes |
 | `./Scripts/test.sh ui <Target>` | CI-owned exhaustive UI target; bare full suite requires `TRINKET_ALLOW_FULL_UI=1` (CI-owned otherwise) |
 | `./Scripts/handoff.sh --quiet --base main` | Static route, isolated automatically (`--isolate` remains supported). Full task scope (commits plus dirty files), or focused `--paths …`; evidence states and next action are reported. Lightweight local gate; compiled/simulator/generation checks are reported as CI-owned; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition); `--smoke` reports targeted UI ownership, `--mirror` requires the deliberate heavy-local flag before installing on Trinket Run, `--dry-run` previews the plan, `--final` runs plan closure, `--keep-plan` permits an unfinished plan with `--final`, `--working-tree` opts into whole-tree classification; `--quiet` captures child logs during execution and prints phase outcomes plus bounded failures; successful logs are removed on completion |
-| `./Scripts/handoff.sh --route diagnostic --package <Package> --paths <files...>` | Explicit focused verification for consequential logic or diagnosis: one package, or use `--app-only` / `--ui <Class[/method]>`. UI selectors choose their registered Smoke/FullUI plan. Sets the focused local-execution flag; no other checks run |
+| `./Scripts/handoff.sh --package <Package> --paths <files...>` | Ordinary focused verification (`--route focused` is optional; `diagnostic` remains an alias): one package, or use `--app-only` / `--ui <Class[/method]>`. UI selectors choose their registered Smoke/FullUI plan. Sets the focused local-execution flag; no other checks run |
 | `./Scripts/handoff.sh --route visual --paths <files...>` | Persistent-terminal managed build/launch/inspection session. Inspect the actual result, save deliverables, and stop the owned lease. A completed session does not certify visual quality |
 | `./Scripts/handoff.sh --route release --paths <files...>` | Requested full release verification through `test-deploy.sh --mode ui`, including explicit local/full-UI flags. No versioning, tagging, signing, upload, or publication |
 | `./Scripts/ci-gate.sh` | CI-owned full gate; composition in [Verification.md](../Docs/Platform/Verification.md#gate-composition) |
@@ -181,7 +181,8 @@ This is a navigation index; script ownership and interfaces remain authoritative
 | `./Scripts/ensure-simulator.sh` | Invoked by `test` / `run-simulator` slot setup |
 | `./Scripts/check-module-boundaries.sh` | Invoked via `ci-gate --fast` cheap slices (package layering and imports) |
 | `./Scripts/check-agent-invariants.sh`, `./Scripts/check-exclusivity-footguns.sh` | Invoked via the style gate only (not `ci-gate --fast`) |
-| `./Scripts/check-artwork-budget.sh`, `./Scripts/release-notes.sh` | Invoked via `ci-gate` cheap slices |
+| `./Scripts/release-notes.sh` | Invoked via `ci-gate` cheap slices |
+| `./Scripts/check-artwork-budget.sh` | Explicit compiled `PreparedArtworkCacheTests` suite; honors focused local execution limits |
 | `./Scripts/check-build-cache-paths.sh`, `./Scripts/check-testplan-sync.py`, `./Scripts/check-links.py`, `./Scripts/check-plans.py` | Invoked via `test-scripts.sh` / `check-docs.py` |
 | `./Scripts/check-unused-assets.py`, `./Scripts/check-accessibility-ids.py`, `./Scripts/check-ui-style.py` | Invoked via style / asset gates |
 | `./Scripts/prepare-assets.sh`, `./Scripts/prepare-art-assets.sh`, `./Scripts/prepare-app-icon.sh` | Invoked via `generate.sh --assets` |

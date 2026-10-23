@@ -21,13 +21,15 @@ def invocation_lines(path: Path, source: str, symbol: str, *, tokens=None) -> li
                    and (index == 0 or tokens[index - 1][1] not in {'func', 'macro'})})
 
 
-def caller_rows(root: Path, files: list[str], symbol: str) -> list[str]:
-    rows = []
+def caller_units(root: Path, files: list[str], symbol: str, *, contents: dict[str, str] | None = None):
+    """Share invocation discovery between search and the compatibility bundle."""
     for name in files:
         path = root / name
         if path.suffix not in {'.swift', '.py'}:
             continue
-        source = path.read_text(encoding='utf-8')
+        source = contents[name] if contents is not None else path.read_text(encoding='utf-8')
+        if symbol not in source:
+            continue
         tokens = swift_code_tokens(source) if path.suffix == '.swift' else None
         calls = invocation_lines(path, source, symbol, tokens=tokens)
         if not calls:
@@ -36,6 +38,9 @@ def caller_rows(root: Path, files: list[str], symbol: str) -> list[str]:
         for line in calls:
             enclosing = [entry for entry in declarations if entry.start <= line <= entry.end]
             owner = min(enclosing, key=lambda entry: (entry.end - entry.start, -entry.start)) if enclosing else None
-            context = f'{owner.name} [{owner.start}:{owner.end}]' if owner else 'file scope'
-            rows.append(f'{name}:{line}: {context}')
-    return rows
+            yield name, line, owner
+
+
+def caller_rows(root: Path, files: list[str], symbol: str) -> list[str]:
+    return [f'{name}:{line}: ' + (f'{owner.name} [{owner.start}:{owner.end}]' if owner else 'file scope')
+            for name, line, owner in caller_units(root, files, symbol)]
