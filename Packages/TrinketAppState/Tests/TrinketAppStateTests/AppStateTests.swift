@@ -5,6 +5,7 @@ import TrinketContentTestSupport
 import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistenceTestSupport
+import UIKit
 @testable import TrinketAppState
 @testable import TrinketPersistence
 
@@ -88,6 +89,31 @@ struct AppStateTests {
         #expect(state.selectedTab == .collection)
 
         #expect(try context.makeAppState().selectedTab == .play)
+    }
+
+    @Test func `idle timer stays awake only for a foreground battle on Play`() throws {
+        let original = UIApplication.shared.isIdleTimerDisabled
+        defer { UIApplication.shared.isIdleTimerDisabled = original }
+        let browsing = try context.makeAppState()
+        browsing.reconcileShellState(.scenePhaseChanged, scenePhase: .active)
+        #expect(!UIApplication.shared.isIdleTimerDisabled)
+
+        let playing = try context.makeAppState(arguments: ["-launch-screen", "battle"])
+        playing.reconcileShellState(.activeBattleChanged(started: true), scenePhase: .active)
+        #expect(UIApplication.shared.isIdleTimerDisabled)
+        playing.selectedTab = .options
+        playing.reconcileShellState(.selectedTabChanged, scenePhase: .active)
+        #expect(!UIApplication.shared.isIdleTimerDisabled)
+        playing.selectedTab = .play
+        playing.reconcileShellState(.selectedTabChanged, scenePhase: .active)
+        #expect(UIApplication.shared.isIdleTimerDisabled)
+        playing.reconcileShellState(.scenePhaseChanged, scenePhase: .inactive)
+        #expect(!UIApplication.shared.isIdleTimerDisabled)
+        playing.reconcileShellState(.scenePhaseChanged, scenePhase: .active)
+        #expect(UIApplication.shared.isIdleTimerDisabled)
+        playing.play.battle.endBattle()
+        playing.reconcileShellState(.activeBattleChanged(started: false), scenePhase: .active)
+        #expect(!UIApplication.shared.isIdleTimerDisabled)
     }
 
     @Test func `scene phase suspends and resumes battle auto end`() throws {

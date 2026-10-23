@@ -120,10 +120,16 @@ struct StageSelectActiveCard<
     }
 
     private var footerDock: some View {
-        HStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
-            titleBlock
-                .frame(maxWidth: .infinity, alignment: .leading)
-            actionControls.fixedSize(horizontal: true, vertical: false)
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .center, spacing: TrinketDesign.Spacing.small) {
+                titleBlock.fixedSize(horizontal: true, vertical: false)
+                Spacer(minLength: 0)
+                actionControls.fixedSize(horizontal: true, vertical: false)
+            }
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
+                titleBlock
+                actionControls
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
@@ -139,13 +145,13 @@ struct StageSelectActiveCard<
                 GameLabel(presentation.activeEyebrow, balanced: true)
                     .trinketTypography(.eyebrow)
                     .foregroundStyle(.secondary)
-                    .trinketSingleLineFittedText()
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             GameLabel(presentation.title, balanced: true)
                 .trinketTypography(.sectionDisplay)
                 .foregroundStyle(.primary)
-                .trinketSingleLineFittedText()
+                .fixedSize(horizontal: false, vertical: true)
                 .gameAccessibilityLabel(presentation.title)
         }
     }

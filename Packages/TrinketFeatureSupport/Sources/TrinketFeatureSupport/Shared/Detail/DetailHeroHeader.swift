@@ -3,6 +3,7 @@ import TrinketDesignSystem
 
 public struct DetailHeroHeader<Art: View, Footer: View>: View {
     @Environment(\.detailHeroOverscroll) private var overscroll
+    @Environment(\.detailHeroTopInset) private var topInset
 
     let eyebrow: String?
     let eyebrowIndicators: [DetailChangeIndicator]
@@ -49,24 +50,23 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     }
 
     public var body: some View {
-        Color.clear
-            .frame(height: baseHeight)
-            .overlay {
+        VStack(alignment: .leading) {
+            titleBlock
+            footer()
+        }
+        .padding(.top, topInset)
+        .padding(.horizontal, horizontalPadding)
+        .padding(.bottom, bottomPadding)
+        .frame(maxWidth: .infinity, minHeight: baseHeight, alignment: .bottomLeading)
+        .background {
+            GeometryReader { geometry in
+                let height = geometry.size.height
                 extendedArtwork
-                    .scaleEffect(baseHeight > 0 ? (baseHeight + overscroll) / baseHeight : 1, anchor: .top)
+                    .scaleEffect(height > 0 ? (height + overscroll) / height : 1, anchor: .top)
                     .offset(y: -overscroll)
                     .allowsHitTesting(false)
             }
-            .overlay(alignment: .bottomLeading) {
-                VStack(alignment: .leading) {
-                    titleBlock
-                    footer()
-                }
-                .padding(.horizontal, horizontalPadding)
-                .padding(.bottom, bottomPadding)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-                .clipped()
-            }
+        }
     }
 
     private var artworkFrame: some View {

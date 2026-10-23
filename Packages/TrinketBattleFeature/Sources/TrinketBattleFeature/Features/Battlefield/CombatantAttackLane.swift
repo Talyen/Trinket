@@ -53,6 +53,7 @@ struct CombatantAttackMotion {
 
 struct CombatantAttackLane<Content: View>: View {
     @Environment(BattleSession.self) private var battleSession
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let combatantID: String
     let aim: CombatantAttackAim
     @ViewBuilder let content: () -> Content
@@ -63,8 +64,8 @@ struct CombatantAttackLane<Content: View>: View {
 
     var body: some View {
         let card = content()
-        TimelineView(.animation(paused: !isAnimating)) { timeline in
-            let pose = motion.pose(at: isAnimating ? timeline.date : .now, aim: aim)
+        TimelineView(.animation(paused: reduceMotion || !isAnimating)) { timeline in
+            let pose = reduceMotion ? .rest : motion.pose(at: isAnimating ? timeline.date : .now, aim: aim)
             card
                 .scaleEffect(x: pose.scaleX, y: pose.scaleY)
                 .rotationEffect(.degrees(pose.rotation))

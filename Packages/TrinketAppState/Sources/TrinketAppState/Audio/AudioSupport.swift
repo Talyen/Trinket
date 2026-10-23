@@ -3,13 +3,14 @@ import Foundation
 import os
 import Synchronization
 import TrinketContent
+import TrinketCore
 import TrinketPersistence
 
 /// Shared audio plumbing for `MusicPlayer` and `SFXPlayer`.
 ///
 /// Single place for the logging subsystem, volume math, and the process-wide
-/// ambient session configuration. Session setup is serialized and runs once;
-/// retry happens only when a previous attempt failed.
+/// ambient session configuration. Session setup is serialized and runs once
+/// per media-services lifetime, retrying after a failed attempt.
 enum AudioSupport {
     static let subsystem = PlayerSaveDefaults.loggingSubsystem
 
@@ -36,12 +37,32 @@ enum AudioSupport {
             subdirectory: subdirectory,
         )
     }
+
+    @MainActor
+    static func observeMediaServicesReset(
+        in center: NotificationCenter,
+        onReset: @escaping @MainActor @Sendable () -> Void,
+    ) -> MainActorCleanup {
+        let observer = center.addObserver(
+            forName: AVAudioSession.mediaServicesWereResetNotification,
+            object: nil,
+            queue: .main,
+        ) { _ in
+            AudioSession.invalidate()
+            MainActor.assumeIsolated { onReset() }
+        }
+        return MainActorCleanup { center.removeObserver(observer) }
+    }
 }
 
 enum AudioSession {
     private static let hasConfigured = Mutex(false)
 
-    /// Configures the shared ambient session once. Safe to call from any
+    static func invalidate() {
+        hasConfigured.withLock { $0 = false }
+    }
+
+    /// Configures the shared ambient session once per media-services lifetime. Safe to call from any
     /// isolation; concurrent callers serialize on a lock and only the first
     /// successful configuration sticks. Failures leave the flag clear so a
     /// later call retries.

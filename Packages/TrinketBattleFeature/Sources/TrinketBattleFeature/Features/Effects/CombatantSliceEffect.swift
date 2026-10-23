@@ -29,13 +29,20 @@ struct CombatantSliceEffectConfig: Equatable {
 }
 
 struct CombatantSliceEffect<Content: View>: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let config: CombatantSliceEffectConfig
     let progress: CGFloat
     @ViewBuilder let content: () -> Content
 
     var body: some View {
         GeometryReader { geometry in
-            slice(size: geometry.size)
+            if reduceMotion {
+                content()
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .opacity(Double(1 - effectiveProgress))
+            } else {
+                slice(size: geometry.size)
+            }
         }
         .allowsHitTesting(false)
     }

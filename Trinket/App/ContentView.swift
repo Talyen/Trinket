@@ -26,6 +26,7 @@ struct ContentView: View {
     var body: some View {
         @Bindable var shellSession = shellSession
 
+        // swiftlint:disable:next accessibility_trait_for_button - Observes existing controls for audio recovery; the root adds no action.
         Group {
             if playerSave.starterSelection.phase != .complete {
                 StarterSelectionFlow(
@@ -44,6 +45,9 @@ struct ContentView: View {
             }
         }
         .fullGameOfferHost()
+        .simultaneousGesture(TapGesture().onEnded {
+            appState.resumeAudioAfterMediaServicesReset(scenePhase: scenePhase)
+        })
         // Keep the phone's navigation and stacked hubs on every portrait canvas.
         .environment(\.horizontalSizeClass, .compact)
         .animation(TrinketMotion.Screen.crossfade, value: playerSave.starterSelection.phase)
@@ -64,7 +68,7 @@ struct ContentView: View {
             await cloudSync
         }
         .onChange(of: shellSession.selectedTab) { _, newTab in
-            appState.refreshMusic(scenePhase: scenePhase)
+            appState.reconcileShellState(.selectedTabChanged, scenePhase: scenePhase)
             AppFramePacingSignposts.event(
                 AppFramePacingSignposts.Name.tabSwitch,
                 detail: "tab=\(newTab.rawValue)",
@@ -107,8 +111,8 @@ struct ContentView: View {
                     )
                     return
                 }
-                let oldTab = selection.wrappedValue
-                if newTab == oldTab {
+                appState.resumeAudioAfterMediaServicesReset(scenePhase: scenePhase)
+                if newTab == selection.wrappedValue {
                     guard newTab != .play || battle.lifecyclePhase != .active else { return }
                     withAnimation { shellSession.popToRoot(newTab) }
                 } else {

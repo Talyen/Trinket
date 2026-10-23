@@ -109,6 +109,15 @@ rebuilding Canvas paths and paint commands each frame. The shader retains the
 four-point geometry, point-sized miter strokes, shadow, core, and paint order;
 launch effect prewarming exercises it before battle. Freeze snowflakes continue
 to transform a cached unit path. Both retain their existing motion and cadence.
+With native Reduce Motion enabled, Stun stars and Freeze crystals stay visible in
+a settled static pose, Death's Door keeps a steady border, and combatant cards
+omit attack lunges, impact recoil, and celebration transforms. Impact delivery,
+floating results, sounds, haptics, and action timing remain unchanged.
+Automatic card reveals fade at their staging position; hand deals fade and hand
+reflow changes directly. Cast departures and defeated artwork fade in place
+without shrinking, rising, splitting, or emitting traveling particles. Finger
+tracking and its captured cast pose remain intact. All completion clocks retain
+the ordinary durations.
 
 Impact delivery groups results by the presentation beat, independent of the
 engine's broader feedback group. Recoil chooses the strongest result per recipient,

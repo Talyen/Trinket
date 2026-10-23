@@ -88,6 +88,14 @@ Cancelled loads cannot install voices, and cancelled fades cannot overwrite a
 new slider gain. `MusicPlaybackBackend` isolates decoding and ambient session
 setup; deterministic transition tests use controlled loads and silent fake voices.
 
+Media-services reset notifications invalidate the ambient session configuration
+and retire active, fading, prepared, and loading music voices. The notification
+does not restart playback. Both players reject automatic route, play, and warm
+requests until a direct player interaction calls
+`AppState.resumeAudioAfterMediaServicesReset(scenePhase:)` in the active scene.
+Recovery then creates fresh native objects and restores the ambient category,
+Ring/Silent behavior, and audio mixing.
+
 `MusicPlayer.readPlayback()` returns the current voice's track, media position,
 and playing/positive-volume status for lyric sampling. Prepared voices and outgoing
 fades never become the lyric clock. The persisted Boss Lyrics preference defaults
@@ -112,6 +120,10 @@ Releasing the player shuts down the audio actor independently of any suspended
 command. Shutdown cancels catalog warming and pending decodes, releases all native
 resources, and permanently rejects later commands; ordinary resource release remains
 reusable. Cancelled commands cannot create new catalog warmups.
+Media-services resets use the same ordered resource invalidation: queued sounds
+and suspended decodes cannot replay, and the retired engine is discarded. The next
+playback request after user-initiated recovery constructs a new engine and voice
+pool without relaunching the app.
 
 ## Testing
 

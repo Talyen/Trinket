@@ -19,6 +19,7 @@ private struct HeldCardInteraction: Equatable {
 }
 
 struct BattleHandView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     static let coordinateSpaceName = "battleHand"
 
     let cards: [BattleCard]
@@ -113,10 +114,10 @@ struct BattleHandView: View {
                     .offset(x: snapshot.fanOffsetX)
                     .zIndex(isHeld ? 100 : Double(index))
                     .allowsHitTesting(true)
-                    .animation(isHeld ? nil : BattleMotion.handReflow, value: liveSnapshot)
+                    .animation(isHeld || reduceMotion ? nil : BattleMotion.handReflow, value: liveSnapshot)
                     .transition(
                         .asymmetric(
-                            insertion: .offset(
+                            insertion: reduceMotion ? .opacity.animation(BattleMotion.deal) : .offset(
                                 x: card.owner == .hero
                                     ? -BattleMotion.dealInsertOffset
                                     : BattleMotion.dealInsertOffset,

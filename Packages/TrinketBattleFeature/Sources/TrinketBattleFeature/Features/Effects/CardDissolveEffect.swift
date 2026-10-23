@@ -96,6 +96,7 @@ struct CardActivationParticles: View {
 }
 
 struct CardDissolveEffect<Content: View>: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let progress: CGFloat
     let keywords: [Keyword]
     let size: CGSize
@@ -123,7 +124,11 @@ struct CardDissolveEffect<Content: View>: View {
         let dissolveProgress = min(progress / max(configuration.dissolveDuration, 0.01), 1)
 
         ZStack {
-            if dissolveProgress < 1 {
+            if reduceMotion {
+                content
+                    .frame(width: size.width, height: size.height)
+                    .opacity(Double(1 - dissolveProgress))
+            } else if dissolveProgress < 1 {
                 Group {
                     if dissolveProgress <= 0 {
                         content
@@ -141,7 +146,7 @@ struct CardDissolveEffect<Content: View>: View {
                 .compositingGroup()
             }
 
-            if !particles.isEmpty {
+            if !reduceMotion, !particles.isEmpty {
                 let travelPad = configuration.particleDistance
                     + configuration.particleDistanceVariation
                     + 40

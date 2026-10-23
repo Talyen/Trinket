@@ -162,6 +162,7 @@ struct BattleCombatantPane: View {
 
 private struct CombatantHitReactionLane<Artwork: View>: View {
     @Environment(BattleSession.self) private var battleSession
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let combatantID: String
     let hapticsEnabled: Bool
     let recoilDirection: CombatantHitRecoilDirection
@@ -192,7 +193,16 @@ private struct CombatantHitReactionLane<Artwork: View>: View {
             }
     }
 
+    @ViewBuilder
     private func hitReactionAnimator() -> some View {
+        if reduceMotion {
+            artwork()
+        } else {
+            animatedHitReaction()
+        }
+    }
+
+    private func animatedHitReaction() -> some View {
         let card = artwork()
         let layout = ReactionLayoutState(
             activeKind: activeKind,
@@ -341,21 +351,25 @@ private struct CardReactionAnimationState {
 }
 
 private struct CombatantStatusBorderPulse: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let keyword: Keyword
 
     @State private var pulseAmount = 0.0
 
     var body: some View {
-        CombatantStatusBorderPulseStroke(
-            keyword: keyword,
-            pulseAmount: pulseAmount,
-        )
-        .onAppear {
-            pulseAmount = 0
-            withAnimation(
-                BattleMotion.statusBorderPulse.repeatForever(autoreverses: true),
-            ) {
-                pulseAmount = 1
+        Group {
+            if reduceMotion {
+                CombatantStatusBorderPulseStroke(keyword: keyword, pulseAmount: 1)
+            } else {
+                CombatantStatusBorderPulseStroke(keyword: keyword, pulseAmount: pulseAmount)
+                    .onAppear {
+                        pulseAmount = 0
+                        withAnimation(
+                            BattleMotion.statusBorderPulse.repeatForever(autoreverses: true),
+                        ) {
+                            pulseAmount = 1
+                        }
+                    }
             }
         }
         .allowsHitTesting(false)

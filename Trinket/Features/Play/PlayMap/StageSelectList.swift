@@ -88,7 +88,7 @@ private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerShee
                 GameLabel(presentation.title)
                     .trinketTypography(.rowDisplay)
                     .foregroundStyle(.primary)
-                    .lineLimit(1)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 StageSelectMetaLine(presentation: presentation)
                 ForEach(presentation.modifiers) { modifier in

@@ -44,16 +44,27 @@ final class MusicPlayer {
     private var pending: PendingTrack = .idle
     private var fade: Fade?
     private var resumePositions: [MusicResumeKey: TimeInterval] = [:]
+    private var mediaServicesResetObserver: MainActorCleanup?
+    private(set) var needsMediaServicesRecovery = false
     private static let maxResumePositions = 32
 
     init(
         isDisabled: Bool,
         fadeDuration: TimeInterval = 0.9,
         backend: any MusicPlaybackBackend = SystemMusicPlaybackBackend(),
+        notificationCenter: NotificationCenter = .default,
     ) {
         self.isDisabled = isDisabled
         self.fadeDuration = fadeDuration
         self.backend = backend
+        if !isDisabled {
+            mediaServicesResetObserver = AudioSupport.observeMediaServicesReset(in: notificationCenter) { [weak self] in
+                // Old players, including prepared and decoding replacements,
+                // belong to the retired media server and must never be reused.
+                self?.needsMediaServicesRecovery = true
+                self?.silenceImmediately(preservingPosition: false)
+            }
+        }
     }
 
     deinit {
@@ -87,7 +98,7 @@ final class MusicPlayer {
     }
 
     func update(route: MusicRoute, volume: Double, immediate: Bool = false) {
-        guard !isDisabled else { return }
+        guard !isDisabled, !needsMediaServicesRecovery else { return }
         switch route {
         case let .silence(preservingPosition):
             silence(preservingPosition: preservingPosition, immediate: immediate)
@@ -97,14 +108,14 @@ final class MusicPlayer {
     }
 
     func prepare(_ request: MusicPlaybackRequest) {
-        guard !isDisabled,
+        guard !isDisabled, !needsMediaServicesRecovery,
               current?.request.resumeKey != request.resumeKey,
               pending.request?.resumeKey != request.resumeKey else { return }
         enqueueLoad(request, startVolume: nil)
     }
 
     func setVolume(_ volume: Double) {
-        guard !isDisabled else { return }
+        guard !isDisabled, !needsMediaServicesRecovery else { return }
         let volume = AudioSupport.clampedVolume(volume)
         if case var .loading(load) = pending, load.startVolume != nil || current == nil {
             load.startVolume = volume
@@ -121,6 +132,10 @@ final class MusicPlayer {
 
     func silenceImmediately(preservingPosition: Bool) {
         silence(preservingPosition: preservingPosition, immediate: true)
+    }
+
+    func resumeAfterMediaServicesReset() {
+        needsMediaServicesRecovery = false
     }
 
     func cancelActiveFades() {

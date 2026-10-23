@@ -1,4 +1,5 @@
 import Foundation
+import TrinketCore
 
 @MainActor
 public final class SFXPlayer {
@@ -6,16 +7,26 @@ public final class SFXPlayer {
     private var continuation: AsyncStream<SFXCommand>.Continuation?
     private var workerTask: Task<Void, Never>?
     private var invalidationTask: Task<Void, Never>?
+    private var mediaServicesResetObserver: MainActorCleanup?
+    private(set) var needsMediaServicesRecovery = false
 
     public convenience init(isDisabled: Bool) {
         let playback = SFXPlayback(backend: SystemSFXPlaybackBackend())
         self.init(isDisabled: isDisabled) { await playback.execute($0) }
     }
 
-    init(isDisabled: Bool = false, execute: @escaping @Sendable (SFXCommand) async -> Void) {
+    init(
+        isDisabled: Bool = false,
+        notificationCenter: NotificationCenter = .default,
+        execute: @escaping @Sendable (SFXCommand) async -> Void,
+    ) {
         self.execute = execute
         if !isDisabled {
             startWorker()
+            mediaServicesResetObserver = AudioSupport.observeMediaServicesReset(in: notificationCenter) { [weak self] in
+                self?.needsMediaServicesRecovery = true
+                self?.releaseResources()
+            }
         }
     }
 
@@ -58,7 +69,12 @@ public final class SFXPlayer {
         invalidate(.release)
     }
 
+    func resumeAfterMediaServicesReset() {
+        needsMediaServicesRecovery = false
+    }
+
     private func enqueue(_ command: SFXCommand) {
+        guard !needsMediaServicesRecovery else { return }
         continuation?.yield(command)
     }
 

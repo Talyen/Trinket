@@ -3,6 +3,7 @@ import SwiftUI
 import TrinketFeatureSupport
 
 struct AutomaticCardCastView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let cast: BattleRecordedCardCast
     let stagingFrame: CGRect
     let handFrame: CGRect
@@ -29,7 +30,7 @@ struct AutomaticCardCastView: View {
         TimelineView(.animation(paused: cast.pausedAt != nil)) { timeline in
             let elapsed = (cast.pausedAt ?? timeline.date).timeIntervalSince(cast.startedAt)
             let arrival = min(1, max(0, elapsed / BattleMotion.cardDealDuration))
-            let eased = BattleMotion.easeOutCubic(arrival)
+            let eased = reduceMotion ? 1 : BattleMotion.easeOutCubic(arrival)
             let direction: CGFloat = cast.card.owner == .hero ? -1 : 1
             let progress = cardActivationProgress(elapsed: max(0, elapsed - revealDuration))
             CardDissolveEffect(
@@ -45,7 +46,7 @@ struct AutomaticCardCastView: View {
                 x: center.x + direction * stagingFrame.width * (1 - eased),
                 y: center.y + metrics.cardHeight * 0.3 * (1 - eased),
             )
-            .opacity(elapsed < 0 ? 0 : 1)
+            .opacity(elapsed < 0 ? 0 : reduceMotion ? arrival : 1)
         }
         .task(id: cast) {
             guard cast.pausedAt == nil else { return }

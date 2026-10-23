@@ -7,6 +7,8 @@ import TrinketDesignSystem
 @Observable
 private final class HeroScrollState {
     var headerBaseHeight: CGFloat = HeroHeaderLayout.minimumHeaderHeight
+    var headerContentHeight: CGFloat = HeroHeaderLayout.minimumHeaderHeight
+    var headerTopInset: CGFloat = 0
     var titleOpacity: CGFloat = 0
     var overscroll: CGFloat = 0
     var isPinned = false
@@ -67,11 +69,12 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                     width: geometry.containerSize.width,
                     height: max(0, geometry.containerSize.height - topInset - geometry.contentInsets.bottom),
                 ))
-                let threshold = baseHeight - topInset
+                let threshold = max(baseHeight, scrollState.headerContentHeight) - topInset
                 let offsetY = geometry.contentOffset.y + topInset
                 let opacity = min(max((offsetY - threshold) / 32, 0), 1)
                 return HeroHeaderScrollMetrics(
                     baseHeight: baseHeight,
+                    topInset: topInset,
                     titleOpacity: opacity,
                     // Include the top inset so artwork also covers space introduced by pinned navigation chrome.
                     overscroll: max(-geometry.contentOffset.y, 0),
@@ -79,6 +82,9 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
             } action: { _, metrics in
                 if scrollState.headerBaseHeight != metrics.baseHeight {
                     scrollState.headerBaseHeight = metrics.baseHeight
+                }
+                if scrollState.headerTopInset != metrics.topInset {
+                    scrollState.headerTopInset = metrics.topInset
                 }
                 if scrollState.titleOpacity != metrics.titleOpacity {
                     scrollState.titleOpacity = metrics.titleOpacity
@@ -113,6 +119,12 @@ private struct DetailHeroHeaderSection<Header: View>: View {
     var body: some View {
         header(scrollState.headerBaseHeight)
             .environment(\.detailHeroOverscroll, scrollState.overscroll)
+            .environment(\.detailHeroTopInset, scrollState.headerTopInset)
+            .onGeometryChange(for: CGFloat.self) { geometry in
+                geometry.size.height
+            } action: { height in
+                scrollState.headerContentHeight = height
+            }
     }
 }
 
@@ -150,10 +162,12 @@ private struct DetailHeroNavBarModifier: ViewModifier {
 extension EnvironmentValues {
     /// Scroll geometry keeps updating even when the hero artwork is offscreen.
     @Entry var detailHeroOverscroll: CGFloat = 0
+    @Entry var detailHeroTopInset: CGFloat = 0
 }
 
 private struct HeroHeaderScrollMetrics: Equatable {
     let baseHeight: CGFloat
+    let topInset: CGFloat
     let titleOpacity: CGFloat
     let overscroll: CGFloat
 }

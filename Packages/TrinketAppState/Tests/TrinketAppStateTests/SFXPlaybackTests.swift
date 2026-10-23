@@ -1,3 +1,4 @@
+import AVFoundation
 import Foundation
 import Synchronization
 import Testing
@@ -5,6 +6,50 @@ import TrinketContent
 @testable import TrinketAppState
 
 struct SFXPlaybackTests {
+    @MainActor
+    @Test func `media services reset releases voices and cancels decoding and queued sounds before reuse`() async {
+        let events = SFXEvents()
+        let gate = SFXLoadGate()
+        let completion = SFXCommandCompletion()
+        let center = NotificationCenter()
+        let playingID = SFXCatalog.clips[0].id
+        let suspendedID = SFXCatalog.clips[1].id
+        let playback = SFXPlayback(backend: TestSFXBackend(events: events)) { clip in
+            clip.id == suspendedID ? await gate.load(clip.id) : clip.id
+        }
+        await playback.execute(.play([playingID], volume: 0.8))
+        let player = SFXPlayer(notificationCenter: center) { command in
+            await playback.execute(command)
+            switch command {
+            case .release: await completion.finish("reset")
+            case let .play(ids, _):
+                await completion.finish(ids == [playingID] ? "future" : "foreground")
+            default: break
+            }
+        }
+        player.play(suspendedID, volume: 0.8)
+        await gate.waitForLoad()
+        player.play(playingID, volume: 0.8)
+        center.post(name: AVAudioSession.mediaServicesWereResetNotification, object: nil)
+        await completion.wait(for: "reset")
+        #expect(events.values.contains("release"))
+        let resetEvents = events.values
+        await gate.finish()
+        await completion.wait(for: "foreground")
+        #expect(events.values == resetEvents)
+
+        player.play(playingID, volume: 0.8)
+        player.warm([playingID], concurrentPlayerCount: 1)
+        player.warmAllCatalog(concurrentPlayerCount: 1)
+        #expect(player.needsMediaServicesRecovery)
+        #expect(events.values == resetEvents)
+        player.resumeAfterMediaServicesReset()
+        player.play(playingID, volume: 0.8)
+        await completion.wait(for: "future")
+        #expect(events.values.count(where: { $0 == "voice:0" }) == 2)
+        #expect(events.values.filter { $0.hasPrefix("play:") } == ["play:0", "play:0"])
+    }
+
     @Test func `voice pools share decoding and rotate without rebuilding after stop`() async {
         let events = SFXEvents()
         let playback = SFXPlayback(backend: TestSFXBackend(events: events)) { clip in

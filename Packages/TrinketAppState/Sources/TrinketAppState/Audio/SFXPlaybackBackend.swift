@@ -21,7 +21,7 @@ protocol SFXPlaybackBackend {
 /// Nodes are append-only between releases. A running engine only needs to start
 /// the newly appended suffix; a resumed engine must revisit every retained node.
 struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
-    private lazy var engine = AVAudioEngine()
+    private var engine: AVAudioEngine?
     private var nodes: [AVAudioPlayerNode] = []
     private var startedVoiceCount = 0
     private let logger = AudioSupport.logger()
@@ -59,6 +59,7 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
     }
 
     mutating func makeVoice(buffer: DecodedSFXBuffer) -> PreparedSFXVoice {
+        let engine = prepareEngine()
         let node = AVAudioPlayerNode()
         engine.attach(node)
         engine.connect(node, to: engine.mainMixerNode, format: buffer.value.format)
@@ -68,6 +69,7 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
 
     mutating func start() -> Bool {
         AudioSession.configureIfNeeded(logger: logger)
+        let engine = prepareEngine()
         let engineWasRunning = engine.isRunning
         if !engineWasRunning {
             engine.prepare()
@@ -113,12 +115,13 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
         for node in nodes {
             node.stop()
         }
-        engine.pause()
+        engine?.pause()
         startedVoiceCount = 0
     }
 
     mutating func releaseResources() {
         stop()
+        guard let engine else { return }
         for node in nodes {
             engine.disconnectNodeOutput(node)
             engine.detach(node)
@@ -126,6 +129,16 @@ struct SystemSFXPlaybackBackend: SFXPlaybackBackend {
         nodes.removeAll()
         engine.stop()
         engine.reset()
+        self.engine = nil
+    }
+
+    private mutating func prepareEngine() -> AVAudioEngine {
+        if let engine {
+            return engine
+        }
+        let engine = AVAudioEngine()
+        self.engine = engine
+        return engine
     }
 }
 

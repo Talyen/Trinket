@@ -84,6 +84,15 @@ clearances. Preserve prepared artwork and the shared interaction hierarchy.
 
 ## Content beside native bars
 
+Hero artwork heights are minimums: native text and footers can grow the header,
+and its measured height owns navigation-title pinning. Stage titles wrap; active
+stage footers stack their actions when title and controls cannot fit side by side.
+These adaptations follow available space and intrinsic content at every text size.
+
+Keep Auto-Lock disabled only while an active battle is displayed on Play in an
+active scene. Browsing and Options retain the system idle timer; tab changes,
+battle entry/exit and scene transitions refresh that policy.
+
 Keep a continuous canvas beneath native bars on every screen. The side bar is
 system-owned foreground chrome, not a separate app panel. Background artwork,
 gradients and decorative effects may extend behind it; readable and actionable

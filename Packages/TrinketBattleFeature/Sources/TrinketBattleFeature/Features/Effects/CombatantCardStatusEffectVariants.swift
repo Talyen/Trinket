@@ -61,6 +61,7 @@ struct CombatantStatusEffectConfig: Equatable {
 }
 
 struct CombatantStatusEffectOverlay: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let kind: CombatantStatusEffectKind
     let config: CombatantStatusEffectConfig
     let progress: CGFloat
@@ -91,7 +92,7 @@ struct CombatantStatusEffectOverlay: View {
         case .iceCrystals: .freeze
         }
         let style = keyword.visualStyle
-        let phase = progress * config.speed
+        let phase = reduceMotion ? 1 : progress * config.speed
 
         GeometryReader { geometry in
             let size = geometry.size
@@ -317,6 +318,7 @@ private enum StatusParticleGeometry {
 }
 
 struct CombatantStatusCardTransform: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let kind: CombatantStatusEffectKind
     let config: CombatantStatusEffectConfig
     let progress: CGFloat
@@ -326,7 +328,7 @@ struct CombatantStatusCardTransform: ViewModifier {
         let appear = kind == .swirlingStars
             ? min(max(phase / 0.12, 0), 1)
             : 0
-        let wobble = appear > 0.01
+        let wobble = !reduceMotion && appear > 0.01
             ? sin(phase * .pi * 2) * config.wobbleDegrees * config.intensity * appear
             : 0
         content.rotationEffect(.degrees(Double(wobble)))
@@ -335,6 +337,7 @@ struct CombatantStatusCardTransform: ViewModifier {
 
 struct CombatantStatusEffectPresentation<Content: View>: View {
     @Environment(BattleSession.self) private var battleSession
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let keyword: Keyword?
     let content: Content
 
@@ -365,7 +368,7 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
         TimelineView(
             .animation(
                 minimumInterval: 1.0 / 60.0,
-                paused: battleSession.lifecyclePhase != .active
+                paused: reduceMotion || battleSession.lifecyclePhase != .active
                     || battleSession.isSuspendedForScenePhase,
             ),
         ) { timeline in

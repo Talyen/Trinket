@@ -176,6 +176,8 @@ public final class AppState {
             }
         case .scenePhaseChanged:
             handleScenePhaseSideEffects(scenePhase)
+        case .selectedTabChanged:
+            break
         }
 
         refreshMusic(scenePhase: scenePhase)
@@ -192,7 +194,8 @@ public final class AppState {
     }
 
     private func applyIdleTimerPolicy(scenePhase: ScenePhase) {
-        UIApplication.shared.isIdleTimerDisabled = (scenePhase == .active)
+        UIApplication.shared.isIdleTimerDisabled = scenePhase == .active
+            && selectedTab == .play && play.battle.activeBattle != nil
     }
 
     @ObservationIgnored private var memoryPressureObserver: MainActorCleanup?
@@ -278,4 +281,5 @@ public final class AppState {
 public enum ShellReconcileTrigger {
     case activeBattleChanged(started: Bool)
     case scenePhaseChanged
+    case selectedTabChanged
 }

@@ -180,6 +180,7 @@ struct CardActivationRequest: Equatable, Identifiable {
 }
 
 struct CardCastEffectsLayer: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let request: CardActivationRequest?
     let scheduledCast: BattleRecordedCardCast?
     let onFinished: (UUID) -> Void
@@ -232,7 +233,7 @@ struct CardCastEffectsLayer: View {
     private func cast(_ request: CardActivationRequest, progress: CGFloat) -> some View {
         let configuration = CardDissolveConfiguration()
         let riseProgress = min(max(progress / configuration.dissolveDuration, 0), 1)
-        let rise = BattleMotion.easeOutCubic(Double(riseProgress))
+        let rise = reduceMotion ? 0 : BattleMotion.easeOutCubic(Double(riseProgress))
 
         return CardDissolveEffect(
             progress: progress,

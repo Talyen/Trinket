@@ -22,6 +22,7 @@ public extension View {
 }
 
 private struct AcquisitionMotionModifier: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let trigger: Int
     let isActive: Bool
     let initialScale: CGFloat
@@ -29,20 +30,31 @@ private struct AcquisitionMotionModifier: ViewModifier {
     let riseDuration: TimeInterval
     let settleDuration: TimeInterval
     @State private var scale: CGFloat = 1
+    @State private var opacity: Double = 1
     @State private var task: Task<Void, Never>?
 
     func body(content: Content) -> some View {
         content
-            .scaleEffect(scale)
+            .scaleEffect(reduceMotion ? 1 : scale)
+            .opacity(opacity)
             .onChange(of: trigger) { _, _ in
                 cancel()
                 guard isActive else { return }
-                scale = initialScale
+                if reduceMotion {
+                    opacity = 0.7
+                } else {
+                    scale = initialScale
+                }
                 task = Task { @MainActor in
                     // Let the initial pose publish before starting the arrival.
                     await Task.yield()
                     guard !Task.isCancelled else { return }
-                    withAnimation(.easeOut(duration: riseDuration)) { scale = peakScale }
+                    withAnimation(.easeOut(duration: riseDuration)) {
+                        opacity = 1
+                        if !reduceMotion {
+                            scale = peakScale
+                        }
+                    }
                     do { try await Task.sleep(for: .seconds(riseDuration)) } catch { return }
                     guard !Task.isCancelled else { return }
                     withAnimation(.easeOut(duration: settleDuration)) { scale = 1 }
@@ -54,6 +66,7 @@ private struct AcquisitionMotionModifier: ViewModifier {
                     cancel()
                 }
             }
+            .onChange(of: reduceMotion) { _, _ in cancel() }
             .onDisappear { cancel() }
     }
 
@@ -62,6 +75,9 @@ private struct AcquisitionMotionModifier: ViewModifier {
         task = nil
         var transaction = Transaction()
         transaction.disablesAnimations = true
-        withTransaction(transaction) { scale = 1 }
+        withTransaction(transaction) {
+            scale = 1
+            opacity = 1
+        }
     }
 }

@@ -1,3 +1,4 @@
+import AVFoundation
 import Foundation
 import Testing
 import TrinketContent
@@ -5,6 +6,49 @@ import TrinketContent
 
 @MainActor
 struct MusicPlayerTests {
+    @Test(arguments: [false, true])
+    func `media services reset retires active fading and pending voices without replay`(prepared: Bool) async throws {
+        let backend = ControlledMusicBackend()
+        let center = NotificationCenter()
+        let player = MusicPlayer(isDisabled: false, backend: backend, notificationCenter: center)
+        let outgoing = try await start(request("outgoing"), player: player, backend: backend)
+        let current = try await start(request("current"), player: player, backend: backend)
+        try await eventually { backend.steps.count == 1 }
+        try player.prepare(request("pending"))
+        try await eventually { backend.loads.count == 3 }
+        let pending = TestMusicVoice()
+        if prepared {
+            backend.completeLoad(2, with: pending)
+            try await eventually { pending.configurations > 0 }
+        }
+
+        center.post(name: AVAudioSession.mediaServicesWereResetNotification, object: nil)
+        #expect(outgoing.stops == 1)
+        #expect(current.stops == 1)
+        #expect(player.readPlayback() == nil)
+        #expect(!player.canPreviewVolume)
+        if !prepared {
+            backend.completeLoad(2, with: pending)
+            try await eventually { pending.stops == 1 }
+        }
+        #expect(pending.stops == 1)
+        backend.completeStep(0)
+        try await eventually { backend.resumedSteps == 1 }
+        #expect(backend.activations == 2)
+        #expect(pending.starts == 0)
+
+        try player.update(route: .track(request("automatic")), volume: 1)
+        try player.prepare(request("automatic"))
+        player.setVolume(1)
+        #expect(player.needsMediaServicesRecovery)
+        #expect(backend.loads.count == 3)
+        player.resumeAfterMediaServicesReset()
+
+        let replacement = try await start(request("current"), player: player, backend: backend)
+        #expect(replacement.currentTime == 0)
+        #expect(backend.activations == 3)
+    }
+
     @Test func `teardown stops the active and prepared replacement voices`() async throws {
         let backend = ControlledMusicBackend()
         var player: MusicPlayer? = MusicPlayer(isDisabled: false, backend: backend)
