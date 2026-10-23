@@ -767,7 +767,8 @@ source Scripts/lib/simctl.sh
                 outcomes = [timeout, subprocess.CompletedProcess(command, 0, stdout=snapshot) if recovers else timeout]
                 output, errors = io.StringIO(), io.StringIO()
                 with patch('subprocess.run', side_effect=outcomes) as query, \
-                        contextlib.redirect_stdout(output), contextlib.redirect_stderr(errors):
+                        contextlib.redirect_stdout(output), contextlib.redirect_stderr(errors), \
+                        patch('sys.argv', ['guest-processes', '']):
                     if recovers:
                         exec(reader, {})
                     else:

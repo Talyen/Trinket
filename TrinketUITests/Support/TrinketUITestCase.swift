@@ -10,12 +10,7 @@ func trinketWaitUntil(timeout: TimeInterval, condition: @escaping () -> Bool) ->
 }
 
 private func trinketWaitForExistenceMainActorSafe(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
-    if Thread.isMainThread {
-        return MainActor.assumeIsolated { element.exists || element.waitForExistence(timeout: timeout) }
-    }
-    return DispatchQueue.main.sync {
-        MainActor.assumeIsolated { element.exists || element.waitForExistence(timeout: timeout) }
-    }
+    trinketOnMainActor { element.exists || element.waitForExistence(timeout: timeout) }
 }
 
 /// Snapshot objects stay on the main actor; only their value projections cross back.
@@ -367,37 +362,8 @@ class TrinketUITestCase: XCTestCase {
         line: UInt = #line,
     ) {
         guard element.trinketWaitForExistence(timeout: timeout) else {
-            fail(missingElementMessage(message), file: file, line: line)
+            fail(message, file: file, line: line)
             return
-        }
-    }
-
-    private func missingElementMessage(_ message: String) -> String {
-        guard let app else { return message }
-        return trinketOnMainActor {
-            guard let snapshot = try? app.snapshot() else { return message }
-            var entries: [String] = []
-            var seen: Set<String> = []
-            var pending = Array(snapshot.children.reversed())
-            while let element = pending.popLast() {
-                pending.append(contentsOf: element.children.reversed())
-                let identifier = element.identifier.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !identifier.isEmpty else { continue }
-                let normalizedIdentifier = identifier.replacingOccurrences(
-                    of: #"\s+"#,
-                    with: " ",
-                    options: .regularExpression,
-                )
-                let entry = "\(String(describing: element.elementType))[\(normalizedIdentifier)]"
-                guard seen.insert(entry).inserted else { continue }
-                entries.append(entry)
-                if entries.count == 30 {
-                    break
-                }
-            }
-            let description = entries.isEmpty ? "AX: (no identified elements)" : entries.map { "AX: " + $0 }.joined(separator: "\n")
-            let bounded = description.count > 2400 ? String(description.prefix(2399)) + "…" : description
-            return "\(message)\nAccessibility snapshot:\n\(bounded)"
         }
     }
 
@@ -587,7 +553,10 @@ extension XCUIApplication {
             // A visible nested carousel cannot scroll a sibling action into view.
             for query in [scrollViews, collectionViews, tables] {
                 if let owner = query.containing(.any, identifier: identifier).allElementsBoundByIndex.last(where: { $0.isHittable }) {
-                    return owner
+                    // Lazy lists recycle the target row while scrolling. Keep the
+                    // container query independent of that row once its owner is found.
+                    let ownerID = owner.identifier
+                    return ownerID.isEmpty ? owner : query.matching(identifier: ownerID).firstMatch
                 }
             }
         }

@@ -118,7 +118,9 @@ def record_identity(udid, output):
     (output / 'identity.json').write_text(json.dumps(identity, indent=2))
 
 
-def run_profiles(udid, output):
+def run_profiles(udid, output, audit_policy='all'):
+    if audit_policy not in ('all', 'representative'):
+        raise ValueError(f'unsupported native audit policy: {audit_policy}')
     output.mkdir(parents=True, exist_ok=False)
     record_identity(udid, output)
     results = []
@@ -127,6 +129,7 @@ def run_profiles(udid, output):
                                      ('largest-reduced', TEXT_SIZES[1], True)]:
             environment = dict(os.environ, TRINKET_UI_PLAN='Profiles', TRINKET_UI_SUCCESS_SCREENSHOTS='1',
                                TEST_RUNNER_TRINKET_PROFILE_NAME=f'{output.name}/{name}',
+                               TEST_RUNNER_TRINKET_PROFILE_AUDIT_POLICY=audit_policy,
                                TEST_RUNNER_TRINKET_PROFILE_LARGE_TEXT=str(int(size != 'large')),
                                TEST_RUNNER_TRINKET_PROFILE_REDUCE_MOTION=str(int(reduced)))
             apply_size(size)
@@ -140,7 +143,7 @@ def run_profiles(udid, output):
             if result.returncode and os.environ.get('GITHUB_ACTIONS') == 'true':
                 print(f'::error::Native settings profile {name} failed; see its diagnostics above.', flush=True)
             results.append(dict(profile=name, log=f'{name}.log', resultsDirectory=os.environ.get('RESULTS_DIR'),
-                                textSize=size, reduceMotion=reduced,
+                                textSize=size, reduceMotion=reduced, nativeAuditsRequested=audit_policy == 'all' or name == 'largest',
                                 reduceMotionSource='native Settings control with class restoration',
                                 status='passed' if result.returncode == 0 else 'failed', exitCode=result.returncode))
             (output / 'profiles.json').write_text(json.dumps(results, indent=2))
@@ -171,6 +174,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('operation', choices=('definition', 'prepare', 'resolve', 'run', 'stage'))
     parser.add_argument('--name')
+    parser.add_argument('--audit-policy', choices=('all', 'representative'), default='all')
     parser.add_argument('--udid')
     parser.add_argument('--results', type=Path)
     parser.add_argument('--output', type=Path)
@@ -193,7 +197,7 @@ def main():
             return 0
         if not args.udid or not args.output:
             parser.error('run requires --udid and --output')
-        return run_profiles(args.udid, args.output)
+        return run_profiles(args.udid, args.output, args.audit_policy)
     except (ValueError, KeyError, subprocess.SubprocessError) as error:
         print(f'Coverage prerequisite/cleanup failure: {error}', file=sys.stderr)
         return 2

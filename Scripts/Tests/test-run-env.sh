@@ -636,6 +636,11 @@ bash -c '
 cat > "$FAKE_BIN/ps" <<'FAKE_PS'
 #!/usr/bin/env bash
 set -euo pipefail
+if [[ "${1:-}" == -p && "${FAKE_GUEST_SNAPSHOT_MODE:-}" == table ]]; then
+  echo "$*" >> "$FAKE_GUEST_PROCESS_TABLE.queries"
+  awk -v pids=",$2," 'index(pids, "," $1 ",")' "$FAKE_GUEST_PROCESS_TABLE"
+  exit 0
+fi
 if [[ "${1:-}" != -axo ]]; then exec /bin/ps "$@"; fi
 case "${FAKE_GUEST_SNAPSHOT_MODE:-real}" in
   table) cat "$FAKE_GUEST_PROCESS_TABLE" ;;
@@ -673,6 +678,7 @@ TABLE
   [[ ! -e "$table.killed" ]]
   trinket_cleanup_test_guests
   [[ "$(cat "$table.killed")" == 10003 ]]
+  grep -q -- "^-p 10003,100 -o pid=,ppid=,lstart=,command=$" "$table.queries"
   [[ ! -e "$TRINKET_SIM_SLOT_PATH.guest-tests" ]]
   # Ambiguous ownership stays protected even when tracking rejects the run.
   printf "%s owned-device\n" "$PPID" > "$TRINKET_SIM_SLOT_PATH.guest-tests"

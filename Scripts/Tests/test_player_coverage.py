@@ -141,32 +141,39 @@ class PlayerCoverageTests(unittest.TestCase):
         self.assertEqual(MODULE.select_profile([older, supported], [dict(identifier=device)], device, major), supported)
 
     def test_failed_profile_is_recorded_and_other_settings_still_execute(self):
-        current, writes = ['large'], []
-        def run(*args):
-            if len(args) == 4:
-                current[0] = args[-1]
-                writes.append(args[-1])
-            return current[0]
-        with tempfile.TemporaryDirectory() as temporary, patch.dict(os.environ, {'RESULTS_DIR': '/fixture/built-results'}), \
-                patch.object(MODULE, 'record_identity'), \
-                patch.object(MODULE, 'simctl', side_effect=run), \
-                patch.object(MODULE.subprocess, 'run', side_effect=[SimpleNamespace(returncode=1),
-                    SimpleNamespace(returncode=0), SimpleNamespace(returncode=0)]) as command:
-            # Default arguments bind at definition time: inject the native-setting
-            # context through its real implementation with the controlled runner.
-            native = MODULE.native_text_size
-            with patch.object(MODULE, 'native_text_size', side_effect=lambda udid, size: native(udid, size, run)):
-                output = Path(temporary) / 'profiles'
-                self.assertEqual(MODULE.run_profiles('owned', output), 1)
-            rows = json.loads((output / 'profiles.json').read_text())
-            self.assertEqual([row['status'] for row in rows], ['failed', 'passed', 'passed'])
-            self.assertEqual(command.call_count, 3)
-            self.assertEqual(current[0], 'large')
-            self.assertEqual(writes, [MODULE.TEXT_SIZES[1], 'large'])
-            environment = command.call_args.kwargs['env']
-            self.assertEqual(environment['RESULTS_DIR'], '/fixture/built-results')
-            self.assertEqual(environment['TRINKET_UI_PLAN'], 'Profiles')
-            self.assertEqual(environment['TEST_RUNNER_TRINKET_PROFILE_REDUCE_MOTION'], '1')
+        for policy in [(), ('all',), ('representative',)]:
+            current, writes = ['large'], []
+            def run(*args):
+                if len(args) == 4:
+                    current[0] = args[-1]
+                    writes.append(args[-1])
+                return current[0]
+            with tempfile.TemporaryDirectory() as temporary, patch.dict(os.environ, {'RESULTS_DIR': '/fixture/built-results'}), \
+                    patch.object(MODULE, 'record_identity'), \
+                    patch.object(MODULE, 'simctl', side_effect=run), \
+                    patch.object(MODULE.subprocess, 'run', side_effect=[SimpleNamespace(returncode=1),
+                        SimpleNamespace(returncode=0), SimpleNamespace(returncode=0)]) as command:
+                # Default arguments bind at definition time: inject the native-setting
+                # context through its real implementation with the controlled runner.
+                native = MODULE.native_text_size
+                with patch.object(MODULE, 'native_text_size', side_effect=lambda udid, size: native(udid, size, run)):
+                    output = Path(temporary) / 'profiles'
+                    self.assertEqual(MODULE.run_profiles('owned', output, *policy), 1)
+                rows = json.loads((output / 'profiles.json').read_text())
+                self.assertEqual([row['status'] for row in rows], ['failed', 'passed', 'passed'])
+                self.assertEqual(command.call_count, 3)
+                self.assertEqual(current[0], 'large')
+                self.assertEqual(writes, [MODULE.TEXT_SIZES[1], 'large'])
+                self.assertEqual([row['nativeAuditsRequested'] for row in rows],
+                                 [False, True, False] if policy == ('representative',) else [True] * 3)
+                self.assertEqual([call.kwargs['env']['TEST_RUNNER_TRINKET_PROFILE_AUDIT_POLICY']
+                                  for call in command.call_args_list], [policy[0] if policy else 'all'] * 3)
+                environment = command.call_args.kwargs['env']
+                self.assertEqual(environment['RESULTS_DIR'], '/fixture/built-results')
+                self.assertEqual(environment['TRINKET_UI_PLAN'], 'Profiles')
+                self.assertEqual(environment['TEST_RUNNER_TRINKET_PROFILE_REDUCE_MOTION'], '1')
+        with self.assertRaisesRegex(ValueError, 'unsupported native audit policy'):
+            MODULE.run_profiles('owned', Path('/unused'), 'typo')
 
     def test_profile_artifacts_keep_screenshots_and_fall_back_to_full_bundle(self):
         for category, export_fails in [('passed', False), ('passed', True), ('passed', 'empty'), ('test-failure', False)]:
@@ -245,7 +252,7 @@ exit 0
 case "$*" in
   *'definition --name ios18') printf 'fixture-phone\t18\n' ;;
   *'--classes Smoke') printf 'SmokeBattleTests StarterOnboardingSmokeTests FullGamePurchaseSmokeTests\n' ;;
-  *'coverage_profiles.py run'*) exit 1 ;;
+  *'coverage_profiles.py run'*) printf '%s\n' "$*" > "$PWD/profile-command"; exit 1 ;;
   *) exit 2 ;;
 esac
 ''')
@@ -256,12 +263,25 @@ esac
                 expected=1,
             )
             calls = (root / 'calls').read_text().splitlines()
+            self.assertTrue((root / 'profile-command').read_text().strip().endswith('--audit-policy all'))
             self.assertEqual(len(calls), 3)
             self.assertIn('smoke --no-build SmokeBattleTests StarterOnboardingSmokeTests FullGamePurchaseSmokeTests', calls[0])
             self.assertIn('FullGamePurchaseUITests', calls[1])
             self.assertIn('BattleLifecycleUITests/testCommittedRewardSurvivesTerminationWithoutReseeding', calls[1])
             self.assertIn('--destination fixture-ios18 TrinketPersistence', calls[2])
             self.assertTrue(all('major=18 purchase=1 screenshots=1' in call for call in calls))
+
+    def test_nightly_audit_sampling_retains_weekly_manual_and_soak_coverage(self):
+        workflow = (ROOT / '.github/workflows/player-coverage.yml').read_text()
+        self.assertIn("- cron: '0 8 * * 0'", workflow)
+        for job, scope in [('ios18-runtime', 'compatibility'), ('compatibility', 'compatibility'), ('profiles', 'profiles')]:
+            section = workflow.split(f'  {job}:\n', 1)[1].split('    runs-on:', 1)[0]
+            condition = f"(github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == '{scope}' || inputs.scope == 'all'"
+            self.assertIn(f'if: {condition}', section)
+            self.assertIn(f"${{{{ {condition} }}}}", workflow)
+        self.assertEqual(workflow.count(
+            "TRINKET_COVERAGE_AUDIT_POLICY: ${{ github.event.schedule == '0 8 * * 1-6' && 'representative' || 'all' }}"), 2)
+        self.assertIn("if: github.event.schedule == '0 9 * * 0' || inputs.scope == 'soak' || inputs.scope == 'all'", workflow)
 
     def test_advisory_status_propagates_failed_or_cancelled_requested_jobs(self):
         workflow = (ROOT / '.github/workflows/player-coverage.yml').read_text()
@@ -339,12 +359,14 @@ printf '%s\\n' "$* plan=$TRINKET_UI_PLAN duo=$TEST_RUNNER_TRINKET_DUO_PROFILE" >
             write_executable(binaries / 'python3', '''#!/bin/sh
 case "$*" in
   *'definition --name duo') printf 'fixture-duo\\t27\\n' ;;
-  *'coverage_profiles.py run'*) exit 1 ;;
+  *'coverage_profiles.py run'*) printf '%s\\n' "$*" > "$PWD/profile-command"; exit 1 ;;
   *) exit 2 ;;
 esac
 ''')
             run_captured(['bash', 'Scripts/player-coverage.sh', 'duo'], cwd=root,
                          env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}',
-                              'TRINKET_COVERAGE_NO_BUILD': '1', 'TRINKET_UI_PLAN': 'Profiles'}, expected=1)
+                              'TRINKET_COVERAGE_NO_BUILD': '1', 'TRINKET_UI_PLAN': 'Profiles',
+                              'TRINKET_COVERAGE_AUDIT_POLICY': 'representative'}, expected=1)
+            self.assertTrue((root / 'profile-command').read_text().strip().endswith('--audit-policy representative'))
             self.assertEqual((root / 'calls').read_text().strip(),
                              'ui --no-build BattleFlowUITests/testDuoRotationPreservesBattleAndCardPlay plan=FullUI duo=1')

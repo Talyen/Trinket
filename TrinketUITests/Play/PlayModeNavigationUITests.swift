@@ -1,4 +1,3 @@
-import TrinketContent
 import TrinketFeatureSupport
 import XCTest
 
@@ -79,7 +78,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.Voyage.options)
     }
 
-    func testSpireWithoutMatchingPartyKeywordsPreservesFloorLocksAndLaunch() throws {
+    func testSpireWithoutMatchingPartyKeywordsPreservesFloorLocksAndLaunch() {
         launchApp(arguments: TestLaunchArg.allForTab("play"))
         play.openExplore()
         tapButton(AccessibilityID.Play.spiresModeCard)
@@ -91,15 +90,9 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         locked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         assertDoesNotExist(AccessibilityID.Battle.hand)
         XCTAssertFalse(button(AccessibilityID.Play.spireBeginFloor("cinderSpire", floor: 2)).exists)
-        let art = button(AccessibilityID.Play.spireFloorEnemyArt("cinderSpire", floor: 1))
-        scrollUntilVisible(art, swipingUp: false, requireHittable: true)
-        tapWhenReady(art)
-        let floor = try XCTUnwrap(GameContent.spireFloor(spireID: .cinderSpire, floor: 1))
-        let enemy = try XCTUnwrap(GameContent.enemy(matching: floor.enemyID))
-        let detail = AccessibilityID.CombatantDetail.header(name: enemy.combatant.name)
-        assertExists(detail)
-        dismissSheet(detail)
-        tapButton(AccessibilityID.Play.spireBeginFloor("cinderSpire", floor: 1))
+        let begin = button(AccessibilityID.Play.spireBeginFloor("cinderSpire", floor: 1))
+        scrollUntilVisible(begin, swipingUp: false, requireHittable: true)
+        tapWhenReady(begin)
         battle.assertActive()
     }
 

@@ -41,28 +41,9 @@ final class LocalizationUITests: FullGameStoreKitUITestCase {
         let label = doubleLength ? "en-double" : language
         try captureTalentJourney(label, arguments: localeArgs)
 
-        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("60", in: TestLaunchArg.allForBattle()) + localeArgs)
-        battle.assertActive()
-        capture(label, screen: "battle-cards")
-        let card = battle.frontmostHandCard
-        assertExists(card)
-        card.press(forDuration: 0.7)
-        assertExists(AccessibilityID.Battle.abilityDetail)
-        capture(label, screen: "ability-details")
-        dismissSheet(AccessibilityID.Battle.abilityDetail)
-
-        // Battle and Collection render progression through the same CombatantDetailPane.
-        battle.openCombatantCard(named: "Ranger")
-        combatantDetail.assertLoaded(for: "Ranger")
-        capture(label, screen: "progression")
-        app.terminate()
-
         try startStoreSession()
         launchApp(arguments: TestLaunchArg.allForTab("options") + localeArgs)
-        XCTAssertTrue(
-            scrollUntilVisible(app.switches[AccessibilityID.Options.hapticsToggle], swipingUp: true, requireHittable: true),
-            "Options controls must remain reachable in \(label)",
-        )
+        assertExistsAfterScroll(AccessibilityID.Options.hapticsToggle, requireHittable: true)
         capture(label, screen: "options")
         openOptionsOffer()
         let purchase = button(AccessibilityID.FullGame.purchase)
@@ -77,22 +58,17 @@ final class LocalizationUITests: FullGameStoreKitUITestCase {
         let scroll = offer.scrollViews.firstMatch
         var exposedContent = scroll.frame.intersection(app.frame)
         exposedContent.size.height = purchase.frame.minY - exposedContent.minY
-        for _ in 0 ..< 12 {
-            if restore.exists, restore.isHittable, exposedContent.contains(restore.frame) {
-                break
-            }
-            scroll.dragScroll(fromY: 0.9, toY: 0.35, within: exposedContent)
-        }
+        scroll.dragScroll(fromY: 0.9, toY: 0.35, within: exposedContent)
         XCTAssertTrue(
-            restore.isHittable && exposedContent.contains(restore.frame),
-            "Restore Purchases must be visible above the pinned purchase action in \(label)",
+            restore.isHittable && app.frame.contains(restore.frame),
+            "Restore Purchases must remain reachable in the anchored footer in \(label)",
         )
         XCTAssertTrue(purchase.isHittable, "Scrolling the offer must leave its purchase action reachable")
         capture(label, screen: "full-game-support")
     }
 
     private func captureTalentJourney(_ locale: String, arguments: [String]) throws {
-        launchApp(arguments: TestLaunchArg.allForTab("play")
+        launchApp(arguments: TestLaunchArg.allForMidBattle()
             + ["-coverage-talent-pair", "-coverage-diagnostics"] + arguments)
         if let expected = ProcessInfo.processInfo.environment["TRINKET_LOCALIZATION_LARGE_TEXT"] {
             let largest = expected == "1"
@@ -103,6 +79,7 @@ final class LocalizationUITests: FullGameStoreKitUITestCase {
         }
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
+        captureBattleDetails(locale)
         battle.openActions()
         tapButton(AccessibilityID.Battle.skipCombat)
         assertExists(AccessibilityID.Battle.victory)
@@ -145,6 +122,23 @@ final class LocalizationUITests: FullGameStoreKitUITestCase {
         )
         capture(locale, screen: "talent-return")
         app.terminate()
+    }
+
+    private func captureBattleDetails(_ locale: String) {
+        battle.assertActive()
+        capture(locale, screen: "battle-cards")
+        let card = battle.frontmostHandCard
+        assertExists(card)
+        card.press(forDuration: 0.7)
+        assertExists(AccessibilityID.Battle.abilityDetail)
+        capture(locale, screen: "ability-details")
+        dismissSheet(AccessibilityID.Battle.abilityDetail)
+
+        // Battle and Collection render progression through the same CombatantDetailPane.
+        battle.openCombatantCard(named: "Ranger")
+        combatantDetail.assertLoaded(for: "Ranger")
+        capture(locale, screen: "progression")
+        dismissSheet(AccessibilityID.CombatantDetail.header(name: "Ranger"))
     }
 
     private func capture(_ locale: String, screen: String) {

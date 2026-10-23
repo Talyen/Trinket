@@ -80,8 +80,6 @@ coordinate gestures only for gesture tests or a demonstrated automation limitati
 On iOS 18, the visible native Battle Menu reports itself as unhittable. Its helper
 validates finite onscreen bounds before a center tap and requires the real Combat
 Log menu action to appear; iOS 26+ retains ordinary readiness taps.
-The Haptics switch exposes its entire labeled row; a brief press on the native
-thumb changes the preference, which the test verifies again after relaunch.
 The transparent frame-metrics reset control reports unhittable in XCUITest;
 its explicit coordinate taps prepare the sampler, wait for `ready`, then establish
 `measuring` before stimulus. A final tap freezes the report after the interaction
@@ -121,9 +119,11 @@ Assert a journey’s return destination before using helpers that navigate elsew
 - StoreKit registers the app once per runner, skipping artwork preparation only
   for that registration launch. Tests retain fresh sessions, transactions, and saves.
 - Success screenshots require `TRINKET_UI_SUCCESS_SCREENSHOTS=1`; failures always
-  retain a screenshot and bounded accessibility context. Profile evidence remains explicit.
-  Profile setup verifies the requested native settings reached SwiftUI before
-  gameplay assertions. Native Settings navigation scrolls the iPad detail pane
+  retain a screenshot and bounded accessibility context through `record(_:)`, avoiding
+  another full-tree snapshot when an existence assertion fails. Profile evidence remains explicit.
+  Profile setup verifies native settings reached SwiftUI before gameplay assertions;
+  audit sampling and full-matrix cadence follow [Player coverage](../Docs/Platform/PlayerCoverage.md#ci-and-profiles).
+  Native Settings navigation scrolls the iPad detail pane
   independently of its sidebar, and unavailable prerequisites fail the requested
   cases without attempting dependent interactions. Original settings are restored.
 - Completed xcresult exports are shared by filter validation, timing, diagnostics,
@@ -135,8 +135,11 @@ Assert a journey’s return destination before using helpers that navigate elsew
   [Verification](../Docs/Platform/Verification.md#local-simulator-budget).
   Inspect recorded hotspots with `python3 ./Scripts/test-timing.py report --top 30`.
 - Same-runner smoke and FullUI reuse local products. Transfers use the retained
-  build artifact without a duplicate per-run archive cache. Simulator timing
-  separates boot from bounded guest discovery; unavailable baselines forbid cleanup.
+  build artifact without a duplicate per-run archive cache. Requested FullUI continues
+  after independent smoke failures when build products are usable; smoke still fails
+  required CI. Simulator timing separates boot from bounded guest discovery;
+  unavailable baselines forbid cleanup. Guest cleanup revalidates only its candidate
+  and device parent before stopping it, retaining start-time and device ownership checks.
 
 ## Coverage ownership
 
@@ -148,7 +151,8 @@ Assert a journey’s return destination before using helpers that navigate elsew
   persisted progression, and next-stage entry after relaunch.
 - `BattleFlowUITests` shares one launch for inspection, dismissal, cancelled drag,
   and committed drag, retaining hand membership and sheet assertions. Production-speed
-  rapid plays, drag, background return, and a usable exit share another battle.
+  rapid plays select two distinct card IDs before tapping either, sharing another
+  battle with drag, background return, and a usable exit.
   Successful plays check the selected ability's departure: draw effects can keep
   the total hand size unchanged.
   Its Duo-only rotation journey runs through `player-coverage.sh duo`; it protects
@@ -156,10 +160,12 @@ Assert a journey’s return destination before using helpers that navigate elsew
   Other destinations skip this profile-specific method. Actual folding remains
   an interactive Device Hub check.
 - Localization retains every language and screenshot surface, but captures progression
-  from Battle's shared `CombatantDetailPane` after dismissing ability inspection.
-  This removes eight reset/Collection launches per FullUI run; the ordinary Collection
-  and purchase journeys retain Collection entry wiring. The locale matrix uses three
-  launches per case instead of four, excluding the once-per-runner StoreKit registration.
+  from Battle's shared `CombatantDetailPane` after dismissing ability inspection,
+  before the same Campaign battle earns its talent choices. The matrix uses two
+  launches per case, excluding once-per-runner StoreKit registration. Collection and
+  purchase journeys retain Collection entry wiring. The localized offer scrolls its
+  content once and verifies Restore in the anchored footer beneath Purchase, following
+  [Monetization](../Docs/Product/Monetization.md#offer).
 - Onboarding and recruitment verify earned characters remain unlocked in Collection.
   Full Game smoke owns character detail entry; equipment owns item detail/picker,
   equip, and actual unequip/reselect wiring. The equipment fixture keeps the target weapon
@@ -171,7 +177,7 @@ Assert a journey’s return destination before using helpers that navigate elsew
   `AppStateShopEncounterTests` own item ownership and sold-stock rejection.
 - Labyrinth boss/Continue retains battle and floor-selection interactions, checking
   the displayed floor after switching back to floor 1 and then floor 2. FullUI
-  also covers Voyage embark/abandon, Spires locked-floor/detail wiring, and
+  also covers Voyage embark/abandon, Spires locked-floor rejection and battle launch, and
   Labyrinth inspector selection/dismissal.
 - Homestead accounting verifies displayed debit and tier after same-store reload;
   accessibility audits stop after the tier change. Options retains destructive-reset

@@ -60,20 +60,19 @@ final class BattleLifecycleUITests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.Debug.talentConfirmationCheckpoint)
     }
 
-    func testBackgroundedProductionBattleAcceptsRapidCardsDragAndExit() {
+    func testBackgroundedProductionBattleAcceptsRapidCardsDragAndExit() throws {
         launchApp(arguments: TestLaunchArg.productionTiming())
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
         battle.assertActive()
         backgroundAndActivate()
-        let first = battle.frontmostHandCard
-        assertExists(first)
-        let firstID = first.identifier
-        tapWhenReady(first)
-        let second = battle.frontmostHandCard
-        assertExists(second)
-        let secondID = second.identifier
-        tapWhenReady(second)
+        let cards = battle.handCards
+        let cardIDs = trinketOnMainActor { cards.allElementsBoundByIndex.map(\.identifier) }
+        let firstID = try XCTUnwrap(cardIDs.last)
+        let secondID = try XCTUnwrap(cardIDs.dropLast().last)
+        XCTAssertNotEqual(firstID, secondID, "Rapid plays must target two distinct cards")
+        tapWhenReady(any(firstID))
+        tapWhenReady(any(secondID))
         waitUntil("Distinct rapid plays must depart from the hand") {
             !self.any(firstID).exists && !self.any(secondID).exists
         }

@@ -2,7 +2,8 @@ name: Player coverage
 
 on:
   schedule:
-    - cron: '0 8 * * *'
+    - cron: '0 8 * * 1-6'
+    - cron: '0 8 * * 0'
     - cron: '0 9 * * 0'
   workflow_dispatch:
     inputs:
@@ -23,7 +24,7 @@ concurrency:
 jobs:
   ios18-runtime:
     name: Export Apple's iOS 18 runtime
-    if: github.event.schedule == '0 8 * * *' || inputs.scope == 'compatibility' || inputs.scope == 'all'
+    if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'compatibility' || inputs.scope == 'all'
     runs-on: macos-26
     timeout-minutes: 50
     steps:
@@ -48,7 +49,7 @@ jobs:
   compatibility:
     name: iOS 18 compatibility, purchases and durable saves
     needs: ios18-runtime
-    if: github.event.schedule == '0 8 * * *' || inputs.scope == 'compatibility' || inputs.scope == 'all'
+    if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'compatibility' || inputs.scope == 'all'
     runs-on: xcode-27
     timeout-minutes: 120
     env:
@@ -89,6 +90,7 @@ jobs:
       - name: Verify fallback controls, smoke, purchase recovery and persistence serially
         env:
           TRINKET_COVERAGE_NO_BUILD: '1'
+          TRINKET_COVERAGE_AUDIT_POLICY: ${{ github.event.schedule == '0 8 * * 1-6' && 'representative' || 'all' }}
         run: ./Scripts/player-coverage.sh ios18
       - name: Stage compatibility evidence
         if: always()
@@ -107,7 +109,7 @@ jobs:
 
   profiles:
     name: Critical controls on compact phone, iPad and Duo
-    if: github.event.schedule == '0 8 * * *' || inputs.scope == 'profiles' || inputs.scope == 'all'
+    if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all'
     runs-on: xcode-27
     timeout-minutes: 120
     env:
@@ -126,6 +128,7 @@ jobs:
       - name: Run requested profiles serially
         env:
           TRINKET_COVERAGE_NO_BUILD: '1'
+          TRINKET_COVERAGE_AUDIT_POLICY: ${{ github.event.schedule == '0 8 * * 1-6' && 'representative' || 'all' }}
         shell: bash
         run: |
           status=0
@@ -196,8 +199,8 @@ jobs:
       - name: Report actual requested-job conclusions
         env:
           JOB_RESULTS: ${{ toJSON(needs) }}
-          COMPATIBILITY_REQUESTED: ${{ github.event.schedule == '0 8 * * *' || inputs.scope == 'compatibility' || inputs.scope == 'all' }}
-          PROFILES_REQUESTED: ${{ github.event.schedule == '0 8 * * *' || inputs.scope == 'profiles' || inputs.scope == 'all' }}
+          COMPATIBILITY_REQUESTED: ${{ (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'compatibility' || inputs.scope == 'all' }}
+          PROFILES_REQUESTED: ${{ (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' }}
           SOAK_REQUESTED: ${{ github.event.schedule == '0 9 * * 0' || inputs.scope == 'soak' || inputs.scope == 'all' }}
         shell: bash
         run: |

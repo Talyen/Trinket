@@ -120,6 +120,7 @@ jobs:
     timeout-minutes: ${{ inputs.include-exhaustive && 55 || 40 }}
     outputs:
       build-artifact: ${{ steps.restore-and-build.outputs.artifact-name }}
+      products-outcome: ${{ steps.restore-and-build.outcome }}
       smoke-targets: ${{ steps.ui-matrices.outputs.smoke-targets }}
       inline-ui-outcome: ${{ steps.inline-ui.outcome }}
     steps:
@@ -181,6 +182,9 @@ jobs:
           # Smoke itself runs here without downloading the archive.
           upload-artifact: 'true'
       - name: Run smoke on the build runner
+        id: smoke
+        # Defer this required failure until independent FullUI has used the products.
+        continue-on-error: true
         uses: ./.github/actions/test-job
         with:
           artifact-name: smoke
@@ -189,7 +193,7 @@ jobs:
 
       - name: Run exhaustive UI on the build runner
         id: inline-ui
-        if: inputs.include-exhaustive
+        if: always() && !cancelled() && inputs.include-exhaustive && steps.restore-and-build.outcome == 'success'
         continue-on-error: true
         uses: ./.github/actions/test-job
         env:
@@ -198,6 +202,12 @@ jobs:
           artifact-name: exhaustive-ui-inline
           artifact-prefix: ${{ inputs.artifact-prefix }}
           command: ./Scripts/test.sh ui --no-build ${{ steps.ui-matrices.outputs.full-targets }}
+
+      - name: Preserve required smoke failure
+        if: always() && !cancelled() && steps.smoke.outcome == 'failure'
+        run: |
+          echo "::error::Required smoke UI failed; see its original diagnostics."
+          exit 1
 
   release-device:
     name: Device Release compilation
@@ -510,8 +520,8 @@ jobs:
     name: Exhaustive UI (All)
     needs: [changes, reuse, build]
     if: >-
-      always() && inputs.include-exhaustive && needs.reuse.result == 'success' &&
-      (needs.build.result == 'success' || needs.reuse.outputs.standard == 'true') &&
+      always() && !cancelled() && inputs.include-exhaustive && needs.reuse.result == 'success' &&
+      (needs.build.outputs.products-outcome == 'success' || needs.reuse.outputs.standard == 'true') &&
       (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || needs.changes.outputs.code == 'true')
     continue-on-error: true
     runs-on: ${{ needs.reuse.outputs.standard == 'true' && 'xcode-27' || 'ubuntu-latest' }}

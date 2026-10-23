@@ -31,8 +31,9 @@ No per-mechanic UI matrix duplicates those owners.
 
 [Player coverage workflow](../../.github/workflows/player-coverage.yml) uses the
 verified toolchain. iOS 18 compatibility and critical settings profiles run nightly;
-soak/recovery runs weekly. Manual dispatch selects compatibility, profiles, soak,
-or all. Results are advisory for pushes, but requested-job failures produce a failed coverage aggregate. Requested FullUI also fails its advisory aggregate on failed, skipped, or unavailable execution; CI OK remains independent. Skipped
+Sunday's nightly run retains the complete native audit matrix; the separate weekly
+run owns soak/recovery. Manual dispatch selects
+compatibility, profiles, soak, or all. Results are advisory for pushes, but requested-job failures produce a failed coverage aggregate. Requested FullUI also fails its advisory aggregate on failed, skipped, or unavailable execution; CI OK remains independent. Skipped
 jobs mean unrequested portfolios, not executed coverage.
 
 Run wrappers in CI or a bounded, task-relevant local diagnostic under
@@ -55,9 +56,18 @@ or native settings fail visibly; there is no substitute profile.
 
 Each device exercises native default text, largest accessibility text, and largest
 text with Reduce Motion. Verify those settings actually reach SwiftUI and restore
-the original settings even after failure. All seven native audit types run; product
-violations fail rather than receiving blanket suppression. A failed prerequisite
-is configuration failure, not completed product coverage.
+the original settings even after failure. A failed prerequisite is configuration
+failure, not completed product coverage.
+
+On six nightly runs per week, all interactions and actual native-environment checks
+remain on every settings profile, while all seven native audit types run on each
+device's largest-text profile without Reduce Motion. This reduces audit calls from
+420 to 140 before retries; settings-specific violations outside that profile may
+be detected later. Sunday's nightly run, manual dispatch and direct scripts retain
+the full native audit matrix. Only sampled CI runs explicitly request
+`TRINKET_COVERAGE_AUDIT_POLICY=representative`; the script default is `all`.
+Each profile receipt records whether native audits were requested. Product violations
+still fail without blanket suppression.
 
 Profiles exercise the real reward claim/next-stage access and visible Homestead tier
 change. Earned combat stays smoke-owned; detailed resource debits and reload stay
@@ -124,10 +134,11 @@ needed beyond its actual expiry before it is removed. A failed profile retains i
 verdict while other settings execute. Soak failure does not hide the subsequent career/recovery
 verdicts. Archive interrupted inputs before opening recovery copies.
 
-The owned-purchase Restore journey checks that the native control preserves
-populated local progress. StoreKit can recognize current entitlements before
-Restore; this case does not establish restoration after reinstall or a live
-service ownership loss.
+The populated-purchase journey verifies startup entitlement recognition and
+preservation of local progress without tapping Restore. The separate failed-Restore
+journey verifies usable recovery after a native restore error. Neither establishes
+successful ownership restoration after reinstall or live service ownership loss;
+those remain live purchase-readiness gates.
 
 Audio observations prove real backend starts and buffer scheduling, and detect
 errors/duplicate same-track ownership. They cannot prove audible output. Process

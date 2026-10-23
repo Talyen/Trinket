@@ -56,13 +56,14 @@ trinket_test_guest_processes() {
   # CoreSimulator can leave process inspection stalled after boot. A failed
   # baseline must stop the run, never authorize cleanup of unknown guests.
   # Retry a transient timeout once, as in output_retention.process_snapshot.
-  processes="$(python3 - <<'PY_PROCESSES'
+  processes="$(python3 - "${2:-}" <<'PY_PROCESSES'
 import subprocess
 import sys
 try:
+    selection = ["-p", sys.argv[1], "-o"] if sys.argv[1] else ["-axo"]
     for timeout in (10, 30):
         try:
-            result = subprocess.run(["ps", "-axo", "pid=,ppid=,lstart=,command="],
+            result = subprocess.run(["ps", *selection, "pid=,ppid=,lstart=,command="],
                                     stdout=subprocess.PIPE, text=True, check=True, timeout=timeout)
             break
         except subprocess.TimeoutExpired:
@@ -85,18 +86,19 @@ PY_PROCESSES
 }
 
 trinket_test_guest_cleanup_file() {
-  local record="$1" owner udid identity pid current
+  local record="$1" owner udid identity pid parent current
   [[ -f "$record" ]] || return 0
   read -r owner udid < "$record" || return 1
   current="$(trinket_test_guest_processes "$udid")" || return 1
   while IFS= read -r identity; do
     [[ -n "$identity" ]] || continue
     grep -Fxq -- "$identity" "$record" && continue
-    pid="${identity%% *}"
+    read -r pid parent _ <<< "$identity"
     echo "Stopping leftover XCTest process $pid on leased simulator $udid." >&2
     # A suspended launch cannot handle TERM. These are surviving guests after
-    # the owning run ended; identity includes start time to avoid PID reuse.
-    trinket_test_guest_processes "$udid" | grep -Fxq -- "$identity" || continue
+    # the owning run ended; recheck only this guest and its device parent,
+    # retaining the start-time/device checks without another host-wide inventory.
+    trinket_test_guest_processes "$udid" "$pid,$parent" | grep -Fxq -- "$identity" || continue
     kill -KILL "$pid" 2>/dev/null || true
   done <<< "$current"
   rm -f "$record"

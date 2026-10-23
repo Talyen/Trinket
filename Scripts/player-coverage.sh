@@ -35,7 +35,8 @@ if [[ "$mode" == ios18 ]]; then
   coverage_status=0
   export TRINKET_REQUIRED_PURCHASE=1 TEST_RUNNER_TRINKET_REQUIRED_PURCHASE=1
   export TRINKET_UI_SUCCESS_SCREENSHOTS=1
-  python3 Scripts/coverage_profiles.py run --udid "$SIMULATOR_UDID" --output "$coverage_output" || coverage_status=1
+  python3 Scripts/coverage_profiles.py run --udid "$SIMULATOR_UDID" --output "$coverage_output" \
+    --audit-policy "${TRINKET_COVERAGE_AUDIT_POLICY:-all}" || coverage_status=1
   smoke_selection="$(python3 Scripts/check-testplan-sync.py --classes Smoke)"
   read -r -a smoke_targets <<< "$smoke_selection"
   ./Scripts/test.sh smoke --no-build "${smoke_targets[@]}" || coverage_status=1
@@ -45,7 +46,8 @@ if [[ "$mode" == ios18 ]]; then
   exit "$coverage_status"
 elif [[ "$mode" != soak ]]; then
   coverage_status=0
-  python3 Scripts/coverage_profiles.py run --udid "$SIMULATOR_UDID" --output "$coverage_output" || coverage_status=1
+  python3 Scripts/coverage_profiles.py run --udid "$SIMULATOR_UDID" --output "$coverage_output" \
+    --audit-policy "${TRINKET_COVERAGE_AUDIT_POLICY:-all}" || coverage_status=1
   if [[ "$mode" == duo ]]; then
     TEST_RUNNER_TRINKET_DUO_PROFILE=1 TRINKET_UI_SUCCESS_SCREENSHOTS=1 TRINKET_UI_PLAN=FullUI \
       ./Scripts/test.sh ui --no-build BattleFlowUITests/testDuoRotationPreservesBattleAndCardPlay || coverage_status=1

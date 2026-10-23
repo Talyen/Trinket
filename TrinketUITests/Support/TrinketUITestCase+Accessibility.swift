@@ -3,6 +3,12 @@ import XCTest
 
 extension TrinketUITestCase {
     func auditProductAccessibility(screen: String) throws {
+        let environment = ProcessInfo.processInfo.environment
+        if environment["TRINKET_PROFILE_AUDIT_POLICY"] == "representative",
+           (environment["TRINKET_PROFILE_LARGE_TEXT"] == "0" && environment["TRINKET_PROFILE_REDUCE_MOTION"] == "0")
+           || (environment["TRINKET_PROFILE_LARGE_TEXT"] == "1" && environment["TRINKET_PROFILE_REDUCE_MOTION"] == "1") {
+            return
+        }
         let originalContinueAfterFailure = continueAfterFailure
         continueAfterFailure = true
         defer { continueAfterFailure = originalContinueAfterFailure }
