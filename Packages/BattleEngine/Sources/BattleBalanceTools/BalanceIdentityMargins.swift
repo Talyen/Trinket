@@ -8,8 +8,11 @@ enum BalanceIdentityMargins {
         threshold: Double,
         targetBand: (lower: Double, upper: Double)? = nil,
     ) -> [WinRateSummary] {
-        let peerRate = records.isEmpty ? 0 : Double(records.count { $0.result.isVictory }) / Double(records.count)
-        return tally(records, key: { $0[keyPath: id] }).map { id, bucket in
+        let buckets = tally(records, key: { $0[keyPath: id] })
+        let rates = buckets.values.map(\.rate).sorted()
+        let middle = rates.count / 2
+        let peerRate = rates.isEmpty ? 0 : (rates[(rates.count - 1) / 2] + rates[middle]) / 2
+        return buckets.map { id, bucket in
             bucket.summary(
                 id: id,
                 ownerID: nil,
@@ -91,8 +94,8 @@ enum BalanceIdentityMargins {
                 let band = targetBand(enemy.isBoss)
                 let ci = bucket.interval
                 let sampleTooLow = bucket.sampleTooLow
-                let isHard = ci.high < band.lower
-                let isEasy = ci.low > band.upper
+                let isHard = ci.high < band.lower || bucket.wins == 0
+                let isEasy = ci.low > band.upper || bucket.wins == bucket.battles
                 let flagged = (isHard || isEasy) && !sampleTooLow
                 let summary = WinRateSummary(
                     id: enemy.id,

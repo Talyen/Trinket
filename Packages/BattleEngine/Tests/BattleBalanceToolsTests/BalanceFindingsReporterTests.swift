@@ -135,7 +135,7 @@ struct BalanceFindingsReporterTests {
             averageEnemyLevel: 15,
             averageEnemyPowerRating: 892,
             status: .overtuned,
-            flagReason: "Win rate 50.0% below 80%",
+            flagReason: "Win rate 50.0% below 70%",
         )
         let smoothStep = BalanceTestFixtures.step(id: "stage-1-1", containerTitle: "Chapter 1: Forest", enemyID: "slime", enemyLevel: 1)
         let smooth = NodeHotspotSummary(
@@ -225,7 +225,7 @@ struct BalanceFindingsReporterTests {
         for isBoss in [false, true] {
             for index in 0 ..< 8 {
                 var record = identityRecord(enemyID: "shared", isBoss: isBoss, abilities: [], win: true, seed: UInt64(index))
-                record.result.rounds = index < 4 ? 14 : (isBoss ? 1 : 16)
+                record.result.rounds = index < 4 ? (isBoss ? 12 : 10) : (isBoss ? 1 : 11)
                 record.result.timedOut = index >= 4
                 records.append(record)
             }
@@ -240,16 +240,16 @@ struct BalanceFindingsReporterTests {
         #expect(stats.enemyDurations.count == 2)
         let trash = try #require(stats.enemyDurations.first { !$0.isBoss })
         let boss = try #require(stats.enemyDurations.first { $0.isBoss })
-        #expect(trash.battles == 8 && trash.averageRounds == 15)
+        #expect(trash.battles == 8 && trash.averageRounds == 10.5)
         #expect(trash.shortRate == 0 && trash.longRate == 0.5 && trash.flagReason == "SLOW")
-        #expect(boss.battles == 8 && boss.averageRounds == 7.5)
+        #expect(boss.battles == 8 && boss.averageRounds == 6.5)
         #expect(boss.shortRate == 0.5 && boss.longRate == 0 && boss.flagReason == "FAST")
-        #expect(stats.trashDuration.longBattles == 4 && stats.trashDuration.averageRoundsWhenLong == 16)
-        #expect(stats.bossDuration.shortBattles == 4 && stats.bossDuration.averageRoundsWhenShort == 14)
+        #expect(stats.trashDuration.longBattles == 4 && stats.trashDuration.averageRoundsWhenLong == 11)
+        #expect(stats.bossDuration.shortBattles == 4 && stats.bossDuration.averageRoundsWhenShort == 12)
         #expect(stats.trashDuration.flagReason == "LONG" && stats.bossDuration.flagReason == "SHORT")
         let hero = try #require(stats.heroDurations.first)
         let companion = try #require(stats.companionDurations.first)
-        #expect(hero.battles == 16 && hero.averageRounds == 11.25)
+        #expect(hero.battles == 16 && hero.averageRounds == 8.5)
         #expect(hero.shortRate == 0.25 && hero.longRate == 0.25 && hero.flagReason == "FAST SLOW")
         #expect(companion.battles == hero.battles && companion.averageRounds == hero.averageRounds)
         #expect(companion.shortRate == hero.shortRate && companion.longRate == hero.longRate)
@@ -436,5 +436,109 @@ extension BalanceFindingsReporterTests {
                 enemyHPRemainingFraction: win ? 0 : 0.7,
             ),
         )
+    }
+}
+
+extension BalanceFindingsReporterTests {
+    @Test(arguments: SimulationPowerTier.allCases)
+    func `encounter targets are consistent across tiers`(_ tier: SimulationPowerTier) throws {
+        let records = [false, true].flatMap { isBoss in
+            (0 ..< 1000).map { index in
+                var record = identityRecord(
+                    enemyID: isBoss ? "boss" : "normal",
+                    isBoss: isBoss,
+                    abilities: [],
+                    win: index < 800,
+                    seed: UInt64(index),
+                )
+                record.tier = tier
+                return record
+            }
+        }
+        let report = BalanceSweepReport(
+            config: BalanceSweepConfig(tiers: [tier]),
+            policyID: "greedy-v1",
+            records: records,
+            elapsedSeconds: 0,
+        )
+        let stats = try #require(BalanceStatsAggregator.summarize(report: report).first)
+        #expect(stats.enemies.first { $0.id == "normal" }?.flagReason == "HARD")
+        #expect(stats.enemies.first { $0.id == "boss" }?.flagged == false)
+        #expect(abs((stats.heroesTrash.first?.targetBandDelta ?? 0) + 0.14) < 1e-12)
+        #expect(stats.heroesBoss.first?.targetBandDelta == 0)
+        for text in [BalanceFindingsReporter.render(report), BalanceMarkdownReporter.render(report)] {
+            #expect(text.contains("regular enemies `90-98%`, bosses `70-90%` (all tiers)"))
+            #expect(text.contains("15 pp"))
+            #expect(text.contains("2.0%"))
+        }
+    }
+
+    @Test(arguments: [false, true])
+    func `enemy extremes flag after the minimum decided sample`(_ win: Bool) throws {
+        let record = identityRecord(enemyID: "enemy", isBoss: false, abilities: [], win: win, seed: 1)
+        for count in [7, 8] {
+            let rows = BalanceIdentityMargins.enemyMargins(
+                records: Array(repeating: record, count: count),
+                targetBand: BalanceEncounterTargets.winBand,
+            )
+            let row = try #require(rows.first)
+            #expect(row.flagged == (count == 8))
+            #expect(row.flagReason == (count == 8 ? (win ? "EASY" : "HARD") : nil))
+        }
+    }
+
+    @Test func `owner median is not dominated by unequal sample counts`() throws {
+        let records = [("a", 10, 20), ("b", 12, 20), ("c", 360, 400)].flatMap { id, wins, count in
+            (0 ..< count).map { index in
+                var record = identityRecord(
+                    enemyID: "enemy",
+                    isBoss: false,
+                    abilities: [],
+                    win: index < wins,
+                    seed: UInt64(index),
+                )
+                record.heroID = id
+                return record
+            }
+        }
+        let rows = BalanceIdentityMargins.ownerMargins(records: records, id: \.heroID, threshold: 0.15)
+        let high = try #require(rows.first { $0.id == "c" })
+        #expect(abs(high.deltaVsPeer - 0.3) < 1e-12)
+        #expect(high.flagReason == "HIGH")
+        #expect(rows.first { $0.id == "b" }?.deltaVsPeer == 0)
+    }
+
+    @Test(arguments: [(50, "STALL"), (51, "UNFINISHED")])
+    func `material stalls retain below threshold diagnostics`(count: Int, label: String) {
+        let records = (0 ..< count).map { index in
+            var record = identityRecord(
+                enemyID: "enemy",
+                isBoss: false,
+                abilities: [],
+                win: true,
+                seed: UInt64(index),
+            )
+            record.result.timedOut = index == 0
+            return record
+        }
+        let progression = records.map { record in
+            ProgressionBattleRecord(
+                step: BalanceTestFixtures.step(),
+                playerLevel: 1,
+                enemyLevel: 1,
+                seed: record.seed,
+                result: record.result,
+            )
+        }
+        let report = BalanceSweepReport(
+            config: BalanceSweepConfig(tiers: [.early]),
+            policyID: "greedy-v1",
+            records: records,
+            progressionRecords: progression,
+            elapsedSeconds: 0,
+        )
+        let findings = BalanceFindingsReporter.render(report)
+        #expect(findings.contains("Enemy `enemy` (Early): ⚠ \(label) · 1/\(count)"))
+        #expect(findings.contains("Progression: ⚠ \(label) · 1/\(count)"))
     }
 }

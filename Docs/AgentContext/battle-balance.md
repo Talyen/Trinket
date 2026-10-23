@@ -92,7 +92,11 @@ averages include observed rounds up to the cap; they are lower bounds for
 unfinished fights. A capped fight cannot count as short, but can count as long
 once it exceeds the duration target. Identity findings name enemies with stalls;
 contrast findings flag either side when its stall rate reaches the configured
-duration flag rate and the minimum pair count. Stalls need investigation even
+stall flag rate and the minimum pair count. Below-threshold capped identity and
+progression fights remain visible as unfinished diagnostics. Older JSON without
+`stallFlagRate` retains its shared duration/stall threshold. The legacy
+`--duration-flag-rate` flag still overrides both; a later `--stall-flag-rate`
+overrides stalls separately. Stalls need investigation even
 when the decided battles look healthy. Raw paired results and worker summaries
 share one accumulation path, keyed by typed identities including tier, entity, baseline, owner, and baseline kind.
 Worker merges weight HP and round deltas by decided-pair counts and recompute flags
@@ -115,7 +119,13 @@ talent, and affix modes to isolate changes. Pairing outliers can appear even whe
 neither partner is individually unusual. Flags are investigation candidates,
 not proof of causation or a correction for testing many comparisons.
 Hero and Companion peer comparisons use the same decided encounter sample as
-their table; Boss-only and regular-enemy tables each use their own peer win rate.
+their table, using the median of owner win rates so heavily sampled owners do
+not dominate the peer baseline. Boss-only and regular-enemy tables each use
+their own owner median. Enemy and progression goals use the same encounter-role
+bands at every tier; Trinket has no separate Elite role. Rates of zero or one
+are flagged once the minimum decided sample is met, even if the confidence
+interval overlaps the target band. Other enemy/hotspot flags require the
+confidence interval to exclude the band.
 
 Use `--mode all` to include identity, card, talent, affix, and progression checks;
 identity alone does not test every combination. Early/middle/late are fixed

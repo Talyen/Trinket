@@ -42,6 +42,13 @@ public enum BalanceFindingsReporter {
             lines.append("- Identity battles: `\(report.records.count)`")
         }
         lines.append("- Tiers: \(report.config.tiers.map(\.rawValue).joined(separator: ", "))")
+        lines.append("- Win-rate goals: \(BalanceEncounterTargets.winGoalDescription)")
+        lines.append("- Peer Δ / lift threshold: `\(Int(report.config.peerDeltaFlagThreshold * 100)) pp`")
+        lines.append("- Material stall rate: `\(report.config.resolvedStallFlagRate * 100)%`")
+        lines
+            .append(
+                "- Duration goals: regular `\(BalanceDurationThresholds.trashGoalBand)`, boss `\(BalanceDurationThresholds.bossGoalBand)` rounds",
+            )
         lines.append("- Fight pacing: `\(report.config.appliesFightPacing ? "on" : "off")`")
         if !report.contrastSections.allSatisfy(\.rows.isEmpty) {
             lines.append("- Contrast builds: `\(report.config.usesTierTalents ? "tier-legal talents" : "minimal talents (diagnostic)")`")
@@ -119,7 +126,7 @@ public enum BalanceFindingsReporter {
         for tier in snapshots.tiers where tier.battles > 0 {
             let evidence = evidenceByTier[tier.tier] ?? EnemyEvidence()
             findings.append(contentsOf: identityFindings(tier: tier, evidence: evidence))
-            findings.append(contentsOf: stallFindings(tier: tier, evidence: evidence))
+            findings.append(contentsOf: stallFindings(tier: tier, evidence: evidence, threshold: report.config.resolvedStallFlagRate))
         }
         for section in report.contrastSections {
             findings.append(contentsOf: contrastFindings(section.rows, kind: section.kind))
@@ -127,9 +134,11 @@ public enum BalanceFindingsReporter {
         findings.append(contentsOf: progressionFindings(report.progressionHotspots))
         let unfinished = report.progressionRecords.count { $0.result.timedOut }
         if unfinished > 0 {
+            let label = Double(unfinished) / Double(report.progressionRecords.count) >= report.config.resolvedStallFlagRate
+                ? "STALL" : "UNFINISHED"
             findings.append(Finding(
                 score: 1,
-                line: "Progression: ⚠ STALL · \(unfinished)/\(report.progressionRecords.count) battles reached a simulation cap; win rates exclude these unfinished fights.",
+                line: "Progression: ⚠ \(label) · \(unfinished)/\(report.progressionRecords.count) battles reached a simulation cap; win rates exclude these unfinished fights.",
             ))
         }
         if report.progressionTruncatedRuns > 0 {
@@ -199,12 +208,13 @@ extension BalanceFindingsReporter {
         return findings
     }
 
-    private static func stallFindings(tier: BalanceTierStats, evidence: EnemyEvidence) -> [Finding] {
+    private static func stallFindings(tier: BalanceTierStats, evidence: EnemyEvidence, threshold: Double) -> [Finding] {
         evidence.enemies.sorted { $0.key < $1.key }.compactMap { enemyID, enemy in
             guard enemy.stalls > 0 else { return nil }
+            let label = Double(enemy.stalls) / Double(enemy.battles) >= threshold ? "STALL" : "UNFINISHED"
             return Finding(
                 score: Double(enemy.stalls) / Double(enemy.battles),
-                line: "Enemy `\(enemyID)` (\(tier.tier.displayName)): ⚠ STALL · "
+                line: "Enemy `\(enemyID)` (\(tier.tier.displayName)): ⚠ \(label) · "
                     + "\(enemy.stalls)/\(enemy.battles) battles reached a simulation cap; "
                     + "win rates exclude these unfinished fights.",
             )
@@ -398,11 +408,12 @@ extension BalanceFindingsReporter {
 
     private static func progressionFindings(_ hotspots: [NodeHotspotSummary]) -> [Finding] {
         hotspots.filter(\.isFlagged).map { hotspot in
+            let band = BalanceEncounterTargets.winBand(isBoss: hotspot.step.isBoss)
             let envelope: Double = switch hotspot.status {
             case .overtuned, .levelGapWall:
-                HotspotAnalyzer.targetLowerBound - hotspot.winRate
+                band.lower - hotspot.winRate
             case .undertuned:
-                hotspot.winRate - HotspotAnalyzer.targetUpperBound
+                hotspot.winRate - band.upper
             case .smooth:
                 0
             }

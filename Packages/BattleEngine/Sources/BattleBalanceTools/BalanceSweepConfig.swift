@@ -30,6 +30,13 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
     public var enemyIDs: [String]
     public var focusIDs: [String]
     public var durationFlagRate: Double
+    /// Older configurations shared the duration threshold with stall reporting.
+    public var stallFlagRate: Double?
+
+    public var resolvedStallFlagRate: Double {
+        stallFlagRate ?? durationFlagRate
+    }
+
     public var comfortHPThreshold: Double
     public var comfortRoundThreshold: Double
     /// Missing in older reports, whose contrasts used minimal talent builds.
@@ -44,6 +51,7 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
     public static let contrastFlagMinPairs = 8
     public static let identityFlagMinBattles = 8
     public static let durationFlagRateDefault = 0.15
+    public static let stallFlagRateDefault = 0.02
     public static let comfortHPThresholdDefault = 0.10
     public static let comfortRoundThresholdDefault = 2.0
 
@@ -54,7 +62,7 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         tiers: [SimulationPowerTier] = SimulationPowerTier.allCases,
         maxRounds: Int = BattleSimulator.defaultMaxRounds,
         maxActions: Int = BattleSimulator.defaultMaxActions,
-        peerDeltaFlagThreshold: Double = 0.10,
+        peerDeltaFlagThreshold: Double = 0.15,
         outputDirectory: String = Self.defaultOutputDirectory,
         jobs: Int = 0,
         workOffset: Int = 0,
@@ -67,6 +75,7 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         enemyIDs: [String] = [],
         focusIDs: [String] = [],
         durationFlagRate: Double = Self.durationFlagRateDefault,
+        stallFlagRate: Double = Self.stallFlagRateDefault,
         comfortHPThreshold: Double = Self.comfortHPThresholdDefault,
         comfortRoundThreshold: Double = Self.comfortRoundThresholdDefault,
         usesTierTalentBuilds: Bool = true,
@@ -90,6 +99,7 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         self.enemyIDs = enemyIDs
         self.focusIDs = focusIDs
         self.durationFlagRate = durationFlagRate
+        self.stallFlagRate = stallFlagRate
         self.comfortHPThreshold = comfortHPThreshold
         self.comfortRoundThreshold = comfortRoundThreshold
         self.usesTierTalentBuilds = usesTierTalentBuilds

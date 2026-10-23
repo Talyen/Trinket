@@ -118,10 +118,10 @@ enum BalanceContrastFlags {
         }
         var tags: [String] = []
         if acc.pairs >= BalanceSweepConfig.contrastFlagMinPairs {
-            if Double(acc.entityTimeouts) / Double(acc.pairs) >= config.durationFlagRate {
+            if Double(acc.entityTimeouts) / Double(acc.pairs) >= config.resolvedStallFlagRate {
                 tags.append("ENTITY STALL")
             }
-            if Double(acc.baselineTimeouts) / Double(acc.pairs) >= config.durationFlagRate {
+            if Double(acc.baselineTimeouts) / Double(acc.pairs) >= config.resolvedStallFlagRate {
                 tags.append("BASELINE STALL")
             }
         }

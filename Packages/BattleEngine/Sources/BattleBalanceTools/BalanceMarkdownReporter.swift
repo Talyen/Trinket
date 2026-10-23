@@ -82,6 +82,8 @@ public enum BalanceMarkdownReporter {
         if report.elapsedSeconds > 0, !report.records.isEmpty {
             header.append(String(format: "- Identity throughput: `%.1f` battles/sec", Double(report.records.count) / report.elapsedSeconds))
         }
+        header.append("- Win-rate goals: \(BalanceEncounterTargets.winGoalDescription)")
+        header.append("- Material stall rate: `\(report.config.resolvedStallFlagRate * 100)%`")
         header.append("- Peer Δ / lift flag threshold: `\(Int(report.config.peerDeltaFlagThreshold * 100)) pp`")
         header
             .append(

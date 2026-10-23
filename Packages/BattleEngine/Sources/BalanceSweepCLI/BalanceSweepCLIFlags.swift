@@ -31,8 +31,9 @@ extension BalanceSweepCLI {
                                     (contrast modes only; ignored by identity/mode-progression)
           --work-offset <n>        Internal chunking: skip the first n work items (default: 0)
           --work-limit <n>         Internal chunking: run at most n work items
-          --peer-delta <f>         Flag threshold: paired lift flag threshold pp/100 (default: 0.10)
-          --duration-flag-rate <f> Flag threshold: stall flag rate (default: 0.15)
+          --peer-delta <f>         Peer delta / paired lift threshold pp/100 (default: 0.15)
+          --duration-flag-rate <f> SHORT/LONG rate; also overrides stalls (default: 0.15)
+          --stall-flag-rate <f>    Material unfinished-fight rate (default: 0.02)
           --comfort-hp <f>         Flag threshold: comfort HP delta threshold (default: 0.10)
           --comfort-rounds <f>     Flag threshold: comfort rounds delta threshold (default: 2.0)
           --full-markdown          Also write the verbose table dump as *-full.md
@@ -95,7 +96,11 @@ extension BalanceSweepCLI {
             case "--peer-delta":
                 config.peerDeltaFlagThreshold = try BalanceSweepCLI.doubleValue(after: arg, in: arguments, index: &index)
             case "--duration-flag-rate":
-                config.durationFlagRate = try BalanceSweepCLI.doubleValue(after: arg, in: arguments, index: &index)
+                let rate = try BalanceSweepCLI.doubleValue(after: arg, in: arguments, index: &index)
+                config.durationFlagRate = rate
+                config.stallFlagRate = rate
+            case "--stall-flag-rate":
+                config.stallFlagRate = try BalanceSweepCLI.doubleValue(after: arg, in: arguments, index: &index)
             case "--comfort-hp":
                 config.comfortHPThreshold = try BalanceSweepCLI.doubleValue(after: arg, in: arguments, index: &index)
             case "--comfort-rounds":

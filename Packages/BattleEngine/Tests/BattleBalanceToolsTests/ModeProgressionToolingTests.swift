@@ -319,3 +319,43 @@ extension ModeProgressionToolingTests {
         #expect(controller.selectNextStep() == nil)
     }
 }
+
+extension ModeProgressionToolingTests {
+    @Test(arguments: [
+        (false, 800, 1000, HotspotStatus.overtuned),
+        (true, 800, 1000, .smooth),
+        (false, 950, 1000, .smooth),
+        (true, 950, 1000, .undertuned),
+        (false, 995, 1000, .undertuned),
+        (false, 8, 8, .undertuned),
+        (true, 8, 8, .undertuned),
+        (false, 0, 8, .overtuned),
+        (true, 0, 8, .overtuned),
+        (false, 1, 1, .smooth),
+    ])
+    func `progression uses role bands and flags decided extremes`(
+        isBoss: Bool, wins: Int, count: Int, expected: HotspotStatus,
+    ) throws {
+        let step = BalanceTestFixtures.step(isBoss: isBoss)
+        let records = (0 ..< count).map { index in
+            ProgressionBattleRecord(
+                step: step,
+                playerLevel: 10,
+                enemyLevel: 10,
+                seed: UInt64(index),
+                result: BalanceTestFixtures.result(outcome: index < wins ? .victory : .defeat),
+            )
+        }
+        let summary = try #require(HotspotAnalyzer.analyze(records: records).first)
+        #expect(summary.status == expected)
+        let report = BalanceProgressionReportFormatter.render(
+            config: BalanceSweepConfig(mode: .modeProgression),
+            hotspots: [summary],
+            records: records,
+            playerStates: [],
+            elapsedSeconds: 0,
+        )
+        #expect(report.contains("regular enemies `90-98%`, bosses `70-90%` (all tiers)"))
+        #expect(!report.contains("<80% or >95%"))
+    }
+}

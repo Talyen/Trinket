@@ -31,9 +31,9 @@ public struct PairCellSummary: Equatable, Sendable {
 
 public enum BalanceDurationThresholds {
     public static let trashMinRounds = 5
-    public static let trashMaxRounds = 15
-    public static let bossMinRounds = 15
-    public static let bossMaxRounds = 30
+    public static let trashMaxRounds = 10
+    public static let bossMinRounds = 13
+    public static let bossMaxRounds = 20
     public static let flagRate = BalanceSweepConfig.durationFlagRateDefault
 
     public static var trashGoalBand: String {
@@ -270,13 +270,6 @@ private struct TierAggregation {
     }
 
     private func targetBand(isBoss: Bool) -> (lower: Double, upper: Double) {
-        if isBoss {
-            return (0.70, 0.80)
-        }
-        switch tier {
-        case .early: return (0.90, 0.99)
-        case .middle: return (0.80, 0.90)
-        case .lateGame: return (0.70, 0.80)
-        }
+        BalanceEncounterTargets.winBand(isBoss: isBoss)
     }
 }

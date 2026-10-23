@@ -47,9 +47,6 @@ public struct NodeHotspotSummary: Equatable, Codable, Sendable {
 }
 
 public enum HotspotAnalyzer {
-    public static let targetLowerBound = 0.80
-    public static let targetUpperBound = 0.95
-
     private struct EncounterKey: Hashable {
         let stepID: String
         let enemyID: String
@@ -113,8 +110,11 @@ public enum HotspotAnalyzer {
         let status: HotspotStatus
         let reason: String?
         let minBattles = BalanceSweepConfig.identityFlagMinBattles
-        let ciExcludesLow = wilson.high < targetLowerBound
-        let ciExcludesHigh = wilson.low > targetUpperBound
+        let band = BalanceEncounterTargets.winBand(isBoss: step.isBoss)
+        let targetLowerBound = band.lower
+        let targetUpperBound = band.upper
+        let ciExcludesLow = wilson.high < targetLowerBound || wins == 0
+        let ciExcludesHigh = wilson.low > targetUpperBound || wins == total
 
         if total >= minBattles, winRate < targetLowerBound, ciExcludesLow {
             if levelGap >= 3.0 {
@@ -122,11 +122,11 @@ public enum HotspotAnalyzer {
                 reason = String(format: "Level Gap (+%.1f levels)", levelGap)
             } else {
                 status = .overtuned
-                reason = String(format: "Win rate %.1f%% below 80%%", winRate * 100)
+                reason = String(format: "Win rate %.1f%% below %.0f%%", winRate * 100, targetLowerBound * 100)
             }
         } else if total >= minBattles, winRate > targetUpperBound, ciExcludesHigh {
             status = .undertuned
-            reason = String(format: "Win rate %.1f%% above 95%%", winRate * 100)
+            reason = String(format: "Win rate %.1f%% above %.0f%%", winRate * 100, targetUpperBound * 100)
         } else {
             status = .smooth
             reason = nil

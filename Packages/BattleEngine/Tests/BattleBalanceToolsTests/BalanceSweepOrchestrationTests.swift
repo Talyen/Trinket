@@ -293,3 +293,28 @@ struct BalanceSweepOrchestrationTests {
         #expect(merged.first?.entityTimeouts == 8)
     }
 }
+
+extension BalanceSweepOrchestrationTests {
+    @Test(arguments: [(50, true), (51, false)])
+    func `contrast material stall boundary is independent of duration`(count: Int, expected: Bool) {
+        let config = BalanceSweepConfig(durationFlagRate: 0.9)
+        var acc = BalanceContrastFlags.ContrastAcc(
+            entityID: "a",
+            baselineID: "b",
+            ownerID: "hero",
+            tier: .early,
+            baselineKind: .sibling,
+            nonCombat: false,
+        )
+        let win = BalanceTestFixtures.result()
+        var unfinished = win
+        unfinished.timedOut = true
+        for index in 0 ..< count {
+            acc.accumulate(entity: index == 0 ? unfinished : win, baseline: win)
+        }
+        let summary = BalanceContrastFlags.makeSummary(acc, config: config)
+        #expect(summary.flagged == expected)
+        #expect(summary.flagReason == (expected ? "ENTITY STALL" : nil))
+        #expect(summary.decidedPairs == count - 1)
+    }
+}

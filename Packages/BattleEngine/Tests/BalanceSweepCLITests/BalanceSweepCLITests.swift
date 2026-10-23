@@ -8,10 +8,15 @@ struct BalanceSweepCLITests {
         let encoded = try JSONEncoder().encode(BalanceSweepConfig())
         var fields = try #require(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
         fields.removeValue(forKey: "usesTierTalentBuilds")
+        fields.removeValue(forKey: "stallFlagRate")
+        fields["durationFlagRate"] = 0.31
         let legacy = try JSONDecoder().decode(
             BalanceSweepConfig.self, from: JSONSerialization.data(withJSONObject: fields),
         )
         #expect(!legacy.usesTierTalents)
+        #expect(legacy.resolvedStallFlagRate == 0.31)
+        #expect(BalanceSweepConfig().resolvedStallFlagRate == 0.02)
+        #expect(BalanceSweepConfig().peerDeltaFlagThreshold == 0.15)
         #expect(BalanceSweepConfig().usesTierTalents)
     }
 
@@ -37,7 +42,7 @@ struct BalanceSweepCLITests {
             maxRounds: 9, maxActions: 11, peerDeltaFlagThreshold: 0.21, outputDirectory: "reports with spaces",
             jobs: 3, workOffset: 0, workLimit: 2, appliesFightPacing: false, policyID: "setup-v1",
             comparePolicies: true, heroIDs: ["knight"], companionIDs: ["bear"], enemyIDs: ["living_armor"],
-            focusIDs: ["keen"], durationFlagRate: 0.31, comfortHPThreshold: 0.41, comfortRoundThreshold: 3.5,
+            focusIDs: ["keen"], durationFlagRate: 0.31, stallFlagRate: 0.31, comfortHPThreshold: 0.41, comfortRoundThreshold: 3.5,
             usesTierTalentBuilds: false,
         ))
         #expect(parsed.writeFullMarkdown)
@@ -46,10 +51,19 @@ struct BalanceSweepCLITests {
     @Test(arguments: [
         ["--samples", "0"], ["--jobs", "-1"], ["--work-offset", "-1"], ["--max-rounds", "oops"],
         ["--mode", "unknown"], ["--policy", "unknown"], ["--hero", "missing"], ["--seed"],
-        ["--peer-delta", "nan"], ["--comfort-rounds", "1e999"],
+        ["--stall-flag-rate", "nan"], ["--peer-delta", "nan"], ["--comfort-rounds", "1e999"],
     ])
     func `invalid CLI input remains rejected`(_ arguments: [String]) {
         #expect(throws: (any Error).self) { try BalanceSweepCLI.parseInvocation(arguments) }
+    }
+
+    @Test func `explicit stall override preserves duration control and round trips`() throws {
+        let config = try BalanceSweepCLI.parseInvocation([
+            "--duration-flag-rate", "0.31", "--stall-flag-rate", "0.02",
+        ]).config
+        #expect(config.durationFlagRate == 0.31)
+        #expect(config.resolvedStallFlagRate == 0.02)
+        #expect(try JSONDecoder().decode(BalanceSweepConfig.self, from: JSONEncoder().encode(config)) == config)
     }
 
     @Test func `invalid pacing explains how to correct the argument`() {
@@ -73,7 +87,7 @@ struct BalanceSweepCLITests {
             peerDeltaFlagThreshold: 0.23, outputDirectory: "reports with spaces", jobs: 1,
             workOffset: 1, workLimit: 1, appliesFightPacing: false, policyID: "setup-v1",
             comparePolicies: true, heroIDs: ["knight"], companionIDs: ["bear"], enemyIDs: ["living_armor"],
-            focusIDs: ["ignored,by,identity"], durationFlagRate: 0.37, comfortHPThreshold: 0.43,
+            focusIDs: ["ignored,by,identity"], durationFlagRate: 0.37, stallFlagRate: 0.04, comfortHPThreshold: 0.43,
             comfortRoundThreshold: 4.5,
             usesTierTalentBuilds: false,
         )

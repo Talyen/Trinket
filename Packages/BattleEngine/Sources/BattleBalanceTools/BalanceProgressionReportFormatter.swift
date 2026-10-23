@@ -37,6 +37,7 @@ public enum BalanceProgressionReportFormatter {
         lines.append("# Multi-Mode Progression & Hotspot Balance Report")
         lines.append("")
         lines.append("- **Mode**: Mode Progression Simulation")
+        lines.append("- Win-rate goals: \(BalanceEncounterTargets.winGoalDescription)")
         lines.append("- **Seed**: \(config.seed)")
         lines.append("- **Simulated Runs**: \(playerStates.count)")
         lines.append("- **Total Battles Simulated**: \(records.count)")
@@ -92,7 +93,7 @@ public enum BalanceProgressionReportFormatter {
             lines.append("")
             return
         }
-        lines.append("## Difficulty Hotspots (<80% or >95% Win Rate)")
+        lines.append("## Difficulty Hotspots")
         lines.append("")
         lines.append("| Mode | Location | Step | Enemy | Win Rate | Player Lvl | Enemy Lvl | Power | Status | Reason |")
         lines.append("| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |")
