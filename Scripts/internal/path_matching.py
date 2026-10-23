@@ -23,4 +23,3 @@ def glob_match(path: str, pattern: str) -> bool:
         return s < len(segments) and fnmatchcase(segments[s], patterns[p]) and match(p + 1, s + 1)
 
     return match(0, 0)
-
