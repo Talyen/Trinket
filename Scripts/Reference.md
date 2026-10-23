@@ -236,8 +236,9 @@ DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer xcodebuild -versio
 
 Version queries and local automatic/static handoff do not compile Swift or
 validate a runtime. Compilation and tests remain CI-owned; use the handoff report
-to identify deferred obligations. Expressly requested local diagnostic/release
-selectors require `TRINKET_ALLOW_HEAVY_LOCAL=1` under [Verification](../Docs/Platform/Verification.md#execution-limits).
+to identify deferred obligations. The [single focused diagnostic exception](../Docs/Platform/Verification.md#single-focused-local-diagnostic)
+and expressly requested local diagnostic/release selectors require
+`TRINKET_ALLOW_HEAVY_LOCAL=1` under [Verification](../Docs/Platform/Verification.md#execution-limits).
 Beta compile/runtime results remain prerelease evidence, not release qualification.
 Confirm the simulator runtime separately; an existing managed device can use a different OS
 than the SDK. `--no-build` rejects missing metadata or incompatible build environments; CI also
