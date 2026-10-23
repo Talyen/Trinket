@@ -87,6 +87,9 @@ clearances. Preserve prepared artwork and the shared interaction hierarchy.
 Hero artwork heights are minimums: native text and footers can grow the header,
 and its measured height owns navigation-title pinning. Stage titles wrap; active
 stage footers stack their actions when title and controls cannot fit side by side.
+Stage metadata stacks and action labels omit their decorative icon when needed
+to fit. Ability and equipment slot grids use a scaled minimum card width so native
+text growth can reduce their column count.
 These adaptations follow available space and intrinsic content at every text size.
 
 Keep Auto-Lock disabled only while an active battle is displayed on Play in an

@@ -172,19 +172,12 @@ struct StageSelectActiveCard<
                 actionFeedbackTrigger &+= 1
             }
         } label: {
-            Label {
-                GameLabel(isLockedContent ? String(localized: L10n.ui_stageselectactivecard_unlock_4ac70) : presentation.primaryActionTitle)
-            } icon: {
-                if isLockedContent {
-                    Image(systemName: "lock.fill")
-                        .scaleEffect(1.15)
-                } else {
-                    GameIconImage(presentation.icon)
-                        .scaleEffect(1.15)
-                }
+            ViewThatFits(in: .horizontal) {
+                primaryActionLabel.fixedSize(horizontal: true, vertical: false)
+                GameLabel(primaryActionTitle)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .trinketTypography(.button)
-            .fixedSize(horizontal: false, vertical: true)
             .padding(.vertical, TrinketDesign.Spacing.extraSmall)
         }
         .trinketPrimaryActionButton(
@@ -193,14 +186,29 @@ struct StageSelectActiveCard<
             labelColor: primaryActionLabelColor,
             accessibilityIdentifier: presentation.actionAccessibilityID,
         )
-        .gameAccessibilityLabel(isLockedContent ? String(localized: L10n.ui_stageselectactivecard_unlock_4ac70) : presentation
-            .primaryActionTitle)
+        .gameAccessibilityLabel(primaryActionTitle)
         .disabled(isPrimaryActionDisabled)
         .trinketSensoryFeedback(
             .selection,
             trigger: actionFeedbackTrigger,
             enabled: hapticsEnabledOverride ?? options.hapticsEnabled,
         )
+    }
+
+    private var primaryActionTitle: String {
+        isLockedContent ? String(localized: L10n.ui_stageselectactivecard_unlock_4ac70) : presentation.primaryActionTitle
+    }
+
+    private var primaryActionLabel: some View {
+        Label {
+            GameLabel(primaryActionTitle)
+        } icon: {
+            if isLockedContent {
+                Image(systemName: "lock.fill").scaleEffect(1.15)
+            } else {
+                GameIconImage(presentation.icon).scaleEffect(1.15)
+            }
+        }
     }
 
     private var partyPickerButton: some View {
@@ -253,18 +261,34 @@ struct StageSelectMetaLine<Item: Identifiable>: View {
     let presentation: StageSelectRowPresentation<Item>
 
     var body: some View {
-        HStack(spacing: TrinketDesign.Spacing.extraSmall) {
-            if !presentation.mapLabel.isEmpty {
-                GameLabel(presentation.mapLabel)
-                Text("·")
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: TrinketDesign.Spacing.extraSmall) {
+                if !presentation.mapLabel.isEmpty {
+                    GameLabel(presentation.mapLabel)
+                    Text("·")
+                }
+                encounterKind
             }
-            GameLabel(presentation.encounterTypeTitle)
-                .foregroundStyle(presentation.tint)
-            GameIconImage(presentation.icon)
-                .foregroundStyle(presentation.tint)
-                .accessibilityHidden(true)
+            .fixedSize(horizontal: true, vertical: false)
+            VStack(alignment: .leading, spacing: TrinketDesign.Spacing.extraSmall) {
+                if !presentation.mapLabel.isEmpty {
+                    GameLabel(presentation.mapLabel)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                encounterKind
+            }
         }
         .trinketTypography(.footnote)
         .foregroundStyle(.secondary)
+    }
+
+    private var encounterKind: some View {
+        HStack(spacing: TrinketDesign.Spacing.extraSmall) {
+            GameLabel(presentation.encounterTypeTitle)
+                .fixedSize(horizontal: false, vertical: true)
+            GameIconImage(presentation.icon)
+                .accessibilityHidden(true)
+        }
+        .foregroundStyle(presentation.tint)
     }
 }

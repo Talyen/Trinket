@@ -3,6 +3,8 @@ import TrinketDesignSystem
 
 @MainActor
 public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
+    @ScaledMetric(relativeTo: .caption) private var minimumSlotWidth: CGFloat = 96
+
     let slots: [Slot]
     let isLocked: (Slot) -> Bool
     let hasItem: (Slot) -> Bool
@@ -33,7 +35,10 @@ public struct SlotSummaryGrid<Slot: Identifiable, CardView: View>: View {
     }
 
     public var body: some View {
-        HStack(alignment: .top, spacing: TrinketDesign.Layout.sectionHeaderSpacing) {
+        LazyVGrid(
+            columns: [GridItem(.adaptive(minimum: minimumSlotWidth), alignment: .top)],
+            spacing: TrinketDesign.Layout.sectionHeaderSpacing,
+        ) {
             ForEach(slots) { slot in
                 let locked = isLocked(slot)
                 let filled = hasItem(slot)
