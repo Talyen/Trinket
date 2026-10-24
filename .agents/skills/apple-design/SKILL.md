@@ -5,6 +5,10 @@ description: Design or review Trinket SwiftUI layout, gestures, motion, typograp
 
 # Design the player interaction
 
+Follow [clarity through layout](../../../Docs/Product/DesignPrinciples.md#clarity-through-layout):
+avoid taglines, helper text, and secondary labels. If a screen needs them to make
+sense, fix the layout instead.
+
 Start with the player's action and the state they need to understand. Reuse
 [TrinketDesignSystem](../../../Packages/TrinketDesignSystem/README.md) controls,
 roles, and motion recipes. For a localized fix, apply only guidance relevant to

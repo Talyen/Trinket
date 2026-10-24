@@ -33,6 +33,8 @@ reason to mute meaningful battle effects or sound.
 
 - Can the player identify the primary action and its cost or consequence?
 - Are related information and controls close enough to read as one decision?
+- Does the screen make sense without taglines, helper text, or secondary labels?
+  If not, [fix the layout](../../../Docs/Product/DesignPrinciples.md#clarity-through-layout).
 - Can the player tell where they are and how to leave or cancel?
 - Do labels use established game names and describe their destination or action?
 - Do loading, empty, unavailable, success, and failure states explain what happens
