@@ -180,7 +180,9 @@ Assert a journey’s return destination before using helpers that navigate elsew
   also covers Voyage embark/abandon, Spires locked-floor rejection and battle launch, and
   Labyrinth inspector selection/dismissal.
 - Homestead accounting verifies displayed debit and tier after same-store reload;
-  accessibility audits stop after the tier change. Options retains destructive-reset
+  accessibility audits stop after the tier change. Shell smoke opens and cancels
+  Options' Reset confirmation to prove native Form rows accept taps, beyond merely
+  finding the screen. Options retains destructive-reset
   cancellation and confirmation across relaunch. The former Haptics thumb/relaunch
   case is retired: it protected a narrow preference binding at the cost of two
   launches. Dedicated Haptics UI persistence is no longer proved; real Music slider
