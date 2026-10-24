@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Protect private-source isolation and committed-output integrity."""
+"""Protect repository-source isolation and committed-output integrity."""
 from pathlib import Path
 import hashlib
 import json
@@ -10,7 +10,61 @@ import tempfile
 from script_test_support import ScriptRegressionTestCase, run_captured, write_executable, write_json
 
 class AssetLibraryTests(ScriptRegressionTestCase):
-    def test_automatic_healing_retries_interrupted_preparation_and_stays_source_free_on_ci(self):
+    def test_preparation_uses_repo_sources_and_never_falls_back_to_legacy_library(self):
+        with tempfile.TemporaryDirectory() as directory, tempfile.TemporaryDirectory() as external:
+            root, env, log = self.make_audio_fixture(directory, 'sfx')
+            source = root / 'AssetSources/Raw Assets/Sound Effects/clip.wav'
+            foreign = Path(external) / 'Raw Assets/Sound Effects/clip.wav'
+            foreign.parent.mkdir(parents=True)
+            foreign.write_bytes(b'unrelated external revision')
+            env['ASSET_LIBRARY_ROOT'] = external
+            self.assertEqual(self.run_audio_fixture(root, env, 'sfx').returncode, 0)
+            self.assertEqual(self.run_check(root, env, '--check').returncode, 0)
+            output = root / 'Trinket/Media/SFX/sfx_test_clip.m4a'
+            self.assertEqual(output.read_bytes(), b'fixture audio')
+            before = (root / 'SoundManifest/sfx.tsv').read_bytes()
+            source.unlink()
+            failed = self.run_audio_fixture(root, env, 'sfx')
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn('AssetSources/Raw Assets/Sound Effects/clip.wav', failed.stderr)
+            self.assertEqual(output.read_bytes(), b'fixture audio')
+            self.assertEqual((root / 'SoundManifest/sfx.tsv').read_bytes(), before)
+            self.assertEqual(log.read_text().count('convert'), 1)
+            self.assertEqual(foreign.read_bytes(), b'unrelated external revision')
+
+    def test_source_resolution_refuses_absolute_paths_traversal_and_external_symlinks(self):
+        with tempfile.TemporaryDirectory() as directory, tempfile.TemporaryDirectory() as external:
+            root = self.make_repo_fixture(directory, ('Scripts/asset-library.py',))
+            sources = root / 'AssetSources'
+            sources.mkdir()
+            (sources / 'escape').symlink_to(external, target_is_directory=True)
+            command = [sys.executable, 'Scripts/asset-library.py', '--resolve']
+            for source in ('', '.', '../outside.png', str(Path(external) / 'outside.png'), 'escape/outside.png'):
+                with self.subTest(source=source):
+                    failed = run_captured(command + [source], cwd=root)
+                    self.assertNotEqual(failed.returncode, 0)
+                    self.assertIn('must stay within repository AssetSources', failed.stderr)
+            (sources / 'escape').unlink()
+            sources.rmdir()
+            sources.symlink_to(external, target_is_directory=True)
+            failed = run_captured(command + ['outside.png'], cwd=root)
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn('AssetSources must stay within the repository', failed.stderr)
+
+    def test_icon_preflight_rejects_external_package_members(self):
+        with tempfile.TemporaryDirectory() as directory, tempfile.TemporaryDirectory() as external:
+            root, library, _, _, env = self.make_relink_fixture(directory, 'app-icon')
+            package = library / 'Old/Icon.icon'
+            (package / 'Assets').mkdir(parents=True)
+            (package / 'icon.json').write_text('{}')
+            foreign = Path(external) / 'master.jpeg'
+            foreign.write_bytes(b'external master')
+            (package / 'Assets/master.jpeg').symlink_to(foreign)
+            failed = run_captured([sys.executable, 'Scripts/asset-library.py', '--preflight', '--kind', 'app-icon'], cwd=root, env=env)
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn('Existing outputs were preserved', failed.stderr)
+
+    def test_builds_never_relink_and_explicit_healing_retries_interrupted_preparation(self):
         with tempfile.TemporaryDirectory() as directory:
             root, env, log = self.make_audio_fixture(directory, 'sfx')
             for name in ('CI', 'GITHUB_ACTIONS'):
@@ -22,10 +76,7 @@ class AssetLibraryTests(ScriptRegressionTestCase):
             prepare.rename(root / 'Scripts/prepare-selected-assets.sh')
             write_executable(prepare, '#!/bin/bash\nexec bash Scripts/prepare-selected-assets.sh "$@" --kind sfx\n')
             write_executable(root / 'Scripts/generate.sh', '#!/bin/bash\nexit 0\n')
-            library = root / 'library'
-            library.mkdir()
-            (root / 'Raw Assets').rename(library / 'Raw Assets')
-            env['ASSET_LIBRARY_ROOT'] = str(library)
+            library = root / 'AssetSources'
             self.assertEqual(self.run_audio_fixture(root, env, 'sfx').returncode, 0)
             source = library / 'Raw Assets/Sound Effects/clip.wav'
             moved = library / 'Renamed.wav'
@@ -36,13 +87,16 @@ class AssetLibraryTests(ScriptRegressionTestCase):
                        'source Scripts/build-freshness.sh; prepare_generated_inputs results']
             run_captured(command, cwd=root, env={**env, 'CI': 'true'}, expected=0)
             self.assertEqual(manifest.read_bytes(), before)
+            run_captured(command, cwd=root, env=env, expected=0)
+            self.assertEqual(manifest.read_bytes(), before)
             pipeline = root / 'Scripts/prepare-audio-assets.sh'
             original = pipeline.read_bytes()
             pipeline.write_text('#!/bin/bash\nexit 9\n')
-            run_captured(command, cwd=root, env=env, expected=9)
+            repair = ['bash', 'Scripts/prepare-assets.sh', '--heal']
+            run_captured(repair, cwd=root, env=env, expected=9)
             self.assertIn('Renamed.wav', manifest.read_text())
             pipeline.write_bytes(original)
-            run_captured(command, cwd=root, env=env, expected=0)
+            run_captured(repair, cwd=root, env=env, expected=0)
             checked = self.run_check(root, env, '--check')
             self.assertEqual(checked.returncode, 0, checked.stderr)
             self.assertEqual((root / 'Trinket/Media/SFX/sfx_test_clip.m4a').read_bytes(), b'fixture audio')
@@ -50,7 +104,7 @@ class AssetLibraryTests(ScriptRegressionTestCase):
 
     def make_relink_fixture(self, directory, kind):
         root = self.make_repo_fixture(directory, ('Scripts/asset-library.py',))
-        library = root / 'library'
+        library = root / 'AssetSources'
         library.mkdir()
         manifest = root / 'ArtManifest' / ('app-icon.tsv' if kind == 'app-icon' else 'curated-assets.tsv')
         manifest.parent.mkdir()
@@ -63,10 +117,10 @@ class AssetLibraryTests(ScriptRegressionTestCase):
         receipt = root / 'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json'
         receipt.parent.mkdir(parents=True)
         write_json(receipt, {kind: {'sources': hashes}})
-        env = {**self.verification_environment(), 'ASSET_LIBRARY_ROOT': str(library)}
+        env = self.verification_environment()
         return root, library, manifest, receipt, env
 
-    def test_preflight_relinks_moved_art_and_complete_icon_packages(self):
+    def test_explicit_relink_repairs_moved_art_and_complete_icon_packages(self):
         for kind in ('art', 'app-icon'):
             with self.subTest(kind=kind), tempfile.TemporaryDirectory() as directory:
                 root, library, manifest, receipt, env = self.make_relink_fixture(directory, kind)
@@ -82,6 +136,9 @@ class AssetLibraryTests(ScriptRegressionTestCase):
                 command = [sys.executable, 'Scripts/asset-library.py', '--kind', kind]
                 run_captured(command + ['--relink'], cwd=root, env=env, expected=0)
                 self.assertEqual(manifest.read_bytes(), before)
+                run_captured(command + ['--preflight'], cwd=root, env=env, expected=1)
+                self.assertEqual(manifest.read_bytes(), before)
+                run_captured(command + ['--relink', '--apply'], cwd=root, env=env, expected=0)
                 prepared = run_captured(command + ['--preflight', '--snapshot'], cwd=root, env=env, expected=0)
                 snapshot = json.loads(prepared.stdout)
                 self.assertTrue(all(name.startswith('New/') for name in snapshot['sources']))
@@ -116,7 +173,7 @@ class AssetLibraryTests(ScriptRegressionTestCase):
                     (package / 'icon.json').write_bytes(b'icon settings')
                     (package / 'renamed-master.jpeg').write_bytes(b'art master')
                 before = manifest.read_bytes()
-                result = run_captured([sys.executable, 'Scripts/asset-library.py', '--preflight', '--kind', kind], cwd=root, env=env)
+                result = run_captured([sys.executable, 'Scripts/asset-library.py', '--relink', '--apply', '--kind', kind], cwd=root, env=env)
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn('manifests were preserved', result.stderr)
                 self.assertEqual(manifest.read_bytes(), before)
@@ -141,10 +198,12 @@ class AssetLibraryTests(ScriptRegressionTestCase):
             root, env, log = self.make_audio_fixture(directory, 'sfx')
             result = self.run_audio_fixture(root, env, 'sfx')
             self.assertEqual(result.returncode, 0, result.stderr)
-            unavailable = {**env, 'ASSET_LIBRARY_ROOT': str(root / 'unavailable')}
-            checked = self.run_check(root, unavailable, '--check', '--outputs-only')
+            (root / 'AssetSources').rename(root / 'source-archive')
+            checked = self.run_check(root, env, '--check', '--outputs-only')
             self.assertEqual(checked.returncode, 0, checked.stderr)
-            source = root / 'Raw Assets/Sound Effects/clip.wav'
+            self.assertNotEqual(self.run_check(root, env, '--check').returncode, 0)
+            (root / 'source-archive').rename(root / 'AssetSources')
+            source = root / 'AssetSources/Raw Assets/Sound Effects/clip.wav'
             source.write_bytes(b'updated source')
             local = self.run_check(root, env, '--check')
             self.assertNotEqual(local.returncode, 0)
@@ -152,7 +211,7 @@ class AssetLibraryTests(ScriptRegressionTestCase):
             output = root / 'Trinket/Media/SFX/sfx_test_clip.m4a'
             source.write_bytes(b'fixture audio')
             output.write_bytes(b'corrupt')
-            corrupt = self.run_check(root, unavailable, '--check', '--outputs-only')
+            corrupt = self.run_check(root, env, '--check', '--outputs-only')
             self.assertNotEqual(corrupt.returncode, 0)
             self.assertIn('outputs/catalogs changed', corrupt.stderr)
             repaired = self.run_audio_fixture(root, env, 'sfx')
@@ -181,10 +240,10 @@ class AssetLibraryTests(ScriptRegressionTestCase):
                 before = output.read_bytes()
                 orphan = output.with_name('orphan.m4a')
                 orphan.write_bytes(b'keep')
-                (root / 'Raw Assets/Sound Effects/clip.wav').write_bytes(b'new source')
+                (root / 'AssetSources/Raw Assets/Sound Effects/clip.wav').write_bytes(b'new source')
                 if unavailable == 'directory':
-                    (root / 'Missing.wav').mkdir()
-                    (root / 'Missing.wav/unrelated.wav').write_bytes(b'not the selected source')
+                    (root / 'AssetSources/Missing.wav').mkdir()
+                    (root / 'AssetSources/Missing.wav/unrelated.wav').write_bytes(b'not the selected source')
                 with (root / 'SoundManifest/sfx.tsv').open('a') as stream:
                     stream.write('missing\tmissing\tsfx_missing\tMissing.wav\t1.0\n')
                 result = self.run_audio_fixture(root, env, 'sfx')
@@ -216,11 +275,11 @@ class AssetLibraryTests(ScriptRegressionTestCase):
             content.write_text('id: "test_boss", isBoss: true\n')
             prepared = self.run_audio_fixture(root, env, 'music')
             self.assertEqual(prepared.returncode, 0, prepared.stderr)
-            unavailable = {**env, 'ASSET_LIBRARY_ROOT': str(root / 'unavailable')}
+            (root / 'AssetSources').rename(root / 'source-archive')
             command = ['python3', 'Scripts/asset-library.py', '--check', '--outputs-only', '--kind', 'music']
-            checked = run_captured(command, cwd=root, env=unavailable, expected=0)
+            checked = run_captured(command, cwd=root, env=env, expected=0)
             content.write_text('id: "test_boss", isBoss: false\n')
-            checked = run_captured(command, cwd=root, env=unavailable)
+            checked = run_captured(command, cwd=root, env=env)
             self.assertNotEqual(checked.returncode, 0)
             self.assertIn('no longer', checked.stderr)
 

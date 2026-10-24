@@ -4,9 +4,8 @@ Trinket keeps source music separate from app-ready audio, matching the art pipel
 
 ## Folders
 
-- External Asset Library, `Sounds/Game Sources/`: source MP3 files. This path is
-  relative to the library root, not the checkout; [media assets](../Docs/AgentContext/content-and-manifests.md#media-assets)
-  owns root selection and overrides.
+- `AssetSources/Sounds/Game Sources/`: tracked source MP3 files;
+  [media assets](../Docs/AgentContext/content-and-manifests.md#media-assets) owns preparation.
 - `MusicManifest/music.tsv`: editable source of truth for curated music.
 - `Trinket/Media/Music/`: generated app-ready AAC `.m4a` files.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift`: generated Swift lookup table for runtime routing.
@@ -22,7 +21,7 @@ kind	id	asset_name	source_path	boss_enemy_id	looping	volume_gain
 - `kind`: `menu`, `battle`, or `boss`.
 - `id`: stable track ID used by Swift.
 - `asset_name`: bundle-safe generated resource name.
-- `source_path`: library-relative path to the raw source file.
+- `source_path`: path to the raw source file relative to repository `AssetSources/`.
 - `boss_enemy_id`: matching boss enemy ID for boss tracks, or `none`.
 - `looping`: `true` or `false`.
 - `volume_gain`: per-track multiplier applied after the user music volume.

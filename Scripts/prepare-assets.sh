@@ -26,7 +26,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --help|-h)
       echo "Usage: $0 [--kind art|music|sfx|app-icon|all] [--check [--outputs-only]]"
-      echo "       $0 --heal [--kind <kind>] (local relinking and preparation of relocated sources only)"
+      echo "       $0 --heal [--kind <kind>] (explicit repository source relinking and preparation)"
       exit 0
       ;;
     *)
@@ -65,8 +65,8 @@ run_kind() {
 }
 
 if $heal; then
-  # Ordinary builds remain source-free on CI and Macs without the local library.
-  if [[ "${CI:-}" == true || "${GITHUB_ACTIONS:-}" == true || ! -d "${ASSET_LIBRARY_ROOT:-$HOME/Documents/Asset Library}" ]]; then
+  # Retained as an explicit repair command; ordinary builds never relink sources.
+  if [[ "${CI:-}" == true || "${GITHUB_ACTIONS:-}" == true ]]; then
     exit 0
   fi
   relocated="$(python3 Scripts/asset-library.py --relink --apply --kind "$kind")"

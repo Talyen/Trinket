@@ -227,7 +227,7 @@ Foundation Models are unused.
 
 ## App icon
 
-Trinket selects its Asset Library Icon Composer package in `ArtManifest/app-icon.tsv` and installs
+Trinket selects its repo-local `AssetSources/` Icon Composer package in `ArtManifest/app-icon.tsv` and installs
 it as `Trinket/AppIcon.icon` via `Scripts/prepare-app-icon.sh`. Keep edits in the
 authored package. [Icon Composer](https://developer.apple.com/documentation/xcode/creating-your-app-icon-using-icon-composer)
 owns the platform format; use the version compatible with the selected toolchain.

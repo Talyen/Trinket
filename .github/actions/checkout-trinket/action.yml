@@ -11,7 +11,7 @@ runs:
       with:
         fetch-depth: 1
         sparse-checkout-cone-mode: true
-        # Cone mode keeps root files (project.yml, *.xctestplan). Raw sources live outside the repository.
+        # Cone mode keeps root files (project.yml, *.xctestplan). AssetSources masters are omitted.
         sparse-checkout: |
           Scripts
           Packages

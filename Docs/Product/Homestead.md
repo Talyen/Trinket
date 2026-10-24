@@ -104,7 +104,7 @@ feedback until committed; other domain outcomes retain their existing feedback.
 
 ## Artwork
 
-Portrait and landscape sources coexist in the Asset Library's building subject folders.
+Portrait and landscape sources coexist in repository `AssetSources/` building subject folders.
 [ArtManifest](../../ArtManifest/README.md) owns portrait and gallery-thumbnail
 exports. Gallery thumbnails join launch-priority artwork. Full portraits remain
 outside broad launch warmup and are pinned by imminent category/detail owners.

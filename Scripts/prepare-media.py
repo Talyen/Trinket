@@ -317,7 +317,6 @@ def main():
     args = parser.parse_args()
     kinds = ['music', 'sfx'] if args.kind == 'audio' else [args.kind]
     os.chdir(ROOT)
-    assets.relink_sources(kinds, apply=True)
     # Validate every selected source and row before encoding or pruning any kind.
     snapshots = {kind: assets.input_snapshot(kind) for kind in kinds}
     rows = {kind: validate(kind) for kind in kinds}

@@ -105,8 +105,8 @@ plus worker evidence for targeted diagnostics. Weekly/manual careers follow
 |---|---|
 | `./Scripts/generate.sh --assets` | Prepare media; `--kind` selects art, music, sfx, app-icon or all |
 | `./Scripts/report-art-memory.sh --enforce` | Check estimated full-catalog decoded size; omit enforcement for a report. [Interpretation](../ArtManifest/README.md#decoded-memory-report) |
-| `./Scripts/ci-assets-gate.sh` | Committed asset integrity without the Asset Library |
-| `python3 Scripts/asset-library.py --relink --kind art` | Preview unique exact-content repairs; `--apply` writes them. Prepare media afterward to refresh receipts |
+| `./Scripts/ci-assets-gate.sh` | Committed asset integrity without source masters |
+| `python3 Scripts/asset-library.py --relink --kind art` | Preview unique exact-content repairs within repo `AssetSources/`; `--apply` writes them. Prepare media afterward to refresh receipts |
 | `./Scripts/prepare-audio-assets.sh music` | Focused audio preparation; also accepts `sfx` or `all` |
 
 ### Release

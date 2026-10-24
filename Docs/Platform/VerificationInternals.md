@@ -82,7 +82,7 @@ CI OK. The watch command attempts one such recovery, not a blanket test retry.
 | `handoff.sh` (local auto/static routes) | Locally: scoped style, fast selected script regressions, docs, cheap static slices and selected prepared-asset integrity; reports content/project generation, compilation, package and UI work as CI-owned; local cheap slices use declared input scopes |
 | `ci-gate.sh` | Pinned-tool ensure, generation and idempotence, assert against HEAD, full-tree style, module boundaries, script syntax and regression tests, API-ban policy (incl. XCTest migration), release-note validation; compiled artwork-budget behavior belongs to FeatureSupport package tests |
 | `ci-gate.sh --fast` | Only the ordered commands in [the cheap-slice registry](../../Scripts/config/cheap-slices.txt) |
-| `ci-assets-gate.sh` | Check committed prepared assets and manifest/resource integrity without Asset Library |
+| `ci-assets-gate.sh` | Check committed prepared assets and manifest/resource integrity without source masters |
 | `test-deploy.sh` | Full CI/release evidence with exact-commit hosted proof reuse and local phase checkpoints; local `ui`/`smoke` execution uses the deliberate heavy-local flag and diagnostic limits, while `--mode beta` consumes hosted proof without a local heavy run. [Release recovery](Release.md#options-and-recovery) owns checkpoint identity and invalidation |
 | Main CI | Post-push on `main` (no pull-request workflow): path filter, generation/style/full script regressions, app build with smoke on the same runner, and package unit for product changes |
 | Clean analysis | Explicit local `lint-analyze.sh [SwiftPath ...]` cleanup using a clean app build; unused imports fail the command; never part of CI or handoff |

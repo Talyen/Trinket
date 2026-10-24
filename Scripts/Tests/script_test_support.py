@@ -118,10 +118,6 @@ class ScriptRegressionTestCase(unittest.TestCase):
             shutil.copy2(ROOT / "Scripts/asset-library.py", helper)
             shutil.copy2(ROOT / 'Scripts/prepare-media.py', root / 'Scripts/prepare-media.py')
             shutil.copytree(ROOT / 'Scripts/internal/media_templates', root / 'Scripts/internal/media_templates', dirs_exist_ok=True)
-            from unittest.mock import patch
-            environment_patch = patch.dict(os.environ, {"ASSET_LIBRARY_ROOT": str(root)})
-            environment_patch.start()
-            self.addCleanup(environment_patch.stop)
             if "Scripts/prepare-app-icon.sh" in files:
                 manifest = root / "ArtManifest/app-icon.tsv"
                 manifest.parent.mkdir(parents=True, exist_ok=True)
@@ -141,13 +137,13 @@ class ScriptRegressionTestCase(unittest.TestCase):
 
     _AUDIO_FIXTURES = {
         "sfx": (
-            "SoundManifest/sfx.tsv", "Raw Assets/Sound Effects/clip.wav", "Trinket/Media/SFX",
+            "SoundManifest/sfx.tsv", "AssetSources/Raw Assets/Sound Effects/clip.wav", "Trinket/Media/SFX",
             "# id\tswift_symbol\tasset_name\tsource_path\tvolume_gain\n"
             "test_clip\ttestClip\tsfx_test_clip\tRaw Assets/Sound Effects/clip.wav\t1.0\n",
             b"fixture audio",
         ),
         "music": (
-            "MusicManifest/music.tsv", "Raw Assets/Music/track.mp3", "Trinket/Media/Music",
+            "MusicManifest/music.tsv", "AssetSources/Raw Assets/Music/track.mp3", "Trinket/Media/Music",
             "# kind\tid\tasset_name\tsource_path\tboss_enemy_id\tlooping\tvolume_gain\n"
             "menu\ttest_track\tmusic_test_track\tRaw Assets/Music/track.mp3\tnone\ttrue\t1.0\n",
             b"fixture music",

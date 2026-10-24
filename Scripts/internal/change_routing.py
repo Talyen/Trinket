@@ -91,7 +91,7 @@ OWNER_GUIDANCE = (
 CONTENT_GUIDANCE = (
     (('ContentManifest',), sections(CONTENT, 'manifests')),
     (('Packages/TrinketContent/Sources/TrinketContent/Abilities',), sections(CONTENT, 'abilities')),
-    (('ArtManifest', 'MusicManifest', 'SoundManifest', 'Raw Assets', 'Trinket/Assets.xcassets', 'Trinket/Media'), sections(CONTENT, 'media-assets')),
+    (('ArtManifest', 'MusicManifest', 'SoundManifest', 'Raw Assets', 'AssetSources', 'Trinket/Assets.xcassets', 'Trinket/Media'), sections(CONTENT, 'media-assets')),
     (('Scripts/internal/content',), sections(CONTENT, 'generation-tooling')),
 )
 VISUAL_PATHS = ('Trinket/Features/*', 'Packages/TrinketBattleFeature/Sources/*/Features/*', 'Packages/TrinketBattleFeature/Sources/*/Views/*', 'Packages/TrinketFeatureSupport/Sources/*/Features/*', 'Packages/TrinketFeatureSupport/Sources/*/FeatureAdapters/*', *(f'Packages/TrinketFeatureSupport/Sources/*/Shared/{part}/*' for part in ('Cards', 'Detail', 'Forms', 'Encounters', 'Rewards')), 'Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Artwork/*')
@@ -178,14 +178,14 @@ def classify(paths: list[str], root: Path = ROOT, *, base: str | None = None) ->
             if beneath(path, tuple(generated_roots)) or matches(path, '*/Generated/*', '*.generated.*', 'Trinket/Assets.xcassets/*', 'Trinket/Media/*'):
                 route.generated.append(path)
                 if beneath(path, tuple(asset_roots)):
-                    route.needs.add('assets'); route.add('generated_warnings', 'Prepared asset output detected; edit the manifest/Asset Library source and run ./Scripts/prepare-assets.sh.')
+                    route.needs.add('assets'); route.add('generated_warnings', 'Prepared asset output detected; edit the manifest/AssetSources source and run ./Scripts/prepare-assets.sh.')
                 elif matches(path, 'Packages/*/Generated/*'):
                     if matches(path, 'Packages/*/Generated/*SourceHashes.generated.tsv'):
-                        route.needs.add('assets'); route.add('generated_warnings', 'Generated asset hash state detected; edit the manifest/Asset Library source and run ./Scripts/generate.sh --assets.')
+                        route.needs.add('assets'); route.add('generated_warnings', 'Generated asset hash state detected; edit the manifest/AssetSources source and run ./Scripts/generate.sh --assets.')
                     else:
                         route.needs.add('content'); route.add('generated_warnings', 'Generated package output detected; edit the authored source and run ./Scripts/generate.sh.')
                 else:
-                    route.needs.add('assets'); route.add('generated_warnings', 'Processed app output detected; edit the manifest/Asset Library source and run the appropriate generation command.')
+                    route.needs.add('assets'); route.add('generated_warnings', 'Processed app output detected; edit the manifest/AssetSources source and run the appropriate generation command.')
             else:
                 route.authored.append(path)
                 if path.endswith('.swift') and package:

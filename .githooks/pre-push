@@ -48,7 +48,7 @@ else
 fi
 
 if [[ "$needs_assets" == true ]]; then
-  echo "=== Pre-push: local asset source freshness ==="
+  echo "=== Pre-push: repository asset source freshness ==="
   ./Scripts/prepare-assets.sh --check
 else
   ./Scripts/prepare-assets.sh --check --outputs-only

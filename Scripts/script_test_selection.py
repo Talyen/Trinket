@@ -21,7 +21,7 @@ INTENTIONALLY_UNMAPPED = {
 # explicitly in the registry, which takes precedence over this exclusion.
 PRODUCT_ROOTS = frozenset({
     "Packages", "Trinket", "TrinketUITests", "ContentManifest", "ArtManifest",
-    "MusicManifest", "SoundManifest", "Raw Assets",
+    "MusicManifest", "SoundManifest", "Raw Assets", "AssetSources",
     "StoreKit", "Performance",
 })
 REGISTRY = "Scripts/config/script-regressions.tsv"

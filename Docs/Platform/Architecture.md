@@ -33,10 +33,11 @@ ContentManifest/            affixes.tsv, item_bases.tsv, stages.tsv, combatants.
 ArtManifest/                curated-assets.tsv, app-icon.tsv
 MusicManifest/              music.tsv
 SoundManifest/              sfx.tsv
+AssetSources/               Selected raw masters, outside app target membership
 Scripts/                    generate, build, test, CI commands; internal/ Python and lib/ shell helpers
 ```
 
-Raw art, music, SFX, and animation masters live in the external Asset Library;
+Selected raw art, music, SFX, icon, and animation masters are tracked in `AssetSources/`;
 [the media pipeline](../AgentContext/content-and-manifests.md#media-assets) owns
 source selection and preparation.
 

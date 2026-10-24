@@ -33,7 +33,7 @@ simulator overlays; these establish visual context, not current-main verificatio
 Inputs resolve through [curated-assets.tsv](../../../ArtManifest/curated-assets.tsv):
 Library/Archery Range portraits; landscape Slime, Goblin and The Blight Treant;
 and Basic Shortbow, Longbow, Quiver and Crossbow portraits. Source masters remain
-in the Asset Library; production uses prepared ArtCatalog assets, never generated
+in repository `AssetSources/`; production uses prepared ArtCatalog assets, never generated
 crops. Complete input order and source selections remain in this file's Git history.
 
 ## Visual review and implementation corrections

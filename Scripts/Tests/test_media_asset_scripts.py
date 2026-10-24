@@ -213,7 +213,7 @@ runpy.run_path(sys.argv[0], run_name='__main__')
             orphan = output.with_name('orphan.m4a')
             orphan.write_bytes(b'retain until validation succeeds')
             before = {path: path.read_bytes() for path in [output, orphan, *generated.iterdir()]}
-            (root / 'Raw Assets/Sound Effects/clip.wav').write_bytes(b'revised source')
+            (root / 'AssetSources/Raw Assets/Sound Effects/clip.wav').write_bytes(b'revised source')
             with (root / 'SoundManifest/sfx.tsv').open('a') as stream:
                 stream.write('invalid\trepeat\tinvalid\tRaw Assets/Sound Effects/clip.wav\t1.0\n')
             result = self.run_audio_fixture(root, environment, "sfx")
@@ -264,14 +264,14 @@ runpy.run_path(sys.argv[0], run_name='__main__')
         root = self.make_repo_fixture(directory, ("Scripts/prepare-art-assets.sh", "Scripts/prepare-media.py"))
         for relative in (
             "ArtManifest",
-            "Raw Assets",
+            "AssetSources/Raw Assets",
             "Trinket/Assets.xcassets",
             "Packages/TrinketContent/Sources/TrinketContent/Generated",
             "Packages/TrinketContent/Sources/TrinketContent/Abilities",
             "bin",
         ):
             (root / relative).mkdir(parents=True, exist_ok=True)
-        (root / "Raw Assets/source.jpeg").write_bytes(b"source")
+        (root / "AssetSources/Raw Assets/source.jpeg").write_bytes(b"source")
         (root / "Packages/TrinketContent/Sources/TrinketContent/Generated/GameContentRoster.generated.swift").write_text(
             'id: "knight"\n', encoding="utf-8"
         )
@@ -440,17 +440,17 @@ runpy.run_path(sys.argv[0], run_name='__main__')
             root = self.make_repo_fixture(directory, ("Scripts/prepare-app-icon.sh", "Scripts/prepare-media.py"))
             for relative in (
                 "Scripts/lib",
-                "Raw Assets/App Icon/Trinket App Icon.icon",
+                "AssetSources/Raw Assets/App Icon/Trinket App Icon.icon",
                 "Trinket",
                 "Packages/TrinketContent/Sources/TrinketContent/Generated",
             ):
                 (root / relative).mkdir(parents=True, exist_ok=True)
             for relative in ("Scripts/prepare-app-icon.sh", "Scripts/prepare-media.py"):
                 write_executable(root / relative, (ROOT / relative).read_text(encoding="utf-8"))
-            (root / "Raw Assets/App Icon/Trinket App Icon.icon/icon.json").write_text(
+            (root / "AssetSources/Raw Assets/App Icon/Trinket App Icon.icon/icon.json").write_text(
                 "{}", encoding="utf-8"
             )
-            (root / "Raw Assets/App Icon/Trinket App Icon.icon/contents.dat").write_bytes(b"icon")
+            (root / "AssetSources/Raw Assets/App Icon/Trinket App Icon.icon/contents.dat").write_bytes(b"icon")
             command = ["bash", "Scripts/prepare-app-icon.sh"]
 
             first = run_captured(command, cwd=root, expected=0)
@@ -465,16 +465,17 @@ runpy.run_path(sys.argv[0], run_name='__main__')
             second = run_captured(command, cwd=root, expected=0)
             self.assertNotIn("Installed", second.stdout)
 
-            # The focused pipeline must consume the manifest after preflight
-            # repairs a relocated master, just like the unified asset command.
-            library = root / "library"
-            library.mkdir()
-            (root / "Raw Assets/App Icon/Trinket App Icon.icon").rename(library / "Moved.icon")
-            environment = {**os.environ, 'ASSET_LIBRARY_ROOT': str(library)}
-            run_captured(command, cwd=root, env=environment, expected=0)
+            # Preparation never changes authored selections; repair is explicit.
+            library = root / "AssetSources"
+            (library / "Raw Assets/App Icon/Trinket App Icon.icon").rename(library / "Moved.icon")
+            before = (root / "ArtManifest/app-icon.tsv").read_bytes()
+            run_captured(command, cwd=root, expected=1)
+            self.assertEqual((root / "ArtManifest/app-icon.tsv").read_bytes(), before)
+            run_captured([sys.executable, 'Scripts/asset-library.py', '--relink', '--apply', '--kind', 'app-icon'], cwd=root, expected=0)
+            run_captured(command, cwd=root, expected=0)
             self.assertIn("Moved.icon", (root / "ArtManifest/app-icon.tsv").read_text())
             self.assertEqual((root / "Trinket/AppIcon.icon/contents.dat").read_bytes(), b"icon")
-            run_captured([sys.executable, 'Scripts/asset-library.py', '--check', '--kind', 'app-icon'], cwd=root, env=environment, expected=0)
+            run_captured([sys.executable, 'Scripts/asset-library.py', '--check', '--kind', 'app-icon'], cwd=root, expected=0)
 
 if __name__ == "__main__":
     unittest.main()

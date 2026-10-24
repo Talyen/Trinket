@@ -163,6 +163,7 @@ let package = Package(name: "TrinketCore",
         match = self.filter.is_asset_path
         self.assertTrue(match("ArtManifest/curated-assets.tsv"))
         self.assertTrue(match("ArtManifest/app-icon.tsv"))
+        self.assertTrue(match("AssetSources/Art/selected.png"))
         for path in ('Trinket/Media/SFX/sfx_hit.m4a', 'Trinket/Assets.xcassets/hero_knight_card.imageset/Contents.json',
                      'Trinket/AppIcon.icon/icon.json',
                      'Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift'):

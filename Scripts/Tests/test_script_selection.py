@@ -96,7 +96,7 @@ class ScriptSelectionTests(unittest.TestCase):
             "TrinketUITests/Battle/BattleUITests.swift",
             "ContentManifest/abilities.tsv", "ArtManifest/art.tsv",
             "MusicManifest/music.tsv",
-            "SoundManifest/sounds.tsv", "Raw Assets/Art/card.png",
+            "SoundManifest/sounds.tsv", "Raw Assets/Art/card.png", "AssetSources/Art/card.png",
             "StoreKit/Trinket.storekit", "Performance/scenarios.json",
         )
         for path in product_paths:

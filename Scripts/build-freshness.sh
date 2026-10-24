@@ -127,8 +127,6 @@ prepare_generated_inputs() (
       "${TRINKET_GENERATE_LOCK_TIMEOUT_SECONDS:-120}" || return $?
     results_dir="$TRINKET_SHARED_DERIVED_DATA/GeneratedInputs"
   fi
-  # Heal local library moves before checking receipts or generation stamps.
-  ./Scripts/prepare-assets.sh --heal || return $?
   # Prepared bytes can change independently of generation-input stamps.
   ./Scripts/prepare-assets.sh --check --outputs-only || return $?
   local stamp="$results_dir/.last-generate.stamp"

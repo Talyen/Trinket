@@ -30,7 +30,7 @@ jobs:
           fetch-depth: 1
           filter: blob:limit=1g
           sparse-checkout-cone-mode: true
-          # Cone mode keeps root files (project.yml, *.xctestplan). Raw sources live outside the repository.
+          # Cone mode keeps root files (project.yml, *.xctestplan). AssetSources masters are omitted from sparse build jobs.
           # Docs, Performance baselines, .agents, Website, and
           # .githooks are read by the gate suite.
           sparse-checkout: |

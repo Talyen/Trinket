@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Local source preparation records and source-free shipping-output verification."""
+"""Repository source preparation records and source-free shipping-output verification."""
 from __future__ import annotations
 
 import argparse
@@ -25,14 +25,17 @@ KINDS = {
 
 
 def library_root() -> Path:
-    return Path(os.environ.get('ASSET_LIBRARY_ROOT') or Path.home() / 'Documents/Asset Library').resolve()
+    root = (ROOT / 'AssetSources').resolve()
+    if not root.is_relative_to(ROOT):
+        raise ValueError('AssetSources must stay within the repository.')
+    return root
 
 
 def source_path(source: str) -> Path:
     root = library_root()
     path = (root / source).resolve()
     if not source or Path(source).is_absolute() or path == root or not path.is_relative_to(root):
-        raise ValueError(f'Asset source must be library-relative: {source}')
+        raise ValueError(f'Asset source must stay within repository AssetSources: {source}')
     return path
 
 
@@ -81,11 +84,11 @@ def source_hashes(kind: str) -> dict[str, str]:
             else:
                 files = [path]
             for file in files:
-                if not file.is_file() or file.stat().st_size == 0:
+                if not file.resolve().is_relative_to(library_root()) or not file.is_file() or file.stat().st_size == 0:
                     raise ValueError('Missing or empty source')
                 result[file.relative_to(library_root()).as_posix()] = digest(file)
         except (OSError, ValueError) as error:
-            raise ValueError(f'Cannot read Asset Library source "{source}". Download it in Finder if iCloud has offloaded it, or set ASSET_LIBRARY_ROOT. Existing outputs were preserved.') from error
+            raise ValueError(f'Cannot read repository asset source "AssetSources/{source}". Restore the selected file or update its manifest. Existing outputs were preserved.') from error
     return result
 
 
@@ -152,12 +155,12 @@ def relink_sources(kinds: list[str], apply: bool) -> list[str]:
         return []
     root = library_root()
     if not root.is_dir():
-        raise ValueError(f'Asset Library is unavailable: {root}. Set ASSET_LIBRARY_ROOT.')
+        raise ValueError(f'Repository asset sources are unavailable: {root}. Restore AssetSources from Git.')
     wanted = {recorded.get(kind, {}).get('sources', {}).get(source)
               for kind, source in missing if kind != 'app-icon'} - {None}
     matches = {value: [] for value in wanted}
     packages = []
-    # Search only when a selected path is missing. Library duplicates deliberately
+    # Search only when explicitly requested and a selected path is missing. Duplicates deliberately
     # remain ambiguous, even when one happens to share the old filename.
     def scan_error(error):
         raise error
@@ -204,7 +207,7 @@ def relink_sources(kinds: list[str], apply: bool) -> list[str]:
         else:
             changes.setdefault(kind, {})[source] = candidates[0]
     if errors:
-        raise ValueError('Cannot relink Asset Library sources; manifests were preserved. Existing outputs were preserved:\n' + '\n'.join(errors))
+        raise ValueError('Cannot relink repository asset sources; manifests were preserved. Existing outputs were preserved:\n' + '\n'.join(errors))
     updates = []
     for kind, replacements in changes.items():
         manifest = ROOT / KINDS[kind][0]
@@ -388,13 +391,12 @@ def main() -> None:
         parser.error('--snapshot requires --preflight and a single kind')
     if args.record and (not args.expected_inputs or args.kind in ('all', 'audio')):
         parser.error('--record requires --expected-inputs and a single kind')
-    if args.resolve:
+    if args.resolve is not None:
         print(source_path(args.resolve))
         return
     kinds = list(KINDS) if args.kind == 'all' else ['music', 'sfx'] if args.kind == 'audio' else [args.kind]
-    if args.relink or args.preflight:
-        relinked = relink_sources(kinds, apply=args.preflight or args.apply)
     if args.relink:
+        relinked = relink_sources(kinds, apply=args.apply)
         if args.apply:
             print('\n'.join(dict.fromkeys([*relinked, *pending_relocations(kinds)])))
         return

@@ -376,8 +376,8 @@ this chat's suitable checkout; existing branches/directories are preserved.
 Installed tools resolve from the task checkout, then primary checkout, then PATH;
 version/checksum pins still apply. No PATH setup is needed. Missing tools use
 `./Scripts/ensure-ci-tools.sh`; lookup never installs implicitly. Build products
-and generated resources stay checkout-local. Simulator leases and asset-library
-safeguards still apply outside Git isolation.
+and generated resources stay checkout-local. Simulator leases remain shared
+across isolated checkouts.
 
 ### Landing and review
 
@@ -452,9 +452,9 @@ staged-project validation, and pre-push checks. Generation and idempotence polic
 lives in [Verification.md](Verification.md#generated-project-consistency); the hooks
 enforce staged-project completeness at commit time. Pre-push styles Swift files in
 the commits being pushed (platform bans stay full-tree) and checks committed
-generated-output completeness. Asset-routed pushes also check selected Asset Library
-sources for freshness; other pushes check prepared outputs without the library.
-Prepare changed media and download offloaded sources before an asset-routed push;
+generated-output completeness. Asset-routed pushes also check selected repository
+`AssetSources/` masters for freshness; other pushes check prepared outputs alone.
+Prepare changed media and include selected masters before an asset-routed push;
 [media preparation](../AgentContext/content-and-manifests.md#media-assets) owns that workflow.
 Pre-push does not regenerate assets or run package tests;
 Select local and hosted checks through the [confidence ladder](Verification.md#confidence-ladder).

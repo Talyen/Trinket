@@ -5,7 +5,7 @@ name: Build and test
 # Build orchestration changes exercise the product jobs; lint-only changes use the gate.
 # Nightly/dispatch also run exhaustive UI outside the push path.
 # The warm cache preserves incremental state; build uploads test products
-# and build stamps in a tar archive for smoke and nightly UI. Raw sources live outside the repository.
+# and build stamps in a tar archive for smoke and nightly UI. AssetSources masters are omitted from sparse build jobs.
 
 on:
   workflow_call:
@@ -134,7 +134,7 @@ jobs:
         with:
           fetch-depth: 1
           sparse-checkout-cone-mode: true
-          # Cone mode keeps root files (project.yml, *.xctestplan). Raw sources live outside the repository.
+          # Cone mode keeps root files (project.yml, *.xctestplan). AssetSources masters are omitted from sparse build jobs.
           sparse-checkout: |
             Scripts
             Packages
@@ -227,7 +227,7 @@ jobs:
         with:
           fetch-depth: 1
           sparse-checkout-cone-mode: true
-          # Cone mode keeps root files (project.yml, *.xctestplan). Raw sources live outside the repository.
+          # Cone mode keeps root files (project.yml, *.xctestplan). AssetSources masters are omitted from sparse build jobs.
           sparse-checkout: |
             Scripts
             Packages

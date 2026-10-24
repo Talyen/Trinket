@@ -4,8 +4,8 @@ Trinket keeps raw art and app-ready art separate.
 
 ## Folders
 
-- Asset Library: shared local raw masters, outside Git and Xcode target membership.
-- `ArtManifest/app-icon.tsv`: library-relative Icon Composer package selection.
+- `AssetSources/`: tracked raw masters, outside Xcode target membership.
+- `ArtManifest/app-icon.tsv`: Icon Composer package selection relative to `AssetSources/`.
 - `ArtManifest/curated-assets.tsv`: source-of-truth manifest for selected art.
 - Art direction: [Docs/Product/ArtworkStyleGuide.md](../Docs/Product/ArtworkStyleGuide.md).
 - `Trinket/Assets.xcassets`: generated app-ready image assets.
@@ -28,7 +28,7 @@ kind	id	asset_name	source_path	focal_x	focal_y
   accepted keyword set. Background, portrait-background, and resource IDs are
   selected by their content consumers.
 - `asset_name`: stable asset catalog name used by SwiftUI `Image`.
-- `source_path`: library-relative path to the raw source file.
+- `source_path`: path to the raw source file relative to repository `AssetSources/`.
 - `focal_x` and `focal_y`: normalized focal point from `0.0` to `1.0`.
 
 For combatants, the subject name must match the game entity name. Descriptive

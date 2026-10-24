@@ -60,6 +60,7 @@ PRODUCT_PREFIXES = (
     "MusicManifest/",
     "SoundManifest/",
     "Raw Assets/",
+    "AssetSources/",
 )
 TECHNICAL_TERMS = (
     "SwiftFormat",
