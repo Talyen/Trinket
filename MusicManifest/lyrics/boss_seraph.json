@@ -1,0 +1,205 @@
+{
+  "audioSha256": "7e7e59ec118213c56651bf07b0563a96ee3b504c116bd590051d24071ae7e41f",
+  "lyricsSha256": "c72930c9dfd5044a13b4d40e3af28f1bebbf9f69d234798b8e73e268a427295d",
+  "audioDuration": 224.84,
+  "model": "small.en; small.en for suspect phrases",
+  "method": "independent ASR phrase matching with repeats/omissions; bounded word alignment; no manual timestamps",
+  "coverage": {
+    "detectedPhrases": 39,
+    "unmatchedAsrWords": 10,
+    "undetectedWrittenPhrases": 0,
+    "rejectedTimingPhrases": 0,
+    "alignedPhrases": 40,
+    "unmatchedSuppliedPhraseOccurrences": 4,
+    "additionalAlignedRepeats": 0
+  },
+  "lines": [
+    {
+      "text": "The saint whose name is on your blade",
+      "timings": [
+        12.19, 13.45, 13.45, 13.97, 13.97, 14.31, 14.31, 14.85, 14.85, 15.25, 15.25, 15.53, 15.53, 15.83, 15.83, 16.27
+      ]
+    },
+    {
+      "text": "Once knelt where you now stand.",
+      "timings": [16.6, 16.82, 16.82, 17.32, 17.32, 17.68, 17.68, 17.96, 17.96, 18.34, 18.34, 19.22]
+    },
+    {
+      "text": "You ask his shade to guide your sword.",
+      "timings": [
+        19.24, 20.14, 20.14, 20.68, 20.68, 20.88, 20.88, 21.44, 21.44, 21.78, 21.78, 22.16, 22.16, 22.46, 22.46, 22.92
+      ]
+    },
+    {
+      "text": "I taught his living hand.",
+      "timings": [23.06, 23.32, 23.32, 23.84, 23.84, 24.16, 24.16, 24.94, 24.94, 25.72]
+    },
+    {
+      "text": "There now. Steady your breathing.",
+      "timings": [25.88, 26.68, 26.68, 27.46, 27.46, 28.08, 28.08, 28.26, 28.26, 29.14]
+    },
+    {
+      "text": "Take the stance they taught you well.",
+      "timings": [29.26, 29.72, 29.72, 29.94, 29.94, 30.56, 30.56, 30.86, 30.86, 31.18, 31.18, 31.64, 31.64, 32.36]
+    },
+    {
+      "text": "I have seen it fail in thousands.",
+      "timings": [32.38, 33.0, 33.0, 33.22, 33.22, 33.8, 33.8, 34.04, 34.04, 34.54, 34.54, 34.9, 34.9, 35.38]
+    },
+    {
+      "text": "I remember how they fell.",
+      "timings": [36.04, 36.26, 36.26, 37.0, 37.0, 37.92, 37.92, 38.26, 38.26, 38.6]
+    },
+    {
+      "text": "Be not afraid.",
+      "timings": [39.64, 40.78, 40.78, 41.46, 41.46, 42.24]
+    },
+    {
+      "text": "Stand in the light.",
+      "timings": [43.34, 44.04, 44.04, 44.62, 44.62, 44.98, 44.98, 45.66]
+    },
+    {
+      "text": "You prayed to see a miracle.",
+      "timings": [46.76, 47.12, 47.12, 47.52, 47.52, 47.78, 47.78, 48.04, 48.04, 48.18, 48.18, 48.96]
+    },
+    {
+      "text": "Now look me in the eyes.",
+      "timings": [48.98, 49.68, 49.68, 50.06, 50.06, 50.6, 50.6, 51.1, 51.1, 51.44, 51.44, 52.22]
+    },
+    {
+      "text": "I have kept my six wings folded.",
+      "timings": [53.28, 53.64, 53.64, 53.88, 53.88, 54.14, 54.14, 54.52, 54.52, 54.94, 54.94, 55.32, 55.32, 55.86]
+    },
+    {
+      "text": "I have veiled my burning face.",
+      "timings": [56.42, 56.88, 56.88, 57.14, 57.14, 57.46, 57.46, 57.86, 57.86, 58.54, 58.54, 59.02]
+    },
+    {
+      "text": "You mistook restraint for weakness.",
+      "timings": [59.72, 59.98, 59.98, 60.64, 60.64, 61.44, 61.44, 62.04, 62.04, 62.38]
+    },
+    {
+      "text": "Be not afraid.",
+      "timings": [63.14, 63.58, 63.58, 64.3, 64.3, 64.76]
+    },
+    {
+      "text": "A line of gold across my wrist.",
+      "timings": [86.6, 87.24, 87.24, 87.78, 87.78, 87.96, 87.96, 88.54, 88.54, 88.98, 88.98, 89.44, 89.44, 89.9]
+    },
+    {
+      "text": "One feather at your feet.",
+      "timings": [89.9, 90.24, 90.24, 90.86, 90.86, 91.42, 91.42, 91.84, 91.84, 92.26]
+    },
+    {
+      "text": "You stare as though you’ve slain a god.",
+      "timings": [
+        92.7, 93.4, 93.4, 94.08, 94.08, 94.48, 94.48, 94.8, 94.8, 95.08, 95.08, 95.68, 95.68, 96.06, 96.06, 96.42
+      ]
+    },
+    {
+      "text": "You barely made me bleed.",
+      "timings": [96.44, 96.78, 96.78, 97.38, 97.38, 98.0, 98.0, 98.28, 98.28, 98.54]
+    },
+    {
+      "text": "Keep the feather, little champion.",
+      "timings": [99.22, 99.58, 99.58, 99.94, 99.94, 100.9, 100.9, 101.42, 101.42, 102.24]
+    },
+    {
+      "text": "Hold it tight against your breast.",
+      "timings": [102.48, 102.98, 102.98, 103.22, 103.22, 103.9, 103.9, 104.42, 104.42, 104.84, 104.84, 105.08]
+    },
+    {
+      "text": "That is all of heaven’s kindness",
+      "timings": [105.34, 106.08, 106.08, 106.42, 106.42, 107.1, 107.1, 107.52, 107.52, 108.22, 108.22, 108.48]
+    },
+    {
+      "text": "You have left.",
+      "timings": [108.8, 109.32, 109.32, 109.92, 109.92, 110.48]
+    },
+    {
+      "text": "Be not afraid.",
+      "timings": [112.8, 113.9, 113.9, 114.52, 114.52, 115.36]
+    },
+    {
+      "text": "Stand in the light.",
+      "timings": [116.62, 117.16, 117.16, 117.72, 117.72, 117.96, 117.96, 118.74]
+    },
+    {
+      "text": "You prayed to see a miracle.",
+      "timings": [119.84, 120.22, 120.22, 120.56, 120.56, 120.8, 120.8, 121.04, 121.04, 121.22, 121.22, 121.98]
+    },
+    {
+      "text": "Now look me in the eyes.",
+      "timings": [122.42, 122.78, 122.78, 123.12, 123.12, 123.58, 123.58, 124.06, 124.06, 124.38, 124.38, 125.5]
+    },
+    {
+      "text": "I have kept my six wings folded.",
+      "timings": [
+        126.22, 126.62, 126.62, 126.86, 126.86, 127.12, 127.12, 127.5, 127.5, 127.88, 127.88, 128.3, 128.3, 128.8
+      ]
+    },
+    {
+      "text": "I have veiled my burning face.",
+      "timings": [129.4, 129.88, 129.88, 130.14, 130.14, 130.44, 130.44, 130.84, 130.84, 131.56, 131.56, 131.88]
+    },
+    {
+      "text": "You mistook restraint for weakness.",
+      "timings": [131.99, 132.91, 132.91, 133.61, 133.61, 134.37, 134.37, 134.95, 134.95, 135.31]
+    },
+    {
+      "text": "Be not afraid.",
+      "timings": [136.16, 136.56, 136.56, 137.24, 137.24, 137.8]
+    },
+    {
+      "text": "Watch the veil fall from my face.",
+      "timings": [
+        138.935, 140.075, 140.075, 140.495, 140.495, 141.255, 141.255, 141.835, 141.835, 142.555, 142.555, 142.855,
+        142.855, 143.355
+      ]
+    },
+    {
+      "text": "Watch the white wings spread.",
+      "timings": [143.355, 143.755, 143.755, 144.055, 144.055, 144.635, 144.635, 145.355, 145.355, 146.635]
+    },
+    {
+      "text": "I will show you why your fathers",
+      "timings": [
+        146.635, 146.735, 146.735, 147.055, 147.055, 147.595, 147.595, 147.975, 147.975, 148.455, 148.455, 148.855,
+        148.855, 149.475
+      ]
+    },
+    {
+      "text": "Prayed with lowered heads.",
+      "timings": [149.475, 150.115, 150.115, 150.375, 150.375, 152.015, 152.015, 154.495]
+    },
+    {
+      "text": "All six wings are spread before you.",
+      "timings": [
+        193.34, 193.4, 193.4, 193.66, 193.66, 194.08, 194.08, 194.34, 194.34, 194.82, 194.82, 195.54, 195.54, 195.96
+      ]
+    },
+    {
+      "text": "I have cast the veil away.",
+      "timings": [196.48, 196.76, 196.76, 196.9, 196.9, 197.34, 197.34, 197.78, 197.78, 198.32, 198.32, 198.86]
+    },
+    {
+      "text": "Now you know why mortals tremble.",
+      "timings": [199.64, 199.92, 199.92, 200.16, 200.16, 200.54, 200.54, 200.98, 200.98, 201.56, 201.56, 202.94]
+    },
+    {
+      "text": "Be not afraid.",
+      "timings": [206.26, 206.68, 206.68, 207.2, 207.2, 207.9]
+    }
+  ],
+  "recovery": {
+    "models": ["small.en", "medium.en"],
+    "method": "bounded contextual original-mix alignment; no manual word timestamps",
+    "regionsSha256": "badb7f34f618ce33d99faee471b7c996eda07fbe08603ea1d43e06aa5dac25d7"
+  },
+  "unmatchedSuppliedPhrases": [
+    "Be not afraid.",
+    "Stand in the light.",
+    "You prayed to see a miracle.",
+    "Now look me in the eyes."
+  ]
+}

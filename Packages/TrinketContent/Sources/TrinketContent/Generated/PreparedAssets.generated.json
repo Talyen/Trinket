@@ -1640,10 +1640,10 @@
     }
   },
   "music": {
-    "input_hash": "f18711976fd91e83f4dcaff424e5cf96c9b688cfefccc67defed53243d551a6a",
+    "input_hash": "2a8375249b0b021c89cc0375df75b31efb97faffdd8e819abfa32a5218b5ecd0",
     "outputs": {
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift": "37098ed9c4971dce9a92a2c5443965a53a22bb1a5597b71c8eeebd093500fbf9",
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv": "5b8df4b14046fe14cd3d98159c473604dcaf7040b84f4ae8faf67bd84e753909",
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift": "f6a15942ef7944c7de2433c298566f2e327ea680a400c3884fde0401ce8ca946",
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv": "89e1d99f05927c141639b4c854232e24a8387666343e916ef34b4768f9971a50",
       "Trinket/Media/Music/music_battle_1.m4a": "3edcd6b9b215a405701843d32e63e60af865e7eb0a64b80496964e464acffedc",
       "Trinket/Media/Music/music_battle_2.m4a": "0cdfe07496b4cffbf68677003584714f5601c2a2afb101f2dedfeab3bcbfc689",
       "Trinket/Media/Music/music_battle_3.m4a": "f808a17ab0d02eb0766681bc860902a9a4b2d89f97bb8ec0d4238ed09684babc",
@@ -1653,6 +1653,8 @@
       "Trinket/Media/Music/music_boss_forge_golem.m4a": "7cbd9421ec90531340ed0d414b6553a63df500ae2dc0f22952742c4d274f45bd",
       "Trinket/Media/Music/music_boss_frostwarden.m4a": "bb39249add277fe65aa30b5541b69015a96f136b5d43b48deb6fa215724d8264",
       "Trinket/Media/Music/music_boss_iron_bear.m4a": "45297e2bf9e0d69b02c6a632dd868f56d92d76695c45a232735df657a4676414",
+      "Trinket/Media/Music/music_boss_seraph.m4a": "e5b174099b4098346afcb5b1380ea5579592692f3bf7e739aee1dc9ee8c2418c",
+      "Trinket/Media/Music/music_boss_stone_titan.m4a": "6b89d03287bd53e6d4e593a6f3caf66f216d72a3ed1051e3da5634eba10282a4",
       "Trinket/Media/Music/music_menu_1.m4a": "48ff93fbce368ab50817c0e618c15b528a5090c63b7d012a7ebf71534be85d9b",
       "Trinket/Media/Music/music_menu_2.m4a": "c05762e98e8e9e00e3bfb5ef85a5e8e321ed77ecb6ce5e687b3a07e09756f9b1",
       "Trinket/Media/Music/music_menu_3.m4a": "b360c0dd120b9ca81d6ee8b6df6a3fd65a2dc13d05f7631ba1cdb05e33092f0a",
@@ -1671,7 +1673,9 @@
       "Sounds/Game Sources/Music/The Blood Countess.mp3": "acfc64cba056fab100911b8fa805f60c8af910c8947843dbc57902c2b24ecbad",
       "Sounds/Game Sources/Music/The Forge Golem.mp3": "9e25e4c4cf704232857ad71d86355330221d7bb64a0c746702e64587c7324c90",
       "Sounds/Game Sources/Music/The Frostwarden.mp3": "80011a5374d03a5879b5563f4e30e7de5e316b0fb353fc23275b6f039070d15c",
-      "Sounds/Game Sources/Music/The Iron Bear.mp3": "f9b94ebc9aca6ee40e93a3d7935ef20d05a1bd59bf84abcfee63138ab315a2cc"
+      "Sounds/Game Sources/Music/The Iron Bear.mp3": "f9b94ebc9aca6ee40e93a3d7935ef20d05a1bd59bf84abcfee63138ab315a2cc",
+      "Sounds/Game Sources/Music/The Seraph - Be Not Afraid - Boss Song.mp3": "7e7e59ec118213c56651bf07b0563a96ee3b504c116bd590051d24071ae7e41f",
+      "Sounds/Game Sources/Music/The Stone Titan - Stone Reclaims - Boss Song.mp3": "43291e8614c58ed1fc0a525d364a79ac24cebef728b269222422cab65fcfcb59"
     }
   },
   "sfx": {

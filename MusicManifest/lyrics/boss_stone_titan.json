@@ -1,0 +1,218 @@
+{
+  "audioSha256": "43291e8614c58ed1fc0a525d364a79ac24cebef728b269222422cab65fcfcb59",
+  "lyricsSha256": "1b9f00137451364b9318066e223d1f35c45c31e8a1ede817207b095dfa149367",
+  "audioDuration": 223.2,
+  "model": "small.en; small.en for suspect phrases",
+  "method": "independent ASR phrase matching with repeats/omissions; bounded word alignment; no manual timestamps",
+  "coverage": {
+    "detectedPhrases": 46,
+    "unmatchedAsrWords": 9,
+    "undetectedWrittenPhrases": 0,
+    "rejectedTimingPhrases": 0,
+    "alignedPhrases": 48,
+    "unmatchedSuppliedPhraseOccurrences": 0,
+    "additionalAlignedRepeats": 1
+  },
+  "lines": [
+    {
+      "text": "You cut the hillside into stairways.",
+      "timings": [13.14, 16.18, 16.18, 16.52, 16.52, 16.88, 16.88, 18.0, 18.0, 18.8, 18.8, 19.88]
+    },
+    {
+      "text": "You hauled my ribs across the plain.",
+      "timings": [20.2, 21.02, 21.02, 21.36, 21.36, 21.64, 21.64, 22.14, 22.14, 22.82, 22.82, 23.4, 23.4, 23.76]
+    },
+    {
+      "text": "You raised your castles of me.",
+      "timings": [25.6, 25.8, 25.8, 26.18, 26.18, 26.46, 26.46, 27.26, 27.26, 27.66, 27.66, 28.26]
+    },
+    {
+      "text": "I felt the chisel.",
+      "timings": [29.06, 29.36, 29.36, 29.68, 29.68, 29.98, 29.98, 30.52]
+    },
+    {
+      "text": "I know your names.",
+      "timings": [31.22, 32.24, 32.24, 32.78, 32.78, 33.28, 33.28, 33.74]
+    },
+    {
+      "text": "The roots let go.",
+      "timings": [34.58, 34.86, 34.86, 35.18, 35.18, 35.76, 35.76, 36.76]
+    },
+    {
+      "text": "The bedrock breaks.",
+      "timings": [38.68, 39.52, 39.52, 40.42, 40.42, 41.14]
+    },
+    {
+      "text": "Your city moves",
+      "timings": [43.4, 44.12, 44.12, 44.84, 44.84, 45.62]
+    },
+    {
+      "text": "With every breath I take.",
+      "timings": [48.2, 48.54, 48.54, 49.02, 49.02, 49.4, 49.4, 49.86, 49.86, 50.32]
+    },
+    {
+      "text": "You tread on me.",
+      "timings": [51.9, 53.66, 53.66, 54.24, 54.24, 54.88, 54.88, 55.66]
+    },
+    {
+      "text": "Now I stand.",
+      "timings": [55.78, 56.54, 56.54, 56.9, 56.9, 57.48]
+    },
+    {
+      "text": "Take your towers",
+      "timings": [58.72, 59.1, 59.1, 59.5, 59.5, 59.92]
+    },
+    {
+      "text": "From my hands.",
+      "timings": [60.24, 60.9, 60.9, 61.7, 61.7, 62.48]
+    },
+    {
+      "text": "Stone remembers.",
+      "timings": [63.38, 63.72, 63.72, 64.8]
+    },
+    {
+      "text": "Stone reclaims.",
+      "timings": [64.96, 65.6, 65.6, 67.24]
+    },
+    {
+      "text": "All you raised",
+      "timings": [67.3, 68.0, 68.0, 68.52, 68.52, 69.3]
+    },
+    {
+      "text": "Will fall the same.",
+      "timings": [69.3, 69.74, 69.74, 70.12, 70.12, 70.5, 70.5, 71.6]
+    },
+    {
+      "text": "Will fall the same.",
+      "timings": [71.6, 72.04, 72.04, 72.7, 72.7, 73.06, 73.06, 73.98]
+    },
+    {
+      "text": "Your roads will buckle at my waking.",
+      "timings": [80.99, 82.07, 82.07, 82.45, 82.45, 82.71, 82.71, 83.07, 83.07, 83.39, 83.39, 83.71, 83.71, 84.19]
+    },
+    {
+      "text": "Your bridges crack beneath my weight.",
+      "timings": [85.37, 86.63, 86.63, 87.09, 87.09, 87.53, 87.53, 87.89, 87.89, 88.35, 88.35, 88.99]
+    },
+    {
+      "text": "You cannot bar the earth with iron.",
+      "timings": [89.87, 91.23, 91.23, 91.65, 91.65, 92.07, 92.07, 92.41, 92.41, 92.75, 92.75, 92.97, 92.97, 93.37]
+    },
+    {
+      "text": "You cannot build a taller gate.",
+      "timings": [93.56, 95.22, 95.22, 95.88, 95.88, 96.94, 96.94, 97.3, 97.3, 97.88, 97.88, 98.54]
+    },
+    {
+      "text": "Bring every spear.",
+      "timings": [98.7, 99.86, 99.86, 100.46, 100.46, 101.04]
+    },
+    {
+      "text": "Bring every blade.",
+      "timings": [101.8, 102.2, 102.2, 102.8, 102.8, 103.52]
+    },
+    {
+      "text": "I held that iron",
+      "timings": [103.54, 104.48, 104.48, 104.92, 104.92, 105.42, 105.42, 105.98]
+    },
+    {
+      "text": "Before it had a name.",
+      "timings": [106.2, 107.02, 107.02, 107.48, 107.48, 108.28, 108.28, 108.62, 108.62, 108.8]
+    },
+    {
+      "text": "You tread on me.",
+      "timings": [108.86, 109.0, 109.0, 109.62, 109.62, 110.22, 110.22, 110.84]
+    },
+    {
+      "text": "Now I stand.",
+      "timings": [111.28, 111.72, 111.72, 112.16, 112.16, 112.56]
+    },
+    {
+      "text": "Take your towers",
+      "timings": [113.16, 114.1, 114.1, 114.64, 114.64, 115.1]
+    },
+    {
+      "text": "From my hands.",
+      "timings": [115.32, 116.04, 116.04, 116.78, 116.78, 117.48]
+    },
+    {
+      "text": "Stone remembers.",
+      "timings": [117.68, 118.76, 118.76, 119.62]
+    },
+    {
+      "text": "Stone reclaims.",
+      "timings": [120.0, 121.0, 121.0, 122.52]
+    },
+    {
+      "text": "All you raised",
+      "timings": [122.86, 123.38, 123.38, 123.56, 123.56, 124.22]
+    },
+    {
+      "text": "Will fall the same.",
+      "timings": [124.46, 124.7, 124.7, 125.24, 125.24, 125.6, 125.6, 125.98]
+    },
+    {
+      "text": "What you call forever",
+      "timings": [126.52, 126.98, 126.98, 127.3, 127.3, 127.82, 127.82, 128.32]
+    },
+    {
+      "text": "Is the dust beneath my heel.",
+      "timings": [130.98, 131.62, 131.62, 131.86, 131.86, 132.2, 132.2, 132.58, 132.58, 133.06, 133.06, 133.6]
+    },
+    {
+      "text": "You carved your glory out of me.",
+      "timings": [
+        134.52, 135.86, 135.86, 136.22, 136.22, 136.48, 136.48, 137.0, 137.0, 137.42, 137.42, 137.66, 137.66, 138.1
+      ]
+    },
+    {
+      "text": "Now tell me how it feels.",
+      "timings": [140.14, 140.44, 140.44, 140.76, 140.76, 141.06, 141.06, 141.58, 141.58, 141.9, 141.9, 142.3]
+    },
+    {
+      "text": "You tread on me.",
+      "timings": [184.73, 186.57, 186.57, 187.17, 187.17, 187.83, 187.83, 188.33]
+    },
+    {
+      "text": "Now I stand.",
+      "timings": [188.43, 189.37, 189.37, 189.77, 189.77, 190.61]
+    },
+    {
+      "text": "Take your towers",
+      "timings": [191.36, 191.84, 191.84, 192.3, 192.3, 192.7]
+    },
+    {
+      "text": "From my hands.",
+      "timings": [192.98, 193.7, 193.7, 194.44, 194.44, 195.12]
+    },
+    {
+      "text": "Stone remembers.",
+      "timings": [195.96, 196.4, 196.4, 197.22]
+    },
+    {
+      "text": "Stone reclaims.",
+      "timings": [197.86, 198.66, 198.66, 200.0]
+    },
+    {
+      "text": "All you raised",
+      "timings": [200.1, 200.66, 200.66, 201.26, 201.26, 201.92]
+    },
+    {
+      "text": "Will fall the same.",
+      "timings": [202.06, 202.38, 202.38, 202.84, 202.84, 203.22, 203.22, 204.06]
+    },
+    {
+      "text": "Stone remembers.",
+      "timings": [205.2, 205.56, 205.56, 206.2]
+    },
+    {
+      "text": "Stone reclaims.",
+      "timings": [208.22, 209.96, 209.96, 211.28]
+    }
+  ],
+  "recovery": {
+    "models": ["small.en", "medium.en"],
+    "method": "bounded contextual original-mix alignment; no manual word timestamps",
+    "regionsSha256": "abb56e9b1c98f223625359c61f2956e4de99c3c404c9dcdd6df74e4a8b510f85"
+  },
+  "unmatchedSuppliedPhrases": []
+}

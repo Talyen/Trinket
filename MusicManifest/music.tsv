@@ -12,3 +12,5 @@ boss	boss_forge_golem	music_boss_forge_golem	Sounds/Game Sources/Music/The Forge
 boss	boss_frostwarden	music_boss_frostwarden	Sounds/Game Sources/Music/The Frostwarden.mp3	the_frostwarden	true	1.0
 boss	boss_iron_bear	music_boss_iron_bear	Sounds/Game Sources/Music/The Iron Bear.mp3	the_iron_bear	true	1.0
 boss	boss_blood_countess	music_boss_blood_countess	Sounds/Game Sources/Music/The Blood Countess.mp3	the_blood_countess	true	1.0
+boss	boss_seraph	music_boss_seraph	Sounds/Game Sources/Music/The Seraph - Be Not Afraid - Boss Song.mp3	the_seraph	true	1.0
+boss	boss_stone_titan	music_boss_stone_titan	Sounds/Game Sources/Music/The Stone Titan - Stone Reclaims - Boss Song.mp3	the_stone_titan	true	1.0
