@@ -192,6 +192,21 @@ struct HomesteadStateTests {
         #expect(try #require(state.nextCollectibleDate(after: date, gold: gold)) > date)
     }
 
+    @Test(arguments: [0.0, 0.5])
+    func `next collection after a clock rollback waits for the saved production cursor`(pending: Double) throws {
+        let cursor = Date(timeIntervalSince1970: 2000000000)
+        let now = cursor.addingTimeInterval(-PlayerHomesteadState.secondsPerDay)
+        let homestead = PlayerHomesteadState(
+            resources: [:], nodeTiers: [.wheatField: 1],
+            pendingProduction: [.food: pending], lastProductionAt: cursor,
+        )
+        let next = try #require(homestead.nextCollectibleDate(after: now, gold: 0))
+        let expected = cursor.addingTimeInterval((1 - pending) * PlayerHomesteadState.secondsPerDay)
+        #expect(abs(next.timeIntervalSince(expected)) < 0.001)
+        #expect(homestead.pendingProductionAmounts(at: next.addingTimeInterval(-1), gold: 0).isEmpty)
+        #expect(homestead.pendingProductionAmounts(at: next, gold: 0) == [ResourceAmount(.food, 1)])
+    }
+
     @Test func `next collectible date wakes at next whole unit`() throws {
         let start = Date(timeIntervalSince1970: 0)
         let homestead = PlayerHomesteadState(

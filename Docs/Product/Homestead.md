@@ -124,6 +124,8 @@ phone size and allow natural wrapping on smaller screens or at larger text sizes
 Production remains an absolute quantity per Day
 and uses the existing clock; collecting multiple resources preserves each resource's
 fractional production independently. Multiple outputs remain individual rows.
+After a clock rollback, the next collection wakeup waits for the saved production
+cursor plus the remaining time to a whole unit.
 
 [homestead_nodes.tsv](../../ContentManifest/homestead_nodes.tsv) owns tier values,
 production and upgrade costs. Homestead bonuses replace lower tiers; Companion

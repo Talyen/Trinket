@@ -62,6 +62,7 @@ enum BattleRewardAssembly {
                 heroProgression: configuration.hero.progression,
                 companionProgression: configuration.companion.progression,
                 productionDate: inputs.party.homestead.lastProductionAt,
+                rewardRemainders: inputs.party.homestead.rewardRemainders ?? .zero,
             ),
         )
     }

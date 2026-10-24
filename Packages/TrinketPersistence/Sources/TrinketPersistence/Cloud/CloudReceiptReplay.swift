@@ -65,6 +65,7 @@ struct CloudReceiptReplay {
             return retained
         }
         var merged = try CloudSaveMerge.mergeChanges(from: action.before, to: action.after, into: existing)
+        reconcileVoyageEarnings(action, before: before, after: after, existing: existing, merged: &merged)
         var production = existing.homestead
         production.settleProduction(at: merged.homestead.lastProductionAt, gold: existing.roster.gold)
         merged.homestead.pendingProduction = production.pendingProduction
@@ -79,6 +80,30 @@ struct CloudReceiptReplay {
         reconcileProduction([receipt], positions: collectionPositions, after: after, merged: &merged)
         retireItems(in: &merged)
         return merged
+    }
+
+    private func reconcileVoyageEarnings(
+        _ action: ResolvedSaveAction, before: PlayerSave, after: PlayerSave,
+        existing: PlayerSave, merged: inout PlayerSave,
+    ) {
+        guard case let .voyage(runID, _) = action.claim,
+              let first = before.voyage.activeRun, first.id == runID,
+              let last = after.voyage.activeRun, last.id == runID,
+              let retained = existing.voyage.activeRun, retained.id == runID,
+              merged.voyage.activeRun?.id == runID else { return }
+        // Snapshot maxima can carry an earlier rejected node's alternate payout.
+        // Only this admitted action's recorded earnings enter the terminal bonus.
+        merged.voyage.activeRun?.earnedGold = SaturatedArithmetic.saturatingAdd(
+            retained.earnedGold, max(0, SaturatedArithmetic.saturatingSub(last.earnedGold, first.earnedGold)),
+        )
+        var materials = retained.earnedMaterials
+        for resource in Set(first.earnedMaterials.keys).union(last.earnedMaterials.keys) {
+            let delta = max(0, SaturatedArithmetic.saturatingSub(
+                last.earnedMaterials[resource, default: 0], first.earnedMaterials[resource, default: 0],
+            ))
+            materials[resource] = SaturatedArithmetic.saturatingAdd(materials[resource, default: 0], delta)
+        }
+        merged.voyage.activeRun?.earnedMaterials = materials
     }
 
     mutating func apply(

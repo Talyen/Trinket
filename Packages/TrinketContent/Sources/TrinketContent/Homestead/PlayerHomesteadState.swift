@@ -154,7 +154,9 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
             guard seconds.isFinite, seconds > 0 else { continue }
             soonest = min(soonest ?? seconds, seconds)
         }
-        return soonest.map { date.addingTimeInterval($0) }
+        // A clock rollback leaves the saved production cursor ahead of now.
+        // No new credit accrues until that cursor, so wakeups use the same origin.
+        return soonest.map { projected.lastProductionAt.addingTimeInterval($0) }
     }
 
     private func collectibleQuantity(

@@ -17,9 +17,11 @@ struct PreparedBattleReuseTests {
         let battle = try #require(context.lastBattle)
         let revision = battle.preparedBattlePresentationRevision
         let item = try #require(GameContent.sampleInventoryItems.first)
+        let remainders = HomesteadRewardRemainders(gold: 95, gems: 80)
         try state.playerSave.performFixtureMutation { save in
             save.roster.gold = PlayerRosterState.maxGoldBalance
             save.inventory.appendUniqueItem(item)
+            save.homestead.rewardRemainders = remainders
         }
         let original = prepared.registration.launch.inputs.launch
         // Rewards are application metadata too: a changed payout must reach the
@@ -46,8 +48,16 @@ struct PreparedBattleReuseTests {
         #expect(presentation.inventoryItems == state.playerSave.inventory.items)
         let rewardInputs = try #require(presentation.rewardInputs)
         #expect(rewardInputs.gold == PlayerRosterState.maxGoldBalance)
+        #expect(rewardInputs.rewardRemainders == remainders)
         #expect(presentation.rewardPlan.stageGold == 17)
+        let progression = battle.progression
+        battle.progression = nil
+        battle.presentLaunchVictory()
+        battle.progression = progression
+        let fallback = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable).settlement
+        #expect(fallback.inputs.rewardRemainders == remainders)
         let settlement = try #require(state.settleBattleRewards(active, battleGold: .init(gained: 0)))
+        #expect(fallback.award == settlement.award)
         #expect(settlement.award.goldGained == 0)
         #expect(settlement.replacementExperience > 0)
         #expect(state.completeActiveBattle(active, battleGold: .init(gained: 0), settlement: settlement).didComplete)

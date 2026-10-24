@@ -267,8 +267,10 @@ failure preserves the local snapshot and outbox.
   payload bytes through unreadable-state handling.
 - Board preparation replaces retired destinations and retains unaffected offers.
   Overlap detection checks both active runs when one device has started another
-  Voyage. Shared encounters retain the larger earned total per resource for the
-  final completion bonus.
+  Voyage. Historical snapshot merging retains the larger earned total per resource
+  for shared encounters. Resolved action replay adds only each accepted node's
+  recorded earned deltas to the final completion bonus; rejected alternatives
+  cannot reappear through a later cumulative tally.
 
 #### Journal and economic replay
 
