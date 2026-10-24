@@ -27,8 +27,10 @@ Gold grants require a positive request and a living recipient before flat bonuse
 Gold-gain reactions and feedback require a positive actual grant, including when the Gold ledger is saturated.
 A saturated Gold ledger preserves theft preparations. Gilded Claws damage storage
 saturates independently of the current Gold grant.
-Nonpositive Mana restoration leaves the balance unchanged. Raw Health loss and
-Mana spending clamp requests to zero through the current balance before subtracting.
+Nonpositive Mana restoration leaves the balance unchanged.
+Per-turn Burn Mana caps bound actual restoration after flat/percentage bonuses
+and both doubling rolls; capped-out amplification cannot create overflow rewards.
+Raw Health loss and Mana spending clamp requests to zero through the current balance before subtracting.
 Direct Mana gains report application and gain feedback only for actual restoration;
 overflow conversions still resolve when the recipient's Mana is full.
 Block grants reject defeated recipients before preparations, feedback, or partner

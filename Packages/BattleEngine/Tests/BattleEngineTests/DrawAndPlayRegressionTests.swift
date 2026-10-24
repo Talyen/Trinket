@@ -41,4 +41,28 @@ struct DrawAndPlayRegressionTests {
         #expect(battle.companionDeck.abilities.first?.id == Ability.slash.id)
         #expect(battle.activeEffects(of: battle.hero).contains { $0.effect == .evadeNextHit })
     }
+
+    @Test(arguments: [1, 2])
+    func `automatic collection leaves an unaffordable Block card in its deck`(count: Int) {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
+        let blocked = Ability(
+            id: "block-cost", name: "Block Cost", tier: .basic,
+            damageComponents: [DamageComponent(1)], blockCost: 3,
+        )
+        battle.heroDeck = CombatDeck(abilities: [blocked])
+        battle.companionDeck = CombatDeck(abilities: [.slash, .block])
+        DefensePoolEngine.set(2, on: battle.hero, in: &battle)
+        let health = battle.health(of: battle.enemy)
+
+        let outcome = EffectHandlersTestSupport.dispatch(
+            .drawAndPlayCards(count), source: battle.hero, target: battle.hero, battle: &battle,
+        )
+
+        #expect(outcome.didApply == (count > 1))
+        #expect(battle.heroDeck.abilities.map(\.id) == [blocked.id])
+        #expect(battle.hand.isEmpty)
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == 2)
+        #expect((battle.health(of: battle.enemy) < health) == (count > 1))
+        #expect(!outcome.events.contains { $0.abilityID == blocked.id })
+    }
 }

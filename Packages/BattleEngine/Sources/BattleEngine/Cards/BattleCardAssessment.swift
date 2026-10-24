@@ -92,6 +92,7 @@ private extension BattleState {
         var targets = assessmentDamageTargets(branch, action: action, keywordOverride: keywordOverride)
         for (index, operation) in branch.operations.enumerated() {
             guard case let .effect(targeted) = operation else { continue }
+            guard targeted.chance >= 1 else { continue }
             if let condition = targeted.condition, !BattleConditionEvaluator.isMet(condition, action: action, in: self) {
                 continue
             }

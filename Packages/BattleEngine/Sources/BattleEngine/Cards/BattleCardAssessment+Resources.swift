@@ -26,12 +26,13 @@ extension BattleState {
         }
         for (effectIndex, operation) in branch.operations.enumerated() {
             guard case let .effect(targeted) = operation, targeted.effect == .convertManaToBlock else { continue }
+            guard targeted.chance > 0 else { continue }
             if let condition = targeted.condition, !BattleConditionEvaluator.isMet(condition, action: action, in: self) {
                 continue
             }
             for (targetIndex, target) in action.targets(targeted.target, in: self).enumerated() where health(of: target) > 0 {
                 // Earlier operations and another recipient's spending reactions can change this balance.
-                let isCertain = !hasDamage && effectIndex == 0 && targetIndex == 0
+                let isCertain = targeted.chance >= 1 && !hasDamage && effectIndex == 0 && targetIndex == 0
                     && !branch.operations.contains(where: \.isManaEmpowerable)
                 let mana = mana(of: target)
                 guard mana > 0 || !isCertain else { continue }

@@ -213,6 +213,8 @@ effects start with the targeted owner; multi-card requests alternate decks and m
 fall back to the other owner, while a single-card request uses only its target.
 Draw-and-play collection stops when no candidate can draw;
 its work is bounded by available cards rather than the requested count.
+Collection checks both Health and Block affordability before drawing a candidate;
+an unaffordable card stays in its deck, allowing the multi-card partner fallback.
 
 Card returns preserve the physical copy's identity and create a fresh presentation
 ID on arrival, without adding a deck copy. [Unique equipment](../Product/UniqueItems.md#card-cadence-and-reactions)
@@ -261,6 +263,9 @@ affordability, possible outcomes, targeting, and the Mana empowerment budget wit
 resolution. Quotes deduct the card’s Block cost before budgeting empowerment, then
 combine both Block spends against the original balance. Assessment never advances RNG
 or consumes combat preparations.
+Chance effects do not promise a recipient unless their chance is guaranteed.
+Zero-chance conversions quote no payment; probabilistic conversions retain an
+unspecified amount rather than promising to spend the current balance.
 Effect application and assessment share composite Aegis constituents, Panacea
 recipient rules, and deferred draw-recipient selection through `EffectApplication`.
 Mana quotes pass operation keywords and empowerment settings directly to the shared

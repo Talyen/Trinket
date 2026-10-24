@@ -95,8 +95,9 @@ package extension BattleState {
     }
 
     @discardableResult
-    mutating func restoreMana(_ amount: Int, to combatant: Combatant, isResolved: Bool = false) -> Int {
-        guard amount > 0, let participant = roster.participant(for: combatant), roster[participant].isAlive else { return 0 }
+    mutating func restoreMana(_ amount: Int, to combatant: Combatant, isResolved: Bool = false, maximumGain: Int? = nil) -> Int {
+        guard amount > 0, (maximumGain ?? .max) > 0,
+              let participant = roster.participant(for: combatant), roster[participant].isAlive else { return 0 }
         let standalone = resolution.beginStandaloneRestoration()
         defer {
             if standalone {
@@ -106,7 +107,8 @@ package extension BattleState {
         let profile = modifiers(for: combatant.id)
         let deepRoots = profile.triggers.deepRoots &&
             roster[participant].activeEffects.contains { $0.effect.kind == .thorns }
-        let requested = requestedMana(amount, profile: profile, hasThorns: deepRoots, isResolved: isResolved)
+        // Cadence caps constrain the amplified gain, including each doubling contribution.
+        let requested = min(maximumGain ?? .max, requestedMana(amount, profile: profile, hasThorns: deepRoots, isResolved: isResolved))
 
         var total = 0
         var overflow = 0
@@ -117,12 +119,12 @@ package extension BattleState {
         if !isResolved, total > 0 {
             if profile.triggers.manaGainDoubleChancePercent > 0,
                BattleChance.succeeds(probability: profile.triggers.manaGainDoubleChancePercent, using: &rng) {
-                applyDoubledMana(requested, for: combatant, total: &total, overflow: &overflow)
+                applyDoubledMana(min(requested, maximumGain.map { $0 - total } ?? .max), for: combatant, total: &total, overflow: &overflow)
             }
             if profile.triggers.manaRestorationDoubleChancePercent > 0,
                claimTalentAbility(.arcaneReservoir, actorID: combatant.id),
                BattleChance.succeeds(probability: profile.triggers.manaRestorationDoubleChancePercent, using: &rng) {
-                applyDoubledMana(requested, for: combatant, total: &total, overflow: &overflow)
+                applyDoubledMana(min(requested, maximumGain.map { $0 - total } ?? .max), for: combatant, total: &total, overflow: &overflow)
             }
         }
         if overflow > 0 {

@@ -86,6 +86,8 @@ extension EffectApplication {
         guard !context.ownersSkippingThisPlayerTurn.contains(owner) else { return false }
         let ability = BattleCardCombatEngine.firstDeckAbility(for: owner, in: context)
         guard let ability else { return false }
-        return BattleAbilityRules.canPayHealthCost(ability, actor: context.roster[owner].combatant, in: context)
+        let actor = context.roster[owner].combatant
+        return BattleAbilityRules.canPayHealthCost(ability, actor: actor, in: context)
+            && BattleAbilityRules.canPayBlockCost(ability, actor: actor, in: context)
     }
 }
