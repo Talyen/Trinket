@@ -30,6 +30,7 @@ and do not reopen a task.
 
 ## Product constraints
 
+- Avoid taglines, avoid helper text, avoid secondary labels - if a screen needs them to make sense, fix the layout instead. [Design principles](Docs/Product/DesignPrinciples.md#clarity-through-layout) owns this UI/UX rule.
 - Every supported player action needs prompt, perceptible feedback under [Design principles](Docs/Product/DesignPrinciples.md); existing visible responses count. Apply it to UI/UX and gameplay interaction changes.
 - Use first-party SwiftUI under the [platform policy](Docs/Platform/ApplePlatformReference.md#platform-support). The deployment target is a minimum, not an adoption ceiling; small supported-window availability checks are appropriate. Avoid legacy compatibility frameworks and UIKit feature chrome; existing measured UIKit feedback follows its package guide.
 - Preserve launch/imminent artwork pins and first-screen prepared artwork; do not replace them with on-demand `Image(name)` or lower [artwork budgets](Docs/Platform/PerformanceInvestigationPlaybook.md) without product approval.

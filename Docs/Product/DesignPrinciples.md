@@ -3,6 +3,16 @@
 Standing policy for player-facing UI/UX and gameplay interactions.
 [Product decisions](Decisions.md) records the approved direction.
 
+## Clarity through layout
+
+Avoid taglines, avoid helper text, avoid secondary labels - if a screen needs them
+to make sense, fix the layout instead.
+
+Make the player's next action clear through hierarchy, grouping, placement, and
+visible selection or availability. Keep essential game rules, costs, and
+consequences in the decision itself. Apply the [writing guidance](../../.agents/skills/apple-design/writing-and-help.md)
+when choosing action labels and presenting that information.
+
 ## Every player action is perceptible
 
 **Every supported player action must produce a prompt, perceptible visual and/or
@@ -55,6 +65,9 @@ restoration outcomes. Keep cancellation quiet and avoid extra alerts over
 Apple's purchase authorization.
 
 ## Review checklist
+
+Check that the screen makes sense without taglines, helper text, or secondary
+labels; repair the layout when it does not.
 
 Check that input, pending work, and outcomes are distinct; rejected, cancelled,
 repeated, and interrupted actions remain truthful; and essential results stay

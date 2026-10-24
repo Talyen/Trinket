@@ -5,9 +5,10 @@ Use established names from the owning [product contract](../../../Docs/Product/O
 and actual controls; do not create a second glossary or rename game concepts as
 incidental copy work.
 
-Before adding explanatory copy, identify the player decision that would become
-misleading or impossible without it. First try clearer grouping, placement,
-selection/disabled state, or an action label. Remove subtitles that repeat titles,
+Follow [clarity through layout](../../../Docs/Product/DesignPrinciples.md#clarity-through-layout):
+avoid taglines, helper text, and secondary labels. If a screen needs them to make
+sense, fix the layout instead. Use clearer grouping, placement, selection/disabled
+state, or an action label. Remove subtitles that repeat titles,
 instructions that restate buttons, decorative category labels, and success copy
 for already-visible outcomes. Keep actual game rules, costs, consequences, and
 necessary recovery information. “Upgrade” beside its cost and benefit does not
@@ -26,11 +27,12 @@ redundant copy. Localize retained or changed copy under the repository workflow.
 - Keep fantasy character in narrative and rewards while making costs, eligibility,
   purchases, and recovery instructions precise. Remove filler and repetition before
   shrinking text to fit. Match existing capitalization for the kind of control.
-- Explain an unavailable action near the choice when its reason is unclear. Pair
-  essential color differences with a label, symbol, shape, or native disabled state.
-- When an empty state leaves the next step unclear, explain what the player can
-  do using an actual available action. Do not invent an action or add a tutorial
-  just to fill the space.
+- Make an unavailable action's eligibility clear at the choice through its actual
+  requirements and visible state. Pair essential color differences with a symbol,
+  shape, or native disabled state.
+- When an empty state leaves the next step unclear, make an actual available
+  action prominent and place it where the player needs it. Do not invent an action
+  or add a tutorial just to fill the space.
 - Follow the [failure and destructive-action contract](../../../Docs/AgentContext/swiftui-features.md)
   for recovery: keep technical failures internal, expose Retry/Back when blocked,
   and use inline consequences with Cancel and a final action for destructive choices.
