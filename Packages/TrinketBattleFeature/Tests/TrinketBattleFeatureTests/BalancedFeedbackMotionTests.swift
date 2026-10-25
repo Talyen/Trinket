@@ -95,4 +95,20 @@ struct BalancedFeedbackMotionTests {
         #expect(Set(numbers.map(\.feedbackSpread)).count == 2)
         #expect(numbers.allSatisfy { $0.availableAt.timeIntervalSince(start) <= 0.180001 })
     }
+
+    @Test @MainActor func `six close corner gains keep distinct stationary rows`() {
+        let lane = BattleFeedbackLane(balanced: true)
+        defer { lane.release() }
+        let start = Date.now.addingTimeInterval(10)
+        let kinds: [ActionEvent.EffectOutcome] = [.shieldApplied, .thornsApplied, .leechApplied]
+        let keywords: [Keyword] = [.block, .thorns, .leech]
+        for index in 0 ..< 6 {
+            lane.record([BattleSessionTestSupport.makeActionEvent(
+                id: index + 1, kind: .effect(kinds[index % 3]), amount: 3, keyword: keywords[index % 3],
+            )], at: start.addingTimeInterval(Double(index) * 0.14))
+        }
+        #expect(lane.activeItems.count == 6)
+        #expect(Set(lane.activeItems.map(\.feedbackSpread)).count == 6)
+        #expect(lane.evictedItemIDs.isEmpty)
+    }
 }

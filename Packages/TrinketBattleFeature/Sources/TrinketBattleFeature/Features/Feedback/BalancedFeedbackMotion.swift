@@ -76,7 +76,8 @@ enum BalancedFeedbackMotion {
             }
             return [-2, 2, -1, 1].first { route in !recent.contains { $0.feedbackSpread == route } } ?? -2
         }
-        return recent.last(where: { $0.feedbackSpread != 0 })?.feedbackSpread == -1 ? 1 : -1
+        let occupied = previous.filter { $0.region == item.region && $0.expiresAt > launch }
+        return [0, -1, 1, -2, 2, -3, 3].first { route in !occupied.contains { $0.feedbackSpread == route } } ?? -3
     }
 
     private static func bestRoute(
