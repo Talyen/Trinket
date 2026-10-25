@@ -15,6 +15,9 @@ struct OptionsView: View {
     @Environment(OptionsStore.self) private var optionsStore
     @Environment(\.scenePhase) private var scenePhase
     @State private var isResetConfirmationPresented = false
+    #if DEBUG
+    @State private var showsFeedbackComparison = ProcessInfo.processInfo.arguments.contains("-feedback-comparison")
+    #endif
 
     var body: some View {
         @Bindable var options = optionsStore
@@ -89,25 +92,31 @@ struct OptionsView: View {
         .navigationBarTitleDisplayMode(.large)
         .accessibilityIdentifier(AccessibilityID.Screen.options)
         .disabled(appState.playerSave.isRetryingSaveAction)
-        .alert(
-            Text(L10n.ui_optionsview_reset_game_progress_2edb2),
-            isPresented: $isResetConfirmationPresented,
-        ) {
-            Button(String(localized: L10n.ui_optionsview_cancel_19766), role: .cancel) {}
-                .accessibilityIdentifier(AccessibilityID.Options.resetProgressCancel)
-            Button(String(localized: L10n.ui_optionsview_reset_progress), role: .destructive) {
-                guard !appState.playerSave.isRetryingSaveAction else { return }
-                appState.playerSave.performSaveAction(key: "reset-progress") { _ in
-                    appState.resetGameplayProgress()
-                }
+        #if DEBUG
+            .navigationDestination(isPresented: $showsFeedbackComparison) {
+                CombatFeedbackComparisonView(stage: GameContent.chapters[0].stages.first { $0.encounter.isCombat } ?? GameContent
+                    .chapters[0].stages[0])
             }
-            .accessibilityIdentifier(AccessibilityID.Options.resetProgressConfirmation)
-        } message: {
-            Text(
-                appState.playerSave.resetAffectsCloudProgress
-                    ? L10n.ui_optionsview_reset_cloud_explanation : L10n.ui_optionsview_reset_local_explanation,
-            )
-        }
+        #endif
+            .alert(
+                Text(L10n.ui_optionsview_reset_game_progress_2edb2),
+                isPresented: $isResetConfirmationPresented,
+            ) {
+                Button(String(localized: L10n.ui_optionsview_cancel_19766), role: .cancel) {}
+                    .accessibilityIdentifier(AccessibilityID.Options.resetProgressCancel)
+                Button(String(localized: L10n.ui_optionsview_reset_progress), role: .destructive) {
+                    guard !appState.playerSave.isRetryingSaveAction else { return }
+                    appState.playerSave.performSaveAction(key: "reset-progress") { _ in
+                        appState.resetGameplayProgress()
+                    }
+                }
+                .accessibilityIdentifier(AccessibilityID.Options.resetProgressConfirmation)
+            } message: {
+                Text(
+                    appState.playerSave.resetAffectsCloudProgress
+                        ? L10n.ui_optionsview_reset_cloud_explanation : L10n.ui_optionsview_reset_local_explanation,
+                )
+            }
     }
 
     private var purchaseSection: some View {
@@ -162,6 +171,7 @@ struct OptionsView: View {
 
         #if DEBUG
         Section {
+            Button { showsFeedbackComparison = true } label: { Text(verbatim: "Feedback A/B") }
             NavigationLink(String(localized: L10n.ui_optionsview_game_feel_65589)) {
                 GameFeelPreviewView(
                     stage: GameContent.chapters[0].stages.first { $0.encounter.isCombat } ?? GameContent.chapters[0].stages[0],

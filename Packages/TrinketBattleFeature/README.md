@@ -120,6 +120,35 @@ battle-chrome invalidation. This is an intentional performance exception to the 
 
 Do not rewrite the host for purity unless Instruments shows SwiftUI can match hitch budgets.
 
+## Debug feedback comparison
+
+Debug builds expose **Options → Feedback A/B**. Baseline uses the shipping
+feedback lane, raster host, layout, motion, semantic merging and corner caps.
+Balanced is an opt-in experiment on the same battlefield, portraits, glyphs and
+hit reactions; ordinary battles keep Baseline. Both modes use fixed presentation
+fixtures and never issue gameplay or save commands.
+
+Select Single, Rapid (six differently typed hits at 140 ms), Mixed (damage,
+healing and Block on one recipient), Corners, or Reactions. Replay repeats the
+sample. A/B Tour runs the same five sequences first in Baseline, then Balanced;
+Stop cancels playback and clears all feedback. Backgrounding cancels playback.
+Use `-launch-screen options -feedback-comparison` for direct managed inspection.
+
+Balanced retains native font/icon assets and portrait-capped 52-point travel.
+Central motion peaks at 1.85× after 85 ms, settles to 1.55× by 170 ms, starts
+rising at 240 ms, and fades over its final 280 ms of a 1.05-second lifetime.
+Each chip keeps its launch position. Measured raster footprints schedule launches
+with at least 180 ms between same-region entries and 6 points of combined
+clearance, sampled every 15 ms while both chips exceed 15% opacity. Damage and
+healing share the central queue; reaction names coordinate with it. Corners keep
+their native stationary motion and use independent queues. Lifetime starts at
+launch. Matching results merge within a 250 ms arrival gap, without renewed pulse
+or expiry; waiting queues retain the newest twelve entries per region/recipient.
+
+This is a comparison candidate, not a shipping policy change. Dense sequences
+also expose queue latency; native recording and review are required before
+judging the tradeoff. The browser Alchemy lab is not native Trinket evidence.
+
 ## Debug transition lab
 
 In debug builds, open **Options → Developer → Battle Transitions**. The lab

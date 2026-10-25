@@ -25,6 +25,9 @@ struct CombatFeedbackRasterSlot: View {
 }
 
 private struct CombatFeedbackRasterHost: UIViewRepresentable {
+    #if DEBUG
+    @Environment(\.balancedFeedbackPreview) private var balancedFeedbackPreview
+    #endif
     let bridge: CombatFeedbackChipBridge
     let combatantID: String
     let layoutDirection: LayoutDirection
@@ -46,6 +49,9 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
 
     func makeUIView(context _: Context) -> CombatFeedbackRasterUIView {
         let view = CombatFeedbackRasterUIView()
+        #if DEBUG
+        view.debugBalancedPreview = balancedFeedbackPreview
+        #endif
         view.bottomInset = bottomInset
         bridge.register(
             view,
@@ -61,6 +67,9 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
             context.coordinator.bridge.unregister(uiView)
             context.coordinator.bridge = bridge
         }
+        #if DEBUG
+        uiView.debugBalancedPreview = balancedFeedbackPreview
+        #endif
         uiView.bottomInset = bottomInset
         bridge.register(
             uiView,
@@ -119,6 +128,7 @@ final class CombatFeedbackRasterUIView: UIView {
     private var orderedLayers: [ChipLayer] = []
     private var reusableLayers: [CALayer] = []
     #if DEBUG
+    var debugBalancedPreview = false
     private(set) var debugApplyCount = 0
     private(set) var debugLayoutCount = 0
     var debugLastAppliedChips: [CombatFeedbackItem] = []
@@ -352,6 +362,31 @@ final class CombatFeedbackRasterUIView: UIView {
 }
 
 private extension CombatFeedbackRasterUIView {
+    #if DEBUG
+    private func layoutBalancedPreview() {
+        for chip in orderedLayers {
+            var isolated = StationaryFeedbackLayout()
+            isolated.retain(ids: [chip.item.id], in: bounds)
+            let sizeScale = StationaryFeedbackLayout.sizeScale
+                *
+                (chip.item.region == .impact ? 1 : chip.item.region == .announcement ? 1 / StationaryFeedbackLayout
+                    .sizeScale : CombatFeedbackMotionSampler.statusSizeScale)
+            if chip.item.region == .announcement {
+                isolated.placeAnnouncementGroup([(id: chip.item.id, size: chip.reservationSize)], groupIndex: 0)
+            } else {
+                _ = isolated.place(id: chip.item.id, size: CGSize(
+                    width: chip.reservationSize.width * sizeScale,
+                    height: chip.reservationSize.height * sizeScale,
+                ), region: chip.item.region, bottomInset: bottomInset)
+            }
+            chip.slot = isolated.slots.first
+            if let slot = chip.slot {
+                chip.basePosition = isolated.position(for: slot, push: 0, rise: 0, bottomInset: bottomInset)
+            }
+        }
+    }
+    #endif
+
     private func configureRaster(_ raster: CombatFeedbackRaster, on chipLayer: CALayer) {
         chipLayer.contents = raster.image
         chipLayer.contentsScale = raster.displayScale
@@ -402,6 +437,12 @@ private extension CombatFeedbackRasterUIView {
         debugLayoutCount += 1
         #endif
         riseDistance = min(CombatFeedbackMotionSampler.riseDistance, max(0, bounds.height / 2 - 12))
+        #if DEBUG
+        if debugBalancedPreview {
+            layoutBalancedPreview()
+            return
+        }
+        #endif
         stationaryLayout.retain(ids: Set(orderedLayers.map(\.item.id)), in: bounds)
         for chip in orderedLayers where chip.item.region != .announcement {
             let sizeScale = StationaryFeedbackLayout.sizeScale
@@ -441,7 +482,12 @@ private extension CombatFeedbackRasterUIView {
         for (index, chip) in orderedLayers.enumerated() {
             guard let slot = chip.slot else { continue }
             let sample = chip.motionTrack.sample(for: chip.item, at: date)
-            let state = sample.animation
+            var state = sample.animation
+            #if DEBUG
+            if debugBalancedPreview {
+                state = BalancedFeedbackPreview.state(for: chip.item, at: date)
+            }
+            #endif
             let elapsed = sample.elapsed
             let scale = slot.fitScale * state.scale
             let position = CGPoint(

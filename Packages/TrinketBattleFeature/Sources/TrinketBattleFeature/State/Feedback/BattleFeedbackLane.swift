@@ -11,6 +11,9 @@ final class BattleFeedbackLane {
         self?.evictedItemIDs.formUnion(ids)
     }
 
+    #if DEBUG
+    var debugBalancedPreview = false
+    #endif
     var evictedItemIDs: Set<Int> = []
 
     var feedbackLifetime: TimeInterval {

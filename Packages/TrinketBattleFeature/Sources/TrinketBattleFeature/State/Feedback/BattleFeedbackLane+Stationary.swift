@@ -5,6 +5,11 @@ extension BattleFeedbackLane {
     func recordStationary(_ item: CombatFeedbackItem, at date: Date, candidates: inout CombatFeedbackMergeCandidates) -> Int {
         let index = candidates.indices(for: item).reversed().first { index in
             let existing = activeItems[index]
+            #if DEBUG
+            if debugBalancedPreview, date.timeIntervalSince(existing.lastReceivedAt) > 0.25 {
+                return false
+            }
+            #endif
             return existing.region == item.region && !evictedItemIDs.contains(existing.id)
                 && existing.targetID == item.targetID && existing.keyword == item.keyword
                 && existing.feedbackClass == item.feedbackClass && existing.visualRole == item.visualRole
@@ -26,19 +31,22 @@ extension BattleFeedbackLane {
                 activeItems[index].label = merged
                 activeItems[index].sourceEventIDs += item.sourceEventIDs
                 if item.region == .impact {
-                    activeItems[index].lastUpdatedAt = date
-                    let maximumExpiry = activeItems[index].firstScheduledAt.addingTimeInterval(CombatFeedbackMotionSampler.lifetime + 0.30)
-                    activeItems[index].expiresAt = min(activeItems[index].expiresAt.addingTimeInterval(0.12), maximumExpiry)
-                    activeItems[index].isCritical = activeItems[index].isCritical || item.isCritical
-                    if item.isCritical {
-                        activeItems[index].criticalAt = date
-                    }
+                    updateImpactMerge(item, at: date, index: index)
                 }
                 candidates.didMerge(previous: previous, current: activeItems[index], at: index)
                 return index
             }
         }
         var scheduled = incoming.scheduled(at: date)
+        #if DEBUG
+        if debugBalancedPreview {
+            scheduled = chipBridge.debugBalancedSchedule(
+                incoming,
+                at: date,
+                previous: activeItems.filter { !evictedItemIDs.contains($0.id) },
+            )
+        }
+        #endif
         if case .amount = incoming.label {
             scheduled.reservedDigitCount = incoming.label.displayString.count + 1
         }
@@ -46,6 +54,21 @@ extension BattleFeedbackLane {
         let insertedIndex = activeItems.count - 1
         candidates.append(scheduled, at: insertedIndex)
         return insertedIndex
+    }
+
+    private func updateImpactMerge(_ item: CombatFeedbackItem, at date: Date, index: Int) {
+        activeItems[index].isCritical = activeItems[index].isCritical || item.isCritical
+        if item.isCritical {
+            activeItems[index].criticalAt = max(date, activeItems[index].availableAt)
+        }
+        #if DEBUG
+        if debugBalancedPreview {
+            return
+        }
+        #endif
+        activeItems[index].lastUpdatedAt = date
+        let maximumExpiry = activeItems[index].firstScheduledAt.addingTimeInterval(CombatFeedbackMotionSampler.lifetime + 0.30)
+        activeItems[index].expiresAt = min(activeItems[index].expiresAt.addingTimeInterval(0.12), maximumExpiry)
     }
 
     private func mergedLabel(_ existing: CombatFeedbackItem, with incoming: CombatFeedbackItem) -> CombatFeedbackChipLabel? {
@@ -60,6 +83,17 @@ extension BattleFeedbackLane {
     }
 
     func limitCornerItems() {
+        #if DEBUG
+        if debugBalancedPreview {
+            for target in Set(activeItems.map(\.targetID)) {
+                for region in CombatFeedbackRegion.allCases {
+                    let waiting = activeItems.filter { $0.targetID == target && $0.region == region && $0.availableAt > .now }
+                    evictedItemIDs.formUnion(waiting.dropLast(12).map(\.id))
+                }
+            }
+            return
+        }
+        #endif
         var groupsByTarget: [String: Set<Int>] = [:]
         for item in activeItems where item.region == .announcement && !evictedItemIDs.contains(item.id) {
             groupsByTarget[item.targetID, default: []].insert(item.actionGroupID)
