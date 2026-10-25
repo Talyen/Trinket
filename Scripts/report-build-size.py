@@ -11,6 +11,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import zipfile
 
 from internal.cli import write_json_atomic
 from internal.output_retention import metadata
@@ -60,6 +61,32 @@ def app_report(app: Path) -> dict:
     return report
 
 
+def variant_catalogs(directory: Path) -> list[dict]:
+    """Inspect Apple's exported catalogs while the owned products still exist."""
+    reports = []
+    for ipa in sorted(directory.rglob('*.ipa')):
+        with zipfile.ZipFile(ipa) as bundle:
+            catalogs = [entry for entry in bundle.infolist()
+                        if re.fullmatch(r'Payload/[^/]+\.app/Assets\.car', entry.filename)]
+            if len(catalogs) != 1:
+                raise ValueError(f'Exported IPA has no unique app catalog: {ipa.name}')
+            catalog = catalogs[0]
+            app_prefix = catalog.filename.removesuffix('Assets.car')
+            with tempfile.TemporaryDirectory(prefix='catalog-', dir=directory) as scratch:
+                target = Path(scratch) / 'Assets.car'
+                with bundle.open(catalog) as source, target.open('wb') as destination:
+                    shutil.copyfileobj(source, destination)
+                entries = json.loads(subprocess.check_output(
+                    ['xcrun', 'assetutil', '--info', str(target)], text=True, timeout=60))
+            reports.append({'ipa': str(ipa.relative_to(directory)),
+                            'logicalAppBytes': sum(entry.file_size for entry in bundle.infolist()
+                                                   if entry.filename.startswith(app_prefix)),
+                            'catalogLogicalBytes': catalog.file_size, 'catalog': catalog_report(entries)})
+    if not reports:
+        raise ValueError('Export produced no IPA catalogs to inspect')
+    return reports
+
+
 def export_thinned(archive: Path, output: Path) -> dict:
     """This opt-in signs a local diagnostic export with existing credentials only."""
     options = output / 'ExportOptions.plist'
@@ -79,7 +106,9 @@ def export_thinned(archive: Path, output: Path) -> dict:
             raise ValueError('Export produced no unique device-thinned size report')
         target = output / reports[0].name
         shutil.copy2(reports[0], target)
-        return {'status': 'measured', 'report': target.name}
+        return {'status': 'measured', 'report': target.name,
+                'variantCatalogs': variant_catalogs(Path(temporary)),
+                'limits': ['Local Xcode thinning estimates do not certify actual App Store delivery sizes.']}
 
 
 def main():
@@ -122,7 +151,7 @@ def main():
             report['deviceThinned'] = export_thinned(archive, args.output)
             write_json_atomic(args.output / 'build-size.json', report)
         print(json.dumps(report, indent=2))
-    except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:
+    except (OSError, ValueError, KeyError, zipfile.BadZipFile, subprocess.SubprocessError) as error:
         parser.exit(1, f'Build size measurement incomplete: {error}\n')
 
 

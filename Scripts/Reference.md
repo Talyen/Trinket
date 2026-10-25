@@ -288,7 +288,10 @@ These are neither device delivery sizes nor measured resident RAM.
 An expressly requested local diagnostic may add `--export-thinned` for a device
 size report using existing signing credentials, `TRINKET_ALLOW_HEAVY_LOCAL=1` and
 the shared host lane. It never uploads or requests provisioning updates; exported
-products are temporary and only the size report/log is retained. Failed export
+products are temporary. Each exported IPA's catalog is inspected inside that
+temporary scope; compact encoding groups and logical app/catalog sizes survive
+with the native size report/log. These are local Xcode thinning estimates, not
+certified App Store delivery sizes or measured RAM. Failed export
 leaves universal inventory and diagnostics without claiming thinning succeeded.
 
 `report-profile-inventory.py` defaults to the external artifact store's `profiles`

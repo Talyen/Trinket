@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from unittest import mock
 import subprocess
+import zipfile
 
 from internal.cli import load_sibling
 
@@ -13,6 +14,30 @@ size = load_sibling('build_size', 'report-build-size.py')
 
 
 class BuildSizeTests(unittest.TestCase):
+    def test_thinned_catalogs_are_inspected_before_temporary_products_disappear(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            def export(arguments, **kwargs):
+                destination = Path(arguments[arguments.index('-exportPath') + 1])
+                (destination / 'App Thinning Size Report.txt').write_text('native size evidence')
+                with zipfile.ZipFile(destination / 'phone.ipa', 'w') as bundle:
+                    bundle.writestr('Payload/Trinket.app/Assets.car', b'phone catalog')
+                    bundle.writestr('Payload/Trinket.app/Media/music.m4a', b'audio')
+                return subprocess.CompletedProcess(arguments, 0)
+            def inspect(arguments, **kwargs):
+                self.assertEqual(Path(arguments[-1]).read_bytes(), b'phone catalog')
+                return '[{"AssetType":"Image","Encoding":"HEIF","SizeOnDisk":12}]'
+            with mock.patch.object(size.subprocess, 'run', side_effect=export), \
+                 mock.patch.object(size.subprocess, 'check_output', side_effect=inspect):
+                report = size.export_thinned(output / 'retained.xcarchive', output)
+            self.assertEqual(report['status'], 'measured')
+            variant = report['variantCatalogs'][0]
+            self.assertEqual(variant['catalogLogicalBytes'], len(b'phone catalog'))
+            self.assertEqual(variant['logicalAppBytes'], len(b'phone catalogaudio'))
+            self.assertEqual(variant['catalog']['groups'][0]['kind'], 'Image/HEIF/none')
+            self.assertEqual(list(output.glob('thinned-*')), [])
+            self.assertTrue((output / report['report']).is_file())
+
     def test_catalog_reports_fallback_bytes_without_calling_them_resident_ram(self):
         result = size.catalog_report([
             {'AssetType': 'Image', 'Name': 'hero', 'Encoding': 'HEIF', 'SizeOnDisk': 100,

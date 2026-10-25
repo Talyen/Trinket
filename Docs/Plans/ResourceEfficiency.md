@@ -18,11 +18,12 @@ CI-first script-gate repair are implemented. The reviewed migration removed
 eligible outputs. Explicit keeps, unknown/unfinished releases and mismatched
 extractions remain intact. No artwork, audio or runtime behavior changed.
 
-The user has deferred local profiling/export while other work uses the machine.
-Continue source inspection and lightweight checks; keep device-thinned size and
-physical-device RAM qualification open. No upload, push, signing export or device
-run was performed. Do not close this plan or claim RAM/delivery-size improvement
-from the storage result.
+The user resumed local measurements and authorized waiting ten minutes and
+retrying when host admission is busy. After two ten-minute waits, a retained-build
+thinning export and catalog inspection completed. Physical-device RAM remains
+blocked on the paired iPhone requiring its passcode. No app was installed or
+launched, and no upload or push occurred. Do not claim RAM improvement from the
+storage result or treat local Xcode size estimates as actual App Store delivery.
 
 ## Agreed trade-offs
 
@@ -136,18 +137,26 @@ fallback renditions as waste. Owners:
 [media generation](../../Scripts/prepare-media.py) and
 [project configuration](../../project.yml).
 
-- [ ] Generate per-device download/install size reports through hosted or explicitly
+- [x] Generate per-device download/install size estimates through hosted or explicitly
   requested release diagnostics. Record source, toolchain, variant, `Assets.car`
   composition and audio/binary sizes. Use
   [Apple's size-report procedure](https://developer.apple.com/documentation/Xcode/reducing-your-app-s-size).
-- [ ] Determine whether the measured fallback renditions survive thinning for
+  Retained build 62 (`fe1049dc87e5`, Xcode `27A9275`) produced iPhone and iPad
+  variants spanning the report's iOS 18/26/27 descriptors. Both estimate
+  **126.9 MB compressed / 142.4 MB uncompressed**, versus universal
+  **501.2 MB / 517.4 MB** (native decimal MB). This is a named historical build,
+  not a current-source release certification or an actual App Store download.
+- [x] Determine whether the measured fallback renditions survive thinning for
   supported devices and OS versions. If thinning already removes them, close that
   candidate without a packaging rewrite. The observed 353 MiB is not promised savings.
-- [ ] Change only authored asset-generation/configuration inputs when a measured
-  alternative preserves decoded pixels, color, transparency, loading behavior and
-  platform compatibility. Do not strip required fallbacks manually or re-encode
-  images/audio lossily. Verify minimum/current supported iPhone and iPad variants
-  and matched shipping renders before accepting an asset packaging change.
+  Each thinned catalog is **78,922,072 bytes** and retains all **645 HEIF**
+  renditions (72,659,481 bytes). The universal catalog's **636 RGB555 fallback**
+  renditions (370,474,814 bytes) are absent in both variants. No fallback-removal
+  rewrite is justified by this baseline; that candidate is closed.
+- [x] Preserve authored asset-generation/configuration inputs and image/audio
+  quality. No packaging or runtime change was needed for the measured candidate.
+  Future packaging proposals still require decoded pixel/color/transparency,
+  loading and supported-device parity, plus matched shipping renders before adoption.
 
 ### 5. Attribute RAM, then improve artwork lifetime
 
@@ -232,6 +241,22 @@ and [artwork lifecycle](../AgentContext/ui-performance.md).
 
 ### Verification and deferred measurements
 
+- Resumed measurements used shared host admission. Initial admission was busy;
+  two ten-minute waits preceded successful export. The reporter now inspects
+  exported catalogs before scoped temporary products disappear. Three focused
+  Python regressions passed, covering compact catalog evidence and cleanup on
+  export success/failure. Both real build-62 exports succeeded; no products were
+  uploaded and no provisioning updates were requested.
+- Physical preflight found Ryan's iPhone 14 Pro on iOS 27.0.1 (`24A446`) over
+  Wi-Fi with Developer Mode enabled. Device support preparation succeeded.
+  The first lock-state query timed out; after preparation, the native query
+  returned `passcodeRequired: true`. Unlock is the remaining prerequisite; no
+  runtime/RAM capture or build/install/launch was attempted. Stages 5 and its
+  parity gates stay open. Device availability was requested while size work continued.
+- `ResourceMeasurements/build-62-variant-catalogs/` retains the native thinning
+  report, compact per-IPA rendition groups, source/build identity and export log.
+  `ResourceMeasurements/request-and-admission.json` records waits and hardware
+  prerequisites. Exported IPAs and scratch catalogs were removed by scoped cleanup.
 - Seven additional focused Python regressions passed for inventory safety,
   sparse-file allocation, symlink/keep/owner handling, scoped tenant selection
   and the actual CI cache-key shell. Metadata-only inventory ran against existing
@@ -251,10 +276,12 @@ and [artwork lifecycle](../AgentContext/ui-performance.md).
   `Resources/build-62-size/build-size.json` and `Resources/result.json`.
   Integration preserves them under the shared task evidence directory for
   `codex/resource-efficiency-20261024` before task-worktree cleanup.
-- When the user explicitly resumes local measurements, select an available
-  physical device/development-signed optimized build and obtain device-thinned
-  and RAM evidence under the host lane. Keep stages 4–5 open until their evidence
-  gates resolve. Preserve game behavior if the proposed trade-off fails measurement.
+- After the paired phone is unlocked, select a development-signed optimized
+  current-source build and obtain RAM evidence under the host lane. The user has
+  already authorized this measurement phase and ten-minute busy retries. Keep
+  stage 5 open until its evidence gates resolve. Preserve game behavior if a
+  proposed trade-off fails measurement; refresh size qualification on a future
+  release rather than treating retained build 62 as current-source certification.
 
 ## Verification and handoff
 
