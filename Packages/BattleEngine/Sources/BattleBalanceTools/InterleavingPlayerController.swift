@@ -38,6 +38,7 @@ final class InterleavingPlayerController {
     private let companion: Combatant
     private let worldSeed: UInt64
     private var pendingContract: ModeProgressionStep?
+    let earnedParty: EarnedGearProgression?
     private(set) var state: PlayerProgressionState
 
     private struct ModeProgress {
@@ -62,10 +63,12 @@ final class InterleavingPlayerController {
         labyrinthTracker: ModeProgressionTracker = ModeProgressionTracker.labyrinth(),
         initialState: PlayerProgressionState = PlayerProgressionState(),
         worldSeed: UInt64 = 1,
+        equipmentModel: ProgressionEquipmentModel = .earned,
     ) {
         self.hero = hero
         self.companion = companion
         self.worldSeed = worldSeed
+        earnedParty = equipmentModel == .earned ? EarnedGearProgression(hero: hero, companion: companion, worldSeed: worldSeed) : nil
         modes = [SimulationGameMode.campaign, .spire, .labyrinth].map { mode in
             let tracker = switch mode {
             case .campaign: campaignTracker
@@ -76,6 +79,7 @@ final class InterleavingPlayerController {
             return ModeProgress(mode: mode, steps: tracker.steps)
         }
         state = initialState
+        earnedParty?.invest(state: state)
     }
 
     var isComplete: Bool {
@@ -88,26 +92,30 @@ final class InterleavingPlayerController {
 
         let unblocked = available.filter { modes[$0].consecutiveLosses < 2 }
         if unblocked.isEmpty {
-            if let pendingContract {
-                return pendingContract
-            }
-            var rng = SeededRandomNumberGenerator(seed: worldSeed &+ UInt64(state.totalBattles) &* 97)
-            let offer = ContractGenerator.makeOffer(
-                difficulty: .easy, eligibleModifiers: [.gold], using: &rng, id: "recovery-\(state.totalBattles)",
-            )
-            let level = EncounterScaling.contract(.easy).resolve(partyAverageLevel: partyAverageLevel).level
-            let step = ModeProgressionStep(
-                id: "contract-easy-\(offer.enemyID)-\(level)", mode: .contract,
-                containerID: "easy", containerTitle: "Contracts", stepIndex: level,
-                displayTitle: "Easy Contract L\(level)", enemyID: offer.enemyID,
-                enemyLevel: level, isBoss: false,
-            )
-            pendingContract = step
-            return step
+            return selectRecoveryStep()
         }
 
         lastEligibleModeIndex = (lastEligibleModeIndex + 1) % unblocked.count
         return modes[unblocked[lastEligibleModeIndex]].nextStep
+    }
+
+    /// Also used by explicit checkpoint careers after the finite mode sample ends.
+    func selectRecoveryStep() -> ModeProgressionStep {
+        if let pendingContract {
+            return pendingContract
+        }
+        var rng = SeededRandomNumberGenerator(seed: worldSeed &+ UInt64(state.totalBattles) &* 97)
+        let offer = ContractGenerator.makeOffer(
+            difficulty: .easy, eligibleModifiers: [.gold], using: &rng, id: "recovery-\(state.totalBattles)",
+        )
+        let level = EncounterScaling.contract(.easy).resolve(partyAverageLevel: partyAverageLevel).level
+        let step = ModeProgressionStep(
+            id: "contract-easy-\(offer.id)-\(offer.enemyID)-\(level)", mode: .contract,
+            containerID: "easy", containerTitle: "Contracts", stepIndex: level,
+            displayTitle: "Easy Contract L\(level)", enemyID: offer.enemyID, enemyLevel: level, isBoss: false,
+        )
+        pendingContract = step
+        return step
     }
 
     func recordOutcome(step: ModeProgressionStep, won: Bool, defeatProgress: BattleDefeatProgress? = nil) {
@@ -118,6 +126,9 @@ final class InterleavingPlayerController {
             state.battlesWon += 1
         }
         let enemyLevel = encounterLevel(for: step)
+        if won {
+            earnedParty?.awardVictory(step: step, encounterLevel: enemyLevel)
+        }
         let heroNormal = RewardExperiencePolicy.battleExperienceAward(
             playerLevel: state.heroLevel,
             enemyLevel: enemyLevel,
@@ -146,6 +157,7 @@ final class InterleavingPlayerController {
         state.heroXP = heroProg.currentXP
         state.companionLevel = companionProg.level
         state.companionXP = companionProg.currentXP
+        earnedParty?.invest(state: state)
         if won {
             if let modeIndex {
                 modes[modeIndex].consecutiveLosses = 0
@@ -170,8 +182,15 @@ final class InterleavingPlayerController {
         for step: ModeProgressionStep,
         seed: UInt64,
     ) -> ConfiguredSimulationMatchup {
-        var rng = SeededRandomNumberGenerator(seed: seed)
         let enemy = GameContent.enemy(matching: step.enemyID) ?? GameContent.enemies[0]
+        if let earnedParty {
+            let scaling = step.scaling.resolve(partyAverageLevel: partyAverageLevel)
+            return earnedParty.matchup(
+                state: state, enemy: enemy, enemyLevel: scaling.level, profile: scaling.profile,
+                seed: seed, enemyModifiers: spireModifiers(for: step),
+            )
+        }
+        var rng = SeededRandomNumberGenerator(seed: seed)
         let loadouts = SimulationMatchupBuilder.samplePartyLoadouts(hero: hero, companion: companion, using: &rng)
         let powerTier = SimulationPowerTier.band(forLevel: state.heroLevel)
         // Preserve draw order: both talent kits precede either starter-gear roll.

@@ -67,7 +67,7 @@ struct ModeProgressionToolingTests {
         let controller = InterleavingPlayerController(
             hero: hero, companion: companion, campaignTracker: .init(steps: []),
             spireTracker: .spire(spires: [spire]), labyrinthTracker: .init(steps: []),
-            initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 20), worldSeed: worldSeed,
+            initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 20), worldSeed: worldSeed, equipmentModel: .tier,
         )
         let step = try #require(controller.selectNextStep())
         let actual = controller.makeMatchup(for: step, seed: 43)

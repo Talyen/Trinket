@@ -77,12 +77,16 @@ extension PlaythroughCareer {
             }
         }
         for combatant in [store.roster.activeHero, store.roster.activeCompanion] {
-            let loadout = store.roster.equipmentLoadout(for: combatant)
-            if let item = store.inventory.items.first(where: {
-                store.roster.equippedCombatantID(for: $0.id) == nil
-                    && loadout.canEquip($0, in: $0.baseType.defaultEquipmentSlot, inventory: store.inventory.items)
-            }) {
-                try await perform(.equip(combatant: combatant.id, item: item.id))
+            while let upgrade = SimulationEquipmentPolicy.nextUpgrade(
+                for: combatant,
+                inventory: store.inventory.items,
+                loadout: store.roster.equipmentLoadout(for: combatant),
+                reservedItemIDs: Set(store.inventory.items.compactMap { item in
+                    guard let owner = store.roster.equippedCombatantID(for: item.id), owner != combatant.id else { return nil }
+                    return item.id
+                }),
+            ) {
+                try await perform(.equipInSlot(combatant: combatant.id, item: upgrade.itemID, slot: upgrade.slot))
             }
         }
         for definition in GameContent.homesteadNodes {

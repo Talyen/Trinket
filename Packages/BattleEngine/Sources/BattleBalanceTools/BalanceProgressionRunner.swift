@@ -45,6 +45,7 @@ public enum BalanceProgressionRunner {
         let controller = InterleavingPlayerController(
             hero: hero, companion: companion,
             campaignTracker: .campaign(worldSeed: runSeed), worldSeed: runSeed,
+            equipmentModel: config.resolvedProgressionEquipmentModel,
         )
         var records: [ProgressionBattleRecord] = []
         var stepCounter = 0

@@ -35,7 +35,7 @@ struct BalanceSweepCLITests {
             "--hero", "knight", "--companion", "bear", "--enemy", "living_armor", "--focus", "keen",
             "--peer-delta", "0.21", "--duration-flag-rate", "0.31", "--comfort-hp", "0.41",
             "--comfort-rounds", "3.5", "--output-dir", "reports with spaces", "--full-markdown",
-            "--contrast-talents", "minimal",
+            "--contrast-talents", "minimal", "--progression-gear", "tier",
         ])
         #expect(parsed.config == BalanceSweepConfig(
             mode: .affixContrast, battlesPerTier: 7, seed: 42, tiers: [.middle, .lateGame],
@@ -43,14 +43,14 @@ struct BalanceSweepCLITests {
             jobs: 3, workOffset: 0, workLimit: 2, appliesFightPacing: false, policyID: "setup-v1",
             comparePolicies: true, heroIDs: ["knight"], companionIDs: ["bear"], enemyIDs: ["living_armor"],
             focusIDs: ["keen"], durationFlagRate: 0.31, stallFlagRate: 0.31, comfortHPThreshold: 0.41, comfortRoundThreshold: 3.5,
-            usesTierTalentBuilds: false,
+            usesTierTalentBuilds: false, progressionEquipmentModel: .tier,
         ))
         #expect(parsed.writeFullMarkdown)
     }
 
     @Test(arguments: [
         ["--samples", "0"], ["--jobs", "-1"], ["--work-offset", "-1"], ["--max-rounds", "oops"],
-        ["--mode", "unknown"], ["--policy", "unknown"], ["--hero", "missing"], ["--seed"],
+        ["--mode", "unknown"], ["--policy", "unknown"], ["--progression-gear", "unknown"], ["--hero", "missing"], ["--seed"],
         ["--stall-flag-rate", "nan"], ["--peer-delta", "nan"], ["--comfort-rounds", "1e999"],
     ])
     func `invalid CLI input remains rejected`(_ arguments: [String]) {

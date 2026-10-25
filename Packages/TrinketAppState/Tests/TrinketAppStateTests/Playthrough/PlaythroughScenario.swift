@@ -1,4 +1,5 @@
 import Foundation
+import TrinketContent
 import TrinketCore
 
 struct PlaythroughScenario: Codable, Equatable {
@@ -54,6 +55,7 @@ enum PlaythroughAction: Codable, Equatable {
     case collect(Date)
     case upgrade(String, Int)
     case equip(combatant: String, item: String)
+    case equipInSlot(combatant: String, item: String, slot: ItemSlot)
     case party(hero: String, companion: String)
     case corrupt(String)
     case enterLabyrinth
@@ -106,6 +108,7 @@ struct PlaythroughSummary: Codable {
     var talents = 0
     var upgrades = 0
     var equipmentChanges = 0
+    var equipmentPolicyID: String? = SimulationEquipmentPolicy.id
     var goldEarned = 0
     var goldSpent = 0
     var cardsDrawn = 0

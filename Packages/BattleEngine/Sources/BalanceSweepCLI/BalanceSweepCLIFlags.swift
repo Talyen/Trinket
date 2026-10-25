@@ -23,6 +23,7 @@ extension BalanceSweepCLI {
           --pacing <on|off>        FightPacing in simulated battles (default: on)
           --policy <id>            greedy-v1 | setup-v1 (default: greedy-v1; unknown ids error)
           --policy-compare         Identity-only second pass with the other policy
+          --progression-gear <id>  earned | tier (default: earned; tier is the historical benchmark)
           --contrast-talents <id>  tier | minimal (default: tier; minimal is a diagnostic)
           --hero <ids>             Comma hero ids (default: all)
           --companion <ids>        Comma companion ids (default: all)
@@ -61,6 +62,13 @@ extension BalanceSweepCLI {
                 config.enemyIDs = try BalanceSweepCLI.csvValue(after: arg, in: arguments, index: &index)
             case "--focus":
                 config.focusIDs = try BalanceSweepCLI.csvValue(after: arg, in: arguments, index: &index)
+            case "--progression-gear":
+                let raw = try BalanceSweepCLI.stringValue(after: arg, in: arguments, index: &index)
+                guard let model = ProgressionEquipmentModel(rawValue: raw) else {
+                    throw CLIError.invalidMode(raw)
+                }
+                config.progressionEquipmentModel = model
+                config.progressionEquipmentPolicyID = model == .earned ? SimulationEquipmentPolicy.id : nil
             case "--mode":
                 let raw = try BalanceSweepCLI.stringValue(after: arg, in: arguments, index: &index)
                 guard let parsed = BalanceSweepMode(rawValue: raw) else {

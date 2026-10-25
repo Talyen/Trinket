@@ -1,5 +1,6 @@
 import BattleEngine
 import Foundation
+import TrinketContent
 
 public enum BalanceSweepMode: String, CaseIterable, Codable, Sendable {
     case identity
@@ -41,6 +42,20 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
     public var comfortRoundThreshold: Double
     /// Missing in older reports, whose contrasts used minimal talent builds.
     public var usesTierTalentBuilds: Bool?
+    /// Absent in historical reports, which regenerated idealized gear by tier.
+    public var progressionEquipmentModel: ProgressionEquipmentModel?
+    public var progressionEquipmentPolicyID: String?
+
+    public var progressionEquipmentDescription: String {
+        let model = resolvedProgressionEquipmentModel
+        return model == .earned
+            ? "\(model.description); equipment policy: \(progressionEquipmentPolicyID ?? "unrecorded")"
+            : model.description
+    }
+
+    public var resolvedProgressionEquipmentModel: ProgressionEquipmentModel {
+        progressionEquipmentModel ?? .tier
+    }
 
     public var usesTierTalents: Bool {
         usesTierTalentBuilds ?? false
@@ -79,6 +94,7 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         comfortHPThreshold: Double = Self.comfortHPThresholdDefault,
         comfortRoundThreshold: Double = Self.comfortRoundThresholdDefault,
         usesTierTalentBuilds: Bool = true,
+        progressionEquipmentModel: ProgressionEquipmentModel = .earned,
     ) {
         self.mode = mode
         self.battlesPerTier = max(1, battlesPerTier)
@@ -103,6 +119,8 @@ public struct BalanceSweepConfig: Equatable, Codable, Sendable {
         self.comfortHPThreshold = comfortHPThreshold
         self.comfortRoundThreshold = comfortRoundThreshold
         self.usesTierTalentBuilds = usesTierTalentBuilds
+        self.progressionEquipmentModel = progressionEquipmentModel
+        progressionEquipmentPolicyID = progressionEquipmentModel == .earned ? SimulationEquipmentPolicy.id : nil
     }
 
     /// Select global indices before constructing work so each worker only plans

@@ -38,6 +38,7 @@ public enum BalanceProgressionReportFormatter {
         lines.append("")
         lines.append("- **Mode**: Mode Progression Simulation")
         lines.append("- Win-rate goals: \(BalanceEncounterTargets.winGoalDescription)")
+        lines.append("- **Equipment model**: \(config.progressionEquipmentDescription)")
         lines.append("- **Seed**: \(config.seed)")
         lines.append("- **Simulated Runs**: \(playerStates.count)")
         lines.append("- **Total Battles Simulated**: \(records.count)")

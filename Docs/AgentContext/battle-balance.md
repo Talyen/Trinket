@@ -191,8 +191,21 @@ the Mana Shield card retains its separate Mana-payment rule.
 
 Progression simulations keep each mode's steps, cursor, and loss count together
 in `InterleavingPlayerController`. Selection and advancement share that state.
-Seeded matchups draw both talent kits before starter gear; preserve this order
-when simplifying setup so reports remain comparable across refactors.
+New progression configurations default to retained earned gear. Each fresh run
+starts ungeared, chooses abilities once, spends talent points cumulatively through
+legal unlocks, and retains its inventory. Only victories award items through the
+shared loot resolver at the fought encounter level, including ownership exclusion,
+active-party loot bias, the opening Journey boss reward and seeded Spire rewards.
+The shared `SimulationEquipmentPolicy` accepts strict whole-loadout improvements,
+retains ties, respects ownership, and supports secondary slots. Its aligned-affix
+budget is a heuristic, not an estimate of optimal combat value. Shops, crafting,
+Corruption, wishes and Homestead bonuses are outside this headless model.
+
+`--progression-gear tier` retains the historical idealized benchmark, including its
+level-35 Basic-to-Astral switch and per-battle ability/talent/gear draws. Historical
+JSON without an equipment-model field retains that interpretation. Legacy seeded
+matchups draw both talent kits before starter gear; preserve that draw order when
+simplifying setup. Identity and contrast modes remain fixed tier benchmarks.
 Fixed-party progression includes every Spire, uses the run's world seed for
 floor modifiers, and keeps Spire affinity as reward metadata rather than forcing equipment.
 When all remaining advancing modes have stalled, Easy Contracts provide recovery
@@ -205,5 +218,10 @@ Reports from the earlier victory-only career model overstate recovery grind and
 must not be compared as if they included live defeat rewards.
 Losses retain the same recovery offer until victory. Random-stage enemy variants
 have separate hotspot rows so one enemy cannot inherit another's losses.
-The battle-count limit still bounds the run. Gear remains an idealized tier profile;
-the Labyrinth tracker samples ten depths, not a full renewable player career.
+The battle-count limit still bounds the run; the Labyrinth tracker samples ten
+depths, not a full renewable player career. `BalanceProgressionRunner.earnedCheckpoints`
+continues with renewable Easy Contracts after the finite mode sample, freezing
+inventory and selections at requested levels. Reports must disclose this training
+route and incomplete targets; probe fights do not award progression. Compare gear
+models with the same checkpoint abilities, talents, encounter and battle seed;
+do not treat drop-weighted single snapshots as accumulated earned equipment.

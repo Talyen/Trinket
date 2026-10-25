@@ -59,7 +59,7 @@ extension PlaythroughCareer {
             try executeBattle(action)
         case .campaign, .enterLabyrinth, .labyrinth, .contracts, .contract, .spire:
             try executeMode(action)
-        case .equip, .party, .upgrade, .collect:
+        case .equip, .equipInSlot, .party, .upgrade, .collect:
             try await executeInvestment(action)
         }
     }
@@ -149,13 +149,18 @@ extension PlaythroughCareer {
 
     private func executeInvestment(_ action: PlaythroughAction) async throws {
         switch action {
-        case let .equip(combatantID, itemID):
+        case let .equip(combatantID, itemID), let .equipInSlot(combatantID, itemID, _):
             guard let combatant = (store.roster.heroes + store.roster.companions).first(where: { $0.id == combatantID }),
                   let item = store.inventory.items.first(where: { $0.id == itemID }) else {
                 throw PlaythroughFailure.rejected("equipment identity")
             }
+            let slot: ItemSlot = if case let .equipInSlot(_, _, destination) = action {
+                destination
+            } else {
+                item.baseType.defaultEquipmentSlot
+            }
             try require(
-                store.editCombatant(.equipItem(itemID: item.id, slot: item.baseType.defaultEquipmentSlot), for: combatant.id)
+                store.editCombatant(.equipItem(itemID: item.id, slot: slot), for: combatant.id)
                     .value == .committed,
                 "equip item",
             )

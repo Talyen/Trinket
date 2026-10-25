@@ -9,6 +9,13 @@ import TrinketPersistenceTestSupport
 @Suite(.serialized)
 @MainActor
 struct PlaythroughLifecycleTests {
+    @Test func `old equipment journals decode and new journals retain the selected secondary slot`() throws {
+        let old = Data(#"{"equip":{"combatant":"knight","item":"old-item"}}"#.utf8)
+        #expect(try JSONDecoder().decode(PlaythroughAction.self, from: old) == .equip(combatant: "knight", item: "old-item"))
+        let action = PlaythroughAction.equipInSlot(combatant: "knight", item: "new-item", slot: .secondaryAccessory)
+        #expect(try JSONDecoder().decode(PlaythroughAction.self, from: JSONEncoder().encode(action)) == action)
+    }
+
     @Test func `defeat retry leave and retreat preserve the encounter`() async throws {
         let output = try SaveTestSupport.makeTempDirectory(prefix: "PlaythroughDefeat")
         defer { SaveTestSupport.removeTempDirectory(output) }
