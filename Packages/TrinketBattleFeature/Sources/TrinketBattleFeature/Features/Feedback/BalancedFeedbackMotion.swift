@@ -42,24 +42,14 @@ enum BalancedFeedbackMotion {
             launch = max(launch, last.availableAt.addingTimeInterval(0.08))
         }
         launch = min(launch, deadline)
-        let end = min(deadline, relevant.map(\.expiresAt).max() ?? launch)
         var incoming = incoming
         incoming.feedbackSpread = spread(for: incoming, previous: relevant, at: launch)
-        var item = incoming
         let lifetime = incoming.region == .impact ? 1.05 : incoming.region == .announcement ? 1.6 : 0.92
         let obstacles = relevant.compactMap { old -> (CombatFeedbackItem, Geometry)? in
             raster(old).map { (old, geometry(old, raster: $0, bounds: bounds, bottomInset: bottomInset)) }
         }
         let shape = raster(incoming).map { geometry(incoming, raster: $0, bounds: bounds, bottomInset: bottomInset) }
-        while let shape, launch < end {
-            item = incoming.scheduled(at: launch)
-            item.expiresAt = launch.addingTimeInterval(lifetime)
-            if clear(item, geometry: shape, of: obstacles, bounds: bounds) {
-                break
-            }
-            launch = min(deadline, launch.addingTimeInterval(0.015))
-        }
-        item = incoming.scheduled(at: launch)
+        var item = incoming.scheduled(at: launch)
         item.expiresAt = launch.addingTimeInterval(lifetime)
         if let shape {
             item.feedbackSpread = bestRoute(item, geometry: shape, previous: obstacles, bounds: bounds)
@@ -84,9 +74,7 @@ enum BalancedFeedbackMotion {
             if isDamage(item), recent.contains(where: { $0.feedbackClass == .heal }) {
                 return -1
             }
-            if recent.count < 2 {
-                return 0
-            }
+            return [-2, 2, -1, 1].first { route in !recent.contains { $0.feedbackSpread == route } } ?? -2
         }
         return recent.last(where: { $0.feedbackSpread != 0 })?.feedbackSpread == -1 ? 1 : -1
     }
@@ -109,14 +97,14 @@ enum BalancedFeedbackMotion {
             var candidate = item
             candidate.feedbackSpread = route
             var score = Double(abs(route)) * 0.001
-            for elapsed in [0.0, 0.085, 0.17, 0.3, 0.5, 0.8] {
+            for elapsed in [0.0, 0.05, 0.085, 0.14, 0.17, 0.24, 0.3, 0.4, 0.5, 0.65, 0.8, 0.95] {
                 let date = item.availableAt.addingTimeInterval(elapsed)
                 let sample = state(for: candidate, at: date)
-                let next = footprint(candidate, geometry: geometry, sample: sample, at: date, bounds: bounds)
+                let next = footprint(candidate, geometry: geometry, sample: sample, at: date, bounds: bounds).insetBy(dx: -3, dy: -3)
                 for (old, oldGeometry) in previous where date >= old.availableAt && date < old.expiresAt {
                     let oldSample = state(for: old, at: date)
                     guard sample.opacity > 0.15, oldSample.opacity > 0.15 else { continue }
-                    let prior = footprint(old, geometry: oldGeometry, sample: oldSample, at: date, bounds: bounds)
+                    let prior = footprint(old, geometry: oldGeometry, sample: oldSample, at: date, bounds: bounds).insetBy(dx: -3, dy: -3)
                     let intersection = next.intersection(prior)
                     guard !intersection.isNull else { continue }
                     let area = min(next.width * next.height, prior.width * prior.height)
@@ -196,35 +184,6 @@ enum BalancedFeedbackMotion {
             center: layout.position(for: slot, push: 0, rise: 0, bottomInset: bottomInset),
             size: CGSize(width: reservation.width * slot.fitScale, height: reservation.height * slot.fitScale),
         )
-    }
-
-    private static func clear(
-        _ item: CombatFeedbackItem,
-        geometry: Geometry,
-        of previous: [(CombatFeedbackItem, Geometry)],
-        bounds: CGRect,
-    ) -> Bool {
-        var sampleDate = item.availableAt
-        while sampleDate < item.expiresAt {
-            let sample = state(for: item, at: sampleDate)
-            if sample.opacity > 0.15 {
-                let rect = footprint(item, geometry: geometry, sample: sample, at: sampleDate, bounds: bounds).insetBy(dx: -6, dy: -6)
-                for (old, oldGeometry) in previous where sampleDate >= old.availableAt && sampleDate < old.expiresAt {
-                    let oldSample = state(for: old, at: sampleDate)
-                    if oldSample.opacity > 0.15, rect.intersects(footprint(
-                        old,
-                        geometry: oldGeometry,
-                        sample: oldSample,
-                        at: sampleDate,
-                        bounds: bounds,
-                    )) {
-                        return false
-                    }
-                }
-            }
-            sampleDate = sampleDate.addingTimeInterval(0.015)
-        }
-        return true
     }
 
     private static func footprint(
