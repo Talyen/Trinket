@@ -59,10 +59,13 @@ extension BattleFeedbackLane {
     private func updateImpactMerge(_ item: CombatFeedbackItem, at date: Date, index: Int) {
         activeItems[index].isCritical = activeItems[index].isCritical || item.isCritical
         if item.isCritical {
-            activeItems[index].criticalAt = max(date, activeItems[index].availableAt)
+            activeItems[index].criticalAt = date
         }
         #if DEBUG
         if debugBalancedPreview {
+            if item.isCritical {
+                activeItems[index].criticalAt = max(date, activeItems[index].availableAt)
+            }
             return
         }
         #endif
