@@ -1,7 +1,6 @@
 ---
 type: execution-plan
-status: blocked
-reason: Device-thinned size and physical-device RAM measurements await explicit local diagnostic authorization; no push is authorized.
+status: active
 created: 2026-10-25
 updated: 2026-10-25
 expires: 2026-11-08
@@ -19,10 +18,11 @@ CI-first script-gate repair are implemented. The reviewed migration removed
 eligible outputs. Explicit keeps, unknown/unfinished releases and mismatched
 extractions remain intact. No artwork, audio or runtime behavior changed.
 
-Device-thinned size and physical-device RAM qualification remain open, awaiting
-an answer to the bounded-local-measurement authorization question. No upload,
-push, signing export or device run was performed. Do not close this plan or
-claim RAM/delivery-size improvement from the storage result.
+The user has deferred local profiling/export while other work uses the machine.
+Continue source inspection and lightweight checks; keep device-thinned size and
+physical-device RAM qualification open. No upload, push, signing export or device
+run was performed. Do not close this plan or claim RAM/delivery-size improvement
+from the storage result.
 
 ## Agreed trade-offs
 
@@ -199,6 +199,31 @@ and [artwork lifecycle](../AgentContext/ui-performance.md).
 
 ## Current evidence and remaining prerequisites
 
+### Work available without profiling
+
+- [ ] Prepare a dry-run-only migration inventory for legacy profiling derivatives,
+  with raw-trace/provenance links and keep/owner protection. A metadata-only scan
+  found 1.84 GiB of XML under the external profiling store, including a 1.02 GiB
+  `swiftui.xml`. XML totals include potentially essential trace metadata; extension
+  alone never establishes disposability. Prefer dropping verified reproducible
+  derivatives or lossless archival of needed exports when resources are available.
+  Do not compress gigabytes, hash all captures or remove kept evidence while the
+  user's other work runs. Current capture tooling already uses temporary exports.
+- [ ] Audit CI cache path ownership and prepare compact per-shard footprint
+  reporting for a future authorized CI run. Cache definitions currently list broad
+  package/host roots, but that alone does not prove duplicate populated caches.
+  Narrow paths only after confirming the shard's actual producer/consumer set;
+  keep compiler/platform/configuration identities and mutable tenant isolation.
+- [ ] Review artwork/audio/task retention and cancellation by source contracts.
+  Implement only confirmed lifetime defects with focused protection; do not tune
+  cache budgets, warmup or first-paint pins from source patterns alone.
+- [x] Run the lightweight asset/manifest integrity check: zero missing assets and
+  zero orphaned entries. Registered content is not thereby proven reachable or
+  unreachable; any deeper unused-content proposal must trace gameplay references
+  and preserve save identifiers.
+
+### Verification and deferred measurements
+
 - Focused script regressions cover release recovery/tampering/ownership, cache
   expiry, snapshot reuse, inspection lifetime, export failure cleanup and static
   gate selection. A fixture prerequisite failure was repaired and its exact case
@@ -212,10 +237,10 @@ and [artwork lifecycle](../AgentContext/ui-performance.md).
   `Resources/build-62-size/build-size.json` and `Resources/result.json`.
   Integration preserves them under the shared task evidence directory for
   `codex/resource-efficiency-20261024` before task-worktree cleanup.
-- Next: resolve local measurement authorization, select an available physical
-  device/development-signed optimized build, and obtain device-thinned and RAM
-  evidence under the host lane. Keep stages 4–5 open until their evidence gates
-  resolve. Preserve game behavior if the proposed trade-off fails measurement.
+- When the user explicitly resumes local measurements, select an available
+  physical device/development-signed optimized build and obtain device-thinned
+  and RAM evidence under the host lane. Keep stages 4–5 open until their evidence
+  gates resolve. Preserve game behavior if the proposed trade-off fails measurement.
 
 ## Verification and handoff
 
