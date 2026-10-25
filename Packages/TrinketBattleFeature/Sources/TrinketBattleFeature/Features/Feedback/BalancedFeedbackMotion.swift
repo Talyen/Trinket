@@ -61,8 +61,8 @@ enum BalancedFeedbackMotion {
         }
         item = incoming.scheduled(at: launch)
         item.expiresAt = launch.addingTimeInterval(lifetime)
-        if let shape, item.region == .impact {
-            item.feedbackSpread = bestImpactRoute(item, geometry: shape, previous: obstacles, bounds: bounds)
+        if let shape {
+            item.feedbackSpread = bestRoute(item, geometry: shape, previous: obstacles, bounds: bounds)
         }
         item.lastReceivedAt = date
         if item.isCritical {
@@ -91,13 +91,15 @@ enum BalancedFeedbackMotion {
         return recent.last(where: { $0.feedbackSpread != 0 })?.feedbackSpread == -1 ? 1 : -1
     }
 
-    private static func bestImpactRoute(
+    private static func bestRoute(
         _ item: CombatFeedbackItem, geometry: Geometry,
         previous: [(CombatFeedbackItem, Geometry)], bounds: CGRect,
     ) -> Int {
         let hasHeal = previous.contains { $0.0.feedbackClass == .heal }
         let hasDamage = previous.contains { isDamage($0.0) }
-        let routes = item.feedbackClass == .heal && hasDamage ? [1, 2, 3, 4, 0, -1, -2, -3, -4]
+        let routes = item.region == .announcement ? [0, -1, 1, -2, 2]
+            : item.region != .impact ? [0, -1, 1]
+            : item.feedbackClass == .heal && hasDamage ? [1, 2, 3, 4, 0, -1, -2, -3, -4]
             : isDamage(item) && hasHeal ? [-1, -2, -3, -4, 0, 1, 2, 3, 4] : [0, -1, 1, -2, 2, -3, 3, -4, 4]
         var best = 0
         var bestScore = Double.infinity
