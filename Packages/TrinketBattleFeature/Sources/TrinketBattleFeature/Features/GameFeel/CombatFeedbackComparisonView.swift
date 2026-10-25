@@ -33,7 +33,7 @@ public struct CombatFeedbackComparisonView: View {
             } label: { Text(verbatim: "Mode") }.pickerStyle(.segmented).padding(.horizontal).disabled(tour)
             if ready {
                 BattleTransitionLabCanvas(fixture: fixture)
-                    .environment(\.balancedFeedbackPreview, mode == .balanced)
+                    .environment(\.balancedCombatFeedback, mode == .balanced)
                     .id(mode)
             } else {
                 ProgressView().frame(maxHeight: .infinity)
@@ -100,7 +100,7 @@ public struct CombatFeedbackComparisonView: View {
     private func play(_ sample: Sample) async {
         let feedback = fixture.session.feedback
         feedback.clear()
-        feedback.debugBalancedPreview = mode == .balanced
+        feedback.usesBalancedFeedback = mode == .balanced
         feedback.setSuspended(false)
         // Fixed pre-roll makes mode switches and video alignment visible.
         try? await Task.sleep(for: .milliseconds(700))
@@ -119,12 +119,19 @@ public struct CombatFeedbackComparisonView: View {
               let enemy = fixture.session.presentation.enemy?.combatant else { return [] }
         let group = nextEventID + 1
         var output: [ActionEvent] = []
-        func append(_ kind: ActionEvent.Kind, amount: Int = 3, keyword: Keyword, target: Combatant, critical: Bool = false) {
+        func append(
+            _ kind: ActionEvent.Kind,
+            amount: Int = 3,
+            keyword: Keyword,
+            target: Combatant,
+            critical: Bool = false,
+            fullyBlocked: Bool = false,
+        ) {
             nextEventID += 1
             output.append(ActionEvent(
                 id: nextEventID, actionID: group, kind: kind, actorID: hero.id, actorName: hero.name,
                 abilityID: "feedback-ab", abilityName: "Preview", targetID: target.id, targetName: target.name,
-                amount: amount, keyword: keyword, isCritical: critical,
+                amount: amount, keyword: keyword, isCritical: critical, isFullyBlocked: fullyBlocked,
             ))
         }
         switch sample {
@@ -135,7 +142,7 @@ public struct CombatFeedbackComparisonView: View {
             append(.abilityDamage, amount: 7 + index, keyword: index.isMultiple(of: 2) ? .physical : .burn, target: enemy)
             append(.effect(.instantHeal), amount: 4 + index, keyword: .health, target: enemy)
             if index.isMultiple(of: 2) {
-                append(.effect(.shieldAbsorbed), amount: 3, keyword: .block, target: enemy)
+                append(.effect(.shieldAbsorbed), amount: 3, keyword: .block, target: enemy, fullyBlocked: true)
             }
         case .corners:
             let benefits: [ActionEvent.EffectOutcome] = [.shieldApplied, .thornsApplied, .leechApplied]

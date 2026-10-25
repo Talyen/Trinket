@@ -124,8 +124,8 @@ Do not rewrite the host for purity unless Instruments shows SwiftUI can match hi
 
 Debug builds expose **Options → Feedback A/B**. Baseline uses the shipping
 feedback lane, raster host, layout, motion, semantic merging and corner caps.
-Balanced is an opt-in experiment on the same battlefield, portraits, glyphs and
-hit reactions; ordinary battles keep Baseline. Both modes use fixed presentation
+Balanced is the default in ordinary battles. The comparison retains the previous
+Baseline on the same battlefield, portraits, glyphs and hit reactions. Both modes use fixed presentation
 fixtures and never issue gameplay or save commands.
 
 Select Single, Rapid (six differently typed hits at 140 ms), Mixed (damage,
@@ -138,16 +138,22 @@ Balanced retains native font/icon assets and portrait-capped 52-point travel.
 Central motion peaks at 1.85× after 85 ms, settles to 1.55× by 170 ms, starts
 rising at 240 ms, and fades over its final 280 ms of a 1.05-second lifetime.
 Measured raster footprints prefer an 80 ms stagger and 6 points of clearance,
-but each result launches within 180 ms of arrival. The first two nearby numeric
-arrivals stay centered; denser arrivals fan left and right from 16 to 36 points,
-clamped to the portrait at peak scale. Damage and healing prefer opposite sides.
+but each result launches within 180 ms of arrival. New numeric flights compare measured footprints before choosing a fixed center
+or diagonal path, with extra vertical separation on wider paths. Complete masking
+is strongly penalized in either direction: a small arrival cannot hide inside an
+older pop, and a new pop cannot completely cover an older result. Damage and
+healing prefer opposite sides; travel is clamped to the portrait at peak scale.
 Corners and names receive fixed extra rows. Every path is chosen once: later
 arrivals never move, restart, shorten, or evict earlier chips. Dense overlap is
 allowed when the queue deadline arrives. Each chip keeps its full post-launch
 lifetime, including names at 1.6 seconds. Matching results merge within a 250 ms
 arrival gap without renewed pulse or expiry.
 
-This is a comparison candidate, not a shipping policy change. Native recording and review are required before judging dense overlap and readability. The browser Alchemy lab is not native Trinket evidence.
+The Reactions sample deliberately emits two Frostfire actions 140 ms apart.
+Each includes Burn and Freeze damage. Mixed includes fully blocked packets so
+Trinket’s normal presentation filter admits visible Block feedback.
+
+Native recording and review are required before judging dense overlap and readability. The browser Alchemy lab is not native Trinket evidence.
 
 ## Debug transition lab
 

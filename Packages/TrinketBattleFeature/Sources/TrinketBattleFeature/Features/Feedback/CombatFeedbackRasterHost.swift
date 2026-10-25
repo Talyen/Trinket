@@ -25,9 +25,7 @@ struct CombatFeedbackRasterSlot: View {
 }
 
 private struct CombatFeedbackRasterHost: UIViewRepresentable {
-    #if DEBUG
-    @Environment(\.balancedFeedbackPreview) private var balancedFeedbackPreview
-    #endif
+    @Environment(\.balancedCombatFeedback) private var balancedCombatFeedback
     let bridge: CombatFeedbackChipBridge
     let combatantID: String
     let layoutDirection: LayoutDirection
@@ -49,9 +47,7 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
 
     func makeUIView(context _: Context) -> CombatFeedbackRasterUIView {
         let view = CombatFeedbackRasterUIView()
-        #if DEBUG
-        view.debugBalancedPreview = balancedFeedbackPreview
-        #endif
+        view.usesBalancedFeedback = balancedCombatFeedback
         view.bottomInset = bottomInset
         bridge.register(
             view,
@@ -67,9 +63,7 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
             context.coordinator.bridge.unregister(uiView)
             context.coordinator.bridge = bridge
         }
-        #if DEBUG
-        uiView.debugBalancedPreview = balancedFeedbackPreview
-        #endif
+        uiView.usesBalancedFeedback = balancedCombatFeedback
         uiView.bottomInset = bottomInset
         bridge.register(
             uiView,
@@ -127,8 +121,8 @@ final class CombatFeedbackRasterUIView: UIView {
     private var layersByID: [Int: ChipLayer] = [:]
     private var orderedLayers: [ChipLayer] = []
     private var reusableLayers: [CALayer] = []
+    var usesBalancedFeedback = false
     #if DEBUG
-    var debugBalancedPreview = false
     private(set) var debugApplyCount = 0
     private(set) var debugLayoutCount = 0
     var debugLastAppliedChips: [CombatFeedbackItem] = []
@@ -362,8 +356,7 @@ final class CombatFeedbackRasterUIView: UIView {
 }
 
 private extension CombatFeedbackRasterUIView {
-    #if DEBUG
-    private func layoutBalancedPreview() {
+    private func layoutBalancedFeedback() {
         for chip in orderedLayers {
             var isolated = StationaryFeedbackLayout()
             isolated.retain(ids: [chip.item.id], in: bounds)
@@ -385,7 +378,6 @@ private extension CombatFeedbackRasterUIView {
             }
         }
     }
-    #endif
 
     private func configureRaster(_ raster: CombatFeedbackRaster, on chipLayer: CALayer) {
         chipLayer.contents = raster.image
@@ -437,12 +429,10 @@ private extension CombatFeedbackRasterUIView {
         debugLayoutCount += 1
         #endif
         riseDistance = min(CombatFeedbackMotionSampler.riseDistance, max(0, bounds.height / 2 - 12))
-        #if DEBUG
-        if debugBalancedPreview {
-            layoutBalancedPreview()
+        if usesBalancedFeedback {
+            layoutBalancedFeedback()
             return
         }
-        #endif
         stationaryLayout.retain(ids: Set(orderedLayers.map(\.item.id)), in: bounds)
         for chip in orderedLayers where chip.item.region != .announcement {
             let sizeScale = StationaryFeedbackLayout.sizeScale
@@ -483,11 +473,9 @@ private extension CombatFeedbackRasterUIView {
             guard let slot = chip.slot else { continue }
             let sample = chip.motionTrack.sample(for: chip.item, at: date)
             var state = sample.animation
-            #if DEBUG
-            if debugBalancedPreview {
-                state = BalancedFeedbackPreview.state(for: chip.item, at: date)
+            if usesBalancedFeedback {
+                state = BalancedFeedbackMotion.state(for: chip.item, at: date)
             }
-            #endif
             let elapsed = sample.elapsed
             let scale = slot.fitScale * state.scale
             var position = CGPoint(
@@ -495,9 +483,8 @@ private extension CombatFeedbackRasterUIView {
                 y: chip.basePosition.y - chip.lanePush.offset(at: elapsed) - riseDistance * state.riseProgress,
             )
             var edgeOpacity = StationaryFeedbackLayout.edgeOpacity(centerY: position.y, in: bounds)
-            #if DEBUG
-            if debugBalancedPreview {
-                position = BalancedFeedbackPreview.position(
+            if usesBalancedFeedback {
+                position = BalancedFeedbackMotion.position(
                     for: chip.item,
                     base: chip.basePosition,
                     size: CGSize(
@@ -510,7 +497,6 @@ private extension CombatFeedbackRasterUIView {
                 )
                 edgeOpacity = 1
             }
-            #endif
             if edgeOpacity == 0 {
                 if evicted == nil {
                     evicted = []

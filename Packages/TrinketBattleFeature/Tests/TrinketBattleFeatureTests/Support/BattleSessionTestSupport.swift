@@ -266,6 +266,7 @@ enum BattleSessionTestSupport {
         keyword: Keyword,
         targetID: String = "enemy",
         isCritical: Bool = false,
+        isFullyBlocked: Bool = false,
         actionID: Int? = nil,
         abilityID: String = "slash",
         abilityName: String = "Slash",
@@ -283,6 +284,7 @@ enum BattleSessionTestSupport {
             amount: amount,
             keyword: keyword,
             isCritical: isCritical,
+            isFullyBlocked: isFullyBlocked,
         )
     }
 }

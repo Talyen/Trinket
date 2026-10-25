@@ -11,13 +11,16 @@ final class BattleFeedbackLane {
         self?.evictedItemIDs.formUnion(ids)
     }
 
-    #if DEBUG
-    var debugBalancedPreview = false
-    #endif
+    var usesBalancedFeedback: Bool
+
+    init(balanced: Bool = false) {
+        usesBalancedFeedback = balanced
+    }
+
     var evictedItemIDs: Set<Int> = []
 
     var feedbackLifetime: TimeInterval {
-        CombatFeedbackMotionSampler.lifetime
+        usesBalancedFeedback ? 1.05 + BalancedFeedbackMotion.maximumQueueDelay : CombatFeedbackMotionSampler.lifetime
     }
 
     var activeItems: [CombatFeedbackItem] = []

@@ -5,11 +5,9 @@ extension BattleFeedbackLane {
     func recordStationary(_ item: CombatFeedbackItem, at date: Date, candidates: inout CombatFeedbackMergeCandidates) -> Int {
         let index = candidates.indices(for: item).reversed().first { index in
             let existing = activeItems[index]
-            #if DEBUG
-            if debugBalancedPreview, date.timeIntervalSince(existing.lastReceivedAt) > 0.25 {
+            if usesBalancedFeedback, date.timeIntervalSince(existing.lastReceivedAt) > 0.25 {
                 return false
             }
-            #endif
             return existing.region == item.region && !evictedItemIDs.contains(existing.id)
                 && existing.targetID == item.targetID && existing.keyword == item.keyword
                 && existing.feedbackClass == item.feedbackClass && existing.visualRole == item.visualRole
@@ -20,7 +18,7 @@ extension BattleFeedbackLane {
         var incoming = item
         if let index, let merged = mergedLabel(activeItems[index], with: item) {
             if case .amount = merged, merged.displayString.count > activeItems[index].reservedDigitCount {
-                if item.effectKind == .partyDamagePreparationApplied {
+                if item.effectKind == .partyDamagePreparationApplied, !usesBalancedFeedback {
                     // A wider preparation replaces its old slot rather than leaving two values visible.
                     evictedItemIDs.insert(activeItems[index].id)
                     incoming.sourceEventIDs = activeItems[index].sourceEventIDs + item.sourceEventIDs
@@ -37,18 +35,16 @@ extension BattleFeedbackLane {
                 return index
             }
         }
+        if case .amount = incoming.label {
+            incoming.reservedDigitCount = incoming.label.displayString.count + 1
+        }
         var scheduled = incoming.scheduled(at: date)
-        #if DEBUG
-        if debugBalancedPreview {
-            scheduled = chipBridge.debugBalancedSchedule(
+        if usesBalancedFeedback {
+            scheduled = chipBridge.balancedSchedule(
                 incoming,
                 at: date,
                 previous: activeItems.filter { !evictedItemIDs.contains($0.id) },
             )
-        }
-        #endif
-        if case .amount = incoming.label {
-            scheduled.reservedDigitCount = incoming.label.displayString.count + 1
         }
         activeItems.append(scheduled)
         let insertedIndex = activeItems.count - 1
@@ -61,14 +57,12 @@ extension BattleFeedbackLane {
         if item.isCritical {
             activeItems[index].criticalAt = date
         }
-        #if DEBUG
-        if debugBalancedPreview {
+        if usesBalancedFeedback {
             if item.isCritical {
                 activeItems[index].criticalAt = max(date, activeItems[index].availableAt)
             }
             return
         }
-        #endif
         activeItems[index].lastUpdatedAt = date
         let maximumExpiry = activeItems[index].firstScheduledAt.addingTimeInterval(CombatFeedbackMotionSampler.lifetime + 0.30)
         activeItems[index].expiresAt = min(activeItems[index].expiresAt.addingTimeInterval(0.12), maximumExpiry)
@@ -86,11 +80,9 @@ extension BattleFeedbackLane {
     }
 
     func limitCornerItems() {
-        #if DEBUG
-        if debugBalancedPreview {
+        if usesBalancedFeedback {
             return
         }
-        #endif
         var groupsByTarget: [String: Set<Int>] = [:]
         for item in activeItems where item.region == .announcement && !evictedItemIDs.contains(item.id) {
             groupsByTarget[item.targetID, default: []].insert(item.actionGroupID)

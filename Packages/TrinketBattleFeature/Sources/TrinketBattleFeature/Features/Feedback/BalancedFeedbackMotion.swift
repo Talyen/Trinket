@@ -3,13 +3,12 @@ import Foundation
 import SwiftUI
 import TrinketDesignSystem
 
-#if DEBUG
 extension EnvironmentValues {
-    @Entry var balancedFeedbackPreview = false
+    @Entry var balancedCombatFeedback = true
 }
 
-/// An opt-in native experiment. Shipping battles retain their existing lane and motion.
-enum BalancedFeedbackPreview {
+/// Bounded independent feedback. The debug comparison can still select the legacy renderer.
+enum BalancedFeedbackMotion {
     static let maximumQueueDelay: TimeInterval = 0.18
     static let nearbyWindow: TimeInterval = 0.36
     static func state(for item: CombatFeedbackItem, at date: Date) -> CombatFeedbackAnimationState {
@@ -45,7 +44,7 @@ enum BalancedFeedbackPreview {
         launch = min(launch, deadline)
         let end = min(deadline, relevant.map(\.expiresAt).max() ?? launch)
         var incoming = incoming
-        incoming.previewSpread = spread(for: incoming, previous: relevant, at: launch)
+        incoming.feedbackSpread = spread(for: incoming, previous: relevant, at: launch)
         var item = incoming
         let lifetime = incoming.region == .impact ? 1.05 : incoming.region == .announcement ? 1.6 : 0.92
         let obstacles = relevant.compactMap { old -> (CombatFeedbackItem, Geometry)? in
@@ -62,6 +61,9 @@ enum BalancedFeedbackPreview {
         }
         item = incoming.scheduled(at: launch)
         item.expiresAt = launch.addingTimeInterval(lifetime)
+        if let shape, item.region == .impact {
+            item.feedbackSpread = bestImpactRoute(item, geometry: shape, previous: obstacles, bounds: bounds)
+        }
         item.lastReceivedAt = date
         if item.isCritical {
             item.criticalAt = launch
@@ -86,7 +88,46 @@ enum BalancedFeedbackPreview {
                 return 0
             }
         }
-        return recent.last(where: { $0.previewSpread != 0 })?.previewSpread == -1 ? 1 : -1
+        return recent.last(where: { $0.feedbackSpread != 0 })?.feedbackSpread == -1 ? 1 : -1
+    }
+
+    private static func bestImpactRoute(
+        _ item: CombatFeedbackItem, geometry: Geometry,
+        previous: [(CombatFeedbackItem, Geometry)], bounds: CGRect,
+    ) -> Int {
+        let hasHeal = previous.contains { $0.0.feedbackClass == .heal }
+        let hasDamage = previous.contains { isDamage($0.0) }
+        let routes = item.feedbackClass == .heal && hasDamage ? [1, 2, 3, 4, 0, -1, -2, -3, -4]
+            : isDamage(item) && hasHeal ? [-1, -2, -3, -4, 0, 1, 2, 3, 4] : [0, -1, 1, -2, 2, -3, 3, -4, 4]
+        var best = 0
+        var bestScore = Double.infinity
+        // Compare projected footprints in both directions so neither a small
+        // arrival nor an older fading result disappears underneath another chip.
+        for route in routes {
+            var candidate = item
+            candidate.feedbackSpread = route
+            var score = Double(abs(route)) * 0.001
+            for elapsed in [0.0, 0.085, 0.17, 0.3, 0.5, 0.8] {
+                let date = item.availableAt.addingTimeInterval(elapsed)
+                let sample = state(for: candidate, at: date)
+                let next = footprint(candidate, geometry: geometry, sample: sample, at: date, bounds: bounds)
+                for (old, oldGeometry) in previous where date >= old.availableAt && date < old.expiresAt {
+                    let oldSample = state(for: old, at: date)
+                    guard sample.opacity > 0.15, oldSample.opacity > 0.15 else { continue }
+                    let prior = footprint(old, geometry: oldGeometry, sample: oldSample, at: date, bounds: bounds)
+                    let intersection = next.intersection(prior)
+                    guard !intersection.isNull else { continue }
+                    let area = min(next.width * next.height, prior.width * prior.height)
+                    let covered = Double(intersection.width * intersection.height / max(1, area))
+                    score += covered + (covered > 0.9 ? 1000 : 0)
+                }
+            }
+            if score < bestScore {
+                best = route
+                bestScore = score
+            }
+        }
+        return best
     }
 
     private static func isDamage(_ item: CombatFeedbackItem) -> Bool {
@@ -101,15 +142,18 @@ enum BalancedFeedbackPreview {
         let halfHeight = size.height * peak / 2
         let minimumY = bounds.minY + 8 + halfHeight
         let maximumY = max(minimumY, bounds.maxY - 8 - halfHeight)
-        let nameRow = item.previewSpread < 0 ? -item.previewSpread * 2 - 1 : item.previewSpread * 2
+        let nameRow = item.feedbackSpread < 0 ? -item.feedbackSpread * 2 - 1 : item.feedbackSpread * 2
         let row = item.region == .announcement ? Double(nameRow) * 32
-            : item.region == .impact ? 0 : item.previewSpread == -1 ? -24.0 : item.previewSpread == 1 ? -48.0 : 0
+            : item.region == .impact ? Double(max(0, abs(item.feedbackSpread) - 1)) * 24 : item.feedbackSpread == -1 ? -24.0 : item
+            .feedbackSpread == 1 ? -48.0 : 0
         let centerY = min(maximumY, max(minimumY, base.y + row))
         let riseAnchor = item.region == .announcement ? base.y : centerY
         let rise = min(52, max(0, riseAnchor - minimumY)) * state.riseProgress
         let maximumFan = max(0, (bounds.width - size.width * peak) / 2 - 8)
         let progress = 1 - pow(1 - min(1, max(0, elapsed / 0.4)), 3)
-        let fan = item.region == .impact ? Double(item.previewSpread) * min(16 + 20 * progress, maximumFan) : 0
+        let reach = (abs(item.feedbackSpread).isMultiple(of: 2) ? 2.0 : 1.0) * (16 + 20 * progress)
+        let direction = item.feedbackSpread == 0 ? 0.0 : item.feedbackSpread < 0 ? -1.0 : 1.0
+        let fan = item.region == .impact ? direction * min(reach, maximumFan) : 0
         return CGPoint(x: base.x + fan, y: centerY - rise)
     }
 
@@ -203,4 +247,3 @@ enum BalancedFeedbackPreview {
         )
     }
 }
-#endif
