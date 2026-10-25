@@ -121,6 +121,17 @@ case "$WATCHDOG_CASE" in
     count=1
     [[ "$WATCHDOG_CASE" != zero && "$WATCHDOG_CASE" != zero-options ]] || count=0
     echo " Executed $count tests, with 0 failures (0 unexpected) in 1.0 seconds" ;;
+  mixed-active)
+    echo "Test Suite 'Selected tests' passed."
+    echo "Executed 0 tests, with 0 failures"
+    sleep 2
+    echo "◇ Test run started."
+    echo "◇ Test slowButActive() started."
+    sleep 4
+    echo "✔ Test slowButActive() passed after 4 seconds."
+    echo "✔ Test run with 1 test passed after 4 seconds."
+    echo "** TEST SUCCEEDED **"
+    exit 0 ;;
   mixed-incomplete)
     echo "Test Suite 'All tests' passed."
     echo "Executed 1 test, with 0 failures"
@@ -258,7 +269,15 @@ run_watchdog_case() (
     finalization)
       unset TRINKET_XCODE_IDLE_TIMEOUT_SECONDS
       completion=process-exit ;;
-    selected|zero|zero-options|mixed-incomplete|swift-summary)
+    mixed-active)
+      export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=15
+      export TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=3
+      completion=process-exit ;;
+    mixed-incomplete)
+      export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=3
+      expected=124
+      completion=process-exit ;;
+    selected|zero|zero-options|swift-summary)
       expected=124
       completion=process-exit ;;
     failure|late-failure) expected=65 ;;
@@ -297,7 +316,7 @@ PY_MANIFEST
   esac
 )
 
-watchdog_cases=(finalization success selected zero zero-options mixed-incomplete swift-summary failure late-failure silent growing)
+watchdog_cases=(finalization success selected zero zero-options mixed-active mixed-incomplete swift-summary failure late-failure silent growing)
 watchdog_pids=()
 for mode in "${watchdog_cases[@]}"; do
   mkdir -p "$TMP_DIR/watchdog-$mode"

@@ -149,7 +149,7 @@ struct PlaythroughSweepTests {
         }
     }
 
-    private func replay(_ career: PlaythroughCareer, source: URL) async throws {
+    func replay(_ career: PlaythroughCareer, source: URL) async throws {
         let data = try Data(contentsOf: source.appendingPathComponent("actions.jsonl"))
         let records = try data.split(separator: 0x0A).map { try PlaythroughJournal.decodeRecord(Data($0)) }
         var index = 0

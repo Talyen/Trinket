@@ -38,14 +38,21 @@ xcode_runner_log_has_terminal_marker() {
 }
 
 xcode_runner_scan_terminal_marker_from() {
+  [[ "$(xcode_runner_scan_progress_marker_from "$1" "$2")" == terminal ]]
+}
+
+xcode_runner_scan_progress_marker_from() {
   local log_file="$1"
   local offset="$2"
   [[ -f "$log_file" ]] || return 1
-  # Writers can append part of a marker between polls. Revisit enough bytes
-  # for every terminal pattern below without rescanning the whole build log.
+  # Revisit split markers, preserving their order: an empty XCTest summary
+  # often precedes the actual Swift Testing run in the same invocation.
   if (( offset > 256 )); then offset=$((offset - 256)); else offset=0; fi
-  tail -c +"$((offset + 1))" "$log_file" 2>/dev/null | grep -E \
-    "Test Suite '(Selected tests|All tests)' (passed|failed)|\\*\\* (TEST|BUILD) (SUCCEEDED|FAILED) \\*\\*|Testing started completed|✘ Test run with |✔ Test run with " >/dev/null
+  tail -c +"$((offset + 1))" "$log_file" 2>/dev/null | awk '
+    /Test Suite \047(Selected tests|All tests)\047 (passed|failed)|\*\* (TEST|BUILD) (SUCCEEDED|FAILED) \*\*|Testing started completed|✘ Test run with |✔ Test run with / { state = "terminal" }
+    /◇ Test run started|Test Suite \047(Selected tests|All tests)\047 started/ { state = "active" }
+    END { if (state != "") print state; else exit 1 }
+  '
 }
 
 xcode_runner_infer_exit_from_log() {
@@ -97,6 +104,7 @@ xcode_runner_execute_watched() {
   local kill_reason=""
   local wait_status=0
   local inferred=124
+  local progress_marker=""
 
   XCODE_RUNNER_COMPLETION_SOURCE="process-exit"
   export XCODE_RUNNER_COMPLETION_SOURCE
@@ -132,16 +140,18 @@ xcode_runner_execute_watched() {
       last_size=$size
       last_growth=$SECONDS
     fi
-    if [[ "$saw_terminal" == "false" ]]; then
-      if (( size < scanned_offset )); then
-        scanned_offset=0
-      fi
-      if (( size > scanned_offset )) && xcode_runner_scan_terminal_marker_from "$log_file" "$scanned_offset"; then
-        saw_terminal=true
-        last_growth=$SECONDS
-      fi
-      scanned_offset=$size
+    if (( size < scanned_offset )); then
+      scanned_offset=0
+      saw_terminal=false
     fi
+    if (( size > scanned_offset )); then
+      progress_marker="$(xcode_runner_scan_progress_marker_from "$log_file" "$scanned_offset" || true)"
+      case "$progress_marker" in
+        terminal) saw_terminal=true ;;
+        active) saw_terminal=false ;;
+      esac
+    fi
+    scanned_offset=$size
     if (( wall > 0 && SECONDS - started_at >= wall )); then
       kill_reason="wall-clock ${wall}s"
       break

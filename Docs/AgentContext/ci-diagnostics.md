@@ -98,6 +98,9 @@ Disabling bulk simulator diagnostics retains XCTest results, ordinary attachment
 and our structured failure reports. An explicit `-collect-test-diagnostics on-failure`
 argument to the shared runner remains available for a deliberate forensic run.
 
+The shared watchdog tracks top-level starts and completions in log order. A new
+Swift Testing run disarms idle finalization inferred from an earlier legacy
+XCTest summary; the normal wall deadline still bounds active tests.
 The shared watchdog allows 45 seconds of quiet after the terminal test marker
 before treating finalization as stalled; `TRINKET_XCODE_IDLE_TIMEOUT_SECONDS`
 overrides that limit. Local tests use the same allowance as CI: healthy exports
