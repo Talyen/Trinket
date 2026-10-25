@@ -432,15 +432,30 @@ class CIImprovementsTests(unittest.TestCase):
         script = '\n'.join(line[8:] for line in script.splitlines())
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory) / 'output'
+            keys = []
             for native in ('true', 'false'):
                 output.write_text('')
                 subprocess.run(['bash', '-ec', script], check=True, capture_output=True,
-                               env={**os.environ, 'NATIVE_ONLY': native, 'SHARD': 'Engine',
+                               cwd=ROOT,
+                               env={**os.environ, 'NATIVE_ONLY': native, 'SHARD': 'Engine', 'PACKAGES': 'BattleEngine',
                                     'BUILD_KEY': 'key', 'BUILD_PREFIX': 'prefix', 'GITHUB_OUTPUT': str(output)})
                 text = output.read_text()
                 self.assertEqual('.DerivedData/packages' in text, native == 'false')
-                self.assertIn('.DerivedData/host', text)
-                self.assertEqual('package-native-v1' in text, native == 'true')
+                self.assertIn('.DerivedData/host/BattleEngine\n', text)
+                self.assertNotIn('.DerivedData/host\n', text)
+                self.assertNotIn('.DerivedData/packages\n', text)
+                self.assertEqual('package-native-v2' in text, native == 'true')
+            # Content qualification selects one package, while the normal shard
+            # also builds DesignSystem. Immutable caches must not collide.
+            for packages in ('TrinketContent', 'TrinketContent TrinketDesignSystem',
+                             'TrinketDesignSystem TrinketContent'):
+                output.write_text('')
+                subprocess.run(['bash', '-ec', script], check=True, capture_output=True, cwd=ROOT,
+                               env={**os.environ, 'NATIVE_ONLY': 'false', 'SHARD': 'Content', 'PACKAGES': packages,
+                                    'BUILD_KEY': 'key', 'BUILD_PREFIX': 'prefix', 'GITHUB_OUTPUT': str(output)})
+                keys.append(output.read_text().splitlines()[:2])
+            self.assertNotEqual(keys[0], keys[1])
+            self.assertEqual(keys[1], keys[2])
         key_action = (ROOT / '.github/actions/build-cache-key/action.yml').read_text()
         command = re.search(r'^        toolchain=.*$', key_action, re.M)[0].strip()
         result = subprocess.check_output(['bash', '-ec', command + '\nprintf "%s" "$toolchain"'], text=True,

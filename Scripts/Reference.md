@@ -139,6 +139,8 @@ doctor and dry-run need no opt-in.
 | `./Scripts/ci-diagnostics.sh <RESULTS_DIR>` | Aggregate diagnostics; `--cleanup --keep` deliberately retains output. [Retention](#output-retention) owns expiry |
 | `./Scripts/change-budget.sh --paths <files...>` | Advisory surface signals; counts are not justification quotas |
 | `./Scripts/prune-derived-data-cache.sh` | Prune safe old build artifacts |
+| `python3 Scripts/report-profile-inventory.py --output /new/inventory.json` | Metadata-only legacy profiling XML inventory; no hashing, compression or deletion |
+| `python3 Scripts/report-cache-footprint.py report --packages BattleEngine --native-only true --output /new/cache.json` | Report selected/unrelated package tenant allocation without reading build contents |
 | `python3 Scripts/simulator-idle-cleanup.py --check` | Preview human-session idle cleanup; [operations](../Docs/Platform/SimulatorOperations.md#optional-human-session-idle-cleanup) owns opt-in installation/removal |
 | `./Scripts/balance-sweep.sh` | Headless battle balance sweep |
 
@@ -288,6 +290,25 @@ size report using existing signing credentials, `TRINKET_ALLOW_HEAVY_LOCAL=1` an
 the shared host lane. It never uploads or requests provisioning updates; exported
 products are temporary and only the size report/log is retained. Failed export
 leaves universal inventory and diagnostics without claiming thinning succeeded.
+
+`report-profile-inventory.py` defaults to the external artifact store's `profiles`
+root; `--root` selects another existing capture root. The output must be new and
+outside that root. Raw trace XML and unknown XML remain separate from named export
+candidates. Adjacent traces/provenance and retention controls are metadata leads,
+not proof of reproducibility or idle ownership. The report always declares zero
+bytes eligible for deletion. Verify capture identity, a regeneration recipe and
+consumer/owner state before a later migration; preserve needed evidence first.
+
+CI package caches restore/save only each shard's declared package tenants under
+`.DerivedData/host/<package>` and, for simulator lanes,
+`.DerivedData/packages/<package>`, plus compiler input timestamps. Dependencies
+build inside those tenants. Native-only lanes omit simulator products. Scoped
+`package-v2`/`package-native-v2` namespaces prevent restoring the old broad archives;
+the first run rebuilds, while subsequent runs retain existing toolchain/platform
+identity and prefix reuse. Package selection also namespaces keys, so qualification
+subsets cannot replace a full shard's immutable cache. Restored/final metadata-only footprint reports are
+retained for 14 days. Allocated bytes do not measure compressed transfer size,
+cache effectiveness or game RAM. No hosted caches are deleted by the reporter.
 
 Successful logs disappear after consumers finish. Failure and comparison evidence (including agent evaluations under
 `.DerivedData/AgentEvaluationResults/`)

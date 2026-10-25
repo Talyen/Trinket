@@ -201,7 +201,7 @@ and [artwork lifecycle](../AgentContext/ui-performance.md).
 
 ### Work available without profiling
 
-- [ ] Prepare a dry-run-only migration inventory for legacy profiling derivatives,
+- [x] Prepare a dry-run-only migration inventory for legacy profiling derivatives,
   with raw-trace/provenance links and keep/owner protection. A metadata-only scan
   found 1.84 GiB of XML under the external profiling store, including a 1.02 GiB
   `swiftui.xml`. XML totals include potentially essential trace metadata; extension
@@ -209,14 +209,22 @@ and [artwork lifecycle](../AgentContext/ui-performance.md).
   derivatives or lossless archival of needed exports when resources are available.
   Do not compress gigabytes, hash all captures or remove kept evidence while the
   user's other work runs. Current capture tooling already uses temporary exports.
-- [ ] Audit CI cache path ownership and prepare compact per-shard footprint
-  reporting for a future authorized CI run. Cache definitions currently list broad
-  package/host roots, but that alone does not prove duplicate populated caches.
-  Narrow paths only after confirming the shard's actual producer/consumer set;
-  keep compiler/platform/configuration identities and mutable tenant isolation.
-- [ ] Review artwork/audio/task retention and cancellation by source contracts.
+  The new inventory separates 93 named export candidates (1.79 GiB allocated),
+  720 raw-trace XML components and 22 unknown XML files. Zero bytes are eligible
+  for deletion from metadata alone; no profiling evidence was removed.
+- [x] Audit CI cache path ownership and prepare compact per-shard footprint
+  reporting for a future authorized CI run. Confirmed producers use
+  `host/<package>` or `packages/<package>`; dependency builds stay inside that
+  owner. Restore/save now uses declared packages, preserving compiler/platform
+  identities and mutable isolation. A namespace change causes one cold rebuild;
+  restored/final reports establish actual populated sizes before claiming savings.
+- [x] Review artwork/audio/task retention and cancellation by source contracts.
   Implement only confirmed lifetime defects with focused protection; do not tune
   cache budgets, warmup or first-paint pins from source patterns alone.
+  The review found balanced artwork leases/generation fences and audio release/
+  stale-load handling, with existing focused regressions for these contracts.
+  No additional lifetime defect was confirmed. Swift regressions were inspected,
+  not executed; RAM and hitch behavior remain unmeasured. No runtime code changed.
 - [x] Run the lightweight asset/manifest integrity check: zero missing assets and
   zero orphaned entries. Registered content is not thereby proven reachable or
   unreachable; any deeper unused-content proposal must trace gameplay references
@@ -224,6 +232,12 @@ and [artwork lifecycle](../AgentContext/ui-performance.md).
 
 ### Verification and deferred measurements
 
+- Seven additional focused Python regressions passed for inventory safety,
+  sparse-file allocation, symlink/keep/owner handling, scoped tenant selection
+  and the actual CI cache-key shell. Metadata-only inventory ran against existing
+  captures. Task deliverables retain `Resources/legacy-profile-inventory.json`
+  and `Resources/source-lifetime-review.json`; no capture contents were hashed,
+  compressed or exported. Hosted workflow execution remains pending.
 - Focused script regressions cover release recovery/tampering/ownership, cache
   expiry, snapshot reuse, inspection lifetime, export failure cleanup and static
   gate selection. A fixture prerequisite failure was repaired and its exact case

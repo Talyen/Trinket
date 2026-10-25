@@ -4,6 +4,9 @@ inputs:
   shard:
     description: Unit shard owning the per-package DerivedData directories
     required: true
+  packages:
+    description: Space-separated package names built by this lane
+    required: true
   native-only:
     description: Restore only native compiler state for a native-only lane
     default: 'false'
@@ -28,18 +31,20 @@ runs:
       env:
         NATIVE_ONLY: ${{ inputs.native-only }}
         SHARD: ${{ inputs.shard }}
+        PACKAGES: ${{ inputs.packages }}
         BUILD_KEY: ${{ steps.inputs.outputs.cache-key }}
         BUILD_PREFIX: ${{ steps.inputs.outputs.cache-restore-prefix }}
       run: |
-        namespace=package-v1
-        if [[ "$NATIVE_ONLY" == true ]]; then namespace=package-native-v1; fi
-        echo "cache-key=${namespace}-${SHARD}-${BUILD_KEY}" >> "$GITHUB_OUTPUT"
-        echo "restore-prefix=${namespace}-${SHARD}-${BUILD_PREFIX}" >> "$GITHUB_OUTPUT"
+        set -euo pipefail
+        namespace=package-v2
+        if [[ "$NATIVE_ONLY" == true ]]; then namespace=package-native-v2; fi
+        cache_paths="$(python3 Scripts/report-cache-footprint.py paths --native-only "$NATIVE_ONLY" --packages $PACKAGES)"
+        selection="$(printf '%s\n' "$cache_paths" | shasum -a 256 | cut -d ' ' -f1)"
+        echo "cache-key=${namespace}-${SHARD}-${selection}-${BUILD_KEY}" >> "$GITHUB_OUTPUT"
+        echo "restore-prefix=${namespace}-${SHARD}-${selection}-${BUILD_PREFIX}" >> "$GITHUB_OUTPUT"
         {
           echo 'cache-path<<CACHE_PATHS'
-          if [[ "$NATIVE_ONLY" != true ]]; then echo '.DerivedData/packages'; fi
-          echo '.DerivedData/host'
-          echo '.DerivedData/build-source-times.json'
+          printf '%s\n' "$cache_paths"
           echo CACHE_PATHS
         } >> "$GITHUB_OUTPUT"
     - uses: actions/cache/restore@3edfce9056124e459a23f683a21433670d47daca # v4
@@ -48,6 +53,16 @@ runs:
         path: ${{ steps.key.outputs.cache-path }}
         key: ${{ steps.key.outputs.cache-key }}
         restore-keys: ${{ steps.key.outputs.restore-prefix }}
+    - name: Inventory restored package tenants
+      shell: bash
+      env:
+        PACKAGES: ${{ inputs.packages }}
+        NATIVE_ONLY: ${{ inputs.native-only }}
+        SHARD: ${{ inputs.shard }}
+        CACHE_KEY: ${{ steps.key.outputs.cache-key }}
+      run: |
+        python3 Scripts/report-cache-footprint.py report --native-only "$NATIVE_ONLY" --packages $PACKAGES \
+          --label restored --cache-key "$CACHE_KEY" --output ".DerivedData/CacheFootprint/${SHARD}-restored.json"
     - name: Preserve timestamps of byte-identical package inputs
       shell: bash
       run: python3 Scripts/build-source-times.py restore

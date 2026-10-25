@@ -377,6 +377,7 @@ jobs:
         id: package-cache
         with:
           shard: ${{ matrix.name }}
+          packages: ${{ matrix.packages }}
           native-only: ${{ (matrix.name == 'Engine' || matrix.name == 'Core') && (github.event_name == 'push' || inputs.native-logic) }}
       - name: Test packages (${{ matrix.packages }})
         uses: ./.github/actions/test-job
@@ -411,6 +412,23 @@ jobs:
         with:
           path: ${{ steps.package-cache.outputs.cache-path }}
           key: ${{ steps.package-cache.outputs.cache-key }}
+      - name: Inventory final package tenants
+        if: always() && steps.package-cache.outcome == 'success'
+        env:
+          PACKAGES: ${{ matrix.packages }}
+          NATIVE_ONLY: ${{ (matrix.name == 'Engine' || matrix.name == 'Core') && (github.event_name == 'push' || inputs.native-logic) }}
+          CACHE_KEY: ${{ steps.package-cache.outputs.cache-key }}
+        run: |
+          python3 Scripts/report-cache-footprint.py report --native-only "$NATIVE_ONLY" --packages $PACKAGES \
+            --label final --cache-key "$CACHE_KEY" --output .DerivedData/CacheFootprint/final.json
+      - name: Retain package cache footprints
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: ${{ inputs.artifact-prefix }}package-cache-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .DerivedData/CacheFootprint/*.json
+          retention-days: 14
+          if-no-files-found: ignore
 
   logic:
     name: Unit tests (${{ matrix.name }})
@@ -490,6 +508,7 @@ jobs:
         id: package-cache
         with:
           shard: ${{ matrix.name }}
+          packages: ${{ matrix.package }}
           native-only: 'true'
       - name: Download same-attempt iOS execution proof
         uses: actions/download-artifact@484a0b528fb4d7bd804637ccb632e47a0e638317 # v4
@@ -524,6 +543,22 @@ jobs:
         with:
           path: ${{ steps.package-cache.outputs.cache-path }}
           key: ${{ steps.package-cache.outputs.cache-key }}
+      - name: Inventory final native tenants
+        if: always() && steps.package-cache.outcome == 'success'
+        env:
+          PACKAGE: ${{ matrix.package }}
+          CACHE_KEY: ${{ steps.package-cache.outputs.cache-key }}
+        run: |
+          python3 Scripts/report-cache-footprint.py report --native-only true --packages "$PACKAGE" \
+            --label final --cache-key "$CACHE_KEY" --output .DerivedData/CacheFootprint/final.json
+      - name: Retain native cache footprints
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: ${{ inputs.artifact-prefix }}native-cache-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .DerivedData/CacheFootprint/*.json
+          retention-days: 14
+          if-no-files-found: ignore
 
   exhaustive-ui:
     name: Exhaustive UI (All)
