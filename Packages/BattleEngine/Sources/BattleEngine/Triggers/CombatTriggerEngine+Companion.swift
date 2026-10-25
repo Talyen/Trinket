@@ -104,7 +104,7 @@ package extension CombatTriggerEngine {
         if healthLost > 0, triggers.burnAttackHealLowestAmount > 0,
            context.claimTalentAbility(.healingFlames, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.burnAttackHealLowestChancePercent, using: &context.rng) {
-            let target = BattleConditionEvaluator.lowestHealthAlly(in: context)
+            let target = BattleActionContext(actor: actor, in: context).target(.lowestHealthAlly, in: context)
             if context.roster.health(for: target) < context.roster.maxHealth(for: target) {
                 await context.healEmitting(
                     amount: triggers.burnAttackHealLowestAmount,

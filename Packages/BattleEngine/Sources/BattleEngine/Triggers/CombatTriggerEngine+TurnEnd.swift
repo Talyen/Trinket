@@ -61,7 +61,7 @@ package extension CombatTriggerEngine {
         guard triggers.endOfTurnHealLowestAlly > 0,
               context.isPlayerTurn(every: 2, startingAt: 1)
         else { return }
-        let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
+        let lowest = BattleActionContext(actor: actor, in: context).target(.lowestHealthAlly, in: context)
         guard context.roster.health(for: lowest) < context.roster.maxHealth(for: lowest) else { return }
         await emitHeal(
             .endOfTurnHealLowestAlly, "Campfire Comfort",

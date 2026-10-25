@@ -258,7 +258,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) async {
         if triggers.onBurnDamageHealLowestAllyFlat > 0 {
-            let lowest = BattleConditionEvaluator.lowestHealthAlly(in: context)
+            let lowest = BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context)
             await emitHeal(
                 .onBurnDamageHealLowestAllyFlat, "Healing Flames",
                 amount: triggers.onBurnDamageHealLowestAllyFlat, to: lowest, source: source, in: &context,

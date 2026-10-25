@@ -64,14 +64,4 @@ public enum BattleConditionEvaluator {
             return context.turnCount == 0
         }
     }
-
-    public static func lowestHealthAlly(in context: BattleState) -> Combatant {
-        BattleActionContext.lowestHealthAlly(in: context)
-    }
-
-    public static func mostDebuffedAlly(in context: BattleState) -> Combatant {
-        BattleActionContext.mostDebuffed(
-            in: [context.hero, context.companion], state: context,
-        )
-    }
 }
