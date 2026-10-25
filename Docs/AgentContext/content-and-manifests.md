@@ -149,6 +149,14 @@ Builds, checks, and ordinary media preparation never relink sources or rewrite a
 
 CI uses `./Scripts/prepare-assets.sh --check --outputs-only` plus manifest/resource integrity checks. It requires only committed outputs and never regenerates media; sparse build jobs can omit `AssetSources/`. Ordinary local build preparation performs the same output check without discovering or repairing source masters. Checks revalidate artwork IDs and boss music enemies against current content. Output checks do not prove raw-source freshness. Each project retains its own encoders, crops, gains and catalogs.
 
+For code-only working copies, selected masters can remain in Git without being materialized:
+
+```sh
+git sparse-checkout set --no-cone '/*' '!/AssetSources/'
+```
+
+Use this only in a clean checkout without unique or active authoring work under `AssetSources/`. Sparse settings belong to this working copy; other worktrees may retain their masters. Missing skipped masters are intentional, not deleted assets. App resources stay materialized, and ordinary builds and output-only checks need no Drive connection. Before media preparation, source-freshness checks, or asset-related pre-push checks, run `git sparse-checkout disable` to restore the full authoring checkout from Git. Check local headroom first; restoring masters costs their full working-copy size. Never force sparse removal over changes or replace the repository sources with a required mounted Drive path. This changes working-copy residency, not Git history or object storage.
+
 ## Project generation
 
 Project consistency and staged commit validation follow
