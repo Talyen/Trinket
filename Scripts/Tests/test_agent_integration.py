@@ -46,6 +46,8 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         scripts.mkdir()
         for name in ('agent-worktree.mjs', 'agent-integrate.py'):
             shutil.copy2(ROOT / 'Scripts' / name, scripts / name)
+        (scripts / 'lib').mkdir()
+        shutil.copy2(ROOT / 'Scripts/lib/worktree-storage.mjs', scripts / 'lib/worktree-storage.mjs')
         (scripts / 'internal').mkdir()
         shutil.copy2(ROOT / 'Scripts/internal/cli.py', scripts / 'internal/cli.py')
         shutil.copy2(ROOT / 'Scripts/internal/verification_evidence.py', scripts / 'internal/verification_evidence.py')

@@ -12,7 +12,7 @@ function git(args, cwd = source) {
 }
 function usage() {
   console.log(`Usage:
-  node Scripts/agent-worktree.mjs create --task <slug> [--base <ref>]
+  node Scripts/agent-worktree.mjs create --task <slug> [--base <ref>] [--full-assets]
   node Scripts/agent-worktree.mjs integrate [--reviewed-main <commit>] [--keep-plan] [--keep-worktree]
   node Scripts/agent-worktree.mjs cleanup
   node Scripts/agent-worktree.mjs evidence [path...]
@@ -47,6 +47,9 @@ try {
     const options = {};
     for (let index = 0; index < args.length; index += 2) {
       const key = args[index];
+      if (command === "create" && key === "--full-assets" && !(key in options)) {
+        options[key] = true; index--; continue;
+      }
       if (!["--task", ...(command === "create" ? ["--base"] : [])].includes(key)
           || !args[index + 1] || args[index + 1].startsWith("--") || key in options) {
         throw new Error(`Invalid argument: ${key}`);
@@ -69,7 +72,9 @@ try {
         // Refuse existing branches rather than accidentally reusing another chat's work.
         git(["rev-parse", "--verify", `${options["--base"] ?? "main"}^{commit}`], primary);
         fs.mkdirSync(path.dirname(destination), { recursive: true });
-        console.log(git(["worktree", "add", "-b", branch, destination, options["--base"] ?? "main"], primary));
+        console.log(git(["worktree", "add", "--no-checkout", "-b", branch, destination, options["--base"] ?? "main"], primary));
+        const { storageProfile, populateWorktree } = await import("./lib/worktree-storage.mjs");
+        populateWorktree(primary, destination, storageProfile(primary, git(["rev-parse", "HEAD"], destination), { fullAssets: options["--full-assets"] }));
         console.log(`Work in ${destination}\nLand there with: node Scripts/agent-worktree.mjs integrate`);
       } else {
         const registered = records.find(record => record.includes(`worktree ${destination}`));

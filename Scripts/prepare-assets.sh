@@ -76,7 +76,12 @@ if $heal; then
   exit 0
 fi
 
-python3 Scripts/asset-library.py --preflight --kind "$kind"
+python3 Scripts/asset-library.py --preflight --kind "$kind" || {
+  if [[ ! -d AssetSources ]]; then
+    echo "Restore source masters before preparation: git sparse-checkout disable" >&2
+  fi
+  exit 1
+}
 
 case "$kind" in
   all)

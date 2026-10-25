@@ -392,6 +392,24 @@ version/checksum pins still apply. No PATH setup is needed. Missing tools use
 and generated resources stay checkout-local. Simulator leases remain shared
 across isolated checkouts.
 
+New task checkouts automatically omit `AssetSources/` when the target revision
+has the prepared-output build/CI contract and committed runtime media. Prepared
+catalogs, app icons, audio, code and tests remain present. Older/incomplete revisions
+fall back to a full checkout. Use `create --task <slug> --full-assets` for asset
+production, or run `git sparse-checkout disable` inside an existing task before
+source checks, regeneration or authoring. Missing-source preparation fails before
+publishing outputs and prints this restoration command.
+
+Large retained tracked assets (at least 256 KiB) use per-file APFS copy-on-write
+when a same-commit, clean source file is available in primary. The optional Python
+standard-library bridge calls Apple's `clonefile`; unsupported platforms, volumes,
+missing Python, dirty/mismatched sources and checkout filters use normal Git.
+Each clone is verified against the target blob and executable mode. Git creates
+its own index and refreshes normal status; dependencies/build caches are not copied.
+Concurrent creations use Git's registration/index locks. Creation reports omitted
+and cloned logical bytes plus population/first-status time; these are not physical
+savings because APFS shares extents. Existing checkouts are never converted.
+
 ### Landing and review
 
 Review the full task diff and relevant consumers, then commit only task files.
