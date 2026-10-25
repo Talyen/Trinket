@@ -346,7 +346,27 @@ alone is insufficient.
 See Apple's [app symbol guidance](https://developer.apple.com/documentation/xcode/building-your-app-to-include-debugging-information).
 
 Each run creates a new evidence directory with logs, device/app/toolchain metadata,
-the trace, exported measurement rows, and `result.json`. The default location is
+the raw trace, matching symbols/binaries, compact measurements and `result.json`.
+Profiling command logs retain their beginning and final diagnostics within4MiB;
+console output is capped at64KiB of characters. Derived XML rows use owned temporary scratch space and disappear when the command
+exits, including analysis failures. Each export has a 256 MiB hard cap; scratch is
+limited to 1 GiB across temporary export groups. Crash remnants are counted, never
+automatically purged. An active export holds a lock, and a full scratch budget
+refuses more exports instead of accumulating records.
+
+Use `--retain-exports` only when an active investigation needs the XML after the
+command ends. It writes `exports/` with an explicit `.retention-keep` pin; release
+that derived data deliberately when the investigation ends. `--export-limit-mib`
+sets a deliberate per-file cap for larger investigations. Retained pins are an
+exception, not the default. Raw traces, matching dSYMs, release recovery products
+and compact JSON summaries keep their existing lifetime. No old profiles are
+swept or permanently deleted by this producer.
+
+For ad-hoc SwiftUI table exports, use an owned temporary directory and keep the
+compact analysis in the capture directory. Pin raw XML explicitly if needed for
+follow-up; avoid leaving multi-gigabyte derived tables beside captures. Existing
+test/log output retention remains 24 hours with active-owner/keep safeguards; do
+not broaden it into a purge of screenshots, saves, raw captures or release symbols. The default location is
 `~/Library/Developer/Trinket/BuildArtifacts/profiles/`, outside disposable worktrees;
 `TRINKET_SYMBOL_BACKUP_ROOT` changes the shared artifact root. An explicit `--output`
 uses the supplied location, whose lifetime the caller owns. Existing output is never

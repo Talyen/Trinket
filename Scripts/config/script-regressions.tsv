@@ -139,6 +139,7 @@ Scripts/internal/output_retention.py	test_agent_read.py,test_agent_sim_lifetime.
 Scripts/internal/performance/performance_model.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py
 Scripts/internal/playthrough_report.py	test_playthrough_sweep.py
 Scripts/internal/policy_scan.py	test_policy_scripts.py,test_swift_invariants.py,test_swift_style_policy.py,test_ui_policy.py,test_ci_build_scripts.py
+Scripts/internal/profile_exports.py	test_profile_exports.py
 Scripts/internal/source_declarations.py	test_agent_callers.py,test_agent_investigate.py,test_agent_read.py
 Scripts/internal/swift_policy.py	test_agent_callers.py,test_agent_investigate.py,test_agent_read.py,test_documentation.py,test_swift_invariants.py,test_swift_style_policy.py
 Scripts/internal/testflight.rb	test_testflight.py
@@ -177,7 +178,7 @@ Scripts/performance-scenarios.py	test_aggregate_performance.py,test_compare_perf
 Scripts/performance.sh	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py,test_verification_policy.py
 Scripts/performance_environment.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py
 Scripts/phase-timing.py	test_build_process.py,test_ci_build_scripts.py,test_output_retention.py,test_package_diagnostics.py
-Scripts/profile-device.py	test_profile_device.py
+Scripts/profile-device.py	test_profile_device.py,test_profile_exports.py
 Scripts/player-coverage.sh	test_player_coverage.py
 Scripts/playthrough-sweep.sh	test_ci_session_scripts.py,test_playthrough_sweep.py,test_verification_policy.py
 Scripts/playthrough_sweep.py	test_ci_session_scripts.py,test_playthrough_sweep.py

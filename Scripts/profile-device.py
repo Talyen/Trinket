@@ -25,6 +25,7 @@ import xml.etree.ElementTree as ET
 
 from internal.build_symbols import artifact_root, app_manifest, digest, preserve_profile_symbols, symbolicated_app_frames
 from internal.cli import primary_worktree_root
+from internal.profile_exports import BoundedLog, limit_export_file, measurement_exports
 
 ROOT = Path(__file__).resolve().parents[1]
 BUNDLE = "com.ryanmcintire.Trinket"
@@ -91,22 +92,24 @@ class RecordingWatchdog:
 
 
 def run(command: list[str], log: Path, timeout: int | None = 60,
-        duration: int | None = None, startup: int = 120) -> None:
+        duration: int | None = None, startup: int = 120, export_limit: int | None = None) -> None:
     print(f"Running: {' '.join(map(str, command))}", flush=True)
     master, slave = pty.openpty()
     process = None
     selector = selectors.DefaultSelector()
     output = ""
+    console_characters = 0
     recording_error = False
     began = time.monotonic()
     watchdog = RecordingWatchdog(began, duration, startup) if duration is not None else None
     try:
         process = subprocess.Popen(command, cwd=ROOT, stdin=subprocess.DEVNULL,
-                                   stdout=slave, stderr=slave, start_new_session=True)
+                                   stdout=slave, stderr=slave, start_new_session=True,
+                                   preexec_fn=(lambda: limit_export_file(export_limit)) if export_limit is not None else None)
         os.close(slave)
         slave = -1
         selector.register(master, selectors.EVENT_READ)
-        with log.open("wb") as stream:
+        with BoundedLog(log) as stream:
             while selector.get_map():
                 for key, _ in selector.select(0.2):
                     try:
@@ -121,7 +124,12 @@ def run(command: list[str], log: Path, timeout: int | None = 60,
                     stream.write(chunk)
                     stream.flush()
                     text = chunk.decode(errors="replace")
-                    print(text, end="", flush=True)
+                    if console_characters < 65536:
+                        visible = text[:65536 - console_characters]
+                        print(visible, end="", flush=True)
+                        console_characters += len(visible)
+                        if console_characters == 65536:
+                            print(f"\nFurther output is retained in the bounded log: {log}", flush=True)
                     output = (output + text)[-65536:]
                     recording_error |= "Device got disconnected" in output or "[Error]" in output
                     if watchdog is not None:
@@ -221,6 +229,8 @@ def main() -> int:
     parser.add_argument("--duration", type=int, default=30, help="Recording seconds (5–600; default 30)")
     parser.add_argument("--startup-timeout", type=int, default=120, help="Seconds allowed for recording to start")
     parser.add_argument("--output", type=Path, help="New evidence directory; existing paths are never overwritten")
+    parser.add_argument("--retain-exports", action="store_true", help="Pin derived XML for an active investigation; default XML is temporary")
+    parser.add_argument("--export-limit-mib", type=int, default=256, help="Hard size cap for each derived XML export (1–4096; default 256 MiB)")
     parser.add_argument("--symbols", type=Path, help="Original matching dSYM or directory (required when unavailable locally)")
     install = parser.add_mutually_exclusive_group()
     install.add_argument("--build", action="store_true", help="Build/install an optimized development app first")
@@ -228,6 +238,9 @@ def main() -> int:
     args = parser.parse_args()
     if not 5 <= args.duration <= 600 or args.startup_timeout < 1:
         parser.error("--duration must be 5–600 and --startup-timeout must be positive")
+    if not 1 <= args.export_limit_mib <= 4096:
+        parser.error("--export-limit-mib must be 1–4096")
+    export_limit = args.export_limit_mib * 1024 ** 2
     output = (args.output or artifact_root() / "profiles" / dt.datetime.now(dt.timezone.utc).strftime("device-%Y%m%dT%H%M%S.%fZ")).resolve()
     try:
         output.mkdir(parents=True, exist_ok=False)
@@ -236,7 +249,9 @@ def main() -> int:
     def cancel(_signum, _frame):
         raise KeyboardInterrupt
     signal.signal(signal.SIGTERM, cancel)
-    report = {"status": "failed", "bundleIdentifier": BUNDLE}
+    report = {"status": "failed", "bundleIdentifier": BUNDLE,
+              "derivedExports": {"retained": args.retain_exports, "maximumFileBytes": export_limit,
+                                 "policy": "explicit investigation pin" if args.retain_exports else "temporary; removed when command exits"}}
     try:
         developer = os.environ.get("DEVELOPER_DIR") or subprocess.check_output(
             ["xcode-select", "-p"], text=True).strip()
@@ -296,36 +311,37 @@ def main() -> int:
                  "--instrument", "Hitches", "--time-limit", f"{args.duration}s", "--no-prompt",
                  "--output", str(trace), "--launch", "--", BUNDLE], output / "recording.log",
                 duration=args.duration, startup=args.startup_timeout)
-            toc, samples = output / "toc.xml", output / "samples.xml"
-            run(["xcrun", "xctrace", "export", "--input", str(trace), "--toc", "--output", str(toc)], output / "export-toc.log", timeout=None)
-            xpath = '/trace-toc/run[@number="1"]/data/table[@schema="time-profile" or @schema="hitches-frame-lifetimes"]'
-            run(["xcrun", "xctrace", "export", "--input", str(trace), "--xpath", xpath, "--output", str(samples)], output / "export-samples.log", timeout=None)
-            report.update(validate_trace(toc, samples, udid, args.duration))
-            if app:
-                roots = [symbol_root]
-            elif args.symbols:
-                roots = [args.symbols]
-            else:
-                primary = primary_worktree_root(ROOT)
-                roots = [primary / ".DerivedData/Device/Build/Products/Release-iphoneos",
-                         ROOT / ".DerivedData/Device/Build/Products/Release-iphoneos",
-                         *primary.glob(".DerivedData/testflight/*/artifacts-*/*.xcarchive/dSYMs"),
-                         *artifact_root().glob("releases/*/Trinket.xcarchive/dSYMs"),
-                         *artifact_root().glob("profiles/*/symbols")]
-            report["symbols"] = preserve_profile_symbols(samples, roots, output / "symbols", {
-                key: report[key] for key in ("installedApp", "developerDirectory", "source", "buildSymbols") if key in report})
-            if app:
-                observed = {tuple(value) for value in report["symbols"]["binaryUUIDs"]}
-                expected = {tuple(value) for value in report["buildSymbols"]["binaries"][0]["uuids"]}
-                if not observed <= expected:
-                    raise ValueError("Recorded Trinket binary differs from the supplied build")
-            run(["xcrun", "xctrace", "symbolicate", "--input", str(trace), "--dsym", str(output / "symbols")],
-                output / "symbolicate.log", timeout=None)
-            symbolicated = output / "symbolicated-samples.xml"
-            run(["xcrun", "xctrace", "export", "--input", str(trace), "--xpath", xpath, "--output", str(symbolicated)],
-                output / "export-symbolicated.log", timeout=None)
-            report.update(validate_trace(toc, symbolicated, udid, args.duration))
-            report["namedAppFrames"] = symbolicated_app_frames(symbolicated)
+            with measurement_exports(output, args.retain_exports, export_limit) as exports:
+                toc, samples = exports / "toc.xml", exports / "samples.xml"
+                run(["xcrun", "xctrace", "export", "--input", str(trace), "--toc", "--output", str(toc)], output / "export-toc.log", timeout=None, export_limit=export_limit)
+                xpath = '/trace-toc/run[@number="1"]/data/table[@schema="time-profile" or @schema="hitches-frame-lifetimes"]'
+                run(["xcrun", "xctrace", "export", "--input", str(trace), "--xpath", xpath, "--output", str(samples)], output / "export-samples.log", timeout=None, export_limit=export_limit)
+                report.update(validate_trace(toc, samples, udid, args.duration))
+                if app:
+                    roots = [symbol_root]
+                elif args.symbols:
+                    roots = [args.symbols]
+                else:
+                    primary = primary_worktree_root(ROOT)
+                    roots = [primary / ".DerivedData/Device/Build/Products/Release-iphoneos",
+                             ROOT / ".DerivedData/Device/Build/Products/Release-iphoneos",
+                             *primary.glob(".DerivedData/testflight/*/artifacts-*/*.xcarchive/dSYMs"),
+                             *artifact_root().glob("releases/*/Trinket.xcarchive/dSYMs"),
+                             *artifact_root().glob("profiles/*/symbols")]
+                report["symbols"] = preserve_profile_symbols(samples, roots, output / "symbols", {
+                    key: report[key] for key in ("installedApp", "developerDirectory", "source", "buildSymbols") if key in report})
+                if app:
+                    observed = {tuple(value) for value in report["symbols"]["binaryUUIDs"]}
+                    expected = {tuple(value) for value in report["buildSymbols"]["binaries"][0]["uuids"]}
+                    if not observed <= expected:
+                        raise ValueError("Recorded Trinket binary differs from the supplied build")
+                run(["xcrun", "xctrace", "symbolicate", "--input", str(trace), "--dsym", str(output / "symbols")],
+                    output / "symbolicate.log", timeout=None)
+                symbolicated = exports / "symbolicated-samples.xml"
+                run(["xcrun", "xctrace", "export", "--input", str(trace), "--xpath", xpath, "--output", str(symbolicated)],
+                    output / "export-symbolicated.log", timeout=None, export_limit=export_limit)
+                report.update(validate_trace(toc, symbolicated, udid, args.duration))
+                report["namedAppFrames"] = symbolicated_app_frames(symbolicated)
             report["status"] = "passed"
             print(f"Verified CPU and frame measurements: {report['rowCounts']}\nEvidence: {output}")
     except (ValueError, RuntimeError, OSError, KeyError, ET.ParseError, subprocess.SubprocessError) as error:
