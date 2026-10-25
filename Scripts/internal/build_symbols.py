@@ -157,6 +157,39 @@ def backup_archive(archive: Path, ipa: Path | None, receipt: dict, root: Path | 
             "binaries": manifest["binaries"]}
 
 
+def verified_release(receipt: dict) -> tuple[Path, dict]:
+    """Revalidate durable bytes and native identity before retiring working copies."""
+    saved = receipt['symbol_artifacts']
+    destination = Path(saved['path'])
+    releases = artifact_root() / 'releases'
+    if (saved.get('status') != 'verified' or destination.parent != releases
+            or destination.is_symlink() or destination.resolve() != destination
+            or not destination.is_dir()):
+        raise ValueError('Unknown or unsafe authoritative release location')
+    manifest_path = destination / 'symbol-manifest.json'
+    if manifest_path.is_symlink() or digest(manifest_path) != saved['manifestSHA256']:
+        raise ValueError('Authoritative symbol manifest is missing or changed')
+    manifest = json.loads(manifest_path.read_text())
+    for field, key in (('bundleIdentifier', 'bundle_id'), ('version', 'version'),
+                       ('build', 'build'), ('commit', 'commit'), ('xcode', 'xcode')):
+        if str(manifest[field]) != str(receipt[key]):
+            raise ValueError(f'Authoritative release {field} differs from receipt')
+    archive = destination / 'Trinket.xcarchive'
+    ipa = destination / 'Trinket.ipa'
+    if archive.is_symlink() or ipa.is_symlink() or tree_hashes(archive) != manifest['archiveFiles']:
+        raise ValueError('Authoritative archive is missing or damaged')
+    actual = app_manifest(archive / 'Products/Applications/Trinket.app', archive / 'dSYMs')
+    if any(actual[key] != manifest[key] for key in actual) or actual['binaries'] != saved['binaries']:
+        raise ValueError('Authoritative native identity or symbols changed')
+    if digest(ipa) != manifest['ipaSHA256'] or manifest['ipaSHA256'] != receipt['ipa_sha256']:
+        raise ValueError('Authoritative IPA differs from receipt')
+    validate_ipa(ipa, manifest)
+    with zipfile.ZipFile(ipa) as zipped:
+        if zipped.testzip() is not None:
+            raise ValueError('Authoritative IPA contains damaged resources')
+    return destination, manifest
+
+
 def trace_identities(samples: Path) -> set[tuple[str, str]]:
     identities = set()
     for _, element in ET.iterparse(samples, events=("end",)):

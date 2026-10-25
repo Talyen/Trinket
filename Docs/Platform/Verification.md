@@ -28,6 +28,11 @@ build/Smoke qualification; nightly and manual lanes own broader UI/performance w
 The preview and report list selected and deferred work; a skipped or unexecuted
 check never counts as passed. Default selection does not certify visual quality.
 
+For script changes, ordinary local handoff checks syntax and cache-path alignment
+with `test-scripts.sh --syntax-only`; regression suites remain visible as hosted
+obligations. `--fast` still executes tests and is not a static-only gate. Use exact
+focused regressions under the diagnostic limits when local evidence is needed.
+
 Explicit selectors run only that selected work; they do not replace static landing
 checks. `--route focused` is optional and `diagnostic` remains a compatibility alias.
 `--isolate` is also retained for compatibility; isolation is automatic. Ordinary

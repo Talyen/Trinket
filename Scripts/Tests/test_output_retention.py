@@ -15,6 +15,19 @@ from internal import output_retention as retention
 
 
 class OutputRetentionTests(ScriptRegressionTestCase):
+    def test_legacy_swiftpm_cache_expires_after_three_days_without_touching_sources(self):
+        old = self.output('Packages/TrinketCore/.build/debug/product', age=4 * 86400)
+        source = self.output('Packages/TrinketCore/Sources/source.swift', age=4 * 86400)
+        recent = self.output('Packages/BattleEngine/.build/debug/BalanceSweepCLI', age=2 * 86400)
+        for path in (old, recent):
+            for parent in (path.parent, path.parents[1]):
+                os.utime(parent, (0, 0))
+        with patch.object(retention.subprocess, 'run', return_value=subprocess.CompletedProcess('lsof', 1, '', '')):
+            self.assertEqual(self.clean()[0], 1)
+        self.assertFalse(old.exists())
+        self.assertTrue(source.exists())
+        self.assertTrue(recent.exists())
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)

@@ -288,8 +288,10 @@ def verification_plan(route: Route, *, root: Path = ROOT, environment: dict[str,
         full_style = any(matches(path, '.swiftlint.yml', '.swiftformat', 'Scripts/tool-versions.env', 'Scripts/format-dirs.env', 'Scripts/build-inputs.env', 'Scripts/*', '.github/*') for path in route.paths)
         add('style', 'style', './Scripts/test.sh', 'style', *(swift if local or not full_style else []), heavy=local and not swift)
     if 'scripts' in route.needs:
-        flag = ['--fast'] if local else ['--skip-docs'] if final or 'docs' in route.needs else []
-        add('scripts', 'script regressions', './Scripts/test-scripts.sh', *flag, '--paths', *route.paths)
+        if local:
+            add('scripts-syntax', 'script syntax', './Scripts/test-scripts.sh', '--syntax-only', '--paths', *route.paths)
+        flag = ['--skip-docs'] if final or 'docs' in route.needs else []
+        add('scripts', 'script regressions', './Scripts/test-scripts.sh', *flag, '--paths', *route.paths, heavy=True)
     if not final and ('docs' in route.needs or local and 'scripts' in route.needs):
         add('docs', 'documentation', 'python3', './Scripts/check-docs.py', *(['--paths', *route.paths] if local else []))
     if route.packages: add('package', 'package tests', './Scripts/test-package.sh', *route.packages, heavy=True, env=(('SKIP_GENERATE', '1'),))

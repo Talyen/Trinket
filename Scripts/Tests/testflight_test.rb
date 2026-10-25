@@ -126,6 +126,49 @@ end
 original_stdout = $stdout
 $stdout = StringIO.new
 begin
+  fixture do |deploy, _portal|
+    deploy.start
+    deploy.build
+    retained = File.join(deploy.run_dir, 'retained')
+    FileUtils.mkdir_p(retained)
+    FileUtils.mv(deploy.receipt.fetch('ipa'), File.join(retained, 'Trinket.ipa'))
+    deploy.receipt['symbol_artifacts'] = { 'path' => retained }
+    deploy.validate_ipa_hash
+    assert(deploy.artifact_path('ipa', 'Trinket.ipa') == File.join(retained, 'Trinket.ipa'))
+    File.write(File.join(retained, 'Trinket.ipa'), 'changed')
+    rejects('missing or changed') { deploy.validate_ipa_hash }
+  end
+
+  fixture do |deploy, _portal|
+    deploy.start
+    deploy.build
+    artifacts = File.join(deploy.run_dir, 'artifacts-fixture')
+    FileUtils.mkdir_p(artifacts)
+    original = TrinketTestFlight.method(:capture)
+    begin
+      TrinketTestFlight.define_singleton_method(:capture) do |*args|
+        if args.first == 'ditto'
+          FileUtils.mkdir_p(File.join(args.last, 'Payload/Trinket.app'))
+          ''
+        elsif args.first == 'codesign'
+          'fixture entitlements'
+        else
+          original.call(*args)
+        end
+      end
+      deploy.define_singleton_method(:plist) { |_path| {} }
+      deploy.define_singleton_method(:validate_export) { |_info, _entitlements| nil }
+      deploy.inspect_ipa(artifacts)
+      assert(Dir.glob(File.join(artifacts, 'inspection-*')).empty?, 'successful inspection must release its unpacked IPA')
+      assert(JSON.parse(File.read(File.join(artifacts, 'inspection.json')))['signature_verified'])
+      deploy.define_singleton_method(:validate_export) { |_info, _entitlements| raise 'invalid identity' }
+      rejects('invalid identity') { deploy.inspect_ipa(artifacts) }
+      assert(Dir.glob(File.join(artifacts, 'inspection-*')).length == 1, 'failed inspection evidence must survive')
+    ensure
+      TrinketTestFlight.define_singleton_method(:capture, original)
+    end
+  end
+
   fixture do |deploy, portal, factory|
     deploy.fail_ci = true
     rejects('CI failed') { deploy.execute }

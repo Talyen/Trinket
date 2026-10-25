@@ -13,6 +13,8 @@ import sys
 import json
 import tempfile
 import shutil
+import hashlib
+from datetime import datetime, timezone
 
 
 def git(root: Path, *args: str) -> str:
@@ -67,17 +69,78 @@ def preserve_evidence(source: Path, names: list[str]) -> Path:
     if not paths:
         return destination
     head = git(source, 'rev-parse', 'HEAD')
+    def hashes(items):
+        result = {}
+        for item in sorted(set(items)):
+            value = hashlib.sha256()
+            with item.open('rb') as stream:
+                for block in iter(lambda: stream.read(1024 * 1024), b''):
+                    value.update(block)
+            result[str(item.relative_to(source))] = value.hexdigest()
+        return result
+    expected = hashes(paths)
+    def source_unchanged():
+        current = []
+        for name in names:
+            path = Path(os.path.abspath(source / name))
+            items = [path, *path.rglob('*')] if path.is_dir() else [path]
+            if any(item.is_symlink() or not (item.is_dir() or item.is_file()) for item in items):
+                return False
+            current.extend(item for item in items if item.is_file())
+        return hashes(current) == expected
+    # Legacy snapshots remain valid candidates: compare their actual bytes,
+    # rather than trusting a stored digest or creating mutable hard links.
+    for candidate in sorted(destination.glob(head[:12] + '-*')):
+        files_root = candidate / 'files'
+        if candidate.is_symlink() or files_root.is_symlink() or not files_root.is_dir():
+            continue
+        files = list(files_root.rglob('*'))
+        if any(item.is_symlink() or not (item.is_dir() or item.is_file()) for item in files):
+            continue
+        actual = {}
+        for item in files:
+            if item.is_file():
+                with item.open('rb') as stream:
+                    value = hashlib.sha256()
+                    for block in iter(lambda: stream.read(1024 * 1024), b''):
+                        value.update(block)
+                actual[str(item.relative_to(files_root))] = value.hexdigest()
+        if actual == expected:
+            if not source_unchanged():
+                raise RuntimeError('Evidence changed during preservation; original files retained')
+            record_preservation(destination, candidate, head)
+            print(f'Reused verified task evidence: {candidate}')
+            return candidate
     saved = Path(tempfile.mkdtemp(prefix=head[:12] + '-', dir=destination))
     for path in sorted(set(paths)):
         target = saved / 'files' / path.relative_to(source)
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(path, target, follow_symlinks=False)
+        with target.open('rb') as stream:
+            value = hashlib.sha256()
+            for block in iter(lambda: stream.read(1024 * 1024), b''):
+                value.update(block)
+        if value.hexdigest() != expected[str(path.relative_to(source))]:
+            raise RuntimeError(f'Evidence copy verification failed: {path}')
+    if not source_unchanged():
+        raise RuntimeError('Evidence changed during preservation; original files retained')
     (saved / 'evidence.json').write_text(json.dumps({
         'preserved_at_commit': head, 'branch': git(source, 'branch', '--show-current'),
         'files': [str(path.relative_to(source)) for path in sorted(set(paths))],
     }, indent=2) + '\n')
+    record_preservation(destination, saved, head)
     print(f'Preserved task evidence: {saved}')
     return saved
+
+
+def record_preservation(destination: Path, saved: Path, head: str) -> None:
+    journal = destination / 'preservations.jsonl'
+    if journal.is_symlink():
+        raise RuntimeError('Evidence provenance cannot follow a symlink')
+    with journal.open('a') as stream:
+        fcntl.flock(stream, fcntl.LOCK_EX)
+        stream.write(json.dumps({'snapshot': saved.name, 'commit': head,
+                                'preserved_at': datetime.now(timezone.utc).isoformat()}) + '\n')
 
 
 def preserve_default_evidence(source: Path) -> Path | None:

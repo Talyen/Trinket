@@ -9,12 +9,14 @@ source Scripts/lib/output-retention.sh
 
 SKIP_DOCS=false
 FAST=false
+SYNTAX_ONLY=false
 requested_paths=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --skip-docs) SKIP_DOCS=true ;;
     --fast) FAST=true; SKIP_DOCS=true ;;
+    --syntax-only) SYNTAX_ONLY=true; SKIP_DOCS=true ;;
     --paths)
       shift
       [[ $# -gt 0 ]] || { echo "--paths requires individual files" >&2; exit 2; }
@@ -22,7 +24,7 @@ while [[ $# -gt 0 ]]; do
       break ;;
     --help|-h)
       cat <<'USAGE'
-Usage: ./Scripts/test-scripts.sh [--skip-docs] [--fast] [--paths <file> ...]
+Usage: ./Scripts/test-scripts.sh [--skip-docs] [--fast] [--syntax-only] [--paths <file> ...]
 
 Syntax and regression checks for repository scripts. By default also runs
 documentation link/inventory checks via check-docs.py; pass --skip-docs when
@@ -30,6 +32,8 @@ a caller already ran the docs gate (for example handoff --final).
 --fast skips docs, media audio fixtures, and shell regressions for a quick
 local loop; CI runs the full suite. Failed logs are retained under RESULTS_DIR
 or .DerivedData/ScriptTestResults; terminal excerpts are bounded.
+--syntax-only checks script syntax and cache-path alignment without executing
+regressions. Ordinary local handoff uses this mode and defers suites to CI.
 Python and shell suites share a parallel worker pool
 (up to two local workers; CI uses ncpu; TRINKET_SCRIPT_TEST_JOBS overrides)
 and report in selection order; every selected suite is attempted and the
@@ -118,7 +122,7 @@ syntax_skipped=()
 if (( ${#requested_paths[@]} > 0 )); then
   for candidate in "${requested_paths[@]}"; do
     case "$candidate" in
-      Scripts/*.sh|Scripts/*.env|Scripts/*.py|Scripts/*.mjs|Scripts/bin/*)
+      Scripts/*.sh|Scripts/*.env|Scripts/*.py|Scripts/*.mjs|Scripts/*.rb|Scripts/bin/*)
         [[ -f "$candidate" ]] || continue
         syntax_list+=("$candidate") ;;
       *)
@@ -128,7 +132,7 @@ if (( ${#requested_paths[@]} > 0 )); then
 else
   # Process substitution hides inventory failures from errexit/pipefail.
   if syntax_inventory="$(
-    { rg --files Scripts -g '*.sh' -g '*.env' -g '*.py' -g '*.mjs' -g 'Scripts/bin/*' | LC_ALL=C sort; } 2>"$TEST_LOG_DIR/syntax.log"
+    { rg --files Scripts -g '*.sh' -g '*.env' -g '*.py' -g '*.mjs' -g '*.rb' -g 'Scripts/bin/*' | LC_ALL=C sort; } 2>"$TEST_LOG_DIR/syntax.log"
   )"; then
     while IFS= read -r script; do
       syntax_list+=("$script")
@@ -144,6 +148,7 @@ python_syntax=()
 for script in "${syntax_list[@]+"${syntax_list[@]}"}"; do
   case "$script" in
     *.py) python_syntax+=("$script") ;;
+    *.rb) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" ruby -c "$script" ;;
     *.mjs) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" node --check "$script" ;;
     Scripts/bin/*) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" sh -n "$script" ;;
     *) run_logged "Syntax: $script" "$TEST_LOG_DIR/syntax.log" bash -n "$script" ;;
@@ -165,7 +170,9 @@ regressions_started=$SECONDS
 # real timeout waits to the end of the Python phase. All fixtures are isolated.
 # macOS Bash treats an empty array as unset under nounset.
 suites=("${shell_suites[@]+"${shell_suites[@]}"}" "${python_modules[@]+"${python_modules[@]}"}")
-if (( ${#suites[@]} == 0 )); then
+if [[ "$SYNTAX_ONLY" == true ]]; then
+  echo 'Script regressions deferred to hosted CI.'
+elif (( ${#suites[@]} == 0 )); then
   echo "(no regressions selected)"
 else
   cpu_count="$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)"

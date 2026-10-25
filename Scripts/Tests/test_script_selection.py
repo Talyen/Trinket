@@ -177,6 +177,17 @@ class ScriptSelectionTests(unittest.TestCase):
             self.assertEqual(len(logs), 1)
             self.assertIn('inventory failure sentinel', logs[0].read_text())
 
+    def test_syntax_only_never_imports_or_executes_selected_regressions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.runner_fixture(Path(directory))
+            (root / 'Scripts/script_test_selection.py').write_text('print("Scripts/Tests/test_probe.py")\n')
+            (root / 'Scripts/Tests/test_probe.py').write_text(
+                'from pathlib import Path\nPath("worker-executed").touch()\nraise RuntimeError("must not import")\n')
+            result = run_captured(['bash', 'Scripts/test-scripts.sh', '--syntax-only'], cwd=root, expected=0)
+            self.assertIn('Script syntax passed', result.stdout)
+            self.assertIn('regressions deferred', result.stdout)
+            self.assertFalse((root / 'worker-executed').exists())
+
     def test_runner_compiles_without_execution_and_preserves_worker_failures(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = self.runner_fixture(Path(directory))

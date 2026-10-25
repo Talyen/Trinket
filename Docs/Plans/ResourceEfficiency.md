@@ -1,6 +1,7 @@
 ---
 type: execution-plan
-status: active
+status: blocked
+reason: Device-thinned size and physical-device RAM measurements await explicit local diagnostic authorization; no push is authorized.
 created: 2026-10-25
 updated: 2026-10-25
 expires: 2026-11-08
@@ -12,7 +13,16 @@ expires: 2026-11-08
 
 Reduce local repository/build storage and investigate lower game RAM use while
 preserving the player's visual fidelity, sound, offline play and responsiveness.
-This is an agreed implementation plan; implementation and cleanup have not begun.
+Storage retention, cache expiry, evidence reuse, universal size reporting and
+CI-first script-gate repair are implemented. The reviewed migration removed
+3,962,818,560 allocated bytes (3.69 GiB); the subsequent dry run found zero
+eligible outputs. Explicit keeps, unknown/unfinished releases and mismatched
+extractions remain intact. No artwork, audio or runtime behavior changed.
+
+Device-thinned size and physical-device RAM qualification remain open, awaiting
+an answer to the bounded-local-measurement authorization question. No upload,
+push, signing export or device run was performed. Do not close this plan or
+claim RAM/delivery-size improvement from the storage result.
 
 ## Agreed trade-offs
 
@@ -66,14 +76,14 @@ baseline or matched before/after performance result has been established.
 
 ### 1. Establish cleanup eligibility and measurements
 
-- [ ] Extend the existing cleanup inventory to classify disposable extraction,
+- [x] Extend the existing cleanup inventory to classify disposable extraction,
   duplicate verified release, retained release, cache, evidence and unknown paths.
   Report allocated bytes, protection reason, consumer/owner and proposed expiry.
-- [ ] Recheck live processes, leases, deployment state, open files and keep markers
+- [x] Recheck live processes, leases, deployment state, open files and keep markers
   immediately before deletion through the existing locking/retention owners.
   Unavailable inventories, unknown ownership, symlinks or incomplete manifests
   must preserve the path. Directory age alone is insufficient.
-- [ ] Keep cleanup explicit or opportunistic through existing tools; no background
+- [x] Keep cleanup explicit or opportunistic through existing tools; no background
   daemon, foreign process termination, Git history rewrite or worktree mass purge.
 
 ### 2. Remove redundant TestFlight storage first
@@ -83,17 +93,17 @@ Owners: [deployment](../../Scripts/internal/testflight.rb),
 [symbol preservation](../../Scripts/internal/build_symbols.py) and
 [output retention](../../Scripts/internal/output_retention.py).
 
-- [ ] Use scoped temporary directories for successful IPA inspection, including
+- [x] Use scoped temporary directories for successful IPA inspection, including
   recovery paths. Preserve compact inspection results and signature/identity
   proof. Failed diagnostic output follows existing retention and keep controls.
-- [ ] Resolve archive/IPA consumers through the authoritative preserved location
+- [x] Resolve archive/IPA consumers through the authoritative preserved location
   before retiring duplicate working copies. Cover resume, checksum validation,
   symbol validation and inspection, including legacy receipts with local paths.
-- [ ] Verify complete manifests, hashes, executable UUIDs and matching symbols;
+- [x] Verify complete manifests, hashes, executable UUIDs and matching symbols;
   atomically publish the preserved record before permitting 24-hour duplicate
   expiry. A path existing is not sufficient verification. Do not hard-link
   artifacts that signing, export or inspection might mutate.
-- [ ] Preserve indefinite release artifacts and receipts. Skip original-only,
+- [x] Preserve indefinite release artifacts and receipts. Skip original-only,
   damaged, actively referenced or incompletely preserved builds. Migration starts
   with a dry run and proves recovery from the retained copy before deletion.
 
@@ -105,14 +115,15 @@ Owners: [output retention](../../Scripts/internal/output_retention.py),
 [cache pruning](../../Scripts/prune-derived-data-cache.sh) and
 [evidence preservation](../../Scripts/agent-integrate.py).
 
-- [ ] Apply three-day inactivity expiry to owned task caches and obsolete SwiftPM
+- [x] Apply three-day inactivity expiry to owned task caches and obsolete SwiftPM
   caches, including eligible legacy `.build` directories. Confirm consumers such
   as the balance CLI before retiring their cached executable. Do not broaden
   deletion to arbitrary unknown directories or current shared warm caches.
 - [ ] Preserve needed outputs independently before narrowing broad keep markers.
+  Existing broad keeps have unresolved investigation ownership and remain intact.
   Completed worktrees use existing clean/integrated cleanup and activity checks;
   unfinished, dirty, live or ambiguous worktrees remain intact.
-- [ ] Reuse verified identical immutable evidence snapshots instead of copying
+- [x] Reuse verified identical immutable evidence snapshots instead of copying
   unchanged deliverables at integration and again at cleanup. Preserve a distinct
   provenance record for each capture/preservation event. Start with snapshot
   deduplication; add no general blob store without measured need. Existing evidence
@@ -164,7 +175,7 @@ and [artwork lifecycle](../AgentContext/ui-performance.md).
 
 ### 6. Verify, migrate and document
 
-- [ ] Add focused protection for consequential failure modes: active/unknown owner,
+- [x] Add focused protection for consequential failure modes: active/unknown owner,
   hash/UUID mismatch, failed preservation, interrupted deployment, legacy receipt
   recovery, exact expiry boundaries, kept evidence, snapshot reuse and concurrent
   cleanup/preservation. Use fixtures instead of real signing or uploads.
@@ -173,9 +184,9 @@ and [artwork lifecycle](../AgentContext/ui-performance.md).
   visual/interaction comparisons. Require repeatable footprint improvement and
   no regression under the existing scenario thresholds. If evidence is absent
   or the trade-off fails, retain existing behavior and report the candidate open.
-- [ ] Record before/after actual disk space, protected bytes and reasons; replay
+- [x] Record before/after actual disk space, protected bytes and reasons; replay
   the cleanup dry run after migration to demonstrate bounded repeat behavior.
-- [ ] Add compact size/retention measurements to existing reports and release CI.
+- [x] Add compact size/retention measurements to existing reports and release CI.
   Establish baselines before enforcing growth thresholds. Do not add a broad
   performance sweep to every push or reduce existing diagnostic retention.
 - [ ] Update [Release](../Platform/Release.md),
@@ -185,6 +196,26 @@ and [artwork lifecycle](../AgentContext/ui-performance.md).
   implemented behavior. Review, verify and integrate task changes; remove this
   plan when all work is resolved, folding remaining durable requirements into
   canonical owners.
+
+## Current evidence and remaining prerequisites
+
+- Focused script regressions cover release recovery/tampering/ownership, cache
+  expiry, snapshot reuse, inspection lifetime, export failure cleanup and static
+  gate selection. A fixture prerequisite failure was repaired and its exact case
+  passed; broader script runs selected by the old gate were stopped, not accepted
+  as qualification. Full regression/compiled qualification remains hosted.
+- Static handoff passed. It now runs script syntax/cache alignment and reports
+  broad script regressions as deferred to CI, correcting the encountered mismatch
+  between executable routing and the existing CI-first policy.
+- Task deliverables contain `Resources/cleanup-before.txt`,
+  `Resources/cleanup-applied.txt`, `Resources/cleanup-after.txt`,
+  `Resources/build-62-size/build-size.json` and `Resources/result.json`.
+  Integration preserves them under the shared task evidence directory for
+  `codex/resource-efficiency-20261024` before task-worktree cleanup.
+- Next: resolve local measurement authorization, select an available physical
+  device/development-signed optimized build, and obtain device-thinned and RAM
+  evidence under the host lane. Keep stages 4–5 open until their evidence gates
+  resolve. Preserve game behavior if the proposed trade-off fails measurement.
 
 ## Verification and handoff
 

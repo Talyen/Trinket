@@ -46,9 +46,16 @@ def safe_path(path: Path, boundary: Path) -> bool:
 
 def run_cache_roots(root: Path) -> list[Path]:
     parent = root / '.DerivedData/runs'
-    if not safe_path(parent, root) or not parent.is_dir():
-        return []
-    return [p for p in parent.iterdir() if p.is_dir() and not p.is_symlink()]
+    paths = []
+    if safe_path(parent, root) and parent.is_dir():
+        paths.extend(p for p in parent.iterdir() if p.is_dir() and not p.is_symlink())
+    # Current native checks use explicit host scratch paths. Legacy SwiftPM
+    # outputs remain rebuildable (including BalanceSweepCLI); never expire sources.
+    packages = root / 'Packages'
+    if safe_path(packages, root) and packages.is_dir():
+        paths.extend(p for p in packages.glob('*/.build')
+                     if safe_path(p, root) and p.is_dir())
+    return paths
 
 
 def run_cache_seconds() -> float:
@@ -147,8 +154,9 @@ def protection(path: Path, root: Path, processes: dict[int, tuple[str, str]]) ->
     # Existing tenant slots and directory locks remain authoritative; PID reuse
     # conservatively preserves output rather than reclaiming a foreign job.
     derived = root / '.DerivedData'
+    runtime_output = path.is_relative_to(derived) or (path.name == '.build' and path.parent.parent == root / 'Packages')
     legacy_owner = legacy_runtime_owner(root, ('.active-sim', '.active-ui', '.simulator-cleanup.lock'))
-    if legacy_owner is not None and path.is_relative_to(derived):
+    if legacy_owner is not None and runtime_output:
         return f'active or unknown legacy lease {legacy_owner}'
     slots = []
     lease_root = primary_worktree_root(root)
@@ -164,7 +172,7 @@ def protection(path: Path, root: Path, processes: dict[int, tuple[str, str]]) ->
             pid = int(slot.read_text().split()[0])
         except (OSError, ValueError, IndexError):
             return 'unknown lease or lock owner'
-        if pid in processes and path.is_relative_to(derived):
+        if pid in processes and runtime_output:
             return f'active lease or lock {pid}'
     return ''
 
@@ -330,8 +338,7 @@ def cleanup(root: Path, *, apply: bool, experiments: bool = False,
     emit = print if verbose else lambda *args: None
     processes = process_snapshot()
     cache_age = run_cache_seconds()
-    # Expire whole idle run tenants, including products/intermediates. Shared and
-    # per-package caches, arbitrary legacy folders, and TestFlight are excluded.
+    # Shared Xcode/host caches, arbitrary legacy folders and TestFlight are excluded.
     e, f = expire_run_caches(root, apply=apply, now=now, processes=processes,
                              verbose=verbose, max_age=cache_age)
     paths = []

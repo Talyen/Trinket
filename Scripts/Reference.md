@@ -260,14 +260,34 @@ removes those candidates. Add `--experiments` for the three abandoned build
 experiments (CPU optimization, BalanceSweep refactor, Labyrinth host tests). This
 explicit option checks for open files and active owners rather than relying on
 directory timestamps, which can change when a checkout moves.
-Shared app/package/device caches, pinned tools, generated freshness state, release
-receipts, signed archives and symbols are preserved. Idle tenants directly under
-`.DerivedData/runs/` expire after three days without writes, including their build
+Shared Xcode/host/device caches, pinned tools, generated freshness state, release
+receipts and authoritative signed archives/symbols are preserved. Idle tenants under
+`.DerivedData/runs/` and legacy `Packages/*/.build/` expire after three days without writes, including their build
 products and intermediates; `TRINKET_RUN_MAX_AGE_DAYS` overrides this window.
 Recent writes, live owners, leases, keep markers and open files protect a tenant.
 Unavailable process/open-file inventories fail closed. Expiry shares the simulator
 slot allocation lock so it cannot remove a newly claimed agent cache. Arbitrary
-legacy build directories outside `runs/` remain untouched.
+legacy build directories outside those explicit roots remain untouched. The balance
+CLI is rebuildable; retiring its inactive SwiftPM cache can make its next run slower.
+
+`--primary` selects this repository's primary checkout from a task worktree.
+Add `--resources` for the more expensive full verification and 24-hour expiry of
+ready TestFlight duplicate working copies. Review the dry run before applying;
+[release retention](../Docs/Platform/Release.md#options-and-recovery) owns eligibility,
+permanent artifacts and recovery. Reports distinguish protected releases and unknown
+state from eligible duplicate allocated bytes. Regular opportunistic cleanup does
+not hash all release archives.
+
+`python3 Scripts/report-build-size.py --archive /path/Trinket.xcarchive --output /new/evidence`
+records universal app/catalog sizes, encoding groups and source identity when the
+archive has an adjacent receipt. `--app /path/Trinket.app` inspects an existing build
+instead. Unsigned device Release CI retains this compact inventory for 14 days.
+These are neither device delivery sizes nor measured resident RAM.
+An expressly requested local diagnostic may add `--export-thinned` for a device
+size report using existing signing credentials, `TRINKET_ALLOW_HEAVY_LOCAL=1` and
+the shared host lane. It never uploads or requests provisioning updates; exported
+products are temporary and only the size report/log is retained. Failed export
+leaves universal inventory and diagnostics without claiming thinning succeeded.
 
 Successful logs disappear after consumers finish. Failure and comparison evidence (including agent evaluations under
 `.DerivedData/AgentEvaluationResults/`)

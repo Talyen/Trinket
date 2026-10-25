@@ -279,6 +279,15 @@ jobs:
       - name: Record Release compiler input timestamps
         if: success() && steps.release-cache.outputs.cache-hit != 'true'
         run: python3 Scripts/build-source-times.py record
+      - name: Inventory unsigned Release resources
+        run: python3 Scripts/report-build-size.py --app .DerivedData/release-device/Build/Products/Release-iphoneos/Trinket.app --output .DerivedData/BuildSize --source-commit "$GITHUB_SHA"
+      - name: Retain compact Release size evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: ${{ inputs.artifact-prefix }}release-size-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .DerivedData/BuildSize/build-size.json
+          retention-days: 14
+          if-no-files-found: error
       - name: Prune incremental device Release state
         if: success() && steps.release-cache.outputs.cache-hit != 'true'
         run: ./Scripts/prune-derived-data-cache.sh --ci .DerivedData/release-device

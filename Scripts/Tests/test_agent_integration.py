@@ -12,6 +12,22 @@ from script_test_support import ROOT, ScriptRegressionTestCase, run_captured, wr
 
 
 class AgentIntegrationTests(ScriptRegressionTestCase):
+    def test_repeated_preservation_reuses_verified_bytes_and_records_each_event(self):
+        task = self.task('reuse-evidence')
+        captures = task / '.DerivedData/Deliverables'
+        captures.mkdir(parents=True)
+        image = captures / 'screen.png'
+        image.write_bytes(b'original')
+        for _ in range(2):
+            self.assertEqual(self.helper(task, 'evidence', '.DerivedData/Deliverables').returncode, 0)
+        evidence = self.root / '.git/trinket-evidence/codex/reuse-evidence'
+        self.assertEqual(len(list(evidence.glob('*/files/.DerivedData/Deliverables/screen.png'))), 1)
+        self.assertEqual(len((evidence / 'preservations.jsonl').read_text().splitlines()), 2)
+        image.write_bytes(b'changed')
+        self.assertEqual(self.helper(task, 'evidence', '.DerivedData/Deliverables').returncode, 0)
+        self.assertEqual({p.read_bytes() for p in evidence.glob('*/files/.DerivedData/Deliverables/screen.png')},
+                         {b'original', b'changed'})
+
     """Protect shared main and unfinished task work across real linked checkouts."""
 
     def setUp(self) -> None:

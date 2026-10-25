@@ -8,6 +8,7 @@ require 'fileutils'
 require 'digest'
 require 'securerandom'
 require 'time'
+require 'tmpdir'
 
 module TrinketTestFlight
   class Failure < StandardError; end
@@ -251,7 +252,7 @@ module TrinketTestFlight
       @receipt['stage'] = 'uploading'
       @receipt['upload_started_at'] = Time.now.utc.iso8601
       save # An interrupted upload must reconcile with Apple before any retry.
-      @portal.upload(@receipt.fetch('ipa'), @receipt)
+      @portal.upload(artifact_path('ipa', 'Trinket.ipa'), @receipt)
       @receipt['stage'] = 'uploaded'
       save
       reconcile
@@ -310,15 +311,21 @@ module TrinketTestFlight
     end
 
     def ensure_symbol_artifacts
-      backup = @receipt.dig('symbol_artifacts', 'path')
-      archive = @receipt.fetch('archive')
-      ipa = @receipt.fetch('ipa')
-      archive = File.join(backup, 'Trinket.xcarchive') if backup && !File.directory?(archive)
-      ipa = File.join(backup, 'Trinket.ipa') if backup && !File.file?(ipa)
+      archive = artifact_path('archive', 'Trinket.xcarchive')
+      ipa = artifact_path('ipa', 'Trinket.ipa')
       @receipt['symbol_artifacts'] = JSON.parse(TrinketTestFlight.capture('python3',
         File.join(@root, 'Scripts/build-symbols.py'), '--archive', archive,
         '--ipa', ipa, '--receipt', File.join(@run_dir, 'receipt.json')))
       save
+    end
+
+    def artifact_path(field, retained_name)
+      original = @receipt.fetch(field)
+      return original if File.exist?(original)
+      backup = @receipt.dig('symbol_artifacts', 'path')
+      retained = File.join(backup, retained_name) if backup
+      return retained if retained && File.exist?(retained)
+      raise Failure, "Retained #{field} is missing; preserve the receipt and inspect its symbol artifacts."
     end
 
     def plist(path)
@@ -326,8 +333,8 @@ module TrinketTestFlight
     end
 
     def inspect_ipa(artifacts)
-      unpacked = File.join(artifacts, 'inspection')
-      TrinketTestFlight.capture('ditto', '-x', '-k', @receipt.fetch('ipa'), unpacked)
+      unpacked = Dir.mktmpdir('inspection-', artifacts)
+      TrinketTestFlight.capture('ditto', '-x', '-k', artifact_path('ipa', 'Trinket.ipa'), unpacked)
       apps = Dir.glob(File.join(unpacked, 'Payload/*.app'))
       raise Failure, 'IPA must contain exactly one application.' unless apps.length == 1
       app = apps.first
@@ -337,6 +344,16 @@ module TrinketTestFlight
       signed_path = File.join(artifacts, 'signed-entitlements.plist')
       File.write(signed_path, entitlements)
       validate_export(info, plist(signed_path))
+      File.write(File.join(artifacts, 'inspection.json'), JSON.pretty_generate({
+        'ipa_sha256' => Digest::SHA256.file(artifact_path('ipa', 'Trinket.ipa')).hexdigest,
+        'verified_at' => Time.now.utc.iso8601, 'identity' => info,
+        'signature_verified' => true, 'entitlements_verified' => true
+      }) + "\n")
+      File.write(File.join(unpacked, '.retention-keep'), "Explicit inspection investigation pin.\n") if ENV['TRINKET_KEEP_REPORTS'] == '1'
+      unless ENV['TRINKET_KEEP_REPORTS'] == '1' ||
+             [@run_dir, artifacts, unpacked].any? { |path| File.exist?(File.join(path, '.retention-keep')) }
+        FileUtils.remove_entry_secure(unpacked)
+      end
       puts "Verified exported identity, version, signature, Production entitlements, and cloud sync=#{@receipt['cloud_sync']}."
     end
 
@@ -368,7 +385,7 @@ module TrinketTestFlight
     end
 
     def validate_ipa_hash
-      path = @receipt.fetch('ipa')
+      path = artifact_path('ipa', 'Trinket.ipa')
       unless File.file?(path) && Digest::SHA256.file(path).hexdigest == @receipt.fetch('ipa_sha256')
         raise Failure, 'Retained IPA is missing or changed; do not upload it. Start a new deployment.'
       end
@@ -411,6 +428,7 @@ module TrinketTestFlight
             end
             if @portal.assigned?(build) && state == 'IN_BETA_TESTING'
               @receipt['stage'] = 'ready'
+              @receipt['completed_at'] ||= Time.now.utc.iso8601
               save
               puts "READY: Trinket #{@receipt['version']} (#{@receipt['build']}); commit #{@receipt['commit']}; group #{@portal.group.name}"
               puts "https://appstoreconnect.apple.com/apps/#{@receipt['app_id']}/testflight/ios/#{build.id}"

@@ -207,7 +207,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
             for path in ("Gemfile", "Gemfile.lock"):
                 with self.subTest(path=path, hosted=hosted):
                     result = run_captured([str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--route", "static", "--paths", path], cwd=ROOT, env=self.verification_environment(hosted=hosted), expected=0)
-                    flag = "" if hosted else " --fast"
+                    flag = "" if hosted else " --syntax-only"
                     self.assertIn(f"./Scripts/test-scripts.sh{flag} --paths {path}", result.stdout)
 
     def test_mixed_script_and_product_scope_keeps_narrow_regressions(self) -> None:
@@ -223,7 +223,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                 command = next(line.strip() for line in result.stdout.splitlines()
                                if line.strip().startswith("./Scripts/test-scripts.sh "))
                 arguments = shlex.split(command)
-                self.assertEqual('--fast' in arguments, not hosted)
+                self.assertEqual('--syntax-only' in arguments, not hosted)
                 paths = arguments[arguments.index('--paths') + 1:]
                 selected = run_captured(["python3", "Scripts/script_test_selection.py", "--paths", *paths], cwd=ROOT, expected=0)
                 self.assertEqual(selected.stdout, script_only.stdout)

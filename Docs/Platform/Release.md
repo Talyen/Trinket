@@ -304,9 +304,22 @@ archive arena there without changing the Mac's preferences. Leave `SYMROOT`,
 individually can separate compiled products and dSYMs from archive assembly.
 Signed archives, exported IPAs, and checksums remain separate
 per deployment; a build number or binary is never relabeled for reuse.
-Keep these artifacts through the beta's debugging window; do not delete them
-while a run needs recovery. This directory is outside routine simulator-run
-cleanup. Retention is manual because archives and symbols may be needed later.
+Keep one verified archive, IPA, matching symbols and provenance record per uploaded
+build indefinitely in the authoritative symbol-artifact store. Receipts and failed
+build-number reservations never expire. Successful IPA inspection removes its
+temporary extraction after identity/signature validation, retaining compact proof;
+an explicit keep preserves the extraction too. Failed inspections remain available.
+
+`cleanup-outputs.py --dry-run --resources --primary` audits duplicate release
+working copies. Apply with `--apply --resources --primary` only after reviewing
+the inventory. Ready deployments get a 24-hour grace period after preservation
+and completion (legacy receipts use their last write as a conservative bound).
+Each deletion revalidates the authoritative manifest, all archive hashes, matching
+native UUIDs/dSYMs and IPA checksum/resources. Working copies must also match;
+unknown/mismatched outputs, live owners/open files, locks, recent writes and keeps
+are preserved. Cleanup shares the deployment lock. Resume/validation resolves
+missing local paths through the authoritative copy. Unfinished or uncertain
+deployments never qualify; old receipts need not be rewritten to recover.
 
 The default processing/distribution timeout is 1800 seconds; change it with
 `--timeout SECONDS`. Exit `0` means internally available, `2` means pending or
@@ -419,8 +432,12 @@ Landing retains the checkout, ignored files and build outputs. Completion follow
 Handoff writes verification reports automatically. Integration adds `task-report.json`
 with the local completion state, main base, task paths and evidence links, and copies
 `.DerivedData/Deliverables/` to Git's shared `trinket-evidence/<branch>/` directory.
-Copies have unique names, preservation commit/branch/path metadata, and never follow
-symlinks. Failed preservation stops landing or cleanup; raw build logs expire
+Snapshots have preservation commit/branch/path metadata and never follow
+symlinks. Repeated preservation at the same commit reuses an identical snapshot
+only after comparing actual source and retained bytes. A separate
+`preservations.jsonl` records each preservation event; changed or damaged snapshots
+are preserved separately. No mutable hard links or age-based evidence deletion are
+used. Failed preservation stops landing or cleanup; raw build logs expire
 separately. Save visual artifacts in Deliverables. For other task-local evidence,
 use `node Scripts/agent-worktree.mjs evidence <paths...>`; without paths it prints
 the durable directory. Evidence provenance still comes from the capture/build record.
