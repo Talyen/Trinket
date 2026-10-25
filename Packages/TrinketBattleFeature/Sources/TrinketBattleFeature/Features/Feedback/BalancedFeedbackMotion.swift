@@ -34,7 +34,7 @@ enum BalancedFeedbackMotion {
     ) -> CombatFeedbackItem {
         let bounds = bounds.isEmpty ? CGRect(x: 0, y: 0, width: 180, height: 250) : bounds
         let relevant = previous.filter {
-            $0.targetID == incoming.targetID && ($0.region == incoming.region || (isCentral($0) && isCentral(incoming)))
+            $0.targetID == incoming.targetID
         }
         let deadline = date.addingTimeInterval(maximumQueueDelay)
         var launch = date
@@ -86,7 +86,7 @@ enum BalancedFeedbackMotion {
         let hasHeal = previous.contains { $0.0.feedbackClass == .heal }
         let hasDamage = previous.contains { isDamage($0.0) }
         let routes = item.region == .announcement ? [0, -1, 1, -2, 2]
-            : item.region != .impact ? [0, -1, 1]
+            : item.region != .impact ? [0, -1, 1, -2, 2, -3, 3]
             : item.feedbackClass == .heal && hasDamage ? [1, 2, 3, 4, 0, -1, -2, -3, -4]
             : isDamage(item) && hasHeal ? [-1, -2, -3, -4, 0, 1, 2, 3, 4] : [0, -1, 1, -2, 2, -3, 3, -4, 4]
         var best = 0
@@ -134,8 +134,7 @@ enum BalancedFeedbackMotion {
         let maximumY = max(minimumY, bounds.maxY - 8 - halfHeight)
         let nameRow = item.feedbackSpread < 0 ? -item.feedbackSpread * 2 - 1 : item.feedbackSpread * 2
         let row = item.region == .announcement ? Double(nameRow) * 32
-            : item.region == .impact ? Double(max(0, abs(item.feedbackSpread) - 1)) * 24 : item.feedbackSpread == -1 ? -24.0 : item
-            .feedbackSpread == 1 ? -48.0 : 0
+            : item.region == .impact ? Double(max(0, abs(item.feedbackSpread) - 1)) * 24 : -Double(nameRow) * 24
         let centerY = min(maximumY, max(minimumY, base.y + row))
         let riseAnchor = item.region == .announcement ? base.y : centerY
         let rise = min(52, max(0, riseAnchor - minimumY)) * state.riseProgress
@@ -145,10 +144,6 @@ enum BalancedFeedbackMotion {
         let direction = item.feedbackSpread == 0 ? 0.0 : item.feedbackSpread < 0 ? -1.0 : 1.0
         let fan = item.region == .impact ? direction * min(reach, maximumFan) : 0
         return CGPoint(x: base.x + fan, y: centerY - rise)
-    }
-
-    private static func isCentral(_ item: CombatFeedbackItem) -> Bool {
-        item.region == .impact || item.region == .announcement
     }
 
     private struct Geometry {
