@@ -120,4 +120,28 @@ struct DefeatedSourceDoTRegressionTests {
         #expect(!battle.roster.hero.talents.pending.basicGuaranteedCritical)
         #expect(battle.roster.hero.talents.pending.basicCriticalBonus == 0)
     }
+
+    @Test
+    func `enemy Burn damage heals the enemy rather than player party`() {
+        let burn = ActiveEffect(id: 100, effect: .burn(6), remainingTurns: 0, sourceActorID: "enemy")
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 20),
+            heroEffects: [burn],
+            heroHealth: 15,
+            companionHealth: 10,
+            enemyHealth: 50,
+            enemyMaxHealth: 100,
+            enemyModifiers: .withTriggers {
+                $0.criticalChanceBonus = -1
+                $0.onBurnDamageHealLowestAllyFlat = 4
+            },
+            appliesFightPacing: false,
+        )
+
+        CombatExecutor.run { await EffectHandlers.advanceTurn(burn, on: battle.hero, in: &battle) }
+
+        #expect(battle.health(of: battle.hero) == 12)
+        #expect(battle.health(of: battle.companion) == 10)
+        #expect(battle.health(of: battle.enemy) == 54)
+    }
 }

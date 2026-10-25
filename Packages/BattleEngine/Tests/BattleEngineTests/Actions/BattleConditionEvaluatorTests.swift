@@ -70,7 +70,7 @@ struct BattleConditionEvaluatorTests {
         context.roster.mutateRuntime(for: hero) { $0.currentHealth = 0 }
         context.roster.mutateRuntime(for: companion) { $0.currentHealth = 8 }
 
-        let target = BattleConditionEvaluator.lowestHealthAlly(in: context)
+        let target = BattleActionContext(actor: hero, in: context).target(.lowestHealthAlly, in: context)
 
         #expect(target.id == companion.id)
     }
