@@ -160,8 +160,8 @@ with one label rule, shared by chip projection and vocabulary prewarming.
 
 Sniff Out shows beneficial-status + Physical icons with its prepared amount on
 the recipient. A refresh replaces the visible value rather than adding numbers;
-if the replacement exceeds the reserved width, retire the old slot before showing
-the wider value. Leech preparation uses beneficial-status + Leech icons. DoT
+if the replacement exceeds the reserved width, emit a new flight while the old
+value completes its animation. Leech preparation uses beneficial-status + Leech icons. DoT
 amplification uses negative-status + keyword icons rather than implying another hit.
 Direct effects from automatically played cards remain visible, while unrelated
 passive benefit events retain their suppression. Healing combines restored Health
@@ -169,51 +169,50 @@ and overflow into one number, including at full Health.
 
 ### Placement and motion
 
-Central chips use Revised Short Rise: a 0.05-second pop, brief peak/settle/hold,
-52-point cubic ease-out rise (bounded in short portraits), and a 0.34-second fade
-ending at 0.92 seconds. There is no animation picker.
+Central chips use Balanced: an 85 ms pop to 1.85×, settle to 1.55× by 170 ms,
+then shrink toward 1.2×. A portrait-bounded 52-point cubic ease-out rise starts at
+240 ms. Numeric lifetime is 1.05 seconds, including a final 280 ms fade.
+There is no player animation picker; Debug Options retains the previous Baseline
+for the native feedback comparison.
 
 Each portrait has three independent regions. Damage, DoT ticks, healing, Block
-absorption, and Dodge stay centered and have no count cap. Buffs, cleanse, and
+absorption, and Dodge use the center region and have no count cap. New flights
+select fixed diagonal paths with vertical separation when the center is crowded. Buffs, cleanse, and
 resource gains appear lower left; debuffs, control, purge, resource losses, and
 Death's Door appear lower right, interpreted from the recipient's perspective.
-DoT applications are status feedback; actual DoT damage stays centered.
+DoT applications are status feedback; actual DoT damage uses the center region.
 Stripped Block appears as a loss in the lower right and does not trigger a Block
 absorption reaction.
 
 Lower chips use 80% of the central base size, a smaller 0.85-to-1.20 pop settling
-to 1.0 at 0.16 seconds, the same lifetime and fade, and no automatic rise.
+to 1.0 at 0.16 seconds, a 0.92-second lifetime with a 0.34-second fade, and no automatic rise.
 Each corner fits its full reserved peak footprint within half the usable portrait
 width, with an 8-point center gap, 8-point outer margins, and clearance above the
 resource bars. Keep centers fixed through animation and numeric growth. The
 renderer and layout use the same region-specific peak bounds.
 
-New arrivals push only their own region upward by half the largest fitted peak
-height. Pushes ease out over 0.18 seconds and retarget continuously. Expiration
-never pulls surviving labels back down. The spatial fade at the artwork's top
-edge evicts labels permanently once they leave view.
+New arrivals never move or evict older flights. The lane prefers an 80 ms stagger,
+with a hard 180 ms arrival-to-launch limit. New paths compare measured projected
+footprints throughout their lifetimes, strongly penalizing complete covering in
+either direction. Diagonal paths and fixed rows preserve visible space when the
+queue deadline forces concurrent launches. The host clamps the path to the
+portrait's peak footprint; spatial-edge fading cannot prematurely evict a flight.
 
-### Consolidation and eviction
+### Consolidation and lifetime
 
-Matching semantic effects consolidate across actions before fading begins.
-Keep distinct effect outcomes separate even when they share a keyword and style;
-compatible damage and healing retain their existing aggregation families.
-Reserve one extra numeric digit; wider additive updates emit separately.
-Central merges add 0.12 seconds of visibility, capped at 0.30 seconds beyond the
-original lifetime, and replay the glint and bounded 10% pulse. Critical central
-contributions retain their accent halo and flash. Corner merges update numbers or
-retain identical status words and source IDs without renewed glint, pulse, or
-lifetime extension.
+Matching semantic effects consolidate within a 250 ms arrival gap. Keep distinct
+effect outcomes separate even when they share a keyword and style; compatible
+damage and healing retain their existing aggregation families. Reserve one extra
+numeric digit; wider updates emit separately. Merges keep the original launch,
+path, and expiry, without a renewed pop or lifetime extension. Critical
+contributions retain their accent halo and flash.
 
-After consolidating each complete incoming batch, publish at most two visible
-chips per corner per recipient. Prioritize actual control activations and Death's
-Door, then the most recently received results (event ID breaks simultaneous ties).
-Permanently evict overflow through the lane's existing eviction mechanism; never
-queue stale notifications or resurrect evicted chips on publication/remount.
-Apply sound and hit reactions from committed results before visual culling can
-hide them. Card inputs remain immediate; damage presentation follows its impact cue.
-Corner selection retains the best two candidates per recipient in one pass,
-preserving arrival order when all priority keys tie.
+Every admitted chip completes its full animation; there are no pending-count or
+corner-count evictions in Balanced. Reaction names retain 1.6 seconds. Apply
+sound and hit reactions from committed results immediately, independently of the
+bounded text stagger. Card inputs remain immediate; damage presentation follows
+its impact cue. The Debug Baseline alone retains the earlier pushes, merge
+extensions, spatial culling and two-chip corner cap for comparison.
 
 ### Host composition
 
