@@ -97,7 +97,7 @@ enum BalancedFeedbackMotion {
             var candidate = item
             candidate.feedbackSpread = route
             var score = Double(abs(route)) * 0.001
-            for elapsed in [0.0, 0.05, 0.085, 0.14, 0.17, 0.24, 0.3, 0.4, 0.5, 0.65, 0.8, 0.95] {
+            for elapsed in stride(from: 0.0, to: item.expiresAt.timeIntervalSince(item.availableAt), by: 0.015) {
                 let date = item.availableAt.addingTimeInterval(elapsed)
                 let sample = state(for: candidate, at: date)
                 let next = footprint(candidate, geometry: geometry, sample: sample, at: date, bounds: bounds).insetBy(dx: -3, dy: -3)
