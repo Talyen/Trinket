@@ -154,8 +154,7 @@ public enum HotspotAnalyzer {
         guard let enemy = GameContent.enemy(matching: step.enemyID) else { return 0 }
         let level = max(1, CombatRounding.rounded(averageEnemyLevel))
         let profile = step.scaling.resolve(partyAverageLevel: level).profile
-        let maxHealth = CombatantLevelScaler.scale(enemy: enemy, level: level, profile: profile).maxHealth
-        let rawDamage = EnemyPowerCurve.rawDamagePercent(level: level, isBoss: enemy.isBoss, profile: profile)
-        return Double(maxHealth) * (1 + rawDamage)
+        let build = CombatBuildResolver.build(enemy: enemy, level: level, profile: profile)
+        return Double(build.combatant.maxHealth) * (1 + build.modifiers.outgoingDamagePercent)
     }
 }

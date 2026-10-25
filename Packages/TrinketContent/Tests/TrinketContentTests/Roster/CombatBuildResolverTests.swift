@@ -4,6 +4,30 @@ import TrinketContentTestSupport
 import TrinketCore
 
 struct CombatBuildResolverTests {
+    @Test(arguments: [
+        (1, EnemyPowerCurve.Profile.standard, 0.25),
+        (20, .standard, 2.2),
+        (30, .standard, 3.7),
+        (40, .standard, 5.2),
+        (60, .standard, 6.55),
+        (40, .spire, 3.25),
+        (40, .recovery, 3.25),
+    ])
+    func `Countess stat tuning preserves shared abilities and mode boundaries`(
+        level: Int, profile: EnemyPowerCurve.Profile, expectedDamageBonus: Double,
+    ) throws {
+        let enemy = try #require(GameContent.enemy(matching: "the_blood_countess"))
+        let build = CombatBuildResolver.build(enemy: enemy, level: level, profile: profile)
+        #expect(abs(build.modifiers.outgoingDamagePercent - expectedDamageBonus) < 0.000001)
+        #expect(build.combatant.abilityChoices == enemy.combatant.abilityChoices)
+        if level == 40, profile == .standard {
+            #expect(build.combatant.maxHealth == 900)
+            let otherBoss = try #require(GameContent.enemy(matching: "the_seraph"))
+            #expect(abs(CombatBuildResolver.build(enemy: otherBoss, level: level)
+                    .modifiers.outgoingDamagePercent - 5.85) < 0.000001)
+        }
+    }
+
     @Test(arguments: [41, 60, 100, 250, 1000], [false, true])
     func `enemy build keeps growing past forty`(level: Int, isBoss: Bool) throws {
         let enemy = try #require(GameContent.enemies.first { $0.isBoss == isBoss })

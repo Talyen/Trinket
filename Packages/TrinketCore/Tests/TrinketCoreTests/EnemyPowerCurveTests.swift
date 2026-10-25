@@ -5,7 +5,7 @@ struct EnemyPowerCurveTests {
     @Test(arguments: [
         (EnemyPowerCurve.Profile.standard, 1, 7.2, 15.0, 0.5, 0.25),
         (.standard, 20, 16.0, 28.0, 4.3, 2.2),
-        (.standard, 40, 38.0, 75.0, 11.0, 6.5),
+        (.standard, 40, 30.4, 60.0, 8.8, 5.85),
         (.spire, 1, 6.4, 10.0, 0.5, 0.35),
         (.spire, 20, 16.0, 28.0, 1.6, 1.1),
         (.spire, 40, 35.2, 60.0, 3.25, 3.25),
@@ -41,6 +41,9 @@ struct EnemyPowerCurveTests {
         let damage80 = EnemyPowerCurve.rawDamagePercent(level: 80, isBoss: isBoss, profile: profile)
         #expect(damage60 > damage40)
         #expect(abs((damage80 - damage60) - (damage60 - damage40)) < 0.000001)
+        if profile == .standard {
+            #expect(abs((damage60 - damage40) - (isBoss ? 1.35 : 1.30)) < 0.000001)
+        }
         #expect(EnemyPowerCurve.health(level: Int.max, isBoss: isBoss, profile: profile).isFinite)
         #expect(EnemyPowerCurve.rawDamagePercent(level: Int.max, isBoss: isBoss, profile: profile).isFinite)
     }

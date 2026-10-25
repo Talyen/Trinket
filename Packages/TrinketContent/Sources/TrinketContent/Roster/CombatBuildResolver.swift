@@ -50,6 +50,12 @@ public enum CombatBuildResolver {
     ) -> CombatBuild {
         var profile = traitProfile(for: enemy)
         profile.outgoingDamagePercent += EnemyPowerCurve.rawDamagePercent(level: level, isBoss: enemy.isBoss, profile: powerProfile)
+        if powerProfile == .standard, enemy.id == "the_blood_countess", level > 20 {
+            // Reach the verified 5.2 bonus at forty without changing shared cards
+            // or the common post-forty damage slope.
+            let progress = Double(min(level, 40) - 20) / 20
+            profile.outgoingDamagePercent -= 0.65 * progress * progress * (3 - 2 * progress)
+        }
 
         let scaledCombatant = CombatantLevelScaler.scale(enemy: enemy, level: level, profile: powerProfile)
 

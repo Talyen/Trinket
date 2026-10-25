@@ -14,8 +14,8 @@ public enum EnemyPowerCurve {
 
     public static func health(level: Int, isBoss: Bool, profile: Profile = .standard) -> Double {
         let values = switch (profile, isBoss) {
-        case (.standard, false): (7.20, 16.00, 38.00)
-        case (.standard, true): (15.00, 28.00, 75.00)
+        case (.standard, false): (7.20, 16.00, 30.40)
+        case (.standard, true): (15.00, 28.00, 60.00)
         case (.spire, false): (6.40, 16.00, 35.20)
         case (.spire, true): (10.00, 28.00, 60.00)
         case (.recovery, false): (6.40, 16.00, 44.00)
@@ -26,7 +26,7 @@ public enum EnemyPowerCurve {
 
     public static func rawDamagePercent(level: Int, isBoss: Bool, profile: Profile = .standard) -> Double {
         let values: (Double, Double, Double) = if profile == .standard {
-            isBoss ? (0.25, 2.20, 6.50) : (0.50, 4.30, 11.00)
+            isBoss ? (0.25, 2.20, 5.85) : (0.50, 4.30, 8.80)
         } else {
             isBoss ? (0.35, 1.10, 3.25) : (0.50, 1.60, 3.25)
         }

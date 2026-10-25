@@ -36,6 +36,12 @@ role-specific roster catch-up XP unchanged. Product direction:
 [Decisions.md](../Product/Decisions.md), PD-016 through PD-021.
 
 The standard profile serves Journey, Labyrinth, Voyage, and non-Easy Contracts.
+Its level-40 Health multipliers are 30.4 for regular enemies and 60 for bosses;
+raw damage bonuses are +880% and +585%. Level-1/20 anchors retain their values.
+Countess's standard-profile raw damage bonus reaches +520% at level 40 through
+the same smoothstep from level 20, then retains the common post-40 damage slope.
+This adjustment belongs to `CombatBuildResolver`; power ratings reuse that build.
+Enemy and player ability definitions remain shared and unchanged by stat tuning.
 Spires use their own fixed-floor power profile; Easy Contracts use the recovery
 profile. Profile selection stays static for the mode, never follows party gear or
 current Health. Previews, launch assembly, progression matchups, and hotspot power

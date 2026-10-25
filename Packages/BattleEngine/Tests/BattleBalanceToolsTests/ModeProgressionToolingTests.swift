@@ -204,6 +204,16 @@ extension ModeProgressionToolingTests {
         #expect(summary.averageEnemyLevel == (decided == 0 ? 0 : Double(level)))
     }
 
+    @Test func `hotspot power rating uses Countess resolved combat stats`() throws {
+        let step = BalanceTestFixtures.step(enemyID: "the_blood_countess", enemyLevel: 40, isBoss: true)
+        let record = ProgressionBattleRecord(
+            step: step, playerLevel: 40, enemyLevel: 40, seed: 11,
+            result: BalanceTestFixtures.result(),
+        )
+        let summary = try #require(HotspotAnalyzer.analyze(records: [record]).first)
+        #expect(abs(summary.averageEnemyPowerRating - 5580) < 0.000001)
+    }
+
     @Test func `progression matchup spends legal talents at current level`() {
         let controller = InterleavingPlayerController(
             initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 20),
