@@ -10,6 +10,8 @@ extension EnvironmentValues {
 
 /// An opt-in native experiment. Shipping battles retain their existing lane and motion.
 enum BalancedFeedbackPreview {
+    static let maximumQueueDelay: TimeInterval = 0.18
+    static let nearbyWindow: TimeInterval = 0.36
     static func state(for item: CombatFeedbackItem, at date: Date) -> CombatFeedbackAnimationState {
         if item.region != .impact {
             return CombatFeedbackMotionSampler.state(for: item, at: date)
@@ -35,30 +37,80 @@ enum BalancedFeedbackPreview {
         let relevant = previous.filter {
             $0.targetID == incoming.targetID && ($0.region == incoming.region || (isCentral($0) && isCentral(incoming)))
         }
+        let deadline = date.addingTimeInterval(maximumQueueDelay)
         var launch = date
         if let last = relevant.last(where: { $0.region == incoming.region }) {
-            launch = max(launch, last.availableAt.addingTimeInterval(0.18))
+            launch = max(launch, last.availableAt.addingTimeInterval(0.08))
         }
-        let end = relevant.map(\.expiresAt).max() ?? launch
+        launch = min(launch, deadline)
+        let end = min(deadline, relevant.map(\.expiresAt).max() ?? launch)
+        var incoming = incoming
+        incoming.previewSpread = spread(for: incoming, previous: relevant, at: launch)
         var item = incoming
         let lifetime = incoming.region == .impact ? 1.05 : incoming.region == .announcement ? 1.6 : 0.92
         let obstacles = relevant.compactMap { old -> (CombatFeedbackItem, Geometry)? in
             raster(old).map { (old, geometry(old, raster: $0, bounds: bounds, bottomInset: bottomInset)) }
         }
-        guard let pixels = raster(incoming) else { return incoming.scheduled(at: launch) }
-        let shape = geometry(incoming, raster: pixels, bounds: bounds, bottomInset: bottomInset)
-        while launch < end {
+        let shape = raster(incoming).map { geometry(incoming, raster: $0, bounds: bounds, bottomInset: bottomInset) }
+        while let shape, launch < end {
             item = incoming.scheduled(at: launch)
             item.expiresAt = launch.addingTimeInterval(lifetime)
             if clear(item, geometry: shape, of: obstacles, bounds: bounds) {
                 break
             }
-            launch = launch.addingTimeInterval(0.015)
+            launch = min(deadline, launch.addingTimeInterval(0.015))
         }
         item = incoming.scheduled(at: launch)
         item.expiresAt = launch.addingTimeInterval(lifetime)
         item.lastReceivedAt = date
+        if item.isCritical {
+            item.criticalAt = launch
+        }
         return item
+    }
+
+    private static func spread(for item: CombatFeedbackItem, previous: [CombatFeedbackItem], at launch: Date) -> Int {
+        let recent = previous.filter { $0.region == item.region && $0.availableAt.addingTimeInterval(nearbyWindow) >= launch }
+        guard !recent.isEmpty else { return 0 }
+        if item.region == .announcement {
+            return [-1, 1, -2, 2][(recent.count - 1) % 4]
+        }
+        if item.region == .impact {
+            if item.feedbackClass == .heal, recent.contains(where: { isDamage($0) }) {
+                return 1
+            }
+            if isDamage(item), recent.contains(where: { $0.feedbackClass == .heal }) {
+                return -1
+            }
+            if recent.count < 2 {
+                return 0
+            }
+        }
+        return recent.last(where: { $0.previewSpread != 0 })?.previewSpread == -1 ? 1 : -1
+    }
+
+    private static func isDamage(_ item: CombatFeedbackItem) -> Bool {
+        [.directDamage, .critical, .dot].contains(item.feedbackClass)
+    }
+
+    static func position(
+        for item: CombatFeedbackItem, base: CGPoint, size: CGSize,
+        state: CombatFeedbackAnimationState, elapsed: TimeInterval, bounds: CGRect,
+    ) -> CGPoint {
+        let peak = item.region == .impact ? 1.85 : item.region == .announcement ? 1.35 : 1.152
+        let halfHeight = size.height * peak / 2
+        let minimumY = bounds.minY + 8 + halfHeight
+        let maximumY = max(minimumY, bounds.maxY - 8 - halfHeight)
+        let nameRow = item.previewSpread < 0 ? -item.previewSpread * 2 - 1 : item.previewSpread * 2
+        let row = item.region == .announcement ? Double(nameRow) * 32
+            : item.region == .impact ? 0 : item.previewSpread == -1 ? -24.0 : item.previewSpread == 1 ? -48.0 : 0
+        let centerY = min(maximumY, max(minimumY, base.y + row))
+        let riseAnchor = item.region == .announcement ? base.y : centerY
+        let rise = min(52, max(0, riseAnchor - minimumY)) * state.riseProgress
+        let maximumFan = max(0, (bounds.width - size.width * peak) / 2 - 8)
+        let progress = 1 - pow(1 - min(1, max(0, elapsed / 0.4)), 3)
+        let fan = item.region == .impact ? Double(item.previewSpread) * min(16 + 20 * progress, maximumFan) : 0
+        return CGPoint(x: base.x + fan, y: centerY - rise)
     }
 
     private static func isCentral(_ item: CombatFeedbackItem) -> Bool {
@@ -110,10 +162,16 @@ enum BalancedFeedbackPreview {
         while sampleDate < item.expiresAt {
             let sample = state(for: item, at: sampleDate)
             if sample.opacity > 0.15 {
-                let rect = footprint(geometry, sample: sample, bounds: bounds).insetBy(dx: -6, dy: -6)
+                let rect = footprint(item, geometry: geometry, sample: sample, at: sampleDate, bounds: bounds).insetBy(dx: -6, dy: -6)
                 for (old, oldGeometry) in previous where sampleDate >= old.availableAt && sampleDate < old.expiresAt {
                     let oldSample = state(for: old, at: sampleDate)
-                    if oldSample.opacity > 0.15, rect.intersects(footprint(oldGeometry, sample: oldSample, bounds: bounds)) {
+                    if oldSample.opacity > 0.15, rect.intersects(footprint(
+                        old,
+                        geometry: oldGeometry,
+                        sample: oldSample,
+                        at: sampleDate,
+                        bounds: bounds,
+                    )) {
                         return false
                     }
                 }
@@ -123,11 +181,24 @@ enum BalancedFeedbackPreview {
         return true
     }
 
-    private static func footprint(_ geometry: Geometry, sample: CombatFeedbackAnimationState, bounds: CGRect) -> CGRect {
-        let rise = min(52, max(0, bounds.height / 2 - 12)) * sample.riseProgress
+    private static func footprint(
+        _ item: CombatFeedbackItem,
+        geometry: Geometry,
+        sample: CombatFeedbackAnimationState,
+        at date: Date,
+        bounds: CGRect,
+    ) -> CGRect {
+        let center = position(
+            for: item,
+            base: geometry.center,
+            size: geometry.size,
+            state: sample,
+            elapsed: date.timeIntervalSince(item.firstScheduledAt),
+            bounds: bounds,
+        )
         return CGRect(
-            x: geometry.center.x - geometry.size.width * sample.scale / 2,
-            y: geometry.center.y - rise - geometry.size.height * sample.scale / 2,
+            x: center.x - geometry.size.width * sample.scale / 2,
+            y: center.y - geometry.size.height * sample.scale / 2,
             width: geometry.size.width * sample.scale, height: geometry.size.height * sample.scale,
         )
     }

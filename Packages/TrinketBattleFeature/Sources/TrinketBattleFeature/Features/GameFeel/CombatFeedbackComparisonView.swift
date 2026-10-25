@@ -30,7 +30,7 @@ public struct CombatFeedbackComparisonView: View {
         VStack(spacing: TrinketDesign.Spacing.small) {
             Picker(selection: $mode) {
                 ForEach(Mode.allCases, id: \.self) { Text(verbatim: $0.rawValue).tag($0) }
-            } label: { Text(verbatim: "Mode") }.pickerStyle(.segmented).padding(.horizontal)
+            } label: { Text(verbatim: "Mode") }.pickerStyle(.segmented).padding(.horizontal).disabled(tour)
             if ready {
                 BattleTransitionLabCanvas(fixture: fixture)
                     .environment(\.balancedFeedbackPreview, mode == .balanced)
@@ -40,7 +40,7 @@ public struct CombatFeedbackComparisonView: View {
             }
             Picker(selection: $sample) {
                 ForEach(Sample.allCases, id: \.self) { Text(verbatim: $0.rawValue).tag($0) }
-            } label: { Text(verbatim: "Sample") }.pickerStyle(.segmented).padding(.horizontal)
+            } label: { Text(verbatim: "Sample") }.pickerStyle(.segmented).padding(.horizontal).disabled(tour)
             HStack {
                 Button { running = true; tour = false; replayID = UUID() } label: { Text(verbatim: "Replay") }
                 Button { running = true; tour = true; replayID = UUID() } label: { Text(verbatim: "A/B Tour") }
@@ -74,6 +74,7 @@ public struct CombatFeedbackComparisonView: View {
                         guard !Task.isCancelled else { return }
                     }
                 }
+                tour = false
             } else {
                 await play(sample)
             }

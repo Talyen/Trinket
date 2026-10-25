@@ -490,11 +490,27 @@ private extension CombatFeedbackRasterUIView {
             #endif
             let elapsed = sample.elapsed
             let scale = slot.fitScale * state.scale
-            let position = CGPoint(
+            var position = CGPoint(
                 x: chip.basePosition.x,
                 y: chip.basePosition.y - chip.lanePush.offset(at: elapsed) - riseDistance * state.riseProgress,
             )
-            let edgeOpacity = StationaryFeedbackLayout.edgeOpacity(centerY: position.y, in: bounds)
+            var edgeOpacity = StationaryFeedbackLayout.edgeOpacity(centerY: position.y, in: bounds)
+            #if DEBUG
+            if debugBalancedPreview {
+                position = BalancedFeedbackPreview.position(
+                    for: chip.item,
+                    base: chip.basePosition,
+                    size: CGSize(
+                        width: chip.reservationSize.width * slot.fitScale,
+                        height: chip.reservationSize.height * slot.fitScale,
+                    ),
+                    state: state,
+                    elapsed: elapsed,
+                    bounds: bounds,
+                )
+                edgeOpacity = 1
+            }
+            #endif
             if edgeOpacity == 0 {
                 if evicted == nil {
                     evicted = []

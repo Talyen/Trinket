@@ -137,17 +137,17 @@ Use `-launch-screen options -feedback-comparison` for direct managed inspection.
 Balanced retains native font/icon assets and portrait-capped 52-point travel.
 Central motion peaks at 1.85× after 85 ms, settles to 1.55× by 170 ms, starts
 rising at 240 ms, and fades over its final 280 ms of a 1.05-second lifetime.
-Each chip keeps its launch position. Measured raster footprints schedule launches
-with at least 180 ms between same-region entries and 6 points of combined
-clearance, sampled every 15 ms while both chips exceed 15% opacity. Damage and
-healing share the central queue; reaction names coordinate with it. Corners keep
-their native stationary motion and use independent queues. Lifetime starts at
-launch. Matching results merge within a 250 ms arrival gap, without renewed pulse
-or expiry; waiting queues retain the newest twelve entries per region/recipient.
+Measured raster footprints prefer an 80 ms stagger and 6 points of clearance,
+but each result launches within 180 ms of arrival. The first two nearby numeric
+arrivals stay centered; denser arrivals fan left and right from 16 to 36 points,
+clamped to the portrait at peak scale. Damage and healing prefer opposite sides.
+Corners and names receive fixed extra rows. Every path is chosen once: later
+arrivals never move, restart, shorten, or evict earlier chips. Dense overlap is
+allowed when the queue deadline arrives. Each chip keeps its full post-launch
+lifetime, including names at 1.6 seconds. Matching results merge within a 250 ms
+arrival gap without renewed pulse or expiry.
 
-This is a comparison candidate, not a shipping policy change. Dense sequences
-also expose queue latency; native recording and review are required before
-judging the tradeoff. The browser Alchemy lab is not native Trinket evidence.
+This is a comparison candidate, not a shipping policy change. Native recording and review are required before judging dense overlap and readability. The browser Alchemy lab is not native Trinket evidence.
 
 ## Debug transition lab
 

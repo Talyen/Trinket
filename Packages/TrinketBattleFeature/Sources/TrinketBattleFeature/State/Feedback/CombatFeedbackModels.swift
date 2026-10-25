@@ -19,6 +19,9 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     let effectKind: ActionEvent.EffectOutcome?
     var lastReceivedAt: Date
     var reservedDigitCount = 0
+    #if DEBUG
+    var previewSpread = 0
+    #endif
     var pausedAt: Date?
     let id: Int
     var sourceEventIDs: [Int]

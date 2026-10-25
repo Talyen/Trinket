@@ -88,12 +88,6 @@ extension BattleFeedbackLane {
     func limitCornerItems() {
         #if DEBUG
         if debugBalancedPreview {
-            for target in Set(activeItems.map(\.targetID)) {
-                for region in CombatFeedbackRegion.allCases {
-                    let waiting = activeItems.filter { $0.targetID == target && $0.region == region && $0.availableAt > .now }
-                    evictedItemIDs.formUnion(waiting.dropLast(12).map(\.id))
-                }
-            }
             return
         }
         #endif
