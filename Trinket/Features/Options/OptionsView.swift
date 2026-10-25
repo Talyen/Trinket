@@ -16,7 +16,9 @@ struct OptionsView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var isResetConfirmationPresented = false
     #if DEBUG
-    @State private var showsFeedbackComparison = ProcessInfo.processInfo.arguments.contains("-feedback-comparison")
+    @Environment(\.isLaunchPresentationReady) private var isLaunchPresentationReady
+    @State private var showsFeedbackComparison = false
+    @State private var requestsFeedbackLaunch = ProcessInfo.processInfo.arguments.contains("-feedback-comparison")
     #endif
 
     var body: some View {
@@ -93,6 +95,11 @@ struct OptionsView: View {
         .accessibilityIdentifier(AccessibilityID.Screen.options)
         .disabled(appState.playerSave.isRetryingSaveAction)
         #if DEBUG
+            .onChange(of: isLaunchPresentationReady, initial: true) { _, ready in
+                guard ready, requestsFeedbackLaunch, appState.shellSession.selectedTab == .options else { return }
+                requestsFeedbackLaunch = false
+                showsFeedbackComparison = true
+            }
             .navigationDestination(isPresented: $showsFeedbackComparison) {
                 CombatFeedbackComparisonView(stage: GameContent.chapters[0].stages.first { $0.encounter.isCombat } ?? GameContent
                     .chapters[0].stages[0])
