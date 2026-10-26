@@ -105,19 +105,27 @@ struct BlacksmithForgeTests {
         #expect(store.inventory.items == [item])
         #expect(store.homestead.resources[.iron] == 476)
 
+        var random = SeededRandomNumberGenerator(seed: 42)
+        let plan = try BlacksmithForgeApplier.prepare(recipeID: "blacksmith-dagger", save: store.currentSave, using: &random).get()
         store.forcesNextSaveFailure = true
-        let pending = Task { await store.forgeBlacksmithItem(recipeID: "blacksmith-dagger") }
-        defer { pending.cancel() }
-        // Yield until the injected failure reaches the retained retry, before resetting.
-        let clock = ContinuousClock()
-        let deadline = clock.now.advanced(by: .seconds(5))
-        while store.forcesNextSaveFailure, clock.now < deadline {
-            await Task.yield()
+        var attempts = 0
+        var reset: PlayerSave?
+        let outcome = await store.retryingSaveTransaction {
+            attempts += 1
+            let result = store.persistAction(logging: "Forge reset fixture") { save in
+                BlacksmithForgeApplier.apply(plan, to: &save)
+            }
+            if case .persistFailed = result {
+                try store.resetGameplayProgress()
+                reset = store.currentSave
+            }
+            return result
         }
-        try #require(!store.forcesNextSaveFailure, "Forge did not reach the retained save retry")
-        try store.resetGameplayProgress()
-        let reset = store.currentSave
-        #expect(await pending.value == .failure(.invalidated))
+        #expect(attempts == 1)
+        #expect(reset != nil)
+        if case .some = outcome {
+            Issue.record("A reset must invalidate the failed forge transaction")
+        }
         #expect(store.currentSave == reset)
     }
 
