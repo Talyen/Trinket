@@ -57,6 +57,38 @@ Talent-tree node/row layout is authored in the talent manifest; talent-point awa
 
 Party additional-damage auras add their extra percents across living allies and log each contributor. Dodge-spawned hits can themselves be dodged but do not run `afterDodge` again. Stun/Burn/Freeze damage uses the real type pipeline rather than a raw Health hit.
 
+## Late-game pacing and comparison builds
+
+[PD-034](../Product/Decisions.md) accepts the current level-60–80 pacing with
+gear-aligned offensive parties: roughly 10 rounds for regular enemies and 20–25
+for bosses. Retain the current enemy Health curve, including its post-40 tail.
+Keep Heal, Cinderbloom, Spiked Shield and Smite at their current shared values;
+players and enemies continue to use the same ability definitions.
+
+Use these late-game reference builds in balance comparisons:
+
+| Party | Role | Basic | Skill | Ultimate | Equipment |
+|---|---|---|---|---|---|
+| Druid / Panther | Offensive baseline | Maul | Cinderbloom | Thorn Mail | Retained earned gear aligned to the selected cards |
+| Knight / Bear | General baseline | Slash | Spiked Shield | Earthquake | Retained earned gear aligned to the selected cards |
+| Knight / Bear | Holy alternative | Slash | Smite | Earthquake | Earned Holy-focused gear |
+
+Keep the original defensive and low-offense builds as sensitivity comparisons.
+Use the reference builds above when judging global enemy Health; slower fights
+from low-damage selections alone do not justify a global reduction. These
+profiles guide late-game comparisons; starter selections and player loadout
+choices remain unchanged.
+
+Retain the earned-inventory progression and shared equipment-selector fixes
+described below, including saved roll comparisons and journaled bow/quiver
+transitions. For a card-only contrast, hold gear fixed and label that choice.
+For a build comparison, choose cards first and let the selector re-equip from the
+same earned inventory. Report those two experiments separately.
+
+The pacing targets express an accepted design judgment for these reference
+builds. CLI duration flags remain investigation candidates. Reopen tuning for a
+new confirmed gameplay defect or a material content/progression change.
+
 ## Balance sweep
 
 Will-o-Wisp uses Ray of Frost, Frostbolt and Blizzard. Its Basic no longer doubles
