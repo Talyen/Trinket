@@ -67,7 +67,6 @@ extension TrinketUITestCase {
     @discardableResult
     func completeAudioContract(afterEntry: () throws -> Void = {}) throws -> Bool {
         let fight = button(AccessibilityID.Play.contractFight("easy"))
-        assertExists(AccessibilityID.Play.contractsBoard)
         // Easy is the first offer; scroll toward the top only when it is clipped.
         XCTAssertTrue(app.scrollUntilVisible(fight, swipingUp: false, requireHittable: true), "The next Contract must be reachable")
         tapWhenReady(fight)

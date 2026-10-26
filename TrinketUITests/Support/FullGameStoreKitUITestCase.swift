@@ -52,14 +52,11 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
     }
 
     func assertWarlockAccessible() {
+        assertFullGameAccess(true)
         revealWarlock()
-        let card = button(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
-        waitUntil("Full Game must permit access to the recruited Warlock") {
-            trinketOnMainActor {
-                guard let snapshot = try? card.snapshot() else { return false }
-                return snapshot.isEnabled && !snapshot.label.isEmpty && !snapshot.label.hasSuffix(", locked")
-            }
-        }
+        tapButton(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
+        combatantDetail.assertLoaded(for: "Warlock")
+        dismissSheet(AccessibilityID.CombatantDetail.header(name: "Warlock"))
     }
 
     func revealWarlock() {

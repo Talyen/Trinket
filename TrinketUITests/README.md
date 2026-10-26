@@ -218,8 +218,9 @@ Assert a journey’s return destination before using helpers that navigate elsew
   declined Ask to Buy retries from the locked character. Active approval and
   restore-failure recovery observe app entitlement and purchase controls without
   repeating Collection navigation. Cold recovery and decline/retry retain character
-  access wiring. Refund checks Gold and completed Campaign stages across relaunch,
-  then repurchases through the revoked character's real purchase guard. Decline and
+  access wiring by opening Warlock's detail after recovery. Refund checks Gold and
+  completed Campaign stages across relaunch, then repurchases through the revoked
+  character's real purchase guard and opens his detail. Decline and
   refund prove denial through that guard instead of a lock-label suffix. Initial purchase allows
   StoreKit up to 60 seconds and requires offer dismissal and app entitlement before
   refunding. Live App Store restoration remains separate from local recovery.
