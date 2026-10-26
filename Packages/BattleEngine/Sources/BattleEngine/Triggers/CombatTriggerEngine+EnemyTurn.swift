@@ -261,16 +261,12 @@ package extension CombatTriggerEngine {
         for (owner, member) in livingPartyMembers(in: context) {
             let triggers = context.modifiers(for: member.id).triggers
             if triggers.onEnemyStunRecoverDrawCard > 0 {
-                drawCards(
-                    triggers.onEnemyStunRecoverDrawCard,
+                emitDraw(
+                    .onEnemyStunRecoverDrawCard,
+                    "Second Wind",
+                    count: triggers.onEnemyStunRecoverDrawCard,
                     for: owner,
                     actor: member.combatant,
-                    abilityName: triggerAbilityName(
-                        .onEnemyStunRecoverDrawCard,
-                        for: member.combatant,
-                        fallback: "Second Wind",
-                        in: context,
-                    ),
                     in: &context,
                 )
             }

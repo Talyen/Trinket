@@ -80,15 +80,7 @@ package extension CombatTriggerEngine {
     ) async {
         guard healthLost > 0, let sourceActorID,
               let caster = context.roster.combatant(for: sourceActorID) else { return }
-        await poisonParalysis(target: target, sourceActorID: caster.id, in: &context)
-    }
-
-    private static func poisonParalysis(
-        target: Combatant,
-        sourceActorID: String,
-        in context: inout BattleState,
-    ) async {
-        let sourceTriggers = context.modifiers(for: sourceActorID).triggers
+        let sourceTriggers = context.modifiers(for: caster.id).triggers
         guard sourceTriggers.poisonThresholdStunAmount > 0,
               target.role == .enemy,
               context.roster.health(for: target) > 0,
@@ -102,7 +94,7 @@ package extension CombatTriggerEngine {
             ControlMeterEngine.threshold(for: target, in: context),
             keyword: .stun,
             to: target,
-            sourceActorID: sourceActorID,
+            sourceActorID: caster.id,
             applyFightPacing: false,
             in: &context,
         )

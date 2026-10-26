@@ -22,7 +22,12 @@ package extension CombatTriggerEngine {
     }
 
     static func atPlayerTurnStart(in context: inout BattleState) async {
-        resetTurnCadenceState(in: &context)
+        context.turnCadence.reset()
+        for owner in BattleParticipant.allCases {
+            context.roster.mutateRuntime(for: context.roster[owner].combatant) { runtime in
+                runtime.talents.beginTurn(context.turnCount)
+            }
+        }
         startHeroTalentTurn(in: &context)
         guard !context.isBattleOver else { return }
         // Preserve only due repeats; all other cadence state stays live in the roster.
@@ -45,15 +50,6 @@ package extension CombatTriggerEngine {
         for (owner, blessing) in dueBlessings {
             guard !context.isBattleOver else { break }
             await startOfTurnCadence(for: owner, blessing: blessing, in: &context)
-        }
-    }
-
-    private static func resetTurnCadenceState(in context: inout BattleState) {
-        context.turnCadence.reset()
-        for owner in BattleParticipant.allCases {
-            context.roster.mutateRuntime(for: context.roster[owner].combatant) { runtime in
-                runtime.talents.beginTurn(context.turnCount)
-            }
         }
     }
 
@@ -105,7 +101,17 @@ package extension CombatTriggerEngine {
         startOfTurnDrawCadence(for: owner, actor: actor, triggers: triggers, in: &context)
         await startOfTurnCombatBonuses(actor: actor, triggers: triggers, in: &context)
         guard !context.isBattleOver, context.roster[owner].isAlive else { return }
-        applyDamageRamp(for: actor, triggers: triggers, in: &context)
+        for (keyword, perRound, cap) in [
+            (Keyword.burn, triggers.burnDamageRampPerRound, triggers.burnDamageRampCap),
+            (Keyword.bleed, triggers.bleedDamageRampPerRound, triggers.bleedDamageRampCap),
+        ] {
+            guard perRound > 0 else { continue }
+            context.roster.mutateRuntime(for: actor) { runtime in
+                let current: Int = runtime.talents.battle.keywordDamageRamp[keyword, default: 0]
+                let increased = SaturatedArithmetic.saturatingAdd(current, perRound)
+                runtime.talents.battle.keywordDamageRamp[keyword] = cap > 0 ? min(increased, cap) : increased
+            }
+        }
     }
 
     private static func forbiddenKnowledgeIfNeeded(
@@ -125,13 +131,7 @@ package extension CombatTriggerEngine {
             options: .healthCost,
         ))
         guard context.roster.health(for: actor) > 0 else { return }
-        drawCards(
-            1,
-            for: owner,
-            actor: actor,
-            abilityName: triggerAbilityName(.forbiddenKnowledge, for: actor, fallback: "Forbidden Knowledge", in: context),
-            in: &context,
-        )
+        emitDraw(.forbiddenKnowledge, "Forbidden Knowledge", count: 1, for: owner, actor: actor, in: &context)
     }
 
     private static func companionCardsIfNeeded(
@@ -141,30 +141,20 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) {
         if context.isPlayerTurn(every: 2, startingAt: 1), triggers.drawEveryOtherTurn > 0 {
-            drawCards(
-                triggers.drawEveryOtherTurn,
-                for: owner,
-                actor: actor,
-                abilityName: triggerAbilityName(.drawEveryOtherTurn, for: actor, fallback: "Tattered Pages", in: context),
-                in: &context,
-            )
+            emitDraw(.drawEveryOtherTurn, "Tattered Pages", count: triggers.drawEveryOtherTurn, for: owner, actor: actor, in: &context)
         }
         let companionCards = SaturatedArithmetic.saturatingAdd(
             triggers.companionCardsPerTurn,
             context.isPlayerTurn(every: 2, startingAt: 1) ? triggers.companionCardsEveryOtherTurn : 0,
         )
         guard companionCards > 0 else { return }
-        drawCards(
-            companionCards,
+        emitDraw(
+            triggers.companionCardsEveryOtherTurn > 0
+                ? .companionCardsEveryOtherTurn : .companionCardsPerTurn,
+            "Companion's Collar",
+            count: companionCards,
             for: .companion,
             actor: actor,
-            abilityName: triggerAbilityName(
-                triggers.companionCardsEveryOtherTurn > 0
-                    ? .companionCardsEveryOtherTurn : .companionCardsPerTurn,
-                for: actor,
-                fallback: "Companion's Collar",
-                in: context,
-            ),
             in: &context,
         )
     }
@@ -185,24 +175,6 @@ package extension CombatTriggerEngine {
         for (_, target) in livingPartyMembers(in: context) {
             guard !context.isBattleOver, context.health(of: actor) > 0 else { break }
             await performRandomCleanses(source: actor, target: target.combatant, count: 1, abilityName: abilityName, in: &context)
-        }
-    }
-
-    private static func applyDamageRamp(
-        for actor: Combatant,
-        triggers: CombatTraitTriggers,
-        in context: inout BattleState,
-    ) {
-        for (keyword, perRound, cap) in [
-            (Keyword.burn, triggers.burnDamageRampPerRound, triggers.burnDamageRampCap),
-            (Keyword.bleed, triggers.bleedDamageRampPerRound, triggers.bleedDamageRampCap),
-        ] {
-            guard perRound > 0 else { continue }
-            context.roster.mutateRuntime(for: actor) { runtime in
-                let current: Int = runtime.talents.battle.keywordDamageRamp[keyword, default: 0]
-                let increased = SaturatedArithmetic.saturatingAdd(current, perRound)
-                runtime.talents.battle.keywordDamageRamp[keyword] = cap > 0 ? min(increased, cap) : increased
-            }
         }
     }
 
@@ -357,16 +329,12 @@ package extension CombatTriggerEngine {
            let runtime = context.roster.runtime(for: actor),
            runtime.maxMana > 0,
            runtime.currentMana >= runtime.maxMana {
-            drawCards(
-                triggers.startTurnFullManaDrawCards,
+            emitDraw(
+                .startTurnFullManaDrawCards,
+                "Arcane Surge",
+                count: triggers.startTurnFullManaDrawCards,
                 for: owner,
                 actor: actor,
-                abilityName: triggerAbilityName(
-                    .startTurnFullManaDrawCards,
-                    for: actor,
-                    fallback: "Arcane Surge",
-                    in: context,
-                ),
                 in: &context,
             )
         }
@@ -383,36 +351,14 @@ package extension CombatTriggerEngine {
     ) {
         if triggers.extraCardDrawWhileEnemyBleeding, context.roster.enemy.isAlive,
            context.roster.hasAffliction(.bleed, on: context.enemy) {
-            drawCards(
-                1,
-                for: owner,
-                actor: actor,
-                abilityName: triggerAbilityName(
-                    .extraCardDrawWhileEnemyBleeding,
-                    for: actor,
-                    fallback: "Frenzied Tail",
-                    in: context,
-                ),
-                in: &context,
-            )
+            emitDraw(.extraCardDrawWhileEnemyBleeding, "Frenzied Tail", count: 1, for: owner, actor: actor, in: &context)
         }
         if triggers.extraCardDrawBelowEnemyHealthPercent > 0, context.roster.enemy.isAlive,
            context.roster.maxHealth(for: context.roster.enemy.combatant) > 0,
            Double(context.roster.health(for: context.roster.enemy.combatant))
            / Double(context.roster.maxHealth(for: context.roster.enemy.combatant))
            < triggers.extraCardDrawBelowEnemyHealthPercent {
-            drawCards(
-                1,
-                for: owner,
-                actor: actor,
-                abilityName: triggerAbilityName(
-                    .extraCardDrawBelowEnemyHealthPercent,
-                    for: actor,
-                    fallback: "Feral Frenzy",
-                    in: context,
-                ),
-                in: &context,
-            )
+            emitDraw(.extraCardDrawBelowEnemyHealthPercent, "Feral Frenzy", count: 1, for: owner, actor: actor, in: &context)
         }
     }
 }

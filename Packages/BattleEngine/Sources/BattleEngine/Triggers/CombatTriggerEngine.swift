@@ -125,6 +125,21 @@ package enum CombatTriggerEngine {
     /// Reward emitters fold the trigger-name lookup into the reward call so
     /// trigger sites stay one statement. `source` names the trigger that fired;
     /// for mana the naming actor can differ from the recipient via `nameFrom`.
+    static func emitDraw(
+        _ key: CombatTriggerField,
+        _ fallback: String,
+        count: Int,
+        for owner: BattleParticipant,
+        actor: Combatant,
+        in context: inout BattleState,
+    ) {
+        drawCards(
+            count, for: owner, actor: actor,
+            abilityName: triggerAbilityName(key, for: actor, fallback: fallback, in: context),
+            in: &context,
+        )
+    }
+
     static func emitBlock(
         _ key: CombatTriggerField,
         _ fallback: String,

@@ -220,12 +220,6 @@ package extension CombatTriggerEngine {
         guard let owner = context.roster.participant(for: source), owner.isPartyMember else {
             return
         }
-        drawCards(
-            count,
-            for: owner,
-            actor: source,
-            abilityName: triggerAbilityName(.cleanseBonusDraw, for: source, fallback: "Purifying Wisdom", in: context),
-            in: &context,
-        )
+        emitDraw(.cleanseBonusDraw, "Purifying Wisdom", count: count, for: owner, actor: source, in: &context)
     }
 }

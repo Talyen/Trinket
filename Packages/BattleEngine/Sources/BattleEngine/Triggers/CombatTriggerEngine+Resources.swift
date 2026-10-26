@@ -17,11 +17,7 @@ package extension CombatTriggerEngine {
            context.claimTalentAbility(.goldTheftChanceDraw, actorID: actor.id),
            BattleChance.succeeds(probability: triggers.goldTheftDrawChancePercent, using: &context.rng),
            let owner = context.roster.participant(for: actor) {
-            drawCards(
-                1, for: owner, actor: actor, abilityName: triggerAbilityName(
-                    .goldTheftDrawChancePercent, for: actor, fallback: "Scavenger’s Cache", in: context,
-                ), in: &context,
-            )
+            emitDraw(.goldTheftDrawChancePercent, "Scavenger’s Cache", count: 1, for: owner, actor: actor, in: &context)
         }
         if triggers.goldTheftDodgeBonus > 0,
            context.roster.runtime(for: actor)?.talents.turn.goldTheftDodgeApplied == false {
@@ -40,11 +36,7 @@ package extension CombatTriggerEngine {
         if triggers.firstGoldTheftDraw > 0,
            let owner = context.roster.participant(for: actor), owner.isPartyMember,
            context.claimHeroTalent(.firstGoldTheftDraw, actorID: actor.id) {
-            drawCards(
-                triggers.firstGoldTheftDraw, for: owner, actor: actor,
-                abilityName: triggerAbilityName(.firstGoldTheftDraw, for: actor, fallback: "Quick Fingers", in: context),
-                in: &context,
-            )
+            emitDraw(.firstGoldTheftDraw, "Quick Fingers", count: triggers.firstGoldTheftDraw, for: owner, actor: actor, in: &context)
         }
         if triggers.firstGoldTheftHeal > 0,
            context.claimHeroTalent(.firstGoldTheftHeal, actorID: actor.id) {
@@ -178,7 +170,6 @@ package extension CombatTriggerEngine {
         }
     }
 
-    // swiftlint:disable:next function_body_length - recipient Gold rewards share ordered reaction checkpoints
     private static func afterGoldGainRewards(
         granted: Int,
         combatant: Combatant,
@@ -209,23 +200,13 @@ package extension CombatTriggerEngine {
             if triggers.firstGoldGainDrawCardPerTurn, context.roster.enemy.isAlive,
                let owner = context.roster.participant(for: combatant),
                context.claimHeroTalent(.firstGoldGainDraw, actorID: combatant.id) {
-                drawCards(
-                    1, for: owner, actor: combatant,
-                    abilityName: triggerAbilityName(
-                        .firstGoldGainDrawCardPerTurn, for: combatant, fallback: "Lucky Break", in: context,
-                    ), in: &context,
-                )
+                emitDraw(.firstGoldGainDrawCardPerTurn, "Lucky Break", count: 1, for: owner, actor: combatant, in: &context)
             }
             if triggers.goldGainDrawChancePercent > 0, context.roster.enemy.isAlive,
                context.claimTalentAbility(.goldGainDrawChance, actorID: combatant.id),
                BattleChance.succeeds(probability: triggers.goldGainDrawChancePercent, using: &context.rng),
                let owner = context.roster.participant(for: combatant) {
-                drawCards(
-                    1, for: owner, actor: combatant,
-                    abilityName: triggerAbilityName(
-                        .goldGainDrawChancePercent, for: combatant, fallback: "Lucky Break", in: context,
-                    ), in: &context,
-                )
+                emitDraw(.goldGainDrawChancePercent, "Lucky Break", count: 1, for: owner, actor: combatant, in: &context)
             }
         }
         if triggers.lightFingered {
@@ -239,18 +220,7 @@ package extension CombatTriggerEngine {
            let owner = context.roster.participant(for: combatant),
            owner.isPartyMember,
            context.resolution.claim(.heroTalent(.goldGainThresholdDraw), actorID: combatant.id, cadence: .turn(context.turnCount)) {
-            drawCards(
-                1,
-                for: owner,
-                actor: combatant,
-                abilityName: triggerAbilityName(
-                    .gainGoldDrawThreshold,
-                    for: combatant,
-                    fallback: "Golden Opportunity",
-                    in: context,
-                ),
-                in: &context,
-            )
+            emitDraw(.gainGoldDrawThreshold, "Golden Opportunity", count: 1, for: owner, actor: combatant, in: &context)
         }
         if restoration {
             for (_, member) in livingPartyMembers(in: context) {

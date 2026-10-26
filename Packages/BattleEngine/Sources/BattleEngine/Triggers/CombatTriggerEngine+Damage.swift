@@ -219,8 +219,12 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) async {
         let triggers = context.modifiers(for: source.id).triggers
-        if context.health(of: source) > 0 {
-            await burnDamageHeals(triggers: triggers, source: source, in: &context)
+        if context.health(of: source) > 0, triggers.onBurnDamageHealLowestAllyFlat > 0 {
+            let lowest = BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context)
+            await emitHeal(
+                .onBurnDamageHealLowestAllyFlat, "Healing Flames",
+                amount: triggers.onBurnDamageHealLowestAllyFlat, to: lowest, source: source, in: &context,
+            )
         }
         if triggers.onBurnDamageGainBlock > 0, context.health(of: source) > 0 {
             emitBlock(
@@ -228,7 +232,18 @@ package extension CombatTriggerEngine {
                 amount: triggers.onBurnDamageGainBlock, to: source, source: source, in: &context,
             )
         }
-        emberShieldIfNeeded(source: source, in: &context)
+        if source.role != .enemy,
+           context.roster.companion.isAlive,
+           source.id != context.roster.companion.id,
+           context.companionModifiers.triggers.onAllyBurnDamageGainBlock > 0 {
+            emitBlock(
+                .onAllyBurnDamageGainBlock, "Ember Shield",
+                amount: context.companionModifiers.triggers.onAllyBurnDamageGainBlock,
+                to: context.roster.companion.combatant,
+                source: context.roster.companion.combatant,
+                in: &context,
+            )
+        }
         if triggers.onBurnDamageRestoreManaFlat > 0, context.health(of: source) > 0,
            healthLost >= triggers.burnDamageManaRestoreThreshold {
             await restoreManaFromBurnDamage(sourceActorID: source.id, sourceTriggers: triggers, in: &context)
@@ -249,38 +264,6 @@ package extension CombatTriggerEngine {
             source: source,
             abilityName: triggerAbilityName(.freezeDamageGrantsBlock, for: source, fallback: "Rimeheart", in: context),
             amountBasis: .resolved,
-        )
-    }
-
-    private static func burnDamageHeals(
-        triggers: CombatTraitTriggers,
-        source: Combatant,
-        in context: inout BattleState,
-    ) async {
-        if triggers.onBurnDamageHealLowestAllyFlat > 0 {
-            let lowest = BattleActionContext(actor: source, in: context).target(.lowestHealthAlly, in: context)
-            await emitHeal(
-                .onBurnDamageHealLowestAllyFlat, "Healing Flames",
-                amount: triggers.onBurnDamageHealLowestAllyFlat, to: lowest, source: source, in: &context,
-            )
-        }
-    }
-
-    private static func emberShieldIfNeeded(
-        source: Combatant,
-        in context: inout BattleState,
-    ) {
-        guard source.role != .enemy,
-              context.roster.companion.isAlive,
-              source.id != context.roster.companion.id,
-              context.companionModifiers.triggers.onAllyBurnDamageGainBlock > 0
-        else { return }
-        emitBlock(
-            .onAllyBurnDamageGainBlock, "Ember Shield",
-            amount: context.companionModifiers.triggers.onAllyBurnDamageGainBlock,
-            to: context.roster.companion.combatant,
-            source: context.roster.companion.combatant,
-            in: &context,
         )
     }
 

@@ -16,57 +16,37 @@ package extension CombatTriggerEngine {
                 await performRandomCleanses(source: actor, target: actor, count: 1, abilityName: "Arcane Cleansing", in: &context)
             }
             guard !context.isBattleOver, context.roster[owner].isAlive else { continue }
-            await hibernationHeal(actor: actor, triggers: triggers, in: &context)
+            if triggers.endTurnWithBlockHealFlat > 0,
+               DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor)) > 0 {
+                let target = BattleActionContext(actor: actor, in: context).target(.lowestHealthAlly, in: context)
+                if context.roster.health(for: target) < context.roster.maxHealth(for: target) {
+                    await emitHeal(
+                        .endTurnWithBlockHealFlat, "Hibernation",
+                        amount: triggers.endTurnWithBlockHealFlat, to: target, source: actor, in: &context,
+                    )
+                }
+            }
             guard !context.isBattleOver, context.roster[owner].isAlive else { continue }
-            await campfireComfortHeal(actor: actor, triggers: triggers, in: &context)
+            if triggers.endOfTurnHealLowestAlly > 0,
+               context.isPlayerTurn(every: 2, startingAt: 1) {
+                let lowest = BattleActionContext(actor: actor, in: context).target(.lowestHealthAlly, in: context)
+                if context.roster.health(for: lowest) < context.roster.maxHealth(for: lowest) {
+                    await emitHeal(
+                        .endOfTurnHealLowestAlly, "Campfire Comfort",
+                        amount: triggers.endOfTurnHealLowestAlly, to: lowest, source: actor, in: &context,
+                    )
+                }
+            }
             guard !context.isBattleOver, context.roster[owner].isAlive else { continue }
             await partyRegenHeal(actor: actor, triggers: triggers, in: &context)
             guard !context.isBattleOver, context.roster[owner].isAlive else { continue }
-            hoardArmorBlock(actor: actor, triggers: triggers, in: &context)
+            if triggers.blockPerGoldCollectedEvery > 0, context.gold > 0 {
+                let block = min(5, context.gold / triggers.blockPerGoldCollectedEvery)
+                if block > 0 {
+                    emitBlock(.blockPerGoldCollectedEvery, "Hoard Armor", amount: block, to: actor, source: actor, in: &context)
+                }
+            }
         }
-    }
-
-    private static func hoardArmorBlock(
-        actor: Combatant,
-        triggers: CombatTraitTriggers,
-        in context: inout BattleState,
-    ) {
-        guard triggers.blockPerGoldCollectedEvery > 0, context.gold > 0 else { return }
-        let block = min(5, context.gold / triggers.blockPerGoldCollectedEvery)
-        guard block > 0 else { return }
-        emitBlock(.blockPerGoldCollectedEvery, "Hoard Armor", amount: block, to: actor, source: actor, in: &context)
-    }
-
-    private static func hibernationHeal(
-        actor: Combatant,
-        triggers: CombatTraitTriggers,
-        in context: inout BattleState,
-    ) async {
-        guard triggers.endTurnWithBlockHealFlat > 0,
-              DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: actor)) > 0
-        else { return }
-        let target = BattleActionContext(actor: actor, in: context).target(.lowestHealthAlly, in: context)
-        guard context.roster.health(for: target) < context.roster.maxHealth(for: target) else { return }
-        await emitHeal(
-            .endTurnWithBlockHealFlat, "Hibernation",
-            amount: triggers.endTurnWithBlockHealFlat, to: target, source: actor, in: &context,
-        )
-    }
-
-    private static func campfireComfortHeal(
-        actor: Combatant,
-        triggers: CombatTraitTriggers,
-        in context: inout BattleState,
-    ) async {
-        guard triggers.endOfTurnHealLowestAlly > 0,
-              context.isPlayerTurn(every: 2, startingAt: 1)
-        else { return }
-        let lowest = BattleActionContext(actor: actor, in: context).target(.lowestHealthAlly, in: context)
-        guard context.roster.health(for: lowest) < context.roster.maxHealth(for: lowest) else { return }
-        await emitHeal(
-            .endOfTurnHealLowestAlly, "Campfire Comfort",
-            amount: triggers.endOfTurnHealLowestAlly, to: lowest, source: actor, in: &context,
-        )
     }
 
     private static func partyRegenHeal(

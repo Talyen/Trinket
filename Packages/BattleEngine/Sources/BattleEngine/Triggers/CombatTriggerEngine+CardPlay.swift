@@ -40,15 +40,45 @@ package extension CombatTriggerEngine {
         guard checkpoint.allowsContinuation(in: context) else { return }
         await spellEchoIfNeeded(ability: ability, actor: actor, owner: owner, abilityTarget: abilityTarget, in: &context)
         guard checkpoint.allowsContinuation(in: context) else { return }
-        await scholarlySmiteIfNeeded(keywords: keywords, actor: actor, in: &context)
+        if actor.role == .hero, keywords.contains(.holy),
+           let companionTriggers = companionReactingToHeroTriggers(in: context),
+           companionTriggers.onHeroHolyAbilityCompanionHolyDamage > 0,
+           context.roster.enemy.isAlive {
+            _ = await context.resolveDamage(
+                DamageRequest(
+                    amount: companionTriggers.onHeroHolyAbilityCompanionHolyDamage,
+                    target: context.roster.enemy.combatant,
+                    keyword: .holy,
+                    sourceActorID: context.roster.companion.id,
+                    options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
+                ),
+            )
+        }
         guard checkpoint.allowsContinuation(in: context) else { return }
-        await infernoBarrageIfNeeded(ability: ability, actor: actor, triggers: triggers, in: &context)
+        if ability.tier == .ultimate,
+           triggers.ultimateAppliesBurnPotency > 0,
+           context.roster.enemy.isAlive {
+            await context.applyDecayingDoT(
+                keyword: .burn,
+                potency: triggers.ultimateAppliesBurnPotency,
+                to: context.roster.enemy.combatant,
+                sourceActorID: actor.id,
+                application: .reaction,
+            )
+        }
         guard checkpoint.allowsContinuation(in: context) else { return }
         await blizzardIfNeeded(keywords: keywords, actor: actor, owner: owner, triggers: triggers, in: &context)
         guard checkpoint.allowsContinuation(in: context) else { return }
         await talentRepeatIfNeeded(ability: ability, keywords: keywords, actor: actor, abilityTarget: abilityTarget, in: &context)
         guard checkpoint.allowsContinuation(in: context) else { return }
-        talentPrimeIfNeeded(keywords: keywords, actor: actor, in: &context)
+        guard context.resolution.depth(.damage) < ReactionScope.maxDepth,
+              !context.resolution.isAutomaticPlay else { return }
+        let primingTriggers = context.modifiers(for: actor.id).triggers
+        if keywords.contains(.burn) {
+            for (keyword, enabled) in repeatPairs(triggers: primingTriggers) where enabled {
+                context.roster.mutateRuntime(for: actor) { $0.talents.turn.primedRepeatKeywords.insert(keyword) }
+            }
+        }
     }
 
     private static func spellEchoIfNeeded(
@@ -68,46 +98,6 @@ package extension CombatTriggerEngine {
         context.isEchoingSkill = true
         defer { context.isEchoingSkill = false }
         await BattleTurnEngine.performAction(ability: ability, actor: actor, abilityTarget: abilityTarget, origin: .card, context: &context)
-    }
-
-    private static func scholarlySmiteIfNeeded(
-        keywords: Set<Keyword>,
-        actor: Combatant,
-        in context: inout BattleState,
-    ) async {
-        guard actor.role == .hero, keywords.contains(.holy),
-              let companionTriggers = companionReactingToHeroTriggers(in: context),
-              companionTriggers.onHeroHolyAbilityCompanionHolyDamage > 0,
-              context.roster.enemy.isAlive
-        else { return }
-        _ = await context.resolveDamage(
-            DamageRequest(
-                amount: companionTriggers.onHeroHolyAbilityCompanionHolyDamage,
-                target: context.roster.enemy.combatant,
-                keyword: .holy,
-                sourceActorID: context.roster.companion.id,
-                options: DamageOperation.effect(scaling: .items, accuracy: .unavoidable),
-            ),
-        )
-    }
-
-    private static func infernoBarrageIfNeeded(
-        ability: Ability,
-        actor: Combatant,
-        triggers: CombatTraitTriggers,
-        in context: inout BattleState,
-    ) async {
-        guard ability.tier == .ultimate,
-              triggers.ultimateAppliesBurnPotency > 0,
-              context.roster.enemy.isAlive
-        else { return }
-        await context.applyDecayingDoT(
-            keyword: .burn,
-            potency: triggers.ultimateAppliesBurnPotency,
-            to: context.roster.enemy.combatant,
-            sourceActorID: actor.id,
-            application: .reaction,
-        )
     }
 
     private static func blizzardIfNeeded(
@@ -143,21 +133,6 @@ package extension CombatTriggerEngine {
         ]
     }
 
-    private static func talentPrimeIfNeeded(
-        keywords: Set<Keyword>,
-        actor: Combatant,
-        in context: inout BattleState,
-    ) {
-        guard context.resolution.depth(.damage) < ReactionScope.maxDepth,
-              !context.resolution.isAutomaticPlay else { return }
-        let triggers = context.modifiers(for: actor.id).triggers
-        if keywords.contains(.burn) {
-            for (keyword, enabled) in repeatPairs(triggers: triggers) where enabled {
-                context.roster.mutateRuntime(for: actor) { $0.talents.turn.primedRepeatKeywords.insert(keyword) }
-            }
-        }
-    }
-
     private static func talentRepeatIfNeeded(
         ability: Ability,
         keywords: Set<Keyword>,
@@ -190,7 +165,7 @@ package extension CombatTriggerEngine {
         guard let owner = context.roster.participant(for: actor), owner.isPartyMember else { return }
         let count = context.modifiers(for: actor.id).triggers.drawOnSpendMana
         guard count > 0, context.turnCadence.spendManaDrawOwners.insert(owner).inserted else { return }
-        drawClaimedCards(count, for: owner, actor: actor, abilityKey: .drawOnSpendMana, fallback: "Runic Quill", in: &context)
+        emitDraw(.drawOnSpendMana, "Runic Quill", count: count, for: owner, actor: actor, in: &context)
     }
 
     static func drawAfterHealthLoss(by actor: Combatant, in context: inout BattleState) {
@@ -198,24 +173,7 @@ package extension CombatTriggerEngine {
               context.roster.health(for: actor) > 0 else { return }
         let count = context.modifiers(for: actor.id).triggers.drawOnHealthLoss
         guard count > 0, context.turnCadence.healthLossDrawOwners.insert(owner).inserted else { return }
-        drawClaimedCards(count, for: owner, actor: actor, abilityKey: .drawOnHealthLoss, fallback: "Bone Charm", in: &context)
-    }
-
-    private static func drawClaimedCards(
-        _ count: Int,
-        for owner: BattleParticipant,
-        actor: Combatant,
-        abilityKey: CombatTriggerField,
-        fallback: String,
-        in context: inout BattleState,
-    ) {
-        drawCards(
-            count,
-            for: owner,
-            actor: actor,
-            abilityName: triggerAbilityName(abilityKey, for: actor, fallback: fallback, in: context),
-            in: &context,
-        )
+        emitDraw(.drawOnHealthLoss, "Bone Charm", count: count, for: owner, actor: actor, in: &context)
     }
 
     static func afterHealthRestored(

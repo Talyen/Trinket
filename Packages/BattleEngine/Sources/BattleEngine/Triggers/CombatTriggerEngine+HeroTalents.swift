@@ -35,10 +35,10 @@ package extension CombatTriggerEngine {
             await afterTypedCriticalAttackHit(keyword: keyword, actor: actor, in: &context)
         }
         prepareTemperCycle(keyword: keyword, actor: actor, triggers: triggers, in: &context)
-        await afterOtherCardHits(
-            keyword: keyword, actor: actor,
-            critical: critical, healthLost: healthLost, fullyBlocked: fullyBlocked,
-            triggers: triggers, in: &context,
+        afterBlockedAttack(actor: actor, fullyBlocked: fullyBlocked, triggers: triggers, in: &context)
+        await afterCompanionAttackHit(
+            keyword: keyword, actor: actor, critical: critical,
+            healthLost: healthLost, triggers: triggers, in: &context,
         )
         guard keyword == .physical else { return }
         if critical {
@@ -124,22 +124,6 @@ package extension CombatTriggerEngine {
             Int.max, from: context.enemy, source: .init(source),
             abilityName: context.modifiers(for: sourceID).triggerAbilityName(.physicalCritRemoveEnemyBlock, fallback: "Pulverize"),
             in: &context,
-        )
-    }
-
-    private static func afterOtherCardHits(
-        keyword: Keyword?,
-        actor: Combatant,
-        critical: Bool,
-        healthLost: Int,
-        fullyBlocked: Bool,
-        triggers: CombatTraitTriggers,
-        in context: inout BattleState,
-    ) async {
-        afterBlockedAttack(actor: actor, fullyBlocked: fullyBlocked, triggers: triggers, in: &context)
-        await afterCompanionAttackHit(
-            keyword: keyword, actor: actor, critical: critical,
-            healthLost: healthLost, triggers: triggers, in: &context,
         )
     }
 

@@ -94,7 +94,10 @@ package extension CombatTriggerEngine {
         }
 
         guard context.health(of: combatant) > 0 else { return }
-        await applySidestepHeal(for: combatant, profile: profile, in: &context)
+        if profile.triggers.dodgeHealFlat > 0 {
+            let target = BattleActionContext(actor: combatant, in: context).target(.lowestHealthAlly, in: context)
+            await emitHeal(.dodgeHealFlat, "Sidestep", amount: profile.triggers.dodgeHealFlat, to: target, source: combatant, in: &context)
+        }
         guard context.health(of: combatant) > 0 else { return }
         if allowsCounterattacks, context.roster.enemy.isAlive {
             for (keyword, chance, potency) in [
@@ -269,15 +272,5 @@ package extension CombatTriggerEngine {
 
             guard played.criticalAttackActorIDs.contains(combatant.id) else { break }
         }
-    }
-
-    private static func applySidestepHeal(
-        for combatant: Combatant,
-        profile: CombatModifierProfile,
-        in context: inout BattleState,
-    ) async {
-        guard context.health(of: combatant) > 0, profile.triggers.dodgeHealFlat > 0 else { return }
-        let target = BattleActionContext(actor: combatant, in: context).target(.lowestHealthAlly, in: context)
-        await emitHeal(.dodgeHealFlat, "Sidestep", amount: profile.triggers.dodgeHealFlat, to: target, source: combatant, in: &context)
     }
 }

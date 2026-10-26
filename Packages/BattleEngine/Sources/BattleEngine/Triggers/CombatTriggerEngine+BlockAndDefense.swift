@@ -12,33 +12,6 @@ package extension CombatTriggerEngine {
         guard amount > 0 else { return }
         let triggers = context.modifiers(for: actor.id).triggers
         applyBlockThorns(amount: amount, triggers: triggers, actor: actor, in: &context)
-        shareCompanionBlockToHero(amount: amount, triggers: triggers, actor: actor, in: &context)
-    }
-
-    static func applyBlockThorns(
-        amount: Int,
-        triggers: CombatTraitTriggers,
-        actor: Combatant,
-        abilityKey: CombatTriggerField = .blockGainThornsPercent,
-        in context: inout BattleState,
-    ) {
-        let percent = abilityKey == .blockGainThornsPercent
-            ? triggers.blockGainThornsPercent
-            : triggers.retainedBlockGainThornsPercent
-        let gained = CombatRounding.scaled(amount, multiplier: percent)
-        guard gained > 0 else { return }
-        heroTalentThorns(
-            to: actor, source: actor, amount: gained,
-            name: triggerAbilityName(abilityKey, for: actor, fallback: "Thorns", in: context), in: &context,
-        )
-    }
-
-    private static func shareCompanionBlockToHero(
-        amount: Int,
-        triggers: CombatTraitTriggers,
-        actor: Combatant,
-        in context: inout BattleState,
-    ) {
         guard actor.role == .companion,
               triggers.companionBlockSharesToHeroPercent > 0,
               context.roster.hero.isAlive
@@ -60,6 +33,24 @@ package extension CombatTriggerEngine {
                 in: context,
             ),
             amountBasis: .resolved,
+        )
+    }
+
+    static func applyBlockThorns(
+        amount: Int,
+        triggers: CombatTraitTriggers,
+        actor: Combatant,
+        abilityKey: CombatTriggerField = .blockGainThornsPercent,
+        in context: inout BattleState,
+    ) {
+        let percent = abilityKey == .blockGainThornsPercent
+            ? triggers.blockGainThornsPercent
+            : triggers.retainedBlockGainThornsPercent
+        let gained = CombatRounding.scaled(amount, multiplier: percent)
+        guard gained > 0 else { return }
+        heroTalentThorns(
+            to: actor, source: actor, amount: gained,
+            name: triggerAbilityName(abilityKey, for: actor, fallback: "Thorns", in: context), in: &context,
         )
     }
 
@@ -116,7 +107,13 @@ package extension CombatTriggerEngine {
                 $0.talents.pending.nextHolyHitDouble = PreparedTalentBonus(value: true, cardSerial: serial)
             }
         }
-        prepareQuakingStunDouble(on: target, triggers: profile.triggers, in: &context)
+        if profile.triggers.firstBlockBreakNextStunDouble,
+           context.claimHeroTalent(.quakingCarapace, actorID: target.id, battle: true) {
+            let serial = context.resolution.cardTalents?.playSerial
+            context.roster.mutateRuntime(for: target) {
+                $0.talents.pending.nextStunAttackDouble = PreparedTalentBonus(value: true, cardSerial: serial)
+            }
+        }
         if target.role == .companion, context.roster.hero.isAlive,
            profile.triggers.blockBreakAllyBlockFlat > 0 {
             context.applyBlockGain(
@@ -149,19 +146,6 @@ package extension CombatTriggerEngine {
 
         await afterAffixBlockBreak(on: target, attackerID: attackerID, in: &context)
         await saintfallAfterBlockBroken(on: target, attackerID: attackerID, power: profile.triggers.blockBrokenSaintfallPower, in: &context)
-    }
-
-    private static func prepareQuakingStunDouble(
-        on target: Combatant,
-        triggers: CombatTraitTriggers,
-        in context: inout BattleState,
-    ) {
-        guard triggers.firstBlockBreakNextStunDouble,
-              context.claimHeroTalent(.quakingCarapace, actorID: target.id, battle: true) else { return }
-        let serial = context.resolution.cardTalents?.playSerial
-        context.roster.mutateRuntime(for: target) {
-            $0.talents.pending.nextStunAttackDouble = PreparedTalentBonus(value: true, cardSerial: serial)
-        }
     }
 
     static func afterEnemyStunned(sourceActorID: String?, in context: inout BattleState) async {
@@ -359,7 +343,13 @@ package extension CombatTriggerEngine {
         guard context.roster.health(for: target) > 0 else { return }
         drawAfterHealthLoss(by: target, in: &context)
         preparePantherRedline(afterHealthLoss: target, in: &context)
-        await vitalInfusionAfterHealthDrop(target: target, in: &context)
+        let amount = context.modifiers(for: target.id).triggers.firstBelowHalfHealthHeal
+        if amount > 0,
+           context.roster.health(for: target) > 0,
+           context.roster.isBelowHalfHealth(for: target),
+           context.resolution.claim(.heroTalent(.vitalInfusion), actorID: target.id, cadence: .battle) {
+            await context.healEmitting(amount: amount, target: target, source: target, abilityName: "Vital Infusion")
+        }
         if target.id == context.roster.hero.id, context.roster.hero.isAlive,
            context.roster.companion.isAlive,
            context.roster.isBelowHalfHealth(for: target),
@@ -372,19 +362,6 @@ package extension CombatTriggerEngine {
                 abilityName: "Grizzly Guard",
             )
         }
-    }
-
-    private static func vitalInfusionAfterHealthDrop(
-        target: Combatant,
-        in context: inout BattleState,
-    ) async {
-        let amount = context.modifiers(for: target.id).triggers.firstBelowHalfHealthHeal
-        guard amount > 0,
-              context.roster.health(for: target) > 0,
-              context.roster.isBelowHalfHealth(for: target),
-              context.resolution.claim(.heroTalent(.vitalInfusion), actorID: target.id, cadence: .battle)
-        else { return }
-        await context.healEmitting(amount: amount, target: target, source: target, abilityName: "Vital Infusion")
     }
 
     static func applyPurge(
