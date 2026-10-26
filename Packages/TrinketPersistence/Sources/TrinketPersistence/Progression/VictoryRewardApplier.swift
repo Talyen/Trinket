@@ -21,45 +21,18 @@ public enum VictoryRewardApplier {
         item: InventoryItem?,
         save: PlayerSave,
     ) -> BattleRewardSettlement {
-        let (hero, companion) = party
-        return unpreparedRewardPlan(
-            party: (hero, companion), encounterLevel: encounterLevel,
-            stageGold: stageGold, grantsCombatExperience: grantsCombatExperience,
-            experienceEarnedPercent: experienceEarnedPercent,
-            loot: (materialRewards, item), save: save,
-        ).settle(
-            battleGold: battleGold,
-            inputs: RewardSettlementInputs(save: save, hero: hero, companion: companion),
-        )
-    }
-
-    private static func unpreparedRewardPlan(
-        party: (hero: Combatant, companion: Combatant),
-        encounterLevel: Int,
-        stageGold: Int,
-        grantsCombatExperience: Bool,
-        experienceEarnedPercent: Int,
-        loot: (materials: [ResourceAmount], item: InventoryItem?),
-        save: PlayerSave,
-    ) -> BattleRewardPlan {
-        var payableItem = loot.item
-        let consolationGold: Int
-        if let candidate = loot.item,
-           InventoryDuplicatePolicy.containsDuplicate(of: candidate, in: save.inventory.items) {
-            payableItem = nil
-            consolationGold = BattleLoot.duplicateItemConsolationGold(forLevel: encounterLevel)
-        } else {
-            consolationGold = 0
-        }
-        return BattleRewardPlan.forEncounter(
+        BattleRewardPlan.forEncounter(
             party: (save.roster.progression(for: party.hero), save.roster.progression(for: party.companion)),
             highestLevels: (save.roster.highestHeroLevel, save.roster.highestCompanionLevel),
             encounterLevel: encounterLevel,
             homestead: save.homestead,
-            stageGold: SaturatedArithmetic.saturatingAdd(stageGold, consolationGold),
-            materials: loot.materials, items: payableItem.map { [$0] } ?? [],
+            stageGold: stageGold,
+            materials: materialRewards, items: item.map { [$0] } ?? [],
             experienceEarnedPercent: experienceEarnedPercent,
             grantsCombatExperience: grantsCombatExperience,
+        ).resolvingOwnedItems(in: save.inventory.items, encounterLevel: encounterLevel).settle(
+            battleGold: battleGold,
+            inputs: RewardSettlementInputs(save: save, hero: party.hero, companion: party.companion),
         )
     }
 
