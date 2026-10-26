@@ -301,6 +301,7 @@ package extension CombatTriggerEngine {
         target: Combatant?,
         in context: inout BattleState,
     ) async {
+        guard context.roster.health(for: actor) > 0 else { return }
         let profile = context.modifiers(for: actor.id)
         let triggers = profile.triggers
 
@@ -312,19 +313,23 @@ package extension CombatTriggerEngine {
             )
         }
 
+        guard context.roster.health(for: actor) > 0 else { return }
         let goldChance = triggers.leechGoldChancePercent > 0 ? triggers.leechGoldChancePercent : 0.10
         if triggers.leechGoldFlat > 0,
            BattleChance.succeeds(probability: goldChance, using: &context.rng) {
             await emitGold(.leechGoldFlat, "Blood Price", amount: triggers.leechGoldFlat, to: actor, in: &context)
         }
 
-        guard let target, target.role == .enemy, context.roster.health(for: target) > 0 else { return }
+        guard context.roster.health(for: actor) > 0,
+              let target, target.role == .enemy, context.roster.health(for: target) > 0 else { return }
         for (keyword, potency) in [
             (Keyword.poison, triggers.onLeechApplyPoison),
             (Keyword.bleed, triggers.onLeechApplyBleed),
         ] where potency > 0 {
+            guard context.roster.health(for: actor) > 0, context.roster.health(for: target) > 0 else { return }
             await DoTApplicator.applyDoT(keyword: keyword, potency: potency, to: target, sourceActorID: actor.id, in: &context)
         }
+        guard context.roster.health(for: actor) > 0, context.roster.health(for: target) > 0 else { return }
         if triggers.onLeechReduceEnemyStrength > 0 {
             context.insertEffect(
                 .damageReductionFlat(

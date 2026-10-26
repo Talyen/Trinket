@@ -235,6 +235,10 @@ extension CombatSurvivalTests {
         profile.triggers.leechBlockChancePercent = 1
         profile.triggers.leechThornsWithoutThorns = 3
         profile.triggers.leechBlockBelowHalf = true
+        profile.triggers.onLeechApplyPoison = 2
+        profile.triggers.onLeechApplyBleed = 2
+        profile.triggers.onLeechReduceEnemyStrength = 1
+        profile.triggers.onLeechReduceEnemyStrengthTurns = 2
         profile.triggers.companionLeechSharePercent = 1
         profile.triggers.leechSharesToHeroPercent = 1
         profile.triggers.firstLeechRestorationShareAlly = true
@@ -266,6 +270,38 @@ extension CombatSurvivalTests {
         #expect(result.value.flags.contains(.leeched))
         #expect(result.events.contains { $0.effectKind == .leechHeal && $0.targetID == source.id && $0.amount == 2 })
         #expect(!result.events.contains { $0.effectKind == .thornsApplied })
+        #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.isRemovableDebuff })
+    }
+
+    @Test(arguments: ["Mana", "Gold", "Poison"])
+    func `Leech followups stop at lethal Mana Gold and affliction reactions`(checkpoint: String) {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 30, maxMana: 10),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            heroHealth: 1, heroMana: 0,
+            heroModifiers: .withTriggers {
+                $0.criticalChanceBonus = -1
+                $0.leechRestoreManaFlat = checkpoint == "Mana" ? 1 : 0
+                $0.onGainManaHealFlat = checkpoint == "Mana" ? 1 : 0
+                $0.leechGoldFlat = 1
+                $0.leechGoldChancePercent = 1
+                $0.gainGoldBonusHealSelf = checkpoint == "Gold" ? 1 : 0
+                $0.onHealDealHoly = checkpoint == "Poison" ? 0 : 1
+                $0.onLeechApplyPoison = 2
+                $0.onLeechApplyBleed = 2
+                $0.onLeechReduceEnemyStrength = 1
+                $0.onLeechReduceEnemyStrengthTurns = 2
+            }, enemyModifiers: .withTriggers { $0.onBlockHitDealHoly = 2 }, appliesFightPacing: false,
+        )
+        battle.roster.hero.hasConsumedDeathsDoor = true
+        DefensePoolEngine.set(20, on: battle.enemy, in: &battle)
+
+        CombatExecutor.run { await CombatTriggerEngine.afterLeech(by: battle.hero, target: battle.enemy, in: &battle) }
+
+        #expect(battle.health(of: battle.hero) == 0)
+        #expect(battle.gold == (checkpoint == "Mana" ? 0 : 1))
+        #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == (checkpoint == "Poison" ? 18 : 19))
+        #expect(!battle.activeEffects(of: battle.enemy).contains { $0.effect.isRemovableDebuff })
     }
 
     private enum FirstShare: CaseIterable, Sendable {

@@ -23,12 +23,14 @@ public extension PlayerRosterState {
             else { return false }
             setLoadout(loadout(for: combatant).selecting(ability), for: combatant)
         case let .equipItem(itemID, slot):
-            guard let item = inventory.first(where: { $0.id == itemID }) else { return false }
+            guard combatant.role.equipmentSlots.contains(slot),
+                  let item = inventory.first(where: { $0.id == itemID }) else { return false }
             var equipment = equipmentLoadout(for: combatant)
             guard equipment.canEquip(item, in: slot, inventory: inventory) else { return false }
             equipment.equip(item, in: slot, inventory: inventory)
             setEquipmentLoadout(equipment, for: combatant)
         case let .unequipItem(slot):
+            guard combatant.role.equipmentSlots.contains(slot) else { return false }
             var equipment = equipmentLoadout(for: combatant)
             equipment.unequip(slot)
             setEquipmentLoadout(equipment, for: combatant)

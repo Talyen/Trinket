@@ -5,6 +5,29 @@ import TrinketCore
 @testable import BattleEngine
 
 struct RestorationIntegrationTests {
+    @Test func `redirected Mana gains retain their provider in committed feedback`() throws {
+        var companionProfile = CombatModifierProfile.zero
+        companionProfile.triggerAbilityNames[.onDodgePartyMana] = "Skyward Gift"
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxMana: 5), heroMana: 0,
+            companionModifiers: companionProfile, appliesFightPacing: false,
+        )
+
+        let events = battle.recordingEvents { context in
+            await CombatTriggerEngine.emitMana(
+                .onDodgePartyMana, "Fallback Mana", amount: 2, to: context.hero,
+                nameFrom: context.companion, in: &context,
+            )
+        }
+        let manaEvent = try #require(events.first { $0.effectKind == .resourceGain && $0.keyword == .mana })
+
+        #expect(manaEvent.actorID == battle.companion.id)
+        #expect(manaEvent.targetID == battle.hero.id)
+        #expect(manaEvent.abilityName == "Skyward Gift")
+        #expect(manaEvent.amount == 2)
+        #expect(battle.mana(of: battle.hero) == 2)
+    }
+
     @Test(arguments: [0, 3, 10])
     func `healing reports overflow without inflating restoration`(missingHealth: Int) {
         var battle = BattleStateTestFactory.makeMinimalBattle(

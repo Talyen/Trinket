@@ -170,6 +170,7 @@ package enum CombatTriggerEngine {
             amount,
             to: target,
             abilityName: triggerAbilityName(key, for: source, fallback: fallback, in: context),
+            source: source,
         )
     }
 

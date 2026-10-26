@@ -149,6 +149,33 @@ struct PlayerRosterStateTests {
         try #expect(stored.itemID(for: .trinket) == nil)
     }
 
+    @Test func `roster edits reject unsupported slots before transferring gear`() throws {
+        var roster = PlayerRosterState.testSeed
+        let knight = try #require(GameContent.hero(matching: "knight"))
+        let wizard = try #require(GameContent.hero(matching: "wizard"))
+        let wolf = try #require(GameContent.companion(matching: "wolf"))
+        let wand = try #require(GameContent.sampleInventoryItems.first { $0.id == "wand-basic" })
+        let before = roster
+
+        let rejectedEquip = roster.applyLoadoutEdit(
+            .equipItem(itemID: wand.id, slot: .weapon), for: wolf.id, inventory: [wand], access: .fullGame,
+        )
+        #expect(!rejectedEquip)
+        #expect(roster == before)
+        let rejectedUnequip = roster.applyLoadoutEdit(
+            .unequipItem(.weapon), for: wolf.id, inventory: [wand], access: .fullGame,
+        )
+        #expect(!rejectedUnequip)
+        #expect(roster == before)
+
+        let transferred = roster.applyLoadoutEdit(
+            .equipItem(itemID: wand.id, slot: .weapon), for: knight.id, inventory: [wand], access: .fullGame,
+        )
+        #expect(transferred)
+        #expect(roster.equipmentLoadout(for: knight).itemID(for: .weapon) == wand.id)
+        #expect(roster.equipmentLoadout(for: wizard).itemID(for: .weapon) == nil)
+    }
+
     @Test func `highest levels filter by role and default to one`() throws {
         var roster = PlayerRosterState.testSeed
         roster.progressions["knight"] = CombatantProgression(level: 8, currentXP: 0, requiredXP: 100)
