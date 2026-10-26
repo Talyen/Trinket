@@ -356,11 +356,28 @@ def expire_run_caches(root: Path, *, apply: bool, now: float, processes: dict,
         lock.rmdir()
 
 
+def prepare_cleanup_receipt(path: Path, root: Path) -> None:
+    # Validate/create the receipt destination before any cache mutation.
+    absolute = Path(os.path.abspath(path))
+    if path.is_symlink() or (absolute.is_relative_to(Path(os.path.abspath(root))) and not safe_path(path, root)):
+        raise ValueError('Unsafe cleanup receipt destination')
+    if is_kept(path):
+        raise ValueError('Cleanup receipt is pinned; existing data preserved')
+    if path.exists():
+        previous = json.loads(path.read_text())
+        if not isinstance(previous, dict) or previous.get('schema') != 1 or previous.get('policy') not in {
+                'idle-compiler-intermediates-only', 'one-verified-release-duplicate'}:
+            raise ValueError('Unknown cleanup receipt destination; existing data preserved')
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+
 def cleanup(root: Path, *, apply: bool, experiments: bool = False,
             now: float | None = None, receipts_dir: Path | None = None, verbose: bool = True,
             intermediates_only: bool = False, receipt: Path | None = None) -> tuple[int, int]:
     now = time.time() if now is None else now
     emit = print if verbose else lambda *args: None
+    if receipt:
+        prepare_cleanup_receipt(receipt, root)
     processes = process_snapshot()
     cache_age = run_cache_seconds()
     decisions = []

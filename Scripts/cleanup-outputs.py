@@ -59,6 +59,8 @@ def main() -> None:
             if args.release_duplicates_only:
                 from internal import release_retention
                 decisions = []
+                if args.receipt:
+                    retention.prepare_cleanup_receipt(args.receipt, root)
                 release_retention.cleanup(root, apply=args.apply, max_verify=1, decisions=decisions)
                 if args.receipt:
                     from internal.cli import write_json_atomic

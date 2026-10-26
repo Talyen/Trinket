@@ -26,7 +26,7 @@ class OutputRetentionTests(ScriptRegressionTestCase):
             for parent in file.parents:
                 if parent == self.root: break
                 os.utime(parent, (0, 0))
-        receipt = self.root / 'cleanup.json'
+        receipt = self.root / 'nested/cleanup.json'
         with patch.object(retention, 'process_snapshot', return_value=self.processes), \
              patch.object(retention.subprocess, 'run', return_value=subprocess.CompletedProcess('lsof', 1, '', '')):
             retention.cleanup(self.root, apply=False, intermediates_only=True, receipt=receipt, now=self.now, verbose=False)
@@ -36,6 +36,13 @@ class OutputRetentionTests(ScriptRegressionTestCase):
         self.assertFalse(old.exists())
         self.assertTrue(all(file.exists() for file in [kept, product, evidence, warm]))
         self.assertEqual(json.loads(receipt.read_text())['decisions'][0]['action'], 'removed')
+
+    def test_unknown_receipt_is_preserved_before_any_cleanup(self):
+        receipt = self.output('user-receipt.json', content='unique investigation')
+        with self.assertRaises(ValueError):
+            retention.cleanup(self.root, apply=True, intermediates_only=True, receipt=receipt,
+                              now=self.now, verbose=False)
+        self.assertEqual(receipt.read_text(), 'unique investigation')
 
     def test_legacy_swiftpm_cache_expires_after_three_days_without_touching_sources(self):
         old = self.output('Packages/TrinketCore/.build/debug/product', age=4 * 86400)
