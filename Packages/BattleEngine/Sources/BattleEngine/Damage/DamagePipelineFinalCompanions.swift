@@ -197,8 +197,9 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard state.combatant.role == .enemy,
+              !context.modifiers(for: state.combatant.id).triggers.cannotBeLeeched,
               let sourceID = state.sourceActorID,
-              let source = context.roster.combatant(for: sourceID), source.role == .companion
+              let source = context.roster.combatant(for: sourceID), source.role == .companion, source.isAlive
         else { return }
         let triggers = context.modifiers(for: sourceID).triggers
         let attackHasLeech = state.options.isAttackHit && state.healthLost > 0

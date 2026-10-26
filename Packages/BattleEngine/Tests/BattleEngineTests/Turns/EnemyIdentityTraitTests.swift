@@ -211,6 +211,25 @@ struct EnemyIdentityTraitTests {
         #expect(context.roster.hero.currentHealth == health)
     }
 
+    @Test(arguments: [false, true])
+    func `hollow frame prevents guaranteed leech followup rewards`(immune: Bool) throws {
+        let enemy = try #require(GameContent.enemy(matching: "skeleton"))
+        var enemyProfile = CombatBuildResolver.build(enemy: enemy).modifiers
+        enemyProfile.triggers.cannotBeLeeched = immune
+        let talents = CombatantTalentCatalog.profile(for: ["risen_skeleton_leech_t1_1", "risen_skeleton_leech_t1_2"])
+        var context = try makeBattle("skeleton", companionModifiers: talents, enemyModifiers: enemyProfile)
+
+        let outcome = context.resolveTestDamage(
+            2, from: .companion,
+            options: .attack(accuracy: .unavoidable, guaranteedCritical: true, abilityHasLeech: true),
+        )
+
+        #expect(outcome.healthLost > 0)
+        #expect(outcome.flags.contains(.leeched) == !immune)
+        #expect(context.roster.enemy.talents.pending.nextOutgoingAttackMultiplier == (immune ? 1 : 0.75))
+        #expect(context.roster.companion.talents.pending.nextLeechCriticalPoisonAttackBonus?.value == (immune ? nil : 3))
+    }
+
     private func makeBattle(
         _ enemyID: String,
         heroModifiers: CombatModifierProfile = .zero,

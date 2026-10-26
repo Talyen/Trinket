@@ -82,13 +82,16 @@ extension CombatTriggerTalentDamageTests {
         #expect(battle.roster.runtime(for: battle.companion)?.talents.battle.flatDamageReductionBonus == 4)
     }
 
-    @Test(arguments: [DamageOperation.healthCost, .periodic, .reaction()])
-    func `soul sharing heals from enemy damage but not skeleton health costs`(options: DamageOperation) {
+    @Test(arguments: [DamageOperation.healthCost, .periodic, .reaction()], [false, true])
+    func `soul sharing heals only from living companion enemy damage`(options: DamageOperation, defeated: Bool) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             companionModifiers: .withTriggers { $0.companionDamageLeechesToHeroPercent = 0.5 },
             dealOpeningHand: false, appliesFightPacing: false,
         )
         battle.roster.mutateRuntime(for: battle.hero) { $0.currentHealth = 5 }
+        if defeated {
+            battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 0 }
+        }
         let outcome = battle.resolveTestDamage(
             4,
             to: options.isHealthCost ? battle.companion : battle.enemy,
@@ -96,8 +99,8 @@ extension CombatTriggerTalentDamageTests {
             sourceActorID: battle.companion.id,
             options: options,
         )
-        #expect(outcome.healthLost == 4)
-        #expect(battle.health(of: battle.hero) == (options.isHealthCost ? 5 : 7))
+        #expect(outcome.healthLost == (options.isHealthCost && defeated ? 0 : 4))
+        #expect(battle.health(of: battle.hero) == (options.isHealthCost || defeated ? 5 : 7))
     }
 
     @Test func `bloodrush draws only physical cards on bleed ticks`() throws {

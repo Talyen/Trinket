@@ -230,6 +230,7 @@ visit; defaults are Wood → Stone and 1. Show Spend/Receive together, insuffici
 cost styling before action, and the committed quantity received afterward.
 No earned-resource multiplier, tier restriction, cooldown or fee applies.
 Reject destination capacity overflow without spending; debit and credit commit together.
+Pending Gold production reserves wallet capacity for conversions, as it does for earned Gold.
 Settle production against the pre-conversion wallet so spending Gold cannot reopen
 past production that was blocked by the Gold cap.
 

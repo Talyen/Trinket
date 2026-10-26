@@ -9,8 +9,12 @@ public enum ResourceTransmutation {
               source != destination, quantity == 1 || quantity == 10,
               homestead.balance(for: source, gold: gold) >= quantity else { return false }
         let balance = homestead.balance(for: destination, gold: gold)
-        let maximum = destination == .gold ? GoldBalance.maximum : Int.max
-        return balance >= 0 && balance <= maximum - quantity
+        if destination == .gold {
+            return balance >= 0 && PlayerRosterState.availableGoldCapacity(
+                gold: gold, reservedGold: PlayerRosterState.reservedGold(from: homestead.pendingProduction),
+            ) >= quantity
+        }
+        return balance >= 0 && balance <= Int.max - quantity
     }
 
     public static func apply(

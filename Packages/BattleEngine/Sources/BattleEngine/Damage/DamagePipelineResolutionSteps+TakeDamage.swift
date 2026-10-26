@@ -158,7 +158,7 @@ package extension DamagePipeline {
               !context.modifiers(for: defender.id).triggers.cannotBeLeeched,
               let sourceActorID,
               let source = context.roster.combatant(for: sourceActorID),
-              source.role == .companion,
+              source.role == .companion, source.isAlive,
               context.roster.hero.isAlive
         else { return }
         let percent = context.modifiers(for: source.combatant.id).triggers.companionDamageLeechesToHeroPercent

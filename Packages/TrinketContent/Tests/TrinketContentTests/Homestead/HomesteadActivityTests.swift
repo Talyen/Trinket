@@ -42,6 +42,24 @@ struct HomesteadActivityTests {
         #expect(state == unbuilt)
     }
 
+    @Test(arguments: [1, 10])
+    func `conversion preserves gold capacity reserved by uncollected production`(quantity: Int) {
+        var state = PlayerHomesteadState(
+            resources: [.wood: 20], nodeTiers: [.transmutationCrucible: 1],
+        )
+        state.pendingProduction[.gold] = 0.5
+        var gold = GoldBalance.maximum - quantity
+        let before = state
+        #expect(!ResourceTransmutation.apply(from: .wood, to: .gold, quantity: quantity, homestead: &state, gold: &gold))
+        #expect(state == before && gold == GoldBalance.maximum - quantity)
+
+        gold -= 1
+        #expect(ResourceTransmutation.apply(from: .wood, to: .gold, quantity: quantity, homestead: &state, gold: &gold))
+        #expect(gold == GoldBalance.maximum - 1)
+        #expect(state.resources[.wood] == 20 - quantity)
+        #expect(state.pendingProduction == before.pendingProduction)
+    }
+
     @Test func `inscription preserves other exact powers and permanently restricts one position`() throws {
         let base = try #require(GameContent.itemBaseType(matching: "greatsword"))
         var random = SeededRandomNumberGenerator(seed: 91)
