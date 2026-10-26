@@ -70,6 +70,11 @@ extension EnemyTraitEngine {
         guard state.options.isPrimaryAttack, state.amount > 0,
               state.sourceActorID == context.enemy.id, state.combatant.role != .enemy,
               !context.isBattleOver, context.roster.enemy.isAlive else { return }
+        await afterEnemyHit(landed: landed, context: &context)
+    }
+
+    static func afterEnemyHit(landed: Bool, context: inout BattleState) async {
+        guard !context.isBattleOver, context.roster.enemy.isAlive else { return }
         let actor = context.enemy
         let profile = context.enemyModifiers
         if landed, profile.triggers.attackHealFlat > 0 {

@@ -247,12 +247,14 @@ extension BattleTurnEngineTests {
         #expect((context.roster.companion.talents.pending.nextIncomingDamageMultiplier != nil) == (keyword == .burn))
     }
 
-    @Test func `cleric feedback names each independent trait`() throws {
+    @Test func `enemy feedback names Watchful Guard and Restoring Light`() throws {
+        var guardContext = try enemyTraitContext("living_armor")
+        let guardEnemy = guardContext.enemy
+        let blockEvents = guardContext.recordingEvents { context in await CombatTriggerEngine.turnBlock(for: guardEnemy, in: &context) }
+        #expect(blockEvents.contains { $0.abilityName == "Watchful Guard" && $0.targetID == guardEnemy.id })
         var context = try enemyTraitContext("cleric")
         let enemy = context.enemy
         context.roster.mutateRuntime(for: enemy) { $0.currentHealth = 5 }
-        let blockEvents = context.recordingEvents { context in await CombatTriggerEngine.turnBlock(for: enemy, in: &context) }
-        #expect(blockEvents.contains { $0.abilityName == "Watchful Guard" && $0.targetID == enemy.id })
         let outcome = context.recordingResult { context in context.resolveTestDamage(
             2,
             from: .enemy,

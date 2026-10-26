@@ -18,6 +18,9 @@ extension UniqueCollectionTests {
         for shared in [false, true] {
             var context = try battle(shared ? ["bloodember_pendant"] : [], extra: profile)
             context.insertEffect(status, to: context.enemy, sourceID: context.hero.id, remainingTurns: 3)
+            if keyword == .burn, status == .poison(1) {
+                context.insertEffect(.burn(1), to: context.enemy, sourceID: context.hero.id, remainingTurns: 0)
+            }
             try play(attack(keyword, amount: 20), in: &context)
             #expect(context.health(of: context.enemy) == (shared ? 1979 : 1980))
         }
@@ -31,6 +34,9 @@ extension UniqueCollectionTests {
         }
         var context = try battle(["bloodember_pendant"], extra: profile)
         context.insertEffect(.poison(1), to: context.enemy, sourceID: context.hero.id, remainingTurns: 0)
+        if keyword == .burn {
+            context.insertEffect(.burn(1), to: context.enemy, sourceID: context.hero.id, remainingTurns: 0)
+        }
         try play(attack(keyword, amount: 20), in: &context)
         #expect(context.health(of: context.enemy) == 1975)
     }

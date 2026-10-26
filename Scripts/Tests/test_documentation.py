@@ -298,7 +298,7 @@ class DocumentationTests(ScriptRegressionTestCase):
         # Script infrastructure keeps the full registry; pure docs have no local slices.
         result = run_captured([str(ROOT / "Scripts" / "handoff.sh"), "--dry-run", "--paths", "Scripts/check-docs.py"],
                               cwd=ROOT, env=self.verification_environment(), expected=0)
-        planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
+        planned = [line.strip() for line in result.stdout.split("Deferred to CI:", 1)[0].splitlines() if line.startswith("  ")]
         self.assertIn('python3 ./Scripts/check-docs.py --paths Scripts/check-docs.py', planned)
         planned = [command.partition(' --paths ')[0] for command in planned]
         # Infrastructure scope includes docs plus cheap slices in registry order.
@@ -324,10 +324,11 @@ class DocumentationTests(ScriptRegressionTestCase):
                 self.assertEqual(docs, ['python3 ./Scripts/check-docs.py' + (
                     '' if hosted else ' --paths Docs/Platform/Verification.md Scripts/build.sh')])
                 script_commands = [p for p in planned if p.startswith("./Scripts/test-scripts.sh")]
-                flag = "--skip-docs" if hosted else "--fast"
-                self.assertEqual(script_commands, [
-                    f"./Scripts/test-scripts.sh {flag} --paths Docs/Platform/Verification.md Scripts/build.sh",
-                ])
+                paths = "--paths Docs/Platform/Verification.md Scripts/build.sh"
+                self.assertEqual(script_commands, (
+                    [f"./Scripts/test-scripts.sh --skip-docs {paths}"] if hosted else
+                    [f"./Scripts/test-scripts.sh --syntax-only {paths}", f"./Scripts/test-scripts.sh --skip-docs {paths}"]
+                ))
 
     def test_plain_script_scope_still_validates_docs(self) -> None:
         for hosted in (False, True):
@@ -336,10 +337,11 @@ class DocumentationTests(ScriptRegressionTestCase):
                     [str(ROOT / "Scripts/handoff.sh"), "--dry-run", "--paths", "Scripts/build.sh"], cwd=ROOT, env=self.verification_environment(hosted=hosted), expected=0
                 )
                 planned = [line.strip() for line in result.stdout.splitlines() if line.startswith("  ")]
-                flag = "" if hosted else " --fast"
-                self.assertIn(f"./Scripts/test-scripts.sh{flag} --paths Scripts/build.sh", planned)
+                self.assertIn("./Scripts/test-scripts.sh --paths Scripts/build.sh", planned)
+                if not hosted:
+                    self.assertIn("./Scripts/test-scripts.sh --syntax-only --paths Scripts/build.sh", planned)
                 self.assertFalse(any("--skip-docs" in command for command in planned))
-                # Hosted scripts own docs; fast local scripts need one separate docs check.
+                # Hosted scripts own docs; local syntax checks need one separate docs check.
                 self.assertEqual([command for command in planned if command.startswith('python3 ./Scripts/check-docs.py')],
                                  [] if hosted else ['python3 ./Scripts/check-docs.py --paths Scripts/build.sh'])
 

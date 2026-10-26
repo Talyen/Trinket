@@ -159,6 +159,11 @@ extension BattleTurnEngine {
             origin: .direct,
         )
 
+        if actor.role == .enemy, prepared.target.role != .enemy,
+           prepared.request.options.isPrimaryAttack, prepared.request.amount > 0 {
+            await EnemyTraitEngine.afterEnemyHit(landed: !damageOutcome.isDodged, context: &context)
+        }
+
         if case .landed = damageOutcome.damageImpact {
             if prepared.nextStrike.contains(.holy) {
                 await context.applyDecayingDoT(

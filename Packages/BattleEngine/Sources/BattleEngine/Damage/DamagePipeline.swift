@@ -40,7 +40,7 @@ package enum DamagePipeline {
         EnemyTraitEngine.beforeHit(state, context: &context)
         await applyDodgeGate(to: &state, in: &context)
         if state.isDodged {
-            await EnemyTraitEngine.afterHit(CommittedDamage(state), landed: false, context: &context)
+            await finishEnemyHit(state, landed: false, in: &context)
             return []
         }
         if let sourceActorID = state.sourceActorID,
@@ -72,8 +72,17 @@ package enum DamagePipeline {
         applyResourceful(to: hit, in: &context)
         applyCrackedGuard(to: hit, in: &context)
         let flags = await applyCommittedDamageReactions(to: hit, in: &context)
-        await EnemyTraitEngine.afterHit(hit, landed: true, context: &context)
+        await finishEnemyHit(state, landed: true, in: &context)
         return flags
+    }
+
+    private static func finishEnemyHit(_ state: DamageResolutionState, landed: Bool, in context: inout BattleState) async {
+        // The action emits its direct hit before the enemy's per-hit recoil.
+        let actionOwnsFeedback = state.options.isPrimaryAttack && state.sourceActorID == context.enemy.id
+            && state.provenance != nil && state.provenance == context.resolution.damageProvenance(for: context.enemy.id)
+        if !actionOwnsFeedback {
+            await EnemyTraitEngine.afterHit(CommittedDamage(state), landed: landed, context: &context)
+        }
     }
 
     /// Committed-damage reaction order (load-bearing, do not reorder):

@@ -10,7 +10,8 @@ struct LooseRubbleTests {
         let build = CombatBuildResolver.build(enemy: titan)
         return BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 100),
-            enemy: build.combatant, enemyModifiers: build.modifiers, appliesFightPacing: false,
+            enemy: build.combatant, heroModifiers: .withTriggers { $0.dodgeChanceBonus = -1 },
+            enemyModifiers: build.modifiers, appliesFightPacing: false,
         )
     }
 

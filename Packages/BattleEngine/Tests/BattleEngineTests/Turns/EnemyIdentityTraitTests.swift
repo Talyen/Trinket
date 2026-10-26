@@ -58,6 +58,23 @@ struct EnemyIdentityTraitTests {
         #expect(context.roster.enemy.currentHealth == 7)
     }
 
+    @Test func `dodged attacks still apply recoil but do not trigger siphon`() throws {
+        for enemyID in ["blood_cultist", "necromancer"] {
+            var context = try makeBattle(enemyID)
+            context.roster.mutateRuntime(for: context.enemy) { $0.currentHealth = 5 }
+            context.insertEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0)
+            let heroHealth = context.roster.hero.currentHealth
+            let events = context.performTestAction(.slash, from: .enemy, to: .hero)
+            #expect(context.roster.hero.currentHealth == heroHealth)
+            #expect(context.roster.enemy.currentHealth == (enemyID == "blood_cultist" ? 4 : 5))
+            if enemyID == "blood_cultist" {
+                let hit = try #require(events.firstIndex { $0.kind == .abilityDamage && $0.targetID == context.hero.id })
+                let recoil = try #require(events.firstIndex { $0.abilityName == "Self-Sacrifice" })
+                #expect(hit < recoil)
+            }
+        }
+    }
+
     @Test func `pyromancy strengthens every Burn hit while Block still absorbs damage`() throws {
         var context = try makeBattle("pyromancer")
         DefensePoolEngine.set(10, on: context.hero, in: &context)
@@ -134,7 +151,7 @@ struct EnemyIdentityTraitTests {
         var context = try makeBattle("mud_elemental")
         let enemy = context.enemy
         context.roster.mutateRuntime(for: enemy) { $0.currentHealth = 5 }
-        context.insertEffect(.controlMeter(.stun, 10, 10), to: enemy, remainingTurns: 1)
+        context.insertEffect(.controlMeter(.stun, 10, 10), to: enemy, remainingTurns: 0)
         let health = context.roster.hero.currentHealth
 
         let events = context.recordingEvents { context in
@@ -209,7 +226,7 @@ struct EnemyIdentityTraitTests {
             $0.stunnedEnemyNextTurnDamageMultiplier = 0.75
         })
         let hero = context.hero
-        context.insertEffect(.controlMeter(.stun, 10, 10), to: hero, remainingTurns: 1)
+        context.insertEffect(.controlMeter(.stun, 10, 10), to: hero, remainingTurns: 0)
         context.recordingEvents { context in
             await BattleTurnEngine.consumeActionSkip(for: hero, context: &context)
         }

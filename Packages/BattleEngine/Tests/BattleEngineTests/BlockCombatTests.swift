@@ -259,7 +259,7 @@ struct BlockCombatTests {
     }
 
     @Test func `Watchful Guard protects the opening round and grants once on the next round`() throws {
-        let definition = try #require(GameContent.enemy(matching: "cleric"))
+        let definition = try #require(GameContent.enemy(matching: "living_armor"))
         let build = CombatBuildResolver.build(enemy: definition)
         var battle = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),
