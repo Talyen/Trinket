@@ -9,6 +9,12 @@ extension BattleTurnEngine {
     ) -> Ability {
         captureTalentPreparations(for: actor, in: &context)
         var action = TalentActionFacts(actorID: actor.id)
+        if context.resolution.actionOutcome?.damageKeywords.isEmpty == false {
+            context.roster.mutateRuntime(for: actor) {
+                action.concussionMultiplier = $0.talents.pending.concussionMultiplier
+                $0.talents.pending.concussionMultiplier = 1
+            }
+        }
         action.prismaticAffixDamageBonus = QuietAffixRules.prepareAttack(ability: ability, actor: actor, in: &context)
         if context.modifiers(for: actor.id).triggers.firstBurnAttackLeech,
            context.resolution.actionOutcome?.damageKeywords.contains(.burn) == true {

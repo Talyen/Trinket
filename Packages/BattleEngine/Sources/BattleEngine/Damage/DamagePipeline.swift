@@ -37,8 +37,10 @@ package enum DamagePipeline {
             return []
         }
 
+        EnemyTraitEngine.beforeHit(state, context: &context)
         await applyDodgeGate(to: &state, in: &context)
         if state.isDodged {
+            await EnemyTraitEngine.afterHit(CommittedDamage(state), landed: false, context: &context)
             return []
         }
         if let sourceActorID = state.sourceActorID,
@@ -69,7 +71,9 @@ package enum DamagePipeline {
         let hit = CommittedDamage(state)
         applyResourceful(to: hit, in: &context)
         applyCrackedGuard(to: hit, in: &context)
-        return await applyCommittedDamageReactions(to: hit, in: &context)
+        let flags = await applyCommittedDamageReactions(to: hit, in: &context)
+        await EnemyTraitEngine.afterHit(hit, landed: true, context: &context)
+        return flags
     }
 
     /// Committed-damage reaction order (load-bearing, do not reorder):

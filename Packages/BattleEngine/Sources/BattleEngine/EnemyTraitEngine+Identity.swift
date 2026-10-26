@@ -20,25 +20,13 @@ extension EnemyTraitEngine {
             )
         }
         guard !context.isBattleOver, facts.action.canContinue(in: context) else { return false }
-        DefensePoolEngine.steal(
-            profile.triggers.attackStealBlock, from: facts.action.selectedTarget, to: actor,
-            abilityName: profile.triggerAbilityName(.attackStealBlock, fallback: "Pilfer"), in: &context,
-        )
         prepareAttack(for: actor, context: &context)
         return true
     }
 
-    static func basicBurn(from state: CommittedDamage, context: inout BattleState) async {
+    static func attackBurn(from state: CommittedDamage, context: inout BattleState) async {
         let amount = context.enemyModifiers.triggers.basicAttackApplyBurn
-        let immediateBasic = state.provenance != nil
-            && state.provenance == context.resolution.damageProvenance(for: context.enemy.id)
-            && context.resolution.actionOutcome?.ability.tier == .basic
-        guard amount > 0, state.options.isBasicAttackHit || immediateBasic else { return }
-        if let actionID = context.resolution.actionID {
-            guard context.resolution.claim(
-                .heroTalent(.basicAttackApplyBurn), actorID: context.enemy.id, cadence: .action(actionID),
-            ) else { return }
-        }
+        guard amount > 0 else { return }
         await DoTApplicator.applyDecayingDoT(
             keyword: .burn, potency: amount, to: state.combatant,
             sourceActorID: context.enemy.id, application: .afterHit, in: &context,
@@ -57,11 +45,47 @@ extension EnemyTraitEngine {
     static func poisonHealing(from state: CommittedDamage, context: inout BattleState) async {
         let actor = context.enemy
         let amount = context.enemyModifiers.triggers.healOnOpponentPoisonDamage
-        guard amount > 0, state.damageKeyword == .poison, state.healthLost > 0,
+        guard amount > 0, state.damageKeyword == .poison, state.amount > 0,
               state.combatant.role != .enemy, !context.isBattleOver, context.roster.enemy.isAlive
         else { return }
         await CombatTriggerEngine.emitHeal(
             .healOnOpponentPoisonDamage, "Plague Mask", amount: amount, to: actor, source: actor, in: &context,
+        )
+    }
+}
+
+extension EnemyTraitEngine {
+    static func beforeHit(_ state: DamageResolutionState, context: inout BattleState) {
+        guard state.options.isPrimaryAttack, state.amount > 0,
+              state.sourceActorID == context.enemy.id, state.combatant.role != .enemy,
+              !context.isBattleOver else { return }
+        let profile = context.enemyModifiers
+        DefensePoolEngine.steal(
+            profile.triggers.attackStealBlock, from: state.combatant, to: context.enemy,
+            abilityName: profile.triggerAbilityName(.attackStealBlock, fallback: "Pilfer"), in: &context,
+        )
+    }
+
+    static func afterHit(_ state: CommittedDamage, landed: Bool, context: inout BattleState) async {
+        guard state.options.isPrimaryAttack, state.amount > 0,
+              state.sourceActorID == context.enemy.id, state.combatant.role != .enemy,
+              !context.isBattleOver, context.roster.enemy.isAlive else { return }
+        let actor = context.enemy
+        let profile = context.enemyModifiers
+        if landed, profile.triggers.attackHealFlat > 0 {
+            await CombatTriggerEngine.emitHeal(
+                .attackHealFlat, "Siphon", amount: profile.triggers.attackHealFlat,
+                to: actor, source: actor, in: &context,
+            )
+        }
+        guard !context.isBattleOver, profile.triggers.attackHealthRecoil > 0 else { return }
+        let outcome = await context.resolveDamage(DamageRequest(
+            amount: profile.triggers.attackHealthRecoil, target: actor, sourceActorID: actor.id, options: .healthCost,
+        ))
+        context.nextEvent(
+            kind: .abilityDamage, source: .init(actor),
+            abilityName: profile.triggerAbilityName(.attackHealthRecoil, fallback: "Self-Sacrifice"),
+            target: actor, amount: outcome.healthLost, keyword: .health,
         )
     }
 }

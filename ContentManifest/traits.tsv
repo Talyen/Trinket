@@ -1,31 +1,31 @@
 id	name	description	modifiers	triggers	polarity
 watchful_guard	Watchful Guard	Gain 1 Block at the start of each round		blockPerTurn:1	positive
 hidden_fangs	Hidden Fangs	The first attack deals 2 additional Bleed damage		firstAttackBleedBonus:2	positive
-siphon	Siphon	Restore 1 Health after attacking		attackHealFlat:1	positive
+siphon	Siphon	Attack hits restore 1 Health.		attackHealFlat:1	positive
 searing_body	Searing Body	Apply 1 Burn to attackers when hit		on_hit_attacker_burn:1	positive
-chilling_strikes	Chilling Strikes	Basic attacks deal 1 additional Freeze damage		basicAttackFreezeBuildup:1	positive
+chilling_strikes	Chilling Strikes	Attack hits deal 1 additional Freeze damage.		basicAttackFreezeBuildup:1	positive
 ambush	Ambush	Deal double damage on the first attack		first_hit_double_damage:1	positive
 shieldbreaker	Shieldbreaker	Physical attacks deal double damage to enemy Block		physicalBlockBreakMultiplier:2.0	positive
 fan_the_flames	Fan the Flames	Attacks against Burning enemies deal 25% additional damage		damageVsBurningMultiplier:1.25	positive
-venomous_strikes	Venomous Strikes	Attacks apply 1 Poison		attacksApplyPoison:1	positive
+venomous_strikes	Venomous Strikes	Attack hits inflict 1 Poison.		attacksApplyPoison:1	positive
 corrosive_venom	Corrosive Venom	Poison strips 1 Block before damaging Health		poisonStripsBlockBeforeHealth:1	positive
 blood_scent	Blood Scent	Attacks against Bleeding enemies deal 1 additional damage		damageVsBleedingBonus:1	positive
 sated_fury	Sated Fury	Reaching full Health makes the next attack deal 1 additional damage		nextAttackBonusOnFullHealth:1	positive
-gathering_zeal	Gathering Zeal	Dealing Holy damage adds 1 Holy damage to the next attack		holyDamageNextAttackHolyBonus:1	positive
-restoring_light	Restoring Light	Dealing Holy damage restores 1 Health		holyDamageHealLowestAllyFlat:1	positive
-righteous_guard	Righteous Guard	Gain 1 Block when dealing Stun or Holy damage		holyDamageBlockFlat:1|stunDamageBlockFlat:1	positive
+gathering_zeal	Gathering Zeal	Holy hits add 1 Holy damage to its next attack.		holyDamageNextAttackHolyBonus:1	positive
+restoring_light	Restoring Light	Holy hits restore 1 Health.		holyDamageHealLowestAllyFlat:1	positive
+righteous_guard	Righteous Guard	Holy and Stun hits grant 1 Block.		holyDamageBlockFlat:1|stunDamageBlockFlat:1	positive
 numbing_presence	Numbing Presence	Frozen enemies deal 1 less damage		frozenEnemyDamageReductionFlat:1	positive
 rimeguard	Rimeguard	Gain 1 Block whenever an enemy becomes Frozen		onEnemyFrozenGainBlock:1	positive
 dread_exploitation	Dread Exploitation	Attacks against Stunned enemies deal 1 additional damage		damageWhileTargetStunnedBonus:1	positive
-concussion	Concussion	Stunned enemies deal 25% less damage next turn		stunnedEnemyNextTurnDamageMultiplier:0.75	positive
+concussion	Concussion	Stun weakens the opponent’s next attack by 25%.		stunnedEnemyNextTurnDamageMultiplier:0.75	positive
 bulwark_force	Bulwark Force	Attacks deal 1 additional damage while it has Block		shieldDamageBonusWhileBlocked:1	positive
-blighted_pulse	Blighted Pulse	Deals 2 Poison or Bleed damage every other turn to all enemies		turn_random_damage_all_enemies:poison:bleed:2|turn_random_damage_all_enemies_interval:2	positive
-furnace_pulse	Furnace Pulse	Deals 1 Stun or 1 Burn damage every other turn to all enemies		turn_random_damage_all_enemies:stun:burn:1|turn_random_damage_all_enemies_interval:2	positive
-winters_grasp	Winter’s Grasp	Deals 1 Freeze damage every other turn to all enemies		turn_freeze_all_enemies:1|turn_freeze_damage_all_enemies_interval:2	positive
-thunderous_tremor	Thunderous Tremor	Deals 1 Physical or 1 Stun damage every other turn to all enemies		turn_random_damage_all_enemies:physical:stun:1|turn_random_damage_all_enemies_interval:2	positive
-crimson_pulse	Crimson Pulse	Deals 1 Bleed damage every other turn to all enemies		turn_random_damage_all_enemies:bleed:bleed:1|turn_random_damage_all_enemies_interval:2	positive
-radiant_judgment	Radiant Judgment	Deals 1 Holy damage every other turn to all enemies		turn_random_damage_all_enemies:holy:holy:1|turn_random_damage_all_enemies_interval:2	positive
-seismic_pulse	Seismic Pulse	Deals 1 Physical damage every other turn to all enemies		turn_random_damage_all_enemies:physical:physical:1|turn_random_damage_all_enemies_interval:2	positive
+blighted_pulse	Blighted Pulse	Deals 2 Poison or Bleed damage every other turn.		turn_random_damage_all_enemies:poison:bleed:2|turn_random_damage_all_enemies_interval:2	positive
+furnace_pulse	Furnace Pulse	Deals 1 Stun or Burn damage every other turn.		turn_random_damage_all_enemies:stun:burn:1|turn_random_damage_all_enemies_interval:2	positive
+winters_grasp	Winter’s Grasp	Deals 1 Freeze damage every other turn.		turn_freeze_all_enemies:1|turn_freeze_damage_all_enemies_interval:2	positive
+thunderous_tremor	Thunderous Tremor	Deals 1 Physical or Stun damage every other turn.		turn_random_damage_all_enemies:physical:stun:1|turn_random_damage_all_enemies_interval:2	positive
+crimson_pulse	Crimson Pulse	Deals 1 Bleed damage every other turn.		turn_random_damage_all_enemies:bleed:bleed:1|turn_random_damage_all_enemies_interval:2	positive
+radiant_judgment	Radiant Judgment	Deals 1 Holy damage every other turn.		turn_random_damage_all_enemies:holy:holy:1|turn_random_damage_all_enemies_interval:2	positive
+seismic_pulse	Seismic Pulse	Deals 1 Physical damage every other turn.		turn_random_damage_all_enemies:physical:physical:1|turn_random_damage_all_enemies_interval:2	positive
 gelatinous_body	Gelatinous Body	Physical damage taken reduced by 20%	damage_taken_percent:physical:0.20		positive
 incorporeal	Incorporeal	Physical damage taken reduced by 30%	damage_taken_percent:physical:0.30		positive
 winterborn	Winterborn	Freeze damage taken reduced by 30%	damage_taken_percent:freeze:0.30		positive
@@ -35,19 +35,19 @@ profane	Profane	Holy damage taken increased by 30%	damage_taken_vulnerability:ho
 stonehide	Stonehide	Physical damage taken reduced by 20%	damage_taken_percent:physical:0.20		positive
 fault_lines	Fault Lines	Stun damage taken increased by 30%	damage_taken_vulnerability:stun:0.30		negative
 loose_rubble	Loose Rubble	Taking Health damage reduces the next attack’s damage by 1		onHealthLossNextDamageReduction:1	negative
-plague_mask	Plague Mask	Restore 1 Health whenever an opponent takes Poison damage		healOnOpponentPoisonDamage:1	positive
+plague_mask	Plague Mask	Restores 1 Health whenever an opponent takes Poison damage.		healOnOpponentPoisonDamage:1	positive
 reform	Reform	Restore 1 Health at the start of each turn		healthAtTurnStart:1	positive
-firestarter	Firestarter	Basic attacks apply 1 Burn		basicAttackApplyBurn:1	positive
-pilfer	Pilfer	Steal 1 Block before attacking		attackStealBlock:1	positive
+firestarter	Firestarter	Attack hits inflict 1 Burn.		basicAttackApplyBurn:1	positive
+pilfer	Pilfer	Steals 1 Block before each attack hit.		attackStealBlock:1	positive
 hollow_frame	Hollow Frame	Cannot be Leeched		cannotBeLeeched:true	positive
-bloodletting	Bloodletting	Attacks apply 1 Bleed		attacksApplyBleed:1	positive
-condemn	Condemn	Attacks deal 1 additional Holy damage to opponents below half Health		attackHolyBonusVsBelowHalf:1	positive
-pyromancy	Pyromancy	Burn attacks deal 1 additional damage		burnAttackDamageBonus:1	positive
+bloodletting	Bloodletting	Attack hits inflict 1 Bleed.		attacksApplyBleed:1	positive
+condemn	Condemn	Attack hits deal 1 additional Holy damage against opponents below half Health.		attackHolyBonusVsBelowHalf:1	positive
+pyromancy	Pyromancy	Burn hits deal 1 additional damage.		burnAttackDamageBonus:1	positive
 corrodible	Corrodible	Poison damage taken increased by 30%	damage_taken_vulnerability:poison:0.30		negative
 cowardly	Cowardly	Attacks deal 1 less damage while below half Health		attackDamageReductionBelowHalf:1	negative
 flickering	Flickering	Taking Health damage reduces the next attack’s damage by 1		onHealthLossNextDamageReduction:1	negative
 frail	Frail	Physical damage taken increased by 30%	damage_taken_vulnerability:physical:0.30		negative
 lumbering	Lumbering	Stun damage taken increased by 30%	damage_taken_vulnerability:stun:0.30		negative
 reckless	Reckless	Physical damage taken increased by 30%	damage_taken_vulnerability:physical:0.30		negative
-self_sacrifice	Self-Sacrifice	Lose 1 Health after attacking		attackHealthRecoil:1	negative
+self_sacrifice	Self-Sacrifice	Loses 1 Health after each attack hit.		attackHealthRecoil:1	negative
 thawing	Thawing	Burn damage taken increased by 30%	damage_taken_vulnerability:burn:0.30		negative

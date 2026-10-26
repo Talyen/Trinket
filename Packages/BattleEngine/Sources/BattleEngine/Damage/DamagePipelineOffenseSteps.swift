@@ -311,7 +311,8 @@ package extension DamagePipeline {
         let sourceStatus = DamageTargetStatus(for: source, in: context)
         let sourceBleedStacks = sourceEffects.count(where: \.effect.isBleed)
         var reductionFlat = 0
-        var reductionMultiplier = 1.0
+        var reductionMultiplier = state.options.isPrimaryAttack
+            ? context.resolution.actionTalents(for: source.id)?.concussionMultiplier ?? 1 : 1
         for opponent in BattleActionContext(actor: source, in: context).opponents(in: context)
             where context.roster.health(for: opponent) > 0 {
             let t = context.modifiers(for: opponent.id).triggers

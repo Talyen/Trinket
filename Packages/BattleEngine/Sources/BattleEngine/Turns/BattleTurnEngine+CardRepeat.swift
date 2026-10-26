@@ -109,7 +109,7 @@ extension BattleTurnEngine {
             stealsGold: resolvedAbility.stealsGold,
         )
 
-        await EnemyTraitEngine.afterAttack(facts, context: &context)
+        EnemyTraitEngine.afterAttack(facts, context: &context)
         await UniqueCombatEngine.repeatCardDamage(actor: actor, in: &context)
     }
 }

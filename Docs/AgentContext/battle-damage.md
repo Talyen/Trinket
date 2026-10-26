@@ -55,22 +55,24 @@ does not consume Fae Ward's interception of a new debuff.
 ## Enemy identity traits
 
 Every enemy has one positive trait and one negative trait, in that order.
-Bloodletting attaches 1 Bleed once per attack. Self-Sacrifice loses 1 Health after
-an attack finishes, bypassing Block and mitigation and permitting a lethal final
-attack. Siphon restores 1 Health after an attack. Support and intercepted actions
-do not trigger these rules; repeated attacks have their own action cadence.
-Pyromancy adds 1 damage to one Burn hit per attack. Condemn adds 1 Holy damage
-once per attack against an opponent below half Health before the qualifying hit.
-Cowardly reduces an attack's total damage by 1 when its owner starts below half
-Health. Multi-hit attacks share each bonus or reduction rather than repeating it.
-Pilfer steals up to 1 Block from the selected opponent before an attack, using
-ordinary theft feedback and prevention.
-Firestarter attaches 1 Burn once per Basic action, including Basics whose damage
-is authored as an effect; Skill, Ultimate and later status ticks do not apply it.
+Native attack traits follow each direct attack hit, including hits absorbed by
+Block or mitigation; Dodge prevents landed-hit rewards. Trait damage, retaliation
+and ongoing damage do not recursively trigger attack traits. Firestarter and
+Chilling Strikes apply to all attack tiers. Bloodletting, Venomous Strikes,
+Pyromancy and Condemn apply to every qualifying hit, without an action-wide cap.
+Condemn checks the opponent's Health before each hit. Pilfer steals up to 1 Block
+before each attempted hit, including a Dodged hit. Siphon restores 1 Health per
+landed hit. Self-Sacrifice loses 1 Health after each attempted hit, bypassing Block
+and mitigation; a lethal recoil stops remaining hits. Utility actions do not spend
+or trigger attack traits. Cowardly and Loose Rubble/Flickering keep a shared flat
+reduction across the next attack's hits. Concussion reserves a 25% reduction for
+the affected opponent's next damaging action after Stun recovery; support actions
+and ongoing damage preserve it. Holy and Stun native rewards use the shared
+keyword owners and also reward fully prevented direct enemy hits.
 
-Plague Mask restores 1 Health after an opponent actually loses Health to Poison,
-including ongoing Poison from any source. It does not reward blocked damage,
-Poison damage to the wearer, or a defeated wearer. Reform restores 1 Health at
+Plague Mask restores 1 Health for positive Poison damage packets against an
+opponent, including fully blocked packets and ongoing Poison from any source.
+It does not reward Poison damage to the wearer or a defeated wearer. Reform restores 1 Health at
 the beginning of each enemy turn, before control skips. Both use ordinary healing
 modifiers, caps and feedback. Hollow Frame prevents all Leech restoration from
 its wearer, including companion-to-Hero Leech, before chance rolls and rewards;

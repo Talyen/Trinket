@@ -11,6 +11,7 @@ struct TalentActionFacts {
     var actorID: String
     var prismaticAffixDamageBonus = 0
     var goldDamage = 0
+    var concussionMultiplier = 1.0
     var blindingReduction = 0
     var burnAttackLeech = false
     var ignoresPhysicalBlock = false

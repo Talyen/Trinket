@@ -23,7 +23,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "siphon",
             name: "Siphon",
-            description: "Restore 1 Health after attacking",
+            description: "Attack hits restore 1 Health.",
             polarity: .positive,
             triggers: CombatTraitTriggers { $0.attackHealFlat = 1 }
         ))
@@ -37,7 +37,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "chilling_strikes",
             name: "Chilling Strikes",
-            description: "Basic attacks deal 1 additional Freeze damage",
+            description: "Attack hits deal 1 additional Freeze damage.",
             polarity: .positive,
             triggers: CombatTraitTriggers { $0.basicAttackFreezeBuildup = 1 }
         ))
@@ -65,7 +65,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "venomous_strikes",
             name: "Venomous Strikes",
-            description: "Attacks apply 1 Poison",
+            description: "Attack hits inflict 1 Poison.",
             polarity: .positive,
             triggers: CombatTraitTriggers { $0.attacksApplyPoison = 1 }
         ))
@@ -93,21 +93,21 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "gathering_zeal",
             name: "Gathering Zeal",
-            description: "Dealing Holy damage adds 1 Holy damage to the next attack",
+            description: "Holy hits add 1 Holy damage to its next attack.",
             polarity: .positive,
             triggers: CombatTraitTriggers { $0.holyDamageNextAttackHolyBonus = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "restoring_light",
             name: "Restoring Light",
-            description: "Dealing Holy damage restores 1 Health",
+            description: "Holy hits restore 1 Health.",
             polarity: .positive,
             triggers: CombatTraitTriggers { $0.holyDamageHealLowestAllyFlat = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "righteous_guard",
             name: "Righteous Guard",
-            description: "Gain 1 Block when dealing Stun or Holy damage",
+            description: "Holy and Stun hits grant 1 Block.",
             polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.holyDamageBlockFlat = 1
@@ -138,7 +138,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "concussion",
             name: "Concussion",
-            description: "Stunned enemies deal 25% less damage next turn",
+            description: "Stun weakens the opponent’s next attack by 25%.",
             polarity: .positive,
             triggers: CombatTraitTriggers { $0.stunnedEnemyNextTurnDamageMultiplier = 0.75 }
         ))
@@ -152,7 +152,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "blighted_pulse",
             name: "Blighted Pulse",
-            description: "Deals 2 Poison or Bleed damage every other turn to all enemies",
+            description: "Deals 2 Poison or Bleed damage every other turn.",
             polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .poison
@@ -164,7 +164,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "furnace_pulse",
             name: "Furnace Pulse",
-            description: "Deals 1 Stun or 1 Burn damage every other turn to all enemies",
+            description: "Deals 1 Stun or Burn damage every other turn.",
             polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .stun
@@ -176,7 +176,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "winters_grasp",
             name: "Winter’s Grasp",
-            description: "Deals 1 Freeze damage every other turn to all enemies",
+            description: "Deals 1 Freeze damage every other turn.",
             polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.turnFreezeDamageAllEnemies = 1
@@ -186,7 +186,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "thunderous_tremor",
             name: "Thunderous Tremor",
-            description: "Deals 1 Physical or 1 Stun damage every other turn to all enemies",
+            description: "Deals 1 Physical or Stun damage every other turn.",
             polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .physical
@@ -198,7 +198,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "crimson_pulse",
             name: "Crimson Pulse",
-            description: "Deals 1 Bleed damage every other turn to all enemies",
+            description: "Deals 1 Bleed damage every other turn.",
             polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .bleed
@@ -210,7 +210,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "radiant_judgment",
             name: "Radiant Judgment",
-            description: "Deals 1 Holy damage every other turn to all enemies",
+            description: "Deals 1 Holy damage every other turn.",
             polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .holy
@@ -222,7 +222,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "seismic_pulse",
             name: "Seismic Pulse",
-            description: "Deals 1 Physical damage every other turn to all enemies",
+            description: "Deals 1 Physical damage every other turn.",
             polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .physical
@@ -297,7 +297,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "plague_mask",
             name: "Plague Mask",
-            description: "Restore 1 Health whenever an opponent takes Poison damage",
+            description: "Restores 1 Health whenever an opponent takes Poison damage.",
             polarity: .positive,
             triggers: CombatTraitTriggers { $0.healOnOpponentPoisonDamage = 1 }
         ))
@@ -311,14 +311,14 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "firestarter",
             name: "Firestarter",
-            description: "Basic attacks apply 1 Burn",
+            description: "Attack hits inflict 1 Burn.",
             polarity: .positive,
             triggers: CombatTraitTriggers { $0.basicAttackApplyBurn = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "pilfer",
             name: "Pilfer",
-            description: "Steal 1 Block before attacking",
+            description: "Steals 1 Block before each attack hit.",
             polarity: .positive,
             triggers: CombatTraitTriggers { $0.attackStealBlock = 1 }
         ))
@@ -332,21 +332,21 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "bloodletting",
             name: "Bloodletting",
-            description: "Attacks apply 1 Bleed",
+            description: "Attack hits inflict 1 Bleed.",
             polarity: .positive,
             triggers: CombatTraitTriggers { $0.attacksApplyBleed = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "condemn",
             name: "Condemn",
-            description: "Attacks deal 1 additional Holy damage to opponents below half Health",
+            description: "Attack hits deal 1 additional Holy damage against opponents below half Health.",
             polarity: .positive,
             triggers: CombatTraitTriggers { $0.attackHolyBonusVsBelowHalf = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "pyromancy",
             name: "Pyromancy",
-            description: "Burn attacks deal 1 additional damage",
+            description: "Burn hits deal 1 additional damage.",
             polarity: .positive,
             triggers: CombatTraitTriggers { $0.burnAttackDamageBonus = 1 }
         ))
@@ -395,7 +395,7 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "self_sacrifice",
             name: "Self-Sacrifice",
-            description: "Lose 1 Health after attacking",
+            description: "Loses 1 Health after each attack hit.",
             polarity: .negative,
             triggers: CombatTraitTriggers { $0.attackHealthRecoil = 1 }
         ))

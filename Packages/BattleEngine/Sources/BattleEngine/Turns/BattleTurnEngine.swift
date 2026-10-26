@@ -53,20 +53,17 @@ package enum BattleTurnEngine {
 
     private static func applyStunRecoveryReduction(for actor: Combatant, context: inout BattleState) {
         var multiplier = 1.0
-        var sourceID: String?
         let opponents = BattleActionContext(actor: actor, in: context).opponents(in: context)
         for opponent in opponents where context.roster.runtime(for: opponent)?.isAlive == true {
             let m = context.modifiers(for: opponent.id).triggers.stunnedEnemyNextTurnDamageMultiplier
             if m < 1 {
                 multiplier *= m
-                if sourceID == nil {
-                    sourceID = opponent.id
-                }
             }
         }
-        guard multiplier < 1, let sourceID else { return }
-        // Round expiry follows this skipped action; retain the reduction through the recovery turn.
-        context.insertEffect(.damageReductionPercent(1 - multiplier, 2), to: actor, sourceID: sourceID, remainingTurns: 2)
+        guard multiplier < 1 else { return }
+        context.roster.mutateRuntime(for: actor) {
+            $0.talents.pending.concussionMultiplier = min($0.talents.pending.concussionMultiplier, multiplier)
+        }
     }
 
     package static func performAction(

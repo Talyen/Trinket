@@ -4,12 +4,13 @@ import TrinketCore
 
 package enum EnemyTraitEngine {
     static func applyOutgoingAttackTraits(from state: CommittedDamage, context: inout BattleState) async {
-        guard state.sourceActorID == context.enemy.id,
+        guard state.options.isPrimaryAttack, state.amount > 0,
+              state.sourceActorID == context.enemy.id,
               state.combatant.role != .enemy,
               context.health(of: state.combatant) > 0,
               context.roster.enemy.isAlive
         else { return }
-        await basicBurn(from: state, context: &context)
+        await attackBurn(from: state, context: &context)
         await basicFreezeDamage(from: state, context: &context)
         await applyAttackBleed(from: state, context: &context)
         guard state.options.isPrimaryAttack,
@@ -64,15 +65,7 @@ package enum EnemyTraitEngine {
 
     private static func basicFreezeDamage(from state: CommittedDamage, context: inout BattleState) async {
         let amount = context.enemyModifiers.triggers.basicAttackFreezeBuildup
-        let immediateBasic = state.provenance != nil
-            && state.provenance == context.resolution.damageProvenance(for: context.enemy.id)
-            && context.resolution.actionOutcome?.ability.tier == .basic
-        guard amount > 0, state.options.isBasicAttackHit || immediateBasic else { return }
-        if let actionID = context.resolution.actionID {
-            guard context.resolution.claim(
-                .heroTalent(.basicAttackFreezeBuildup), actorID: context.enemy.id, cadence: .action(actionID),
-            ) else { return }
-        }
+        guard amount > 0 else { return }
         _ = await context.dealReactionDamage(amount, to: state.combatant, keyword: .freeze, sourceActorID: context.enemy.id)
     }
 

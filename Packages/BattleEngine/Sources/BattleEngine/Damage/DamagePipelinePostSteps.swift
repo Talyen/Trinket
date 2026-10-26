@@ -44,11 +44,19 @@ package extension DamagePipeline {
         to state: CommittedDamage,
         in context: inout BattleState,
     ) async {
-        guard state.healthLost > 0,
+        let nativeEnemyHit = state.options.isPrimaryAttack && state.amount > 0
+            && state.sourceActorID == context.enemy.id
+            && (state.damageKeyword == .holy || state.damageKeyword == .stun)
+        guard state.healthLost > 0 || nativeEnemyHit,
               let keyword = state.damageKeyword,
               let sourceActorID = state.sourceActorID,
               let source = context.roster.combatant(for: sourceActorID)
         else { return }
+        // Native Holy/Stun rewards belong to attack hits, not their bonus packets.
+        if source.role == .enemy, keyword == .holy || keyword == .stun,
+           !state.options.isPrimaryAttack {
+            return
+        }
 
         switch keyword {
         case .holy:

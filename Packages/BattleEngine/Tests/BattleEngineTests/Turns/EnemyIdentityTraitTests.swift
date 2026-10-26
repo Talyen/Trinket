@@ -5,7 +5,7 @@ import TrinketCore
 @testable import TrinketContent
 
 struct EnemyIdentityTraitTests {
-    @Test func `self sacrifice recoils once after multiple hits and bloodletting applies once`() throws {
+    @Test func `self sacrifice and bloodletting follow every direct attack hit`() throws {
         var context = try makeBattle("blood_cultist")
         let enemy = context.enemy
         let target = context.hero
@@ -19,10 +19,10 @@ struct EnemyIdentityTraitTests {
 
         let events = context.performTestAction(attack, from: .enemy, to: .hero)
 
-        #expect(context.roster.enemy.currentHealth == health - 1)
+        #expect(context.roster.enemy.currentHealth == health - 2)
         #expect(DefensePoolEngine.blockPoints(in: context.roster.enemy.activeEffects) == 10)
-        #expect(context.roster.activeEffects(for: target).count(where: { $0.effect.isBleed }) == 1)
-        #expect(events.count(where: { $0.abilityName == "Self-Sacrifice" && $0.targetID == enemy.id }) == 1)
+        #expect(context.roster.activeEffects(for: target).count(where: { $0.effect.isBleed }) == 2)
+        #expect(events.count(where: { $0.abilityName == "Self-Sacrifice" && $0.targetID == enemy.id }) == 2)
     }
 
     @Test func `self sacrifice permits a final attack and support has no recoil`() throws {
@@ -42,7 +42,7 @@ struct EnemyIdentityTraitTests {
         #expect(attack < recoil)
     }
 
-    @Test func `siphon restores once per attack and ignores ongoing damage and support`() throws {
+    @Test func `siphon restores per hit and ignores ongoing damage and support`() throws {
         var context = try makeBattle("necromancer")
         context.roster.mutateRuntime(for: context.enemy) { $0.currentHealth = 5 }
         let attack = Ability(
@@ -52,13 +52,13 @@ struct EnemyIdentityTraitTests {
             damageComponents: [DamageComponent(1, keyword: .physical), DamageComponent(1, keyword: .physical)],
         )
         context.performTestAction(attack, from: .enemy, to: .hero)
-        #expect(context.roster.enemy.currentHealth == 6)
+        #expect(context.roster.enemy.currentHealth == 7)
         context.resolveTestDamage(2, from: .enemy, to: .hero, keyword: .bleed, options: .periodic)
         context.performTestAction(.block, from: .enemy, to: .hero)
-        #expect(context.roster.enemy.currentHealth == 6)
+        #expect(context.roster.enemy.currentHealth == 7)
     }
 
-    @Test func `pyromancy adds one damage to a multi-hit attack and preserves Block`() throws {
+    @Test func `pyromancy strengthens every Burn hit while Block still absorbs damage`() throws {
         var context = try makeBattle("pyromancer")
         DefensePoolEngine.set(10, on: context.hero, in: &context)
         let health = context.roster.hero.currentHealth
@@ -70,11 +70,11 @@ struct EnemyIdentityTraitTests {
         )
         let events = context.performTestAction(attack, from: .enemy, to: .hero)
         #expect(context.roster.hero.currentHealth == health)
-        #expect(events.filter { $0.effectKind == .shieldAbsorbed }.reduce(0) { $0 + $1.amount } == 5)
+        #expect(events.filter { $0.effectKind == .shieldAbsorbed }.reduce(0) { $0 + $1.amount } == 6)
     }
 
     @Test(arguments: [24, 25])
-    func `condemn adds Holy damage once and requires strictly below half Health`(health: Int) throws {
+    func `condemn adds Holy damage to every hit strictly below half Health`(health: Int) throws {
         var context = try makeBattle("inquisitor")
         context.roster.mutateRuntime(for: context.hero) { $0.currentHealth = health }
         let attack = Ability(
@@ -85,7 +85,7 @@ struct EnemyIdentityTraitTests {
         )
         // At half Health the first hit crosses the threshold; only the later hit qualifies.
         context.performTestAction(attack, from: .enemy, to: .hero)
-        #expect(context.roster.hero.currentHealth == health - 3)
+        #expect(context.roster.hero.currentHealth == health - (health == 24 ? 4 : 3))
         var atHalf = try makeBattle("inquisitor")
         atHalf.roster.mutateRuntime(for: atHalf.hero) { $0.currentHealth = 25 }
         atHalf.performTestAction(.slash, from: .enemy, to: .hero)
@@ -106,7 +106,7 @@ struct EnemyIdentityTraitTests {
             damageComponents: [DamageComponent(2, keyword: .physical), DamageComponent(2, keyword: .physical)],
         )
         context.performTestAction(attack, from: .enemy, to: .hero)
-        #expect(context.roster.hero.currentHealth == health - 3)
+        #expect(context.roster.hero.currentHealth == health - (health == 24 ? 4 : 3))
     }
 
     @Test(arguments: [Keyword.poison, .physical])
@@ -119,15 +119,15 @@ struct EnemyIdentityTraitTests {
         #expect(context.roster.enemy.currentHealth == (keyword == .poison ? 6 : 5))
     }
 
-    @Test func `plague mask ignores blocked poison and poison to itself`() throws {
+    @Test func `plague mask heals through Block but ignores poison to itself`() throws {
         var context = try makeBattle("plague_doctor")
         context.roster.mutateRuntime(for: context.enemy) { $0.currentHealth = 5 }
         DefensePoolEngine.set(10, on: context.hero, in: &context)
 
         context.resolveTestDamage(2, from: .enemy, to: .hero, keyword: .poison, options: .periodic)
-        #expect(context.roster.enemy.currentHealth == 5)
+        #expect(context.roster.enemy.currentHealth == 6)
         let outcome = context.resolveTestDamage(3, keyword: .poison, options: .periodic)
-        #expect(context.roster.enemy.currentHealth == 5 - outcome.healthLost)
+        #expect(context.roster.enemy.currentHealth == 6 - outcome.healthLost)
     }
 
     @Test func `reform heals at turn start even when the action is skipped`() throws {
@@ -147,7 +147,7 @@ struct EnemyIdentityTraitTests {
     }
 
     @Test(arguments: [Ability.kindling, .fireball])
-    func `firestarter applies burn only to basic actions`(ability: Ability) throws {
+    func `firestarter applies burn to attack hits of every tier`(ability: Ability) throws {
         var context = try makeBattle("fire_imp")
         let enemy = context.enemy
         let definition = try #require(GameContent.enemy(matching: "fire_imp"))
@@ -163,8 +163,67 @@ struct EnemyIdentityTraitTests {
             .reduce(0) { $0 + ($1.effect.potency ?? 0) }
         let originalBurn = control.roster.activeEffects(for: control.hero).filter { $0.effect.keyword == .burn }
             .reduce(0) { $0 + ($1.effect.potency ?? 0) }
-        #expect(burn == originalBurn + (ability.tier == .basic ? 1 : 0))
+        #expect(burn == originalBurn + 1)
         #expect(context.roster.activeEffects(for: enemy).allSatisfy { $0.effect.keyword != .burn })
+    }
+
+    @Test func `blocked multi-hit Holy attacks restore cleric Health for each hit`() throws {
+        var context = try makeBattle("cleric")
+        context.roster.mutateRuntime(for: context.enemy) { $0.currentHealth = 5 }
+        DefensePoolEngine.set(20, on: context.hero, in: &context)
+        let health = context.roster.hero.currentHealth
+        let attack = Ability(
+            id: "double_holy", name: "Double Holy", tier: .skill,
+            damageComponents: [DamageComponent(2, keyword: .holy), DamageComponent(2, keyword: .holy)],
+        )
+        context.performTestAction(attack, from: .enemy, to: .hero)
+        #expect(context.roster.enemy.currentHealth == 7)
+        #expect(context.roster.hero.currentHealth == health)
+    }
+
+    @Test func `paladin receives each matching hit reward through Block`() throws {
+        var context = try makeBattle("paladin")
+        DefensePoolEngine.set(20, on: context.hero, in: &context)
+        let attack = Ability(
+            id: "mixed_holy_stun", name: "Mixed Holy Stun", tier: .skill,
+            damageComponents: [DamageComponent(2, keyword: .holy), DamageComponent(2, keyword: .stun)],
+        )
+        context.performTestAction(attack, from: .enemy, to: .hero)
+        #expect(DefensePoolEngine.blockPoints(in: context.roster.enemy.activeEffects) == 2)
+    }
+
+    @Test func `pilfer steals on each attempted hit without stealing extra for trait damage`() throws {
+        var context = try makeBattle("goblin")
+        DefensePoolEngine.set(20, on: context.hero, in: &context)
+        let attack = Ability(
+            id: "double_pilfer", name: "Double Pilfer", tier: .skill,
+            damageComponents: [DamageComponent(1, keyword: .physical), DamageComponent(1, keyword: .physical)],
+        )
+        context.performTestAction(attack, from: .enemy, to: .hero)
+        #expect(DefensePoolEngine.blockPoints(in: context.roster.enemy.activeEffects) == 2)
+        #expect(DefensePoolEngine.blockPoints(in: context.roster.hero.activeEffects) == 16)
+    }
+
+    @Test func `concussion survives utility and weakens all hits of the next attack`() throws {
+        var context = try makeBattle("brawler", enemyModifiers: .withTriggers {
+            $0.stunnedEnemyNextTurnDamageMultiplier = 0.75
+        })
+        let hero = context.hero
+        context.insertEffect(.controlMeter(.stun, 10, 10), to: hero, remainingTurns: 1)
+        context.recordingEvents { context in
+            await BattleTurnEngine.consumeActionSkip(for: hero, context: &context)
+        }
+        #expect(context.roster.hero.talents.pending.concussionMultiplier == 0.75)
+        context.performTestAction(.block, from: .hero, to: .enemy)
+        #expect(context.roster.hero.talents.pending.concussionMultiplier == 0.75)
+        let health = context.roster.enemy.currentHealth
+        let attack = Ability(
+            id: "concussed_double", name: "Concussed Double", tier: .skill,
+            damageComponents: [DamageComponent(4, keyword: .physical), DamageComponent(4, keyword: .physical)],
+        )
+        context.performTestAction(attack, from: .hero, to: .enemy)
+        #expect(context.roster.hero.talents.pending.concussionMultiplier == 1)
+        #expect(context.roster.enemy.currentHealth == health - 6)
     }
 
     @Test func `pilfer steals before damage and keeps the selected opponent`() throws {

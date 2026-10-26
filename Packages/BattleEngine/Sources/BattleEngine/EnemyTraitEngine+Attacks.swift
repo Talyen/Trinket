@@ -7,7 +7,6 @@ extension EnemyTraitEngine {
         var holyBonus: Int
         var damageReduction: Int
         var reservedReduction: Int
-        var appliedBleed = false
     }
 
     static func prepareAttack(for actor: Combatant, context: inout BattleState) {
@@ -35,11 +34,9 @@ extension EnemyTraitEngine {
         context.resolution.mutateEnemyAttack(for: context.enemy.id) { attack in
             if state.damageKeyword == .burn {
                 state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, attack.burnBonus)
-                attack.burnBonus = 0
             }
             if belowHalf {
                 state.additionalHolyDamage = SaturatedArithmetic.saturatingAdd(state.additionalHolyDamage, attack.holyBonus)
-                attack.holyBonus = 0
             }
         }
     }
@@ -79,19 +76,13 @@ extension EnemyTraitEngine {
     static func applyAttackBleed(from state: CommittedDamage, context: inout BattleState) async {
         let amount = context.enemyModifiers.triggers.attacksApplyBleed
         guard amount > 0, state.options.isAttackHit else { return }
-        var applies = false
-        context.resolution.mutateEnemyAttack(for: context.enemy.id) { attack in
-            applies = !attack.appliedBleed
-            attack.appliedBleed = true
-        }
-        guard applies else { return }
         await DoTApplicator.applyBleed(
             potency: amount, to: state.combatant, sourceActorID: context.enemy.id,
             application: .afterHit, in: &context,
         )
     }
 
-    static func afterAttack(_ facts: ResolvedActionFacts, context: inout BattleState) async {
+    static func afterAttack(_ facts: ResolvedActionFacts, context: inout BattleState) {
         let actor = facts.action.actor
         guard actor.role == .enemy, !facts.damageKeywords.isEmpty, context.roster.enemy.isAlive else { return }
         var unusedReduction = 0
@@ -102,21 +93,5 @@ extension EnemyTraitEngine {
         context.roster.mutateRuntime(for: actor) {
             $0.talents.pending.nextDamageReduction = max($0.talents.pending.nextDamageReduction, unusedReduction)
         }
-        let profile = context.enemyModifiers
-        if profile.triggers.attackHealFlat > 0 {
-            await CombatTriggerEngine.emitHeal(
-                .attackHealFlat, "Siphon", amount: profile.triggers.attackHealFlat,
-                to: actor, source: actor, in: &context,
-            )
-        }
-        guard context.roster.enemy.isAlive, profile.triggers.attackHealthRecoil > 0 else { return }
-        let outcome = await context.resolveDamage(DamageRequest(
-            amount: profile.triggers.attackHealthRecoil, target: actor, sourceActorID: actor.id, options: .healthCost,
-        ))
-        context.nextEvent(
-            kind: .abilityDamage, source: .init(actor),
-            abilityName: profile.triggerAbilityName(.attackHealthRecoil, fallback: "Self-Sacrifice"),
-            target: actor, amount: outcome.healthLost, keyword: .health,
-        )
     }
 }

@@ -399,6 +399,13 @@ private extension CombatantTalentState.Pending {
                     .rounded(((1 - nextOutgoingAttackMultiplier) * 100).rounded())),
         )
         summaries.append(
+            .physical,
+            when: concussionMultiplier < 1,
+            resource: L10n
+                .summary_battlestate_effectsummaries_95314c057098(CombatRounding
+                    .rounded(((1 - concussionMultiplier) * 100).rounded())),
+        )
+        summaries.append(
             .dodge,
             when: nextAttackMissChance > 0,
             resource: L10n.summary_battlestate_effectsummaries_2240adc3884b(

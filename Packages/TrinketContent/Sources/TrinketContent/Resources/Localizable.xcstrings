@@ -34165,14 +34165,14 @@
       "comment": "ContentManifest/traits.tsv: blighted_pulse, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Gift</keyword>- oder <keyword id=\"bleed\">Blutungs</keyword>schaden an allen Gegnern"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Poison</keyword> or <keyword id=\"bleed\">Bleed</keyword> damage every other turn to all enemies"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño de <keyword id=\"poison\">Veneno</keyword> o <keyword id=\"bleed\">Sangrado</keyword> cada dos turnos a todos los enemigos"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> dégâts de <keyword id=\"poison\">Poison</keyword> ou de <keyword id=\"bleed\">Saignement</keyword> à tous les ennemis un tour sur deux"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに敵全体へ<keyword id=\"poison\">毒</keyword>か<keyword id=\"bleed\">出血</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 모든 적에게 <keyword id=\"poison\">독</keyword> 또는 <keyword id=\"bleed\">출혈</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano de <keyword id=\"poison\">Veneno</keyword> ou de <keyword id=\"bleed\">Sangramento</keyword> a todos os inimigos a cada dois turnos"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合，對所有敵人造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"poison\">中毒</keyword>或<keyword id=\"bleed\">流血</keyword>傷害"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> Schaden durch <keyword id=\"poison\">Gift</keyword> oder <keyword id=\"bleed\">Blutung</keyword>."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Poison</keyword> or <keyword id=\"bleed\">Bleed</keyword> damage every other turn."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño de <keyword id=\"poison\">Veneno</keyword> o <keyword id=\"bleed\">Sangrado</keyword> cada dos turnos."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de dégâts de <keyword id=\"poison\">Poison</keyword> ou de <keyword id=\"bleed\">Saignement</keyword> un tour sur deux."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに<keyword id=\"poison\">毒</keyword>か<keyword id=\"bleed\">出血</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 <keyword id=\"poison\">독</keyword> 또는 <keyword id=\"bleed\">출혈</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 준다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano de <keyword id=\"poison\">Veneno</keyword> ou de <keyword id=\"bleed\">Sangramento</keyword> a cada dois turnos."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"poison\">中毒</keyword>或<keyword id=\"bleed\">流血</keyword>傷害。"}}
       }
     },
     "traits.blighted_pulse.name": {
@@ -34221,14 +34221,14 @@
       "comment": "ContentManifest/traits.tsv: bloodletting, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Angriffe verursachen <value id=\"quantity_1\">%1$lld</value> <keyword id=\"bleed\">Blutung</keyword>"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Attacks apply <value id=\"quantity_1\">%1$lld</value> <keyword id=\"bleed\">Bleed</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Los ataques aplican <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"bleed\">Sangrado</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques appliquent <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"bleed\">Saignement</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "攻撃時、<keyword id=\"bleed\">出血</keyword>を<value id=\"quantity_1\">%1$lld</value>付与"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "공격 시 <keyword id=\"bleed\">출혈</keyword> <value id=\"quantity_1\">%1$lld</value> 부여"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Os ataques aplicam <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"bleed\">Sangramento</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊施加<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"bleed\">流血</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Jeder Angriffstreffer verursacht <value id=\"quantity_1\">%1$lld</value> <keyword id=\"bleed\">Blutung</keyword>."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attack hits inflict <value id=\"quantity_1\">%1$lld</value> <keyword id=\"bleed\">Bleed</keyword>."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cada impacto de ataque aplica <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"bleed\">Sangrado</keyword>."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Chaque coup d’une attaque applique <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"bleed\">Saignement</keyword>."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃の各ヒットで<keyword id=\"bleed\">出血</keyword>を<value id=\"quantity_1\">%1$lld</value>付与する。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격이 적중할 때마다 <keyword id=\"bleed\">출혈</keyword>을 <value id=\"quantity_1\">%1$lld</value> 부여한다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cada acerto de ataque aplica <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"bleed\">Sangramento</keyword>."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每次攻擊命中時，施加<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"bleed\">流血</keyword>。"}}
       }
     },
     "traits.bloodletting.name": {
@@ -34277,14 +34277,14 @@
       "comment": "ContentManifest/traits.tsv: chilling_strikes, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Grundangriffe verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"freeze\">Frost</keyword>schaden"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Basic attacks deal <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"freeze\">Freeze</keyword> damage"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Los ataques básicos infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional de <keyword id=\"freeze\">Congelación</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques de base infligent <value id=\"quantity_1\">%1$lld</value> dégâts de <keyword id=\"freeze\">Gel</keyword> supplémentaires"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "基本攻撃で追加の<keyword id=\"freeze\">凍結</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "기본 공격이 <keyword id=\"freeze\">빙결</keyword> 추가 피해 <value id=\"quantity_1\">%1$lld</value>"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques Básicos causam <value id=\"quantity_1\">%1$lld</value> de dano de <keyword id=\"freeze\">Congelamento</keyword> adicional"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "基本攻擊額外造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"freeze\">冰凍</keyword>傷害"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Jeder Angriffstreffer verursacht <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"freeze\">Frost</keyword>schaden."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attack hits deal <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"freeze\">Freeze</keyword> damage."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cada impacto de ataque inflige <value id=\"quantity_1\">%1$lld</value> de daño adicional de <keyword id=\"freeze\">Congelación</keyword>."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Chaque coup d’une attaque inflige <value id=\"quantity_1\">%1$lld</value> de dégâts de <keyword id=\"freeze\">Gel</keyword> supplémentaires."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃の各ヒットで追加の<keyword id=\"freeze\">凍結</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격이 적중할 때마다 <keyword id=\"freeze\">빙결</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 추가로 준다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cada acerto de ataque causa <value id=\"quantity_1\">%1$lld</value> de dano adicional de <keyword id=\"freeze\">Congelamento</keyword>."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每次攻擊命中時，額外造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"freeze\">冰凍</keyword>傷害。"}}
       }
     },
     "traits.chilling_strikes.name": {
@@ -34333,14 +34333,14 @@
       "comment": "ContentManifest/traits.tsv: concussion, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"stun\">Betäubte</keyword> Gegner verursachen im nächsten Zug <value id=\"quantity_1\">%1$lld</value>%% weniger Schaden"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"stun\">Stunned</keyword> enemies deal <value id=\"quantity_1\">%1$lld</value>%% less damage next turn"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Los enemigos <keyword id=\"stun\">aturdidos</keyword> infligen un <value id=\"quantity_1\">%1$lld</value>%% menos de daño el siguiente turno"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Les ennemis sous <keyword id=\"stun\">Étourdissement</keyword> infligent <value id=\"quantity_1\">%1$lld</value>%% de dégâts en moins au prochain tour"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"stun\">スタン</keyword>状態の敵が次のターンに与えるダメージが<value id=\"quantity_1\">%1$lld</value>%%減少"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"stun\">기절</keyword> 상태의 적이 다음 턴에 주는 피해 <value id=\"quantity_1\">%1$lld</value>%% 감소"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Inimigos <keyword id=\"stun\">Atordoados</keyword> causam <value id=\"quantity_1\">%1$lld</value>%% menos dano no próximo turno"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"stun\">暈眩</keyword>的敵人下回合造成的傷害降低<value id=\"quantity_1\">%1$lld</value>%%"}}
+        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"stun\">Betäubung</keyword> verringert den Schaden des nächsten gegnerischen Angriffs um <value id=\"quantity_1\">%1$lld</value>%%."}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"stun\">Stun</keyword> weakens the opponent’s next attack by <value id=\"quantity_1\">%1$lld</value>%%."}},
+        "es": {"stringUnit": {"state": "translated", "value": "El <keyword id=\"stun\">Aturdimiento</keyword> reduce el daño del siguiente ataque del oponente un <value id=\"quantity_1\">%1$lld</value>%%."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "L’<keyword id=\"stun\">Étourdissement</keyword> réduit les dégâts de la prochaine attaque de l’adversaire de <value id=\"quantity_1\">%1$lld</value>%%."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"stun\">スタン</keyword>により、相手の次の攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>%%減少する。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"stun\">기절</keyword>이 상대의 다음 공격 피해를 <value id=\"quantity_1\">%1$lld</value>%% 감소시킨다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "O <keyword id=\"stun\">Atordoamento</keyword> reduz o dano do próximo ataque do oponente em <value id=\"quantity_1\">%1$lld</value>%%."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"stun\">暈眩</keyword>使對手下次攻擊的傷害降低<value id=\"quantity_1\">%1$lld</value>%%。"}}
       }
     },
     "traits.concussion.name": {
@@ -34361,14 +34361,14 @@
       "comment": "ContentManifest/traits.tsv: condemn, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Angriffe verursachen bei Gegnern mit weniger als der Hälfte ihrer <keyword id=\"health\">Gesundheit</keyword> <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden vom Typ <keyword id=\"holy\">Heilig</keyword>"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Attacks deal <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"holy\">Holy</keyword> damage to opponents below half <keyword id=\"health\">Health</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Los ataques infligen <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"holy\">Sagrado</keyword> adicional a oponentes con menos de la mitad de su <keyword id=\"health\">Salud</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques infligent un supplément de <value id=\"quantity_1\">%1$lld</value> en dégâts de type <keyword id=\"holy\">Sacré</keyword> aux adversaires ayant moins de la moitié de leur <keyword id=\"health\">Santé</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">体力</keyword>が半分未満の相手への攻撃時、<value id=\"quantity_1\">%1$lld</value>の追加<keyword id=\"holy\">聖</keyword>ダメージを与える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">체력</keyword>이 절반 미만인 상대를 공격하면 <keyword id=\"holy\">신성</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 추가로 줌"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Os ataques causam <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"holy\">Sagrado</keyword> adicional a oponentes com menos da metade da <keyword id=\"health\">Vida</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊<keyword id=\"health\">生命值</keyword>低於一半的對手時，額外造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"holy\">神聖</keyword>傷害"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Jeder Angriffstreffer verursacht bei Gegnern mit weniger als der Hälfte ihrer <keyword id=\"health\">Gesundheit</keyword> <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden vom Typ <keyword id=\"holy\">Heilig</keyword>."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attack hits deal <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"holy\">Holy</keyword> damage against opponents below half <keyword id=\"health\">Health</keyword>."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cada impacto de ataque inflige <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"holy\">Sagrado</keyword> adicional a oponentes con menos de la mitad de su <keyword id=\"health\">Salud</keyword>."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Chaque coup d’une attaque inflige <value id=\"quantity_1\">%1$lld</value> de dégâts supplémentaires de type <keyword id=\"holy\">Sacré</keyword> aux adversaires ayant moins de la moitié de leur <keyword id=\"health\">Santé</keyword>."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">体力</keyword>が半分未満の相手には、攻撃の各ヒットで追加の<keyword id=\"holy\">聖</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">체력</keyword>이 절반 미만인 상대에게 공격이 적중할 때마다 <keyword id=\"holy\">신성</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 추가로 준다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cada acerto de ataque causa <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"holy\">Sagrado</keyword> adicional a oponentes com menos da metade da <keyword id=\"health\">Vida</keyword>."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每次攻擊命中<keyword id=\"health\">生命值</keyword>低於一半的對手時，額外造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"holy\">神聖</keyword>傷害。"}}
       }
     },
     "traits.condemn.name": {
@@ -34473,14 +34473,14 @@
       "comment": "ContentManifest/traits.tsv: crimson_pulse, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"bleed\">Blutungs</keyword>schaden an allen Gegnern"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"bleed\">Bleed</keyword> damage every other turn to all enemies"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño de <keyword id=\"bleed\">Sangrado</keyword> cada dos turnos a todos los enemigos"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> dégâts de <keyword id=\"bleed\">Saignement</keyword> à tous les ennemis un tour sur deux"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに敵全体へ<keyword id=\"bleed\">出血</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 모든 적에게 <keyword id=\"bleed\">출혈</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano de <keyword id=\"bleed\">Sangramento</keyword> a todos os inimigos a cada dois turnos"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合，對所有敵人造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"bleed\">流血</keyword>傷害"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> Schaden durch <keyword id=\"bleed\">Blutung</keyword>."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"bleed\">Bleed</keyword> damage every other turn."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño de <keyword id=\"bleed\">Sangrado</keyword> cada dos turnos."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de dégâts de <keyword id=\"bleed\">Saignement</keyword> un tour sur deux."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに<keyword id=\"bleed\">出血</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 <keyword id=\"bleed\">출혈</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 준다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano de <keyword id=\"bleed\">Sangramento</keyword> a cada dois turnos."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"bleed\">流血</keyword>傷害。"}}
       }
     },
     "traits.crimson_pulse.name": {
@@ -34585,14 +34585,14 @@
       "comment": "ContentManifest/traits.tsv: firestarter, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Standardangriffe verursachen <value id=\"quantity_1\">%1$lld</value> <keyword id=\"burn\">Brand</keyword>"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Basic attacks apply <value id=\"quantity_1\">%1$lld</value> <keyword id=\"burn\">Burn</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Los ataques básicos aplican <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"burn\">Quemadura</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques de base appliquent <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"burn\">Brûlure</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "通常攻撃で<keyword id=\"burn\">炎上</keyword>を<value id=\"quantity_1\">%1$lld</value>付与する"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "기본 공격이 <keyword id=\"burn\">화상</keyword>을 <value id=\"quantity_1\">%1$lld</value> 부여한다"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Os ataques básicos aplicam <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"burn\">Queimadura</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "普通攻擊施加<value id=\"quantity_1\">%1$lld</value>層<keyword id=\"burn\">燃燒</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Jeder Angriffstreffer verursacht <value id=\"quantity_1\">%1$lld</value> <keyword id=\"burn\">Brand</keyword>."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attack hits inflict <value id=\"quantity_1\">%1$lld</value> <keyword id=\"burn\">Burn</keyword>."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cada impacto de ataque aplica <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"burn\">Quemadura</keyword>."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Chaque coup d’une attaque applique <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"burn\">Brûlure</keyword>."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃の各ヒットで<keyword id=\"burn\">炎上</keyword>を<value id=\"quantity_1\">%1$lld</value>付与する。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격이 적중할 때마다 <keyword id=\"burn\">화상</keyword>을 <value id=\"quantity_1\">%1$lld</value> 부여한다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cada acerto de ataque aplica <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"burn\">Queimadura</keyword>."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每次攻擊命中時，施加<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"burn\">燃燒</keyword>。"}}
       }
     },
     "traits.firestarter.name": {
@@ -34669,14 +34669,14 @@
       "comment": "ContentManifest/traits.tsv: furnace_pulse, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"stun\">Betäubungs</keyword>- oder <value id=\"quantity_2\">%2$lld</value> <keyword id=\"burn\">Brand</keyword>schaden an allen Gegnern"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"stun\">Stun</keyword> or <value id=\"quantity_2\">%2$lld</value> <keyword id=\"burn\">Burn</keyword> damage every other turn to all enemies"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño de <keyword id=\"stun\">Aturdimiento</keyword> o <value id=\"quantity_2\">%2$lld</value> de daño de <keyword id=\"burn\">Quemadura</keyword> cada dos turnos a todos los enemigos"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> dégâts d’<keyword id=\"stun\">Étourdissement</keyword> ou <value id=\"quantity_2\">%2$lld</value> dégâts de <keyword id=\"burn\">Brûlure</keyword> à tous les ennemis un tour sur deux"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに敵全体へ<value id=\"quantity_1\">%1$lld</value>の<keyword id=\"stun\">スタン</keyword>ダメージか<value id=\"quantity_2\">%2$lld</value>の<keyword id=\"burn\">炎上</keyword>ダメージを与える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 모든 적에게 <keyword id=\"stun\">기절</keyword> 피해 <value id=\"quantity_1\">%1$lld</value> 또는 <keyword id=\"burn\">화상</keyword> 피해 <value id=\"quantity_2\">%2$lld</value>"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano de <keyword id=\"stun\">Atordoamento</keyword> ou <value id=\"quantity_2\">%2$lld</value> de dano de <keyword id=\"burn\">Queimadura</keyword> a todos os inimigos a cada dois turnos"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合，對所有敵人造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"stun\">暈眩</keyword>或<value id=\"quantity_2\">%2$lld</value>點<keyword id=\"burn\">燃燒</keyword>傷害"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> Schaden vom Typ <keyword id=\"stun\">Betäubung</keyword> oder <keyword id=\"burn\">Brand</keyword>."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"stun\">Stun</keyword> or <keyword id=\"burn\">Burn</keyword> damage every other turn."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño de <keyword id=\"stun\">Aturdimiento</keyword> o <keyword id=\"burn\">Quemadura</keyword> cada dos turnos."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de dégâts d’<keyword id=\"stun\">Étourdissement</keyword> ou de <keyword id=\"burn\">Brûlure</keyword> un tour sur deux."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに<keyword id=\"stun\">スタン</keyword>か<keyword id=\"burn\">炎上</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 <keyword id=\"stun\">기절</keyword> 또는 <keyword id=\"burn\">화상</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 준다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano de <keyword id=\"stun\">Atordoamento</keyword> ou de <keyword id=\"burn\">Queimadura</keyword> a cada dois turnos."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"stun\">暈眩</keyword>或<keyword id=\"burn\">燃燒</keyword>傷害。"}}
       }
     },
     "traits.furnace_pulse.name": {
@@ -34697,14 +34697,14 @@
       "comment": "ContentManifest/traits.tsv: gathering_zeal, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verursachter <keyword id=\"holy\">heiliger</keyword> Schaden fügt dem nächsten Angriff <value id=\"quantity_1\">%1$lld</value> <keyword id=\"holy\">heiligen</keyword> Schaden hinzu"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Dealing <keyword id=\"holy\">Holy</keyword> damage adds <value id=\"quantity_1\">%1$lld</value> <keyword id=\"holy\">Holy</keyword> damage to the next attack"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Infligir daño <keyword id=\"holy\">sagrado</keyword> añade <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"holy\">sagrado</keyword> al siguiente ataque"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Infliger des dégâts de type <keyword id=\"holy\">Sacré</keyword> ajoute <value id=\"quantity_1\">%1$lld</value> dégâts de type <keyword id=\"holy\">Sacré</keyword> à la prochaine attaque"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"holy\">聖</keyword>ダメージを与えると、次の攻撃に<keyword id=\"holy\">聖</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>追加"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"holy\">신성</keyword> 피해를 주면 다음 공격에 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"quantity_1\">%1$lld</value> 추가"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causar dano <keyword id=\"holy\">Sagrado</keyword> adiciona <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"holy\">Sagrado</keyword> ao próximo ataque"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "造成<keyword id=\"holy\">神聖</keyword>傷害時，為下次攻擊增加<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"holy\">神聖</keyword>傷害"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Jeder Treffer vom Typ <keyword id=\"holy\">Heilig</keyword> fügt dem nächsten eigenen Angriff <value id=\"quantity_1\">%1$lld</value> Schaden vom Typ <keyword id=\"holy\">Heilig</keyword> hinzu."}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"holy\">Holy</keyword> hits add <value id=\"quantity_1\">%1$lld</value> <keyword id=\"holy\">Holy</keyword> damage to its next attack."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cada impacto <keyword id=\"holy\">Sagrado</keyword> añade <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"holy\">Sagrado</keyword> al siguiente ataque de quien lo realiza."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Chaque coup de type <keyword id=\"holy\">Sacré</keyword> ajoute <value id=\"quantity_1\">%1$lld</value> de dégâts de type <keyword id=\"holy\">Sacré</keyword> à la prochaine attaque de son auteur."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"holy\">聖</keyword>ダメージの各ヒットで、自身の次の攻撃に<keyword id=\"holy\">聖</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>追加する。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"holy\">신성</keyword> 타격이 적중할 때마다 자신의 다음 공격에 <keyword id=\"holy\">신성</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 추가한다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cada acerto <keyword id=\"holy\">Sagrado</keyword> adiciona <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"holy\">Sagrado</keyword> ao próximo ataque de quem o realiza."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每次<keyword id=\"holy\">神聖</keyword>打擊命中時，為自身下次攻擊增加<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"holy\">神聖</keyword>傷害。"}}
       }
     },
     "traits.gathering_zeal.name": {
@@ -34949,14 +34949,14 @@
       "comment": "ContentManifest/traits.tsv: pilfer, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Stiehlt vor dem Angriff <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Steal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> before attacking"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Roba <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> antes de atacar"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Vole <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword> avant d'attaquer"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "攻撃前に<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>奪う"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "공격 전에 <keyword id=\"block\">방어도</keyword>를 <value id=\"quantity_1\">%1$lld</value> 훔친다"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Rouba <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> antes de atacar"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊前竊取<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Stiehlt vor jedem Angriffstreffer <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Steals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> before each attack hit."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Roba <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> antes de cada impacto de ataque."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Vole <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword> avant chaque coup d’une attaque."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃の各ヒットの前に<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>奪う。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격의 각 타격 전에 <keyword id=\"block\">방어도</keyword>를 <value id=\"quantity_1\">%1$lld</value> 훔친다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Rouba <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> antes de cada acerto de ataque."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "在攻擊的每次命中前，竊取<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>。"}}
       }
     },
     "traits.pilfer.name": {
@@ -34977,14 +34977,14 @@
       "comment": "ContentManifest/traits.tsv: plague_mask, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Stellt jedes Mal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her, wenn ein Gegner Schaden durch <keyword id=\"poison\">Gift</keyword> erleidet"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> whenever an opponent takes <keyword id=\"poison\">Poison</keyword> damage"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> cada vez que un oponente recibe daño de <keyword id=\"poison\">Veneno</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> chaque fois qu'un adversaire subit des dégâts de <keyword id=\"poison\">Poison</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "対戦相手が<keyword id=\"poison\">毒</keyword>ダメージを受けるたびに、<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復する"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "상대가 <keyword id=\"poison\">독</keyword> 피해를 받을 때마다 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 회복한다"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> sempre que um oponente sofre dano de <keyword id=\"poison\">Veneno</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每當對手受到<keyword id=\"poison\">中毒</keyword>傷害時，恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Stellt <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her, wann immer ein Gegner Schaden durch <keyword id=\"poison\">Gift</keyword> erleidet."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Restores <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> whenever an opponent takes <keyword id=\"poison\">Poison</keyword> damage."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> cada vez que un oponente recibe daño de <keyword id=\"poison\">Veneno</keyword>."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> chaque fois qu’un adversaire subit des dégâts de <keyword id=\"poison\">Poison</keyword>."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "相手が<keyword id=\"poison\">毒</keyword>ダメージを受けるたびに、自身の<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復する。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "상대가 <keyword id=\"poison\">독</keyword> 피해를 받을 때마다 자신의 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 회복한다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> sempre que um oponente sofre dano de <keyword id=\"poison\">Veneno</keyword>."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每當對手受到<keyword id=\"poison\">中毒</keyword>傷害時，恢復自身<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>。"}}
       }
     },
     "traits.plague_mask.name": {
@@ -35033,14 +35033,14 @@
       "comment": "ContentManifest/traits.tsv: pyromancy, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Angriffe mit <keyword id=\"burn\">Brand</keyword> verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">Burn</keyword> attacks deal <value id=\"quantity_1\">%1$lld</value> additional damage"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Los ataques de <keyword id=\"burn\">Quemadura</keyword> infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts des attaques de <keyword id=\"burn\">Brûlure</keyword> augmentent de <value id=\"quantity_1\">%1$lld</value>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">炎上</keyword>攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">화상</keyword> 공격의 피해가 <value id=\"quantity_1\">%1$lld</value> 증가"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Os ataques de <keyword id=\"burn\">Queimadura</keyword> causam <value id=\"quantity_1\">%1$lld</value> de dano adicional"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">燃燒</keyword>攻擊額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Jeder <keyword id=\"burn\">Brand</keyword>treffer verursacht <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden."}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">Burn</keyword> hits deal <value id=\"quantity_1\">%1$lld</value> additional damage."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cada impacto de <keyword id=\"burn\">Quemadura</keyword> inflige <value id=\"quantity_1\">%1$lld</value> de daño adicional."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Chaque occurrence de dégâts de <keyword id=\"burn\">Brûlure</keyword> inflige <value id=\"quantity_1\">%1$lld</value> de dégâts supplémentaires."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">炎上</keyword>ダメージは1ヒットごとに<value id=\"quantity_1\">%1$lld</value>増加する。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">화상</keyword> 피해가 발생할 때마다 해당 피해가 <value id=\"quantity_1\">%1$lld</value> 증가한다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cada acerto de <keyword id=\"burn\">Queimadura</keyword> causa <value id=\"quantity_1\">%1$lld</value> de dano adicional."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每次<keyword id=\"burn\">燃燒</keyword>傷害均額外增加<value id=\"quantity_1\">%1$lld</value>點。"}}
       }
     },
     "traits.pyromancy.name": {
@@ -35061,14 +35061,14 @@
       "comment": "ContentManifest/traits.tsv: radiant_judgment, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"holy\">heiligen</keyword> Schaden an allen Gegnern"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"holy\">Holy</keyword> damage every other turn to all enemies"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"holy\">sagrado</keyword> cada dos turnos a todos los enemigos"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> dégâts de type <keyword id=\"holy\">Sacré</keyword> à tous les ennemis un tour sur deux"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに敵全体へ<keyword id=\"holy\">聖</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 모든 적에게 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"holy\">Sagrado</keyword> a todos os inimigos a cada dois turnos"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合，對所有敵人造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"holy\">神聖</keyword>傷害"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> Schaden vom Typ <keyword id=\"holy\">Heilig</keyword>."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"holy\">Holy</keyword> damage every other turn."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"holy\">Sagrado</keyword> cada dos turnos."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de dégâts de type <keyword id=\"holy\">Sacré</keyword> un tour sur deux."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに<keyword id=\"holy\">聖</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 <keyword id=\"holy\">신성</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 준다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"holy\">Sagrado</keyword> a cada dois turnos."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"holy\">神聖</keyword>傷害。"}}
       }
     },
     "traits.radiant_judgment.name": {
@@ -35145,14 +35145,14 @@
       "comment": "ContentManifest/traits.tsv: restoring_light, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verursachter <keyword id=\"holy\">heiliger</keyword> Schaden stellt <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Dealing <keyword id=\"holy\">Holy</keyword> damage restores <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Infligir daño <keyword id=\"holy\">sagrado</keyword> restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Infliger des dégâts de type <keyword id=\"holy\">Sacré</keyword> restaure <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"holy\">聖</keyword>ダメージを与えると<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"holy\">신성</keyword> 피해를 주면 <keyword id=\"health\">체력</keyword> <value id=\"quantity_1\">%1$lld</value> 회복"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causar dano <keyword id=\"holy\">Sagrado</keyword> restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "造成<keyword id=\"holy\">神聖</keyword>傷害時，恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Jeder Treffer vom Typ <keyword id=\"holy\">Heilig</keyword> stellt <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her."}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"holy\">Holy</keyword> hits restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword>."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cada impacto <keyword id=\"holy\">Sagrado</keyword> restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword>."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Chaque coup de type <keyword id=\"holy\">Sacré</keyword> restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword>."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"holy\">聖</keyword>ダメージの各ヒットで、<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復する。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"holy\">신성</keyword> 타격이 적중할 때마다 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 회복한다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cada acerto <keyword id=\"holy\">Sagrado</keyword> restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword>."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每次<keyword id=\"holy\">神聖</keyword>打擊命中時，恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>。"}}
       }
     },
     "traits.restoring_light.name": {
@@ -35173,14 +35173,14 @@
       "comment": "ContentManifest/traits.tsv: righteous_guard, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>, wenn du <keyword id=\"stun\">Betäubungs</keyword>schaden oder <keyword id=\"holy\">heiligen</keyword> Schaden verursachst"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> when dealing <keyword id=\"stun\">Stun</keyword> or <keyword id=\"holy\">Holy</keyword> damage"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> al infligir daño de <keyword id=\"stun\">Aturdimiento</keyword> o <keyword id=\"holy\">Sagrado</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword> en infligeant des dégâts d’<keyword id=\"stun\">Étourdissement</keyword> ou de type <keyword id=\"holy\">Sacré</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"stun\">スタン</keyword>か<keyword id=\"holy\">聖</keyword>ダメージを与えると<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"stun\">기절</keyword> 또는 <keyword id=\"holy\">신성</keyword> 피해를 주면 <keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> ao causar dano de <keyword id=\"stun\">Atordoamento</keyword> ou <keyword id=\"holy\">Sagrado</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "造成<keyword id=\"stun\">暈眩</keyword>或<keyword id=\"holy\">神聖</keyword>傷害時，獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Treffer vom Typ <keyword id=\"holy\">Heilig</keyword> oder <keyword id=\"stun\">Betäubung</keyword> gewähren jeweils <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>."}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"holy\">Holy</keyword> and <keyword id=\"stun\">Stun</keyword> hits grant <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los impactos de daño <keyword id=\"holy\">Sagrado</keyword> y de <keyword id=\"stun\">Aturdimiento</keyword> otorgan <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> cada uno."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les coups de type <keyword id=\"holy\">Sacré</keyword> et les coups d’<keyword id=\"stun\">Étourdissement</keyword> octroient chacun <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword>."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"holy\">聖</keyword>または<keyword id=\"stun\">スタン</keyword>ダメージの各ヒットで、<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得する。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"holy\">신성</keyword> 또는 <keyword id=\"stun\">기절</keyword> 타격이 적중할 때마다 <keyword id=\"block\">방어도</keyword>를 <value id=\"quantity_1\">%1$lld</value> 얻는다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Acertos de dano <keyword id=\"holy\">Sagrado</keyword> e de <keyword id=\"stun\">Atordoamento</keyword> concedem <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> cada um."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每次<keyword id=\"holy\">神聖</keyword>或<keyword id=\"stun\">暈眩</keyword>打擊命中時，都會獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>。"}}
       }
     },
     "traits.righteous_guard.name": {
@@ -35285,14 +35285,14 @@
       "comment": "ContentManifest/traits.tsv: seismic_pulse, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"physical\">physischen</keyword> Schaden an allen Gegnern"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"physical\">Physical</keyword> damage every other turn to all enemies"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"physical\">físico</keyword> cada dos turnos a todos los enemigos"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> dégâts de type <keyword id=\"physical\">Physique</keyword> à tous les ennemis un tour sur deux"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに敵全体へ<keyword id=\"physical\">物理</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 모든 적에게 <keyword id=\"physical\">물리</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"physical\">Físico</keyword> a todos os inimigos a cada dois turnos"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合，對所有敵人造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"physical\">物理</keyword>傷害"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"physical\">physischen</keyword> Schaden."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"physical\">Physical</keyword> damage every other turn."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"physical\">Físico</keyword> cada dos turnos."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de dégâts de type <keyword id=\"physical\">Physique</keyword> un tour sur deux."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに<keyword id=\"physical\">物理</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 <keyword id=\"physical\">물리</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 준다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"physical\">Físico</keyword> a cada dois turnos."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"physical\">物理</keyword>傷害。"}}
       }
     },
     "traits.seismic_pulse.name": {
@@ -35313,14 +35313,14 @@
       "comment": "ContentManifest/traits.tsv: self_sacrifice, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verliert nach jedem eigenen Angriff <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword>"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Lose <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> after attacking"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Pierde <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> después de atacar"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Perd <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> après avoir attaqué"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "攻撃後、<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>失う"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "공격 후 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 잃음"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Perde <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> após atacar"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊後失去<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Verliert nach jedem eigenen Angriffstreffer <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword>."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Loses <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> after each attack hit."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Pierde <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> después de cada impacto de sus ataques."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Perd <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> après chaque coup porté lors de ses attaques."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃の各ヒット後に<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>失う。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격이 적중할 때마다 그 직후 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 잃는다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Perde <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> após cada acerto de seus ataques."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每次攻擊命中後，失去<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>。"}}
       }
     },
     "traits.self_sacrifice.name": {
@@ -35369,14 +35369,14 @@
       "comment": "ContentManifest/traits.tsv: siphon, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Stellt nach jedem eigenen Angriff <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> after attacking"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> después de atacar"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Récupère <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> après avoir attaqué"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "攻撃後、<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "공격 후 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 회복"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> após atacar"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊後恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Jeder eigene Angriffstreffer stellt <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attack hits restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword>."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cada impacto de sus ataques restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword>."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Chaque coup porté lors de ses attaques restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword>."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃の各ヒットで<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復する。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격이 적중할 때마다 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 회복한다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cada acerto de seus ataques restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword>."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每次攻擊命中時，恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>。"}}
       }
     },
     "traits.siphon.name": {
@@ -35453,14 +35453,14 @@
       "comment": "ContentManifest/traits.tsv: thunderous_tremor, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"physical\">physischen</keyword> Schaden oder <value id=\"quantity_2\">%2$lld</value> <keyword id=\"stun\">Betäubungs</keyword>schaden an allen Gegnern"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"physical\">Physical</keyword> or <value id=\"quantity_2\">%2$lld</value> <keyword id=\"stun\">Stun</keyword> damage every other turn to all enemies"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"physical\">físico</keyword> o <value id=\"quantity_2\">%2$lld</value> de daño de <keyword id=\"stun\">Aturdimiento</keyword> cada dos turnos a todos los enemigos"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> dégâts de type <keyword id=\"physical\">Physique</keyword> ou <value id=\"quantity_2\">%2$lld</value> dégâts d’<keyword id=\"stun\">Étourdissement</keyword> à tous les ennemis un tour sur deux"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに敵全体へ<value id=\"quantity_1\">%1$lld</value>の<keyword id=\"physical\">物理</keyword>ダメージか<value id=\"quantity_2\">%2$lld</value>の<keyword id=\"stun\">スタン</keyword>ダメージを与える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 모든 적에게 <keyword id=\"physical\">물리</keyword> 피해 <value id=\"quantity_1\">%1$lld</value> 또는 <keyword id=\"stun\">기절</keyword> 피해 <value id=\"quantity_2\">%2$lld</value>"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"physical\">Físico</keyword> ou <value id=\"quantity_2\">%2$lld</value> de dano de <keyword id=\"stun\">Atordoamento</keyword> a todos os inimigos a cada dois turnos"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合，對所有敵人造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"physical\">物理</keyword>或<value id=\"quantity_2\">%2$lld</value>點<keyword id=\"stun\">暈眩</keyword>傷害"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> Schaden vom Typ <keyword id=\"physical\">Physisch</keyword> oder <keyword id=\"stun\">Betäubung</keyword>."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"physical\">Physical</keyword> or <keyword id=\"stun\">Stun</keyword> damage every other turn."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"physical\">Físico</keyword> o de <keyword id=\"stun\">Aturdimiento</keyword> cada dos turnos."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de dégâts de type <keyword id=\"physical\">Physique</keyword> ou d’<keyword id=\"stun\">Étourdissement</keyword> un tour sur deux."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに<keyword id=\"physical\">物理</keyword>か<keyword id=\"stun\">スタン</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 <keyword id=\"physical\">물리</keyword> 또는 <keyword id=\"stun\">기절</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 준다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"physical\">Físico</keyword> ou de <keyword id=\"stun\">Atordoamento</keyword> a cada dois turnos."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"physical\">物理</keyword>或<keyword id=\"stun\">暈眩</keyword>傷害。"}}
       }
     },
     "traits.thunderous_tremor.name": {
@@ -35481,14 +35481,14 @@
       "comment": "ContentManifest/traits.tsv: venomous_strikes, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Angriffe belegen das Ziel mit <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Gift</keyword>"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Attacks apply <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Poison</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Los ataques aplican <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"poison\">Veneno</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques appliquent <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Poison</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "攻撃で<keyword id=\"poison\">毒</keyword>を<value id=\"quantity_1\">%1$lld</value>付与"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "공격 시 <keyword id=\"poison\">독</keyword> <value id=\"quantity_1\">%1$lld</value> 부여"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ataques aplicam <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"poison\">Veneno</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊施加<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"poison\">中毒</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Jeder Angriffstreffer belegt das Ziel mit <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Gift</keyword>."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attack hits inflict <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Poison</keyword>."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cada impacto de ataque aplica <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"poison\">Veneno</keyword>."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Chaque coup d’une attaque applique <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"poison\">Poison</keyword>."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃の各ヒットで<keyword id=\"poison\">毒</keyword>を<value id=\"quantity_1\">%1$lld</value>付与する。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격이 적중할 때마다 <keyword id=\"poison\">독</keyword>을 <value id=\"quantity_1\">%1$lld</value> 부여한다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cada acerto de ataque aplica <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"poison\">Veneno</keyword>."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每次攻擊命中時，施加<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"poison\">中毒</keyword>。"}}
       }
     },
     "traits.venomous_strikes.name": {
@@ -35565,14 +35565,14 @@
       "comment": "ContentManifest/traits.tsv: winters_grasp, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"freeze\">Frost</keyword>schaden an allen Gegnern"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"freeze\">Freeze</keyword> damage every other turn to all enemies"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño de <keyword id=\"freeze\">Congelación</keyword> cada dos turnos a todos los enemigos"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> dégâts de <keyword id=\"freeze\">Gel</keyword> à tous les ennemis un tour sur deux"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに敵全体へ<keyword id=\"freeze\">凍結</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 모든 적에게 <keyword id=\"freeze\">빙결</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano de <keyword id=\"freeze\">Congelamento</keyword> a todos os inimigos a cada dois turnos"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合，對所有敵人造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"freeze\">冰凍</keyword>傷害"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"freeze\">Frost</keyword>schaden."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"freeze\">Freeze</keyword> damage every other turn."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño de <keyword id=\"freeze\">Congelación</keyword> cada dos turnos."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de dégâts de <keyword id=\"freeze\">Gel</keyword> un tour sur deux."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに<keyword id=\"freeze\">凍結</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 <keyword id=\"freeze\">빙결</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 준다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano de <keyword id=\"freeze\">Congelamento</keyword> a cada dois turnos."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"freeze\">冰凍</keyword>傷害。"}}
       }
     },
     "traits.winters_grasp.name": {
