@@ -42,8 +42,9 @@ Countess's standard-profile raw damage bonus reaches +520% at level 40 through
 the same smoothstep from level 20, then retains the common post-40 damage slope.
 This adjustment belongs to `CombatBuildResolver`; power ratings reuse that build.
 Enemy and player ability definitions remain shared and unchanged by stat tuning.
-Mud Elemental has 13 base Health and Pyromancer has 11; their shared abilities
-and authored traits retain their rules. These per-enemy Health adjustments apply
+Mud Elemental has 13 base Health and Pyromancer has 11. Enemy traits declare
+one strength and one weakness in `ContentManifest/traits.tsv`; the roster assigns
+exactly one of each. Trait changes do not retune the shared enemy power curves. These per-enemy Health adjustments apply
 through the same level scaler in every mode.
 Spires use their own fixed-floor power profile; Easy Contracts use the recovery
 profile. Profile selection stays static for the mode, never follows party gear or

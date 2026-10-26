@@ -16,10 +16,8 @@ struct ShatteringImpactRegressionTests {
         attacker: BattleParticipant,
         defender: BattleParticipant,
         triggersImpact: Bool,
-    ) throws {
-        let trait = try #require(GameContent.trait(id: "shattering_impact"))
-        var profile = CombatModifierProfile.zero
-        trait.apply(to: &profile)
+    ) {
+        let profile = CombatModifierProfile.withTriggers { $0.onEnemyBlockBrokenDealPhysical = 1 }
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 20),
             heroModifiers: profile, companionModifiers: profile, enemyModifiers: profile, appliesFightPacing: false,
@@ -39,10 +37,8 @@ struct ShatteringImpactRegressionTests {
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `Shattering Impact damages the attacked recipient when it breaks borrowed Block`(
         recipient: BattleParticipant,
-    ) throws {
-        let trait = try #require(GameContent.trait(id: "shattering_impact"))
-        var attackerProfile = CombatModifierProfile.zero
-        trait.apply(to: &attackerProfile)
+    ) {
+        let attackerProfile = CombatModifierProfile.withTriggers { $0.onEnemyBlockBrokenDealPhysical = 1 }
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 20),
             heroModifiers: .withTriggers { $0.blockAbsorbsCompanionDamage = true },
@@ -64,10 +60,8 @@ struct ShatteringImpactRegressionTests {
         #expect(battle.health(of: protector) == 20)
     }
 
-    @Test func `committed Shattering Impact survives lethal Block reflection`() throws {
-        let trait = try #require(GameContent.trait(id: "shattering_impact"))
-        var profile = CombatModifierProfile.zero
-        trait.apply(to: &profile)
+    @Test func `committed Shattering Impact survives lethal Block reflection`() {
+        let profile = CombatModifierProfile.withTriggers { $0.onEnemyBlockBrokenDealPhysical = 1 }
         var battle = BattleStateTestFactory.makeMinimalBattle(
             enemy: CombatantFixtures.passiveEnemy(maxHealth: 20),
             heroHealth: 1, heroModifiers: profile, enemyModifiers: .withTriggers { $0.onBlockHitDealHoly = 3 }, appliesFightPacing: false,

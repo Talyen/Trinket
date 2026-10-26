@@ -109,7 +109,7 @@ def validate_manifests() -> ManifestRows:
         enemy_rows,
         ability_symbols,
         set(combatant_ids),
-        {row.id for row in trait_rows},
+        {row.id: row.polarity for row in trait_rows},
     )
     validate_stage_rows(
         stage_rows,

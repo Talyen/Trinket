@@ -5,7 +5,7 @@ import TrinketCore
 @testable import TrinketContent
 
 struct EnemyIdentityTraitTests {
-    @Test func `blood offering pays once for multiple hits and applies bleed`() throws {
+    @Test func `self sacrifice recoils once after multiple hits and bloodletting applies once`() throws {
         var context = try makeBattle("blood_cultist")
         let enemy = context.enemy
         let target = context.hero
@@ -21,24 +21,92 @@ struct EnemyIdentityTraitTests {
 
         #expect(context.roster.enemy.currentHealth == health - 1)
         #expect(DefensePoolEngine.blockPoints(in: context.roster.enemy.activeEffects) == 10)
-        #expect(context.roster.hasAffliction(.bleed, on: target))
-        #expect(events.count(where: { $0.abilityName == "Blood Offering" && $0.targetID == enemy.id }) == 1)
+        #expect(context.roster.activeEffects(for: target).count(where: { $0.effect.isBleed }) == 1)
+        #expect(events.count(where: { $0.abilityName == "Self-Sacrifice" && $0.targetID == enemy.id }) == 1)
     }
 
-    @Test func `blood offering cannot spend its last health and support is free`() throws {
+    @Test func `self sacrifice permits a final attack and support has no recoil`() throws {
         var context = try makeBattle("blood_cultist")
         context.roster.mutateRuntime(for: context.enemy) { $0.currentHealth = 1 }
         let health = context.roster.hero.currentHealth
-
-        #expect(!BattleAbilityRules.canPayHealthCost(.rendingSlash, actor: context.enemy, in: context))
-        context.performTestAction(.rendingSlash, from: .enemy, to: .hero)
-        #expect(context.roster.hero.currentHealth == health)
-        #expect(context.roster.enemy.currentHealth == 1)
-
         let support = Ability(id: "offering_guard", name: "Offering Guard", tier: .skill, effects: [.shield(.block, 2)])
         context.performTestAction(support, from: .enemy, to: .hero)
         #expect(context.roster.enemy.currentHealth == 1)
-        #expect(DefensePoolEngine.blockPoints(in: context.roster.enemy.activeEffects) == 2)
+        #expect(BattleAbilityRules.canPayHealthCost(.rendingSlash, actor: context.enemy, in: context))
+
+        let events = context.performTestAction(.rendingSlash, from: .enemy, to: .hero)
+        #expect(context.roster.hero.currentHealth < health)
+        #expect(context.roster.enemy.currentHealth == 0)
+        let recoil = try #require(events.firstIndex { $0.abilityName == "Self-Sacrifice" })
+        let attack = try #require(events.firstIndex { $0.kind == .abilityDamage && $0.targetID == context.hero.id })
+        #expect(attack < recoil)
+    }
+
+    @Test func `siphon restores once per attack and ignores ongoing damage and support`() throws {
+        var context = try makeBattle("necromancer")
+        context.roster.mutateRuntime(for: context.enemy) { $0.currentHealth = 5 }
+        let attack = Ability(
+            id: "double_hit",
+            name: "Double Hit",
+            tier: .basic,
+            damageComponents: [DamageComponent(1, keyword: .physical), DamageComponent(1, keyword: .physical)],
+        )
+        context.performTestAction(attack, from: .enemy, to: .hero)
+        #expect(context.roster.enemy.currentHealth == 6)
+        context.resolveTestDamage(2, from: .enemy, to: .hero, keyword: .bleed, options: .periodic)
+        context.performTestAction(.block, from: .enemy, to: .hero)
+        #expect(context.roster.enemy.currentHealth == 6)
+    }
+
+    @Test func `pyromancy adds one damage to a multi-hit attack and preserves Block`() throws {
+        var context = try makeBattle("pyromancer")
+        DefensePoolEngine.set(10, on: context.hero, in: &context)
+        let health = context.roster.hero.currentHealth
+        let attack = Ability(
+            id: "double_burn",
+            name: "Double Burn",
+            tier: .basic,
+            damageComponents: [DamageComponent(2, keyword: .burn), DamageComponent(2, keyword: .burn)],
+        )
+        let events = context.performTestAction(attack, from: .enemy, to: .hero)
+        #expect(context.roster.hero.currentHealth == health)
+        #expect(events.filter { $0.effectKind == .shieldAbsorbed }.reduce(0) { $0 + $1.amount } == 5)
+    }
+
+    @Test(arguments: [24, 25])
+    func `condemn adds Holy damage once and requires strictly below half Health`(health: Int) throws {
+        var context = try makeBattle("inquisitor")
+        context.roster.mutateRuntime(for: context.hero) { $0.currentHealth = health }
+        let attack = Ability(
+            id: "double_hit",
+            name: "Double Hit",
+            tier: .basic,
+            damageComponents: [DamageComponent(1, keyword: .physical), DamageComponent(1, keyword: .physical)],
+        )
+        // At half Health the first hit crosses the threshold; only the later hit qualifies.
+        context.performTestAction(attack, from: .enemy, to: .hero)
+        #expect(context.roster.hero.currentHealth == health - 3)
+        var atHalf = try makeBattle("inquisitor")
+        atHalf.roster.mutateRuntime(for: atHalf.hero) { $0.currentHealth = 25 }
+        atHalf.performTestAction(.slash, from: .enemy, to: .hero)
+        #expect(atHalf.roster.hero.currentHealth == 22)
+    }
+
+    @Test func `cowardly reduces the whole attack once below half Health`() throws {
+        let enemy = try #require(GameContent.enemy(matching: "bandit"))
+        var profile = CombatBuildResolver.build(enemy: enemy).modifiers
+        profile.triggers.firstHitDoubleDamage = false
+        var context = try makeBattle("bandit", enemyModifiers: profile)
+        context.roster.mutateRuntime(for: context.enemy) { $0.currentHealth = 5 }
+        let health = context.roster.hero.currentHealth
+        let attack = Ability(
+            id: "double_hit",
+            name: "Double Hit",
+            tier: .basic,
+            damageComponents: [DamageComponent(2, keyword: .physical), DamageComponent(2, keyword: .physical)],
+        )
+        context.performTestAction(attack, from: .enemy, to: .hero)
+        #expect(context.roster.hero.currentHealth == health - 3)
     }
 
     @Test(arguments: [Keyword.poison, .physical])

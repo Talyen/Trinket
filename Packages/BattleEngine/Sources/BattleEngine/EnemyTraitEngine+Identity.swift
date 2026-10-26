@@ -24,6 +24,7 @@ extension EnemyTraitEngine {
             profile.triggers.attackStealBlock, from: facts.action.selectedTarget, to: actor,
             abilityName: profile.triggerAbilityName(.attackStealBlock, fallback: "Pilfer"), in: &context,
         )
+        prepareAttack(for: actor, context: &context)
         return true
     }
 

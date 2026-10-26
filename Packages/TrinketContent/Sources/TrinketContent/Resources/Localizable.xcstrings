@@ -34189,34 +34189,6 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "枯萎脈衝"}}
       }
     },
-    "traits.blood_offering.description": {
-      "comment": "ContentManifest/traits.tsv: blood_offering, description",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Angriffe kosten <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> und verursachen <value id=\"quantity_2\">%2$lld</value> <keyword id=\"bleed\">Blutung</keyword>"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Attacks cost <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> and apply <value id=\"quantity_2\">%2$lld</value> <keyword id=\"bleed\">Bleed</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Los ataques cuestan <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> y aplican <value id=\"quantity_2\">%2$lld</value> de <keyword id=\"bleed\">Sangrado</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques coûtent <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> et appliquent <value id=\"quantity_2\">%2$lld</value> de <keyword id=\"bleed\">Saignement</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "攻撃時に<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>消費し、<keyword id=\"bleed\">出血</keyword>を<value id=\"quantity_2\">%2$lld</value>付与する"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "공격 시 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 소모하고 <keyword id=\"bleed\">출혈</keyword>을 <value id=\"quantity_2\">%2$lld</value> 부여한다"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Os ataques custam <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> e aplicam <value id=\"quantity_2\">%2$lld</value> de <keyword id=\"bleed\">Sangramento</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊消耗<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>，並施加<value id=\"quantity_2\">%2$lld</value>層<keyword id=\"bleed\">流血</keyword>"}}
-      }
-    },
-    "traits.blood_offering.name": {
-      "comment": "ContentManifest/traits.tsv: blood_offering, name",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Blutopfer"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Blood Offering"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Ofrenda de sangre"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Offrande de sang"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "血の供物"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "피의 공물"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Oferenda de sangue"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "血之獻祭"}}
-      }
-    },
     "traits.blood_scent.description": {
       "comment": "ContentManifest/traits.tsv: blood_scent, description",
       "extractionState": "manual",
@@ -34245,45 +34217,45 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "血腥嗅覺"}}
       }
     },
-    "traits.bloodless.description": {
-      "comment": "ContentManifest/traits.tsv: bloodless, description",
+    "traits.bloodletting.description": {
+      "comment": "ContentManifest/traits.tsv: bloodletting, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erlittener <keyword id=\"bleed\">Blutungs</keyword>schaden um <value id=\"quantity_1\">%1$lld</value>%% verringert"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">Bleed</keyword> damage taken reduced by <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Daño de <keyword id=\"bleed\">Sangrado</keyword> recibido reducido en un <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Dégâts de <keyword id=\"bleed\">Saignement</keyword> subis réduits de <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"bleed\">出血</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%減少"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"bleed\">출혈</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>%% 감소"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dano de <keyword id=\"bleed\">Sangramento</keyword> recebido reduzido em <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "承受的<keyword id=\"bleed\">流血</keyword>傷害降低<value id=\"quantity_1\">%1$lld</value>%%"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe verursachen <value id=\"quantity_1\">%1$lld</value> <keyword id=\"bleed\">Blutung</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks apply <value id=\"quantity_1\">%1$lld</value> <keyword id=\"bleed\">Bleed</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques aplican <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"bleed\">Sangrado</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques appliquent <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"bleed\">Saignement</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃時、<keyword id=\"bleed\">出血</keyword>を<value id=\"quantity_1\">%1$lld</value>付与"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격 시 <keyword id=\"bleed\">출혈</keyword> <value id=\"quantity_1\">%1$lld</value> 부여"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Os ataques aplicam <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"bleed\">Sangramento</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊施加<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"bleed\">流血</keyword>"}}
       }
     },
-    "traits.bloodless.name": {
-      "comment": "ContentManifest/traits.tsv: bloodless, name",
+    "traits.bloodletting.name": {
+      "comment": "ContentManifest/traits.tsv: bloodletting, name",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Blutlos"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Bloodless"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Exangüe"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Exsangue"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "血なき体"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "피 없는 자"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sem Sangue"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "無血"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Aderlass"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Bloodletting"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Sangría"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Saignée"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "瀉血"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "방혈"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sangria"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "放血"}}
       }
     },
     "traits.bulwark_force.description": {
       "comment": "ContentManifest/traits.tsv: bulwark_force, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Solange du <keyword id=\"block\">Block</keyword> hast, verursachen Angriffe <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"}},
-        "en": {"stringUnit": {"state": "translated", "value": "While holding <keyword id=\"block\">Block</keyword>, attacks deal <value id=\"quantity_1\">%1$lld</value> additional damage"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Mientras mantienes <keyword id=\"block\">Bloqueo</keyword>, los ataques infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Avec du <keyword id=\"block\">Blocage</keyword>, les attaques infligent <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires"}},
+        "de": {"stringUnit": {"state": "translated", "value": "Solange es <keyword id=\"block\">Block</keyword> hat, verursachen seine Angriffe <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks deal <value id=\"quantity_1\">%1$lld</value> additional damage while it has <keyword id=\"block\">Block</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Mientras tiene <keyword id=\"block\">Bloqueo</keyword>, sus ataques infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Tant qu’il a du <keyword id=\"block\">Blocage</keyword>, les dégâts de ses attaques augmentent de <value id=\"quantity_1\">%1$lld</value>"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">ブロック</keyword>がある間、攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">방어도</keyword>가 있으면 공격의 추가 피해 <value id=\"quantity_1\">%1$lld</value>"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Enquanto tiver <keyword id=\"block\">Bloqueio</keyword>, ataques causam <value id=\"quantity_1\">%1$lld</value> de dano adicional"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">방어도</keyword>가 있는 동안 공격 피해가 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Enquanto tiver <keyword id=\"block\">Bloqueio</keyword>, seus ataques causam <value id=\"quantity_1\">%1$lld</value> de dano adicional"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "擁有<keyword id=\"block\">格擋</keyword>時，攻擊額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"}}
       }
     },
@@ -34357,34 +34329,6 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "寒冷震撼"}}
       }
     },
-    "traits.cold_tempered.description": {
-      "comment": "ContentManifest/traits.tsv: cold_tempered, description",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erlittener <keyword id=\"freeze\">Frost</keyword>schaden um <value id=\"quantity_1\">%1$lld</value>%% verringert"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"freeze\">Freeze</keyword> damage taken reduced by <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Daño de <keyword id=\"freeze\">Congelación</keyword> recibido reducido en un <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Dégâts de <keyword id=\"freeze\">Gel</keyword> subis réduits de <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"freeze\">凍結</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%減少"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"freeze\">빙결</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>%% 감소"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dano de <keyword id=\"freeze\">Congelamento</keyword> recebido reduzido em <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "承受的<keyword id=\"freeze\">冰凍</keyword>傷害降低<value id=\"quantity_1\">%1$lld</value>%%"}}
-      }
-    },
-    "traits.cold_tempered.name": {
-      "comment": "ContentManifest/traits.tsv: cold_tempered, name",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Kältegehärtet"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Cold-Tempered"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Templado en frío"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Trempé au froid"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "寒冷順応"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "냉기로 단련된"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Temperado pelo Frio"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "寒冷淬鍊"}}
-      }
-    },
     "traits.concussion.description": {
       "comment": "ContentManifest/traits.tsv: concussion, description",
       "extractionState": "manual",
@@ -34411,6 +34355,62 @@
         "ko": {"stringUnit": {"state": "translated", "value": "뇌진탕 증상"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Concussão"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "腦震盪"}}
+      }
+    },
+    "traits.condemn.description": {
+      "comment": "ContentManifest/traits.tsv: condemn, description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe verursachen bei Gegnern mit weniger als der Hälfte ihrer <keyword id=\"health\">Gesundheit</keyword> <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden vom Typ <keyword id=\"holy\">Heilig</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks deal <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"holy\">Holy</keyword> damage to opponents below half <keyword id=\"health\">Health</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques infligen <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"holy\">Sagrado</keyword> adicional a oponentes con menos de la mitad de su <keyword id=\"health\">Salud</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques infligent un supplément de <value id=\"quantity_1\">%1$lld</value> en dégâts de type <keyword id=\"holy\">Sacré</keyword> aux adversaires ayant moins de la moitié de leur <keyword id=\"health\">Santé</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">体力</keyword>が半分未満の相手への攻撃時、<value id=\"quantity_1\">%1$lld</value>の追加<keyword id=\"holy\">聖</keyword>ダメージを与える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">체력</keyword>이 절반 미만인 상대를 공격하면 <keyword id=\"holy\">신성</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 추가로 줌"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Os ataques causam <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"holy\">Sagrado</keyword> adicional a oponentes com menos da metade da <keyword id=\"health\">Vida</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊<keyword id=\"health\">生命值</keyword>低於一半的對手時，額外造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"holy\">神聖</keyword>傷害"}}
+      }
+    },
+    "traits.condemn.name": {
+      "comment": "ContentManifest/traits.tsv: condemn, name",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Verurteilung"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Condemn"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Condena"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Condamnation"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "断罪"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "단죄"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Condenação"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "定罪"}}
+      }
+    },
+    "traits.corrodible.description": {
+      "comment": "ContentManifest/traits.tsv: corrodible, description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Erlittener Schaden durch <keyword id=\"poison\">Gift</keyword> um <value id=\"quantity_1\">%1$lld</value> %% erhöht"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"poison\">Poison</keyword> damage taken increased by <value id=\"quantity_1\">%1$lld</value>%%"}},
+        "es": {"stringUnit": {"state": "translated", "value": "El daño de <keyword id=\"poison\">Veneno</keyword> recibido aumenta un <value id=\"quantity_1\">%1$lld</value> %%"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de <keyword id=\"poison\">Poison</keyword> subis augmentent de <value id=\"quantity_1\">%1$lld</value> %%"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"poison\">毒</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"poison\">독</keyword> 피해가 <value id=\"quantity_1\">%1$lld</value>%% 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "O dano de <keyword id=\"poison\">Veneno</keyword> recebido aumenta em <value id=\"quantity_1\">%1$lld</value>%%"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "受到的<keyword id=\"poison\">中毒</keyword>傷害提高<value id=\"quantity_1\">%1$lld</value>%%"}}
+      }
+    },
+    "traits.corrodible.name": {
+      "comment": "ContentManifest/traits.tsv: corrodible, name",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Korrosionsanfällig"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Corrodible"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Corrosible"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Corrodable"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "腐食しやすい"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "부식에 취약"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Corrosível"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "易腐蝕"}}
       }
     },
     "traits.corrosive_venom.description": {
@@ -34441,6 +34441,34 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "腐蝕毒液"}}
       }
     },
+    "traits.cowardly.description": {
+      "comment": "ContentManifest/traits.tsv: cowardly, description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Solange seine <keyword id=\"health\">Gesundheit</keyword> unter der Hälfte liegt, verursachen seine Angriffe <value id=\"quantity_1\">%1$lld</value> weniger Schaden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks deal <value id=\"quantity_1\">%1$lld</value> less damage while below half <keyword id=\"health\">Health</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Mientras su <keyword id=\"health\">Salud</keyword> está por debajo de la mitad, sus ataques infligen <value id=\"quantity_1\">%1$lld</value> menos de daño"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Tant que sa <keyword id=\"health\">Santé</keyword> est inférieure à la moitié, les dégâts de ses attaques diminuent de <value id=\"quantity_1\">%1$lld</value>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自身の<keyword id=\"health\">体力</keyword>が半分未満の間、攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>減少"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자신의 <keyword id=\"health\">체력</keyword>이 절반 미만인 동안 공격 피해가 <value id=\"quantity_1\">%1$lld</value> 감소"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Enquanto sua <keyword id=\"health\">Vida</keyword> estiver abaixo da metade, seus ataques causam <value id=\"quantity_1\">%1$lld</value> a menos de dano"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "自身<keyword id=\"health\">生命值</keyword>低於一半時，攻擊傷害降低<value id=\"quantity_1\">%1$lld</value>點"}}
+      }
+    },
+    "traits.cowardly.name": {
+      "comment": "ContentManifest/traits.tsv: cowardly, name",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Feige"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Cowardly"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cobarde"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Couard"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "臆病"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "겁쟁이"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Covarde"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "膽怯"}}
+      }
+    },
     "traits.crimson_pulse.description": {
       "comment": "ContentManifest/traits.tsv: crimson_pulse, description",
       "extractionState": "manual",
@@ -34467,34 +34495,6 @@
         "ko": {"stringUnit": {"state": "translated", "value": "진홍빛 파동"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Pulso Carmesim"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "緋紅脈衝"}}
-      }
-    },
-    "traits.dense_form.description": {
-      "comment": "ContentManifest/traits.tsv: dense_form, description",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erlittener <keyword id=\"physical\">physischer</keyword> Schaden um <value id=\"quantity_1\">%1$lld</value>%% verringert"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">Physical</keyword> damage taken reduced by <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Daño <keyword id=\"physical\">físico</keyword> recibido reducido en un <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Dégâts de type <keyword id=\"physical\">Physique</keyword> subis réduits de <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"physical\">物理</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%減少"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"physical\">물리</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>%% 감소"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dano <keyword id=\"physical\">Físico</keyword> recebido reduzido em <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "承受的<keyword id=\"physical\">物理</keyword>傷害降低<value id=\"quantity_1\">%1$lld</value>%%"}}
-      }
-    },
-    "traits.dense_form.name": {
-      "comment": "ContentManifest/traits.tsv: dense_form, name",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Dichte Gestalt"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Dense Form"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Forma densa"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Forme dense"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "高密度の体"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "치밀한 형체"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Forma Densa"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "密實形體"}}
       }
     },
     "traits.dread_exploitation.description": {
@@ -34609,6 +34609,62 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "縱火者"}}
       }
     },
+    "traits.flickering.description": {
+      "comment": "ContentManifest/traits.tsv: flickering, description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Schaden an seiner <keyword id=\"health\">Gesundheit</keyword> verringert den Schaden seines nächsten Angriffs um <value id=\"quantity_1\">%1$lld</value>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Taking <keyword id=\"health\">Health</keyword> damage reduces the next attack’s damage by <value id=\"quantity_1\">%1$lld</value>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Recibir daño a la <keyword id=\"health\">Salud</keyword> reduce el daño de su siguiente ataque en <value id=\"quantity_1\">%1$lld</value>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Subir des dégâts à la <keyword id=\"health\">Santé</keyword> réduit de <value id=\"quantity_1\">%1$lld</value> les dégâts de sa prochaine attaque"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">体力</keyword>へのダメージを受けると、次の攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>減少"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">체력</keyword> 피해를 받으면 다음 공격의 피해가 <value id=\"quantity_1\">%1$lld</value> 감소"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Receber dano à <keyword id=\"health\">Vida</keyword> reduz em <value id=\"quantity_1\">%1$lld</value> o dano do seu próximo ataque"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">生命值</keyword>受到傷害時，下次攻擊的傷害降低<value id=\"quantity_1\">%1$lld</value>點"}}
+      }
+    },
+    "traits.flickering.name": {
+      "comment": "ContentManifest/traits.tsv: flickering, name",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Flackernd"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Flickering"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Titilante"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Vacillant"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "明滅"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "깜빡임"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Tremeluzente"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "閃爍"}}
+      }
+    },
+    "traits.frail.description": {
+      "comment": "ContentManifest/traits.tsv: frail, description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Erlittener Schaden vom Typ <keyword id=\"physical\">Physisch</keyword> um <value id=\"quantity_1\">%1$lld</value> %% erhöht"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">Physical</keyword> damage taken increased by <value id=\"quantity_1\">%1$lld</value>%%"}},
+        "es": {"stringUnit": {"state": "translated", "value": "El daño <keyword id=\"physical\">Físico</keyword> recibido aumenta un <value id=\"quantity_1\">%1$lld</value> %%"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de type <keyword id=\"physical\">Physique</keyword> subis augmentent de <value id=\"quantity_1\">%1$lld</value> %%"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"physical\">物理</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"physical\">물리</keyword> 피해가 <value id=\"quantity_1\">%1$lld</value>%% 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "O dano <keyword id=\"physical\">Físico</keyword> recebido aumenta em <value id=\"quantity_1\">%1$lld</value>%%"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "受到的<keyword id=\"physical\">物理</keyword>傷害提高<value id=\"quantity_1\">%1$lld</value>%%"}}
+      }
+    },
+    "traits.frail.name": {
+      "comment": "ContentManifest/traits.tsv: frail, name",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Gebrechlich"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Frail"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Frágil"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Frêle"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "虚弱"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "허약"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Frágil"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "虛弱"}}
+      }
+    },
     "traits.furnace_pulse.description": {
       "comment": "ContentManifest/traits.tsv: furnace_pulse, description",
       "extractionState": "manual",
@@ -34691,62 +34747,6 @@
         "ko": {"stringUnit": {"state": "translated", "value": "젤라틴 몸체"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Corpo Gelatinoso"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "膠質身軀"}}
-      }
-    },
-    "traits.hallowed.description": {
-      "comment": "ContentManifest/traits.tsv: hallowed, description",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erlittener <keyword id=\"holy\">heiliger</keyword> Schaden um <value id=\"quantity_1\">%1$lld</value>%% verringert"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"holy\">Holy</keyword> damage taken reduced by <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Daño <keyword id=\"holy\">sagrado</keyword> recibido reducido en un <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Dégâts de type <keyword id=\"holy\">Sacré</keyword> subis réduits de <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"holy\">聖</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%減少"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"holy\">신성</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>%% 감소"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dano <keyword id=\"holy\">Sagrado</keyword> recebido reduzido em <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "承受的<keyword id=\"holy\">神聖</keyword>傷害降低<value id=\"quantity_1\">%1$lld</value>%%"}}
-      }
-    },
-    "traits.hallowed.name": {
-      "comment": "ContentManifest/traits.tsv: hallowed, name",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Geheiligt"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Hallowed"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Bendito"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Sanctifié"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "聖なる加護"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "신성한"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Santificado"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "聖佑"}}
-      }
-    },
-    "traits.heat_tempered.description": {
-      "comment": "ContentManifest/traits.tsv: heat_tempered, description",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erlittener <keyword id=\"burn\">Brand</keyword>schaden um <value id=\"quantity_1\">%1$lld</value>%% verringert"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">Burn</keyword> damage taken reduced by <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Daño de <keyword id=\"burn\">Quemadura</keyword> recibido reducido en un <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Dégâts de <keyword id=\"burn\">Brûlure</keyword> subis réduits de <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"burn\">炎上</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%減少"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"burn\">화상</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>%% 감소"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dano de <keyword id=\"burn\">Queimadura</keyword> recebido reduzido em <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "承受的<keyword id=\"burn\">燃燒</keyword>傷害降低<value id=\"quantity_1\">%1$lld</value>%%"}}
-      }
-    },
-    "traits.heat_tempered.name": {
-      "comment": "ContentManifest/traits.tsv: heat_tempered, name",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Hitzegehärtet"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Heat-Tempered"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Templado al calor"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Trempé à la chaleur"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "高熱順応"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "열기로 단련된"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Temperado pelo Calor"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "高熱淬鍊"}}
       }
     },
     "traits.hidden_fangs.description": {
@@ -34865,14 +34865,14 @@
       "comment": "ContentManifest/traits.tsv: loose_rubble, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Das Erleiden von <keyword id=\"health\">Gesundheits</keyword>schaden verringert den nächsten verursachten Schaden um <value id=\"quantity_1\">%1$lld</value>"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Taking <keyword id=\"health\">Health</keyword> damage reduces the next damage dealt by <value id=\"quantity_1\">%1$lld</value>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Recibir daño a la <keyword id=\"health\">Salud</keyword> reduce el siguiente daño infligido en <value id=\"quantity_1\">%1$lld</value>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Subir des dégâts à la <keyword id=\"health\">Santé</keyword> réduit de <value id=\"quantity_1\">%1$lld</value> les prochains dégâts infligés"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">体力</keyword>へのダメージを受けると、次に与えるダメージが<value id=\"quantity_1\">%1$lld</value>減少"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">체력</keyword> 피해를 받으면 다음에 주는 피해 <value id=\"quantity_1\">%1$lld</value> 감소"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Receber dano à <keyword id=\"health\">Vida</keyword> reduz em <value id=\"quantity_1\">%1$lld</value> o próximo dano causado"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">生命值</keyword>受到傷害時，下次造成的傷害降低<value id=\"quantity_1\">%1$lld</value>點"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Schaden an seiner <keyword id=\"health\">Gesundheit</keyword> verringert den Schaden seines nächsten Angriffs um <value id=\"quantity_1\">%1$lld</value>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Taking <keyword id=\"health\">Health</keyword> damage reduces the next attack’s damage by <value id=\"quantity_1\">%1$lld</value>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Recibir daño a la <keyword id=\"health\">Salud</keyword> reduce el daño de su siguiente ataque en <value id=\"quantity_1\">%1$lld</value>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Subir des dégâts à la <keyword id=\"health\">Santé</keyword> réduit de <value id=\"quantity_1\">%1$lld</value> les dégâts de sa prochaine attaque"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">体力</keyword>へのダメージを受けると、次の攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>減少"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">체력</keyword> 피해를 받으면 다음 공격의 피해가 <value id=\"quantity_1\">%1$lld</value> 감소"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Receber dano à <keyword id=\"health\">Vida</keyword> reduz em <value id=\"quantity_1\">%1$lld</value> o dano do seu próximo ataque"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"health\">生命值</keyword>受到傷害時，下次攻擊的傷害降低<value id=\"quantity_1\">%1$lld</value>點"}}
       }
     },
     "traits.loose_rubble.name": {
@@ -34887,6 +34887,34 @@
         "ko": {"stringUnit": {"state": "translated", "value": "흩어진 잔해"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Entulho Solto"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "鬆散碎石"}}
+      }
+    },
+    "traits.lumbering.description": {
+      "comment": "ContentManifest/traits.tsv: lumbering, description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Erlittener Schaden vom Typ <keyword id=\"stun\">Betäubung</keyword> um <value id=\"quantity_1\">%1$lld</value> %% erhöht"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"stun\">Stun</keyword> damage taken increased by <value id=\"quantity_1\">%1$lld</value>%%"}},
+        "es": {"stringUnit": {"state": "translated", "value": "El daño de <keyword id=\"stun\">Aturdimiento</keyword> recibido aumenta un <value id=\"quantity_1\">%1$lld</value> %%"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts d’<keyword id=\"stun\">Étourdissement</keyword> subis augmentent de <value id=\"quantity_1\">%1$lld</value> %%"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"stun\">スタン</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"stun\">기절</keyword> 피해가 <value id=\"quantity_1\">%1$lld</value>%% 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "O dano de <keyword id=\"stun\">Atordoamento</keyword> recebido aumenta em <value id=\"quantity_1\">%1$lld</value>%%"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "受到的<keyword id=\"stun\">暈眩</keyword>傷害提高<value id=\"quantity_1\">%1$lld</value>%%"}}
+      }
+    },
+    "traits.lumbering.name": {
+      "comment": "ContentManifest/traits.tsv: lumbering, name",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Schwerfällig"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Lumbering"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Pesado"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Pesant"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "鈍重"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "둔중"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Pesado"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "笨重"}}
       }
     },
     "traits.numbing_presence.description": {
@@ -34915,34 +34943,6 @@
         "ko": {"stringUnit": {"state": "translated", "value": "마비시키는 존재감"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Presença Entorpecente"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "麻木威壓"}}
-      }
-    },
-    "traits.off_balance.description": {
-      "comment": "ContentManifest/traits.tsv: off_balance, description",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erlittener <keyword id=\"physical\">physischer</keyword> Schaden und <keyword id=\"stun\">Betäubungs</keyword>schaden um <value id=\"quantity_1\">%1$lld</value>%% erhöht"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">Physical</keyword> and <keyword id=\"stun\">Stun</keyword> damage taken increased by <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Daño <keyword id=\"physical\">físico</keyword> y de <keyword id=\"stun\">Aturdimiento</keyword> recibido aumentado en un <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Dégâts de type <keyword id=\"physical\">Physique</keyword> et d’<keyword id=\"stun\">Étourdissement</keyword> subis augmentés de <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"physical\">物理</keyword>と<keyword id=\"stun\">スタン</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%増加"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"physical\">물리</keyword> 및 <keyword id=\"stun\">기절</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>%% 증가"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dano <keyword id=\"physical\">Físico</keyword> e de <keyword id=\"stun\">Atordoamento</keyword> recebido aumentado em <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "承受的<keyword id=\"physical\">物理</keyword>與<keyword id=\"stun\">暈眩</keyword>傷害增加<value id=\"quantity_1\">%1$lld</value>%%"}}
-      }
-    },
-    "traits.off_balance.name": {
-      "comment": "ContentManifest/traits.tsv: off_balance, name",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Aus dem Gleichgewicht"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Off Balance"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Desequilibrado"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Déséquilibré"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "体勢崩れ"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "무너진 균형"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Desequilibrado"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "失去平衡"}}
       }
     },
     "traits.pilfer.description": {
@@ -35001,34 +35001,6 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "瘟疫面具"}}
       }
     },
-    "traits.poison_hardened.description": {
-      "comment": "ContentManifest/traits.tsv: poison_hardened, description",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erlittener <keyword id=\"poison\">Gift</keyword>schaden um <value id=\"quantity_1\">%1$lld</value>%% verringert"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"poison\">Poison</keyword> damage taken reduced by <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Daño de <keyword id=\"poison\">Veneno</keyword> recibido reducido en un <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Dégâts de <keyword id=\"poison\">Poison</keyword> subis réduits de <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"poison\">毒</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%減少"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"poison\">독</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>%% 감소"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dano de <keyword id=\"poison\">Veneno</keyword> recebido reduzido em <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "承受的<keyword id=\"poison\">中毒</keyword>傷害降低<value id=\"quantity_1\">%1$lld</value>%%"}}
-      }
-    },
-    "traits.poison_hardened.name": {
-      "comment": "ContentManifest/traits.tsv: poison_hardened, name",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"poison\">Gift</keyword>gehärtet"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"poison\">Poison</keyword>-Hardened"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Curtido en <keyword id=\"poison\">Veneno</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Endurci au <keyword id=\"poison\">Poison</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"poison\">毒</keyword>への耐性"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"poison\">독</keyword>으로 단련된"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Resistente a <keyword id=\"poison\">Veneno</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"poison\">中毒</keyword>抗性"}}
-      }
-    },
     "traits.profane.description": {
       "comment": "ContentManifest/traits.tsv: profane, description",
       "extractionState": "manual",
@@ -35057,6 +35029,34 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "褻瀆"}}
       }
     },
+    "traits.pyromancy.description": {
+      "comment": "ContentManifest/traits.tsv: pyromancy, description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe mit <keyword id=\"burn\">Brand</keyword> verursachen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">Burn</keyword> attacks deal <value id=\"quantity_1\">%1$lld</value> additional damage"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques de <keyword id=\"burn\">Quemadura</keyword> infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts des attaques de <keyword id=\"burn\">Brûlure</keyword> augmentent de <value id=\"quantity_1\">%1$lld</value>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">炎上</keyword>攻撃のダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">화상</keyword> 공격의 피해가 <value id=\"quantity_1\">%1$lld</value> 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Os ataques de <keyword id=\"burn\">Queimadura</keyword> causam <value id=\"quantity_1\">%1$lld</value> de dano adicional"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">燃燒</keyword>攻擊額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"}}
+      }
+    },
+    "traits.pyromancy.name": {
+      "comment": "ContentManifest/traits.tsv: pyromancy, name",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Pyromantie"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Pyromancy"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Piromancia"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Pyromancie"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "火術"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "화염술"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Piromancia"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "火術"}}
+      }
+    },
     "traits.radiant_judgment.description": {
       "comment": "ContentManifest/traits.tsv: radiant_judgment, description",
       "extractionState": "manual",
@@ -35083,6 +35083,34 @@
         "ko": {"stringUnit": {"state": "translated", "value": "빛나는 심판"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Julgamento Radiante"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "光輝審判"}}
+      }
+    },
+    "traits.reckless.description": {
+      "comment": "ContentManifest/traits.tsv: reckless, description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Erlittener Schaden vom Typ <keyword id=\"physical\">Physisch</keyword> um <value id=\"quantity_1\">%1$lld</value> %% erhöht"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">Physical</keyword> damage taken increased by <value id=\"quantity_1\">%1$lld</value>%%"}},
+        "es": {"stringUnit": {"state": "translated", "value": "El daño <keyword id=\"physical\">Físico</keyword> recibido aumenta un <value id=\"quantity_1\">%1$lld</value> %%"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de type <keyword id=\"physical\">Physique</keyword> subis augmentent de <value id=\"quantity_1\">%1$lld</value> %%"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"physical\">物理</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"physical\">물리</keyword> 피해가 <value id=\"quantity_1\">%1$lld</value>%% 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "O dano <keyword id=\"physical\">Físico</keyword> recebido aumenta em <value id=\"quantity_1\">%1$lld</value>%%"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "受到的<keyword id=\"physical\">物理</keyword>傷害提高<value id=\"quantity_1\">%1$lld</value>%%"}}
+      }
+    },
+    "traits.reckless.name": {
+      "comment": "ContentManifest/traits.tsv: reckless, name",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Leichtsinnig"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Reckless"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Temerario"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Téméraire"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "無謀"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "무모함"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Imprudente"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "魯莽"}}
       }
     },
     "traits.reform.description": {
@@ -35281,32 +35309,32 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "震地脈衝"}}
       }
     },
-    "traits.shattering_impact.description": {
-      "comment": "ContentManifest/traits.tsv: shattering_impact, description",
+    "traits.self_sacrifice.description": {
+      "comment": "ContentManifest/traits.tsv: self_sacrifice, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Das Durchbrechen des <keyword id=\"block\">Blocks</keyword> eines Gegners verursacht bei ihm <value id=\"quantity_1\">%1$lld</value> <keyword id=\"physical\">physischen</keyword> Schaden"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Breaking an enemy's <keyword id=\"block\">Block</keyword> deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"physical\">Physical</keyword> damage to them"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Romper el <keyword id=\"block\">Bloqueo</keyword> de un enemigo le inflige <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"physical\">físico</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Briser le <keyword id=\"block\">Blocage</keyword> d’un ennemi lui inflige <value id=\"quantity_1\">%1$lld</value> dégâts de type <keyword id=\"physical\">Physique</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "敵の<keyword id=\"block\">ブロック</keyword>を崩すと、その敵に<keyword id=\"physical\">物理</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "적의 <keyword id=\"block\">방어도</keyword>를 깨뜨리면 해당 적에게 <keyword id=\"physical\">물리</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Quebrar o <keyword id=\"block\">Bloqueio</keyword> de um inimigo causa <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"physical\">Físico</keyword> a ele"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "擊破敵人<keyword id=\"block\">格擋</keyword>時，對其造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"physical\">物理</keyword>傷害"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Verliert nach jedem eigenen Angriff <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Lose <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> after attacking"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Pierde <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> después de atacar"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Perd <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> après avoir attaqué"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃後、<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>失う"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격 후 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 잃음"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Perde <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> após atacar"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊後失去<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"}}
       }
     },
-    "traits.shattering_impact.name": {
-      "comment": "ContentManifest/traits.tsv: shattering_impact, name",
+    "traits.self_sacrifice.name": {
+      "comment": "ContentManifest/traits.tsv: self_sacrifice, name",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Zerschmetternder Einschlag"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Shattering Impact"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Impacto demoledor"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Impact fracassant"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "粉砕の衝撃"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "분쇄의 충격"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Impacto Estilhaçante"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "破碎衝擊"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Selbstopfer"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Self-Sacrifice"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Autosacrificio"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Sacrifice de soi"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自己犠牲"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "자기희생"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Autossacrifício"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "自我犧牲"}}
       }
     },
     "traits.shieldbreaker.description": {
@@ -35341,14 +35369,14 @@
       "comment": "ContentManifest/traits.tsv: siphon, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "<value id=\"quantity_1\">%1$lld</value>%% Chance auf <keyword id=\"leech\">Lebensraub</keyword>"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<value id=\"quantity_1\">%1$lld</value>%% chance to <keyword id=\"leech\">Leech</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "<value id=\"quantity_1\">%1$lld</value>%% de probabilidad de activar <keyword id=\"leech\">Absorción</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "<value id=\"quantity_1\">%1$lld</value>%% de chances de bénéficier de <keyword id=\"leech\">Vol de vie</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<value id=\"quantity_1\">%1$lld</value>%%の確率で<keyword id=\"leech\">吸収</keyword>"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<value id=\"quantity_1\">%1$lld</value>%% 확률로 <keyword id=\"leech\">흡혈</keyword>"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "<value id=\"quantity_1\">%1$lld</value>%% de chance de aplicar <keyword id=\"leech\">Drenagem</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "有<value id=\"quantity_1\">%1$lld</value>%%機率<keyword id=\"leech\">吸血</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Stellt nach jedem eigenen Angriff <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> after attacking"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> después de atacar"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Récupère <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> après avoir attaqué"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃後、<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격 후 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 회복"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> após atacar"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊後恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"}}
       }
     },
     "traits.siphon.name": {
@@ -35393,32 +35421,32 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "石膚"}}
       }
     },
-    "traits.thin_blooded.description": {
-      "comment": "ContentManifest/traits.tsv: thin_blooded, description",
+    "traits.thawing.description": {
+      "comment": "ContentManifest/traits.tsv: thawing, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erlittener <keyword id=\"bleed\">Blutungs</keyword>schaden um <value id=\"quantity_1\">%1$lld</value>%% erhöht"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">Bleed</keyword> damage taken increased by <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Daño de <keyword id=\"bleed\">Sangrado</keyword> recibido aumentado en un <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Dégâts de <keyword id=\"bleed\">Saignement</keyword> subis augmentés de <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"bleed\">出血</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%増加"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"bleed\">출혈</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>%% 증가"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dano de <keyword id=\"bleed\">Sangramento</keyword> recebido aumentado em <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "承受的<keyword id=\"bleed\">流血</keyword>傷害增加<value id=\"quantity_1\">%1$lld</value>%%"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Erlittener Schaden durch <keyword id=\"burn\">Brand</keyword> um <value id=\"quantity_1\">%1$lld</value> %% erhöht"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">Burn</keyword> damage taken increased by <value id=\"quantity_1\">%1$lld</value>%%"}},
+        "es": {"stringUnit": {"state": "translated", "value": "El daño de <keyword id=\"burn\">Quemadura</keyword> recibido aumenta un <value id=\"quantity_1\">%1$lld</value> %%"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de <keyword id=\"burn\">Brûlure</keyword> subis augmentent de <value id=\"quantity_1\">%1$lld</value> %%"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"burn\">炎上</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"burn\">화상</keyword> 피해가 <value id=\"quantity_1\">%1$lld</value>%% 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "O dano de <keyword id=\"burn\">Queimadura</keyword> recebido aumenta em <value id=\"quantity_1\">%1$lld</value>%%"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "受到的<keyword id=\"burn\">燃燒</keyword>傷害提高<value id=\"quantity_1\">%1$lld</value>%%"}}
       }
     },
-    "traits.thin_blooded.name": {
-      "comment": "ContentManifest/traits.tsv: thin_blooded, name",
+    "traits.thawing.name": {
+      "comment": "ContentManifest/traits.tsv: thawing, name",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Dünnblütig"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Thin-Blooded"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Sangre débil"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Sang dilué"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "薄い血"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "묽은 피"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sangue Ralo"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "稀薄之血"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Auftauend"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Thawing"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Deshielo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Dégel"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "解凍"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "해빙"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Degelo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "解凍"}}
       }
     },
     "traits.thunderous_tremor.description": {
@@ -35447,118 +35475,6 @@
         "ko": {"stringUnit": {"state": "translated", "value": "천둥 같은 진동"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Tremor Trovejante"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "雷霆巨震"}}
-      }
-    },
-    "traits.toughened_hide.description": {
-      "comment": "ContentManifest/traits.tsv: toughened_hide, description",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erlittener <keyword id=\"physical\">physischer</keyword> Schaden um <value id=\"quantity_1\">%1$lld</value>%% verringert"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">Physical</keyword> damage taken reduced by <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Daño <keyword id=\"physical\">físico</keyword> recibido reducido en un <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Dégâts de type <keyword id=\"physical\">Physique</keyword> subis réduits de <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"physical\">物理</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%減少"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"physical\">물리</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>%% 감소"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dano <keyword id=\"physical\">Físico</keyword> recebido reduzido em <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "承受的<keyword id=\"physical\">物理</keyword>傷害降低<value id=\"quantity_1\">%1$lld</value>%%"}}
-      }
-    },
-    "traits.toughened_hide.name": {
-      "comment": "ContentManifest/traits.tsv: toughened_hide, name",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Gehärtete Haut"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Toughened Hide"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Piel curtida"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Cuir endurci"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "強靭な皮膚"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "단련된 가죽"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Couro Endurecido"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "堅韌獸皮"}}
-      }
-    },
-    "traits.toxin_adaptation.description": {
-      "comment": "ContentManifest/traits.tsv: toxin_adaptation, description",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erlittener <keyword id=\"poison\">Gift</keyword>schaden um <value id=\"quantity_1\">%1$lld</value>%% verringert"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"poison\">Poison</keyword> damage taken reduced by <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Daño de <keyword id=\"poison\">Veneno</keyword> recibido reducido en un <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Dégâts de <keyword id=\"poison\">Poison</keyword> subis réduits de <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"poison\">毒</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%減少"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"poison\">독</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>%% 감소"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dano de <keyword id=\"poison\">Veneno</keyword> recebido reduzido em <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "承受的<keyword id=\"poison\">中毒</keyword>傷害降低<value id=\"quantity_1\">%1$lld</value>%%"}}
-      }
-    },
-    "traits.toxin_adaptation.name": {
-      "comment": "ContentManifest/traits.tsv: toxin_adaptation, name",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Giftanpassung"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Toxin Adaptation"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Adaptación a toxinas"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Adaptation aux toxines"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "毒素順応"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "독소 적응"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Adaptação a Toxinas"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "毒素適應"}}
-      }
-    },
-    "traits.toxin_tolerance.description": {
-      "comment": "ContentManifest/traits.tsv: toxin_tolerance, description",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erlittener <keyword id=\"poison\">Gift</keyword>schaden um <value id=\"quantity_1\">%1$lld</value>%% verringert"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"poison\">Poison</keyword> damage taken reduced by <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Daño de <keyword id=\"poison\">Veneno</keyword> recibido reducido en un <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Dégâts de <keyword id=\"poison\">Poison</keyword> subis réduits de <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "受ける<keyword id=\"poison\">毒</keyword>ダメージが<value id=\"quantity_1\">%1$lld</value>%%減少"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "받는 <keyword id=\"poison\">독</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>%% 감소"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dano de <keyword id=\"poison\">Veneno</keyword> recebido reduzido em <value id=\"quantity_1\">%1$lld</value>%%"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "承受的<keyword id=\"poison\">中毒</keyword>傷害降低<value id=\"quantity_1\">%1$lld</value>%%"}}
-      }
-    },
-    "traits.toxin_tolerance.name": {
-      "comment": "ContentManifest/traits.tsv: toxin_tolerance, name",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Gifttoleranz"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Toxin Tolerance"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Tolerancia a toxinas"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Tolérance aux toxines"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "毒素耐性"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "독소 내성"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Tolerância a Toxinas"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "毒素耐受"}}
-      }
-    },
-    "traits.unquenchable_flame.description": {
-      "comment": "ContentManifest/traits.tsv: unquenchable_flame, description",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">Brand</keyword>schaden ignoriert den gesamten gegnerischen <keyword id=\"block\">Block</keyword> und sämtliche Schadensreduktion"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">Burn</keyword> damage ignores all enemy <keyword id=\"block\">Block</keyword> and damage reduction"}},
-        "es": {"stringUnit": {"state": "translated", "value": "El daño de <keyword id=\"burn\">Quemadura</keyword> ignora todo el <keyword id=\"block\">Bloqueo</keyword> y la reducción de daño del enemigo"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de <keyword id=\"burn\">Brûlure</keyword> ignorent tout le <keyword id=\"block\">Blocage</keyword> et toute la réduction des dégâts ennemis"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">炎上</keyword>ダメージが敵の<keyword id=\"block\">ブロック</keyword>とダメージ軽減をすべて無視"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">화상</keyword> 피해가 적의 모든 <keyword id=\"block\">방어도</keyword>와 피해 감소 무시"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dano de <keyword id=\"burn\">Queimadura</keyword> ignora todo o <keyword id=\"block\">Bloqueio</keyword> e toda a redução de dano inimigos"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">燃燒</keyword>傷害無視敵人所有<keyword id=\"block\">格擋</keyword>與傷害減免"}}
-      }
-    },
-    "traits.unquenchable_flame.name": {
-      "comment": "ContentManifest/traits.tsv: unquenchable_flame, name",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Unlöschbare Flamme"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Unquenchable Flame"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Llama inextinguible"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Flamme inextinguible"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "消せぬ炎"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "꺼지지 않는 불꽃"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Chama Inextinguível"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "不熄之焰"}}
       }
     },
     "traits.venomous_strikes.description": {

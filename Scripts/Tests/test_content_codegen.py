@@ -36,10 +36,10 @@ class ContentCodegenTests(ScriptRegressionTestCase):
 
         row = EnemyRow("test_enemy", "Test Enemy", "12", "false", "slash,bash,smite", "guard,bloodless", "mortal")
         abilities = {"slash", "bash", "smite"}
-        traits = {"guard", "bloodless"}
+        traits = {"guard": "positive", "bloodless": "negative"}
         validate_enemy_rows([row], abilities, set(), traits)
         self.assertIn('traitIDs: ["guard", "bloodless"]', render_enemy(row))
-        for invalid in ("", "guard,", "guard,guard", "missing"):
+        for invalid in ("", "guard,", "guard,guard", "missing", "guard", "bloodless,guard"):
             with self.subTest(trait_ids=invalid):
                 row.trait_ids = invalid
                 with self.assertRaises(ValueError):

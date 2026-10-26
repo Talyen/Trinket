@@ -64,10 +64,10 @@ buildup. Row position does not increase a talent’s power budget; see
 Tab-separated columns:
 
 ```text
-id	name	description	modifiers	triggers
+id	name	description	modifiers	triggers	polarity
 ```
 
-- One row per shared enemy trait, with a unique thematic name and one coherent mechanic. Independent benefits, resistances, and weaknesses are separate traits; alternate triggers for one benefit and periodic cadence configuration stay together. `modifiers` / `triggers` use the same pipe-separated DSL as affixes.
+- One row per shared enemy trait, with a unique thematic name and one coherent mechanic. Each row declares `polarity` as `positive` or `negative`; independent benefits and drawbacks are separate traits; alternate triggers for one benefit and periodic cadence configuration stay together. `modifiers` / `triggers` use the same pipe-separated DSL as affixes.
 - Generates `GameContentTraits.generated.swift`.
 - Enemy turn auras: `turn_random_damage_all_enemies:keywordA:keywordB:amount` rolls one keyword each turn and deals `amount` of that type to each living party member. `turn_freeze_all_enemies:amount` deals fixed Freeze damage every other turn.
 
@@ -147,7 +147,7 @@ id	name	max_health	is_boss	abilities	trait_ids	faction
 - `is_boss`: `true` or `false`.
 - `faction`: `mortal`, `beast`, `elemental`, `construct`, `undead`, or `corrupted`.
 - `abilities`: comma-separated ability symbols (basic, skill, ultimate — exactly three).
-- `trait_ids`: nonempty comma-separated list of distinct IDs from `traits.tsv`, ordered as signature mechanics, resistances, then weaknesses. Identical effects share a definition; all assigned traits compose into the enemy combat profile and appear individually in enemy details.
+- `trait_ids`: exactly two distinct IDs from `traits.tsv`, ordered as one positive then one negative trait. Shared rules can retain different thematic names when they describe different enemy identities; all assigned traits compose into the enemy combat profile and appear individually in enemy details.
 - Enemy damage scales via `EnemyPowerCurve` raw damage % curves. Interpolation and growth beyond the final anchor follow [battle-balance.md](../Docs/AgentContext/battle-balance.md); the final anchor is not an upper cap. Enemies have 0% Crit/Dodge and cannot gain guaranteed crit, evade, or trait crit/dodge effects.
 
 ### Homestead nodes (`ContentManifest/homestead_nodes.tsv`)

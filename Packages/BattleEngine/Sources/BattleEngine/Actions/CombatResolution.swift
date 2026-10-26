@@ -31,6 +31,7 @@ struct CombatResolution {
         var loadedStrikeDouble: Bool?
         var prismaticEdgeDidRoll = false
         var prismaticEdgeKeyword: Keyword?
+        var enemyAttack: EnemyTraitEngine.Attack?
     }
 
     private struct Card {
@@ -87,6 +88,18 @@ struct CombatResolution {
 
     var actionOutcome: ResolvedActionFacts? {
         currentAction?.outcome
+    }
+
+    mutating func prepareEnemyAttack(_ attack: EnemyTraitEngine.Attack) {
+        precondition(!actions.isEmpty)
+        actions[actions.count - 1].enemyAttack = attack
+    }
+
+    mutating func mutateEnemyAttack(for actorID: String, _ body: (inout EnemyTraitEngine.Attack) -> Void) {
+        guard let index = actions.indices.last, actions[index].context.actor.id == actorID,
+              var attack = actions[index].enemyAttack else { return }
+        body(&attack)
+        actions[index].enemyAttack = attack
     }
 
     func grantsBurnAttackLeech(to actorID: String) -> Bool {

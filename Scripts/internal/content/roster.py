@@ -40,6 +40,7 @@ class TraitRow:
     description: str
     modifiers: str
     triggers: str
+    polarity: str = "positive"
 
 
 @dataclass
@@ -110,6 +111,8 @@ def validate_trait_rows(rows: list[TraitRow]) -> None:
         _validate_snake_id("trait id", row.id, row.id)
         _require_non_empty("trait name", row.name, row.id)
         _require_non_empty("trait description", row.description, row.id)
+        if row.polarity not in {"positive", "negative"}:
+            raise ValueError(f"Invalid trait polarity for {row.id}: {row.polarity}")
 
         modifiers_swift(row.modifiers, row.id)
         triggers_swift(row.triggers, row.id)
@@ -140,7 +143,7 @@ def validate_combatant_rows(
 
 
 def validate_enemy_rows(
-    rows: list[EnemyRow], ability_symbols: set[str], combatant_ids: set[str], trait_ids: set[str]
+    rows: list[EnemyRow], ability_symbols: set[str], combatant_ids: set[str], traits: dict[str, str]
 ) -> None:
     seen: set[str] = set()
     for row in rows:
@@ -159,8 +162,10 @@ def validate_enemy_rows(
         _validate_ability_symbols(row.abilities, row.id, ability_symbols, expected_count=3)
         assigned_traits = parse_enemy_trait_ids(row)
         for trait_id in assigned_traits:
-            if trait_id not in trait_ids:
+            if trait_id not in traits:
                 raise ValueError(f"Unknown trait_id '{trait_id}' for enemy {row.id}")
+        if [traits[trait_id] for trait_id in assigned_traits] != ["positive", "negative"]:
+            raise ValueError(f"Enemy {row.id} needs one positive then one negative trait")
         if row.faction not in VALID_ENEMY_FACTIONS:
             raise ValueError(f"Invalid faction '{row.faction}' for enemy {row.id}")
 
@@ -214,7 +219,8 @@ def generate_traits_catalog(rows: list[TraitRow]) -> None:
             "        CombatantTraitDefinition(\n"
             f'            id: "{swift_escape(row.id)}",\n'
             f'            name: "{swift_escape(row.name)}",\n'
-            f'            description: "{swift_escape(row.description)}"'
+            f'            description: "{swift_escape(row.description)}",\n'
+            f'            polarity: .{row.polarity}'
             + power_arguments_swift(row.modifiers, row.triggers, indent="            ")
             + "\n        )"
         )

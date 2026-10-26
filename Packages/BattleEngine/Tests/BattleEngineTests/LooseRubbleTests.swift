@@ -15,50 +15,66 @@ struct LooseRubbleTests {
     }
 
     @Test(arguments: [DamageOperation.attack(accuracy: .unavoidable), .periodic, .resolvedPeriodic, .reaction()])
-    func `Health damage readies one reduction without stacking`(operation: DamageOperation) throws {
+    func `Health damage readies one attack reduction without stacking`(operation: DamageOperation) throws {
         var battle = try battle()
         for _ in 0 ..< 2 {
-            _ = battle.resolveTestDamage(1, options: operation)
+            battle.resolveTestDamage(1, options: operation)
         }
+        let attack = Ability(
+            id: "double_hit",
+            name: "Double Hit",
+            tier: .basic,
+            damageComponents: [DamageComponent(2, keyword: .physical), DamageComponent(2, keyword: .physical)],
+        )
         for expected in [3, 4] {
-            let hit = battle.recordingResult { context in context.resolveTestDamage(4, from: .enemy, to: .hero, options: .reaction()) }
-            #expect(hit.value.healthLost == expected)
-            if expected == 3 {
-                let reduction = try #require(hit.events.first { $0.effectKind == .damageReduced })
-                #expect(reduction.amount == 1)
-                #expect(!hit.events.contains { $0.kind == .status && $0.amount == 1 && $0.targetID == battle.hero.id })
-            }
+            let health = battle.roster.hero.currentHealth
+            let events = battle.performTestAction(attack, from: .enemy, to: .hero)
+            #expect(health - battle.roster.hero.currentHealth == expected)
+            #expect(events.filter { $0.effectKind == .damageReduced }.reduce(0) { $0 + $1.amount } == (expected == 3 ? 1 : 0))
         }
     }
 
-    @Test func `fully blocked damage and Health costs do not ready Loose Rubble`() throws {
+    @Test func `ongoing damage reactions and support preserve the next attack reduction`() throws {
+        var battle = try battle()
+        battle.resolveTestDamage(1, options: .reaction())
+        for operation in [DamageOperation.periodic, .reaction()] {
+            let pulse = battle.resolveTestDamage(4, from: .enemy, to: .hero, options: operation)
+            #expect(pulse.healthLost == 4)
+        }
+        battle.performTestAction(.stoneskinPotion, from: .enemy, to: .hero)
+        let health = battle.roster.hero.currentHealth
+        battle.performTestAction(.slash, from: .enemy, to: .hero)
+        #expect(health - battle.roster.hero.currentHealth == 2)
+    }
+
+    @Test func `fully blocked damage and Health costs do not ready a reduction`() throws {
         var battle = try battle()
         DefensePoolEngine.set(2, on: battle.enemy, in: &battle)
         for operation in [DamageOperation.reaction(), .healthCost] {
-            _ = battle.resolveTestDamage(1, options: operation)
+            battle.resolveTestDamage(1, options: operation)
         }
-        let hit = battle.resolveTestDamage(4, from: .enemy, to: .hero, options: .reaction())
-        #expect(hit.healthLost == 4)
+        let health = battle.roster.hero.currentHealth
+        battle.performTestAction(.slash, from: .enemy, to: .hero)
+        #expect(health - battle.roster.hero.currentHealth == 3)
     }
 
-    @Test func `a dodge preserves the reduction and a one-point pulse consumes it`() throws {
+    @Test func `a dodge preserves the reduction for the next landed attack`() throws {
         var battle = try battle()
-        _ = battle.resolveTestDamage(1, options: .reaction())
+        battle.resolveTestDamage(1, options: .reaction())
         battle.insertEffect(.evadeNextHit, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 1)
-        let dodge = battle.resolveTestDamage(4, from: .enemy, to: .hero)
-        #expect(dodge.healthLost == 0)
-        for expected in [0, 1] {
-            let pulse = battle.resolveTestDamage(1, from: .enemy, to: .hero, options: .reaction())
-            #expect(pulse.healthLost == expected)
-        }
+        let health = battle.roster.hero.currentHealth
+        battle.performTestAction(.slash, from: .enemy, to: .hero)
+        #expect(battle.roster.hero.currentHealth == health)
+        battle.performTestAction(.slash, from: .enemy, to: .hero)
+        #expect(health - battle.roster.hero.currentHealth == 2)
     }
 
-    @Test func `damage can ready the reduction again after consumption`() throws {
+    @Test func `the initial Earthquake pulse spends the attack reduction`() throws {
         var battle = try battle()
-        for _ in 0 ..< 2 {
-            _ = battle.resolveTestDamage(1, options: .resolvedPeriodic)
-            let hit = battle.resolveTestDamage(4, from: .enemy, to: .hero, keyword: .stun, options: .periodic)
-            #expect(hit.healthLost == 3)
-        }
+        battle.resolveTestDamage(1, options: .resolvedPeriodic)
+        let health = battle.roster.hero.currentHealth
+        battle.performTestAction(.earthquake, from: .enemy, to: .hero)
+        #expect(health - battle.roster.hero.currentHealth == 5)
+        #expect(battle.roster.enemy.talents.pending.nextDamageReduction == 0)
     }
 }

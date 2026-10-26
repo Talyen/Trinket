@@ -588,6 +588,26 @@
     {
       "name": "basicAttackApplyBurn",
       "type": "Int"
+    },
+    {
+      "name": "attackHealFlat",
+      "type": "Int"
+    },
+    {
+      "name": "attackHealthRecoil",
+      "type": "Int"
+    },
+    {
+      "name": "burnAttackDamageBonus",
+      "type": "Int"
+    },
+    {
+      "name": "attackHolyBonusVsBelowHalf",
+      "type": "Int"
+    },
+    {
+      "name": "attackDamageReductionBelowHalf",
+      "type": "Int"
     }
   ]
 }

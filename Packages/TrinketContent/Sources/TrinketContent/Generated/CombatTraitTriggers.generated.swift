@@ -231,6 +231,11 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case attackHealthCost
     case attacksApplyBleed
     case basicAttackApplyBurn
+    case attackHealFlat
+    case attackHealthRecoil
+    case burnAttackDamageBonus
+    case attackHolyBonusVsBelowHalf
+    case attackDamageReductionBelowHalf
     case sealedSarcophagus
     case retainAllBlockBetweenTurns
     case blockedAttackBasicOncePerTurn
@@ -1158,6 +1163,11 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var attackHealthCost: Int = 0
         public var attacksApplyBleed: Int = 0
         public var basicAttackApplyBurn: Int = 0
+        public var attackHealFlat: Int = 0
+        public var attackHealthRecoil: Int = 0
+        public var burnAttackDamageBonus: Int = 0
+        public var attackHolyBonusVsBelowHalf: Int = 0
+        public var attackDamageReductionBelowHalf: Int = 0
         public var sealedSarcophagus: Bool = false
         public var retainAllBlockBetweenTurns: Bool = false
         public var blockedAttackBasicOncePerTurn: Bool = false
@@ -2088,6 +2098,11 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.attackHealthCost, .attackHealthCost, default: 0, merging: .add),
         .init(\.attacksApplyBleed, .attacksApplyBleed, default: 0, merging: .add),
         .init(\.basicAttackApplyBurn, .basicAttackApplyBurn, default: 0, merging: .add),
+        .init(\.attackHealFlat, .attackHealFlat, default: 0, merging: .add),
+        .init(\.attackHealthRecoil, .attackHealthRecoil, default: 0, merging: .add),
+        .init(\.burnAttackDamageBonus, .burnAttackDamageBonus, default: 0, merging: .add),
+        .init(\.attackHolyBonusVsBelowHalf, .attackHolyBonusVsBelowHalf, default: 0, merging: .add),
+        .init(\.attackDamageReductionBelowHalf, .attackDamageReductionBelowHalf, default: 0, merging: .add),
         .init(\.sealedSarcophagus, .sealedSarcophagus, default: false, merging: .or),
         .init(\.retainAllBlockBetweenTurns, .retainAllBlockBetweenTurns, default: false, merging: .or),
         .init(\.blockedAttackBasicOncePerTurn, .blockedAttackBasicOncePerTurn, default: false, merging: .or),

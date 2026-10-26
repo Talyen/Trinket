@@ -5,101 +5,110 @@ import TrinketCore
 enum GameContentTraitsGenerated {
     static let definitions: [CombatantTraitDefinition] = {
         var list = [CombatantTraitDefinition]()
-        list.reserveCapacity(55)
+        list.reserveCapacity(52)
         list.append(CombatantTraitDefinition(
             id: "watchful_guard",
             name: "Watchful Guard",
             description: "Gain 1 Block at the start of each round",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.blockPerTurn = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "hidden_fangs",
             name: "Hidden Fangs",
             description: "The first attack deals 2 additional Bleed damage",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.firstAttackBleedBonus = 2 }
         ))
         list.append(CombatantTraitDefinition(
             id: "siphon",
             name: "Siphon",
-            description: "10% chance to Leech",
-            triggers: CombatTraitTriggers { $0.leechChancePercent = 0.10 }
+            description: "Restore 1 Health after attacking",
+            polarity: .positive,
+            triggers: CombatTraitTriggers { $0.attackHealFlat = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "searing_body",
             name: "Searing Body",
             description: "Apply 1 Burn to attackers when hit",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.onHitAttackerBurn = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "chilling_strikes",
             name: "Chilling Strikes",
             description: "Basic attacks deal 1 additional Freeze damage",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.basicAttackFreezeBuildup = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "ambush",
             name: "Ambush",
             description: "Deal double damage on the first attack",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.firstHitDoubleDamage = true }
         ))
         list.append(CombatantTraitDefinition(
             id: "shieldbreaker",
             name: "Shieldbreaker",
             description: "Physical attacks deal double damage to enemy Block",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.physicalBlockBreakMultiplier = 2.0 }
         ))
         list.append(CombatantTraitDefinition(
             id: "fan_the_flames",
             name: "Fan the Flames",
             description: "Attacks against Burning enemies deal 25% additional damage",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.damageVsBurningMultiplier = 1.25 }
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "unquenchable_flame",
-            name: "Unquenchable Flame",
-            description: "Burn damage ignores all enemy Block and damage reduction",
-            triggers: CombatTraitTriggers { $0.burnIgnoresBlockAndMitigation = true }
         ))
         list.append(CombatantTraitDefinition(
             id: "venomous_strikes",
             name: "Venomous Strikes",
             description: "Attacks apply 1 Poison",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.attacksApplyPoison = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "corrosive_venom",
             name: "Corrosive Venom",
             description: "Poison strips 1 Block before damaging Health",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.poisonStripsBlockBeforeHealth = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "blood_scent",
             name: "Blood Scent",
             description: "Attacks against Bleeding enemies deal 1 additional damage",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.damageVsBleedingBonus = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "sated_fury",
             name: "Sated Fury",
             description: "Reaching full Health makes the next attack deal 1 additional damage",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.nextAttackBonusOnFullHealth = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "gathering_zeal",
             name: "Gathering Zeal",
             description: "Dealing Holy damage adds 1 Holy damage to the next attack",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.holyDamageNextAttackHolyBonus = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "restoring_light",
             name: "Restoring Light",
             description: "Dealing Holy damage restores 1 Health",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.holyDamageHealLowestAllyFlat = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "righteous_guard",
             name: "Righteous Guard",
             description: "Gain 1 Block when dealing Stun or Holy damage",
+            polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.holyDamageBlockFlat = 1
                 $0.stunDamageBlockFlat = 1
@@ -109,42 +118,42 @@ enum GameContentTraitsGenerated {
             id: "numbing_presence",
             name: "Numbing Presence",
             description: "Frozen enemies deal 1 less damage",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.frozenEnemyDamageReductionFlat = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "rimeguard",
             name: "Rimeguard",
             description: "Gain 1 Block whenever an enemy becomes Frozen",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.onEnemyFrozenGainBlock = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "dread_exploitation",
             name: "Dread Exploitation",
             description: "Attacks against Stunned enemies deal 1 additional damage",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.damageWhileTargetStunnedBonus = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "concussion",
             name: "Concussion",
             description: "Stunned enemies deal 25% less damage next turn",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.stunnedEnemyNextTurnDamageMultiplier = 0.75 }
         ))
         list.append(CombatantTraitDefinition(
             id: "bulwark_force",
             name: "Bulwark Force",
-            description: "While holding Block, attacks deal 1 additional damage",
+            description: "Attacks deal 1 additional damage while it has Block",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.shieldDamageBonusWhileBlocked = 1 }
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "shattering_impact",
-            name: "Shattering Impact",
-            description: "Breaking an enemy's Block deals 1 Physical damage to them",
-            triggers: CombatTraitTriggers { $0.onEnemyBlockBrokenDealPhysical = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "blighted_pulse",
             name: "Blighted Pulse",
             description: "Deals 2 Poison or Bleed damage every other turn to all enemies",
+            polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .poison
                 $0.turnRandomDamageAllEnemiesKeywordB = .bleed
@@ -156,6 +165,7 @@ enum GameContentTraitsGenerated {
             id: "furnace_pulse",
             name: "Furnace Pulse",
             description: "Deals 1 Stun or 1 Burn damage every other turn to all enemies",
+            polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .stun
                 $0.turnRandomDamageAllEnemiesKeywordB = .burn
@@ -167,6 +177,7 @@ enum GameContentTraitsGenerated {
             id: "winters_grasp",
             name: "Winter’s Grasp",
             description: "Deals 1 Freeze damage every other turn to all enemies",
+            polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.turnFreezeDamageAllEnemies = 1
                 $0.turnFreezeDamageAllEnemiesInterval = 2
@@ -176,6 +187,7 @@ enum GameContentTraitsGenerated {
             id: "thunderous_tremor",
             name: "Thunderous Tremor",
             description: "Deals 1 Physical or 1 Stun damage every other turn to all enemies",
+            polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .physical
                 $0.turnRandomDamageAllEnemiesKeywordB = .stun
@@ -187,6 +199,7 @@ enum GameContentTraitsGenerated {
             id: "crimson_pulse",
             name: "Crimson Pulse",
             description: "Deals 1 Bleed damage every other turn to all enemies",
+            polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .bleed
                 $0.turnRandomDamageAllEnemiesKeywordB = .bleed
@@ -198,6 +211,7 @@ enum GameContentTraitsGenerated {
             id: "radiant_judgment",
             name: "Radiant Judgment",
             description: "Deals 1 Holy damage every other turn to all enemies",
+            polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .holy
                 $0.turnRandomDamageAllEnemiesKeywordB = .holy
@@ -209,6 +223,7 @@ enum GameContentTraitsGenerated {
             id: "seismic_pulse",
             name: "Seismic Pulse",
             description: "Deals 1 Physical damage every other turn to all enemies",
+            polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .physical
                 $0.turnRandomDamageAllEnemiesKeywordB = .physical
@@ -217,163 +232,179 @@ enum GameContentTraitsGenerated {
             }
         ))
         list.append(CombatantTraitDefinition(
-            id: "toughened_hide",
-            name: "Toughened Hide",
-            description: "Physical damage taken reduced by 10%",
-            modifiers: [.damageTakenPercent(.physical, 0.10)]
-        ))
-        list.append(CombatantTraitDefinition(
             id: "gelatinous_body",
             name: "Gelatinous Body",
-            description: "Physical damage taken reduced by 10%",
-            modifiers: [.damageTakenPercent(.physical, 0.10)]
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "dense_form",
-            name: "Dense Form",
             description: "Physical damage taken reduced by 20%",
+            polarity: .positive,
             modifiers: [.damageTakenPercent(.physical, 0.20)]
         ))
         list.append(CombatantTraitDefinition(
             id: "incorporeal",
             name: "Incorporeal",
             description: "Physical damage taken reduced by 30%",
+            polarity: .positive,
             modifiers: [.damageTakenPercent(.physical, 0.30)]
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "toxin_tolerance",
-            name: "Toxin Tolerance",
-            description: "Poison damage taken reduced by 10%",
-            modifiers: [.damageTakenPercent(.poison, 0.10)]
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "toxin_adaptation",
-            name: "Toxin Adaptation",
-            description: "Poison damage taken reduced by 20%",
-            modifiers: [.damageTakenPercent(.poison, 0.20)]
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "poison_hardened",
-            name: "Poison-Hardened",
-            description: "Poison damage taken reduced by 30%",
-            modifiers: [.damageTakenPercent(.poison, 0.30)]
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "cold_tempered",
-            name: "Cold-Tempered",
-            description: "Freeze damage taken reduced by 20%",
-            modifiers: [.damageTakenPercent(.freeze, 0.20)]
         ))
         list.append(CombatantTraitDefinition(
             id: "winterborn",
             name: "Winterborn",
             description: "Freeze damage taken reduced by 30%",
+            polarity: .positive,
             modifiers: [.damageTakenPercent(.freeze, 0.30)]
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "heat_tempered",
-            name: "Heat-Tempered",
-            description: "Burn damage taken reduced by 20%",
-            modifiers: [.damageTakenPercent(.burn, 0.20)]
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "bloodless",
-            name: "Bloodless",
-            description: "Bleed damage taken reduced by 30%",
-            modifiers: [.damageTakenPercent(.bleed, 0.30)]
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "hallowed",
-            name: "Hallowed",
-            description: "Holy damage taken reduced by 30%",
-            modifiers: [.damageTakenPercent(.holy, 0.30)]
         ))
         list.append(CombatantTraitDefinition(
             id: "kindling",
             name: "Kindling",
             description: "Burn damage taken increased by 30%",
+            polarity: .negative,
             modifiers: [.damageTakenVulnerability(.burn, 0.30)]
         ))
         list.append(CombatantTraitDefinition(
             id: "cold_shocked",
             name: "Cold-Shocked",
             description: "Freeze damage taken increased by 30%",
+            polarity: .negative,
             modifiers: [.damageTakenVulnerability(.freeze, 0.30)]
         ))
         list.append(CombatantTraitDefinition(
             id: "profane",
             name: "Profane",
             description: "Holy damage taken increased by 30%",
+            polarity: .negative,
             modifiers: [.damageTakenVulnerability(.holy, 0.30)]
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "thin_blooded",
-            name: "Thin-Blooded",
-            description: "Bleed damage taken increased by 30%",
-            modifiers: [.damageTakenVulnerability(.bleed, 0.30)]
         ))
         list.append(CombatantTraitDefinition(
             id: "stonehide",
             name: "Stonehide",
-            description: "Physical damage taken reduced by 10%",
-            modifiers: [.damageTakenPercent(.physical, 0.10)]
+            description: "Physical damage taken reduced by 20%",
+            polarity: .positive,
+            modifiers: [.damageTakenPercent(.physical, 0.20)]
         ))
         list.append(CombatantTraitDefinition(
             id: "fault_lines",
             name: "Fault Lines",
             description: "Stun damage taken increased by 30%",
+            polarity: .negative,
             modifiers: [.damageTakenVulnerability(.stun, 0.30)]
         ))
         list.append(CombatantTraitDefinition(
             id: "loose_rubble",
             name: "Loose Rubble",
-            description: "Taking Health damage reduces the next damage dealt by 1",
+            description: "Taking Health damage reduces the next attack’s damage by 1",
+            polarity: .negative,
             triggers: CombatTraitTriggers { $0.onHealthLossNextDamageReduction = 1 }
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "off_balance",
-            name: "Off Balance",
-            description: "Physical and Stun damage taken increased by 20%",
-            modifiers: [.damageTakenVulnerability(.physical, 0.20), .damageTakenVulnerability(.stun, 0.20)]
-        ))
-        list.append(CombatantTraitDefinition(
-            id: "blood_offering",
-            name: "Blood Offering",
-            description: "Attacks cost 1 Health and apply 1 Bleed",
-            triggers: CombatTraitTriggers {
-                $0.attackHealthCost = 1
-                $0.attacksApplyBleed = 1
-            }
         ))
         list.append(CombatantTraitDefinition(
             id: "plague_mask",
             name: "Plague Mask",
             description: "Restore 1 Health whenever an opponent takes Poison damage",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.healOnOpponentPoisonDamage = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "reform",
             name: "Reform",
             description: "Restore 1 Health at the start of each turn",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.healthAtTurnStart = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "firestarter",
             name: "Firestarter",
             description: "Basic attacks apply 1 Burn",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.basicAttackApplyBurn = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "pilfer",
             name: "Pilfer",
             description: "Steal 1 Block before attacking",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.attackStealBlock = 1 }
         ))
         list.append(CombatantTraitDefinition(
             id: "hollow_frame",
             name: "Hollow Frame",
             description: "Cannot be Leeched",
+            polarity: .positive,
             triggers: CombatTraitTriggers { $0.cannotBeLeeched = true }
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "bloodletting",
+            name: "Bloodletting",
+            description: "Attacks apply 1 Bleed",
+            polarity: .positive,
+            triggers: CombatTraitTriggers { $0.attacksApplyBleed = 1 }
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "condemn",
+            name: "Condemn",
+            description: "Attacks deal 1 additional Holy damage to opponents below half Health",
+            polarity: .positive,
+            triggers: CombatTraitTriggers { $0.attackHolyBonusVsBelowHalf = 1 }
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "pyromancy",
+            name: "Pyromancy",
+            description: "Burn attacks deal 1 additional damage",
+            polarity: .positive,
+            triggers: CombatTraitTriggers { $0.burnAttackDamageBonus = 1 }
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "corrodible",
+            name: "Corrodible",
+            description: "Poison damage taken increased by 30%",
+            polarity: .negative,
+            modifiers: [.damageTakenVulnerability(.poison, 0.30)]
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "cowardly",
+            name: "Cowardly",
+            description: "Attacks deal 1 less damage while below half Health",
+            polarity: .negative,
+            triggers: CombatTraitTriggers { $0.attackDamageReductionBelowHalf = 1 }
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "flickering",
+            name: "Flickering",
+            description: "Taking Health damage reduces the next attack’s damage by 1",
+            polarity: .negative,
+            triggers: CombatTraitTriggers { $0.onHealthLossNextDamageReduction = 1 }
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "frail",
+            name: "Frail",
+            description: "Physical damage taken increased by 30%",
+            polarity: .negative,
+            modifiers: [.damageTakenVulnerability(.physical, 0.30)]
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "lumbering",
+            name: "Lumbering",
+            description: "Stun damage taken increased by 30%",
+            polarity: .negative,
+            modifiers: [.damageTakenVulnerability(.stun, 0.30)]
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "reckless",
+            name: "Reckless",
+            description: "Physical damage taken increased by 30%",
+            polarity: .negative,
+            modifiers: [.damageTakenVulnerability(.physical, 0.30)]
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "self_sacrifice",
+            name: "Self-Sacrifice",
+            description: "Lose 1 Health after attacking",
+            polarity: .negative,
+            triggers: CombatTraitTriggers { $0.attackHealthRecoil = 1 }
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "thawing",
+            name: "Thawing",
+            description: "Burn damage taken increased by 30%",
+            polarity: .negative,
+            modifiers: [.damageTakenVulnerability(.burn, 0.30)]
         ))
         return list
     }()

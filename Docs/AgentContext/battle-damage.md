@@ -54,11 +54,17 @@ does not consume Fae Ward's interception of a new debuff.
 
 ## Enemy identity traits
 
-Blood Offering pays 1 Health once before each attack action and attaches 1 Bleed
-to its hits. The cost bypasses Block and mitigation, follows ordinary Health-cost
-affordability, and is paid again for a repeated attack; support actions and
-intercepted actions do not pay. Pilfer steals up to 1 Block from the selected
-opponent before an attack, using ordinary theft feedback and prevention.
+Every enemy has one positive trait and one negative trait, in that order.
+Bloodletting attaches 1 Bleed once per attack. Self-Sacrifice loses 1 Health after
+an attack finishes, bypassing Block and mitigation and permitting a lethal final
+attack. Siphon restores 1 Health after an attack. Support and intercepted actions
+do not trigger these rules; repeated attacks have their own action cadence.
+Pyromancy adds 1 damage to one Burn hit per attack. Condemn adds 1 Holy damage
+once per attack against an opponent below half Health before the qualifying hit.
+Cowardly reduces an attack's total damage by 1 when its owner starts below half
+Health. Multi-hit attacks share each bonus or reduction rather than repeating it.
+Pilfer steals up to 1 Block from the selected opponent before an attack, using
+ordinary theft feedback and prevention.
 Firestarter attaches 1 Burn once per Basic action, including Basics whose damage
 is authored as an effect; Skill, Ultimate and later status ticks do not apply it.
 
@@ -80,12 +86,15 @@ also saturate. Fully capped Thorns and Kindled grants preserve their existing st
 and report no application or success feedback. Card, talent and Block-driven
 Thorns grants share the same admitted replacement; rejected grants preserve existing
 stacks. Effect-detail totals and percentage formatting use the same bounded arithmetic, so inspecting capped preparations cannot crash.
-Loose Rubble readies a non-stacking one-point reduction on positive Health damage,
-including periodic and retaliation damage, excluding Health costs. The next positive
-outgoing packet consumes it after outgoing calculations and before flat mitigation
-and Block; dodges and non-damaging actions preserve it. A redirected packet does
-not consume a second reduction. Seismic Pulse can consume it. Its prevented amount
-logs as damage reduction and does not contribute damage chips or hit sounds.
+Loose Rubble and Flickering ready a non-stacking one-point attack reduction on
+positive Health damage, including periodic and retaliation damage, excluding
+Health costs. The next landed attack spends the reduction across its hits, after
+outgoing calculations and before flat mitigation and Block. The initial pulse
+of a recurring-damage ability also qualifies; later ticks, retaliation, Seismic
+Pulse, dodges and support actions preserve the preparation. Damage received
+during an attack readies a later attack rather than adding to its current budget.
+Its prevented amount logs as damage reduction and does not contribute damage
+chips or hit sounds.
 Watchful Guard grants Block in the opening round as well as later rounds.
 Blood Scent, Bulwark Force, Dread Exploitation, and Fan the Flames amplify enemy
 attacks, not ongoing damage. Stormbreak's damage multiplier also applies to Bleed

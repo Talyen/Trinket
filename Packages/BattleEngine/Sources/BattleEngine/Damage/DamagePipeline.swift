@@ -53,7 +53,7 @@ package enum DamagePipeline {
             reserveCompanionBlockIgnore(to: &state, in: &context)
         }
         applyOutgoingDamage(to: &state, in: &context)
-        applyNextDamageReduction(to: &state, in: &context)
+        EnemyTraitEngine.applyAttackReduction(to: &state, context: &context)
         ElementalReactionEngine.shatter(to: &state, in: &context)
         applyPreparedAttackReduction(to: &state, in: &context)
         applyTakenFlatAdjustments(to: &state, in: &context)
@@ -193,27 +193,6 @@ package enum DamagePipeline {
                 target: attacker.combatant, amount: outcome.healthLost, keyword: .freeze,
             )
         }
-    }
-
-    private static func applyNextDamageReduction(
-        to state: inout DamageResolutionState,
-        in context: inout BattleState,
-    ) {
-        guard state.remaining > 0, !state.options.isRedirected,
-              let sourceID = state.sourceActorID,
-              let source = context.roster.combatant(for: sourceID)?.combatant,
-              let runtime = context.roster.runtime(for: source),
-              runtime.talents.pending.nextDamageReduction > 0 else { return }
-        let reduction = min(state.remaining, runtime.talents.pending.nextDamageReduction)
-        context.roster.mutateRuntime(for: source) { $0.talents.pending.nextDamageReduction = 0 }
-        state.remaining -= reduction
-        context.nextEvent(
-            kind: .effect(.damageReduced), source: .init(source),
-            abilityName: context.modifiers(for: sourceID).triggerAbilityName(
-                .onHealthLossNextDamageReduction, fallback: "Loose Rubble",
-            ),
-            target: state.combatant, amount: reduction, keyword: state.damageKeyword ?? .physical,
-        )
     }
 
     private static func applyOutgoingDamage(
