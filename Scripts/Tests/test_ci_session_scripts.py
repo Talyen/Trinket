@@ -477,7 +477,7 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
             self.assertTrue((results / "old-fail-invocation.json").exists())
             self.assertTrue((results / "new-fail-invocation.json").exists())
 
-    def test_cleanup_sweeps_orphan_bundles_and_logs_by_age(self) -> None:
+    def test_cleanup_preserves_and_reports_old_orphan_bundles_and_logs(self) -> None:
         maintenance = load_script("diagnostic_cleanup_orphans", "diagnostic_maintenance.py")
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
@@ -502,11 +502,15 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
             # protects real outputs. Keep this age-policy fixture in its own root.
             with patch("internal.cli.ROOT", root), contextlib.redirect_stdout(io.StringIO()):
                 maintenance.cleanup(results, keep=False)
-            self.assertFalse(orphan_bundle.exists())
-            self.assertFalse(orphan_log.exists())
-            # Fresh orphans and evidence with a diagnostics report survive.
+            self.assertTrue(orphan_bundle.exists())
+            self.assertTrue(orphan_log.exists())
             self.assertTrue(fresh_log.exists())
             self.assertTrue(claimed_log.exists())
+            review = json.loads((results / ".retention-review.json").read_text(encoding="utf-8"))
+            self.assertFalse(review["permanent_deletion_approved"])
+            self.assertEqual(review["reclaimed_bytes"], 0)
+            self.assertEqual({item["path"] for item in review["candidates"]}, {str(orphan_bundle), str(orphan_log)})
+            self.assertTrue(all(item["action"] == "review-only" for item in review["candidates"]))
 
 
     def test_simulator_launcher_installs_resolved_product_and_rejects_missing_outputs(self) -> None:
