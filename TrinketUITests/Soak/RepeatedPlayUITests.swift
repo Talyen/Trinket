@@ -16,7 +16,7 @@ final class RepeatedPlayUITests: TrinketUITestCase {
             let offers = try XCTUnwrap(contracts["offers"] as? [[String: Any]])
             let offerID = try XCTUnwrap(offers.first { $0["difficulty"] as? String == "easy" }?["id"] as? String)
             let previousClaims = Set(contracts["completedOfferIDs"] as? [String] ?? [])
-            let won = completeAudioContract()
+            let won = try completeAudioContract()
             outcomes.append(won ? "victory" : "defeat")
             var report: [String: Any] = [:]
             waitUntil("Cycle \(cycle) must schedule real audio") {

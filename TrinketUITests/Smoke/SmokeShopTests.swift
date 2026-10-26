@@ -13,7 +13,10 @@ final class SmokeShopTests: TrinketUITestCase {
         let goldBalance = app.descendants(matching: .any).matching(identifier: AccessibilityID.Shop.goldBalance).firstMatch
         assertExists(goldBalance)
         let goldBefore = try integer(in: goldBalance)
-        XCTAssertTrue(scrollUntilVisible(offers.firstMatch, swipingUp: true, requireHittable: true), "A merchant offer must be reachable")
+        XCTAssertTrue(
+            app.scrollUntilVisible(offers.firstMatch, swipingUp: true, requireHittable: true),
+            "A merchant offer must be reachable",
+        )
         let offerID = offers.firstMatch.identifier
         let offer = button(offerID)
         let buyID = AccessibilityID.Shop.buyButton(offerID: String(offerID.dropLast(AccessibilityID.Shop.offerCardSuffix.count)))
@@ -35,7 +38,7 @@ final class SmokeShopTests: TrinketUITestCase {
             (try? self.integer(in: goldBalance)) == goldBefore - price
         }
 
-        scrollUntilVisible(leave, swipingUp: true, requireHittable: true)
+        reveal(leave)
         tapWhenReady(leave)
         play.assertLoaded()
     }

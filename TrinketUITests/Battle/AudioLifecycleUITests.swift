@@ -26,19 +26,22 @@ final class AudioLifecycleUITests: TrinketUITestCase {
         }
         tabBar.select(.play)
         play.openExplore()
-        assertExistsAfterScroll(AccessibilityID.Play.contractsModeCard, requireHittable: true)
-        tapButton(AccessibilityID.Play.contractsModeCard)
-        completeAudioContract()
-        let before = try coverageReport()
-        backgroundAndActivate()
-        completeAudioContract()
-        let plays = try XCTUnwrap(before["sfxPlays"] as? Int)
-        let musicStarts = try XCTUnwrap(before["musicStarts"] as? Int)
+        tapButtonAfterScroll(AccessibilityID.Play.contractsModeCard)
+        var plays = 0
+        try completeAudioContract {
+            let musicStarts = try XCTUnwrap(coverageReport()["musicStarts"] as? Int)
+            backgroundAndActivate()
+            // Observe the restart while still in battle: returning to the board
+            // starts menu music and could otherwise mask a failed foreground resume.
+            waitUntil("Foreground routing must restart battle music") {
+                ((try? self.coverageReport())?["musicStarts"] as? Int ?? 0) > musicStarts
+            }
+            plays = try XCTUnwrap(coverageReport()["sfxPlays"] as? Int)
+        }
         var after: [String: Any] = [:]
-        waitUntil("Foreground routing must restart music and schedule another sound") {
+        waitUntil("The resumed battle must schedule another sound") {
             after = (try? self.coverageReport()) ?? [:]
             return (after["sfxPlays"] as? Int ?? 0) > plays
-                && (after["musicStarts"] as? Int ?? 0) > musicStarts
         }
         XCTAssertEqual(after["audioFailures"] as? Int, 0)
         XCTAssertEqual(after["duplicateMusicOwners"] as? Int, 0)
@@ -62,21 +65,21 @@ final class AudioLifecycleUITests: TrinketUITestCase {
 
 extension TrinketUITestCase {
     @discardableResult
-    func completeAudioContract() -> Bool {
+    func completeAudioContract(afterEntry: () throws -> Void = {}) throws -> Bool {
         let fight = button(AccessibilityID.Play.contractFight("easy"))
         assertExists(AccessibilityID.Play.contractsBoard)
         // Easy is the first offer; scroll toward the top only when it is clipped.
-        XCTAssertTrue(scrollUntilVisible(fight, swipingUp: false, requireHittable: true), "The next Contract must be reachable")
+        XCTAssertTrue(app.scrollUntilVisible(fight, swipingUp: false, requireHittable: true), "The next Contract must be reachable")
         tapWhenReady(fight)
         battle.assertActive()
+        try afterEntry()
         tapWhenReady(battle.autoBattleToggle)
         waitUntil("Audio-enabled battle must resolve", timeout: 45) {
             self.any(AccessibilityID.Battle.victory).exists || self.any(AccessibilityID.Battle.defeat).exists
         }
         let won = any(AccessibilityID.Battle.victory).exists
         let leave = won ? AccessibilityID.Battle.continueButton : AccessibilityID.Battle.defeatLeaveButton
-        assertExistsAfterScroll(leave, requireHittable: true)
-        tapButton(leave)
+        tapButtonAfterScroll(leave)
         dismissEarnedTalentChoicesIfPresented()
         assertExists(AccessibilityID.Play.contractsBoard)
         return won

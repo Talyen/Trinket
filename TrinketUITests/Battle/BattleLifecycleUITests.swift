@@ -8,8 +8,7 @@ final class BattleLifecycleUITests: TrinketUITestCase {
             + [TestLaunchArg.rewardCheckpoint, "-coverage-diagnostics"])
         let goldBefore = try XCTUnwrap(coverageReport()["gold"] as? Int)
         assertExists(AccessibilityID.Battle.victory)
-        assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
-        tapButton(AccessibilityID.Battle.continueButton)
+        tapButtonAfterScroll(AccessibilityID.Battle.continueButton)
         assertExists(AccessibilityID.Debug.rewardCollectionCheckpoint)
         waitUntil("The committed claim must credit its Gold before termination") {
             ((try? self.coverageReport())?["gold"] as? Int ?? goldBefore) > goldBefore
@@ -44,8 +43,7 @@ final class BattleLifecycleUITests: TrinketUITestCase {
         battle.openActions()
         tapButton(AccessibilityID.Battle.skipCombat)
         assertExists(AccessibilityID.Battle.victory)
-        assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
-        tapButton(AccessibilityID.Battle.continueButton)
+        tapButtonAfterScroll(AccessibilityID.Battle.continueButton)
         assertExists(AccessibilityID.TalentChoice.screen)
         for combatantID in ["ranger", "wolf"] {
             let tree = try XCTUnwrap(CombatantTalentCatalog.allConfigs[combatantID]?.trees.first)

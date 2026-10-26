@@ -7,18 +7,15 @@ final class CollectionLoadoutUITests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForScreen("hero:knight") + ["-equipment-picker-fixture"])
         openWeaponPicker()
         let candidate = AccessibilityID.LoadoutPicker.itemCandidate("longsword-astral")
-        assertExistsAfterScroll(candidate, requireHittable: true)
-        tapButton(candidate)
+        tapButtonAfterScroll(candidate)
         tapButton(AccessibilityID.LoadoutPicker.equipItem("longsword-astral"))
         assertDoesNotExist(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
         openWeaponPicker()
-        assertExistsAfterScroll(candidate, requireHittable: true)
-        tapButton(candidate)
+        tapButtonAfterScroll(candidate)
         tapButton(AccessibilityID.LoadoutPicker.unequipItem)
         assertDoesNotExist(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
         openWeaponPicker()
-        assertExistsAfterScroll(candidate, requireHittable: true)
-        tapButton(candidate)
+        tapButtonAfterScroll(candidate)
         assertExists(AccessibilityID.LoadoutPicker.equipItem("longsword-astral"))
         assertDoesNotExist(AccessibilityID.LoadoutPicker.unequipItem)
     }
@@ -26,8 +23,7 @@ final class CollectionLoadoutUITests: TrinketUITestCase {
     private func openWeaponPicker() {
         combatantDetail.assertLoaded(for: "Knight")
         let slot = ItemSlot.weapon.accessibilityIdentifier
-        assertExistsAfterScroll(slot, requireHittable: true)
-        tapButton(slot)
+        tapButtonAfterScroll(slot)
         assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
     }
 }

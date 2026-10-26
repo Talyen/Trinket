@@ -17,7 +17,7 @@ Apple-service readiness.
 | Homestead displayed cost/tier; Reset cancellation and confirmed erasure | `HomesteadControlsUITests`, `OptionsUITests`; Homestead durability in `PlayerHomesteadStoreTests` | Nightly/manual FullUI plus package checks |
 | Pending approvals active/terminated, decline, populated purchase recovery, revocation | `FullGamePurchaseUITests`; cancellation in `FullGameStoreTests` | Nightly/manual FullUI plus package checks; ordinary purchase smoke remains required |
 | Critical controls under native text sizes and Reduce Motion | `CriticalAccessibilityUITests` in Profiles | Nightly/manual Player coverage workflow |
-| Real audio backend routing across battles and foreground | `AudioLifecycleUITests`; existing audio backend tests | Nightly/manual FullUI |
+| Real audio backend routing through battle, foreground and relaunch | `AudioLifecycleUITests`; existing audio backend tests | Nightly/manual FullUI |
 | Repeated UI ownership and progress | `RepeatedPlayUITests` in Soak | Weekly/manual Player coverage workflow |
 | Populated schema-two migration, equipped gear, talents, maps, pinned offers and frozen cloud requests | `CloudSaveOutboxTests` | Persistence package checks |
 | Account change during fetch and offline/retry behavior | `CloudSaveSyncTests`, isolated transport | Persistence package checks |

@@ -11,7 +11,7 @@ final class SmokeBattleTests: TrinketUITestCase {
         tapWhenReady(battle.autoBattleToggle)
         assertExists(AccessibilityID.Battle.victory, timeout: 30)
         let lootAll = button(AccessibilityID.Battle.continueButton)
-        scrollUntilVisible(lootAll, swipingUp: true, requireHittable: true)
+        XCTAssertTrue(app.scrollUntilVisible(lootAll, swipingUp: true, requireHittable: true), "The claim must be reachable")
         lootAll.doubleTap()
         assertExists(AccessibilityID.Debug.rewardCollectionCheckpoint)
         backgroundAndActivate()

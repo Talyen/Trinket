@@ -25,8 +25,7 @@ final class OptionsUITests: TrinketUITestCase {
     }
 
     private func openReset() {
-        assertExistsAfterScroll(AccessibilityID.Options.resetProgressButton, requireHittable: true)
-        tapButton(AccessibilityID.Options.resetProgressButton)
+        tapButtonAfterScroll(AccessibilityID.Options.resetProgressButton)
         assertExists(app.alerts.firstMatch)
     }
 }

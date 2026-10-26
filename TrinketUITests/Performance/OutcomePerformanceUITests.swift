@@ -36,7 +36,7 @@ final class OutcomePerformanceUITests: PerformanceJourneyUITestCase {
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allForScreen("battle-victory")))
             assertExists(AccessibilityID.Battle.victory)
-            assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
+            reveal(button(AccessibilityID.Battle.continueButton))
             measured("victory-claim-return", iteration: iteration) {
                 tapButton(AccessibilityID.Battle.continueButton)
                 play.assertCampaignLoaded()

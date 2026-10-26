@@ -11,7 +11,7 @@ final class MysteryPerformanceUITests: PerformanceJourneyUITestCase {
                     + TestLaunchArg.completedStages(["chapter-1-stage-1"])
                     + TestLaunchArg.mysteryRecruit(eventID: "medicinal-herb-garden")))
             assertExists(AccessibilityID.Mystery.encounterTitle)
-            assertExistsAfterScroll(AccessibilityID.Mystery.choiceButton(choiceID: "harvest-remedies"), requireHittable: true)
+            reveal(button(AccessibilityID.Mystery.choiceButton(choiceID: "harvest-remedies")))
             measured("mystery-reward-reveal", iteration: iteration, settle: 3) {
                 tapButton(AccessibilityID.Mystery.choiceButton(choiceID: "harvest-remedies"))
                 assertExists(AccessibilityID.Mystery.rewardTitle)
@@ -27,8 +27,7 @@ final class MysteryPerformanceUITests: PerformanceJourneyUITestCase {
                     + TestLaunchArg.completedStages(["chapter-1-stage-1"])
                     + TestLaunchArg.mysteryRecruit(eventID: "corruption-altar")))
             assertExists(AccessibilityID.Mystery.encounterTitle)
-            assertExistsAfterScroll(AccessibilityID.Mystery.choiceButton(choiceID: "corrupt-item"), requireHittable: true)
-            tapButton(AccessibilityID.Mystery.choiceButton(choiceID: "corrupt-item"))
+            tapButtonAfterScroll(AccessibilityID.Mystery.choiceButton(choiceID: "corrupt-item"))
             tapButton(AccessibilityID.Mystery.confirmChoiceButton)
             assertExists(AccessibilityID.Mystery.corruptItemTitle)
             let candidate = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "Mystery Corrupt Item ")).firstMatch

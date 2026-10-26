@@ -9,13 +9,12 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         play.openCampaign()
         tapButton(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
         assertExists(AccessibilityID.Mystery.unlockCard(name: "Bear"))
-        assertExistsAfterScroll(AccessibilityID.Mystery.continueButton, requireHittable: true)
-        tapButton(AccessibilityID.Mystery.continueButton)
+        tapButtonAfterScroll(AccessibilityID.Mystery.continueButton)
         play.assertCampaignLoaded()
         assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 3))
         tabBar.select(.collection)
         let bear = AccessibilityID.CombatantDetail.collectionCard(name: "Bear")
-        assertExistsAfterScroll(bear, requireHittable: true)
+        reveal(button(bear))
         XCTAssertFalse(button(bear).label.hasSuffix(", locked"), "The recruited companion must be unlocked")
     }
 
@@ -23,8 +22,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("0.01", in: TestLaunchArg.allForTab("play"))
             + ["-performance-labyrinth-node", "boss", "-performance-strong-party"])
         play.openExplore()
-        assertExistsAfterScroll(AccessibilityID.Play.labyrinthModeCard, requireHittable: true)
-        tapButton(AccessibilityID.Play.labyrinthModeCard)
+        tapButtonAfterScroll(AccessibilityID.Play.labyrinthModeCard)
         if button(AccessibilityID.Play.labyrinthEnter).exists {
             tapButton(AccessibilityID.Play.labyrinthEnter)
         }
@@ -33,7 +31,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
             format: "identifier BEGINSWITH %@ AND label == %@",
             AccessibilityID.Play.labyrinthNode(""), "Boss",
         )).firstMatch
-        scrollUntilVisible(boss, swipingUp: true, requireHittable: true)
+        reveal(boss)
         tapWhenReady(boss)
         let action = app.descendants(matching: .any)
             .matching(NSPredicate(format: "identifier BEGINSWITH %@", AccessibilityID.Play.labyrinthInspectorAction(""))).firstMatch
@@ -41,8 +39,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         battle.assertActive()
         tapWhenReady(battle.autoBattleToggle)
         assertExists(AccessibilityID.Battle.victory, timeout: 60)
-        assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
-        tapButton(AccessibilityID.Battle.continueButton)
+        tapButtonAfterScroll(AccessibilityID.Battle.continueButton)
         assertExists(AccessibilityID.Play.labyrinthMap)
         let floorMenu = button(AccessibilityID.Play.labyrinthFloorMenu)
         // Switch away first: Continue can already select floor 2 automatically.
@@ -58,8 +55,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
     func testVoyageEmbarkAndAbandonReturnsToOffers() {
         launchApp(arguments: TestLaunchArg.allForTab("play"))
         play.openExplore()
-        assertExistsAfterScroll(AccessibilityID.Voyage.modeCard, requireHittable: true)
-        tapButton(AccessibilityID.Voyage.modeCard)
+        tapButtonAfterScroll(AccessibilityID.Voyage.modeCard)
         assertExists(AccessibilityID.Voyage.screen)
         let embark = app.buttons.matching(NSPredicate(
             format: "identifier BEGINSWITH %@", AccessibilityID.Voyage.action(""),
@@ -76,16 +72,15 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForTab("play"))
         play.openExplore()
         tapButton(AccessibilityID.Play.spiresModeCard)
-        assertExistsAfterScroll(AccessibilityID.Play.spireRow("cinderSpire"), requireHittable: true)
-        tapButton(AccessibilityID.Play.spireRow("cinderSpire"))
+        tapButtonAfterScroll(AccessibilityID.Play.spireRow("cinderSpire"))
         assertExists(AccessibilityID.Play.spireClimb("cinderSpire"))
         let locked = any(AccessibilityID.Play.spireFloor("cinderSpire", floor: 2)).firstMatch
-        scrollUntilVisible(locked, swipingUp: true, requireHittable: true)
+        reveal(locked)
         locked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         assertDoesNotExist(AccessibilityID.Battle.hand)
         XCTAssertFalse(button(AccessibilityID.Play.spireBeginFloor("cinderSpire", floor: 2)).exists)
         let begin = button(AccessibilityID.Play.spireBeginFloor("cinderSpire", floor: 1))
-        scrollUntilVisible(begin, swipingUp: false, requireHittable: true)
+        XCTAssertTrue(app.scrollUntilVisible(begin, swipingUp: false, requireHittable: true), "The unlocked floor must be reachable")
         tapWhenReady(begin)
         battle.assertActive()
     }
@@ -103,19 +98,19 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         assertExists(action)
         let selected = action.identifier
         let locked = any(AccessibilityID.Play.labyrinthFloor1LockedNode)
-        scrollUntilVisible(locked, swipingUp: true, requireHittable: true)
+        reveal(locked)
         let label = locked.label
         XCTAssertTrue(label.hasSuffix(", locked"), label)
         locked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         assertExists(selected)
         let entry = any(AccessibilityID.Play.labyrinthFloor1EntryNode)
-        scrollUntilVisible(entry, swipingUp: false, requireHittable: true)
+        XCTAssertTrue(app.scrollUntilVisible(entry, swipingUp: false, requireHittable: true), "The entry node must be reachable")
         // Tap the map background beside a visible node, outside its seal.
         entry.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0.5))
             .withOffset(CGVector(dx: -12, dy: 0)).tap()
         assertDoesNotExist(AccessibilityID.Play.labyrinthNodeInspector)
-        assertExistsAfterScroll(AccessibilityID.Play.labyrinthFloor1EntryNode, requireHittable: true)
-        tapWhenReady(any(AccessibilityID.Play.labyrinthFloor1EntryNode))
+        reveal(entry)
+        tapWhenReady(entry)
         tapButton(selected)
         // The entry is a battle in the unmodified initial map.
         battle.assertActive()

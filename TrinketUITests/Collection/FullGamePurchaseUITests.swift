@@ -11,8 +11,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         let session = try XCTUnwrap(storeSession)
         try await session.setSimulatedError(.generic(.networkError(URLError(.notConnectedToInternet))), forAPI: .appStoreSync)
         launchApp(arguments: TestLaunchArg.allForTab("options") + ["-coverage-diagnostics"])
-        assertExistsAfterScroll(AccessibilityID.FullGame.restore, requireHittable: true)
-        tapButton(AccessibilityID.FullGame.restore)
+        tapButtonAfterScroll(AccessibilityID.FullGame.restore)
         assertExists(AccessibilityID.FullGame.outcome)
         assertFullGameAccess(false)
         try await session.setSimulatedError(nil, forAPI: .appStoreSync)
@@ -43,7 +42,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         relaunchApp(arguments: ["-selectedTab", "options", "-coverage-diagnostics"])
 
         // Startup must recognize ownership without a Restore tap and retain this career.
-        assertExistsAfterScroll(AccessibilityID.FullGame.status)
+        reveal(any(AccessibilityID.FullGame.status), requireHittable: false)
         assertDoesNotExist(AccessibilityID.FullGame.options)
         assertDoesNotExist(AccessibilityID.FullGame.restore)
         let after = try coverageReport()
@@ -93,7 +92,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
             session.allTransactions().contains { $0.identifier == transaction.identifier && $0.cancelDate != nil }
         }
         assertFullGameAccess(false)
-        assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
+        reveal(button(AccessibilityID.FullGame.options))
         assertExists(AccessibilityID.FullGame.restore)
         relaunchApp(arguments: ["-selectedTab", "collection", "-coverage-diagnostics"])
         assertWarlockLocked()

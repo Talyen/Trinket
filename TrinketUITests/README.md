@@ -206,10 +206,14 @@ Assert a journey’s return destination before using helpers that navigate elsew
   no longer incurs a cold launch. The former Haptics thumb/relaunch
   case is retired: it protected a narrow preference binding at the cost of two
   launches. Dedicated Haptics UI persistence is no longer proved; real Music slider
-  binding/playback persistence remains in `AudioLifecycleUITests`.
+  binding/playback persistence remains in `AudioLifecycleUITests`. One Contract
+  covers music restart before leaving the resumed battle and subsequent SFX;
+  menu music cannot satisfy the foreground assertion. The twenty-Contract soak
+  owns repeated-battle audio coverage; `MusicPlayerRoutingTests` owns route rules.
 - Full Game smoke seeds completed free chapters, opens Campaign from the Play
   hub, and taps the locked chapter's real offer entry. It purchases access to independently
-  recruited Warlock and opens his detail. Terminated Ask to Buy approval also owns
+  recruited Warlock, opens his detail, then plays the previously locked stage.
+  Terminated Ask to Buy approval also owns
   populated cold-launch recovery: hidden purchase/restore actions, unchanged Gold
   and completed stages, recruited-character access, and a playable next stage.
   The separate direct-purchase cold-launch case is retired; both enter the same

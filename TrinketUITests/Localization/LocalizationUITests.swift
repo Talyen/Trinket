@@ -47,7 +47,7 @@ final class LocalizationUITests: FullGameStoreKitUITestCase {
         } else {
             tabBar.select(.options, locale: Locale(identifier: region))
         }
-        assertExistsAfterScroll(AccessibilityID.Options.hapticsToggle, requireHittable: true)
+        reveal(app.switches[AccessibilityID.Options.hapticsToggle])
         capture(label, screen: "options")
         openOptionsOffer()
         let purchase = button(AccessibilityID.FullGame.purchase)
@@ -87,7 +87,7 @@ final class LocalizationUITests: FullGameStoreKitUITestCase {
         battle.openActions()
         tapButton(AccessibilityID.Battle.skipCombat)
         assertExists(AccessibilityID.Battle.victory)
-        assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
+        reveal(button(AccessibilityID.Battle.continueButton))
         capture(locale, screen: "talent-reward-claim")
         tapButton(AccessibilityID.Battle.continueButton)
         assertExists(AccessibilityID.TalentChoice.screen)
@@ -95,13 +95,13 @@ final class LocalizationUITests: FullGameStoreKitUITestCase {
             let tree = try XCTUnwrap(CombatantTalentCatalog.allConfigs[combatantID]?.trees.first)
             let node = try XCTUnwrap(tree.nodes.first)
             XCTAssertTrue(
-                scrollUntilVisible(button(AccessibilityID.TalentChoice.tree(id: tree.id)), swipingUp: true, requireHittable: true),
+                app.scrollUntilVisible(button(AccessibilityID.TalentChoice.tree(id: tree.id)), swipingUp: true, requireHittable: true),
                 "The talent tree must remain reachable in \(locale)",
             )
             capture(locale, screen: "talent-\(combatantID)-trees")
             tapButton(AccessibilityID.TalentChoice.tree(id: tree.id))
             tapButton(AccessibilityID.TalentChoice.node(id: node.id))
-            assertExistsAfterScroll(AccessibilityID.TalentChoice.unlockButton, requireHittable: true)
+            reveal(button(AccessibilityID.TalentChoice.unlockButton))
             capture(locale, screen: "talent-\(combatantID)-confirm")
             if ProcessInfo.processInfo.environment["TRINKET_LOCALIZATION_LARGE_TEXT"] == "1" {
                 let text = ContentCopy.description(node.description, locale: Locale(identifier: locale)).text

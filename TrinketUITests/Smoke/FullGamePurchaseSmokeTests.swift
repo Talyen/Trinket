@@ -10,8 +10,7 @@ final class FullGamePurchaseSmokeTests: FullGameStoreKitUITestCase {
         launchApp(arguments: TestLaunchArg.allForTab("play") + TestLaunchArg.completedStages(freeStages))
         play.openCampaign(number: 4)
         let unlock = AccessibilityID.Play.stageAction(chapter: 4, stage: 1)
-        assertExistsAfterScroll(unlock, requireHittable: true)
-        tapButton(unlock)
+        tapButtonAfterScroll(unlock)
         dismissSheet(AccessibilityID.FullGame.offer)
         assertExists(unlock)
 
@@ -24,5 +23,10 @@ final class FullGamePurchaseSmokeTests: FullGameStoreKitUITestCase {
         assertWarlockAccessible()
         tapButton(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
         combatantDetail.assertLoaded(for: "Warlock")
+        dismissSheet(AccessibilityID.CombatantDetail.header(name: "Warlock"))
+        tabBar.select(.play)
+        play.assertCampaignLoaded(number: 4)
+        play.startBattle(chapter: 4, stage: 1)
+        battle.assertActive()
     }
 }

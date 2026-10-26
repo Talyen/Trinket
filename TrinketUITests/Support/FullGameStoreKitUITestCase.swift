@@ -40,8 +40,7 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
     }
 
     func openOptionsOffer() {
-        assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
-        tapButton(AccessibilityID.FullGame.options)
+        tapButtonAfterScroll(AccessibilityID.FullGame.options)
         assertPurchaseProductLoaded()
     }
 
@@ -72,7 +71,7 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
         if !button(card).exists {
             tapButton(AccessibilityID.Collection.heroesCategory)
         }
-        assertExistsAfterScroll(card, requireHittable: true)
+        reveal(button(card))
     }
 
     func assertPurchaseProductLoaded() {

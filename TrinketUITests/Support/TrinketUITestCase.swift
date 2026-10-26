@@ -368,20 +368,19 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
-    func assertExistsAfterScroll(
-        _ identifier: String,
+    func reveal(
+        _ element: XCUIElement,
         maxAttempts: Int = 8,
-        requireHittable: Bool = false,
+        requireHittable: Bool = true,
         file: StaticString = #file,
         line: UInt = #line,
     ) {
-        let element = app.descendants(matching: .any)[identifier]
-        let visible = scrollUntilVisible(
+        let visible = app.scrollUntilVisible(
             element,
             swipingUp: true,
             maxAttempts: maxAttempts,
             requireHittable: requireHittable,
-        ) || scrollUntilVisible(
+        ) || app.scrollUntilVisible(
             element,
             swipingUp: false,
             maxAttempts: max(3, maxAttempts / 2),
@@ -389,25 +388,16 @@ class TrinketUITestCase: XCTestCase {
         )
         XCTAssertTrue(
             visible,
-            "Element '\(identifier)' not visible after scroll (hittable required: \(requireHittable))",
+            "Element '\(element.identifier)' not visible after scroll (hittable required: \(requireHittable))",
             file: file,
             line: line,
         )
     }
 
-    @discardableResult
-    func scrollUntilVisible(
-        _ element: XCUIElement,
-        swipingUp: Bool,
-        maxAttempts: Int = 6,
-        requireHittable: Bool = false,
-    ) -> Bool {
-        app.scrollUntilVisible(
-            element,
-            swipingUp: swipingUp,
-            maxAttempts: maxAttempts,
-            requireHittable: requireHittable,
-        )
+    func tapButtonAfterScroll(_ identifier: String, file: StaticString = #file, line: UInt = #line) {
+        let control = button(identifier)
+        reveal(control, file: file, line: line)
+        control.trinketTapWhenReady(file: file, line: line)
     }
 
     func dismissSheet(_ identifier: String) {
@@ -508,7 +498,7 @@ extension XCUIApplication {
     func scrollUntilVisible(
         _ element: XCUIElement,
         swipingUp: Bool,
-        maxAttempts: Int = 8,
+        maxAttempts: Int = 6,
         requireHittable: Bool = false,
     ) -> Bool {
         if element.exists, !requireHittable || element.isHittable {

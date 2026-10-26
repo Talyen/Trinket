@@ -37,10 +37,10 @@ final class SmokeShellTests: TrinketUITestCase {
         play.assertLoaded()
         tabBar.select(.collection)
         let heroCard = AccessibilityID.CombatantDetail.collectionCard(name: heroName)
-        assertExistsAfterScroll(heroCard, requireHittable: true)
+        reveal(button(heroCard))
         XCTAssertFalse(button(heroCard).label.hasSuffix(", locked"), "The selected starter hero must remain unlocked")
         let companionCard = AccessibilityID.CombatantDetail.collectionCard(name: companionName)
-        assertExistsAfterScroll(companionCard, requireHittable: true)
+        reveal(button(companionCard))
         XCTAssertFalse(button(companionCard).label.hasSuffix(", locked"), "The selected starter companion must remain unlocked")
 
         tabBar.select(.homestead)

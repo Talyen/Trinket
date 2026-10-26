@@ -62,14 +62,6 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
         PerformanceReportRecorder.capture(from: app, scenario: scenario, suite: suite, iteration: iteration, in: self)
     }
 
-    func reveal(_ element: XCUIElement) {
-        XCTAssertTrue(
-            scrollUntilVisible(element, swipingUp: true, maxAttempts: 8, requireHittable: true)
-                || scrollUntilVisible(element, swipingUp: false, maxAttempts: 4, requireHittable: true),
-            "Control could not be revealed",
-        )
-    }
-
     struct ScrollAnchor {
         let key: String
         let frame: CGRect
