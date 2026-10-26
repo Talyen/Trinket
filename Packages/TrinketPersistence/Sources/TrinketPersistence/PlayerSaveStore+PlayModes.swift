@@ -23,8 +23,8 @@ public extension PlayerSaveStore {
     func refreshContracts(
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) -> SaveActionAttempt<Bool> {
-        persistBatch(logging: "Failed to refresh Contracts") { save in
-            _ = save.contracts.refresh(eligibleModifiers: RewardOwnership(save.inventory).eligibleModifiers, makeOffer: makeOffer)
+        persistPlayModeChange(logging: "Failed to refresh Contracts") { save in
+            save.contracts.refresh(eligibleModifiers: RewardOwnership(save.inventory).eligibleModifiers, makeOffer: makeOffer)
         }
     }
 
@@ -45,8 +45,8 @@ public extension PlayerSaveStore {
 
     @discardableResult
     func embarkVoyage(offerID: String) -> SaveActionAttempt<Bool> {
-        persistBatch(logging: "Failed to save Voyage") { save in
-            _ = save.voyage.embark(
+        persistPlayModeChange(logging: "Failed to save Voyage") { save in
+            save.voyage.embark(
                 offerID: offerID, eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs(access: contentAccess),
                 access: contentAccess, eligibleRewards: RewardOwnership(save).eligibleModifiers,
             )
@@ -55,14 +55,31 @@ public extension PlayerSaveStore {
 
     @discardableResult
     func abandonVoyage(runID: String) -> SaveActionAttempt<Bool> {
-        persistBatch(logging: "Failed to save Voyage") { save in
-            _ = save.voyage.abandon(runID: runID, access: contentAccess, eligibleModifiers: RewardOwnership(save).eligibleModifiers)
+        persistPlayModeChange(logging: "Failed to save Voyage") { save in
+            save.voyage.abandon(runID: runID, access: contentAccess, eligibleModifiers: RewardOwnership(save).eligibleModifiers)
         }
     }
 
     @discardableResult
     func dismissCompletedVoyage() -> SaveActionAttempt<Bool> {
         persistBatch(logging: "Failed to save Voyage") { $0.voyage.dismissCompleted() }
+    }
+}
+
+private extension PlayerSaveStore {
+    enum PlayModeRejection: Error {
+        case unavailable
+    }
+
+    func persistPlayModeChange(logging message: String, _ change: (inout PlayerSave) -> Bool) -> SaveActionAttempt<Bool> {
+        let result: SaveTransactionResult<Void, PlayModeRejection> = persistTransaction(logging: message) { save in
+            change(&save) ? .success(()) : .failure(.unavailable)
+        }
+        switch result {
+        case .committed: return SaveActionAttempt(true)
+        case .rejected: return SaveActionAttempt(false)
+        case let .persistFailed(error): return SaveActionAttempt(false, failure: error)
+        }
     }
 }
 

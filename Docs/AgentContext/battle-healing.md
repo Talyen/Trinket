@@ -91,6 +91,8 @@ whether equipped by a Hero or Companion. Its saved `companionLeechSharePercent`
 field remains unchanged. Shares apply recipient healing reduction without
 repeating healer bonuses or Critical Hit rolls, and cannot trigger another Leech
 share. Shared Feast transfers only Panther's excess Leech to its living ally.
+Contagious Joy belongs to the receiving Retriever; its transferred restoration
+uses that Retriever as its source for healing reactions as well as feedback.
 Soul Sharing shares the first actual Leech restoration each turn even when its
 hit defeats the enemy. Recheck the source's
 survival after restoration and each share: lethal healing reactions preserve the

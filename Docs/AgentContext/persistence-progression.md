@@ -8,7 +8,8 @@ Content's `BattleLootContext` owns mode-specific loot from explicit world seed,
 collectible ownership, claimed Journey reward IDs, Sanctum bonuses and captured
 party weighting. [Random item rewards](../../Packages/TrinketContent/README.md#random-item-rewards)
 owns shared level selection, caps, boss guarantees, weighting and exhaustion rules.
-Launch and unsettled completion use that same policy. Persistence supplies the
+Launch and unsettled completion use that same policy. Labyrinth loot uses the
+retained map seed, matching its event and encounter identities. Persistence supplies the
 save-value adapter and `VictoryRewardApplier` commits the award; completion appliers
 expose no parallel loot-planning API. `BattleLoot.resolve` rolls the captured
 `LootRequest` identity/bonuses. Unsettled completion uses Content's `EncounterScaling`,
@@ -110,7 +111,9 @@ economic receipts, and the Corruption Altar cooldown.
 
 Salvage and Corruption appliers return typed domain results consumed directly by
 `persistTransaction`. Store commands distinguish committed results, rejected
-actions, and storage failure; a rejected action never enters commit.
+actions, and storage failure; a rejected action never enters commit. Contract
+refresh and Voyage embark/abandon commands likewise report their domain rejection
+without writing, while retaining typed storage failures for retries.
 
 ## Mystery claims
 
@@ -120,7 +123,8 @@ after the save commits. `prepareMysteryEncounter` and `resolveMysteryEncounter`
 own these transactions in Persistence. Event selection and preview use
 `EncounterIdentity.mysteryEvent(in:)` against the save and catalog. Labyrinth maps
 use Persistence's immutable `LabyrinthMysteryPreview`, which shares that selection
-policy while reading only map, seed/generation, unlock, inventory, cooldown, and
+policy using the retained map's world seed, independently of the Journey seed,
+while reading only map, seed/generation, unlock, inventory, cooldown, and
 access inputs. Cache a floor's resolved previews only while those inputs and its
 cluster remain equal. The prepared
 result supplies presentation; recruits also pin before opening. Saved pins win
@@ -202,5 +206,9 @@ Reset epochs invalidate outstanding claims. Development and Production evidence
 is required by the [CloudKit checklist](../Platform/CloudKitPreShipChecklist.md).
 
 ## Voyage identities
+
+Saved Voyage routes require a nonempty run identity, ordinary battle enemies,
+and one boss at the terminal node. Invalid routes retain their opaque payload
+and cannot admit encounters or destination payouts.
 
 Voyage encounters use run-and-node identities for saved shops, Mystery offers, and one-time completion. Final battle reward plans include the [Voyage completion bonus](../Product/Voyage.md#levels-and-rewards) after ordinary reward multipliers and before capacity settlement.

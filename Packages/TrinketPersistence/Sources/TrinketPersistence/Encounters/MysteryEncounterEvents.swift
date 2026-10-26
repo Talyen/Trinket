@@ -103,7 +103,7 @@ public struct LabyrinthMysteryPreview: Equatable {
     @MainActor
     public init(playerSave: PlayerSaveStore) {
         labyrinth = playerSave.labyrinth
-        worldSeed = playerSave.worldSeed
+        worldSeed = playerSave.labyrinth.worldSeed
         unlockedHeroIDs = playerSave.roster.unlockedHeroIDs
         unlockedCompanionIDs = playerSave.roster.unlockedCompanionIDs
         access = playerSave.contentAccess
@@ -114,7 +114,7 @@ public struct LabyrinthMysteryPreview: Equatable {
 
     fileprivate init(save: PlayerSave, access: ContentAccessPolicy) {
         labyrinth = save.labyrinth
-        worldSeed = save.worldSeed
+        worldSeed = save.labyrinth.worldSeed
         unlockedHeroIDs = save.roster.unlockedHeroIDs
         unlockedCompanionIDs = save.roster.unlockedCompanionIDs
         self.access = access

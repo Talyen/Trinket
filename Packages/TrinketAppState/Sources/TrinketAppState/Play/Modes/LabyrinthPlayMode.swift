@@ -154,7 +154,7 @@ extension LabyrinthPlayMode {
         labyrinth: PlayerLabyrinthState,
         encounter: ScaledEncounter,
     ) -> (input: BattleLaunchInput, route: PlayBattleRoute)? {
-        guard let loot = BattleLootContext(playerSave: playerSave).labyrinth(
+        guard let loot = BattleLootContext(playerSave: playerSave, worldSeed: labyrinth.worldSeed).labyrinth(
             for: node, effects: labyrinth.effects(for: node.id), encounterLevel: encounter.level,
         ) else { return nil }
         let modifiers = ModeBattleModifiers(

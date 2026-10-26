@@ -1,9 +1,9 @@
 import TrinketContent
 
 public extension BattleLootContext {
-    init(save: PlayerSave) {
+    init(save: PlayerSave, worldSeed: UInt64? = nil) {
         self.init(
-            worldSeed: save.worldSeed,
+            worldSeed: worldSeed ?? save.worldSeed,
             ownership: RewardOwnership(save),
             astralChanceBonusPercent: save.homestead.effects.astralChanceBonusPercent,
             claimedJourneyRewardStageIDs: save.journey.claimedRewardStageIDs,

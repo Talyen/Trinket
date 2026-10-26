@@ -44,7 +44,11 @@ public enum LabyrinthCompletion {
         let settlement = rewards.resolve { overrides in
             let effects = save.labyrinth.effects(for: nodeID)
             let resolvedLoot = isCombat
-                ? overrides.loot ?? BattleLootContext(save: save).labyrinth(for: node, effects: effects, encounterLevel: encounterLevel)
+                ? overrides.loot ?? BattleLootContext(save: save, worldSeed: save.labyrinth.worldSeed).labyrinth(
+                    for: node,
+                    effects: effects,
+                    encounterLevel: encounterLevel,
+                )
                 : overrides.loot
             return VictoryRewardApplier.settleVictoryRewards(
                 party: (hero, companion),

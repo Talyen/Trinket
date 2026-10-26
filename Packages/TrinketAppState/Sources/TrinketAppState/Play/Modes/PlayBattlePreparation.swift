@@ -32,9 +32,9 @@ public struct ScaledEncounter: Equatable {
 
 extension BattleLootContext {
     @MainActor
-    init(playerSave: PlayerSaveStore) {
+    init(playerSave: PlayerSaveStore, worldSeed: UInt64? = nil) {
         self.init(
-            worldSeed: playerSave.worldSeed,
+            worldSeed: worldSeed ?? playerSave.worldSeed,
             ownership: RewardOwnership(playerSave.inventory),
             astralChanceBonusPercent: playerSave.homestead.effects.astralChanceBonusPercent,
             claimedJourneyRewardStageIDs: playerSave.journey.claimedRewardStageIDs,

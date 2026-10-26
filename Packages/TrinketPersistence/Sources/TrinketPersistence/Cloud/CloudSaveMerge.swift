@@ -64,6 +64,7 @@ enum CloudSaveMerge {
             economy: economy,
         )
         var merged = branches.recent
+        mergeStarterSelection(into: &merged, from: branches.other)
         if economy == .actions {
             // Action replay owns these fields; structural merge starts with the
             // existing economics instead of inferring and then undoing an award.
@@ -94,6 +95,17 @@ enum CloudSaveMerge {
         LibraryResearchMutation.reconcile(&merged)
         merged.modifiedAt = max(incoming.modifiedAt, existing.modifiedAt)
         return merged
+    }
+
+    private static func mergeStarterSelection(into merged: inout PlayerSave, from other: PlayerSave) {
+        switch (merged.starterSelection.phase, other.starterSelection.phase) {
+        case (_, .complete):
+            merged.starterSelection = .complete
+        case (.chooseHero, .chooseCompanion):
+            merged.starterSelection = other.starterSelection
+        default:
+            break
+        }
     }
 
     private static func mergeCorruptionAltarCooldown(into merged: inout PlayerSave, branches: Branches) {

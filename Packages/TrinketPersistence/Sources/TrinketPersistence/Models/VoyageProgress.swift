@@ -170,14 +170,15 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
             && Set(offers.map(\.difficulty)).count == 3 && Set(offers.map(\.chapterID)).count == 3),
             offers.allSatisfy({ !$0.id.isEmpty && VoyageCatalog.bossID(chapterID: $0.chapterID) != nil }) else { return false }
         guard let run = activeRun else { return true }
-        guard run.nodes.count == run.offer.difficulty.nodeCount, Set(run.nodes.map(\.id)).count == run.nodes.count,
+        guard !run.id.isEmpty, run.nodes.count == run.offer.difficulty.nodeCount, Set(run.nodes.map(\.id)).count == run.nodes.count,
               run.nodes.first?.type == .battle, run.nodes.last?.type == .boss,
+              !run.nodes.dropLast().contains(where: { $0.type == .boss }),
               run.earnedGold >= 0, run.earnedMaterials.values.allSatisfy({ $0 >= 0 }),
               run.nodes.drop(while: \.isCleared).allSatisfy({ !$0.isCleared }),
               VoyageCatalog.bossID(chapterID: run.offer.chapterID) != nil else { return false }
         return run.nodes.allSatisfy { node in
             node.type != .entrance && !node.id.isEmpty
-                && (!node.type.isCombat || node.enemyID.flatMap { GameContent.enemy(matching: $0) } != nil)
+                && (!node.type.isCombat || node.enemyID.flatMap { GameContent.enemy(matching: $0) }?.isBoss == (node.type == .boss))
                 && node.modifierIDs.allSatisfy { NodeModifierCatalog.modifier(id: $0) != nil }
         }
     }

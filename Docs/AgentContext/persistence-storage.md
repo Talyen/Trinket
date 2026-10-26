@@ -253,6 +253,7 @@ failure preserves the local snapshot and outbox.
 | Concern | Required result |
 |---|---|
 | Earned progress | Union earned items, unlocks, claims and completion. |
+| Starter selection | Keep the furthest phase within an epoch; completed selection cannot reopen over an established roster. Same-phase Hero choices use recency. Explicit resets use reset authority. |
 | Talents | Union purchases while honoring removals from the shared base, so reset survives unrelated progress. Unrelated saves without a shared base union talents. |
 | Party and loadouts | Use the latest valid edit; keep displaced gear in Inventory. Merge ability selections per tier against the shared base, treating absent loadouts as catalog defaults. Independent Basic/Skill edits survive; conflicts within a tier use the latest choice. |
 | Physical items | Preserve one-sided changes, including corruption or salvage. Restoring a newer valid weapon pair first reclaims its primary from older assignments, then enforces unique equipment. Salvage on either branch retires a shared item even if the other corrupted it; never retain both gear and its materials. |

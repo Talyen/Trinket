@@ -5,13 +5,13 @@ extension HealingEngine {
     static func transferOverhealToAlly(
         _ overflow: Int, request: HealRequest, in context: inout BattleState,
     ) async -> CombatOutcome {
-        guard overflow > 0, let sourceID = request.sourceActorID,
-              let source = context.roster.combatant(for: sourceID), source.isAlive,
-              request.target.role != .enemy else { return .empty }
+        guard overflow > 0, request.target.role != .enemy else { return .empty }
+        let contagiousJoy = context.modifiers(for: request.target.id).triggers.excessHealthShareAlly
+        let sourceID = contagiousJoy ? request.target.id : request.sourceActorID
+        guard let sourceID, let source = context.roster.combatant(for: sourceID), source.isAlive else { return .empty }
         let triggers = context.modifiers(for: sourceID).triggers
         let sharedFeast = request.origin == .leech && sourceID == request.target.id
             && triggers.leechOverflowShareAlly
-        let contagiousJoy = context.modifiers(for: request.target.id).triggers.excessHealthShareAlly
         guard triggers.sharedPrescription || sharedFeast || contagiousJoy else { return .empty }
         let other = request.target.role == .hero ? context.roster.companion : context.roster.hero
         let amount = min(overflow, max(0, other.maxHealth - other.currentHealth))
@@ -19,7 +19,7 @@ extension HealingEngine {
         var transfer = HealRequest(
             amount: amount, target: other.combatant, sourceActorID: sourceID,
             origin: .restoration(.health), logAs: .instantHeal(
-                source: contagiousJoy ? .init(request.target) : .init(source),
+                source: .init(source),
                 abilityName: contagiousJoy ? "Contagious Joy" : (sharedFeast ? "Shared Feast" : "Shared Prescription"),
                 keyword: .health,
             ),
