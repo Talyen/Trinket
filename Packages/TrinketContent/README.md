@@ -177,6 +177,8 @@ affordability, and upgrades. It accepts Gold values rather than saved rosters;
 `TrinketCore.GoldBalance` supplies the shared wallet bound. Persistence owns
 sanitization, graph mapping, transaction admission, and economic receipts.
 The value's Codable fields are preserved for existing cloud snapshots.
+`ResearchProject` owns the recipe unlock relationship; `EquipmentRecipe.researchID`
+derives its reverse lookup from that catalog.
 
 ## Mystery rewards
 

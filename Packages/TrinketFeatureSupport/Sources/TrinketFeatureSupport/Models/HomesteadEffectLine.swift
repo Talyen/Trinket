@@ -27,42 +27,20 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
             .filter { !bonus.heroModifiers.contains($0) }
             .map { line(for: $0, companion: true) }
         if bonus.astralChanceBonusPercent != 0 {
-            lines.append(Self(
-                id: .astralFind,
-                label: String(localized: L10n.ui_homesteadeffectline_astral_drop_rates_7c313),
-                value: "\(bonus.astralChanceBonusPercent)%",
-                resource: nil,
+            lines.append(bonusLine(
+                .astralFind, L10n.ui_homesteadeffectline_astral_drop_rates_7c313,
+                amount: bonus.astralChanceBonusPercent,
             ))
         }
-        if nodeID == .blacksmithForge {
-            let forgeBonus = BlacksmithRecipe.astralWeightBonusPercent(blacksmithTier: tier.tier)
-            if forgeBonus > 0 {
-                lines.append(Self(
-                    id: .forgeAstralOdds,
-                    label: String(localized: L10n.ui_homesteadeffectline_forge_astral_odds_db78f),
-                    value: "\(forgeBonus)%",
-                    resource: nil,
-                ))
-            }
+        let crafting: (Key, LocalizedStringResource)? = switch nodeID {
+        case .blacksmithForge: (.forgeAstralOdds, L10n.ui_homesteadeffectline_forge_astral_odds_db78f)
+        case .archeryRange: (.archeryAstralOdds, L10n.library_range_odds)
+        case .woolTailoring: (.outfitterAstralOdds, L10n.homestead_crafting_odds)
+        default: nil
         }
-        if nodeID == .archeryRange {
-            let bonus = EquipmentRecipe.astralWeightBonusPercent(blacksmithTier: tier.tier)
-            if bonus > 0 {
-                lines.append(Self(
-                    id: .archeryAstralOdds,
-                    label: String(localized: L10n.library_range_odds),
-                    value: "\(bonus)%",
-                    resource: nil,
-                ))
-            }
-        }
-        if nodeID == .woolTailoring, tier.tier > 1 {
-            lines.append(Self(
-                id: .outfitterAstralOdds,
-                label: String(localized: L10n.homestead_crafting_odds),
-                value: "\(EquipmentRecipe.astralWeightBonusPercent(blacksmithTier: tier.tier))%",
-                resource: nil,
-            ))
+        let craftingBonus = EquipmentRecipe.astralWeightBonusPercent(blacksmithTier: tier.tier)
+        if let (id, label) = crafting, craftingBonus > 0 {
+            lines.append(bonusLine(id, label, amount: craftingBonus))
         }
         lines += rewardLines(for: bonus)
         for production in tier.production {
@@ -76,58 +54,35 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
         return lines
     }
 
+    private static func bonusLine(
+        _ id: Key, _ label: LocalizedStringResource, amount: Int,
+    ) -> Self {
+        let percent: Bool = switch id {
+        case let .goldFind(percent), let .experience(percent), let .gemsFind(percent): percent
+        case .astralFind, .forgeAstralOdds, .archeryAstralOdds, .outfitterAstralOdds: true
+        default: false
+        }
+        return Self(id: id, label: String(localized: label), value: "\(amount)" + (percent ? "%" : ""), resource: nil)
+    }
+
     private static func rewardLines(for bonus: HomesteadTierCombatBonus) -> [Self] {
-        var lines: [Self] = []
-        lines.reserveCapacity(6)
-        if bonus.goldFindPercent != 0 {
-            lines.append(Self(
-                id: .goldFind(percent: true),
-                label: String(localized: L10n.ui_homesteadeffectline_gold_found_5fc8b),
-                value: "\(bonus.goldFindPercent)%",
-                resource: nil,
-            ))
+        // Gold percentage reductions remain visible; other reward lines list only gains.
+        let rewards: [(Key, LocalizedStringResource, Int)] = [
+            (.goldFind(percent: true), L10n.ui_homesteadeffectline_gold_found_5fc8b, bonus.goldFindPercent),
+            (.goldFind(percent: false), L10n.ui_homesteadeffectline_gold_found_5fc8b, max(0, bonus.goldFindFlat)),
+            (.experience(percent: true), L10n.ui_homesteadeffectline_experience_8eab0, max(0, bonus.experienceBonusPercent)),
+            (.experience(percent: false), L10n.ui_homesteadeffectline_experience_8eab0, max(0, bonus.experienceBonus)),
+            (.gemsFind(percent: true), L10n.ui_homesteadeffectline_gems_found_00a7f, max(0, bonus.gemsFindPercent)),
+            (
+                .gemsFind(percent: false),
+                L10n.ui_homesteadeffectline_gems_in_encounter_rewards_containing_gems_fe880,
+                max(0, bonus.gemsFindBonus),
+            ),
+        ]
+        return rewards.compactMap { id, label, amount in
+            guard amount != 0 else { return nil }
+            return bonusLine(id, label, amount: amount)
         }
-        if bonus.goldFindFlat > 0 {
-            lines.append(Self(
-                id: .goldFind(percent: false),
-                label: String(localized: L10n.ui_homesteadeffectline_gold_found_5fc8b),
-                value: "\(bonus.goldFindFlat)",
-                resource: nil,
-            ))
-        }
-        if bonus.experienceBonusPercent > 0 {
-            lines.append(Self(
-                id: .experience(percent: true),
-                label: String(localized: L10n.ui_homesteadeffectline_experience_8eab0),
-                value: "\(bonus.experienceBonusPercent)%",
-                resource: nil,
-            ))
-        }
-        if bonus.experienceBonus > 0 {
-            lines.append(Self(
-                id: .experience(percent: false),
-                label: String(localized: L10n.ui_homesteadeffectline_experience_8eab0),
-                value: "\(bonus.experienceBonus)",
-                resource: nil,
-            ))
-        }
-        if bonus.gemsFindPercent > 0 {
-            lines.append(Self(
-                id: .gemsFind(percent: true),
-                label: String(localized: L10n.ui_homesteadeffectline_gems_found_00a7f),
-                value: "\(bonus.gemsFindPercent)%",
-                resource: nil,
-            ))
-        }
-        if bonus.gemsFindBonus > 0 {
-            lines.append(Self(
-                id: .gemsFind(percent: false),
-                label: String(localized: L10n.ui_homesteadeffectline_gems_in_encounter_rewards_containing_gems_fe880),
-                value: "\(bonus.gemsFindBonus)",
-                resource: nil,
-            ))
-        }
-        return lines
     }
 
     private static func line(for modifier: AffixModifier, companion: Bool) -> Self {

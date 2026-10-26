@@ -126,6 +126,7 @@ struct HomesteadActivityTests {
         )
         for project in ResearchProject.all {
             let recipe = try #require(project.recipeID.flatMap(EquipmentRecipe.matching))
+            #expect(recipe.researchID == project.id)
             let keyword = try #require(recipe.requiredKeyword)
             for seed in UInt64(0) ..< 20 {
                 var random = SeededRandomNumberGenerator(seed: seed)

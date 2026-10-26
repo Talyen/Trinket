@@ -10,12 +10,13 @@ public struct EquipmentRecipe: Identifiable, Hashable, Sendable {
     public let cost: [ResourceAmount]
     public let buildingID: HomesteadNodeID
     public let requiredKeyword: Keyword?
-    public let researchID: String?
+    public var researchID: String? {
+        ResearchProject.all.first { $0.recipeID == id }?.id
+    }
 
     private init(_ baseID: String, iron: Int, secondary: HomesteadResource = .wood, quantity: Int) {
         buildingID = .blacksmithForge
         requiredKeyword = nil
-        researchID = nil
         id = "blacksmith-\(baseID)"
         self.baseID = baseID
         cost = [ResourceAmount(.iron, iron), ResourceAmount(secondary, quantity)]
@@ -58,7 +59,6 @@ public extension EquipmentRecipe {
         hide: Int = 0,
         herbs: Int = 0,
         keyword: Keyword? = nil,
-        research: String? = nil,
         building: HomesteadNodeID = .archeryRange,
         gems: Int = 0,
         stone: Int = 0,
@@ -67,7 +67,6 @@ public extension EquipmentRecipe {
         baseID = base
         buildingID = building
         requiredKeyword = keyword
-        researchID = research
         cost = [
             ResourceAmount(.wood, wood),
             ResourceAmount(.iron, iron),
@@ -92,7 +91,6 @@ public extension EquipmentRecipe {
             iron: 24,
             herbs: 8,
             keyword: .poison,
-            research: "forest-field-notes",
         ),
         .init(
             "archery-longbow-bleed",
@@ -101,7 +99,6 @@ public extension EquipmentRecipe {
             iron: 30,
             hide: 12,
             keyword: .bleed,
-            research: "predator-anatomy",
         ),
         .init(
             "archery-crossbow-physical",
@@ -109,7 +106,6 @@ public extension EquipmentRecipe {
             wood: 48,
             iron: 48,
             keyword: .physical,
-            research: "arms-and-armor",
         ),
     ]
 
@@ -133,7 +129,6 @@ public extension EquipmentRecipe {
             iron: 12,
             hide: 60,
             keyword: .block,
-            research: "reinforced-leather",
             building: .woolTailoring,
         ),
         .init(
@@ -143,7 +138,6 @@ public extension EquipmentRecipe {
             hide: 60,
             herbs: 12,
             keyword: .poison,
-            research: "venomproof-leather",
             building: .woolTailoring,
         ),
         .init(
@@ -152,7 +146,6 @@ public extension EquipmentRecipe {
             wood: 30,
             hide: 60,
             keyword: .leech,
-            research: "sanguine-leather",
             building: .woolTailoring,
             gems: 12,
         ),
@@ -165,7 +158,6 @@ public extension EquipmentRecipe {
             iron: 60,
             hide: 12,
             keyword: .bleed,
-            research: "serrated-steel",
             building: .blacksmithForge,
         ),
         .init(
@@ -174,7 +166,6 @@ public extension EquipmentRecipe {
             wood: 24,
             iron: 48,
             keyword: .holy,
-            research: "consecrated-arms",
             building: .blacksmithForge,
             gems: 8,
         ),
@@ -184,7 +175,6 @@ public extension EquipmentRecipe {
             wood: 24,
             iron: 48,
             keyword: .block,
-            research: "shieldcraft",
             building: .blacksmithForge,
             stone: 8,
         ),
