@@ -14,7 +14,7 @@ the routed BattleEngine guidance. Verify dispatch and expiry deterministically.
 ## Setup
 
 Create the disposable worktree from committed local `main` through the
-[isolated workflow](../../Docs/Platform/Release.md#isolated-chat-workflow).
+[isolated workflow](../../Docs/Platform/Development.md#isolated-chat-workflow).
 Resolve existing effect representations, handlers, and test fixtures from the
 owning packages; do not assume
 an enum case alone is the complete extension point. No production manifest or save

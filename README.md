@@ -36,7 +36,7 @@ sudo env DEVELOPER_DIR="$DEVELOPER_DIR" xcodebuild -runFirstLaunch
 ./Scripts/ensure-ci-tools.sh   # pinned XcodeGen, ripgrep, xcbeautify, SwiftFormat, SwiftLint into .tools/
 ```
 
-Enable git hooks (commit format and push discipline: [Release.md](Docs/Platform/Release.md)):
+Enable git hooks (commit format and push discipline: [Development.md](Docs/Platform/Development.md)):
 
 ```sh
 git config core.hooksPath .githooks

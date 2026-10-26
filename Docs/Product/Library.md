@@ -71,32 +71,14 @@ Background/reset retire transient notices; opening history never replays them.
 
 ## Archery Range
 
-Range I exposes Craft; standard crafting does not require Library. Standard
-recipes keep authored order. Focused recipes use compact portrait rows, with
-learned recipes before locked recipes in an order captured when the sheet opens.
-Locked recipes remain inspectable and name their research requirement, with one
-primary View Research action until learned. Focused previews use the expanded sheet. Every
-equipment image, including small reward/recipe thumbnails and actual results,
-uses 3:4 portrait proportions. Resource icons retain their existing proportions.
-
-[EquipmentRecipe](../../Packages/TrinketContent/Sources/TrinketContent/Homestead/BlacksmithRecipe.swift)
-owns standard/focused recipe order, workshop membership, costs and research links.
-Tune prices against actual resource income, passive production, Blacksmith costs
-and salvage; they establish no time-to-earn promise. No individual craft returns all its input materials through salvage.
-Quiver converts Hide/Wood into Iron/Wood; assess conversion cycles rather than
-requiring a loss of every individual resource.
-
-Standard recipes use normal Basic/Astral/selected-base unowned Unique outcomes,
-excluding Trinkets. Focused recipes produce only Basic or Astral and guarantee
-one affix with their named keyword, occupying a normal affix slot. Remaining rolls
-are normal. The recipe name does not rename the item base. Later Range tiers add
-the catalog's workshop-only Astral tier-weight bonus,
-independently of global drop bonuses.
-Reward level remains the highest won encounter level, with the existing loot cap.
-No building bonus, production rate, upgrade cost or Blacksmith recipe is removed.
-
-All workshops follow [Homestead's crafting commitment and reveal contract](Homestead.md#blacksmith-crafting).
-Persistence also revalidates the research unlock before spending. No automatic equip.
+Archery Range has five standard and three research-taught recipes. Standard
+availability, recipe outcomes, prices, commitment, retries, and reveal behavior
+follow [Workshop crafting](Homestead.md#workshop-crafting).
+Focused recipes use compact portrait rows, learned before locked, with ordering
+captured when the sheet opens. Locked recipes remain inspectable and name their
+research requirement, with one primary View Research action until learned.
+Every equipment image, including reward/recipe thumbnails and actual results,
+uses 3:4 portrait proportions; resource icons retain their existing proportions.
 
 ## Navigation and ownership
 
@@ -118,9 +100,8 @@ owned by [storage](../AgentContext/persistence-storage.md#library-history).
 ## Blacksmith and Outfitter research recipes
 
 The recipe catalog's `focusedBlacksmith` and research-gated `outfitter` entries
-own these recipes and prices. Each guarantees an ordinary affix with the named
-keyword, occupies a normal slot,
-and produces Basic/Astral only. Item names remain their base names. Cross-links
+own these recipes and prices under the
+[shared focused-recipe rules](Homestead.md#workshop-crafting). Cross-links
 name the actual workshop and reuse its existing ancestor rather than growing
 recipe/project loops. Historical Companion Chronicles/Spire Records completion
 IDs survive as inert save data; neither project is evaluated or displayed.

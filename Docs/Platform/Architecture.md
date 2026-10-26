@@ -131,14 +131,9 @@ Keep `BattleState` and `PlayerSaveStore` as thin facades. Keep `AppState` as com
 `BattleState` public mutation API is card/turn/opening-hand commands and log lifecycle.
 State, roster, and combatant fields are externally read-only. Handler and engine
 mutation entry points are package-scoped; resolution owns action/card talent frames.
-Save slices are read-only projections updated through explicit Persistence commands.
-Unrestricted save/roster mutation closures and economic receipts are internal to
-Persistence. AppState supplies battle/encounter inputs and acts on committed results;
-loadout and party edits use domain commands. Economic commands resolve complete
-actions and derive receipt amounts from their recorded changes. Commit rejects
-incomplete economic coverage before publishing or journaling; new replay makes one
-duplicate decision for each action's structural and economic effects. Historical
-journal formats retain their version-specific readers.
+Persistence owns save commands and durable publication; AppState supplies inputs
+and acts on committed results. Mutation, receipt, and replay rules live in the
+[transaction contract](../AgentContext/persistence.md#transactions).
 Battle completion and Retry read authoritative coordinator records; presentation
 contracts receive a supplied reward plan and never define saved reward policy.
 

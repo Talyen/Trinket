@@ -21,43 +21,16 @@ Retained after the October 25 documentation review: hosted qualification, the
 seven-day comparison and the missing-follow-up decision remain unclosed in the
 recorded evidence. This pass did not rerun CI or recreate the automation.
 
-## Recorded blockers
+## Shared qualification
 
-### Declined Ask to Buy
-
-Exact-build declined Ask to Buy diagnostics failed on
-[latest](https://github.com/Talyen/Trinket/actions/runs/39052408277) (source
-39027879263) and [qualified](https://github.com/Talyen/Trinket/actions/runs/39053179787)
-(source 39003902224): Warlock details appeared instead of the reopened offer.
-This establishes a baseline failure, not its cause or new-harness validation.
-Do not change shipping purchase behavior without exact-build evidence.
-
-The earlier isolated [localization diagnostic](https://github.com/Talyen/Trinket/actions/runs/38837629489)
-reproduced the same Warlock-details symptom in a fresh process. Local probes differ
-between iOS 27 and 26.2. Reproduce against qualified products before changing
-purchase behavior; preserve ownership/denial assertions and follow
-[StoreKit qualification](../Platform/Release.md#testflight-troubleshooting).
-Shared blocker evidence lives here; acceptance and authorization remain in each
-plan. If this plan closes first, transfer unresolved evidence to the remaining plan
-and update links.
-
-### New harness validation
-
-The first new [qualified run](https://github.com/Talyen/Trinket/actions/runs/39054474255)
-exposed an actor-transfer compiler error in the audit helper and an effect-ID
-allocator mismatch in the Searing Bind fixture. The helper is now static and the
-fixture uses the existing insertion helper, preserving its one/two skipped-action
-assertions. Engine otherwise passed 1,006 tests, including control-extension lifecycle
-coverage. Queued latest `39054746972` and Player `39054627132` were cancelled for
-correction; their coverage still needs execution.
+[Hosted acceptance](CIHostedVerification.md#shared-execution) owns publication,
+verified/latest exhaustive-pilot and Player `scope=all` qualification. The
+[shared blockers](CIHostedVerification.md#shared-blockers) retain declined Ask to
+Buy and new-harness evidence. This plan stays active for the comparison and
+follow-up decision below; consolidation completes no hosted acceptance.
 
 ## Remaining work
 
-- [ ] Publish the reviewed corrections and run `ci.yml` with
-  `toolchain=verified, scope=exhaustive-pilot`, then
-  `toolchain=latest, scope=exhaustive-pilot`, and
-  `player-coverage.yml` with `scope=all`. Follow exact revisions and report
-  required/advisory, iOS 18, compact, iPad and Duo evidence separately.
 - [ ] Compare seven days of distinct failure signatures after the first pushed
   implementation. Separate required/advisory lanes, first attempts/reruns and
   diagnostic repeats; exclude cancellations from failure rates. Insufficient

@@ -48,7 +48,7 @@ the visual completion gate below.
 
 Local `build.sh`, compiled `test.sh`, `test-package.sh`, and managed `run-simulator.sh --isolate` automatically enter the shared host admission helper before allocating resources. Hosted CI and nested commands reuse their existing ownership; human simulator play is unchanged. The helper defaults to `~/Developer/.coordination/heavy_lane.py`; `CODEX_HEAVY_LANE_HELPER` can select its existing location. Busy or missing admission exits 75 with no build or simulator setup, rather than reporting a passed check. Its default wait is 30 seconds and command deadline five minutes. Other explicit diagnostic wrappers still follow the machine admission guidance.
 
-Before landing, follow [review and integration](Release.md#landing-and-review).
+Before landing, follow [review and integration](Development.md#landing-and-review).
 Local integration requires static checks and visual review only when the
 [visual completion gate](#visual-completion-gate) applies. Local compiled evidence
 is not required. Report hosted verification as pending.
@@ -115,7 +115,7 @@ Edit the authored inputs, never the generated project or processed outputs.
 When the staged project is stale, run `./Scripts/generate.sh`, review the
 project diff, and stage the canonical output with its inputs. Staged-project
 validation and push safeguards follow
-[Release.md](Release.md#local-hooks-and-push-discipline); pre-push checks committed
+[Development](Development.md#local-hooks-and-push-discipline); pre-push checks committed
 output completeness, while CI runs forced generation and compares its result
 with committed output.
 
@@ -307,5 +307,5 @@ blocked. Rerun affected checks after a fix; broaden only when new evidence warra
 Test additions/retirement follow [Testing](Testing.md#consolidation-and-retirement).
 Read structured invocation reports before raw build logs; use
 [CI diagnostics](../AgentContext/ci-diagnostics.md) for hosted failures. Commit/push
-safeguards follow [Release](Release.md#local-hooks-and-push-discipline); hosted CI
+safeguards follow [Development](Development.md#local-hooks-and-push-discipline); hosted CI
 runs after an authorized push, not as a prerequisite for that push.

@@ -22,7 +22,7 @@ function usage() {
 Implementation uses .worktrees/<slug> on codex/<slug>, based on local main.
 Run integrate from the task worktree: locked rebase, scoped handoff, fast-forward
 into primary main; retains the checkout. Cleanup removes only clean integrated work. No push.
-See Docs/Platform/Release.md#isolated-chat-workflow for authorization and recovery.`);
+See Docs/Platform/Development.md#isolated-chat-workflow for authorization and recovery.`);
 }
 
 try {

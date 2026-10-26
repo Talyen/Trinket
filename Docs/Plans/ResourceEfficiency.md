@@ -33,7 +33,7 @@ audio or runtime behavior changed; these results establish no game RAM savings.
 | Completed concern | Current owner / retained evidence |
 |---|---|
 | Artifact lifetimes and cleanup protection | [Output retention](../../Scripts/Reference.md#output-retention); [release validation/recovery](../Platform/Release.md#options-and-recovery) |
-| Immutable evidence snapshots and event provenance | [Evidence preservation](../Platform/Release.md#evidence-and-cleanup) |
+| Immutable evidence snapshots and event provenance | [Evidence preservation](../Platform/Development.md#evidence-and-cleanup) |
 | Size and legacy-profile inventory reporting | [Resource reports](../../Scripts/Reference.md#resource-reports) |
 | Declared-package CI caches and footprint reports | [Cache identity](../Platform/VerificationInternals.md#build-products-and-cache-identity); hosted execution pending |
 | Disk migration | `Resources/cleanup-before.txt`, `cleanup-applied.txt`, `cleanup-after.txt`, `result.json` |

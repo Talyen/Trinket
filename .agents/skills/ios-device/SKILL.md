@@ -7,16 +7,17 @@ description: Build, install, debug, or profile Trinket on a physical iOS device.
 
 ## Build and install
 
-For a build and install, run:
+Select the intended physical device under the
+[targeting and session safeguards](../device-interaction/SKILL.md#session-ownership).
+For a build and install on that device, run:
 
 ```bash
-./Scripts/install-device.sh
+./Scripts/install-device.sh --device '<name|id>'
 ```
 
-This auto-detects the first paired physical device, builds with code signing,
-installs via `xcrun devicectl`, and launches the app. Use `--device <name|id>`
-to target a specific device, `--no-launch` to install without launching, and
-`--verbose` to see xcodebuild output.
+The script builds with code signing, installs via `xcrun devicectl`, and launches
+the app. Use `--no-launch` to install without launching and `--verbose` to see
+xcodebuild output.
 
 Prerequisites: a physical iPhone or iPad connected (USB or local network), paired with
 this Mac, with Developer Mode enabled. The `DEVELOPMENT_TEAM` in `project.yml`

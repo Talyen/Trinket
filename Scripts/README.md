@@ -15,7 +15,7 @@ Read-only investigations need no worktree. Use `rg`, file reads and Git diffs fo
 navigation; optional retrieval helpers document their interfaces through `--help`.
 
 [Verification](../Docs/Platform/Verification.md#confidence-ladder) owns check selection
-and evidence requirements. [Release](../Docs/Platform/Release.md#isolated-chat-workflow)
+and evidence requirements. [Development](../Docs/Platform/Development.md#isolated-chat-workflow)
 owns integration recovery and cleanup.
 
 ## Commands by task

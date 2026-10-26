@@ -29,8 +29,10 @@ owned native sessions.
   [ios-simulator skill](../ios-simulator/SKILL.md) owns launch and lease technique.
   Use the exact leased UDID, never the current/default destination or an idle-looking
   booted device. An existing parent lease can support an already-installed-app
-  diagnostic without rebuilding. For physical hardware, follow
-  [ios-device](../ios-device/SKILL.md) and select the intended device explicitly.
+  diagnostic without rebuilding. Select physical hardware explicitly by name or
+  identifier for builds, installs, profiling, and native input; do not rely on the
+  first paired device or a tool's default destination. Use
+  [ios-device](../ios-device/SKILL.md) for build/install and profiling commands.
 - Read current tool metadata. Start `DeviceInteractionStartSession` for an
   already-installed app; use `DeviceInteractionStartWorkspaceSession` only when
   the task needs a workspace build/install. Native session creation supplements

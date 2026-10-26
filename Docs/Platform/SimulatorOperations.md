@@ -108,7 +108,7 @@ Inspection metadata records the checkout revision observed at launch, not compil
 source freshness. Retain build provenance and the screen/state actually reviewed.
 Save captures under `.DerivedData/Deliverables/`; integration preserves them outside
 the checkout and retains the checkout until explicit cleanup.
-[Release](Release.md#evidence-and-cleanup) owns preservation, immediate evidence
+[Development](Development.md#evidence-and-cleanup) owns preservation, immediate evidence
 copies and cleanup. Preservation alone does not establish visual or interaction review.
 
 ### Duo display routing

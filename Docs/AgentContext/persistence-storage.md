@@ -27,6 +27,8 @@ notifications. Synchronous leading-edge observers see the complete previous comm
 including when reading another section; subsequent reads see the complete accepted
 save. Unchanged sections do not invalidate their readers. Load, gameplay commits,
 and full replacements use this same publication boundary.
+Graph mutations reconcile changed slices while preserving retained child-row
+identities.
 
 Load/repair sanitizes `root.toPlayerSave()` from the SwiftData graph. `PlayerSave.currentSchemaVersion` versions the value-layer payload and its sanitizer/mapping migrations independently of the SwiftData migration version declared by `PlayerSaveSchema`; bumping one does not imply bumping the other. Slice writes expand through `PlayerSaveSlice.sanitizeTargets`: inventory also sanitizes roster (equipped items must exist) and homestead, homestead also sanitizes library (building upgrades reconcile research tiers), and labyrinth also sanitizes roster (recruit eligibility feeds map healing). Labyrinth sanitize runs on labyrinth mutations and full load, not on every inventory or roster write; recruit eligibility is applied when a map is generated.
 

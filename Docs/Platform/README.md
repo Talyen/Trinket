@@ -13,7 +13,8 @@ Standing engineering policy. Product decisions live in [Docs/Product/Decisions.m
 | [SimulatorOperations.md](SimulatorOperations.md) | Managed simulator isolation and local Xcode operations |
 | [Localization.md](Localization.md) | Agent translation/review, freshness gates, bundled languages and submission preparation |
 | [Purchases.md](Purchases.md) | StoreKit testing, purchase ownership, and release prerequisites |
-| [Release.md](Release.md) | Versions, release notes, tags, and App Store handoff |
+| [Development.md](Development.md) | Task checkouts, integration, evidence, commit format, and Git hooks |
+| [Release.md](Release.md) | Versions, release notes, TestFlight, tags, and App Store handoff |
 | [ApplePlatformReference.md](ApplePlatformReference.md) | iOS support, adoption, and Apple design/API choices |
 | [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | Human CloudKit / App Store enablement checklist |
 | [AppStoreMetadata.md](AppStoreMetadata.md) | App Store field drafts (data, not policy); procedure in Release.md |

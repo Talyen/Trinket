@@ -154,29 +154,47 @@ Upgrade costs are fixed authored values. Their material proportions account for
 production support and total upgrade demand; prices do not depend on which
 buildings the player owns.
 
-## Blacksmith crafting
+## Workshop crafting
 
-A built Blacksmith exposes a separate anvil **Craft** row above its Upgrade
-section and static benefits panel. Action rows and static benefits share the same
+Blacksmith, Archery Range, and Outfitter share this crafting contract. Each built
+workshop exposes **Craft** above Upgrade and its static benefits panel; Blacksmith
+uses the anvil icon. Action rows and static benefits share the same
 thin material. Action text uses the same row-title typography as
 benefit headers. Craft opens a native sheet at
-medium height over the Blacksmith, keeping the building's identity visible.
+medium height over the workshop, keeping the building's identity visible.
 Its opaque semantic surface separates Inventory-sized, two-column recipe artwork
 from the building artwork. The sheet can be expanded by dragging and dismissed by swiping down. It has no
 Resources or Close toolbar buttons; balances remain accessible on the node screen.
 
-[EquipmentRecipe.all](../../Packages/TrinketContent/Sources/TrinketContent/Homestead/BlacksmithRecipe.swift)
-owns standard recipe order and fixed costs. All standard Blacksmith recipes
-unlock at tier one. Prices preserve a net material sink when ordinary forged gear
-is salvaged.
+[EquipmentRecipe](../../Packages/TrinketContent/Sources/TrinketContent/Homestead/BlacksmithRecipe.swift)
+owns recipe order, workshop membership, costs, research links, and the workshop-only
+Astral tier-weight bonus. Standard recipes unlock at the workshop's first tier
+without Library. Focused recipes require their Library Research project.
+Building upgrades do not change recipes or prices. Tune costs against resource
+income, production, other workshops, and salvage; they establish no time-to-earn
+promise. Prices preserve a net material sink when ordinary forged gear is
+salvaged; no individual craft returns all its input materials. Quiver's
+Hide/Wood → Iron/Wood conversion needs cycle analysis rather than a loss of every
+individual resource.
 
-Selecting a base navigates inside the same sheet to its compact working detent,
-with artwork/name, material cost, and Forge button.
+| Recipe | Outcomes |
+|---|---|
+| Standard | Normal Basic/Astral rolls or the selected base's authored, unowned Unique; no Trinkets. Unavailable categories are removed before weights normalize. |
+| Focused | Basic/Astral only; one guaranteed named-keyword affix occupies an ordinary slot, with normal remaining rolls. The item retains its base name. |
+
+Crafting uses the non-boss generator with the [shared noncombat item-quality policy](../../Packages/TrinketContent/README.md#random-item-rewards).
+The later-tier Astral weight bonus appears with building benefits and is
+independent of global drop bonuses.
+Crafting consumes materials, never another item, and does not automatically equip
+its result. Existing artwork supplies recipes and results.
+
+Selecting a standard recipe navigates inside the same sheet to its compact
+working detent, with artwork/name, material cost, and Forge button.
 The prepared thumbnail appears while the full artwork finishes preparing; artwork
 readiness does not delay the Forge button.
-Selecting a recipe always fits the preview to that working detent, even after
-browsing at large height. Artwork and costs stay grouped at the top if the preview
-is expanded manually. Returning to the grid restores its chosen browsing height.
+Standard previews return to that working detent even after browsing at large
+height; focused previews use the expanded sheet. Artwork and costs stay grouped
+at the top if the preview is expanded manually. Returning to the grid restores its chosen browsing height.
 Forge scroll views use the native soft top scroll-edge effect. Recipe selection
 never zooms an artwork into a different layout. The preview has no predicted
 rarity, powers, or explanatory copy.
@@ -187,17 +205,9 @@ the actual Item detail in the same navigation stack while the sheet expands to
 large. **Added to Inventory** appears below the item name on the hero art; one success
 haptic accompanies the first visible reveal.
 Back returns to the saved result card, which can reopen details without another
-craft or success haptic. Swiping down returns to the Blacksmith. Interrupted or
+craft or success haptic. Swiping down returns to the workshop. Interrupted or
 backgrounded preparation retains the item without launching a late detail view;
 the saved result card retains Done for this recovery path.
-
-Forging uses the non-boss generator with the [shared noncombat item-quality policy](../../Packages/TrinketContent/README.md#random-item-rewards).
-Later Blacksmith tiers add the
-[authored forge-only Astral tier-weight bonus](../../Packages/TrinketContent/Sources/TrinketContent/Homestead/BlacksmithRecipe.swift),
-shown with its benefits. Basic and Astral outcomes retain normal
-rolls. Unique outcomes use only the chosen base's authored, unowned Unique;
-Trinkets never appear. Removing unavailable categories renormalizes loot weights.
-Building upgrades do not change recipes or prices.
 
 Persistence resolves the recipe, workshop tier, research unlock and current balances
 before spending. Spending and inventory insertion commit atomically before success
@@ -210,16 +220,10 @@ motion/haptic preferences govern presentation.
 
 Library adds Bestiary and Research in one quiet activity group above Upgrade and
 its separate XP benefit. The rows show Build Library until tier one. Archery Range
-adds Craft above Upgrade, with five standard and three research-taught recipes.
-Its existing ranged-damage benefit, Wood production and building costs remain.
-Library is not a prerequisite for standard crafting.
-
-[Library, Research and Archery crafting](Library.md) owns discovery, project
-objectives, unlocks and native navigation; the recipe catalog owns prices. Both workshops
-share the immutable craft roll, spending/retry ownership and actual-item reveal
-above. Later Range tiers use the same workshop-only Astral weight formula.
-No workshop consumes an item or adds a new artwork asset. Trinkets and Uniques
-remain in Collection; the Library has no duplicate item archive.
+retains its ranged-damage benefit, Wood production, and building costs.
+[Library](Library.md) owns discovery, project objectives, recipe unlocks and native
+navigation. Trinkets and Uniques remain in Collection; Library has no duplicate
+item archive.
 
 ## Crucible, Runesmith, and Wishing Well
 
@@ -264,11 +268,6 @@ from any source clears the wish; unknown/already-owned wish IDs sanitize to none
 ## Outfitter crafting
 
 Outfitter retains the `woolTailoring` saved identity and existing artwork, passive
-bonuses, production and prices. Built Outfitter exposes **Craft** using the same
-recipe sheet, cost dock, immutable roll and actual-item reveal as other workshops.
-The [recipe catalog](../../Packages/TrinketContent/Sources/TrinketContent/Homestead/BlacksmithRecipe.swift)
-owns Leather Armor costs. Standard crafting follows the [Blacksmith outcome and
-quality rules](#blacksmith-crafting); later tiers use the shared workshop-only
-Astral weight formula.
-Focused recipes are taught by Library Research and guarantee a keyword affix
-within an ordinary slot, with Basic/Astral outcomes only. See [Library](Library.md).
+bonuses, production and prices. Its Leather Armor recipes use the
+[shared workshop contract](#workshop-crafting); [Library](Library.md) owns their
+research unlocks.

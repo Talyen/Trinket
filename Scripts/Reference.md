@@ -14,7 +14,7 @@ wrappers are for diagnostics/tooling, subject to [execution limits](../Docs/Plat
 | `python3 Scripts/agent-brief.py --status --read --paths <files...>` | Read scoped safeguards and ownership; `--full --read` expands linked contracts, `--task <concern>` selects indexed concern depth |
 | `python3 Scripts/content-inspect.py --id <id>` | Inspect content; `--name`, `--trigger`, and `--references` support rule/caller investigation |
 | `node Scripts/agent-worktree.mjs create --task <slug>` | Create an isolated task checkout from committed local main |
-| `node Scripts/agent-worktree.mjs integrate` | Land under the shared lock; [review, recovery and cleanup](../Docs/Platform/Release.md#isolated-chat-workflow) own its preconditions |
+| `node Scripts/agent-worktree.mjs integrate` | Land under the shared lock; [review, recovery and cleanup](../Docs/Platform/Development.md#isolated-chat-workflow) own its preconditions |
 | `node Scripts/agent-worktree.mjs cleanup` | Preserve deliverables and remove this clean integrated worktree, retaining its branch |
 | `node Scripts/agent-worktree.mjs evidence [path...]` | Preserve task-local evidence, or print its durable directory |
 | `node Scripts/agent-worktree.mjs remove --task <slug>` | Legacy removal from primary; refuses dirty/unmerged tasks and ignored files |
@@ -278,7 +278,7 @@ the required toolchain.
 This matrix owns artifact lifetimes and cleanup eligibility. The executable owners
 are [output retention](internal/output_retention.py),
 [release-copy validation](../Docs/Platform/Release.md#options-and-recovery),
-[evidence preservation](../Docs/Platform/Release.md#evidence-and-cleanup) and the
+[evidence preservation](../Docs/Platform/Development.md#evidence-and-cleanup) and the
 producing hosted workflows. Age alone never proves that an artifact is disposable.
 
 | Artifact | Default lifetime / review point | Removal conditions |

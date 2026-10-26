@@ -20,7 +20,7 @@ lightweight handoff check receipt-bound prepared outputs without raw sources.
 The router owns verification selection. Content manifests require generation and
 idempotence; media manifests use the [media preparation contract](#media-assets).
 Semantic content changes use content tests; Swift adds style checks.
-Commit staging follows [Release](../Platform/Release.md#local-hooks-and-push-discipline).
+Commit staging follows [Development](../Platform/Development.md#local-hooks-and-push-discipline).
 
 ## Abilities
 
