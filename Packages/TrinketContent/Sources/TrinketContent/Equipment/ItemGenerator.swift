@@ -116,11 +116,9 @@ public struct ItemGenerator: Sendable {
         var selected: [ItemAffixDefinition] = []
 
         while selected.count < count, totalWeight > 0 {
-            var roll = Int.random(in: 1 ... totalWeight, using: &randomNumberGenerator)
-            guard let selectedIndex = pool.firstIndex(where: { candidate in
-                roll -= candidate.weight
-                return roll <= 0
-            }) else {
+            guard let selectedIndex = WeightedLootSelection.index(
+                in: pool, totalWeight: totalWeight, weight: { $0.weight }, using: &randomNumberGenerator,
+            ) else {
                 // All remaining weights are zero; return the partial selection
                 // instead of trapping the live reward.
                 break

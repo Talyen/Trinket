@@ -260,13 +260,9 @@ public enum ItemCorruption {
         guard !pool.isEmpty else { return nil }
         let total = pool.reduce(0) { $0 + max(0, $1.weight) }
         guard total > 0 else { return pool.randomElement(using: &randomNumberGenerator) }
-        var ticket = Int.random(in: 1 ... total, using: &randomNumberGenerator)
-        for definition in pool {
-            ticket -= max(0, definition.weight)
-            if ticket <= 0 {
-                return definition
-            }
-        }
-        return pool.last
+        let index = WeightedLootSelection.index(
+            in: pool, totalWeight: total, weight: { max(0, $0.weight) }, using: &randomNumberGenerator,
+        )
+        return index.map { pool[$0] } ?? pool.last
     }
 }
