@@ -15,8 +15,9 @@ roles, and motion recipes. For a localized fix, apply only guidance relevant to
 the requested change. Existing screenshots or source context may be sufficient
 to understand the current design; a separate baseline simulator session is not
 mandatory. A local UI fix can need design judgment without becoming a redesign.
-Changed visuals must still be rendered, reviewed, and refined under the
-[visual completion gate](../../../Docs/Platform/Verification.md#visual-completion-gate).
+The [visual completion gate](../../../Docs/Platform/Verification.md#visual-completion-gate)
+owns when rendered review is required. Apply its scope before starting a simulator;
+when it applies, render, review, and refine the changed result.
 Read [Foundations and process](foundations-and-process.md) for visual composition
 and polish work; source review alone cannot close it.
 

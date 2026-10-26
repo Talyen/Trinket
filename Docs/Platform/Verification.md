@@ -6,6 +6,9 @@ Run `./Scripts/handoff.sh --quiet` from the task checkout. It derives the comple
 task scope from `main` (commits plus dirty files) and runs lightweight static checks.
 Compilation, package tests, simulator suites, generation freshness and performance
 qualification belong to hosted CI, including for directly changed packages and public APIs.
+The ordinary completion path is implementation, static handoff, review and commit,
+then protected local integration. Use judgment about the actual change to select
+any additional local evidence under the visual gate below.
 Use `--base <ref>` for another approved base, `--paths <files...>` for an iteration,
 and `--dry-run` to preview without executing anything.
 
@@ -46,8 +49,9 @@ the visual completion gate below.
 Local `build.sh`, compiled `test.sh`, `test-package.sh`, and managed `run-simulator.sh --isolate` automatically enter the shared host admission helper before allocating resources. Hosted CI and nested commands reuse their existing ownership; human simulator play is unchanged. The helper defaults to `~/Developer/.coordination/heavy_lane.py`; `CODEX_HEAVY_LANE_HELPER` can select its existing location. Busy or missing admission exits 75 with no build or simulator setup, rather than reporting a passed check. Its default wait is 30 seconds and command deadline five minutes. Other explicit diagnostic wrappers still follow the machine admission guidance.
 
 Before landing, follow [review and integration](Release.md#landing-and-review).
-Local integration requires static checks and applicable visual review, without
-requiring local compiled evidence. Report hosted verification as pending.
+Local integration requires static checks and visual review only when the
+[visual completion gate](#visual-completion-gate) applies. Local compiled evidence
+is not required. Report hosted verification as pending.
 
 ## Completion states
 
@@ -134,7 +138,18 @@ when no existing journey owns the outcome. For a bounded local reproduction, use
 
 ### Visual completion gate
 
-For changes to player-facing layout, styling, visible copy, artwork, or motion:
+Require local rendered review for changes to player-facing layout, styling,
+artwork, motion, or UI interaction, and for a clear text-fit or readability risk.
+
+Content, balance, gameplay-rule and copy changes within existing UI follow the
+ordinary static completion path unless they create one of those presentation or
+interaction risks. Text changes still complete localization in the same task;
+compilation and combat tests remain CI-owned. An optional local diagnostic timing
+out does not by itself block integration or make such a task visually incomplete.
+Agents determine whether the gate applies from the actual change; no separate
+approval or checklist is needed.
+
+When the gate applies:
 
 1. Render the changed result using the shipping UI and real game content on a
    managed simulator or selected device. Save evidence tied to the build/revision,

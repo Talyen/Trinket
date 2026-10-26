@@ -80,9 +80,9 @@ when supplied together. Xcode 27 opens Device Hub; older Xcode opens Simulator.
 ## Interaction evidence
 
 A screenshot can verify layout; exercise the interaction to verify behavior.
-Visual implementation tasks require saved final evidence and review under the
-[visual completion gate](../../../Docs/Platform/Verification.md#visual-completion-gate);
-routine diagnostic observations alone do not close them.
+The [visual completion gate](../../../Docs/Platform/Verification.md#visual-completion-gate)
+owns when saved final evidence and review are required; routine diagnostic
+observations alone do not close a required visual review.
 Report device/build identity and what was actually checked. Treat simulator
 performance and absent physical haptics as limits of that evidence. Use
 [CI diagnostics](../../../Docs/AgentContext/ci-diagnostics.md) for build/test

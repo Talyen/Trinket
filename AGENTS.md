@@ -80,7 +80,7 @@ caused by the change without another approval checkpoint. Stop when complete or
 blocked by a required decision or unavailable prerequisite.
 
 - Add tests only for consequential gaps in existing protection; use the three questions in [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior). Verification does not require new test code.
-- Player-facing layout, copy, artwork and motion changes require the [visual completion gate](Docs/Platform/Verification.md#visual-completion-gate). Compilation and tests alone do not establish visual quality.
+- Use the [visual completion gate](Docs/Platform/Verification.md#visual-completion-gate) for presentation or UI interaction changes and clear readability risks. Content and copy changes within existing UI normally follow the static completion path; they do not automatically require a simulator run.
 - Report the checks that ran and exact blockers/skips using [Verification's completion states](Docs/Platform/Verification.md#completion-states). Pending hosted checks do not block an otherwise complete local task or authorize a push.
 - Save visual artifacts in `.DerivedData/Deliverables/`; [Release](Docs/Platform/Release.md#evidence-and-cleanup) owns evidence preservation and cleanup.
 

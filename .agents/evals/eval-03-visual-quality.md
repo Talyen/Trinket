@@ -37,5 +37,7 @@ report scenario review separately from an executed rendered trial.
 Trace the instructions for: (1) a new composition with an unresolved direction;
 (2) a single redundant subtitle removal; (3) a render with a clipped price needing
 revision; (4) unavailable render tooling; (5) an attractive source image whose
-shipping crop loses the focal subject. Confirm that small edits avoid redesign
-ceremony while all changed visuals retain the completion gate.
+shipping crop loses the focal subject; (6) a short enemy-trait description changed
+within an existing detail row, with no clear fit or readability risk. Confirm
+that presentation and interaction changes retain the visual gate, while the
+content-only case completes localization and follows ordinary static integration.
