@@ -17,22 +17,14 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
         case talent, dodge
     }
 
-    private enum StatusTick: Equatable, Hashable, Sendable {
-        case secondary, natural
-    }
-
     private enum CardRepeatRole: Equatable, Hashable, Sendable {
         case none, capture, replay
-    }
-
-    private enum ElementalPayoff: Equatable, Hashable, Sendable {
-        case immediate, afterAttachment
     }
 
     private enum Kind: Equatable, Hashable, Sendable {
         case attack(AbilityTier, AttackOrigin)
         case effect
-        case periodic(StatusTick)
+        case periodic(natural: Bool)
         case reaction(ReactionCause)
         case copiedReaction
         case redirected
@@ -48,15 +40,11 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
     public var guaranteedCritical = false
     public var abilityHasLeech = false
     package var isThornsDamage = false
-    private var elementalPayoff: ElementalPayoff = .immediate
+    private(set) var settlesElementalImmediately = true
     private var cardRepeatRole: CardRepeatRole = .none
 
-    var settlesElementalImmediately: Bool {
-        elementalPayoff == .immediate
-    }
-
     var isNaturalStatusTick: Bool {
-        kind == .periodic(.natural)
+        kind == .periodic(natural: true)
     }
 
     var isCopiedDamage: Bool {
@@ -103,7 +91,7 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
 
     func settlingElementalAfterAttachment() -> Self {
         var operation = self
-        operation.elementalPayoff = .afterAttachment
+        operation.settlesElementalImmediately = false
         return operation
     }
 
@@ -117,12 +105,12 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
         guaranteedCritical: Bool = false,
         abilityHasLeech: Bool = false,
     ) -> Self {
-        var operation = Self(kind: .attack(tier, origin), scaling: scaling, accuracy: accuracy)
-        operation.abilityCriticalChanceBonus = abilityCriticalChanceBonus
-        operation.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
-        operation.guaranteedCritical = guaranteedCritical
-        operation.abilityHasLeech = abilityHasLeech
-        return operation
+        Self(
+            kind: .attack(tier, origin), scaling: scaling, accuracy: accuracy,
+            abilityCriticalChanceBonus: abilityCriticalChanceBonus,
+            guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
+            guaranteedCritical: guaranteedCritical, abilityHasLeech: abilityHasLeech,
+        )
     }
 
     public static func effect(
@@ -133,12 +121,12 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
         guaranteedCritical: Bool = false,
         abilityHasLeech: Bool = false,
     ) -> Self {
-        var operation = Self(kind: .effect, scaling: scaling, accuracy: accuracy)
-        operation.abilityCriticalChanceBonus = abilityCriticalChanceBonus
-        operation.guaranteedCriticalIfEnemyBuffed = guaranteedCriticalIfEnemyBuffed
-        operation.guaranteedCritical = guaranteedCritical
-        operation.abilityHasLeech = abilityHasLeech
-        return operation
+        Self(
+            kind: .effect, scaling: scaling, accuracy: accuracy,
+            abilityCriticalChanceBonus: abilityCriticalChanceBonus,
+            guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
+            guaranteedCritical: guaranteedCritical, abilityHasLeech: abilityHasLeech,
+        )
     }
 
     public static func reaction(
@@ -152,11 +140,11 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
     static let copiedReaction = Self(kind: .copiedReaction, scaling: .resolved, accuracy: .unavoidable)
     static let redirected = Self(kind: .redirected, scaling: .resolved, accuracy: .unavoidable)
 
-    public static let periodic = Self(kind: .periodic(.secondary), scaling: .statsAndItems, accuracy: .unavoidable)
-    static let resolvedPeriodic = Self(kind: .periodic(.secondary), scaling: .resolved, accuracy: .unavoidable)
+    public static let periodic = Self(kind: .periodic(natural: false), scaling: .statsAndItems, accuracy: .unavoidable)
+    static let resolvedPeriodic = Self(kind: .periodic(natural: false), scaling: .resolved, accuracy: .unavoidable)
 
     static func statusTick(scaling: Scaling, natural: Bool) -> Self {
-        Self(kind: .periodic(natural ? .natural : .secondary), scaling: scaling, accuracy: .unavoidable)
+        Self(kind: .periodic(natural: natural), scaling: scaling, accuracy: .unavoidable)
     }
 
     public static let healthCost = Self(kind: .healthCost, scaling: .flat, accuracy: .unavoidable)
@@ -258,7 +246,7 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
     ) -> Self {
         let repeatedKind: Kind = switch kind {
         case let .attack(tier, _): .attack(tier, origin)
-        case .periodic: .periodic(.secondary)
+        case .periodic: .periodic(natural: false)
         default: kind
         }
         return Self(
@@ -267,7 +255,7 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed,
             guaranteedCritical: guaranteedCritical ?? self.guaranteedCritical,
             abilityHasLeech: abilityHasLeech, isThornsDamage: isThornsDamage,
-            elementalPayoff: elementalPayoff,
+            settlesElementalImmediately: settlesElementalImmediately,
         )
     }
 }

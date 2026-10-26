@@ -13,7 +13,7 @@ struct AbilityPresentationCacheTests {
 
     @Test(arguments: [false, true])
     func `health costs stay outside keywords across all outcome paths`(contributesToIdentity: Bool) {
-        let cost = AbilityOperation.damage(DamageComponent(2, keyword: .physical, target: .actor))
+        let cost = AbilityOperation.damage(DamageComponent(2, keyword: .physical, target: .actor, hasLeech: true))
         let ability = Ability(
             id: "branched-health-cost", name: "Branched Health Cost", tier: .skill,
             outcomeBranches: [AbilityOutcomeBranch(operations: [
@@ -39,6 +39,29 @@ struct AbilityPresentationCacheTests {
         #expect(ability.identityKeywords == identity)
         #expect(ability.presentationKeywords.contains(.health))
         #expect(!ability.presentationKeywords.contains(.physical))
+    }
+
+    @Test(arguments: [(false, false, false), (true, false, false), (false, true, false), (false, true, true), (true, true, true)])
+    func `outcome Leech follows keyword visibility and stays last`(branchLeech: Bool, conditionalLeech: Bool, contributesToIdentity: Bool) {
+        let ability = Ability(
+            id: "outcome-leech", name: "Outcome Leech", tier: .skill,
+            outcomeBranches: [AbilityOutcomeBranch(operations: [
+                .effect(TargetedEffect(.shield(.block, 2), target: .actor)),
+                .damage(DamageComponent(3, keyword: .freeze, hasLeech: branchLeech)),
+                .effect(TargetedEffect(.drawCards(1), target: .actor)),
+            ])],
+            operations: [.damage(DamageComponent(2, keyword: .burn))],
+            conditionalOutcome: AbilityConditionalOutcome(
+                condition: .enemyHasBlock,
+                operations: [.damage(DamageComponent(3, keyword: .poison, hasLeech: conditionalLeech))],
+                contributesToIdentity: contributesToIdentity,
+            ),
+        )
+        let gameplay: [Keyword] = [.burn, .freeze, .block, .poison] + (branchLeech || conditionalLeech ? [.leech] : [])
+        let identity: [Keyword] = [.burn, .freeze, .block] + (contributesToIdentity ? [.poison] : [])
+            + (branchLeech || conditionalLeech && contributesToIdentity ? [.leech] : [])
+        #expect(ability.keywords == gameplay)
+        #expect(ability.identityKeywords == identity)
     }
 
     @Test func `multi hit damage totals stay inspectable after saturated empowerment`() {

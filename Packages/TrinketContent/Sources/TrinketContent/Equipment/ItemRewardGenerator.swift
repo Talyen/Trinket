@@ -40,18 +40,12 @@ public enum ItemRewardGenerator {
             favoredTier: favoredTier,
             tierWeightBonusPercent: tierWeightBonusPercent, collectibleChancePercent: collectibleChancePercent,
         )
+        let tier = ItemLootPolicy.roll(probabilities: probabilities, using: &randomNumberGenerator)
         let rarity: Rarity
-        switch ItemLootPolicy.roll(probabilities: probabilities, using: &randomNumberGenerator) {
-        case .unique:
+        switch tier {
+        case .unique, .trinket:
             return ItemWish.select(
-                from: availability.uniques,
-                wishedTemplateID: wishedTemplateID,
-                partyBias: partyBias,
-                using: &randomNumberGenerator,
-            )
-        case .trinket:
-            return ItemWish.select(
-                from: availability.trinkets,
+                from: tier == .unique ? availability.uniques : availability.trinkets,
                 wishedTemplateID: wishedTemplateID,
                 partyBias: partyBias,
                 using: &randomNumberGenerator,

@@ -219,6 +219,12 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     private func appendNonDamageKeywords(to result: inout [Keyword], identityOnly: Bool = false) {
+        func hasComponentLeech(_ operations: [AbilityOperation]) -> Bool {
+            operations.contains {
+                guard case let .damage(component) = $0, component.target != .actor else { return false }
+                return component.hasLeech && (!identityOnly || component.condition == nil || component.bonusAmount > 0)
+            }
+        }
         func qualifies(_ effect: Effect) -> Bool {
             switch effect {
             case .drawCards, .drawAndPlayCards:
@@ -227,18 +233,18 @@ public struct Ability: Identifiable, Hashable, Sendable {
                 true
             }
         }
+        var includesLeech = hasLeech || hasComponentLeech(operations)
         for targetedEffect in targetedEffects {
             result.append(contentsOf: AbilityOperation.effect(targetedEffect).keywords)
         }
-        if let branches = outcomeBranches {
-            for branch in branches {
-                result.append(contentsOf: branch.operations.lazy.compactMap(\.damageComponent)
-                    .filter { $0.target != .actor }.map(\.keyword))
-                result.append(contentsOf: branch.operations.lazy.compactMap(\.targetedEffect)
-                    .map(\.effect)
-                    .filter(qualifies)
-                    .map(\.keyword))
-            }
+        for branch in outcomeBranches ?? [] {
+            result.append(contentsOf: branch.operations.lazy.compactMap(\.damageComponent)
+                .filter { $0.target != .actor }.map(\.keyword))
+            result.append(contentsOf: branch.operations.lazy.compactMap(\.targetedEffect)
+                .map(\.effect)
+                .filter(qualifies)
+                .map(\.keyword))
+            includesLeech = includesLeech || hasComponentLeech(branch.operations)
         }
         if let conditionalOutcome, !identityOnly || conditionalOutcome.contributesToIdentity {
             result.append(contentsOf: conditionalOutcome.operations.lazy.compactMap { op in
@@ -250,16 +256,9 @@ public struct Ability: Identifiable, Hashable, Sendable {
                 }
                 return op.keyword
             })
+            includesLeech = includesLeech || hasComponentLeech(conditionalOutcome.operations)
         }
-        func hasComponentLeech(_ operations: [AbilityOperation]) -> Bool {
-            operations.contains {
-                guard case let .damage(component) = $0, component.target != .actor else { return false }
-                return component.hasLeech && (!identityOnly || component.condition == nil || component.bonusAmount > 0)
-            }
-        }
-        if hasLeech || hasComponentLeech(operations)
-            || outcomeBranches?.contains(where: { hasComponentLeech($0.operations) }) == true
-            || conditionalOutcome.map({ (!identityOnly || $0.contributesToIdentity) && hasComponentLeech($0.operations) }) == true {
+        if includesLeech {
             result.append(.leech)
         }
     }
