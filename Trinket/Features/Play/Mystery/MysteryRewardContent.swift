@@ -52,8 +52,8 @@ struct MysteryRewardContent: View {
         }
         let hero = playerSave.roster.activeHero
         let companion = playerSave.roster.activeCompanion
-        return rewardRevealExperienceAwards(
-            hero: .init(
+        return [
+            .init(
                 id: "hero",
                 combatantName: hero.name,
                 artworkName: hero.artReference?.thumbnailImageName ?? hero.artReference?.imageName,
@@ -61,7 +61,7 @@ struct MysteryRewardContent: View {
                 progressionAfter: heroProgressionAfter,
                 experienceAward: result.heroGrantedExperience,
             ),
-            companion: .init(
+            .init(
                 id: "companion",
                 combatantName: companion.name,
                 artworkName: companion.artReference?.thumbnailImageName ?? companion.artReference?.imageName,
@@ -69,6 +69,6 @@ struct MysteryRewardContent: View {
                 progressionAfter: companionProgressionAfter,
                 experienceAward: result.companionGrantedExperience,
             ),
-        )
+        ]
     }
 }

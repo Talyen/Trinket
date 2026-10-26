@@ -10,7 +10,6 @@ public struct ExperienceBar: View {
     public let fillColor: Color
     public let experienceAward: Int?
     public let snapToFinal: Bool
-    public let onAnimationCompleted: () -> Void
 
     @State private var displayedLevel: Int
     @State private var displayedXP: Int
@@ -20,7 +19,6 @@ public struct ExperienceBar: View {
     @State private var isFlowing = false
     @State private var isLevelUpHighlighted = false
     @State private var hasAnimated = false
-    @State private var hasReportedCompletion = false
     @State private var animationTask: Task<Void, Never>?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -41,7 +39,6 @@ public struct ExperienceBar: View {
         fillColor: Color,
         experienceAward: Int? = nil,
         snapToFinal: Bool = false,
-        onAnimationCompleted: @escaping () -> Void = {},
     ) {
         self.combatantName = combatantName
         self.artworkName = artworkName
@@ -52,7 +49,6 @@ public struct ExperienceBar: View {
         self.fillColor = fillColor
         self.experienceAward = experienceAward
         self.snapToFinal = snapToFinal
-        self.onAnimationCompleted = onAnimationCompleted
         _displayedLevel = State(initialValue: pre.level)
         _displayedXP = State(initialValue: pre.currentXP)
         _displayedRequiredXP = State(initialValue: pre.requiredXP)
@@ -98,7 +94,6 @@ public struct ExperienceBar: View {
             hasAnimated = true
             if snapToFinal || reduceMotion {
                 snapToPost()
-                reportCompletion()
             } else {
                 startAnimation()
             }
@@ -122,7 +117,6 @@ public struct ExperienceBar: View {
             animationTask = nil
             if hasAnimated {
                 snapToPost()
-                reportCompletion()
             }
         }
     }
@@ -173,7 +167,6 @@ public struct ExperienceBar: View {
         animationTask?.cancel()
         animationTask = nil
         snapToPost()
-        reportCompletion()
     }
 
     private func snapToPost() {
@@ -186,12 +179,6 @@ public struct ExperienceBar: View {
             isFlowing = false
             isLevelUpHighlighted = false
         }
-    }
-
-    private func reportCompletion() {
-        guard !hasReportedCompletion else { return }
-        hasReportedCompletion = true
-        onAnimationCompleted()
     }
 
     private func runSegments() async {
@@ -222,11 +209,6 @@ public struct ExperienceBar: View {
         withAnimation(.easeOut(duration: Self.settleDuration)) {
             isFlowing = false
         }
-        if !segments.isEmpty {
-            try? await Task.sleep(for: .seconds(Self.settleDuration))
-        }
-        guard !Task.isCancelled else { return }
-        reportCompletion()
     }
 
     private func animate(to segment: Segment, duration: TimeInterval) async {
