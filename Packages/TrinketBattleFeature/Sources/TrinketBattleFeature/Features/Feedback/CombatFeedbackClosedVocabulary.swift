@@ -1,139 +1,45 @@
 import BattleEngine
-import Foundation
 import TrinketContent
 import TrinketCore
-import TrinketDesignSystem
-import TrinketFeatureSupport
 
+/// Prewarming needs resolved pixels, not synthetic combat events or scheduled items.
 enum CombatFeedbackClosedVocabulary {
-    struct Source: Equatable {
-        let feedbackClass: CombatFeedbackClass
-        let keyword: Keyword
-        let visualRole: CombatFeedbackVisualRole
-        let label: CombatFeedbackChipLabel
-    }
-
-    private static let staticSources: [Source] = generateSources()
-
-    static func enumerateSources() -> [Source] {
-        staticSources
-    }
-
-    private static func generateSources() -> [Source] {
-        var sources: [Source] = []
-        var seenAppearances: Set<ResolvedAppearance> = []
+    static let appearances: [CombatFeedbackAppearance] = {
+        var result: [CombatFeedbackAppearance] = []
+        var seen: Set<CombatFeedbackAppearance> = []
         for outcome in ActionEvent.EffectOutcome.allCases {
             let descriptor = CombatFeedbackEffectPresentation.descriptor(for: outcome)
-            guard descriptor.shouldDisplay(amount: 1), isClosedVocabulary(descriptor) else {
-                continue
-            }
+            guard descriptor.shouldDisplay(amount: 1) else { continue }
             for keyword in Keyword.allCases {
-                let event = catalogEvent(outcome: outcome, keyword: keyword)
-                for item in CombatFeedbackPresenter.makeItems(
-                    from: [event],
-                    at: Date(timeIntervalSince1970: 0),
-                ) {
-                    let appearance = ResolvedAppearance(
-                        typography: item.feedbackClass.typographyTier,
-                        presentation: item.chipPresentation,
-                    )
-                    guard seenAppearances.insert(appearance).inserted else { continue }
-                    sources.append(
-                        Source(
-                            feedbackClass: item.feedbackClass,
-                            keyword: item.keyword,
-                            visualRole: item.visualRole,
-                            label: item.label,
-                        ),
-                    )
+                // Freeze and Stun use their dedicated animations instead of floating chips.
+                if outcome == .controlTriggered || outcome == .controlActionSkipped,
+                   keyword == .freeze || keyword == .stun {
+                    continue
+                }
+                guard let label = descriptor.label(amount: 1, keyword: keyword), case .word = label else { continue }
+                let appearance = CombatFeedbackAppearance(
+                    feedbackClass: descriptor.feedbackClass,
+                    presentation: .resolve(
+                        label: label, keyword: keyword, visualRole: descriptor.visualRole,
+                        feedbackClass: descriptor.feedbackClass,
+                    ),
+                )
+                if seen.insert(appearance).inserted {
+                    result.append(appearance)
                 }
             }
         }
-        sources += CombatReaction.allCases.map {
-            Source(feedbackClass: .buff, keyword: $0.damageKeyword, visualRole: .keyword, label: .reaction($0))
-        }
-        return sources
-    }
-
-    static func enumerateItems(at date: Date = .now) -> [CombatFeedbackItem] {
-        let expiresAt = date.addingTimeInterval(1)
-        return staticSources.enumerated().map { index, source in
-            catalogItem(
-                from: source,
-                id: index + 1,
-                availableAt: date,
-                expiresAt: expiresAt,
+        result += CombatReaction.allCases.map { reaction in
+            CombatFeedbackAppearance(
+                feedbackClass: .buff,
+                presentation: .resolve(
+                    label: .reaction(reaction),
+                    keyword: reaction.damageKeyword,
+                    visualRole: .keyword,
+                    feedbackClass: .buff,
+                ),
             )
         }
-    }
-
-    static func enumerateWordChips(at date: Date = .now) -> [CombatFeedbackItem] {
-        enumerateItems(at: date).filter {
-            if case .word = $0.label {
-                true
-            } else {
-                false
-            }
-        }
-    }
-
-    static func orderedChips(at date: Date = .now) -> [CombatFeedbackItem] {
-        CombatFeedbackOrdering.orderedChips(from: enumerateItems(at: date))
-    }
-
-    private struct ResolvedAppearance: Hashable {
-        let typography: CombatFeedbackTypographyTier
-        let presentation: CombatFeedbackChipPresentation
-    }
-
-    private static func isClosedVocabulary(
-        _ descriptor: CombatFeedbackEffectPresentation.Descriptor,
-    ) -> Bool {
-        switch descriptor.labelRule {
-        case .status, .dodgeWord, .plainKeyword, .appliedKeyword, .triggeredKeyword,
-             .cleanseKeyword, .purgeKeyword, .deathsDoorIcon:
-            true
-        case .amount, .negatedAmount, .none:
-            false
-        }
-    }
-
-    private static func catalogEvent(
-        outcome: ActionEvent.EffectOutcome,
-        keyword: Keyword,
-    ) -> ActionEvent {
-        ActionEvent(
-            id: 1,
-            actionID: 1,
-            kind: .effect(outcome),
-            actorName: "Hero",
-            abilityName: "Catalog",
-            targetID: "catalog",
-            targetName: "Catalog",
-            amount: 1,
-            keyword: keyword,
-        )
-    }
-
-    private static func catalogItem(
-        from source: Source,
-        id: Int,
-        availableAt: Date,
-        expiresAt: Date,
-    ) -> CombatFeedbackItem {
-        CombatFeedbackItem(
-            id: id,
-            sourceEventIDs: [id],
-            actionGroupID: id,
-            presentationIndex: 0,
-            targetID: "catalog",
-            feedbackClass: source.feedbackClass,
-            keyword: source.keyword,
-            visualRole: source.visualRole,
-            label: source.label,
-            availableAt: availableAt,
-            expiresAt: expiresAt,
-            reactionKind: .none,
-        )
-    }
+        return result
+    }()
 }

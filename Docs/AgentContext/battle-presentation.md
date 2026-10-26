@@ -157,6 +157,9 @@ a zero chip; card motion acknowledges their play.
 grouping retains the event and its source IDs rather than a parallel presentation DTO.
 `CombatFeedbackEffectPresentation` exhaustively maps effect outcomes to descriptors
 with one label rule, shared by chip projection and vocabulary prewarming.
+Prewarming consumes resolved appearances directly. Glyph keys own their typography
+and distinguish icons from text fragments; font selection follows that key rather
+than a separately supplied style.
 
 Sniff Out shows beneficial-status + Physical icons with its prepared amount on
 the recipient. A refresh replaces the visible value rather than adding numbers;

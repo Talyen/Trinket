@@ -36,59 +36,25 @@ enum CombatFeedbackChipComposer {
         var secondaryTextTint: CGColor?
     }
 
-    static func compose(
-        presentation: CombatFeedbackChipPresentation,
-        feedbackClass: CombatFeedbackClass,
-        layoutDirection: LayoutDirection = .leftToRight,
-        displayScale: CGFloat,
-        atlas: CombatFeedbackGlyphAtlas = .shared,
-        needsShineMask: Bool = false,
-    ) -> ComposedRaster? {
-        var context = CompositionContext()
-        return compose(
-            presentation: presentation, feedbackClass: feedbackClass,
-            layoutDirection: layoutDirection, displayScale: displayScale,
-            atlas: atlas, needsShineMask: needsShineMask, context: &context,
-        )
-    }
-
-    static func compose(
-        presentation: CombatFeedbackChipPresentation,
-        feedbackClass: CombatFeedbackClass,
-        layoutDirection: LayoutDirection,
-        displayScale: CGFloat,
-        atlas: CombatFeedbackGlyphAtlas = .shared,
-        needsShineMask: Bool,
-        context: inout CompositionContext,
-    ) -> ComposedRaster? {
-        guard let inputs = prepareInputs(
-            presentation: presentation, feedbackClass: feedbackClass,
-            layoutDirection: layoutDirection, displayScale: displayScale, atlas: atlas, needsShineMask: needsShineMask,
-        ) else { return nil }
-        return render(inputs, context: &context)
-    }
-
     static func prepareInputs(
-        presentation: CombatFeedbackChipPresentation,
-        feedbackClass: CombatFeedbackClass,
+        appearance: CombatFeedbackAppearance,
         layoutDirection: LayoutDirection = .leftToRight,
         displayScale: CGFloat,
         atlas: CombatFeedbackGlyphAtlas = .shared,
         needsShineMask: Bool = false,
     ) -> RasterInputs? {
-        let recipe = CombatFeedbackChipStyle.forClass(feedbackClass)
+        let presentation = appearance.presentation
         let scale = max(1, displayScale)
         let face = CombatFeedbackGlyphAtlas.Face(
-            feedbackClass: feedbackClass,
+            typography: appearance.typography,
             displayScaleHundredths: Int((scale * 100).rounded()),
         )
 
         var leadingGlyph: CombatFeedbackGlyphAtlas.Glyph?
         if let leadingStyle = presentation.leadingStyle {
-            guard let glyph = atlas.icon(
-                leadingStyle.feedbackIcon,
+            guard let glyph = atlas.glyph(
+                .icon(leadingStyle.feedbackIcon),
                 face: face,
-                recipe: recipe,
             ) else {
                 return nil
             }
@@ -96,10 +62,9 @@ enum CombatFeedbackChipComposer {
         }
 
         let trailingStyle = presentation.trailingStyle.visualStyle
-        guard let trailingGlyph = atlas.icon(
-            presentation.trailingStyle.feedbackIcon,
+        guard let trailingGlyph = atlas.glyph(
+            .icon(presentation.trailingStyle.feedbackIcon),
             face: face,
-            recipe: recipe,
         ) else {
             return nil
         }
@@ -109,7 +74,6 @@ enum CombatFeedbackChipComposer {
             guard let glyphs = makeTextGlyphs(
                 for: text,
                 face: face,
-                recipe: recipe,
                 atlas: atlas,
             ) else {
                 return nil
@@ -138,7 +102,7 @@ enum CombatFeedbackChipComposer {
             layoutDirection: layoutDirection,
             displayScale: scale,
             needsShineMask: needsShineMask,
-            maximumDigitWidth: atlas.maximumDigitWidth(face: face, recipe: recipe),
+            maximumDigitWidth: atlas.maximumDigitWidth(face: face),
             textOnly: presentation.reaction != nil,
             // UIStyleCheck: allow - Raster names blend the two existing keyword semantic colors.
             secondaryTextTint: presentation.reaction.map { UIColor($0.preparationKeyword.visualStyle.color).cgColor },
@@ -318,7 +282,6 @@ enum CombatFeedbackChipComposer {
     private static func makeTextGlyphs(
         for text: String,
         face: CombatFeedbackGlyphAtlas.Face,
-        recipe: CombatFeedbackChipStyle,
         atlas: CombatFeedbackGlyphAtlas,
     ) -> [CombatFeedbackGlyphAtlas.Glyph]? {
         let fragments: [String] = if text.allSatisfy({ $0.isNumber || $0 == "+" }) {
@@ -329,7 +292,7 @@ enum CombatFeedbackChipComposer {
         var glyphs: [CombatFeedbackGlyphAtlas.Glyph] = []
         glyphs.reserveCapacity(fragments.count)
         for fragment in fragments {
-            guard let glyph = atlas.fragment(fragment, face: face, recipe: recipe) else {
+            guard let glyph = atlas.glyph(.fragment(fragment), face: face) else {
                 return nil
             }
             glyphs.append(glyph)

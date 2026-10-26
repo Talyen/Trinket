@@ -46,6 +46,22 @@ enum CombatFeedbackEffectPresentation {
             self.displayRule = displayRule
         }
 
+        func label(amount: Int, keyword: Keyword) -> CombatFeedbackChipLabel? {
+            switch labelRule {
+            case .none: nil
+            case let .status(status): .word(.status(status))
+            case .amount: .amount(amount, additive: isAdditive)
+            case .negatedAmount: .amount(-amount)
+            case .dodgeWord: .word(.dodge)
+            case .plainKeyword: .word(.plain(keyword))
+            case .appliedKeyword: .word(.applied(keyword))
+            case .triggeredKeyword: .word(.triggered(keyword))
+            case .cleanseKeyword: .word(.cleanse(keyword))
+            case .purgeKeyword: .word(.purge(keyword))
+            case .deathsDoorIcon: .word(.plain(.deathsDoor))
+            }
+        }
+
         func shouldDisplay(amount: Int) -> Bool {
             switch displayRule {
             case .visible:

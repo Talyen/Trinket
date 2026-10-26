@@ -7,8 +7,7 @@ import TrinketDesignSystem
 import TrinketFeatureSupport
 
 struct CombatFeedbackRasterKey: Hashable {
-    let typography: CombatFeedbackTypographyTier
-    let presentation: CombatFeedbackChipPresentation
+    let appearance: CombatFeedbackAppearance
     let layoutDirection: LayoutDirection
     let displayScaleHundredths: Int
 
@@ -17,8 +16,15 @@ struct CombatFeedbackRasterKey: Hashable {
         layoutDirection: LayoutDirection,
         displayScale: CGFloat,
     ) {
-        typography = item.feedbackClass.typographyTier
-        presentation = item.chipPresentation
+        self.init(appearance: .init(item: item), layoutDirection: layoutDirection, displayScale: displayScale)
+    }
+
+    init(
+        appearance: CombatFeedbackAppearance,
+        layoutDirection: LayoutDirection,
+        displayScale: CGFloat,
+    ) {
+        self.appearance = appearance
         self.layoutDirection = layoutDirection
         displayScaleHundredths = Int((max(1, displayScale) * 100).rounded())
     }
@@ -190,14 +196,10 @@ final class CombatFeedbackRasterPool {
 
         // Keep the result and bounded glyph cache; release temporary drawing objects per chip.
         let composed = autoreleasepool {
-            CombatFeedbackChipComposer.compose(
-                presentation: key.presentation,
-                feedbackClass: item.feedbackClass,
-                layoutDirection: layoutDirection,
-                displayScale: scale,
-                needsShineMask: true,
-                context: &compositionContext,
-            )
+            guard let inputs = CombatFeedbackChipComposer.prepareInputs(
+                appearance: key.appearance, layoutDirection: layoutDirection, displayScale: scale, needsShineMask: true,
+            ) else { return nil as CombatFeedbackChipComposer.ComposedRaster? }
+            return CombatFeedbackChipComposer.render(inputs, context: &compositionContext)
         }
         guard let composed else {
             return nil
@@ -249,8 +251,8 @@ final class CombatFeedbackRasterPool {
                 displayScale: displayScale,
             )
             guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
-            let catalogKeys = Set(CombatFeedbackClosedVocabulary.orderedChips().map {
-                CombatFeedbackRasterKey(item: $0, layoutDirection: .leftToRight, displayScale: displayScale)
+            let catalogKeys = Set(CombatFeedbackClosedVocabulary.appearances.map {
+                CombatFeedbackRasterKey(appearance: $0, layoutDirection: .leftToRight, displayScale: displayScale)
             })
             guard catalogKeys.count <= capacity else { return nil }
             let retainedCatalogRasters = rasters.filter { catalogKeys.contains($0.key) }
@@ -290,16 +292,14 @@ final class CombatFeedbackRasterPool {
     private func rasterRequests(
         displayScale: CGFloat,
     ) -> [(CombatFeedbackRasterKey, CombatFeedbackChipComposer.RasterInputs)] {
-        let items = CombatFeedbackClosedVocabulary.orderedChips()
-        return items.compactMap { item -> (
+        CombatFeedbackClosedVocabulary.appearances.compactMap { appearance -> (
             CombatFeedbackRasterKey,
             CombatFeedbackChipComposer.RasterInputs,
         )? in
-            let rasterKey = CombatFeedbackRasterKey(item: item, layoutDirection: .leftToRight, displayScale: displayScale)
+            let rasterKey = CombatFeedbackRasterKey(appearance: appearance, layoutDirection: .leftToRight, displayScale: displayScale)
             guard rasters[rasterKey] == nil,
                   let inputs = CombatFeedbackChipComposer.prepareInputs(
-                      presentation: item.chipPresentation,
-                      feedbackClass: item.feedbackClass,
+                      appearance: appearance,
                       displayScale: displayScale,
                       needsShineMask: true,
                   ) else { return nil }

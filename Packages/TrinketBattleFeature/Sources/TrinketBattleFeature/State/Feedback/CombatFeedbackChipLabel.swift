@@ -39,52 +39,15 @@ enum CombatFeedbackChipLabel: Hashable {
     }
 
     static func from(event: ActionEvent) -> Self? {
-        let descriptor = event.effectKind.map { CombatFeedbackEffectPresentation.descriptor(for: $0) }
-        if case let .status(status)? = descriptor?.labelRule {
-            return .word(.status(status))
-        }
         switch event.kind {
         case .abilityDamage, .status:
-            return .amount(-event.amount)
-        case let .reaction(reaction):
-            return .reaction(reaction)
-        case .ability, .milestone:
-            return nil
-        case .effect:
-            guard let descriptor else {
-                return .word(.plain(event.keyword))
-            }
-            return from(descriptor: descriptor, event: event)
-        }
-    }
-
-    private static func from(
-        descriptor: CombatFeedbackEffectPresentation.Descriptor,
-        event: ActionEvent,
-    ) -> Self? {
-        switch descriptor.labelRule {
-        case .none:
-            nil
-        case let .status(status):
-            .word(.status(status))
-        case .amount:
-            .amount(event.amount, additive: descriptor.isAdditive)
-        case .negatedAmount:
             .amount(-event.amount)
-        case .dodgeWord:
-            .word(.dodge)
-        case .plainKeyword:
-            .word(.plain(event.keyword))
-        case .appliedKeyword:
-            .word(.applied(event.keyword))
-        case .triggeredKeyword:
-            .word(.triggered(event.keyword))
-        case .cleanseKeyword:
-            .word(.cleanse(event.keyword))
-        case .purgeKeyword:
-            .word(.purge(event.keyword))
-        case .deathsDoorIcon:
-            .word(.plain(.deathsDoor))
+        case let .reaction(reaction):
+            .reaction(reaction)
+        case .ability, .milestone:
+            nil
+        case let .effect(outcome):
+            CombatFeedbackEffectPresentation.descriptor(for: outcome).label(amount: event.amount, keyword: event.keyword)
         }
     }
 

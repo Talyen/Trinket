@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import Testing
+import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
 @testable import BattleEngine
@@ -24,56 +25,13 @@ struct CombatFeedbackRasterCatalogTests {
         #expect(pool.snapshot().entryCount > 0)
     }
 
-    @Test func `every closed vocabulary live presentation maps to A warmed key`() {
-        let date = Date(timeIntervalSince1970: 1)
-        let layoutDirection = LayoutDirection.leftToRight
-        let displayScale: CGFloat = 3
-        let warmed = Set(
-            CombatFeedbackClosedVocabulary.enumerateItems(at: date).map {
-                CombatFeedbackRasterKey(
-                    item: $0,
-                    layoutDirection: layoutDirection,
-                    displayScale: displayScale,
-                )
-            },
-        )
-
-        for item in CombatFeedbackClosedVocabulary.enumerateWordChips(at: date) {
-            let key = CombatFeedbackRasterKey(
-                item: item,
-                layoutDirection: layoutDirection,
-                displayScale: displayScale,
-            )
-            #expect(
-                warmed.contains(key),
-                "missing warmup for \(item.feedbackClass) \(item.label) \(item.keyword)",
-            )
-        }
-    }
-
-    @Test func `closed vocabulary static sources are strictly unique by appearance`() {
-        let sources = CombatFeedbackClosedVocabulary.enumerateSources()
-        let appearances = sources.map {
-            CombatFeedbackRasterKey(
-                item: CombatFeedbackItem(
-                    id: 1,
-                    sourceEventIDs: [1],
-                    actionGroupID: 1,
-                    presentationIndex: 0,
-                    targetID: "test",
-                    feedbackClass: $0.feedbackClass,
-                    keyword: $0.keyword,
-                    visualRole: $0.visualRole,
-                    label: $0.label,
-                    availableAt: .distantPast,
-                    expiresAt: .distantFuture,
-                    reactionKind: .none,
-                ),
-                layoutDirection: .leftToRight,
-                displayScale: 3,
-            )
-        }
-        #expect(Set(appearances).count == sources.count)
+    @Test func `prepared appearances match every live word and reaction in first seen order`() {
+        let items = liveVocabulary()
+        var seen: Set<CombatFeedbackAppearance> = []
+        let expected = items.map(CombatFeedbackAppearance.init).filter { seen.insert($0).inserted }
+        let prepared = CombatFeedbackClosedVocabulary.appearances
+        #expect(prepared == expected)
+        #expect(Set(prepared).count == prepared.count)
     }
 
     @Test @MainActor func `diagnostics distinguish numeric misses from unexpected vocabulary builds`() async throws {
@@ -81,7 +39,7 @@ struct CombatFeedbackRasterCatalogTests {
         await pool.prewarmInfrastructureAndWait(displayScale: 1)
         pool.resetDiagnostics()
         let date = Date()
-        let word = try #require(CombatFeedbackClosedVocabulary.enumerateWordChips(at: date).first)
+        let word = try #require(liveVocabulary(at: date).first)
         _ = pool.prepare(for: word, displayScale: 1)
         let numeric = CombatFeedbackItem(
             id: 999001, sourceEventIDs: [999001], actionGroupID: 999001, presentationIndex: 0,
@@ -96,7 +54,7 @@ struct CombatFeedbackRasterCatalogTests {
     }
 
     @Test @MainActor func `numeric churn cannot evict the prepared vocabulary or exceed capacity`() async throws {
-        let items = CombatFeedbackClosedVocabulary.orderedChips()
+        let items = liveVocabulary()
         let keys = Set(items.map {
             CombatFeedbackRasterKey(item: $0, layoutDirection: .leftToRight, displayScale: 1)
         })
@@ -154,6 +112,29 @@ struct CombatFeedbackRasterCatalogTests {
         let snapshot = pool.snapshot()
         #expect(snapshot.entryCount == 2)
         #expect(snapshot.evictionCount == 1)
+    }
+
+    private func liveVocabulary(at date: Date = .now) -> [CombatFeedbackItem] {
+        var events: [ActionEvent] = []
+        for outcome in ActionEvent.EffectOutcome.allCases {
+            for keyword in Keyword.allCases {
+                events.append(BattleSessionTestSupport.makeActionEvent(
+                    id: events.count + 1, kind: .effect(outcome), amount: 1, keyword: keyword,
+                ))
+            }
+        }
+        for reaction in CombatReaction.allCases {
+            events.append(BattleSessionTestSupport.makeActionEvent(
+                id: events.count + 1, kind: .reaction(reaction), amount: 0, keyword: reaction.damageKeyword,
+            ))
+        }
+        var seen: Set<CombatFeedbackAppearance> = []
+        return events.flatMap { CombatFeedbackPresenter.makeItems(from: [$0], at: date) }.filter {
+            if case .amount = $0.label {
+                return false
+            }
+            return seen.insert(.init(item: $0)).inserted
+        }
     }
 }
 

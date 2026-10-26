@@ -29,7 +29,7 @@ struct CombatFeedbackComposerParityTests {
                 )
                 for needsMask in [false, true] {
                     let inputs = try #require(CombatFeedbackChipComposer.prepareInputs(
-                        presentation: presentation, feedbackClass: feedbackClass,
+                        appearance: .init(feedbackClass: feedbackClass, presentation: presentation),
                         layoutDirection: direction, displayScale: scale, atlas: atlas, needsShineMask: needsMask,
                     ))
                     (reusable, evicting) = try await Self.compare(

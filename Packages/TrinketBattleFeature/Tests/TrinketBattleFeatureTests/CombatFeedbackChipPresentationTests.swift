@@ -11,21 +11,20 @@ struct CombatFeedbackChipPresentationTests {
     @Test @MainActor func `icon prewarming preserves shared keyword identity and cache reuse`() async throws {
         let atlas = CombatFeedbackGlyphAtlas()
         await atlas.prepareBattlePresentationAndWait(displayScale: 3)
-        let face = CombatFeedbackGlyphAtlas.Face(feedbackClass: .buff, displayScaleHundredths: 300)
-        let recipe = CombatFeedbackChipStyle.forClass(.buff)
+        let face = CombatFeedbackGlyphAtlas.Face(typography: .normal, displayScaleHundredths: 300)
 
         for keyword in Keyword.allCases {
             let icon = CombatFeedbackChipPresentation.Style.keyword(keyword).feedbackIcon
             #expect(icon == keyword.visualStyle.icon)
-            let key = CombatFeedbackGlyphAtlas.IconKey(face: face, icon: icon)
-            let first = try #require(atlas.icons[key])
-            let cached = try #require(atlas.icon(icon, face: face, recipe: recipe))
+            let key = CombatFeedbackGlyphAtlas.Key(face: face, content: .icon(icon))
+            let first = try #require(atlas.glyphs[key])
+            let cached = try #require(atlas.glyph(.icon(icon), face: face))
             #expect(first.image === cached.image)
         }
 
-        let system = try #require(atlas.icon(.system("sparkles"), face: face, recipe: recipe))
+        let system = try #require(atlas.glyph(.icon(.system("sparkles")), face: face))
         atlas.removeAll()
-        let rebuilt = try #require(atlas.icon(.system("sparkles"), face: face, recipe: recipe))
+        let rebuilt = try #require(atlas.glyph(.icon(.system("sparkles")), face: face))
         #expect(system.image !== rebuilt.image)
     }
 
@@ -275,12 +274,12 @@ struct CombatFeedbackBridgeSerializedTests {
     @Test @MainActor func `session trim memory footprint clears glyph atlas and dissolve textures`() throws {
         let session = BattleSession()
         let atlas = CombatFeedbackGlyphAtlas.shared
-        let face = CombatFeedbackGlyphAtlas.Face(feedbackClass: .buff, displayScaleHundredths: 100)
-        _ = try #require(atlas.icon(.system("sparkles"), face: face, recipe: .forClass(.buff)))
+        let face = CombatFeedbackGlyphAtlas.Face(typography: .normal, displayScaleHundredths: 100)
+        _ = try #require(atlas.glyph(.icon(.system("sparkles")), face: face))
         let mask = try #require(CardDissolveTexture.thresholdMaskImage(progress: 0.2))
-        #expect(!atlas.icons.isEmpty)
+        #expect(!atlas.glyphs.isEmpty)
         session.trimMemoryFootprint(releaseBattleLog: true)
-        #expect(atlas.icons.isEmpty)
+        #expect(atlas.glyphs.isEmpty)
         #expect(CardDissolveTexture.thresholdMaskImage(progress: 0.2) !== mask)
     }
 

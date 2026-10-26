@@ -13,22 +13,16 @@ final class CombatFeedbackGlyphAtlas {
     struct Face: Hashable {
         let typography: CombatFeedbackTypographyTier
         let displayScaleHundredths: Int
+    }
 
-        init(
-            feedbackClass: CombatFeedbackClass,
-            displayScaleHundredths: Int,
-        ) {
-            typography = feedbackClass.typographyTier
-            self.displayScaleHundredths = displayScaleHundredths
-        }
+    enum Content: Hashable {
+        case icon(GameIcon)
+        case fragment(String)
+    }
 
-        init(
-            typography: CombatFeedbackTypographyTier,
-            displayScaleHundredths: Int,
-        ) {
-            self.typography = typography
-            self.displayScaleHundredths = displayScaleHundredths
-        }
+    struct Key: Hashable {
+        let face: Face
+        let content: Content
     }
 
     /// Concurrency-Safety: `@unchecked Sendable` — `CGImage` bitmaps are immutable
@@ -38,8 +32,7 @@ final class CombatFeedbackGlyphAtlas {
         let height: CGFloat
     }
 
-    private(set) var icons: [IconKey: Glyph] = [:]
-    private var fragments: [FragmentKey: Glyph] = [:]
+    private(set) var glyphs: [Key: Glyph] = [:]
     private var maximumDigitWidths: [Face: CGFloat] = [:]
     private var preparedPresentationKeys: Set<PresentationKey> = []
     private var pendingPrewarm: PendingPrewarm?
@@ -58,66 +51,22 @@ final class CombatFeedbackGlyphAtlas {
         let task: Task<PresentationKey?, Never>
     }
 
-    struct IconKey: Hashable {
-        let face: Face
-        let icon: GameIcon
-    }
-
-    struct FragmentKey: Hashable {
-        let face: Face
-        let text: String
-    }
-
-    /// Concurrency-Safety: `@unchecked Sendable` — value payload for detached bake
-    enum PreparedGlyph: @unchecked Sendable {
-        case icon(IconKey, Glyph)
-        case fragment(FragmentKey, Glyph)
-    }
-
-    enum PrewarmRequest {
-        case icon(IconKey, CombatFeedbackChipStyle)
-        case fragment(FragmentKey, CombatFeedbackChipStyle)
-    }
-
     func removeAll() {
         prewarmGeneration &+= 1
         pendingPrewarm?.task.cancel()
         pendingPrewarm = nil
         preparedPresentationKeys.removeAll(keepingCapacity: true)
-        icons.removeAll(keepingCapacity: true)
-        fragments.removeAll(keepingCapacity: true)
+        glyphs.removeAll(keepingCapacity: true)
         maximumDigitWidths.removeAll(keepingCapacity: true)
     }
 
-    func icon(
-        _ icon: GameIcon,
-        face: Face,
-        recipe: CombatFeedbackChipStyle,
-    ) -> Glyph? {
-        let key = IconKey(face: face, icon: icon)
-        if let glyph = icons[key] {
-            return glyph
+    func glyph(_ content: Content, face: Face) -> Glyph? {
+        let key = Key(face: face, content: content)
+        if let cached = glyphs[key] {
+            return cached
         }
-        guard let glyph = Self.bakeIcon(icon, face: face, recipe: recipe) else {
-            return nil
-        }
-        icons[key] = glyph
-        return glyph
-    }
-
-    func fragment(
-        _ text: String,
-        face: Face,
-        recipe: CombatFeedbackChipStyle,
-    ) -> Glyph? {
-        let key = FragmentKey(face: face, text: text)
-        if let glyph = fragments[key] {
-            return glyph
-        }
-        guard let glyph = Self.bakeFragment(text, face: face, recipe: recipe) else {
-            return nil
-        }
-        fragments[key] = glyph
+        guard let glyph = Self.bake(key, font: CombatFeedbackGlyphMetrics.uiFont(typography: face.typography)) else { return nil }
+        glyphs[key] = glyph
         return glyph
     }
 
@@ -135,12 +84,12 @@ final class CombatFeedbackGlyphAtlas {
         }
     }
 
-    func maximumDigitWidth(face: Face, recipe: CombatFeedbackChipStyle) -> CGFloat {
+    func maximumDigitWidth(face: Face) -> CGFloat {
         if let width = maximumDigitWidths[face] {
             return width
         }
         let widths = (0 ... 9).compactMap {
-            fragment(String($0), face: face, recipe: recipe)?.width
+            glyph(.fragment(String($0)), face: face)?.width
         }
         let width = widths.max() ?? 0
         // A failed glyph bake remains retryable instead of caching a partial metric.
@@ -173,13 +122,8 @@ final class CombatFeedbackGlyphAtlas {
                 worker.cancel()
             }
             guard !Task.isCancelled, prewarmGeneration == generation else { return nil }
-            for glyph in prepared {
-                switch glyph {
-                case let .icon(key, value):
-                    icons[key] = value
-                case let .fragment(key, value):
-                    fragments[key] = value
-                }
+            for (key, glyph) in prepared {
+                glyphs[key] = glyph
             }
             preparedPresentationKeys.insert(key)
             return key
@@ -190,7 +134,7 @@ final class CombatFeedbackGlyphAtlas {
 
     private func prewarmRequests(
         displayScaleHundredths: Int,
-    ) -> [PrewarmRequest] {
+    ) -> [Key] {
         // Scope icons to closed-vocabulary appearances instead of every
         // Keyword: damage numerals are unbounded and never prewarmed, and
         // keywords that resolve to the same appearance share one icon.
@@ -198,70 +142,45 @@ final class CombatFeedbackGlyphAtlas {
             CombatFeedbackChipPresentation.Style.beneficialStatus.feedbackIcon,
             CombatFeedbackChipPresentation.Style.negativeStatus.feedbackIcon,
         ]
-        for source in CombatFeedbackClosedVocabulary.enumerateSources() {
-            let presentation = CombatFeedbackChipPresentation.resolve(
-                label: source.label,
-                keyword: source.keyword,
-                visualRole: source.visualRole,
-                feedbackClass: source.feedbackClass,
-            )
+        for appearance in CombatFeedbackClosedVocabulary.appearances {
+            let presentation = appearance.presentation
             requiredIcons.insert(presentation.trailingStyle.feedbackIcon)
             if let leading = presentation.leadingStyle {
                 requiredIcons.insert(leading.feedbackIcon)
             }
         }
         let numericFragments = CombatFeedbackChipLabel.numericAtlasFragments
-        var requests: [PrewarmRequest] = []
+        var requests: [Key] = []
 
         for typography in CombatFeedbackTypographyTier.allCases {
-            let recipe = CombatFeedbackChipStyle.forClass(typography.representativeClass)
             let face = Face(
                 typography: typography,
                 displayScaleHundredths: displayScaleHundredths,
             )
-            for icon in requiredIcons {
-                let key = IconKey(face: face, icon: icon)
-                if icons[key] == nil {
-                    requests.append(.icon(key, recipe))
-                }
-            }
-            for fragment in numericFragments {
-                let key = FragmentKey(face: face, text: fragment)
-                if fragments[key] == nil {
-                    requests.append(.fragment(key, recipe))
-                }
-            }
+            let contents = requiredIcons.map(Content.icon) + numericFragments.map(Content.fragment)
+            requests += contents.map { Key(face: face, content: $0) }.filter { glyphs[$0] == nil }
         }
         return requests
     }
 
-    nonisolated static func bake(_ requests: [PrewarmRequest]) -> [PreparedGlyph] {
+    nonisolated static func bake(_ requests: [Key]) -> [(Key, Glyph)] {
         // Fonts depend on typography, not the icon/number or raster scale. Reuse within this worker batch.
         var fonts: [CombatFeedbackTypographyTier: UIFont] = [:]
-        return requests.compactMap { request in
+        return requests.compactMap { key in
             guard !Task.isCancelled else { return nil }
-            // Retain the CGImage result while releasing each bake's temporary UIKit objects.
-            return autoreleasepool { () -> PreparedGlyph? in
-                switch request {
-                case let .icon(key, recipe):
-                    let font = fonts[key.face.typography] ?? CombatFeedbackGlyphMetrics.uiFont(recipe: recipe)
-                    fonts[key.face.typography] = font
-                    return bakeIcon(key.icon, face: key.face, font: font).map { .icon(key, $0) }
-                case let .fragment(key, recipe):
-                    let font = fonts[key.face.typography] ?? CombatFeedbackGlyphMetrics.uiFont(recipe: recipe)
-                    fonts[key.face.typography] = font
-                    return bakeFragment(key.text, face: key.face, font: font).map { .fragment(key, $0) }
-                }
+            return autoreleasepool {
+                let font = fonts[key.face.typography] ?? CombatFeedbackGlyphMetrics.uiFont(typography: key.face.typography)
+                fonts[key.face.typography] = font
+                return bake(key, font: font).map { (key, $0) }
             }
         }
     }
 
-    nonisolated static func bakeIcon(
-        _ icon: GameIcon,
-        face: Face,
-        recipe: CombatFeedbackChipStyle,
-    ) -> Glyph? {
-        bakeIcon(icon, face: face, font: CombatFeedbackGlyphMetrics.uiFont(recipe: recipe))
+    private nonisolated static func bake(_ key: Key, font: UIFont) -> Glyph? {
+        switch key.content {
+        case let .icon(icon): bakeIcon(icon, face: key.face, font: font)
+        case let .fragment(text): bakeFragment(text, face: key.face, font: font)
+        }
     }
 
     private nonisolated static func bakeIcon(_ icon: GameIcon, face: Face, font: UIFont) -> Glyph? {
@@ -285,14 +204,6 @@ final class CombatFeedbackGlyphAtlas {
         return renderer.image { _ in
             draw(CGRect(origin: .zero, size: pointSize))
         }.cgImage
-    }
-
-    nonisolated static func bakeFragment(
-        _ text: String,
-        face: Face,
-        recipe: CombatFeedbackChipStyle,
-    ) -> Glyph? {
-        bakeFragment(text, face: face, font: CombatFeedbackGlyphMetrics.uiFont(recipe: recipe))
     }
 
     private nonisolated static func bakeFragment(_ text: String, face: Face, font: UIFont) -> Glyph? {
@@ -337,24 +248,15 @@ final class CombatFeedbackGlyphAtlas {
     }
 }
 
-private extension CombatFeedbackTypographyTier {
-    var representativeClass: CombatFeedbackClass {
-        switch self {
-        case .emphasis: .critical
-        case .normal: .heal
-        }
-    }
-}
-
 enum CombatFeedbackGlyphMetrics {
     static func uiFont(
-        recipe: CombatFeedbackChipStyle,
+        typography: CombatFeedbackTypographyTier,
     ) -> UIFont {
-        let textStyle = uiTextStyle(recipe.textStyle)
+        let textStyle: UIFont.TextStyle = typography == .emphasis ? .largeTitle : .title1
         let traits = UITraitCollection(preferredContentSizeCategory: .large)
         let preferred = UIFont.preferredFont(forTextStyle: textStyle, compatibleWith: traits)
         let pointSize = preferred.pointSize * 0.90
-        let resolvedWeight = uiWeight(recipe.fontWeight)
+        let resolvedWeight: UIFont.Weight = typography == .emphasis ? .heavy : .bold
         let weighted = UIFont.systemFont(ofSize: pointSize, weight: resolvedWeight)
         let roundedDescriptor = weighted.fontDescriptor.withDesign(.rounded) ?? weighted.fontDescriptor
         let monospacedDescriptor = roundedDescriptor.addingAttributes([
@@ -364,37 +266,5 @@ enum CombatFeedbackGlyphMetrics {
             ]],
         ])
         return UIFont(descriptor: monospacedDescriptor, size: pointSize)
-    }
-
-    private static func uiTextStyle(_ style: Font.TextStyle) -> UIFont.TextStyle {
-        switch style {
-        case .largeTitle: .largeTitle
-        case .title: .title1
-        case .title2: .title2
-        case .title3: .title3
-        case .headline: .headline
-        case .body: .body
-        case .callout: .callout
-        case .subheadline: .subheadline
-        case .footnote: .footnote
-        case .caption: .caption1
-        case .caption2: .caption2
-        @unknown default: .title3
-        }
-    }
-
-    private static func uiWeight(_ weight: Font.Weight) -> UIFont.Weight {
-        switch weight {
-        case .ultraLight: .ultraLight
-        case .thin: .thin
-        case .light: .light
-        case .regular: .regular
-        case .medium: .medium
-        case .semibold: .semibold
-        case .bold: .bold
-        case .heavy: .heavy
-        case .black: .black
-        default: .bold
-        }
     }
 }

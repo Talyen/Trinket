@@ -1,6 +1,5 @@
 import CoreGraphics
 import Foundation
-import SwiftUI
 import TrinketCore
 
 enum CombatFeedbackClass: String, CaseIterable, Hashable {
@@ -21,23 +20,23 @@ struct CombatFeedbackKeyframeSample: Equatable {
     let duration: TimeInterval
 }
 
+struct CombatFeedbackAppearance: Hashable {
+    let typography: CombatFeedbackTypographyTier
+    let presentation: CombatFeedbackChipPresentation
+
+    init(feedbackClass: CombatFeedbackClass, presentation: CombatFeedbackChipPresentation) {
+        typography = feedbackClass.typographyTier
+        self.presentation = presentation
+    }
+
+    init(item: CombatFeedbackItem) {
+        self.init(feedbackClass: item.feedbackClass, presentation: item.chipPresentation)
+    }
+}
+
 enum CombatFeedbackTypographyTier: Hashable, CaseIterable {
     case emphasis
     case normal
-
-    var fontWeight: Font.Weight {
-        switch self {
-        case .emphasis: .heavy
-        case .normal: .bold
-        }
-    }
-
-    var textStyle: Font.TextStyle {
-        switch self {
-        case .emphasis: .largeTitle
-        case .normal: .title
-        }
-    }
 }
 
 extension CombatFeedbackClass {
@@ -48,21 +47,6 @@ extension CombatFeedbackClass {
         case .directDamage, .heal, .dot, .block, .dodge, .control, .buff, .resource:
             .normal
         }
-    }
-}
-
-struct CombatFeedbackChipStyle: Equatable {
-    let feedbackClass: CombatFeedbackClass
-    let fontWeight: Font.Weight
-    let textStyle: Font.TextStyle
-
-    static func forClass(_ feedbackClass: CombatFeedbackClass) -> Self {
-        let tier = feedbackClass.typographyTier
-        return Self(
-            feedbackClass: feedbackClass,
-            fontWeight: tier.fontWeight,
-            textStyle: tier.textStyle,
-        )
     }
 }
 
