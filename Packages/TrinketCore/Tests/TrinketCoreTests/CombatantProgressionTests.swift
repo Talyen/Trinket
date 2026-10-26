@@ -130,5 +130,8 @@ struct CombatantProgressionTests {
         }
         #expect(CombatantProgression.at(level: Int.max).totalEarnedExperience == Int.max)
         #expect(CombatantProgression(level: 2, currentXP: Int.max, requiredXP: 15).totalEarnedExperience == Int.max)
+        #expect(CombatantProgression.at(level: 3810773).totalEarnedExperience == 9223360524516429900)
+        #expect(CombatantProgression.at(level: 3810774).totalEarnedExperience == 9223367785527101762)
+        #expect(CombatantProgression.at(level: 3810775).totalEarnedExperience == Int.max)
     }
 }
