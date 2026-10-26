@@ -12,7 +12,7 @@ public extension PlayerSaveStore {
     func transmuteResource(
         from source: HomesteadResource, to destination: HomesteadResource, quantity: Int, at date: Date = Date(),
     ) async -> Result<ResourceAmount, HomesteadActivityFailure> {
-        let result = await retryingSaveTransaction {
+        await retryingSaveAction(invalidated: .invalidated) {
             try prepareLocalProduction()
             return persistAction(logging: "Failed to transmute resource") { save -> Result<
                 ResourceAmount,
@@ -26,11 +26,6 @@ public extension PlayerSaveStore {
                 return .success(ResourceAmount(destination, quantity))
             }
         }
-        switch result {
-        case let .committed(amount): return .success(amount)
-        case let .rejected(error): return .failure(error)
-        case .persistFailed, nil: return .failure(.invalidated)
-        }
     }
 
     func inscribeItem(itemID: String, index: Int, affixID: String) async -> Result<InventoryItem, HomesteadActivityFailure> {
@@ -40,7 +35,7 @@ public extension PlayerSaveStore {
         guard let plan = ItemInscriptionPlan.prepare(item: item, index: index, affixID: affixID, using: &random) else {
             return .failure(.unavailable)
         }
-        let result = await retryingSaveTransaction {
+        return await retryingSaveAction(invalidated: .invalidated) {
             persistAction(logging: "Failed to inscribe item") { save -> Result<InventoryItem, HomesteadActivityFailure> in
                 guard save.homestead.tier(for: .runesmithWorkshop) > 0,
                       let position = save.inventory.items.firstIndex(where: { $0.id == itemID }),
@@ -51,15 +46,10 @@ public extension PlayerSaveStore {
                 return .success(plan.item)
             }
         }
-        switch result {
-        case let .committed(item): return .success(item)
-        case let .rejected(error): return .failure(error)
-        case .persistFailed, nil: return .failure(.invalidated)
-        }
     }
 
     func setItemWish(_ templateID: String?) async -> Result<Void, HomesteadActivityFailure> {
-        let result = await retryingSaveTransaction {
+        await retryingSaveAction(invalidated: .invalidated) {
             persistTransaction(logging: "Failed to update item wish") { save -> Result<Void, HomesteadActivityFailure> in
                 guard save.homestead.tier(for: .wishingWell) > 0,
                       templateID == nil || ItemWish.validTarget(templateID, inventory: save.inventory.items) != nil else {
@@ -68,11 +58,6 @@ public extension PlayerSaveStore {
                 save.homestead.wishedTemplateID = templateID
                 return .success(())
             }
-        }
-        switch result {
-        case .committed: return .success(())
-        case let .rejected(error): return .failure(error)
-        case .persistFailed, nil: return .failure(.invalidated)
         }
     }
 }

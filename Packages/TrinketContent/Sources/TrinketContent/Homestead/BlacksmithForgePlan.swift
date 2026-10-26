@@ -22,8 +22,7 @@ public struct BlacksmithForgePlan: Sendable {
         using random: inout some RandomNumberGenerator,
     ) -> Result<Self, Rejection> {
         guard let recipe = BlacksmithRecipe.matching(recipeID),
-              homestead.tier(for: recipe.buildingID) > 0 else { return .failure(.unavailable) }
-        guard recipe.researchID == nil || unlockedRecipeIDs.contains(recipe.id) else { return .failure(.unavailable) }
+              isAvailable(recipe, homestead: homestead, unlockedRecipeIDs: unlockedRecipeIDs) else { return .failure(.unavailable) }
         guard homestead.canAfford(cost: recipe.cost, gold: gold) else { return .failure(.insufficientResources) }
         let uniqueIDs = Set(GameContent.uniqueItems.filter { $0.baseType.id == recipe.baseID }.map(\.templateID))
         let item = ItemRewardGenerator.generate(
@@ -51,8 +50,7 @@ public struct BlacksmithForgePlan: Sendable {
         gold: inout Int,
         unlockedRecipeIDs: Set<String> = [],
     ) -> Result<InventoryItem, Rejection> {
-        guard homestead.tier(for: recipe.buildingID) > 0 else { return .failure(.unavailable) }
-        guard recipe.researchID == nil || unlockedRecipeIDs.contains(recipe.id) else { return .failure(.unavailable) }
+        guard Self.isAvailable(recipe, homestead: homestead, unlockedRecipeIDs: unlockedRecipeIDs) else { return .failure(.unavailable) }
         guard !InventoryDuplicatePolicy.containsDuplicate(of: item, in: inventory) else {
             return .failure(.alreadyOwned)
         }
@@ -60,5 +58,12 @@ public struct BlacksmithForgePlan: Sendable {
         homestead.deductCost(recipe.cost, gold: &gold)
         inventory.append(item)
         return .success(item)
+    }
+
+    private static func isAvailable(
+        _ recipe: BlacksmithRecipe, homestead: PlayerHomesteadState, unlockedRecipeIDs: Set<String>,
+    ) -> Bool {
+        homestead.tier(for: recipe.buildingID) > 0
+            && (recipe.researchID == nil || unlockedRecipeIDs.contains(recipe.id))
     }
 }

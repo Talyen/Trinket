@@ -63,15 +63,10 @@ public extension PlayerSaveStore {
         case let .success(value): plan = value
         case let .failure(error): return .failure(error)
         }
-        let result = await retryingSaveTransaction {
+        return await retryingSaveAction(invalidated: .invalidated) {
             self.persistAction(logging: "Failed to forge Blacksmith item") { save in
                 BlacksmithForgeApplier.apply(plan, to: &save)
             }
-        }
-        switch result {
-        case let .committed(item): return .success(item)
-        case let .rejected(error): return .failure(error)
-        case .persistFailed, nil: return .failure(.invalidated)
         }
     }
 }

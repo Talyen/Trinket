@@ -49,6 +49,19 @@ public extension PlayerSaveStore {
 
 @MainActor
 extension PlayerSaveStore {
+    /// Preserve committed and rejected outcomes; map a missing result or terminal
+    /// storage failure to the command's invalidation outcome.
+    func retryingSaveAction<Value, Failure: Error>(
+        invalidated: Failure,
+        _ operation: () throws -> SaveTransactionResult<Value, Failure>,
+    ) async -> Result<Value, Failure> {
+        switch await retryingSaveTransaction(operation) {
+        case let .committed(value): .success(value)
+        case let .rejected(error): .failure(error)
+        case .persistFailed, nil: .failure(invalidated)
+        }
+    }
+
     /// Domain commands own their retries. Each attempt is synchronous, so reset
     /// or account replacement cannot interleave between its generation check and commit.
     /// Only the operation's typed storage failure can request another attempt.
