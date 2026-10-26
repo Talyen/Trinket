@@ -47,13 +47,12 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
         battle.assertActive(timeout: 8)
         let isPlay = scenario == "real-card-play"
         let isCancel = scenario == "hand-drag-cancel"
-        let cards = battle.handCards
         var origin: XCUICoordinate?
         var cardID: String?
         if isPlay || isCancel {
-            let card = cards.firstMatch
+            let card = battle.frontmostHandCard
             assertExists(card)
-            origin = screenCoordinate(for: card)
+            origin = card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
             cardID = card.identifier
         }
 
@@ -76,13 +75,6 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
             }
         }
         finishMeasurement(scenario, iteration: iteration, settle: 3, suite: "battle", control: stop)
-    }
-
-    private func screenCoordinate(for element: XCUIElement) -> XCUICoordinate {
-        let frame = element.frame
-        return app.coordinate(withNormalizedOffset: .zero).withOffset(
-            CGVector(dx: frame.midX, dy: frame.midY),
-        )
     }
 
     private func waitUntil(timeout: TimeInterval = 3, condition: () -> Bool) -> Bool {

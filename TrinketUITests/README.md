@@ -197,7 +197,9 @@ Assert a journey’s return destination before using helpers that navigate elsew
 - Labyrinth boss/Continue retains battle and floor-selection interactions, checking
   the displayed floor after switching back to floor 1 and then floor 2. FullUI
   also covers Voyage embark/abandon, Spires locked-floor rejection and battle launch, and
-  Labyrinth inspector selection/dismissal.
+  Labyrinth inspector selection/dismissal. Voyage stops at the returned offer board;
+  `VoyagePersistenceTests` and `CloudSaveMergeVoyageClaimRegressionTests` own abandoned
+  route encoding and disk reload, avoiding a duplicate cold launch and Explore traversal.
 - Homestead accounting verifies displayed debit and tier in one launch;
   `PlayerHomesteadStoreTests` owns refused writes, exact debits and tiers across reload.
   Accessibility profiles stop after the tier change.

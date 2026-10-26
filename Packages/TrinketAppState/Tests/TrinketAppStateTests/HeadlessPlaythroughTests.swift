@@ -37,6 +37,7 @@ struct HeadlessPlaythroughTests {
         var unrelated = scenario
         unrelated.worldSeed += 1
         unrelated.combatSeed += 1
+        unrelated.attempts = 1
         let middle = try PlaythroughCareer(scenario: unrelated, output: output.appendingPathComponent("unrelated"))
         _ = try await middle.run(reload: true)
 

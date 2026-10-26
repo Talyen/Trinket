@@ -55,7 +55,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Play.labyrinthMap)
     }
 
-    func testVoyageEmbarkAndAbandonStayAbandonedAfterRelaunch() {
+    func testVoyageEmbarkAndAbandonReturnsToOffers() {
         launchApp(arguments: TestLaunchArg.allForTab("play"))
         play.openExplore()
         assertExistsAfterScroll(AccessibilityID.Voyage.modeCard, requireHittable: true)
@@ -68,12 +68,6 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         tapButton(AccessibilityID.Voyage.options)
         tapButton(AccessibilityID.Voyage.abandon)
         tapButton(AccessibilityID.Voyage.confirmAbandon)
-        assertExists(AccessibilityID.Voyage.refresh)
-        assertDoesNotExist(AccessibilityID.Voyage.options)
-        relaunchApp()
-        play.openExplore()
-        assertExistsAfterScroll(AccessibilityID.Voyage.modeCard, requireHittable: true)
-        tapButton(AccessibilityID.Voyage.modeCard)
         assertExists(AccessibilityID.Voyage.refresh)
         assertDoesNotExist(AccessibilityID.Voyage.options)
     }

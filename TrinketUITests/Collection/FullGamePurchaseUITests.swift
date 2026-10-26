@@ -50,8 +50,8 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         assertWarlockAccessible()
         tabBar.select(.play)
         play.openCampaign()
-        let next = button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
-        waitUntil("Restored progress must leave the next stage playable") { next.isEnabled }
+        tapButton(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
+        assertExists(AccessibilityID.Mystery.encounterTitle)
     }
 
     func testDeclinedAskToBuyRemainsLockedAndAllowsAnotherPurchase() throws {

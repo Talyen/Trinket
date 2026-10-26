@@ -9,7 +9,6 @@ final class HomesteadPerformanceUITests: PerformanceJourneyUITestCase {
             launchApp(arguments: TestLaunchArg.allForAppPerformance(tab: "homestead"))
             homestead.assertLoaded()
             homestead.openFarmingCategoryAndRevealWheatFieldNode()
-            assertExists(AccessibilityID.Homestead.gallery)
             measured("homestead-gallery-scroll", iteration: iteration, scrolling: app.scrollViews.firstMatch)
         }
     }

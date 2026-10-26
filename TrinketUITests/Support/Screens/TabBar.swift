@@ -52,12 +52,16 @@ struct HomesteadScreen {
             return
         }
         categoryButton.trinketTapWhenReady()
-        _ = app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")]
-            .trinketWaitForExistence(timeout: 2)
-        app.scrollUntilVisible(
+        XCTAssertTrue(
+            app.descendants(matching: .any)[AccessibilityID.Homestead.gallery]
+                .trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout),
+            "Farming gallery must open before scrolling",
+        )
+        XCTAssertTrue(app.scrollUntilVisible(
             app.descendants(matching: .any)[AccessibilityID.Homestead.node(title: "Wheat Field")],
             swipingUp: true,
             maxAttempts: 12,
-        )
+            requireHittable: true,
+        ), "Wheat Field must be reachable after opening Farming")
     }
 }

@@ -19,21 +19,17 @@ final class SmokeShopTests: TrinketUITestCase {
         let buyID = AccessibilityID.Shop.buyButton(offerID: String(offerID.dropLast(AccessibilityID.Shop.offerCardSuffix.count)))
         let price = try integer(in: button(buyID))
         tapWhenReady(offer)
-        let didOpenDetail = detailBuy.trinketWaitForExistence(timeout: Self.defaultTimeout)
-        let openedDetailBuy = try XCTUnwrap(
-            didOpenDetail ? detailBuy : nil,
-            "Tapping merchant offer '\(offerID)' must open its detail before checking the purchase frame",
-        )
+        assertExists(detailBuy, message: "Tapping merchant offer '\(offerID)' must open its purchase detail")
         // Native presentation can expose the footer before it has a valid activation frame.
         let windowBounds = app.frame
         waitUntil("Merchant detail purchase control must have an on-screen frame") {
-            guard let bounds = trinketOnMainActor({ try? openedDetailBuy.snapshot().frame }),
+            guard let bounds = trinketOnMainActor({ try? detailBuy.snapshot().frame }),
                   !bounds.isEmpty
             else { return false }
             return windowBounds.contains(bounds)
         }
-        XCTAssertEqual(try integer(in: openedDetailBuy), price)
-        tapWhenReady(openedDetailBuy)
+        XCTAssertEqual(try integer(in: detailBuy), price)
+        tapWhenReady(detailBuy)
         assertDoesNotExist(AccessibilityID.Shop.detailBuyButton)
         waitUntil("The merchant must debit its displayed price") {
             (try? self.integer(in: goldBalance)) == goldBefore - price
