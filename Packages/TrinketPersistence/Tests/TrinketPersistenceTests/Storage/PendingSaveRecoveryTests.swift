@@ -157,8 +157,8 @@ struct PendingSaveRecoveryTests {
         let context = try PersistenceTestContext()
         let store = try context.makeSaveStore()
         let initialGold = store.roster.gold
-        let pending = Task {
-            await store.retryingSaveTransaction {
+        let pending = Task { () -> Int? in
+            let outcome = await store.retryingSaveTransaction {
                 let result: SaveTransactionResult<Int, Never> = store.persistAction(logging: "Cancellation fixture") { save in
                     let granted = save.grantGold(7)
                     return .success(granted)
@@ -166,8 +166,12 @@ struct PendingSaveRecoveryTests {
                 withUnsafeCurrentTask { $0?.cancel() }
                 return result
             }
+            if case let .committed(granted) = outcome {
+                return granted
+            }
+            return nil
         }
-        guard case let .committed(granted) = await pending.value else {
+        guard let granted = await pending.value else {
             Issue.record("A committed reward must remain successful when its task is cancelled")
             return
         }
