@@ -112,24 +112,18 @@ private extension PlayerSaveStore {
                   at: award.inputs.productionDate,
               ) else { return .rejected(.unavailable) }
         let economicClaim = victory ? claim.destination?.economicClaim(in: candidate.save) : nil
-        switch candidate.resolve(claim: economicClaim, { save in
+        let result = candidate.resolve(claim: economicClaim) { save in
             let result = mutation(&save, party)
             if case .success = result, victory, let enemyID = claim.enemyID {
                 save.library.defeat(enemyID)
             }
             return result
-        }) {
-        case let .failure(error): return .rejected(error)
-        case .success:
-            do {
-                try commit(candidate)
-                claim.consume(completedResearchIDs: library.progress.completedResearchIDs.subtracting(previousResearch).sorted())
-                return .committed(())
-            } catch {
-                notePersistenceFailure(error, logging: message)
-                return .persistFailed(PlayerSavePersistenceError.mapped(error))
-            }
         }
+        let outcome = finishTransaction(candidate, logging: message, result: result)
+        if case .committed = outcome {
+            claim.consume(completedResearchIDs: library.progress.completedResearchIDs.subtracting(previousResearch).sorted())
+        }
+        return outcome
     }
 }
 
