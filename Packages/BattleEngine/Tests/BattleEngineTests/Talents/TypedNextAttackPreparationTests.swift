@@ -5,21 +5,31 @@ import TrinketCore
 @testable import BattleEngine
 
 struct TypedNextAttackPreparationTests {
-    @Test func `Bounty Blade reserves theft damage beyond the creating card repeat`() throws {
+    @Test(arguments: [0, 5])
+    func `Bounty Blade reserves the strongest theft bonus beyond the creating card repeat`(existingBonus: Int) throws {
         let fixtures = UniqueCollectionTests()
         var profile = CombatantTalentCatalog.profile(for: ["rogue_gold_t4_1"])
         profile.triggers.criticalChanceBonus = -1
         var battle = try fixtures.battle([], extra: profile)
         readyRepeat(in: &battle)
+        if existingBonus > 0 {
+            battle.roster.hero.talents.pending.nextPhysicalDamageBonus = PreparedTalentBonus(value: existingBonus)
+        }
+        // Theft precedes damage so rearming must exclude this card even when the old value wins.
+        let ability = existingBonus == 0 ? Ability.steal : Ability(
+            id: "theft-before-hit", name: "Theft Before Hit", tier: .basic, stealsGold: true,
+            operations: [.effect(TargetedEffect(.resourceGain(.gold, 1))), .damage(DamageComponent(3, keyword: .physical))],
+        )
 
-        let events = try fixtures.play(.steal, in: &battle)
-        let hits = events.filter { $0.kind == .abilityDamage && $0.abilityID == Ability.steal.id }
+        let events = try fixtures.play(ability, in: &battle)
+        let hits = events.filter { $0.kind == .abilityDamage && $0.abilityID == ability.id }
         #expect(hits.map(\.amount) == [3, 3])
         #expect(battle.gold == 2)
-        #expect(battle.roster.hero.talents.pending.nextPhysicalDamageBonus?.value == 3)
+        let bonus = max(3, existingBonus)
+        #expect(battle.roster.hero.talents.pending.nextPhysicalDamageBonus?.value == bonus)
 
         let next = try fixtures.play(.slash, in: &battle)
-        #expect(next.first { $0.kind == .abilityDamage && $0.abilityID == Ability.slash.id }?.amount == 6)
+        #expect(next.first { $0.kind == .abilityDamage && $0.abilityID == Ability.slash.id }?.amount == 3 + bonus)
         #expect(battle.roster.hero.talents.pending.nextPhysicalDamageBonus == nil)
     }
 

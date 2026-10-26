@@ -54,10 +54,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) async {
         if critical, triggers.holyCriticalAllyIgnoreBlock, context.roster.hero.isAlive {
-            let serial = context.resolution.cardTalents?.playSerial
-            context.roster.mutateRuntime(for: context.roster.hero.combatant) {
-                $0.talents.pending.nextAttackIgnoresBlock = PreparedTalentBonus(value: true, cardSerial: serial)
-            }
+            context.prepareTalentBonus(true, \.nextAttackIgnoresBlock, for: context.roster.hero.combatant, scope: .card)
         }
         if critical, triggers.holyCriticalPurgeCount > 0, context.roster.enemy.isAlive {
             await applyPurge(
@@ -326,25 +323,22 @@ package extension CombatTriggerEngine {
         let serial = context.resolution.cardTalents?.playSerial
         let firstFeint = triggers.firstDodgeNextAttackBonusPerTurn > 0
             && context.claimHeroTalent(.feintStrike, actorID: actor.id)
+        if triggers.dodgeNextBleedAttackMultiplier > 1 {
+            context.prepareTalentBonus(
+                triggers.dodgeNextBleedAttackMultiplier, \.nextBleedAttackMultiplier, for: actor, scope: .card, merging: max,
+            )
+        }
+        if triggers.dodgeNextPhysicalDamageMultiplier > 1 {
+            context.prepareTalentBonus(
+                triggers.dodgeNextPhysicalDamageMultiplier, \.nextPhysicalAttackMultiplier, for: actor, scope: .card, merging: max,
+            )
+        }
+        if triggers.dodgeNextCriticalDamageMultiplier > 1 {
+            context.prepareTalentBonus(
+                triggers.dodgeNextCriticalDamageMultiplier, \.nextCriticalHitMultiplier, for: actor, scope: .card, merging: max,
+            )
+        }
         context.roster.mutateRuntime(for: actor) {
-            if triggers.dodgeNextBleedAttackMultiplier > 1 {
-                $0.talents.pending.nextBleedAttackMultiplier = PreparedTalentBonus(
-                    value: max($0.talents.pending.nextBleedAttackMultiplier?.value ?? 1, triggers.dodgeNextBleedAttackMultiplier),
-                    cardSerial: serial,
-                )
-            }
-            if triggers.dodgeNextPhysicalDamageMultiplier > 1 {
-                $0.talents.pending.nextPhysicalAttackMultiplier = PreparedTalentBonus(
-                    value: max($0.talents.pending.nextPhysicalAttackMultiplier?.value ?? 1, triggers.dodgeNextPhysicalDamageMultiplier),
-                    cardSerial: serial,
-                )
-            }
-            if triggers.dodgeNextCriticalDamageMultiplier > 1 {
-                $0.talents.pending.nextCriticalHitMultiplier = PreparedTalentBonus(
-                    value: max($0.talents.pending.nextCriticalHitMultiplier?.value ?? 1, triggers.dodgeNextCriticalDamageMultiplier),
-                    cardSerial: serial,
-                )
-            }
             if firstFeint {
                 $0.talents.pending.feintStrikeDamageBonus = max(
                     $0.talents.pending.feintStrikeDamageBonus,
@@ -427,23 +421,12 @@ package extension CombatTriggerEngine {
     static func afterCompanionGoldTheft(by actor: Combatant, in context: inout BattleState) async {
         let triggers = context.modifiers(for: actor.id).triggers
         if triggers.goldTheftNextBlockMultiplier > 1 {
-            let preparedCardSerial = context.resolution.cardTalents?.playSerial
-            context.roster.mutateRuntime(for: actor) {
-                $0.talents.pending.nextBlockGainMultiplier = PreparedTalentBonus(
-                    value: max($0.talents.pending.nextBlockGainMultiplier?.value ?? 1, triggers.goldTheftNextBlockMultiplier),
-                    cardSerial: preparedCardSerial,
-                )
-            }
+            context.prepareTalentBonus(
+                triggers.goldTheftNextBlockMultiplier, \.nextBlockGainMultiplier, for: actor, scope: .card, merging: max,
+            )
         }
         if triggers.goldTheftNextAttackCriticalBonus > 0 {
-            let serial = context.resolution.cardTalents?.playSerial
-            let actionID = context.resolution.actionID
-            context.roster.mutateRuntime(for: actor) {
-                $0.talents.pending.nextAttackCriticalBonus = PreparedTalentBonus(
-                    value: max($0.talents.pending.nextAttackCriticalBonus?.value ?? 0, triggers.goldTheftNextAttackCriticalBonus),
-                    cardSerial: serial, actionID: actionID,
-                )
-            }
+            context.prepareTalentBonus(triggers.goldTheftNextAttackCriticalBonus, \.nextAttackCriticalBonus, for: actor, merging: max)
         }
 
         if triggers.firstGoldTheftStealHalfBlockPerTurn, context.roster.enemy.isAlive,
@@ -490,14 +473,7 @@ package extension CombatTriggerEngine {
         guard amountSpent > 0 else { return }
         let triggers = context.modifiers(for: actor.id).triggers
         if triggers.selfManaSpendNextAttackBonus > 0 {
-            let serial = context.resolution.cardTalents?.playSerial
-            let actionID = context.resolution.actionID
-            context.roster.mutateRuntime(for: actor) {
-                $0.talents.pending.nextManaSpendAttackBonus = PreparedTalentBonus(
-                    value: max($0.talents.pending.nextManaSpendAttackBonus?.value ?? 0, triggers.selfManaSpendNextAttackBonus),
-                    cardSerial: serial, actionID: actionID,
-                )
-            }
+            context.prepareTalentBonus(triggers.selfManaSpendNextAttackBonus, \.nextManaSpendAttackBonus, for: actor, merging: max)
         }
         guard triggers.firstManaSpendRefundPerTurn > 0,
               context.claimHeroTalent(.aetherialSurge, actorID: actor.id) else { return }

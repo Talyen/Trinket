@@ -37,7 +37,7 @@ package extension BattleTurnEngine {
             markEmpoweredAction(actor: actor, triggers: triggers, in: &context)
             grantDragonPatronageBlock(actor: actor, amount: triggers.manaEmpowerAllyBlock, in: &context)
             if triggers.manaEmpowerNextAttackPercent > 0 {
-                prepareOvercharge(for: actor, percent: triggers.manaEmpowerNextAttackPercent, in: &context)
+                context.prepareTalentBonus(triggers.manaEmpowerNextAttackPercent, \.overchargePercent, for: actor, merging: max)
             }
             if BattleChance.succeeds(
                 probability: triggers.manaEmpoweredAttackDoubleChancePercent,
@@ -78,18 +78,6 @@ private extension BattleTurnEngine {
     static func grantDragonPatronageBlock(actor: Combatant, amount: Int, in context: inout BattleState) {
         guard amount > 0, actor.role == .companion, context.roster.hero.isAlive else { return }
         context.applyBlockGain(amount, to: context.roster.hero.combatant, source: actor, abilityName: "Dragon’s Patronage")
-    }
-
-    static func prepareOvercharge(for actor: Combatant, percent: Double, in context: inout BattleState) {
-        let preparedCardSerial = context.resolution.cardTalents?.playSerial
-        let preparedActionID = context.resolution.actionID
-        context.roster.mutateRuntime(for: actor) {
-            $0.talents.pending.overchargePercent = PreparedTalentBonus(
-                value: max($0.talents.pending.overchargePercent?.value ?? 0, percent),
-                cardSerial: preparedCardSerial,
-                actionID: preparedActionID,
-            )
-        }
     }
 
     static func empoweredAbility(_ original: Ability, triggers: CombatTraitTriggers) -> Ability {

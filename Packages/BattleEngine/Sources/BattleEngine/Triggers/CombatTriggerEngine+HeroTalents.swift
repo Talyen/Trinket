@@ -67,14 +67,7 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) {
         guard keyword == .burn, triggers.burnPreparesBleedDamageBonus > 0 else { return }
-        let serial = context.resolution.cardTalents?.playSerial
-        let actionID = context.resolution.actionID
-        context.roster.mutateRuntime(for: actor) {
-            $0.talents.pending.nextBleedDamageBonus = PreparedTalentBonus(
-                value: max($0.talents.pending.nextBleedDamageBonus?.value ?? 0, triggers.burnPreparesBleedDamageBonus),
-                cardSerial: serial, actionID: actionID,
-            )
-        }
+        context.prepareTalentBonus(triggers.burnPreparesBleedDamageBonus, \.nextBleedDamageBonus, for: actor, merging: max)
     }
 
     static func afterTypedCriticalAttackHit(
@@ -95,11 +88,7 @@ package extension CombatTriggerEngine {
             await heroTalentMana(to: actor, source: actor, name: "Frost Circuit", in: &context)
         }
         if keyword == .poison, triggers.poisonCritPreparesBleedCrit {
-            let serial = context.resolution.cardTalents?.playSerial
-            let actionID = context.resolution.actionID
-            context.roster.mutateRuntime(for: actor) {
-                $0.talents.pending.guaranteedBleedCritical = PreparedTalentBonus(value: true, cardSerial: serial, actionID: actionID)
-            }
+            context.prepareTalentBonus(true, \.guaranteedBleedCritical, for: actor)
         }
         if keyword == .stun, triggers.stunCriticalStealGold > 0,
            context.claimTalentAbility(.cutpurseCut, actorID: sourceID) {
@@ -145,13 +134,7 @@ package extension CombatTriggerEngine {
             )
         }
         if fullyBlocked, triggers.blockedAttackNextPhysicalDouble {
-            let preparedCardSerial = context.resolution.cardTalents?.playSerial
-            let actionID = context.resolution.actionID
-            context.roster.mutateRuntime(for: actor) {
-                $0.talents.pending.doubleNextPhysicalAttack = PreparedTalentBonus(
-                    value: true, cardSerial: preparedCardSerial, actionID: actionID,
-                )
-            }
+            context.prepareTalentBonus(true, \.doubleNextPhysicalAttack, for: actor)
         }
     }
 
@@ -235,13 +218,7 @@ package extension CombatTriggerEngine {
             context.roster.mutateRuntime(for: target) { $0.talents.turn.negativeStatusImmune = true }
         }
         if removed.contains(.burn), triggers.heatRecovery {
-            let serial = context.resolution.cardTalents?.playSerial
-            let actionID = context.resolution.actionID
-            context.roster.mutateRuntime(for: source) {
-                $0.talents.pending.nextBurnDamageBonus = PreparedTalentBonus(
-                    value: 2, cardSerial: serial, actionID: actionID,
-                )
-            }
+            context.prepareTalentBonus(2, \.nextBurnDamageBonus, for: source)
         }
         if removed.contains(.poison), triggers.antitoxinCoating {
             context.roster.mutateRuntime(for: target) {

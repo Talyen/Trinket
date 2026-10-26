@@ -21,8 +21,22 @@ package extension BattleState {
         for actor: Combatant,
     ) {
         guard amount > 0, roster.runtime(for: actor)?.isAlive == true else { return }
+        prepareTalentBonus(amount, keyPath, for: actor)
+    }
+
+    /// The caller owns eligibility. Arming refreshes provenance even when an older bonus wins the merge.
+    internal mutating func prepareTalentBonus<Value>(
+        _ value: Value,
+        _ keyPath: WritableKeyPath<CombatantTalentState.Pending, PreparedTalentBonus<Value>?>,
+        for actor: Combatant,
+        scope: TalentPreparationScope = .action,
+        merging combine: (Value, Value) -> Value = { _, replacement in replacement },
+    ) {
+        let existing = roster.runtime(for: actor)?.talents.pending[keyPath: keyPath]?.value
         let bonus = PreparedTalentBonus(
-            value: amount, cardSerial: resolution.cardTalents?.playSerial, actionID: resolution.actionID,
+            value: existing.map { combine($0, value) } ?? value,
+            cardSerial: resolution.cardTalents?.playSerial,
+            actionID: scope == .action ? resolution.actionID : nil,
         )
         roster.mutateRuntime(for: actor) { $0.talents.pending[keyPath: keyPath] = bonus }
     }

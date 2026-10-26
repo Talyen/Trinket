@@ -47,15 +47,7 @@ package extension CombatTriggerEngine {
 
         if removedCount > 0 {
             if triggers.cleanseNextAttackCriticalBonus > 0 {
-                let preparedCardSerial = context.resolution.cardTalents?.playSerial
-                let actionID = context.resolution.actionID
-                context.roster.mutateRuntime(for: target) {
-                    $0.talents.pending.nextCleanseCriticalBonus = PreparedTalentBonus(
-                        value: max($0.talents.pending.nextCleanseCriticalBonus?.value ?? 0, triggers.cleanseNextAttackCriticalBonus),
-                        cardSerial: preparedCardSerial,
-                        actionID: actionID,
-                    )
-                }
+                context.prepareTalentBonus(triggers.cleanseNextAttackCriticalBonus, \.nextCleanseCriticalBonus, for: target, merging: max)
             }
             if triggers.cleanseSelfBlockFlat > 0 {
                 context.applyBlockGain(

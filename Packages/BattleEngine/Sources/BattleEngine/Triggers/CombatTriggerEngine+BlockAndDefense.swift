@@ -92,27 +92,14 @@ package extension CombatTriggerEngine {
         let profile = context.modifiers(for: target.id)
 
         if profile.triggers.blockBreakNextPhysicalBonus > 0, target.role != .enemy {
-            let serial = context.resolution.cardTalents?.playSerial
-            let actionID = context.resolution.actionID
-            context.roster.mutateRuntime(for: target) {
-                $0.talents.pending.nextPhysicalDamageBonus = PreparedTalentBonus(
-                    value: max($0.talents.pending.nextPhysicalDamageBonus?.value ?? 0, profile.triggers.blockBreakNextPhysicalBonus),
-                    cardSerial: serial, actionID: actionID,
-                )
-            }
+            context.prepareTalentBonus(profile.triggers.blockBreakNextPhysicalBonus, \.nextPhysicalDamageBonus, for: target, merging: max)
         }
         if profile.triggers.blockBreakNextHolyHitDouble {
-            let serial = context.resolution.cardTalents?.playSerial
-            context.roster.mutateRuntime(for: target) {
-                $0.talents.pending.nextHolyHitDouble = PreparedTalentBonus(value: true, cardSerial: serial)
-            }
+            context.prepareTalentBonus(true, \.nextHolyHitDouble, for: target, scope: .card)
         }
         if profile.triggers.firstBlockBreakNextStunDouble,
            context.claimHeroTalent(.quakingCarapace, actorID: target.id, battle: true) {
-            let serial = context.resolution.cardTalents?.playSerial
-            context.roster.mutateRuntime(for: target) {
-                $0.talents.pending.nextStunAttackDouble = PreparedTalentBonus(value: true, cardSerial: serial)
-            }
+            context.prepareTalentBonus(true, \.nextStunAttackDouble, for: target, scope: .card)
         }
         if target.role == .companion, context.roster.hero.isAlive,
            profile.triggers.blockBreakAllyBlockFlat > 0 {
@@ -166,25 +153,13 @@ package extension CombatTriggerEngine {
             }
             if triggers.onStunNextAttackGuaranteedCritical,
                let source = context.roster.combatant(for: sourceActorID), source.isAlive {
-                let serial = context.resolution.cardTalents?.playSerial
-                let actionID = context.resolution.actionID
-                context.roster.mutateRuntime(for: source.combatant) {
-                    $0.talents.pending.nextStunPreparedCritical = PreparedTalentBonus(value: true, cardSerial: serial, actionID: actionID)
-                }
+                context.prepareTalentBonus(true, \.nextStunPreparedCritical, for: source.combatant)
             }
         }
         if let sourceActorID, let triggers,
            let source = context.roster.combatant(for: sourceActorID), source.isAlive,
            triggers.stunNextBlockGainMultiplier > 1 {
-            let preparedCardSerial = context.resolution.cardTalents?.playSerial
-            let actionID = context.resolution.actionID
-            context.roster.mutateRuntime(for: source.combatant) {
-                $0.talents.pending.nextBlockGainMultiplier = PreparedTalentBonus(
-                    value: max($0.talents.pending.nextBlockGainMultiplier?.value ?? 1, triggers.stunNextBlockGainMultiplier),
-                    cardSerial: preparedCardSerial,
-                    actionID: actionID,
-                )
-            }
+            context.prepareTalentBonus(triggers.stunNextBlockGainMultiplier, \.nextBlockGainMultiplier, for: source.combatant, merging: max)
         }
         if let sourceActorID,
            sourceActorID == context.roster.hero.id || sourceActorID == context.roster.companion.id,

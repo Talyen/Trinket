@@ -186,12 +186,7 @@ package extension CombatTriggerEngine {
         guard amount > 0, percent > 0, context.roster.runtime(for: actor)?.isAlive == true else {
             return
         }
-        let preparation = PreparedTalentBonus(
-            value: CombatRounding.scaled(amount, multiplier: percent),
-            cardSerial: context.resolution.cardTalents?.playSerial,
-            actionID: context.resolution.actionID,
-        )
-        context.roster.mutateRuntime(for: actor) { $0.talents.pending.nextToxicRemedyDamageBonus = preparation }
+        context.prepareTalentBonus(CombatRounding.scaled(amount, multiplier: percent), \.nextToxicRemedyDamageBonus, for: actor)
     }
 
     static func drawCards(

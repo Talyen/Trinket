@@ -11,7 +11,10 @@ amplify later reactions. Turn start clears only turn state
 and expired timed bonuses; pending effects survive until their consuming operation.
 Card/action-scoped readied bonuses keep their value and provenance together in
 `PreparedTalentBonus`; `consumeTalentPreparation` checks provenance and clears the
-whole preparation. Callers own keyword and operation eligibility. Block bonuses
+whole preparation. `prepareTalentBonus` captures the creating card and, for action-scoped
+preparations, its action. Replacement and strongest-value merges refresh that provenance
+together; callers keep eligibility checks and the intentionally inherited-provenance cases.
+Callers own keyword and operation eligibility. Block bonuses
 clear only after a positive base gain. Keep an amount and its expiry/source
 together. The owning card retains its empowerment receipt through the Spell Echo checkpoint;
 prepared card repeats inherit their parent action's empowerment without another payment.

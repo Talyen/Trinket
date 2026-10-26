@@ -1,3 +1,8 @@
+/// Card preparations exclude their creating card; action preparations also exclude its current action.
+enum TalentPreparationScope {
+    case card, action
+}
+
 /// A readied bonus and the creating card/action that cannot spend it.
 /// Absence represents an unarmed talent; consuming it clears value and provenance together.
 struct PreparedTalentBonus<Value: Hashable & Sendable>: Hashable, Sendable {

@@ -7,11 +7,7 @@ package extension DamagePipeline {
               state.combatant.role == .enemy,
               let source = state.partySource(in: context), source.isAlive,
               context.modifiers(for: source.id).triggers.crackedGuard else { return }
-        let serial = context.resolution.cardTalents?.playSerial
-        let actionID = context.resolution.actionID
-        context.roster.mutateRuntime(for: source.combatant) {
-            $0.talents.pending.nextAttackGuaranteedCritical = PreparedTalentBonus(value: true, cardSerial: serial, actionID: actionID)
-        }
+        context.prepareTalentBonus(true, \.nextAttackGuaranteedCritical, for: source.combatant)
     }
 
     static func applyBackdraftBonus(to state: inout DamageResolutionState, in context: inout BattleState) {

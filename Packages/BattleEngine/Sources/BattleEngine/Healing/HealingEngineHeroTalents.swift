@@ -9,15 +9,7 @@ extension HealingEngine {
         in context: inout BattleState,
     ) {
         guard overflow > 0, triggers.overhealNextBurnBonus > 0 else { return }
-        let preparedCardSerial = context.resolution.cardTalents?.playSerial
-        let preparedActionID = context.resolution.actionID
-        context.roster.mutateRuntime(for: target) {
-            $0.talents.pending.nextBurnDamageBonus = PreparedTalentBonus(
-                value: max($0.talents.pending.nextBurnDamageBonus?.value ?? 0, triggers.overhealNextBurnBonus),
-                cardSerial: preparedCardSerial,
-                actionID: preparedActionID,
-            )
-        }
+        context.prepareTalentBonus(triggers.overhealNextBurnBonus, \.nextBurnDamageBonus, for: target, merging: max)
     }
 
     static func adjustedHeroHealingAmount(
@@ -122,16 +114,9 @@ extension HealingEngine {
         let actor = source.combatant
         let target = request.target
         if triggers.healthRestoreNextIncomingDamageMultiplier < 1 {
-            let serial = context.resolution.cardTalents?.playSerial
-            context.roster.mutateRuntime(for: target) {
-                $0.talents.pending.nextIncomingDamageMultiplier = PreparedTalentBonus(
-                    value: min(
-                        $0.talents.pending.nextIncomingDamageMultiplier?.value ?? 1,
-                        triggers.healthRestoreNextIncomingDamageMultiplier,
-                    ),
-                    cardSerial: serial,
-                )
-            }
+            context.prepareTalentBonus(
+                triggers.healthRestoreNextIncomingDamageMultiplier, \.nextIncomingDamageMultiplier, for: target, scope: .card, merging: min,
+            )
         }
 
         if triggers.healthRestoreBlockChancePercent > 0,
@@ -245,14 +230,7 @@ extension HealingEngine {
 
         if restored > 0 {
             if sourceTriggers.healthRestoreNextPoisonBonus > 0 {
-                let serial = context.resolution.cardTalents?.playSerial
-                let actionID = context.resolution.actionID
-                context.roster.mutateRuntime(for: source) {
-                    $0.talents.pending.nextPoisonDamageBonus = PreparedTalentBonus(
-                        value: max($0.talents.pending.nextPoisonDamageBonus?.value ?? 0, sourceTriggers.healthRestoreNextPoisonBonus),
-                        cardSerial: serial, actionID: actionID,
-                    )
-                }
+                context.prepareTalentBonus(sourceTriggers.healthRestoreNextPoisonBonus, \.nextPoisonDamageBonus, for: source, merging: max)
             }
             let canRoll = context.claimTalentAbility(.healthRestorationRolls, actorID: sourceActorID)
             if canRoll, sourceTriggers.healthRestoreDrawChancePercent > 0,

@@ -38,15 +38,7 @@ package extension CombatTriggerEngine {
         let spentLastMana = payment.spentLastMana
         let triggers = context.modifiers(for: actor.id).triggers
         if spentLastMana, triggers.lastManaNextBurnPercent > 0 {
-            let preparedCardSerial = context.resolution.cardTalents?.playSerial
-            let preparedActionID = context.resolution.actionID
-            context.roster.mutateRuntime(for: actor) {
-                $0.talents.pending.nextBurnAttackPercent = PreparedTalentBonus(
-                    value: max($0.talents.pending.nextBurnAttackPercent?.value ?? 0, triggers.lastManaNextBurnPercent),
-                    cardSerial: preparedCardSerial,
-                    actionID: preparedActionID,
-                )
-            }
+            context.prepareTalentBonus(triggers.lastManaNextBurnPercent, \.nextBurnAttackPercent, for: actor, merging: max)
         }
         let checkpoint = CombatCheckpoint.payment(payment)
         guard checkpoint.allowsContinuation(in: context) else { return }
