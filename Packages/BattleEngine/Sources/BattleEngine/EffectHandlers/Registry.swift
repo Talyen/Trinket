@@ -5,8 +5,7 @@ package enum EffectHandlers {
     /// Stored effects have a shared countdown unless their rules own the tick.
     package static func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) async {
         switch active.effect.kind {
-        case .burn: await DecayingDoTHandler(type: .burn).advanceTurn(active, on: target, in: &context)
-        case .poison: await DecayingDoTHandler(type: .poison).advanceTurn(active, on: target, in: &context)
+        case .burn, .poison: await advanceDecayingDoT(active, on: target, in: &context)
         case .bleed: await advanceBleed(active, on: target, in: &context)
         case .controlMeter: advanceControlMeter(active, on: target, in: &context)
         case .recurringDamage: await advanceRecurringDamage(active, on: target, in: &context)
@@ -22,8 +21,7 @@ package enum EffectHandlers {
 
     package static func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         switch stacks.first?.effect.kind {
-        case .burn: DecayingDoTHandler(type: .burn).summary(for: stacks, keyword: keyword)
-        case .poison: DecayingDoTHandler(type: .poison).summary(for: stacks, keyword: keyword)
+        case .burn, .poison: summarizeDecayingDoT(for: stacks, keyword: keyword)
         case .bleed: summarizeBleed(for: stacks, keyword: keyword)
         case .controlMeter: summarizeControlMeter(for: stacks, keyword: keyword)
         case .shield: summarizeBlockBuff(for: stacks, keyword: keyword)

@@ -2,15 +2,10 @@ import Foundation
 import TrinketContent
 import TrinketCore
 
-struct DecayingDoTHandler {
-    let type: DecayingDoT
-
-    var keyword: Keyword {
-        type.keyword
-    }
-
-    func advanceTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) async {
-        guard matches(active.effect) else { return }
+extension EffectHandlers {
+    static func advanceDecayingDoT(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) async {
+        guard let type = DecayingDoT(effect: active.effect) else { return }
+        let keyword = type.keyword
         let progression = DecayingDoTProgression(
             type: type, sourceActorID: active.sourceActorID, target: target, in: context,
         )
@@ -49,7 +44,7 @@ struct DecayingDoTHandler {
         }
     }
 
-    func summary(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
+    static func summarizeDecayingDoT(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {
         let total = stacks.reduce(0) { sum, active in
             if case let .burn(potency) = active.effect, keyword == .burn {
                 return SaturatedArithmetic.saturatingAdd(sum, potency)
@@ -72,12 +67,6 @@ struct DecayingDoTHandler {
         )
     }
 
-    private func matches(_ effect: Effect) -> Bool {
-        effect.kind == type.kind
-    }
-}
-
-extension EffectHandlers {
     static func advanceBleed(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) async {
         guard case let .bleed(potency) = active.effect, active.remainingTurns > 0 else {
             return

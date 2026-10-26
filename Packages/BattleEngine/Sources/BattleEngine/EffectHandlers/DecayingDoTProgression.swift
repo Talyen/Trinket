@@ -19,13 +19,6 @@ enum DecayingDoT {
         }
     }
 
-    var kind: EffectKind {
-        switch self {
-        case .burn: .burn
-        case .poison: .poison
-        }
-    }
-
     func effect(potency: Int) -> Effect {
         switch self {
         case .burn: .burn(potency)

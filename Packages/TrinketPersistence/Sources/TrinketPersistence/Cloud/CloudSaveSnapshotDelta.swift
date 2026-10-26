@@ -33,79 +33,38 @@ struct CloudSaveSnapshotDelta: Codable, Equatable, Sendable {
     let changes: [Change]
 
     init(from before: CloudSaveSnapshot, to after: CloudSaveSnapshot) {
-        var changes = Self.rosterChanges(from: before.roster, to: after.roster)
-        if before.schemaVersion != after.schemaVersion {
-            changes.append(.schemaVersion(after.schemaVersion))
-        }
-        if before.modifiedAt != after.modifiedAt {
-            changes.append(.modifiedAt(after.modifiedAt))
-        }
-        if before.worldSeed != after.worldSeed {
-            changes.append(.worldSeed(after.worldSeed))
-        }
-        if before.starterSelection != after.starterSelection {
-            changes.append(.starterSelection(after.starterSelection))
-        }
-        if before.journey != after.journey {
-            changes.append(.journey(after.journey))
-        }
-        if before.inventory != after.inventory {
-            changes.append(.inventory(after.inventory))
-        }
-        if before.homestead != after.homestead {
-            changes.append(.homestead(after.homestead))
-        }
-        if before.spires != after.spires {
-            changes.append(.spires(after.spires))
-        }
-        if before.labyrinth != after.labyrinth {
-            changes.append(.labyrinth(after.labyrinth))
-        }
-        if before.library != after.library {
-            changes.append(.library(after.library))
-        }
-        if before.voyagePayload != after.voyagePayload {
-            changes.append(.voyage(after.voyagePayload))
-        }
-        if before.contracts != after.contracts {
-            changes.append(.contracts(after.contracts))
-        }
-        if before.corruptionAltarCooldownRemaining != after.corruptionAltarCooldownRemaining {
-            changes.append(.corruptionCooldown(after.corruptionAltarCooldownRemaining))
-        }
-        self.changes = changes
-    }
-
-    private static func rosterChanges(from before: StoredRosterSnapshot, to after: StoredRosterSnapshot) -> [Change] {
         var changes: [Change] = []
-        if before.activeHeroID != after.activeHeroID {
-            changes.append(.activeHero(after.activeHeroID))
+        func record<Value: Equatable>(_ field: KeyPath<CloudSaveSnapshot, Value>, as change: (Value) -> Change) {
+            let value = after[keyPath: field]
+            if before[keyPath: field] != value {
+                changes.append(change(value))
+            }
         }
-        if before.activeCompanionID != after.activeCompanionID {
-            changes.append(.activeCompanion(after.activeCompanionID))
-        }
-        if before.unlockedHeroIDs != after.unlockedHeroIDs {
-            changes.append(.unlockedHeroes(after.unlockedHeroIDs))
-        }
-        if before.unlockedCompanionIDs != after.unlockedCompanionIDs {
-            changes.append(.unlockedCompanions(after.unlockedCompanionIDs))
-        }
-        if before.abilityLoadouts != after.abilityLoadouts {
-            changes.append(.abilities(after.abilityLoadouts))
-        }
-        if before.progressions != after.progressions {
-            changes.append(.progressions(after.progressions))
-        }
-        if before.equipment != after.equipment {
-            changes.append(.equipment(after.equipment))
-        }
-        if before.unlockedTalents != after.unlockedTalents {
-            changes.append(.talents(after.unlockedTalents))
-        }
-        if before.gold != after.gold {
-            changes.append(.gold(after.gold))
-        }
-        return changes
+        // Keep the historical roster-first order and the existing encoded cases.
+        // Optional values, including nil, are recorded without content repair.
+        record(\.roster.activeHeroID, as: Change.activeHero)
+        record(\.roster.activeCompanionID, as: Change.activeCompanion)
+        record(\.roster.unlockedHeroIDs, as: Change.unlockedHeroes)
+        record(\.roster.unlockedCompanionIDs, as: Change.unlockedCompanions)
+        record(\.roster.abilityLoadouts, as: Change.abilities)
+        record(\.roster.progressions, as: Change.progressions)
+        record(\.roster.equipment, as: Change.equipment)
+        record(\.roster.unlockedTalents, as: Change.talents)
+        record(\.roster.gold, as: Change.gold)
+        record(\.schemaVersion, as: Change.schemaVersion)
+        record(\.modifiedAt, as: Change.modifiedAt)
+        record(\.worldSeed, as: Change.worldSeed)
+        record(\.starterSelection, as: Change.starterSelection)
+        record(\.journey, as: Change.journey)
+        record(\.inventory, as: Change.inventory)
+        record(\.homestead, as: Change.homestead)
+        record(\.spires, as: Change.spires)
+        record(\.labyrinth, as: Change.labyrinth)
+        record(\.library, as: Change.library)
+        record(\.voyagePayload, as: Change.voyage)
+        record(\.contracts, as: Change.contracts)
+        record(\.corruptionAltarCooldownRemaining, as: Change.corruptionCooldown)
+        self.changes = changes
     }
 
     func applying(to original: CloudSaveSnapshot) -> CloudSaveSnapshot {
