@@ -52,7 +52,6 @@ public extension PlayerSaveStore {
                 [ResourceAmount],
                 Never,
             > in
-                save.homestead.settleProduction(at: date, gold: save.roster.gold)
                 let collected = save.homestead.collectProduction(at: date, gold: &save.roster.gold)
                 return .success(collected)
             }

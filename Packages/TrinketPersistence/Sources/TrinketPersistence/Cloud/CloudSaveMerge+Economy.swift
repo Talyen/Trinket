@@ -16,33 +16,31 @@ extension CloudSaveMerge {
         let sharedUpgradeCosts = sharedUpgradeCosts(branches: branches)
         let collections = productionCollections(branches: branches)
         let canCombine = branches.canCombineIndependentRewards
-        let repeatedGold = collections == nil && overlappingProduction
-            && producedResources.contains(.gold)
-            && incoming.roster.gold > (base?.roster.gold ?? 0)
-            && existing.roster.gold > (base?.roster.gold ?? 0)
-        let goldCarry = rewardRemainder(for: .gold, branches: branches, combine: canCombine && !repeatedGold)
-        var remainders = HomesteadRewardRemainders(gold: goldCarry.remainder)
-        merged.roster.gold = balance(
-            incoming.roster.gold, existing.roster.gold, base: base?.roster.gold,
-            combine: canCombine && !repeatedGold,
-            correction: sharedUpgradeCosts[.gold, default: 0] - (collections?.shared[.gold, default: 0] ?? 0) + goldCarry.correction,
-        )
-        for resource in HomesteadResource.allCases where resource != .gold {
-            let first = incoming.homestead.resources[resource, default: 0]
-            let second = existing.homestead.resources[resource, default: 0]
-            let starting = base?.homestead.resources[resource, default: 0]
+        var remainders = HomesteadRewardRemainders.zero
+        for resource in HomesteadResource.allCases {
+            let first = incoming.homestead.balance(for: resource, gold: incoming.roster.gold)
+            let second = existing.homestead.balance(for: resource, gold: existing.roster.gold)
+            let starting = base.map { $0.homestead.balance(for: resource, gold: $0.roster.gold) }
             let repeated = collections == nil && overlappingProduction && producedResources.contains(resource)
                 && first > (starting ?? 0) && second > (starting ?? 0)
-            let carry = resource == .gems
-                ? rewardRemainder(for: .gems, branches: branches, combine: canCombine && !repeated)
+            let carry = resource == .gold || resource == .gems
+                ? rewardRemainder(for: resource, branches: branches, combine: canCombine && !repeated)
                 : (remainder: 0, correction: 0)
-            if resource == .gems {
+            if resource == .gold {
+                // Match the existing initializer's normalization of historical Gold carry.
+                remainders.gold = min(99, max(0, carry.remainder))
+            } else if resource == .gems {
                 remainders.gems = carry.remainder
             }
-            merged.homestead.resources[resource] = balance(
+            let mergedBalance = balance(
                 first, second, base: starting, combine: canCombine && !repeated,
                 correction: sharedUpgradeCosts[resource, default: 0] - (collections?.shared[resource, default: 0] ?? 0) + carry.correction,
             )
+            if resource == .gold {
+                merged.roster.gold = mergedBalance
+            } else {
+                merged.homestead.resources[resource] = mergedBalance
+            }
         }
         merged.homestead.rewardRemainders = remainders == .zero ? nil : remainders
         for (id, tier) in incoming.homestead.nodeTiers.merging(existing.homestead.nodeTiers, uniquingKeysWith: max) {
