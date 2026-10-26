@@ -79,8 +79,7 @@ public enum ItemCorruption {
     private static func eligibleKinds(for item: InventoryItem) -> [CorruptionEffectKind] {
         let powers = item.affixes.indices.compactMap { index in
             let affixID = item.affixes[index].id
-            let power = item.affixPowers.flatMap { $0.indices.contains(index) ? $0[index] : nil }
-                ?? GameContent.itemAffixDefinition(matching: affixID)?.power(for: item.rarity)
+            let power = item.unscaledPower(at: index)
             return power.map { InventoryItem.normalizedCombatProcPower($0, affixID: affixID) ?? $0 }
         }
         // Keep catalog order: both independent rolls and the forced draw consume this sequence.
@@ -129,8 +128,8 @@ public enum ItemCorruption {
         for (index, affix) in item.affixes.enumerated() {
             // Saved affixes survive catalog removal. Never partially rebuild such an item.
             guard let definition = GameContent.itemAffixDefinition(matching: affix.id) else { return nil }
-            let stored = item.affixPowers.flatMap { $0.indices.contains(index) ? $0[index] : nil }
-            let power = rarity == item.rarity ? stored ?? definition.power(for: rarity) : definition.power(for: rarity)
+            let power = rarity == item.rarity ? item.unscaledPower(at: index) ?? definition.power(for: rarity)
+                : definition.power(for: rarity)
             affixes.append(CorruptibleAffix(
                 definition: definition,
                 power: InventoryItem.normalizedCombatProcPower(power, affixID: affix.id) ?? power,

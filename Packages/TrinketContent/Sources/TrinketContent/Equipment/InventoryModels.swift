@@ -58,18 +58,17 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
         )
     }
 
-    public func resolvedPower(at affixIndex: Int) -> ItemAffixPower? {
-        var power: ItemAffixPower
+    /// Stored rolls take precedence; older items can fall back to the catalog.
+    func unscaledPower(at affixIndex: Int) -> ItemAffixPower? {
         if let affixPowers, affixPowers.indices.contains(affixIndex) {
-            power = affixPowers[affixIndex]
-        } else {
-            guard affixes.indices.contains(affixIndex),
-                  let definition = GameContent.itemAffixDefinition(matching: affixes[affixIndex].id)
-            else {
-                return nil
-            }
-            power = definition.power(for: rarity)
+            return affixPowers[affixIndex]
         }
+        guard affixes.indices.contains(affixIndex) else { return nil }
+        return GameContent.itemAffixDefinition(matching: affixes[affixIndex].id)?.power(for: rarity)
+    }
+
+    public func resolvedPower(at affixIndex: Int) -> ItemAffixPower? {
+        guard let power = unscaledPower(at: affixIndex) else { return nil }
         let scaled = power.scaled(by: baseType.affixPowerMultiplier)
         if affixes.indices.contains(affixIndex) {
             // Scale raw magnitudes first so migrated descriptions reflect equipped values once.

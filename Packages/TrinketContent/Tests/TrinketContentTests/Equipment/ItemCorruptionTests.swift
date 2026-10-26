@@ -3,6 +3,27 @@ import TrinketCore
 @testable import TrinketContent
 
 struct ItemCorruptionTests {
+    @Test func `partial saved rolls survive corruption and inscription with catalog fallback`() throws {
+        let baseItem = try makeItem(baseID: "longsword", rarity: .basic, affixCount: 3)
+        let stored = ItemAffixPower(description: "saved roll", modifiers: [.healthRestored(17)])
+        let item = InventoryItem(
+            id: baseItem.id, baseType: baseItem.baseType, rarity: baseItem.rarity,
+            displayName: baseItem.displayName, affixes: baseItem.affixes, affixPowers: [stored],
+        )
+        let fallback = try #require(GameContent.itemAffixDefinition(matching: item.affixes[1].id)).power(for: item.rarity)
+        #expect(item.resolvedPower(at: 0) == stored)
+        #expect(item.resolvedPower(at: 1) == fallback)
+
+        var rng = SeededRandomNumberGenerator(seed: 17)
+        let corrupted = try #require(ItemCorruption.apply(kinds: [], to: item, using: &rng))
+        let corruptedPowers = try #require(corrupted.item.affixPowers)
+        #expect(Array(corruptedPowers.prefix(2)) == [stored, fallback])
+        let choice = try #require(ItemInscriptionPlan.choices(for: item, index: 2).first)
+        let inscribed = try #require(ItemInscriptionPlan.prepare(item: item, index: 2, affixID: choice.id, using: &rng))
+        let inscribedPowers = try #require(inscribed.item.affixPowers)
+        #expect(Array(inscribedPowers.prefix(2)) == [stored, fallback])
+    }
+
     @Test func `structural corruption preserves surviving rolls`() throws {
         let base = try #require(GameContent.itemBaseType(matching: "longsword"))
         var rng = SeededRandomNumberGenerator(seed: 1772)

@@ -28,10 +28,7 @@ public struct ItemInscriptionPlan: Sendable {
     ) -> Self? {
         guard let definition = choices(for: item, index: index).first(where: { $0.id == affixID }) else { return nil }
         var affixes = item.affixes
-        var powers = item.affixes.enumerated().compactMap { offset, affix in
-            item.affixPowers.flatMap { $0.indices.contains(offset) ? $0[offset] : nil }
-                ?? GameContent.itemAffixDefinition(matching: affix.id)?.power(for: item.rarity)
-        }
+        var powers = item.affixes.indices.compactMap { item.unscaledPower(at: $0) }
         guard powers.count == item.affixes.count else { return nil }
         let catalogPower = definition.power(for: item.rarity)
         let power = catalogPower.rolled(using: &random)
