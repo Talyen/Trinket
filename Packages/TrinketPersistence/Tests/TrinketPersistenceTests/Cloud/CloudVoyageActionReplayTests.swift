@@ -54,7 +54,8 @@ struct CloudVoyageActionReplayTests {
         let run = try #require(reloaded.voyage.activeRun)
         #expect(reloaded.roster.gold == 115)
         #expect(reloaded.homestead.resources[.wood] == 5)
-        #expect(run.nodes.prefix(2).allSatisfy(\.isCleared))
+        let firstTwoCleared = run.nodes.prefix(2).allSatisfy(\.isCleared)
+        #expect(firstTwoCleared)
         #expect(run.earnedGold == 15)
         #expect(run.earnedMaterials == [.wood: 5])
         let bossAward = BattleRewardPlan(
@@ -80,11 +81,12 @@ struct CloudVoyageActionReplayTests {
         let settlement = plan.settle(
             battleGold: .init(), inputs: RewardSettlementInputs(save: before, hero: hero, companion: companion),
         )
-        #expect(VoyageCompletion.completeBattle(
+        let completion = VoyageCompletion.completeBattle(
             runID: run.id, nodeID: node.id, party: (hero, companion),
             rewards: (settled: settlement, earned: plan.resolve(battleGold: .init()), encounterLevel: 12),
             save: &after, access: .free,
-        ) == .completed)
+        )
+        #expect(completion == .completed)
         return ResolvedSaveAction(
             before: CloudSaveSnapshot(before), after: CloudSaveSnapshot(after), kind: .reward,
             claim: .voyage(runID: run.id, nodeID: node.id),
