@@ -2,6 +2,18 @@ import Testing
 @testable import TrinketFeatureSupport
 
 struct FramePacingCaptureTests {
+    @Test func `a final hitch without another callback cannot certify a complete capture`() {
+        var capture = FramePacingCapture()
+        capture.begin(at: 100)
+        capture.record(at: 100.02, expectedDuration: 1.0 / 60)
+        let report = capture.finish(at: 101)
+        #expect(report.completionStatus == "incomplete")
+        #expect(report.sampleCount == 1)
+        #expect(report.sampledDuration < 0.021)
+        #expect(report.measurementDuration == 1)
+        #expect(capture.finish(at: 102) == report)
+    }
+
     @Test func `explicit boundaries retain first stall and freeze evidence`() {
         var capture = FramePacingCapture()
         capture.record(at: 90, expectedDuration: 1.0 / 60)

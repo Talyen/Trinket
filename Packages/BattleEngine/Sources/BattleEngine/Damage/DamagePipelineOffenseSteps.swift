@@ -75,7 +75,7 @@ package extension DamagePipeline {
         let triggers = context.modifiers(for: sourceActorID).triggers
         let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
         guard state.damageKeyword == .burn || sharedKeyword == .burn else { return }
-        if state.options.isAttackHit, state.damageKeyword == .burn, state.targetStatus.isBleeding {
+        if state.options.isAttackHit, state.targetStatus.isBleeding {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.burnAttackDamageVsBleedingMultiplier)
         }
         if BattleChance.succeeds(probability: triggers.burnDamageDoubleChancePercent, using: &context.rng) {
@@ -434,6 +434,7 @@ package extension DamagePipeline {
               let source = context.roster.combatant(for: sourceActorID), source.role != .enemy
         else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
+        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
         var bonus = 0
         if state.damageKeyword == .poison, state.targetStatus.isBleeding {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.poisonDamageVsBleedingFlat)
@@ -441,23 +442,24 @@ package extension DamagePipeline {
         if state.options.isThornsDamage, state.targetStatus.isPoisoned {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.thornsDamageVsPoisonedFlat)
         }
-        if state.damageKeyword == .burn, state.targetStatus.isBleeding {
+        if state.damageKeyword == .burn || sharedKeyword == .burn, state.targetStatus.isBleeding {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.burnDamageVsBleedingFlat)
         }
-        if state.damageKeyword == .burn, state.targetStatus.isPoisoned {
+        if state.damageKeyword == .burn || sharedKeyword == .burn, state.targetStatus.isPoisoned {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.burnDamageVsPoisonedFlat)
         }
-        if state.damageKeyword == .bleed, state.targetStatus.isBurning {
+        if state.damageKeyword == .bleed || sharedKeyword == .bleed, state.targetStatus.isBurning {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.bleedDamageVsBurningFlat)
         }
-        if state.damageKeyword == .bleed, state.targetStatus.isPoisoned {
+        if state.damageKeyword == .bleed || sharedKeyword == .bleed, state.targetStatus.isPoisoned {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.bleedDamageVsPoisonedFlat)
         }
         if state.options.isAttackHit {
             if state.damageKeyword == .holy, state.targetStatus.isPoisoned {
                 bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.holyAttackDamageVsPoisonedFlat)
             }
-            if state.damageKeyword == .physical, state.targetStatus.isBurning || state.targetStatus.isFrozen {
+            if state.damageKeyword == .physical || sharedKeyword == .physical,
+               state.targetStatus.isBurning || state.targetStatus.isFrozen {
                 bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.physicalAttackDamageVsBurningOrFrozenFlat)
             }
         }

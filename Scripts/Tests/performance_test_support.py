@@ -21,7 +21,7 @@ def report(**overrides: object) -> dict[str, object]:
         "p99FrameMs": 90.0,
         "maxFrameMs": 120.0,
         "missedDeadlineCount": 25,
-        "missedDeadlineRatio": 0.4,
+        "missedDeadlineRatio": 25 / 120,
         "severeStallCount": 0,
     }
     report.update(overrides)

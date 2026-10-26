@@ -69,6 +69,12 @@ public struct FramePacingCapture {
         if duration >= maximumDuration {
             return "timeout"
         }
+        // A snapshot can run before the callback that would record a final hitch.
+        // Keep its metrics diagnostic, but never certify that truncated window.
+        if let previousTimestamp, let expected = expectedDurations.last,
+           timestamp - previousTimestamp >= expected * FramePacingAnalyzer.missedDeadlinePeriodMultiplier {
+            return "incomplete"
+        }
         return intervals.isEmpty ? "empty" : "complete"
     }
 

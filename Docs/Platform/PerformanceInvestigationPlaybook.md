@@ -165,8 +165,14 @@ separate steps.
 `FramePacingCapture` owns bounded interval accumulation, first-callback latency,
 and frozen reports with monotonic capture boundaries, completion status, test/step
 identity and launch arguments. Empty, unstarted, timed-out, overflowed, legacy-only,
-or inconsistent reports cannot establish interaction coverage; older reports remain
+incomplete tails (a missed callback between the last sample and snapshot), or
+inconsistent reports cannot establish interaction coverage; older reports remain
 readable for historical comparison.
+
+Deadline and severe-stall counts use each callback's expected refresh period, so
+refresh-rate transitions do not create false misses. JSON and legacy accessibility
+reports require a supported schema; additive fields remain readable. Schema-6
+comparison also checks that counts, missed ratios and percentile ordering agree.
 
 The summary distinguishes **coverage failure**, **performance finding**, and
 **clean observation**. Missing evidence always fails, even in observation mode.

@@ -59,6 +59,28 @@ def validate_report_domains(report: dict[str, Any]) -> list[str]:
     return failures
 
 
+def validate_report_consistency(report: dict[str, Any], samples: float) -> list[str]:
+    scenario = report.get("scenario")
+    try:
+        missed = finite_number(report, "missedDeadlineCount")
+        severe = finite_number(report, "severeStallCount")
+        ratio = finite_number(report, "missedDeadlineRatio")
+        p95 = finite_number(report, "p95FrameMs")
+        p99 = finite_number(report, "p99FrameMs")
+        maximum = finite_number(report, "maxFrameMs")
+    except ValueError:
+        # Domain validation already reports missing and non-finite metrics.
+        return []
+    failures: list[str] = []
+    if not 0 <= severe <= missed <= samples:
+        failures.append(f"{scenario}: expected severe stalls <= missed deadlines <= sample count")
+    if not math.isclose(ratio, missed / samples, rel_tol=1e-6, abs_tol=1e-6):
+        failures.append(f"{scenario}: missedDeadlineRatio does not match missed deadlines / sample count")
+    if not p95 <= p99 <= maximum:
+        failures.append(f"{scenario}: expected p95 frame time <= p99 frame time <= maximum frame time")
+    return failures
+
+
 def load_results_reports(payload: dict[str, Any]) -> list[dict[str, Any]]:
     """Extract the reports array from a collected results payload."""
     reports = payload.get("reports") if isinstance(payload, dict) else None
@@ -162,6 +184,8 @@ def validate_report(report: dict[str, Any], baseline: dict[str, Any] | None = No
                 failures.append(f"{scenario}: incompatible observed refresh cadence")
             if end <= start or duration <= 0 or duration >= 60 or abs(end - start - duration) > 0.01 or samples <= 0:
                 failures.append(f"{scenario}: invalid measurement boundaries or samples")
+            if samples > 0 and samples.is_integer():
+                failures.extend(validate_report_consistency(report, samples))
         except ValueError as error:
             failures.append(f"{scenario}: {error}")
     if baseline and (not isinstance(version, int) or isinstance(version, bool) or version < baseline.get("minimumReportSchema", 5)):

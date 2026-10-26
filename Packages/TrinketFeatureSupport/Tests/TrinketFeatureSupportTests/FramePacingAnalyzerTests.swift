@@ -58,6 +58,60 @@ struct FramePacingAnalyzerTests {
         #expect(report.missedDeadlineCount == 0)
         #expect(report.estimatedMissedFrameCount == 0)
     }
+
+    @Test func `refresh transitions do not turn on time callbacks into missed deadlines`() {
+        let fast = 1.0 / 120.0
+        let slow = 1.0 / 60.0
+        let intervals = [fast, fast, fast, slow, slow]
+        let report = FramePacingAnalyzer.report(intervals: intervals, expectedFrameDurations: intervals)
+
+        #expect(report.sampleCount == 5)
+        #expect(report.missedDeadlineCount == 0)
+        #expect(report.estimatedMissedFrameCount == 0)
+        #expect(report.severeStallCount == 0)
+        #expect(abs(report.expectedFPS - 120) < 0.01)
+    }
+
+    @Test func `stalls use the cadence of their own callback`() {
+        let fast = 1.0 / 120.0
+        let slow = 1.0 / 60.0
+        let report = FramePacingAnalyzer.report(
+            intervals: [slow, slow, slow, fast * 2, fast * 4],
+            expectedFrameDurations: [slow, slow, slow, fast, fast],
+        )
+
+        #expect(report.missedDeadlineCount == 2)
+        #expect(report.estimatedMissedFrameCount == 4)
+        #expect(report.severeStallCount == 1)
+        #expect(abs(report.expectedFPS - 60) < 0.01)
+    }
+
+    @Test func `invalid samples retain interval and cadence correspondence`() {
+        let fast = 1.0 / 120.0
+        let slow = 1.0 / 60.0
+        let report = FramePacingAnalyzer.report(
+            intervals: [.nan, fast, slow, fast],
+            expectedFrameDurations: [slow, fast, .nan, fast],
+        )
+
+        #expect(report.sampleCount == 2)
+        #expect(abs(report.averageFPS - 120) < 0.01)
+        #expect(report.missedDeadlineCount == 0)
+        #expect(report.estimatedMissedFrameCount == 0)
+    }
+
+    @Test func `one expected duration broadcasts across valid intervals`() {
+        let period = 1.0 / 60.0
+        let intervals = [period, .nan, period * 2]
+        let broadcast = FramePacingAnalyzer.report(intervals: intervals, expectedFrameDurations: [period])
+        let perFrame = FramePacingAnalyzer.report(
+            intervals: intervals, expectedFrameDurations: Array(repeating: period, count: intervals.count),
+        )
+
+        #expect(broadcast == perFrame)
+        #expect(broadcast.sampleCount == 2)
+        #expect(broadcast.missedDeadlineCount == 1)
+    }
 }
 
 struct FramePacingReportTests {
@@ -86,6 +140,16 @@ struct FramePacingReportTests {
         #expect(FramePacingReport.parseAccessibilityValue(futureValue) == report)
         #expect(abs(report.sampledDuration - (120.0 / 59.5)) < 0.001)
         #expect(FramePacingReport.parseAccessibilityValue(FramePacingReport.empty.accessibilityValue) == .empty)
+    }
+
+    @Test func `JSON reports require a supported schema before their metrics are admitted`() {
+        let value = report.accessibilityValue
+        for schema in [3, FramePacingReport.schemaVersion + 1] {
+            let unsupported = value.replacingOccurrences(of: "schema=\(FramePacingReport.schemaVersion);", with: "schema=\(schema);")
+            #expect(FramePacingReport.parseAccessibilityValue(unsupported) == nil)
+        }
+        let missingSchema = String(value.dropFirst("schema=\(FramePacingReport.schemaVersion);".count))
+        #expect(FramePacingReport.parseAccessibilityValue(missingSchema) == nil)
     }
 
     @Test func `legacy semicolon schemas retain all metrics and reject invalid reports`() {

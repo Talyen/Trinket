@@ -64,6 +64,37 @@ class ComparePerformanceTests(unittest.TestCase):
         self.assertEqual(status, 1)
         self.assertIn("expected iterations 1..1", summary)
 
+    def test_inconsistent_interaction_metrics_fail_even_in_observe_mode(self) -> None:
+        for overrides, reason in (
+            ({"sampleCount": 2}, "missed deadlines <= sample count"),
+            ({"severeStallCount": 26}, "severe stalls <= missed deadlines"),
+            ({"missedDeadlineCount": 0, "missedDeadlineRatio": 0, "severeStallCount": 5},
+             "severe stalls <= missed deadlines"),
+            ({"missedDeadlineRatio": 0.4}, "missedDeadlineRatio does not match"),
+            ({"p95FrameMs": 100, "p99FrameMs": 10}, "p95 frame time <= p99 frame time"),
+            ({"p99FrameMs": 121}, "p99 frame time <= maximum frame time"),
+        ):
+            with self.subTest(overrides=overrides):
+                status, summary = self.run_comparison([report(schemaVersion=6, **overrides)], mode="observe")
+                self.assertEqual(status, 1)
+                self.assertIn("coverage failure", summary)
+                self.assertIn(reason, summary)
+                self.assertNotIn("| navigation |", summary)
+
+    def test_interaction_metric_consistency_accepts_equal_counts_and_rounded_ratios(self) -> None:
+        for overrides in (
+            {"sampleCount": 25, "missedDeadlineCount": 25, "severeStallCount": 25, "missedDeadlineRatio": 1},
+            {"missedDeadlineRatio": 0.208333},
+        ):
+            status, summary = self.run_comparison([report(schemaVersion=6, **overrides)], mode="observe")
+            self.assertEqual(status, 0)
+            self.assertNotIn("coverage failure", summary)
+
+    def test_legacy_metrics_do_not_require_current_interaction_consistency(self) -> None:
+        status, summary = self.run_comparison([report(missedDeadlineRatio=0.4)], mode="observe")
+        self.assertEqual(status, 0)
+        self.assertNotIn("coverage failure", summary)
+
     def test_removed_and_malformed_metrics_fail(self) -> None:
         status, summary = self.run_comparison([
             report(pointOnePercentLowFPS=58, averageFPS="fast")

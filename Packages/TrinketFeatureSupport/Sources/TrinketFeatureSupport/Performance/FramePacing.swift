@@ -38,6 +38,9 @@ public struct FramePacingReport: Equatable, Sendable, Codable {
 
     public static func parseAccessibilityValue(_ value: String) -> Self? {
         if let jsonStart = value.range(of: "json=") {
+            guard let header = value.split(separator: ";", maxSplits: 1).first,
+                  header.hasPrefix("schema="), let schema = Int(header.dropFirst("schema=".count)),
+                  schema == schemaVersion || schema == 5 || schema == 4 else { return nil }
             let json = String(value[jsonStart.upperBound...])
             if let data = json.data(using: .utf8),
                let decoded = try? JSONDecoder().decode(Self.self, from: data) {
@@ -98,30 +101,32 @@ public enum FramePacingAnalyzer {
                 "FramePacingAnalyzer.report expected intervals and expectedFrameDurations to correspond; got \(intervals.count) vs \(expectedFrameDurations.count)",
             )
         }
-        let validExpectedDurations = expectedFrameDurations.filter { $0 > 0 && $0.isFinite }
-        let expectedFrameDuration = median(validExpectedDurations)
+        guard expectedFrameDurations.count == 1 || expectedFrameDurations.count == intervals.count else { return .empty }
+        let samples = intervals.enumerated().compactMap { index, interval -> (interval: CFTimeInterval, expected: CFTimeInterval)? in
+            let expected = expectedFrameDurations[expectedFrameDurations.count == 1 ? 0 : index]
+            guard interval > 0, interval.isFinite, expected > 0, expected.isFinite else { return nil }
+            return (interval, expected)
+        }
+        let expectedFrameDuration = median(samples.map(\.expected))
         guard expectedFrameDuration > 0 else { return .empty }
 
-        let sorted = intervals.filter { $0 > 0 && $0.isFinite }.sorted()
+        let sorted = samples.map(\.interval).sorted()
         guard !sorted.isEmpty else { return .empty }
-
-        let missedDeadlineThreshold = expectedFrameDuration * missedDeadlinePeriodMultiplier
-        let severeStallThreshold = expectedFrameDuration * severeStallPeriodMultiplier
 
         var totalDuration = 0.0
         var missedDeadlineCount = 0
         var estimatedMissedFrameCount = 0
         var severeStallCount = 0
 
-        for interval in sorted {
+        for (interval, expected) in samples {
             totalDuration += interval
-            if interval >= missedDeadlineThreshold {
+            if interval >= expected * missedDeadlinePeriodMultiplier {
                 missedDeadlineCount += 1
             }
-            if interval >= severeStallThreshold {
+            if interval >= expected * severeStallPeriodMultiplier {
                 severeStallCount += 1
             }
-            let deliveredPeriods = max(1, Int((interval / expectedFrameDuration).rounded()))
+            let deliveredPeriods = max(1, Int((interval / expected).rounded()))
             estimatedMissedFrameCount += max(0, deliveredPeriods - 1)
         }
 
