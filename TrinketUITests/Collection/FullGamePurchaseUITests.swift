@@ -59,12 +59,8 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         let pending = try beginDeferredPurchase()
         let session = try XCTUnwrap(storeSession)
         try session.declineAskToBuyTransaction(identifier: pending.identifier)
-        waitUntil("Decline must clear its pending transaction") {
-            !session.allTransactions().contains { $0.pendingAskToBuyConfirmation }
-        }
         assertFullGameAccess(false)
-        assertWarlockLocked()
-        // Legacy transaction state varies by runtime; prove denial through the purchase guard.
+        revealWarlock()
         tapButton(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
         assertExists(AccessibilityID.FullGame.offer)
         session.askToBuyEnabled = false
@@ -88,20 +84,17 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         let session = try XCTUnwrap(storeSession)
         let transaction = try XCTUnwrap(session.allTransactions().first)
         try session.refundTransaction(identifier: transaction.identifier)
-        waitUntil("Refund must be reflected in StoreKit") {
-            session.allTransactions().contains { $0.identifier == transaction.identifier && $0.cancelDate != nil }
-        }
         assertFullGameAccess(false)
         reveal(button(AccessibilityID.FullGame.options))
         assertExists(AccessibilityID.FullGame.restore)
         relaunchApp(arguments: ["-selectedTab", "collection", "-coverage-diagnostics"])
-        assertWarlockLocked()
         let after = try coverageReport()
         XCTAssertEqual(after["gold"] as? Int, gold, "Revocation must preserve earned Gold across relaunch")
         XCTAssertEqual(after["completedStages"] as? [String], completed, "Revocation must preserve Campaign progress")
         // Recruitment survives: repurchasing restores access to the same earned character.
-        tabBar.select(.options)
-        tapButton(AccessibilityID.FullGame.options)
+        revealWarlock()
+        tapButton(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
+        assertExists(AccessibilityID.FullGame.offer)
         assertPurchaseProductLoaded()
         tapButton(AccessibilityID.FullGame.purchase)
         assertDoesNotExist(AccessibilityID.FullGame.offer)
@@ -127,12 +120,5 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
             return pending != nil
         }
         return try XCTUnwrap(pending)
-    }
-
-    private func assertWarlockLocked() {
-        revealWarlock()
-        let card = button(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
-        let label = card.label
-        XCTAssertTrue(label.hasSuffix(", locked"), "Expected locked Warlock, found: \(label)")
     }
 }

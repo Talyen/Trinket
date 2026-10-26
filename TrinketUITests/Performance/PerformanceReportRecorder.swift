@@ -12,7 +12,7 @@ enum PerformanceReportRecorder {
         metadata: [String: String] = [:],
         in testCase: XCTestCase,
     ) {
-        let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
+        let metrics = app.staticTexts[AccessibilityID.Debug.frameMetrics]
         var captured: FramePacingReport?
         let completed = trinketWaitUntil(timeout: 12) {
             guard let payload = metrics.value as? String,
@@ -27,7 +27,7 @@ enum PerformanceReportRecorder {
         }
 
         var context = metadata
-        let battleStatus = app.descendants(matching: .any)[AccessibilityID.Debug.battlePerformanceStatus]
+        let battleStatus = app.staticTexts[AccessibilityID.Debug.battlePerformanceStatus]
         if battleStatus.exists {
             context["scenarioStatus"] = battleStatus.value as? String
         }

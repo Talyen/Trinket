@@ -106,11 +106,11 @@ Assert a journey’s return destination before using helpers that navigate elsew
   starting a drag over a tab can navigate away from the requested screen.
 - Read numeric values and fallback labels from one snapshot. Homestead accounting
   reads each wallet/cost subtree once and waits for every resource balance.
-  Coverage/audio waits retain the report that satisfied the condition; StoreKit
-  deferred-transaction waits likewise retain the observed transaction.
+  Coverage/audio and frame-metrics polls query their text probes directly, retaining
+  the observed report; deferred-purchase setup retains the observed transaction.
 - StoreKit registers the app once per runner; tests retain fresh sessions, transactions,
   and saves. Terminate the app before clearing transactions to avoid teardown revocations.
-  Cold-purchase recovery asserts app access rather than rechecking StoreKit's own bookkeeping.
+  Recovery asserts app access and usable purchase controls rather than polling StoreKit bookkeeping.
 - Success screenshots require `TRINKET_UI_SUCCESS_SCREENSHOTS=1`; failures always
   retain a screenshot and bounded accessibility context through `record(_:)`, avoiding
   another full-tree snapshot when an existence assertion fails. Profile evidence remains explicit.
@@ -216,8 +216,9 @@ Assert a journey’s return destination before using helpers that navigate elsew
   declined Ask to Buy retries from the locked character. Active approval and
   restore-failure recovery observe app entitlement and purchase controls without
   repeating Collection navigation. Cold recovery and decline/retry retain character
-  access wiring. Refund checks Gold and completed Campaign stages across relaunch
-  before repurchasing the same earned character. Its initial purchase allows
+  access wiring. Refund checks Gold and completed Campaign stages across relaunch,
+  then repurchases through the revoked character's real purchase guard. Decline and
+  refund prove denial through that guard instead of a lock-label suffix. Initial purchase allows
   StoreKit up to 60 seconds and requires offer dismissal and app entitlement before
   refunding. Live App Store restoration remains separate from local recovery.
 - [Player coverage](../Docs/Platform/PlayerCoverage.md) owns settings profiles,
@@ -242,6 +243,8 @@ own explicit interaction windows, including victory and Mystery reveals.
 
 Exit unselected tests before launch/probe setup. In multi-step equipment and talent
 journeys, run only prerequisites for selected steps and skip trailing actions.
+Talent reveal/choice preparation uses Debug Skip Combat before measurement; Campaign
+smoke retains earned victory. Measurement windows and animation-tail budgets stay unchanged.
 Combatant-detail scrolling starts after launch preparation and detail readiness;
 there is no additional ten-second sleep. Existing animation-tail budgets remain.
 Resolve sampler coordinates and gesture setup before capture. Snapshot scroll probes

@@ -57,7 +57,7 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
         }
 
         let start = button(AccessibilityID.Debug.battlePerformanceStart)
-        let status = any(AccessibilityID.Debug.battlePerformanceStatus)
+        let status = app.staticTexts[AccessibilityID.Debug.battlePerformanceStatus]
         let stop = measurementControl
         tapWhenReady(start)
         XCTAssertTrue(

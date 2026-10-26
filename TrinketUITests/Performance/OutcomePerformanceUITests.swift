@@ -48,11 +48,12 @@ final class OutcomePerformanceUITests: PerformanceJourneyUITestCase {
     func testTalentReward() throws {
         try XCTSkipUnless(selected("postbattle-talent-reveal") || selected("postbattle-talent-choice"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
-            launchApp(arguments: TestLaunchArg.allForAppPerformance() + ["-performance-talent-reward", "-performance-outcome-victory"])
+            launchApp(arguments: TestLaunchArg.allForAppPerformance() + ["-performance-talent-reward"])
             play.openCampaign()
             play.startBattle(chapter: 1, stage: 1)
-            tapWhenReady(battle.autoBattleToggle)
-            assertExists(AccessibilityID.Battle.victory, timeout: 30)
+            battle.openActions()
+            tapButton(AccessibilityID.Battle.skipCombat)
+            assertExists(AccessibilityID.Battle.victory)
             reveal(button(AccessibilityID.Battle.continueButton))
             measured("postbattle-talent-reveal", iteration: iteration) {
                 tapButton(AccessibilityID.Battle.continueButton)

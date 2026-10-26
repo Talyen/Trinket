@@ -42,7 +42,7 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
     }
 
     func waitForMeasurementState(_ state: String) {
-        let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
+        let metrics = app.staticTexts[AccessibilityID.Debug.frameMetrics]
         XCTAssertTrue(trinketWaitUntil(timeout: 4) { metrics.value as? String == state })
     }
 
@@ -56,7 +56,7 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
     ) {
         RunLoop.current.run(until: Date().addingTimeInterval(settle))
         // A watchdog result is a failure, never a new capture or an accepted late action.
-        let metrics = app.descendants(matching: .any)[AccessibilityID.Debug.frameMetrics]
+        let metrics = app.staticTexts[AccessibilityID.Debug.frameMetrics]
         XCTAssertEqual(metrics.value as? String, "measuring", "Capture ended before interaction: \(scenario)")
         (control ?? measurementControl).tap()
         PerformanceReportRecorder.capture(from: app, scenario: scenario, suite: suite, iteration: iteration, in: self)
