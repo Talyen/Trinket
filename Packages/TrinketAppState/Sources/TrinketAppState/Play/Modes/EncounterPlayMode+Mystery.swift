@@ -85,6 +85,7 @@ public extension EncounterPlayMode {
     @discardableResult
     func resolveMysteryChoice(session mysterySession: MysteryEncounterSession, choiceID: String? = nil) -> Bool {
         guard owns(mysterySession) else { return false }
+        guard !mysterySession.isResolvingChoice else { return false }
         if mysteryPaywallMessage(for: mysterySession.event) != nil {
             mysterySession.markPersistFailed("This character requires Full Game. Progress is preserved.")
             return false
@@ -100,7 +101,8 @@ public extension EncounterPlayMode {
     @discardableResult
     func corruptMysteryItem(session mysterySession: MysteryEncounterSession, itemID: String) -> Bool {
         guard owns(mysterySession) else { return false }
-        guard mysterySession.showsCorruptItemChoice, !mysterySession.isResolvingChoice,
+        guard !mysterySession.isResolvingChoice else { return false }
+        guard mysterySession.showsCorruptItemChoice,
               mysterySession.corruptibleItems.contains(where: { $0.id == itemID }) else {
             mysterySession.markChoiceUnavailable()
             return false
@@ -138,7 +140,7 @@ public extension EncounterPlayMode {
     }
 
     func cancelMysteryCorruptSelection(session mysterySession: MysteryEncounterSession) {
-        guard owns(mysterySession), mysterySession.showsCorruptItemChoice else {
+        guard owns(mysterySession), mysterySession.showsCorruptItemChoice, !mysterySession.isResolvingChoice else {
             return
         }
         mysterySession.returnToReading()

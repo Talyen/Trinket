@@ -276,6 +276,10 @@ struct AppStateMysteryRecruitTests {
         #expect(state.encounters.activeMysteryEncounter?.persistFailureMessage == nil)
         #expect(playerSave.isRetryingSaveAction)
         #expect(state.playerSave.roster.gold == goldBefore)
+        #expect(session.isResolvingChoice)
+        #expect(!state.encounters.resolveMysteryChoice(session: session, choiceID: shown.choiceID))
+        #expect(session.isResolvingChoice)
+        #expect(session.persistFailureMessage == nil)
 
         try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { playerSave.isRetryingSaveAction }
         #expect(state.encounters.activeMysteryEncounter?.showsReward == true)
@@ -416,3 +420,38 @@ extension AppStateMysteryRecruitTests {
         #expect(state.playerSave.currentSave == before)
     }
 }
+
+#if DEBUG
+extension AppStateMysteryRecruitTests {
+    @Test func `pending corruption cannot be cancelled or replaced before retry`() async throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
+        let base = try #require(GameContent.itemBaseTypes.first { $0.id == "longsword" })
+        let affix = try #require(GameContent.itemAffixDefinition(matching: "keen"))
+        let item = InventoryItem(
+            id: "pending-corruption", baseType: base, rarity: .basic,
+            displayName: base.name, affixes: [affix.resolved(for: .basic)],
+        )
+        #expect(playerSave.persistFixtureBatch(logging: "Install corruptible item") { $0.inventory.items.append(item) })
+        let event = try #require(GameContent.mysteryEvent(matching: GameContent.corruptionAltarEventID))
+        let session = attachMysterySession(event: event, to: state)
+        #expect(state.encounters.resolveMysteryChoice(session: session, choiceID: "corrupt-item"))
+        #expect(session.corruptibleItems.contains { $0.id == item.id })
+
+        playerSave.forcesNextSaveFailure = true
+        #expect(!state.encounters.corruptMysteryItem(session: session, itemID: item.id))
+        #expect(playerSave.isRetryingSaveAction)
+        #expect(session.isResolvingChoice)
+        state.encounters.cancelMysteryCorruptSelection(session: session)
+        #expect(!state.encounters.corruptMysteryItem(session: session, itemID: item.id))
+        #expect(session.isResolvingChoice)
+        #expect(session.showsCorruptItemChoice)
+        #expect(session.persistFailureMessage == nil)
+
+        try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { playerSave.isRetryingSaveAction }
+        #expect(session.showsCorruptionReveal)
+        #expect(session.corruptionResult?.originalItem.id == item.id)
+        #expect(playerSave.journey.completedStageIDs.contains(session.stage.id))
+    }
+}
+#endif
