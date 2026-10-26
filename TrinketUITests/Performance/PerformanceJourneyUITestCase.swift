@@ -137,6 +137,8 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
     }
 
     private func scrollAnchorsMoved(from before: [ScrollAnchor], to after: [ScrollAnchor]) -> Bool {
+        // An empty post-gesture snapshot is not evidence that content scrolled away.
+        guard !after.isEmpty else { return false }
         let byKey = Dictionary(grouping: after, by: \.key)
         return before.contains { anchor in
             let matches = byKey[anchor.key, default: []]

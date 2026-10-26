@@ -172,6 +172,8 @@ Assert a journey’s return destination before using helpers that navigate elsew
   Collection and purchase journeys retain Collection entry wiring. The localized offer scrolls its
   content once and verifies Restore in the anchored footer beneath Purchase, following
   [Monetization](../Docs/Product/Monetization.md#offer).
+  After talent choices, the next Campaign stage action must be reachable; the
+  retained Campaign screenshot, not the scroll container frame, supports clipping review.
 - `SmokeShellTests` owns onboarding, retained starter access after relaunch, and
   the Collection → Homestead → Options → Play round-trip in the same career.
   Shell and onboarding changes route to that one owner. Recruitment opens the earned
@@ -249,7 +251,8 @@ Combatant-detail scrolling starts after launch preparation and detail readiness;
 there is no additional ten-second sleep. Existing animation-tail budgets remain.
 Resolve sampler coordinates and gesture setup before capture. Snapshot scroll probes
 outside `measured`, using one resolved surface for both snapshots and gestures;
-failed movement retains the hierarchy and shared failure screenshot.
+failed movement or an empty post-gesture snapshot retains the hierarchy and shared
+failure screenshot.
 Prerequisite reveals reuse container-scoped scrolling above native tabs and pinned purchase actions.
 
 Sampler controls explicitly establish `ready`, then `measuring`, and freeze the

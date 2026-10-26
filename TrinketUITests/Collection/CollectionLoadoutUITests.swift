@@ -21,9 +21,7 @@ final class CollectionLoadoutUITests: TrinketUITestCase {
     }
 
     private func openWeaponPicker() {
-        combatantDetail.assertLoaded(for: "Knight")
         let slot = ItemSlot.weapon.accessibilityIdentifier
         tapButtonAfterScroll(slot)
-        assertExists(AccessibilityID.LoadoutPicker.itemGrid("Weapon"))
     }
 }

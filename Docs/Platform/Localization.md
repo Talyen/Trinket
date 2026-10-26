@@ -149,11 +149,11 @@ For a managed native text-size diagnostic, set the simulator through
 `TEST_RUNNER_TRINKET_LOCALIZATION_LARGE_TEXT=1` makes these journeys verify that
 the largest native setting reached SwiftUI, scroll the selected talent rules,
 and require the unlock action to remain reachable. The flag asserts the setting;
-it does not resize the app's text. Campaign screenshots also reject horizontal
-overflow, Options checks scroll to controls in the lazy form, and Full Game checks
+it does not resize the app's text. Campaign checks require the next stage action to
+be reachable, Options checks scroll to controls in the lazy form, and Full Game checks
 reach Restore Purchases while retaining the pinned purchase action. Review the
-purchase screenshot itself to confirm the complete price is visible; an accessible
-label alone does not establish that its rendered text fits.
+Campaign and purchase screenshots to check for clipping and confirm the complete price
+is visible; an accessible label alone does not establish that rendered text fits.
 
 ### Pseudolanguage diagnostics
 

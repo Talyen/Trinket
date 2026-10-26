@@ -119,12 +119,8 @@ final class LocalizationUITests: FullGameStoreKitUITestCase {
             tapButton(AccessibilityID.TalentChoice.unlockButton)
         }
         play.assertCampaignLoaded()
-        let campaign = app.scrollViews[AccessibilityID.Screen.play]
-        XCTAssertTrue(
-            campaign.frame.minX >= app.frame.minX - 1 && campaign.frame.maxX <= app.frame.maxX + 1,
-            "Localized Campaign content must fit the screen horizontally",
-        )
         capture(locale, screen: "talent-return")
+        reveal(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)))
     }
 
     private func captureBattleDetails(_ locale: String) {
