@@ -39,10 +39,14 @@ final class LocalizationUITests: FullGameStoreKitUITestCase {
         let localeArgs = ["-AppleLanguages", "(\(language))", "-AppleLocale", region]
             + (doubleLength ? ["-NSDoubleLocalizedStrings", "YES"] : [])
         let label = doubleLength ? "en-double" : language
-        try captureTalentJourney(label, arguments: localeArgs)
-
         try startStoreSession()
-        launchApp(arguments: TestLaunchArg.allForTab("options") + localeArgs)
+        try captureTalentJourney(label, arguments: localeArgs)
+        if doubleLength {
+            // The native tab label is expanded by Foundation inside the app process.
+            relaunchApp(arguments: ["-selectedTab", "options"] + localeArgs)
+        } else {
+            tabBar.select(.options, locale: Locale(identifier: region))
+        }
         assertExistsAfterScroll(AccessibilityID.Options.hapticsToggle, requireHittable: true)
         capture(label, screen: "options")
         openOptionsOffer()
@@ -121,7 +125,6 @@ final class LocalizationUITests: FullGameStoreKitUITestCase {
             "Localized Campaign content must fit the screen horizontally",
         )
         capture(locale, screen: "talent-return")
-        app.terminate()
     }
 
     private func captureBattleDetails(_ locale: String) {

@@ -11,7 +11,7 @@ final class OptionsUITests: TrinketUITestCase {
         play.openCampaign()
         assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
         XCTAssertTrue(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled)
-        tabBar.selectOptions()
+        tabBar.select(.options)
         openReset()
         tapWhenReady(resetAlertAction(AccessibilityID.Options.resetProgressConfirmation))
         assertExists(AccessibilityID.Onboarding.heroScreen)

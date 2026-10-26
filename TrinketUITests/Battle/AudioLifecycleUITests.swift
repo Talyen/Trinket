@@ -24,7 +24,7 @@ final class AudioLifecycleUITests: TrinketUITestCase {
             do { return try (self.coverageReport()["musicStarts"] as? Int ?? 0) > 0 }
             catch { return false }
         }
-        tabBar.selectPlay()
+        tabBar.select(.play)
         play.openExplore()
         assertExistsAfterScroll(AccessibilityID.Play.contractsModeCard, requireHittable: true)
         tapButton(AccessibilityID.Play.contractsModeCard)
@@ -64,10 +64,9 @@ extension TrinketUITestCase {
     @discardableResult
     func completeAudioContract() -> Bool {
         let fight = button(AccessibilityID.Play.contractFight("easy"))
-        let board = app.scrollViews[AccessibilityID.Play.contractsBoard]
-        // Returning from battle can leave the first action clipped under the pinned bar.
-        board.swipeDown()
-        assertExistsAfterScroll(AccessibilityID.Play.contractFight("easy"), requireHittable: true)
+        assertExists(AccessibilityID.Play.contractsBoard)
+        // Easy is the first offer; scroll toward the top only when it is clipped.
+        XCTAssertTrue(scrollUntilVisible(fight, swipingUp: false, requireHittable: true), "The next Contract must be reachable")
         tapWhenReady(fight)
         battle.assertActive()
         tapWhenReady(battle.autoBattleToggle)

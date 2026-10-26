@@ -64,9 +64,8 @@ final class AppPerformanceUITests: PerformanceJourneyUITestCase {
                 cardCoordinate.tap()
                 combatantDetail.assertLoaded(for: "Knight")
                 dismissStart.press(forDuration: 0.1, thenDragTo: dismissEnd)
-                assertDoesNotExist(AccessibilityID.CombatantDetail.vitalBarsSection)
+                assertDoesNotExist(AccessibilityID.CombatantDetail.header(name: "Knight"))
             }
-            assertDoesNotExist(AccessibilityID.CombatantDetail.header(name: "Knight"))
             assertExists(AccessibilityID.Screen.collection, timeout: Self.deepLinkTimeout)
         }
     }

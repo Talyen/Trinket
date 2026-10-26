@@ -47,12 +47,12 @@ final class RepeatedPlayUITests: TrinketUITestCase {
     }
 
     private func visitTabsAndCaptureDiagnostics(cycle: Int) throws {
-        tabBar.selectCollection()
+        tabBar.select(.collection)
         assertExists(AccessibilityID.Screen.collection, timeout: Self.deepLinkTimeout)
-        tabBar.selectHomestead()
+        tabBar.select(.homestead)
         homestead.assertLoaded()
         backgroundAndActivate()
-        tabBar.selectPlay()
+        tabBar.select(.play)
         assertExists(AccessibilityID.Play.contractsBoard)
         let data = try JSONSerialization.data(withJSONObject: coverageReport())
         let encoded = try XCTUnwrap(String(data: data, encoding: .utf8))

@@ -134,6 +134,11 @@ Assert a journey’s return destination before using helpers that navigate elsew
   support and unknown UI paths still trigger smoke. Local diagnostics follow
   [Verification](../Docs/Platform/Verification.md#local-simulator-budget).
   Inspect recorded hotspots with `python3 ./Scripts/test-timing.py report --top 30`.
+- Hand-card queries target accessibility buttons rather than every descendant.
+  Existence/disappearance assertions retain immediate checks and bounded native
+  waits; readiness taps still validate geometry, enablement and hittability.
+  Repeated Contracts reveal the first offer toward the top only when it is clipped,
+  avoiding an unconditional swipe in every audio/soak cycle.
 - Same-runner smoke and FullUI reuse local products. Transfers use the retained
   build artifact without a duplicate per-run archive cache. Requested FullUI continues
   after independent smoke failures when build products are usable; smoke still fails
@@ -148,7 +153,10 @@ Assert a journey’s return destination before using helpers that navigate elsew
   protection is package-owned by `PlaythroughLifecycleTests`. The termination
   journey uses the Chapter 1 victory fixture, taps the real claim, terminates at
   its stable committed-checkpoint identifier, then verifies the credited Gold,
-  persisted progression, and next-stage entry after relaunch.
+  persisted progression, and next-stage entry after relaunch. Failed-write Leave
+  proves recovery by starting another battle in the same process. Its former
+  relaunch check only found the already-unlocked first stage; `DefeatCompletionTests`
+  owns retry/settlement correctness.
 - `BattleFlowUITests` shares one launch for inspection, dismissal, cancelled drag,
   and committed drag, retaining hand membership and sheet assertions. Production-speed
   rapid plays select two distinct card IDs before tapping either, sharing another
@@ -161,9 +169,12 @@ Assert a journey’s return destination before using helpers that navigate elsew
   an interactive Device Hub check.
 - Localization retains every language and screenshot surface, but captures progression
   from Battle's shared `CombatantDetailPane` after dismissing ability inspection,
-  before the same Campaign battle earns its talent choices. The matrix uses two
-  launches per case, excluding once-per-runner StoreKit registration. Collection and
-  purchase journeys retain Collection entry wiring. The localized offer scrolls its
+  before the same Campaign battle earns its talent choices. The seven language
+  journeys share one launch with Options/purchase inspection using the localized
+  native tab label. Double-length English retains a same-store relaunch directly
+  into Options because its expanded native tab label belongs to the app process.
+  All screenshot/hierarchy surfaces remain; StoreKit registration is once per runner.
+  Collection and purchase journeys retain Collection entry wiring. The localized offer scrolls its
   content once and verifies Restore in the anchored footer beneath Purchase, following
   [Monetization](../Docs/Product/Monetization.md#offer).
 - Onboarding and recruitment verify earned characters remain unlocked in Collection.

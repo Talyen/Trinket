@@ -13,7 +13,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         tapButton(AccessibilityID.Mystery.continueButton)
         play.assertCampaignLoaded()
         assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 3))
-        tabBar.selectCollection()
+        tabBar.select(.collection)
         let bear = AccessibilityID.CombatantDetail.collectionCard(name: "Bear")
         assertExistsAfterScroll(bear, requireHittable: true)
         XCTAssertFalse(button(bear).label.hasSuffix(", locked"), "The recruited companion must be unlocked")

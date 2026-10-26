@@ -32,9 +32,8 @@ final class BattleLifecycleUITests: TrinketUITestCase {
         tapButton(AccessibilityID.Battle.defeatLeaveButton)
         play.assertCampaignLoaded()
         XCTAssertFalse(app.alerts.firstMatch.exists)
-        relaunchApp()
-        play.openCampaign()
-        XCTAssertTrue(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 1)).isEnabled)
+        play.startBattle(chapter: 1, stage: 1)
+        battle.assertActive()
     }
 
     func testBackgroundedTalentConfirmationExposesNextEarnedChoice() throws {

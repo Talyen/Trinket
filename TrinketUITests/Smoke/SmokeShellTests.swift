@@ -6,20 +6,20 @@ final class SmokeShellTests: TrinketUITestCase {
         launchApp(arguments: TestLaunchArg.allForTab("play"))
         assertExists(AccessibilityID.Play.campaignModeCard, timeout: 10)
 
-        tabBar.selectCollection()
+        tabBar.select(.collection)
         assertExists(AccessibilityID.Collection.heroesCategory, timeout: 10)
 
-        tabBar.selectHomestead()
+        tabBar.select(.homestead)
         assertExists(AccessibilityID.Homestead.resourceWallet, timeout: 10)
 
-        tabBar.selectOptions()
+        tabBar.select(.options)
         assertExists(AccessibilityID.Screen.options, timeout: 10)
         assertExistsAfterScroll(AccessibilityID.Options.resetProgressButton, requireHittable: true)
         tapButton(AccessibilityID.Options.resetProgressButton)
         let resetAlert = app.alerts.firstMatch
         tapWhenReady(resetAlert.buttons.matching(identifier: AccessibilityID.Options.resetProgressCancel).firstMatch)
         waitUntil("Cancelling Reset must close its confirmation") { !resetAlert.exists }
-        tabBar.selectPlay()
+        tabBar.select(.play)
         play.assertLoaded(timeout: 10)
     }
 }
@@ -58,7 +58,7 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.Onboarding.heroScreen)
         assertDoesNotExist(AccessibilityID.Onboarding.companionScreen)
         play.assertLoaded()
-        tabBar.selectCollection()
+        tabBar.select(.collection)
         let heroCard = AccessibilityID.CombatantDetail.collectionCard(name: heroName)
         assertExistsAfterScroll(heroCard, requireHittable: true)
         XCTAssertFalse(button(heroCard).label.hasSuffix(", locked"), "The selected starter hero must remain unlocked")

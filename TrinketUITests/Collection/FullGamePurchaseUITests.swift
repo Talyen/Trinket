@@ -80,7 +80,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         assertDoesNotExist(AccessibilityID.FullGame.restore)
         assertWarlockAccessible()
         assertFullGameAccess(true)
-        tabBar.selectPlay()
+        tabBar.select(.play)
         play.openCampaign()
         assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
         waitUntil("Relaunched purchase must unlock stage 2") {
@@ -101,14 +101,14 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         waitUntil("Refund must be reflected in StoreKit") {
             session.allTransactions().contains { $0.identifier == transaction.identifier && $0.cancelDate != nil }
         }
-        tabBar.selectOptions()
+        tabBar.select(.options)
         assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
         assertExists(AccessibilityID.FullGame.restore)
         assertWarlockLocked()
         relaunchApp(arguments: ["-selectedTab", "collection"])
         assertWarlockLocked()
         // Recruitment survives: repurchasing restores access to the same earned character.
-        tabBar.selectOptions()
+        tabBar.select(.options)
         tapButton(AccessibilityID.FullGame.options)
         assertPurchaseProductLoaded()
         tapButton(AccessibilityID.FullGame.purchase)

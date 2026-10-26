@@ -1,35 +1,25 @@
 import TrinketAppState
+import TrinketContent
 import TrinketFeatureSupport
 import XCTest
 
 struct TabBar {
     let app: XCUIApplication
 
-    func button(for tab: AppTab) -> XCUIElement {
-        let standardTab = app.tabBars.buttons[tab.displayName]
+    func button(for tab: AppTab, locale: Locale = .current) -> XCUIElement {
+        let title = ContentCopy.localized(tab.displayName, locale: locale)
+        let standardTab = app.tabBars.buttons[title]
         if standardTab.exists {
             return standardTab
         }
         // Duo exposes tabs as toolbar buttons; a Back button can share the label.
         return app.buttons.matching(NSPredicate(
-            format: "label == %@ AND identifier != %@", tab.displayName, "BackButton",
+            format: "label == %@ AND identifier != %@", title, "BackButton",
         )).firstMatch
     }
 
-    func selectPlay() {
-        button(for: .play).trinketTapWhenReady()
-    }
-
-    func selectCollection() {
-        button(for: .collection).trinketTapWhenReady()
-    }
-
-    func selectHomestead() {
-        button(for: .homestead).trinketTapWhenReady()
-    }
-
-    func selectOptions() {
-        button(for: .options).trinketTapWhenReady()
+    func select(_ tab: AppTab, locale: Locale = .current) {
+        button(for: tab, locale: locale).trinketTapWhenReady()
     }
 }
 

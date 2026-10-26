@@ -15,7 +15,7 @@ final class FullGamePurchaseSmokeTests: FullGameStoreKitUITestCase {
         dismissSheet(AccessibilityID.FullGame.offer)
         assertExists(unlock)
 
-        tabBar.selectOptions()
+        tabBar.select(.options)
         openOptionsOffer()
         tapButton(AccessibilityID.FullGame.purchase)
         assertDoesNotExist(AccessibilityID.FullGame.offer, timeout: 10)

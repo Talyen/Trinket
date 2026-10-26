@@ -192,10 +192,10 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         retainScreenshot(named: "defeat-leave")
         tapButton(AccessibilityID.Battle.defeatLeaveButton)
         play.assertCampaignLoaded()
-        tabBar.selectHomestead()
+        tabBar.select(.homestead)
         try verifyWheatFieldUpgrade(audit: true)
         tapButton(AccessibilityID.Homestead.backButton)
-        tabBar.selectOptions()
+        tabBar.select(.options)
         assertExistsAfterScroll(AccessibilityID.FullGame.restore, requireHittable: true)
         tapButton(AccessibilityID.FullGame.restore)
         waitUntil("Restore must leave a usable control") { self.button(AccessibilityID.FullGame.restore).isEnabled }

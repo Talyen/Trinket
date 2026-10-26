@@ -9,10 +9,6 @@ func trinketWaitUntil(timeout: TimeInterval, condition: @escaping () -> Bool) ->
     return XCTWaiter.wait(for: [expectation], timeout: timeout) == .completed
 }
 
-private func trinketWaitForExistenceMainActorSafe(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
-    trinketOnMainActor { element.exists || element.waitForExistence(timeout: timeout) }
-}
-
 /// Snapshot objects stay on the main actor; only their value projections cross back.
 func trinketOnMainActor<Value: Sendable>(_ body: @MainActor () throws -> Value) rethrows -> Value {
     if Thread.isMainThread {
@@ -361,10 +357,7 @@ class TrinketUITestCase: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line,
     ) {
-        guard element.trinketWaitForExistence(timeout: timeout) else {
-            fail(message, file: file, line: line)
-            return
-        }
+        XCTAssertTrue(element.trinketWaitForExistence(timeout: timeout), message, file: file, line: line)
     }
 
     func assertDoesNotExist(
@@ -373,12 +366,9 @@ class TrinketUITestCase: XCTestCase {
         file: StaticString = #file,
         line: UInt = #line,
     ) {
-        let element = app.descendants(matching: .any)[identifier]
+        let element = any(identifier)
         if element.exists {
-            guard element.waitForNonExistence(timeout: timeout) else {
-                fail("Element '\(identifier)' still present", file: file, line: line)
-                return
-            }
+            XCTAssertTrue(element.waitForNonExistence(timeout: timeout), "Element '\(identifier)' still present", file: file, line: line)
         }
     }
 
@@ -461,10 +451,6 @@ class TrinketUITestCase: XCTestCase {
         }
     }
 
-    func fail(_ message: String, file: StaticString = #file, line: UInt = #line) {
-        XCTFail(message, file: file, line: line)
-    }
-
     /// Success-path screenshots bloat result bundles; capture them only with
     /// `TRINKET_UI_SUCCESS_SCREENSHOTS=1`. Failure screenshots are always retained.
     func attachSuccessScreenshot(named name: String) {
@@ -517,7 +503,7 @@ extension XCUIElement {
     }
 
     func trinketWaitForExistence(timeout: TimeInterval) -> Bool {
-        trinketWaitForExistenceMainActorSafe(self, timeout: timeout)
+        trinketOnMainActor { exists || waitForExistence(timeout: timeout) }
     }
 }
 
@@ -540,7 +526,7 @@ extension XCUIApplication {
         else { return false }
         for _ in 0 ..< maxAttempts {
             container.dragScroll(fromY: swipingUp ? 0.90 : 0.35, toY: swipingUp ? 0.35 : 0.90, within: visibleBounds)
-            if trinketWaitForExistenceMainActorSafe(element, timeout: 0.35), !requireHittable || element.isHittable {
+            if element.trinketWaitForExistence(timeout: 0.35), !requireHittable || element.isHittable {
                 return true
             }
         }

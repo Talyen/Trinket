@@ -16,7 +16,6 @@ final class BattleInteractionPerformanceUITests: PerformanceJourneyUITestCase {
             assertExists(AccessibilityID.Battle.combatLogSheet)
             let log = app.scrollViews[AccessibilityID.Battle.combatLogSheet]
             measured("battle-log-scroll", iteration: iteration, scrolling: log)
-            dismissSheet(AccessibilityID.Battle.combatLogSheet)
         }
     }
 }

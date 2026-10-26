@@ -11,7 +11,7 @@ struct BattleScreen {
     }
 
     var handCards: XCUIElementQuery {
-        app.descendants(matching: .any).matching(
+        app.buttons.matching(
             NSPredicate(format: "identifier BEGINSWITH %@", AccessibilityID.Battle.handCardPrefix),
         )
     }
