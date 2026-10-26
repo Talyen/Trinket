@@ -82,20 +82,14 @@ public final class PlaySession: BattleProgressionDelegate {
             sfxPlayer: sfxPlayer,
         )
         let journey = JourneyPlayMode(
-            playerSave: playerSave,
-            battle: battle,
             battleCoordinator: battleCoordinator,
             encounters: encounters,
         )
         let labyrinth = LabyrinthPlayMode(
-            playerSave: playerSave,
-            battle: battle,
             battleCoordinator: battleCoordinator,
             encounters: encounters,
         )
         let spires = SpiresPlayMode(
-            playerSave: playerSave,
-            battle: battle,
             battleCoordinator: battleCoordinator,
             encounters: encounters,
         )
@@ -103,8 +97,8 @@ public final class PlaySession: BattleProgressionDelegate {
         self.journey = journey
         self.labyrinth = labyrinth
         self.spires = spires
-        voyage = VoyagePlayMode(playerSave: playerSave, battle: battle, battleCoordinator: battleCoordinator, encounters: encounters)
-        contracts = ContractsPlayMode(playerSave: playerSave, battle: battle, battleCoordinator: battleCoordinator, encounters: encounters)
+        voyage = VoyagePlayMode(battleCoordinator: battleCoordinator, encounters: encounters)
+        contracts = ContractsPlayMode(battleCoordinator: battleCoordinator, encounters: encounters)
         self.encounters = encounters
         battle.connectProgression(to: self)
     }

@@ -15,13 +15,11 @@ public final class JourneyPlayMode {
     private let encounters: EncounterPlayMode
 
     init(
-        playerSave: PlayerSaveStore,
-        battle: any BattleRuntime,
         battleCoordinator: PlayBattleCoordinator,
         encounters: EncounterPlayMode,
     ) {
-        self.playerSave = playerSave
-        self.battle = battle
+        playerSave = battleCoordinator.playerSave
+        battle = battleCoordinator.battle
         self.battleCoordinator = battleCoordinator
         self.encounters = encounters
     }

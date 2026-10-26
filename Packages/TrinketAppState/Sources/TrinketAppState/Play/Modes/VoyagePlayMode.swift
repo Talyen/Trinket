@@ -10,13 +10,11 @@ import TrinketPersistence
 @Observable
 public final class VoyagePlayMode {
     public let playerSave: PlayerSaveStore
-    private let battle: any BattleRuntime
     private let battleCoordinator: PlayBattleCoordinator
     private let encounters: EncounterPlayMode
 
-    init(playerSave: PlayerSaveStore, battle: any BattleRuntime, battleCoordinator: PlayBattleCoordinator, encounters: EncounterPlayMode) {
-        self.playerSave = playerSave
-        self.battle = battle
+    init(battleCoordinator: PlayBattleCoordinator, encounters: EncounterPlayMode) {
+        playerSave = battleCoordinator.playerSave
         self.battleCoordinator = battleCoordinator
         self.encounters = encounters
     }
