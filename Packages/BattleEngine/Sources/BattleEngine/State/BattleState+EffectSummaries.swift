@@ -94,21 +94,9 @@ package extension BattleState {
 
     private func preparedEffectSummaries(_ history: CombatantTalentHistory) -> [EffectSummary] {
         var summaries: [EffectSummary] = []
-        summaries.append(
-            .dodge,
-            when: history.dodgeGrowth > 0,
-            resource: L10n.summary_battlestate_effectsummaries_21b62c8cbffa(history.dodgeGrowth),
-        )
-        summaries.append(
-            .physical,
-            when: history.stolenGoldDamage > 0,
-            resource: L10n.summary_battlestate_effectsummaries_155a41841bc9(history.stolenGoldDamage),
-        )
-        summaries.append(
-            .holy,
-            when: history.blindingReduction > 0,
-            resource: L10n.summary_battlestate_effectsummaries_8406c44f9158(history.blindingReduction),
-        )
+        summaries.appendAmount(.dodge, history.dodgeGrowth, resource: L10n.summary_battlestate_effectsummaries_21b62c8cbffa)
+        summaries.appendAmount(.physical, history.stolenGoldDamage, resource: L10n.summary_battlestate_effectsummaries_155a41841bc9)
+        summaries.appendAmount(.holy, history.blindingReduction, resource: L10n.summary_battlestate_effectsummaries_8406c44f9158)
         summaries.append(
             .bleed,
             when: history.preparations.contains(.bleedDamage),
@@ -131,12 +119,7 @@ package extension BattleState {
         guard let runtime = roster.runtime(for: combatant) else { return [] }
         let state = runtime.uniques
         var summaries: [EffectSummary] = []
-        summaries.append(
-            .dodge,
-            when: state.wrenflightDodge > 0,
-            resource: L10n
-                .summary_battlestate_effectsummaries_67548e4830cc(CombatRounding.rounded((state.wrenflightDodge * 100).rounded())),
-        )
+        summaries.appendPercent(.dodge, state.wrenflightDodge, resource: L10n.summary_battlestate_effectsummaries_67548e4830cc)
         summaries.append(
             .physical,
             when: state.patientEdgeReady,
@@ -152,11 +135,7 @@ package extension BattleState {
             when: state.wildheartReady,
             resource: L10n.summary_battlestate_effectsummaries_315c178423c3,
         )
-        summaries.append(
-            .holy,
-            when: state.goldDamage > 0,
-            resource: L10n.summary_battlestate_effectsummaries_db3926475fe7(state.goldDamage),
-        )
+        summaries.appendAmount(.holy, state.goldDamage, resource: L10n.summary_battlestate_effectsummaries_db3926475fe7)
         return summaries
     }
 }
@@ -177,50 +156,16 @@ private extension CombatantTalentState.Pending {
             when: basicGuaranteedCritical,
             resource: L10n.summary_battlestate_effectsummaries_3531028230c1,
         )
-        summaries.append(
-            .physical,
-            when: damageAfterDodge > 0,
-            resource: L10n.summary_battlestate_effectsummaries_e51d9d3d269a(damageAfterDodge),
-        )
-        summaries.append(
-            .bleed,
-            when: bleedAfterDodge > 0,
-            resource: L10n.summary_battlestate_effectsummaries_d6d71d8a3214(bleedAfterDodge),
-        )
-        appendCardPreparations(to: &summaries, partyCardDamageBonus: partyCardDamageBonus, partyDamageBonus: partyDamageBonus)
-        appendAttackBonuses(to: &summaries)
-        return summaries + healingPreparationSummaries() + additionalPreparationSummaries()
-    }
-
-    private func appendCardPreparations(to summaries: inout [EffectSummary], partyCardDamageBonus: Int, partyDamageBonus: Int) {
+        summaries.appendAmount(.physical, damageAfterDodge, resource: L10n.summary_battlestate_effectsummaries_e51d9d3d269a)
+        summaries.appendAmount(.bleed, bleedAfterDodge, resource: L10n.summary_battlestate_effectsummaries_d6d71d8a3214)
         let preparedDamage = SaturatedArithmetic.saturatingAdd(cardDamageBonus, feintStrikeDamageBonus)
         let nextAttackDamageBonus = nextAttackDamageBonus?.value ?? 0
-        summaries.append(
-            .physical,
-            when: partyCardDamageBonus > 0,
-            resource: L10n.summary_battlestate_effectsummaries_7d576ea97f2e(partyCardDamageBonus),
-        )
-        summaries.append(
-            .physical,
-            when: partyDamageBonus > 0,
-            resource: L10n.summary_battlestate_effectsummaries_34190d7944be(partyDamageBonus),
-        )
-        summaries.append(
-            .physical,
-            when: preparedDamage > 0,
-            resource: L10n.summary_battlestate_effectsummaries_06b908595f62(preparedDamage),
-        )
-        summaries.append(
-            .physical,
-            when: cardDamagePercent > 0,
-            resource: L10n.summary_battlestate_effectsummaries_d295c94dcb1f(CombatRounding.rounded((cardDamagePercent * 100).rounded())),
-        )
-        summaries.append(.physical, when: nextHitBonus > 0, resource: L10n.summary_battlestate_effectsummaries_0b644211f94a(nextHitBonus))
-        summaries.append(
-            .holy,
-            when: nextAttackHolyBonus > 0,
-            resource: L10n.summary_battlestate_effectsummaries_03aee9c88ab4(nextAttackHolyBonus),
-        )
+        summaries.appendAmount(.physical, partyCardDamageBonus, resource: L10n.summary_battlestate_effectsummaries_7d576ea97f2e)
+        summaries.appendAmount(.physical, partyDamageBonus, resource: L10n.summary_battlestate_effectsummaries_34190d7944be)
+        summaries.appendAmount(.physical, preparedDamage, resource: L10n.summary_battlestate_effectsummaries_06b908595f62)
+        summaries.appendPercent(.physical, cardDamagePercent, resource: L10n.summary_battlestate_effectsummaries_d295c94dcb1f)
+        summaries.appendAmount(.physical, nextHitBonus, resource: L10n.summary_battlestate_effectsummaries_0b644211f94a)
+        summaries.appendAmount(.holy, nextAttackHolyBonus, resource: L10n.summary_battlestate_effectsummaries_03aee9c88ab4)
         summaries.append(.holy, when: doubleNextHolyAttack, resource: L10n.summary_battlestate_effectsummaries_6552f2f0d34b)
         summaries.append(.poison, when: doubleNextPoisonAttack, resource: L10n.summary_battlestate_effectsummaries_8e9180740904)
         summaries.append(.poison, when: doubleNextPoisonDamage, resource: L10n.summary_battlestate_effectsummaries_53c61953e638)
@@ -231,21 +176,15 @@ private extension CombatantTalentState.Pending {
             resource: L10n.summary_battlestate_effectsummaries_cb6939b701fc,
         )
         summaries.append(.gold, when: doubleNextGoldSteal, resource: L10n.summary_battlestate_effectsummaries_1e1f899e0668)
-        summaries.append(
-            .physical,
-            when: nextPhysicalDamageBonus != nil,
-            resource: L10n.summary_battlestate_effectsummaries_2958f6f8a886(nextPhysicalDamageBonus?.value ?? 0),
-        )
-        summaries.append(
-            .gold,
-            when: nextAttackDamageBonus > 0,
-            resource: L10n.summary_battlestate_effectsummaries_0cd41331d925(nextAttackDamageBonus),
-        )
-        summaries.append(
-            .mana,
-            when: nextManaEmpowerDiscount > 0,
-            resource: L10n.summary_battlestate_effectsummaries_a8bf5a1d7814(nextManaEmpowerDiscount),
-        )
+        summaries.appendPreparedAmount(.physical, nextPhysicalDamageBonus, resource: L10n.summary_battlestate_effectsummaries_2958f6f8a886)
+        summaries.appendAmount(.gold, nextAttackDamageBonus, resource: L10n.summary_battlestate_effectsummaries_0cd41331d925)
+        summaries.appendAmount(.mana, nextManaEmpowerDiscount, resource: L10n.summary_battlestate_effectsummaries_a8bf5a1d7814)
+
+        appendAttackBonuses(to: &summaries)
+        let healing = healingEchoes.reduce(0) { SaturatedArithmetic.saturatingAdd($0, $1.amount) }
+        summaries.appendAmount(.health, healing, resource: L10n.summary_battlestate_effectsummaries_a6c30d506ff6)
+        appendAdditionalPreparations(to: &summaries)
+        return summaries
     }
 
     private func appendAttackBonuses(to summaries: inout [EffectSummary]) {
@@ -260,69 +199,24 @@ private extension CombatantTalentState.Pending {
             nextDodgeBleedAttackBonus?.value ?? 0,
         )
         let criticalBonus = (nextAttackCriticalBonus?.value ?? 0) + (nextCleanseCriticalBonus?.value ?? 0)
-        summaries.append(
-            .burn,
-            when: nextBurnAttackPercent > 0,
-            resource: L10n
-                .summary_battlestate_effectsummaries_97d3897e9898(CombatRounding.rounded((nextBurnAttackPercent * 100).rounded())),
-        )
-        summaries.append(
-            .bleed,
-            when: nextBleedDamageBonus > 0,
-            resource: L10n.summary_battlestate_effectsummaries_3b4993948f20(nextBleedDamageBonus),
-        )
-        summaries.append(
-            .burn,
-            when: nextBurnDamageBonus > 0,
-            resource: L10n.summary_battlestate_effectsummaries_943d50431989(nextBurnDamageBonus),
-        )
-        summaries.append(
-            .poison,
-            when: nextPoisonDamageBonus > 0,
-            resource: L10n.summary_battlestate_effectsummaries_1fcd76ac104a(nextPoisonDamageBonus),
-        )
-        summaries.append(
-            .physical,
-            when: criticalBonus > 0,
-            resource: L10n.summary_battlestate_effectsummaries_672f9a146c54(CombatRounding.rounded((criticalBonus * 100).rounded())),
-        )
+        summaries.appendPercent(.burn, nextBurnAttackPercent, resource: L10n.summary_battlestate_effectsummaries_97d3897e9898)
+        summaries.appendAmount(.bleed, nextBleedDamageBonus, resource: L10n.summary_battlestate_effectsummaries_3b4993948f20)
+        summaries.appendAmount(.burn, nextBurnDamageBonus, resource: L10n.summary_battlestate_effectsummaries_943d50431989)
+        summaries.appendAmount(.poison, nextPoisonDamageBonus, resource: L10n.summary_battlestate_effectsummaries_1fcd76ac104a)
+        summaries.appendPercent(.physical, criticalBonus, resource: L10n.summary_battlestate_effectsummaries_672f9a146c54)
         summaries.append(
             .physical,
             when: nextAttackGuaranteedCritical != nil,
             resource: L10n.summary_battlestate_effectsummaries_70675ddb6ef1,
         )
-        summaries.append(
-            .physical,
-            when: basicCriticalBonus > 0,
-            resource: L10n.summary_battlestate_effectsummaries_19a8737b7c22(CombatRounding.rounded((basicCriticalBonus * 100).rounded())),
-        )
-        summaries.append(
-            .physical,
-            when: attackBonusOnFullHealth != nil,
-            resource: L10n.summary_battlestate_effectsummaries_e51d9d3d269a(attackBonusOnFullHealth?.value ?? 0),
-        )
+        summaries.appendPercent(.physical, basicCriticalBonus, resource: L10n.summary_battlestate_effectsummaries_19a8737b7c22)
+        summaries.appendPreparedAmount(.physical, attackBonusOnFullHealth, resource: L10n.summary_battlestate_effectsummaries_e51d9d3d269a)
     }
 
-    private func healingPreparationSummaries() -> [EffectSummary] {
-        let healing = healingEchoes.reduce(0) { SaturatedArithmetic.saturatingAdd($0, $1.amount) }
-        guard healing > 0 else { return [] }
-        return [EffectSummary(keyword: .health, resource: L10n.summary_battlestate_effectsummaries_a6c30d506ff6(healing))]
-    }
-
-    private func additionalPreparationSummaries() -> [EffectSummary] {
-        var summaries: [EffectSummary] = []
-        summaries.append(
-            .stun, when: nextDodgeStunAttackBonus != nil,
-            resource: L10n.summary_prepared_stun_attack_damage(nextDodgeStunAttackBonus?.value ?? 0),
-        )
-        summaries.append(
-            .freeze, when: nextDodgeFreezeAttackBonus != nil,
-            resource: L10n.summary_prepared_freeze_attack_damage(nextDodgeFreezeAttackBonus?.value ?? 0),
-        )
-        summaries.append(
-            .holy, when: nextPurgeHolyAttackBonus != nil,
-            resource: L10n.summary_prepared_holy_attack_damage(nextPurgeHolyAttackBonus?.value ?? 0),
-        )
+    private func appendAdditionalPreparations(to summaries: inout [EffectSummary]) {
+        summaries.appendPreparedAmount(.stun, nextDodgeStunAttackBonus, resource: L10n.summary_prepared_stun_attack_damage)
+        summaries.appendPreparedAmount(.freeze, nextDodgeFreezeAttackBonus, resource: L10n.summary_prepared_freeze_attack_damage)
+        summaries.appendPreparedAmount(.holy, nextPurgeHolyAttackBonus, resource: L10n.summary_prepared_holy_attack_damage)
         summaries.append(.bleed, when: doubleNextBleedAttack != nil, resource: L10n.summary_battlestate_effectsummaries_7340deb2cd68)
         summaries.append(.stun, when: nextStunAttackDouble != nil, resource: L10n.summary_battlestate_effectsummaries_d5bc64bc9bf9)
         summaries.append(
@@ -335,76 +229,33 @@ private extension CombatantTalentState.Pending {
         summaries.append(.freeze, when: nextFreezeIgnoresBlock != nil, resource: L10n.summary_battlestate_effectsummaries_6f7bf645f094)
         summaries.append(.physical, when: nextAttackIgnoresBlock != nil, resource: L10n.summary_battlestate_effectsummaries_8f8f375bda71)
         summaries.append(.physical, when: nextStunPreparedCritical != nil, resource: L10n.summary_battlestate_effectsummaries_1468b273b1a7)
-        appendMagnitudePreparations(to: &summaries)
-        return summaries
-    }
-
-    private func appendMagnitudePreparations(to summaries: inout [EffectSummary]) {
         let overchargePercent = overchargePercent?.value ?? 0
         let nextIncomingDamageMultiplier = nextIncomingDamageMultiplier?.value ?? 1
-        summaries.append(
-            .physical,
-            when: overchargePercent > 0,
-            resource: L10n.summary_battlestate_effectsummaries_f5287ca2468b(CombatRounding.rounded((overchargePercent * 100).rounded())),
-        )
-        summaries.append(
+        summaries.appendPercent(.physical, overchargePercent, resource: L10n.summary_battlestate_effectsummaries_f5287ca2468b)
+        summaries.appendPreparedMultiplier(
             .bleed,
-            when: nextBleedAttackMultiplier != nil,
-            resource: L10n
-                .summary_battlestate_effectsummaries_50369da7bf17(CombatRounding
-                    .rounded((((nextBleedAttackMultiplier?.value ?? 1) - 1) * 100).rounded())),
+            nextBleedAttackMultiplier,
+            resource: L10n.summary_battlestate_effectsummaries_50369da7bf17,
         )
-        summaries.append(
+        summaries.appendPreparedMultiplier(
             .physical,
-            when: nextPhysicalAttackMultiplier != nil,
-            resource: L10n
-                .summary_battlestate_effectsummaries_5a2f1e053876(CombatRounding
-                    .rounded((((nextPhysicalAttackMultiplier?.value ?? 1) - 1) * 100).rounded())),
+            nextPhysicalAttackMultiplier,
+            resource: L10n.summary_battlestate_effectsummaries_5a2f1e053876,
         )
-        summaries.append(
+        summaries.appendPreparedMultiplier(
             .physical,
-            when: nextCriticalHitMultiplier != nil,
-            resource: L10n
-                .summary_battlestate_effectsummaries_9464195bf2a5(CombatRounding
-                    .rounded((((nextCriticalHitMultiplier?.value ?? 1) - 1) * 100).rounded())),
+            nextCriticalHitMultiplier,
+            resource: L10n.summary_battlestate_effectsummaries_9464195bf2a5,
         )
-        summaries.append(
-            .physical,
-            when: nextManaSpendAttackBonus != nil,
-            resource: L10n.summary_battlestate_effectsummaries_464a634ebf36(nextManaSpendAttackBonus?.value ?? 0),
-        )
+        summaries.appendPreparedAmount(.physical, nextManaSpendAttackBonus, resource: L10n.summary_battlestate_effectsummaries_464a634ebf36)
         appendDefensivePreparations(to: &summaries, incomingMultiplier: nextIncomingDamageMultiplier)
     }
 
     private func appendDefensivePreparations(to summaries: inout [EffectSummary], incomingMultiplier: Double) {
-        summaries.append(
-            .block,
-            when: nextBlockGainMultiplier != nil,
-            resource: L10n
-                .summary_battlestate_effectsummaries_18751f68cbcd(CombatRounding
-                    .rounded((((nextBlockGainMultiplier?.value ?? 1) - 1) * 100).rounded())),
-        )
-        summaries.append(
-            .block,
-            when: incomingMultiplier < 1,
-            resource: L10n
-                .summary_battlestate_effectsummaries_e410a469f407(CombatRounding
-                    .rounded(((1 - incomingMultiplier) * 100).rounded())),
-        )
-        summaries.append(
-            .physical,
-            when: nextOutgoingAttackMultiplier < 1,
-            resource: L10n
-                .summary_battlestate_effectsummaries_95314c057098(CombatRounding
-                    .rounded(((1 - nextOutgoingAttackMultiplier) * 100).rounded())),
-        )
-        summaries.append(
-            .physical,
-            when: concussionMultiplier < 1,
-            resource: L10n
-                .summary_battlestate_effectsummaries_95314c057098(CombatRounding
-                    .rounded(((1 - concussionMultiplier) * 100).rounded())),
-        )
+        summaries.appendPreparedMultiplier(.block, nextBlockGainMultiplier, resource: L10n.summary_battlestate_effectsummaries_18751f68cbcd)
+        summaries.appendReduction(.block, incomingMultiplier, resource: L10n.summary_battlestate_effectsummaries_e410a469f407)
+        summaries.appendReduction(.physical, nextOutgoingAttackMultiplier, resource: L10n.summary_battlestate_effectsummaries_95314c057098)
+        summaries.appendReduction(.physical, concussionMultiplier, resource: L10n.summary_battlestate_effectsummaries_95314c057098)
         summaries.append(
             .dodge,
             when: nextAttackMissChance > 0,
@@ -421,5 +272,34 @@ private extension [EffectSummary] {
     mutating func append(_ keyword: Keyword, when active: Bool, resource: @autoclosure () -> LocalizedStringResource) {
         guard active else { return }
         append(EffectSummary(keyword: keyword, resource: resource()))
+    }
+
+    mutating func appendAmount(_ keyword: Keyword, _ amount: Int, resource: (Int) -> LocalizedStringResource) {
+        guard amount > 0 else { return }
+        append(EffectSummary(keyword: keyword, resource: resource(amount)))
+    }
+
+    mutating func appendPercent(_ keyword: Keyword, _ percent: Double, resource: (Int) -> LocalizedStringResource) {
+        guard percent > 0 else { return }
+        append(EffectSummary(keyword: keyword, resource: resource(CombatRounding.rounded((percent * 100).rounded()))))
+    }
+
+    mutating func appendPreparedAmount(
+        _ keyword: Keyword, _ bonus: PreparedTalentBonus<Int>?, resource: (Int) -> LocalizedStringResource,
+    ) {
+        guard let bonus else { return }
+        append(EffectSummary(keyword: keyword, resource: resource(bonus.value)))
+    }
+
+    mutating func appendPreparedMultiplier(
+        _ keyword: Keyword, _ bonus: PreparedTalentBonus<Double>?, resource: (Int) -> LocalizedStringResource,
+    ) {
+        guard let bonus else { return }
+        append(EffectSummary(keyword: keyword, resource: resource(CombatRounding.rounded(((bonus.value - 1) * 100).rounded()))))
+    }
+
+    mutating func appendReduction(_ keyword: Keyword, _ multiplier: Double, resource: (Int) -> LocalizedStringResource) {
+        guard multiplier < 1 else { return }
+        append(EffectSummary(keyword: keyword, resource: resource(CombatRounding.rounded(((1 - multiplier) * 100).rounded()))))
     }
 }
