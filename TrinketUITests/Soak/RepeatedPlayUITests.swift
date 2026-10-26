@@ -8,10 +8,10 @@ final class RepeatedPlayUITests: TrinketUITestCase {
         play.openExplore()
         tapButton(AccessibilityID.Play.contractsModeCard)
         assertExists(AccessibilityID.Play.contractsBoard)
-        var lastAudioPlays = 0
         var outcomes: [String] = []
         for cycle in 1 ... 20 {
             let before = try coverageReport()
+            let audioPlaysBefore = try XCTUnwrap(before["sfxPlays"] as? Int)
             let contracts = try XCTUnwrap(before["contracts"] as? [String: Any])
             let offers = try XCTUnwrap(contracts["offers"] as? [[String: Any]])
             let offerID = try XCTUnwrap(offers.first { $0["difficulty"] as? String == "easy" }?["id"] as? String)
@@ -21,7 +21,7 @@ final class RepeatedPlayUITests: TrinketUITestCase {
             var report: [String: Any] = [:]
             waitUntil("Cycle \(cycle) must schedule real audio") {
                 report = (try? self.coverageReport()) ?? [:]
-                return (report["sfxPlays"] as? Int ?? 0) > lastAudioPlays
+                return (report["sfxPlays"] as? Int ?? 0) > audioPlaysBefore
             }
             let currentContracts = try XCTUnwrap(report["contracts"] as? [String: Any])
             let claims = try Set(XCTUnwrap(currentContracts["completedOfferIDs"] as? [String]))
@@ -30,11 +30,8 @@ final class RepeatedPlayUITests: TrinketUITestCase {
                 won ? previousClaims.union([offerID]) : previousClaims,
                 "Cycle \(cycle) must commit exactly its displayed offer",
             )
-            let plays = try XCTUnwrap(report["sfxPlays"] as? Int)
-            XCTAssertGreaterThan(plays, lastAudioPlays, "Cycle \(cycle) did not schedule real audio")
             XCTAssertEqual(report["audioFailures"] as? Int, 0)
             XCTAssertEqual(report["duplicateMusicOwners"] as? Int, 0)
-            lastAudioPlays = plays
             if cycle.isMultiple(of: 5) {
                 try visitTabsAndCaptureDiagnostics(cycle: cycle)
             }

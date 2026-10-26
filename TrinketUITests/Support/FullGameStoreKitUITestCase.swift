@@ -9,8 +9,10 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
     private(set) var storeSession: SKTestSession?
 
     override func tearDownWithError() throws {
-        storeSession?.clearTransactions()
-        storeSession = nil
+        defer {
+            storeSession?.clearTransactions()
+            storeSession = nil
+        }
         try super.tearDownWithError()
     }
 
@@ -52,9 +54,12 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
 
     func assertWarlockAccessible() {
         revealWarlock()
-        let card = AccessibilityID.CombatantDetail.collectionCard(name: "Warlock")
+        let card = button(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
         waitUntil("Full Game must permit access to the recruited Warlock") {
-            !self.button(card).label.hasSuffix(", locked")
+            trinketOnMainActor {
+                guard let snapshot = try? card.snapshot() else { return false }
+                return snapshot.isEnabled && !snapshot.label.isEmpty && !snapshot.label.hasSuffix(", locked")
+            }
         }
     }
 

@@ -71,8 +71,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
             self.button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled
         }
         app.terminate()
-        let transaction = try await session.buyProduct(identifier: FullGameStore.productID)
-        XCTAssertTrue(session.allTransactions().contains { $0.identifier == UInt(transaction.id) })
+        _ = try await session.buyProduct(identifier: FullGameStore.productID)
         relaunchApp(arguments: ["-selectedTab", "options", "-coverage-diagnostics"])
         // Current entitlements are recognized at launch without a Restore tap.
         assertExistsAfterScroll(AccessibilityID.FullGame.status)

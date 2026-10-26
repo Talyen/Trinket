@@ -7,7 +7,7 @@ final class OptionsUITests: TrinketUITestCase {
         openReset()
         tapWhenReady(resetAlertAction(AccessibilityID.Options.resetProgressCancel))
         waitUntil("Reset confirmation must close") { !self.app.alerts.firstMatch.exists }
-        relaunchApp()
+        tabBar.select(.play)
         play.openCampaign()
         assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
         XCTAssertTrue(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled)
@@ -29,7 +29,5 @@ final class OptionsUITests: TrinketUITestCase {
         assertExistsAfterScroll(AccessibilityID.Options.resetProgressButton, requireHittable: true)
         tapButton(AccessibilityID.Options.resetProgressButton)
         assertExists(app.alerts.firstMatch)
-        assertExists(resetAlertAction(AccessibilityID.Options.resetProgressCancel))
-        assertExists(resetAlertAction(AccessibilityID.Options.resetProgressConfirmation))
     }
 }

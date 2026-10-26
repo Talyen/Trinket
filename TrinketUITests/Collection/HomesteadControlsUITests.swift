@@ -3,7 +3,7 @@ import TrinketFeatureSupport
 import XCTest
 
 final class HomesteadControlsUITests: TrinketUITestCase {
-    func testDisplayedUpgradeCostAndTierSurviveRelaunch() throws {
+    func testUpgradeDebitsDisplayedCostsAndAdvancesTier() throws {
         launchApp(arguments: TestLaunchArg.allForTab("homestead"))
         try verifyWheatFieldUpgrade()
     }
@@ -49,12 +49,6 @@ extension TrinketUITestCase {
         for (resource, amount) in before {
             XCTAssertEqual(after[resource], amount - costs[resource, default: 0], "Displayed debit: \(resource)")
         }
-        relaunchApp(arguments: ["-selectedTab", "homestead"])
-        homestead.openFarmingCategoryAndRevealWheatFieldNode()
-        tapWhenReady(any(AccessibilityID.Homestead.node(title: "Wheat Field")))
-        assertExists(AccessibilityID.Homestead.progress(tier: 2))
-        tapButton(AccessibilityID.Homestead.walletButton)
-        XCTAssertEqual(try homesteadBalances(), after)
         tapButton(AccessibilityID.Homestead.closeSheetButton)
     }
 

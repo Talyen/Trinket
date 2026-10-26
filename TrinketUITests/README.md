@@ -116,8 +116,9 @@ Assert a journey’s return destination before using helpers that navigate elsew
   reads each wallet/cost subtree once and waits for every resource balance.
   Coverage/audio waits retain the report that satisfied the condition; StoreKit
   deferred-transaction waits likewise retain the observed transaction.
-- StoreKit registers the app once per runner, skipping artwork preparation only
-  for that registration launch. Tests retain fresh sessions, transactions, and saves.
+- StoreKit registers the app once per runner; tests retain fresh sessions, transactions,
+  and saves. Terminate the app before clearing transactions to avoid teardown revocations.
+  Cold-purchase recovery asserts app access rather than rechecking StoreKit's own bookkeeping.
 - Success screenshots require `TRINKET_UI_SUCCESS_SCREENSHOTS=1`; failures always
   retain a screenshot and bounded accessibility context through `record(_:)`, avoiding
   another full-tree snapshot when an existence assertion fails. Profile evidence remains explicit.
@@ -190,11 +191,12 @@ Assert a journey’s return destination before using helpers that navigate elsew
   the displayed floor after switching back to floor 1 and then floor 2. FullUI
   also covers Voyage embark/abandon, Spires locked-floor rejection and battle launch, and
   Labyrinth inspector selection/dismissal.
-- Homestead accounting verifies displayed debit and tier after same-store reload;
-  accessibility audits stop after the tier change. Shell smoke opens and cancels
-  Options' Reset confirmation to prove native Form rows accept taps, beyond merely
-  finding the screen. Options retains destructive-reset
-  cancellation and confirmation across relaunch. The former Haptics thumb/relaunch
+- Homestead accounting verifies displayed debit and tier in one launch;
+  `PlayerHomesteadStoreTests` owns refused writes, exact debits and tiers across reload.
+  Accessibility profiles stop after the tier change. Shell smoke owns tab round-trips;
+  Full Game smoke proves native Options rows accept taps. Options owns Reset cancellation
+  with preserved progression and confirmed erasure across relaunch; cancellation alone
+  no longer incurs a cold launch. The former Haptics thumb/relaunch
   case is retired: it protected a narrow preference binding at the cost of two
   launches. Dedicated Haptics UI persistence is no longer proved; real Music slider
   binding/playback persistence remains in `AudioLifecycleUITests`.
@@ -211,6 +213,8 @@ Assert a journey’s return destination before using helpers that navigate elsew
   offer must dismiss and earned-character access must succeed before refund begins.
 - [Player coverage](../Docs/Platform/PlayerCoverage.md) owns settings profiles,
   twenty-Contract real-audio soak, interrupted settlement, and deferred live checks.
+  Profiles require a played card to leave the hand and actually enter the stage unlocked by a claim.
+  Each soak Contract compares audio with its own pre-battle baseline, excluding earlier tab visits.
   Audio observations prove backend scheduling/start results, not audibility.
   Accessibility audits exclude only the opt-in nonshipping diagnostics label, whose
   clipped one-point frame avoids covering controls at large text sizes. Each iOS audit
@@ -232,6 +236,7 @@ journeys, run only prerequisites for selected steps and skip trailing actions.
 Resolve sampler coordinates and gesture setup before capture. Snapshot scroll probes
 outside `measured`, using one resolved surface for both snapshots and gestures;
 failed movement retains the hierarchy and shared failure screenshot.
+Prerequisite reveals reuse container-scoped scrolling above native tabs and pinned purchase actions.
 
 Sampler controls explicitly establish `ready`, then `measuring`, and freeze the
 report after the interaction and animation tail. A watchdog report is invalid.

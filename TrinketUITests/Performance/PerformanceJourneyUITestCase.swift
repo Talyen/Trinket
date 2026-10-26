@@ -63,17 +63,11 @@ class PerformanceJourneyUITestCase: TrinketUITestCase {
     }
 
     func reveal(_ element: XCUIElement) {
-        for _ in 0 ..< 8 {
-            if element.exists, element.isHittable {
-                return
-            }
-            if element.exists, element.frame.midY < app.frame.midY {
-                app.swipeDown(velocity: .fast)
-            } else {
-                app.swipeUp(velocity: .fast)
-            }
-        }
-        XCTAssertTrue(element.exists && element.isHittable, "Control could not be revealed")
+        XCTAssertTrue(
+            scrollUntilVisible(element, swipingUp: true, maxAttempts: 8, requireHittable: true)
+                || scrollUntilVisible(element, swipingUp: false, maxAttempts: 4, requireHittable: true),
+            "Control could not be revealed",
+        )
     }
 
     struct ScrollAnchor {

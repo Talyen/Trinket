@@ -26,8 +26,6 @@ final class SmokeBattleTests: TrinketUITestCase {
         backgroundAndActivate()
 
         play.assertCampaignLoaded()
-        assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
-        XCTAssertTrue(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled)
         tapButton(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
         assertExists(AccessibilityID.Mystery.encounterTitle)
     }

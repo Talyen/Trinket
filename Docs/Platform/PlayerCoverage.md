@@ -13,7 +13,7 @@ Apple-service readiness.
 | Collected reward interrupted; duplicate Continue | Campaign `SmokeBattleTests` with a committed-reward checkpoint | Required routed push smoke |
 | Live battle return; accepted claim termination; failed-write Leave; talent confirmation; normal-speed rapid cards/drag | `BattleLifecycleUITests`, AppState integration, BattleFeature card-play tests | Package checks plus nightly/manual FullUI |
 | Voyage, Spires, Labyrinth inspector | `PlayModeNavigationUITests` | Nightly/manual FullUI |
-| Homestead displayed cost/tier and reload; reset cancellation and confirmed erasure | `HomesteadControlsUITests`, `OptionsUITests` | Nightly/manual FullUI |
+| Homestead displayed cost/tier; Reset cancellation and confirmed erasure | `HomesteadControlsUITests`, `OptionsUITests`; Homestead durability in `PlayerHomesteadStoreTests` | Nightly/manual FullUI plus package checks |
 | Pending approvals active/terminated, decline, cancellation, populated purchase recovery, revocation | `FullGamePurchaseUITests`, existing StoreKit session | Nightly/manual FullUI; ordinary purchase smoke remains required |
 | Critical controls under native text sizes and Reduce Motion | `CriticalAccessibilityUITests` in Profiles | Nightly/manual Player coverage workflow |
 | Real audio backend routing across battles and foreground | `AudioLifecycleUITests`; existing audio backend tests | Nightly/manual FullUI |
@@ -69,8 +69,8 @@ Each profile receipt records whether native audits were requested. Product viola
 still fail without blanket suppression.
 
 Profiles exercise the real reward claim/next-stage access and visible Homestead tier
-change. Earned combat stays smoke-owned; detailed resource debits and reload stay
-with `HomesteadControlsUITests`. The Duo profile also runs the focused rotation
+change. Earned combat stays smoke-owned; displayed debits belong to
+`HomesteadControlsUITests`, with durable costs/tiers in `PlayerHomesteadStoreTests`. The Duo profile also runs the focused rotation
 journey once after settings restoration, checking actual geometry, retained hand,
 usable controls and a card play. Folding during held input, inspection, automatic
 casts or reward reveal still needs managed Device Hub inspection.

@@ -14,11 +14,6 @@ final class SmokeShellTests: TrinketUITestCase {
 
         tabBar.select(.options)
         assertExists(AccessibilityID.Screen.options, timeout: 10)
-        assertExistsAfterScroll(AccessibilityID.Options.resetProgressButton, requireHittable: true)
-        tapButton(AccessibilityID.Options.resetProgressButton)
-        let resetAlert = app.alerts.firstMatch
-        tapWhenReady(resetAlert.buttons.matching(identifier: AccessibilityID.Options.resetProgressCancel).firstMatch)
-        waitUntil("Cancelling Reset must close its confirmation") { !resetAlert.exists }
         tabBar.select(.play)
         play.assertLoaded(timeout: 10)
     }

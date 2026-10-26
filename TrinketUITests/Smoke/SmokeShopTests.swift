@@ -13,14 +13,11 @@ final class SmokeShopTests: TrinketUITestCase {
         let goldBalance = app.descendants(matching: .any).matching(identifier: AccessibilityID.Shop.goldBalance).firstMatch
         assertExists(goldBalance)
         let goldBefore = try integer(in: goldBalance)
-        scrollUntilVisible(offers.firstMatch, swipingUp: true, requireHittable: true)
-        assertExists(offers.firstMatch)
+        XCTAssertTrue(scrollUntilVisible(offers.firstMatch, swipingUp: true, requireHittable: true), "A merchant offer must be reachable")
         let offerID = offers.firstMatch.identifier
         let offer = button(offerID)
         let buyID = AccessibilityID.Shop.buyButton(offerID: String(offerID.dropLast(AccessibilityID.Shop.offerCardSuffix.count)))
-        assertExists(buyID)
         let price = try integer(in: button(buyID))
-        scrollUntilVisible(offer, swipingUp: true, requireHittable: true)
         tapWhenReady(offer)
         let didOpenDetail = detailBuy.trinketWaitForExistence(timeout: Self.defaultTimeout)
         let openedDetailBuy = try XCTUnwrap(
@@ -30,8 +27,7 @@ final class SmokeShopTests: TrinketUITestCase {
         // Native presentation can expose the footer before it has a valid activation frame.
         let windowBounds = app.frame
         waitUntil("Merchant detail purchase control must have an on-screen frame") {
-            guard openedDetailBuy.exists,
-                  let bounds = trinketOnMainActor({ try? openedDetailBuy.snapshot().frame }),
+            guard let bounds = trinketOnMainActor({ try? openedDetailBuy.snapshot().frame }),
                   !bounds.isEmpty
             else { return false }
             return windowBounds.contains(bounds)
@@ -39,7 +35,9 @@ final class SmokeShopTests: TrinketUITestCase {
         XCTAssertEqual(try integer(in: openedDetailBuy), price)
         tapWhenReady(openedDetailBuy)
         assertDoesNotExist(AccessibilityID.Shop.detailBuyButton)
-        XCTAssertEqual(try integer(in: goldBalance), goldBefore - price)
+        waitUntil("The merchant must debit its displayed price") {
+            (try? self.integer(in: goldBalance)) == goldBefore - price
+        }
 
         scrollUntilVisible(leave, swipingUp: true, requireHittable: true)
         tapWhenReady(leave)

@@ -174,14 +174,20 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         try assertRequestedEnvironment()
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
-        let card = battle.handCards.firstMatch
+        let card = battle.frontmostHandCard
         assertExists(card)
         card.press(forDuration: 0.7)
         assertExists(AccessibilityID.Battle.abilityDetail)
         try auditProductAccessibility(screen: "card-inspection")
         retainScreenshot(named: "card-inspection")
         dismissSheet(AccessibilityID.Battle.abilityDetail)
-        tapWhenReady(battle.handCards.firstMatch)
+        let playedCard = battle.frontmostHandCard
+        let playedID = playedCard.identifier
+        XCTAssertFalse(playedID.isEmpty, "The card-play check must target an actual hand card")
+        tapWhenReady(playedCard)
+        waitUntil("Card play must remain usable under the requested settings") {
+            !self.battle.handCards.matching(identifier: playedID).firstMatch.exists
+        }
         battle.openActions()
         tapButton(AccessibilityID.Battle.retreat)
         assertExists(AccessibilityID.Battle.defeat)
@@ -217,7 +223,8 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         retainScreenshot(named: "reward-claim")
         tapButton(AccessibilityID.Battle.continueButton)
         play.assertCampaignLoaded()
-        XCTAssertTrue(button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled)
+        tapButton(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
+        assertExists(AccessibilityID.Mystery.encounterTitle)
     }
 
     private func assertRequestedEnvironment() throws {
