@@ -174,12 +174,12 @@ Assert a journey’s return destination before using helpers that navigate elsew
   [Monetization](../Docs/Product/Monetization.md#offer).
   After talent choices, the next Campaign stage action must be reachable; the
   retained Campaign screenshot, not the scroll container frame, supports clipping review.
-- `SmokeShellTests` owns onboarding, retained starter access after relaunch, and
+- `SmokeShellTests` owns onboarding, opening both selected starters after relaunch, and
   the Collection → Homestead → Options → Play round-trip in the same career.
   Shell and onboarding changes route to that one owner. Recruitment opens the earned
   companion's detail in Collection and starts the next Campaign battle, proving
   usable access instead of matching a lock label.
-  Full Game smoke owns character detail entry; equipment owns item detail/picker,
+  Full Game smoke opens the purchased character's detail directly; equipment owns item detail/picker,
   equip, and actual unequip/reselect wiring. The equipment fixture keeps the target weapon
   visible. Reload/failed-write equipment semantics remain package-owned by
   `PresentationModelTests`.
