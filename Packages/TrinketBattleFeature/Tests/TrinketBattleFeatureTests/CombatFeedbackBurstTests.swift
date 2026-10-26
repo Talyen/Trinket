@@ -75,6 +75,24 @@ struct CombatFeedbackBurstTests {
         #expect(try #require(preparations.first).label == .amount(100, additive: false))
     }
 
+    @Test(arguments: [false, true])
+    @MainActor func `batch merge index retains refreshed preparations and separates effect outcomes`(balanced: Bool) throws {
+        let lane = BattleFeedbackLane(balanced: balanced)
+        defer { lane.release() }
+        let start = Date.now.addingTimeInterval(10)
+        lane.record([
+            event(1, .partyDamagePreparationApplied, amount: 3, keyword: .physical),
+            event(2, .resourceGain, amount: 2, keyword: .mana),
+            event(3, .partyDamagePreparationApplied, amount: 5, keyword: .physical),
+            event(4, .manaShieldTriggered, amount: 4, keyword: .mana),
+            event(5, .partyDamagePreparationApplied, amount: 7, keyword: .physical),
+        ], at: start)
+        let preparation = try #require(lane.activeItems.first { $0.effectKind == .partyDamagePreparationApplied })
+        #expect(preparation.label == .amount(7, additive: false))
+        #expect(preparation.sourceEventIDs == [1, 3, 5])
+        #expect(lane.activeItems.filter { $0.keyword == .mana }.map(\.label) == [.amount(2), .amount(4)])
+    }
+
     @Test @MainActor func `matching appearance cannot merge unrelated effect outcomes`() {
         let lane = BattleFeedbackLane()
         defer { lane.release() }

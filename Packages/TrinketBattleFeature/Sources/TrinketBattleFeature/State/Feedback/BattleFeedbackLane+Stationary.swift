@@ -3,20 +3,22 @@ import TrinketCore
 
 extension BattleFeedbackLane {
     func recordStationary(_ item: CombatFeedbackItem, at date: Date, candidates: inout CombatFeedbackMergeCandidates) -> Int {
-        let index = candidates.indices(for: item).reversed().first { index in
+        var match: (Int, CombatFeedbackChipLabel)?
+        for index in candidates.indices(for: item).reversed() {
             let existing = activeItems[index]
             if usesBalancedFeedback, date.timeIntervalSince(existing.lastReceivedAt) > 0.25 {
-                return false
+                continue
             }
-            return existing.region == item.region && !evictedItemIDs.contains(existing.id)
-                && existing.targetID == item.targetID && existing.keyword == item.keyword
-                && existing.feedbackClass == item.feedbackClass && existing.visualRole == item.visualRole
-                && existing.effectKind == item.effectKind && item.effectKind != .controlTriggered
-                && date < existing.expiresAt.addingTimeInterval(-CombatFeedbackMotionSampler.fadeDuration)
-                && mergedLabel(existing, with: item) != nil
+            guard !evictedItemIDs.contains(existing.id),
+                  existing.effectKind == item.effectKind, item.effectKind != .controlTriggered,
+                  date < existing.expiresAt.addingTimeInterval(-CombatFeedbackMotionSampler.fadeDuration),
+                  let merged = mergedLabel(existing, with: item)
+            else { continue }
+            match = (index, merged)
+            break
         }
         var incoming = item
-        if let index, let merged = mergedLabel(activeItems[index], with: item) {
+        if let (index, merged) = match {
             if case .amount = merged, merged.displayString.count > activeItems[index].reservedDigitCount {
                 if item.effectKind == .partyDamagePreparationApplied, !usesBalancedFeedback {
                     // A wider preparation replaces its old slot rather than leaving two values visible.
@@ -24,14 +26,12 @@ extension BattleFeedbackLane {
                     incoming.sourceEventIDs = activeItems[index].sourceEventIDs + item.sourceEventIDs
                 }
             } else {
-                let previous = activeItems[index]
                 activeItems[index].lastReceivedAt = date
                 activeItems[index].label = merged
                 activeItems[index].sourceEventIDs += item.sourceEventIDs
                 if item.region == .impact {
                     updateImpactMerge(item, at: date, index: index)
                 }
-                candidates.didMerge(previous: previous, current: activeItems[index], at: index)
                 return index
             }
         }
@@ -141,6 +141,8 @@ struct CombatFeedbackMergeCandidates {
         }
     }
 
+    /// A merge preserves the key: additive amounts keep their sign, words stay
+    /// identical, and preparation replacements use an incoming item in the same region.
     private var positions: [Key: [Int]] = [:]
 
     init(items: [CombatFeedbackItem]) {
@@ -155,15 +157,6 @@ struct CombatFeedbackMergeCandidates {
 
     mutating func append(_ item: CombatFeedbackItem, at index: Int) {
         positions[Key(item), default: []].append(index)
-    }
-
-    mutating func didMerge(previous: CombatFeedbackItem, current: CombatFeedbackItem, at index: Int) {
-        let oldKey = Key(previous)
-        let newKey = Key(current)
-        guard oldKey != newKey else { return }
-        positions[oldKey]?.removeAll { $0 == index }
-        positions[newKey, default: []].append(index)
-        positions[newKey]?.sort()
     }
 }
 
