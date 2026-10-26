@@ -41,6 +41,120 @@ struct SimulationEquipmentPolicyTests {
         ) == nil)
     }
 
+    @Test func `resistance remains useful without matching outgoing damage`() throws {
+        let owner = try holyKnight()
+        let generic = item("generic", slot: .armor, count: 0)
+        let resistance = try rolledItem("resistance", affixID: "emberguard", high: true)
+        let upgrade = SimulationEquipmentPolicy.nextUpgrade(
+            for: owner, inventory: [generic, resistance],
+            loadout: EquipmentLoadout(itemIDsBySlot: [.armor: generic.id]),
+        )
+        #expect(upgrade?.itemID == resistance.id)
+    }
+
+    @Test(arguments: ["consecrated", "beacon"])
+    func `stronger saved modifier and trigger rolls break budget ties`(affixID: String) throws {
+        let owner = try holyKnight()
+        let weak = try rolledItem("weak", affixID: affixID, high: false)
+        let strong = try rolledItem("strong", affixID: affixID, high: true)
+        let filler = item("filler", slot: weak.baseType.slot, count: 4, kind: weak.baseType.weaponKind)
+        let secondary: ItemSlot = weak.baseType.slot == .weapon ? .secondaryWeapon : .secondaryAccessory
+        var loadout = EquipmentLoadout(itemIDsBySlot: [weak.baseType.slot: weak.id, secondary: filler.id])
+        let inventory = [weak, strong, filler]
+        let upgrade = try #require(SimulationEquipmentPolicy.nextUpgrade(for: owner, inventory: inventory, loadout: loadout))
+        #expect(upgrade.itemID == strong.id)
+        loadout.equip(strong, in: upgrade.slot, inventory: inventory)
+        #expect(SimulationEquipmentPolicy.nextUpgrade(for: owner, inventory: inventory, loadout: loadout) == nil)
+    }
+
+    @Test func `Oathkeeper enables Physical bonus gear across the whole Holy loadout`() throws {
+        let owner = try holyKnight()
+        let oathkeeper = try #require(GameContent.uniqueItems.first { $0.id == "oathkeeper" })
+        let generic = item("generic", slot: .weapon, count: 0, kind: .oneHanded)
+        let keen = try rolledItem("keen", affixID: "keen", high: true)
+        let gear = [oathkeeper, generic, keen]
+        let filler = item("filler", slot: .weapon, count: 4, kind: .oneHanded)
+        #expect(SimulationEquipmentPolicy.nextUpgrade(
+            for: owner, inventory: [generic, keen, filler],
+            loadout: EquipmentLoadout(itemIDsBySlot: [.weapon: generic.id, .secondaryWeapon: filler.id]),
+        )?.itemID != keen.id)
+        let upgrade = SimulationEquipmentPolicy.nextUpgrade(
+            for: owner, inventory: gear,
+            loadout: EquipmentLoadout(itemIDsBySlot: [.weapon: oathkeeper.id, .secondaryWeapon: generic.id]),
+        )
+        #expect(upgrade?.itemID == keen.id)
+    }
+
+    @Test func `Mana effects do not require tagged Burn and Freeze damage`() throws {
+        let owner = try holyKnight()
+        let mana = try rolledItem("mana", affixID: "manabound", high: true)
+        let wizard = Combatant(id: "mage", name: "Mage", role: .hero, maxHealth: 10, maxMana: 5, abilities: [AbilityCatalog.smite])
+        let accessory = item("accessory", slot: .accessory, count: 0)
+        let other = item("other", slot: .accessory, count: 4)
+        let slots = EquipmentLoadout(itemIDsBySlot: [.accessory: accessory.id, .secondaryAccessory: other.id])
+        #expect(SimulationEquipmentPolicy.nextUpgrade(for: wizard, inventory: [accessory, other, mana], loadout: slots)?.itemID == mana.id)
+        #expect(SimulationEquipmentPolicy.nextUpgrade(for: owner, inventory: [accessory, other, mana], loadout: slots) == nil)
+    }
+
+    @Test func `better rolls do not order unrelated equal budget effects`() throws {
+        let owner = try holyKnight()
+        let generic = item("generic", slot: .armor, count: 1)
+        let resistance = try rolledItem("resistance", affixID: "emberguard", high: true)
+        #expect(SimulationEquipmentPolicy.nextUpgrade(
+            for: owner, inventory: [generic, resistance],
+            loadout: EquipmentLoadout(itemIDsBySlot: [.armor: generic.id]),
+        ) == nil)
+    }
+
+    @Test func `mixed rolls cannot trade damage for resistance within one affix`() throws {
+        let owner = try holyKnight()
+        let definition = try #require(GameContent.itemAffixDefinition(matching: "martyrs"))
+        let base = ItemBaseType(id: "armor", name: "Armor", slot: .armor, keywordAffinities: [])
+        func armor(_ id: String, damage: Int, resistance: Double) -> InventoryItem {
+            InventoryItem(
+                id: id,
+                baseType: base,
+                rarity: .basic,
+                displayName: id,
+                affixes: [definition.resolved(for: .basic)],
+                affixPowers: [ItemAffixPower(
+                    description: "", modifiers: [.damageDealt(.holy, damage), .damageTakenPercent(.holy, resistance)],
+                )],
+            )
+        }
+        let worn = armor("worn", damage: 1, resistance: 0.12)
+        let mixed = armor("mixed", damage: 2, resistance: 0.08)
+        #expect(SimulationEquipmentPolicy.nextUpgrade(
+            for: owner, inventory: [worn, mixed], loadout: EquipmentLoadout(itemIDsBySlot: [.armor: worn.id]),
+        ) == nil)
+    }
+
+    private func holyKnight() throws -> Combatant {
+        let knight = try #require(GameContent.hero(matching: "knight"))
+        return knight.withAbilityLoadout(AbilityLoadout(
+            basic: AbilityCatalog.block,
+            skill: AbilityCatalog.smite,
+            ultimate: AbilityCatalog.earthquake,
+        ))
+    }
+
+    private func rolledItem(_ id: String, affixID: String, high: Bool) throws -> InventoryItem {
+        let definition = try #require(GameContent.itemAffixDefinition(matching: affixID))
+        let power = definition.power(for: .basic)
+        let slot = definition.slot
+        return InventoryItem(
+            id: id, baseType: ItemBaseType(
+                id: id,
+                name: id,
+                slot: slot,
+                weaponKind: slot == .weapon ? .oneHanded : nil,
+                keywordAffinities: [],
+            ),
+            rarity: .basic, displayName: id, affixes: [definition.resolved(for: .basic)],
+            affixPowers: [high ? power.rolledMax() : power.rolledMin()],
+        )
+    }
+
     private func item(_ id: String, slot: ItemSlot, count: Int, kind: ItemBaseType.WeaponKind? = nil) -> InventoryItem {
         InventoryItem(
             id: id, baseType: ItemBaseType(id: id, name: id, slot: slot, weaponKind: kind, keywordAffinities: []),

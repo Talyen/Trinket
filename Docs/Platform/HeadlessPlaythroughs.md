@@ -49,11 +49,16 @@ The test controller chooses among observed actions. It never grants progress,
 inserts victories, alters enemy health, or calls mode completion to bypass a battle.
 Targeted correctness fixtures are explicitly separate from fresh career reports.
 Equipment uses the same edit operation as Collection. The shared simulation policy
-`aligned-affix-budget-v1` considers every legal slot, reserves other characters'
+`effect-aligned-affix-budget-v2` considers every legal slot, reserves other characters'
 worn items, and accepts only strict improvements to the whole resulting loadout.
 It retains ties and includes displaced off-hand gear in its comparison, preventing
 idle A-to-B-to-A swaps. Its aligned-affix budget weights non-Basic rarity and
-two-handed affix power; it is a deterministic heuristic, not a combat optimizer.
+two-handed affix power. Resolved modifier effects determine resistance and Mana
+usability, whole-loadout damage sharing enables the corresponding bonus affixes,
+and actual saved rolls break ties only for matching affix portfolios when no magnitude
+gets weaker. Unrelated equal-budget kits retain the worn gear. Conditional effects still use coarse
+keyword alignment; this is a deterministic heuristic, not a combat optimizer. Older
+reports retain their policy ID and must not be treated as runs of the current policy.
 New journal actions retain the destination slot; older default-slot actions still
 replay with their original meaning. Summaries identify the equipment policy.
 Talent, Shop, Mystery,

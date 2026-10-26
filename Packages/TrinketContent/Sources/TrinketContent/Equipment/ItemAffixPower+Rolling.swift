@@ -120,6 +120,16 @@ public extension ItemAffixPower {
         return transformingMagnitudes { target, value in rollMaximum(value, for: target) }
     }
 
+    /// Simulation-only magnitudes; callers compare matching affixes without trading off fields.
+    internal func relativeMagnitudes(to reference: Self) -> [Double] {
+        reference.magnitudes.compactMap { target, baseline in
+            guard baseline.isPositive else { return nil }
+            guard let actual = magnitude(for: target) else { return 0 }
+            let ratio = actual.numericValue / baseline.numericValue
+            return ratio.isFinite ? min(1000000, max(0, ratio)) : 0
+        }
+    }
+
     func isAtOrAboveRollMax(of catalog: Self) -> Bool {
         var hasRollableMagnitude = false
         for (target, value) in catalog.magnitudes where !value.isZero {
@@ -229,6 +239,13 @@ private enum AffixMagnitude: Equatable {
         switch self {
         case let .int(value): value > 0
         case let .percent(value): value > 0
+        }
+    }
+
+    var numericValue: Double {
+        switch self {
+        case let .int(value): Double(value)
+        case let .percent(value): value
         }
     }
 

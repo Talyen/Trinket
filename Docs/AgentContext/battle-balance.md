@@ -197,8 +197,14 @@ legal unlocks, and retains its inventory. Only victories award items through the
 shared loot resolver at the fought encounter level, including ownership exclusion,
 active-party loot bias, the opening Journey boss reward and seeded Spire rewards.
 The shared `SimulationEquipmentPolicy` accepts strict whole-loadout improvements,
-retains ties, respects ownership, and supports secondary slots. Its aligned-affix
-budget is a heuristic, not an estimate of optimal combat value. Shops, crafting,
+retains ties, respects ownership, and supports secondary slots. It checks resolved
+modifier effects for resistance and Mana usability instead of treating affinity tags
+as activation requirements. Shared-damage bonuses are evaluated on the whole candidate
+loadout; they do not grant the source damage type's attacks or procs. Saved modifier
+and trigger roll magnitudes break ties only between the same affix portfolio, rarity
+and hand multiplier, with no magnitude reduced. The versioned policy is
+still a heuristic, not an estimate of optimal combat value; conditional effects retain
+coarse keyword alignment. Compare reports with their recorded policy IDs. Shops, crafting,
 Corruption, wishes and Homestead bonuses are outside this headless model.
 
 `--progression-gear tier` retains the historical idealized benchmark, including its
