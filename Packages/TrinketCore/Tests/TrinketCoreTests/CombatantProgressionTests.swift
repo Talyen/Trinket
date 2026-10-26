@@ -86,6 +86,42 @@ struct CombatantProgressionTests {
         #expect(CombatantProgression(level: 1, currentXP: current, requiredXP: required).progressFraction == expected)
     }
 
+    @Test(arguments: [1, 2, 19, 4000000, 5000000000], [0, 1, 2, 3, 20])
+    func `earned XP distance retains curve rounding without lifetime subtraction`(level: Int, levelsGained: Int) {
+        let before = CombatantProgression(
+            level: level, currentXP: 3, requiredXP: CombatantProgression.requiredXP(forLevel: level),
+        )
+        let after = CombatantProgression(
+            level: level + levelsGained, currentXP: 7,
+            requiredXP: CombatantProgression.requiredXP(forLevel: level + levelsGained),
+        )
+        let expected: Int
+        if levelsGained == 0 {
+            expected = 4
+        } else {
+            var remaining = before.requiredXP - before.currentXP
+            for next in (level + 1) ..< after.level {
+                remaining = SaturatedArithmetic.saturatingAdd(remaining, CombatantProgression.requiredXP(forLevel: next))
+            }
+            expected = SaturatedArithmetic.saturatingAdd(remaining, after.currentXP)
+        }
+        #expect(after.experienceGained(since: before) == expected)
+    }
+
+    @Test func `earned XP distance preserves rollover beyond lifetime capacity`() {
+        let before = CombatantProgression(
+            level: 5000000000, currentXP: Int.max - 2, requiredXP: Int.max,
+        )
+        let after = before.addingExperience(5)
+        #expect(before.totalEarnedExperience == Int.max)
+        #expect(after.totalEarnedExperience == Int.max)
+        #expect(after.experienceGained(since: before) == 5)
+        #expect(before.experienceGained(since: after) == nil)
+        #expect(CombatantProgression.at(level: Int.max).experienceGained(since: .initial) == Int.max)
+        let terminal = CombatantProgression.at(level: Int.max)
+        #expect(terminal.addingExperience(5).experienceGained(since: terminal) == 5)
+    }
+
     @Test func `total earned experience preserves the curve and saturates at extreme levels`() {
         for level in [1, 2, 3, 4, 5, 6, 19, 20, 39, 40, 999, 1000] {
             let expected = (1 ..< level).reduce(7) { $0 + CombatantProgression.requiredXP(forLevel: $1) }

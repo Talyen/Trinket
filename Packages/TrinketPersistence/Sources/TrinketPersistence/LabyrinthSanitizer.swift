@@ -25,6 +25,9 @@ enum LabyrinthSanitizer {
         }
 
         if sanitized.mapVersion == LabyrinthGenerator.currentMapVersion {
+            if !labyrinth.isMapPayloadUnreadable {
+                repairEntrance(in: &sanitized)
+            }
             repairClearedBossExits(
                 in: &sanitized, eligibleRecruitEventIDs: eligibleRecruitEventIDs, eligibleRewards: eligibleRewards,
             )
@@ -56,6 +59,31 @@ enum LabyrinthSanitizer {
             )
         }
         return sanitized
+    }
+
+    private static func repairEntrance(in labyrinth: inout PlayerLabyrinthState) {
+        // Only the shipped floor format establishes a known entry without rerolling rooms.
+        guard labyrinth.hasEntered,
+              let firstFloor = labyrinth.clusters.first(where: { $0.id == "labyrinth-cluster-1" && $0.depthBand == 1 }),
+              let entryID = firstFloor.nodeIDs.first, entryID == "\(firstFloor.id)-n0",
+              let entry = labyrinth.nodes[entryID], entry.depth == 1, entry.clusterID == firstFloor.id else { return }
+        let entranceID = LabyrinthGenerator.entranceNodeID
+        let clusterID = LabyrinthGenerator.entranceClusterID
+        var outgoing = labyrinth.nodes[entranceID]?.outgoingIDs.filter { labyrinth.nodes[$0] != nil } ?? []
+        if !outgoing.contains(where: { labyrinth.nodes[$0]?.clusterID == firstFloor.id && labyrinth.nodes[$0]?.depth == 1 }) {
+            outgoing.append(entryID)
+        }
+        labyrinth.nodes[entranceID] = LabyrinthNode(
+            id: entranceID, type: .entrance, depth: 0, clusterID: clusterID,
+            gridPosition: LabyrinthGridPosition(row: 0, column: 1), outgoingIDs: outgoing,
+            isCleared: true, isRevealed: true,
+        )
+        let cluster = LabyrinthCluster(id: clusterID, depthBand: 0, nodeIDs: [entranceID])
+        if let index = labyrinth.clusters.firstIndex(where: { $0.id == clusterID }) {
+            labyrinth.clusters[index] = cluster
+        } else {
+            labyrinth.clusters.insert(cluster, at: 0)
+        }
     }
 
     private static func repairClearedBossExits(

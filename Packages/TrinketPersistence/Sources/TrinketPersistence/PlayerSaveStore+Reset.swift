@@ -33,6 +33,8 @@ public extension PlayerSaveStore {
                 "Couldn't reset saved progress on this device.",
             )
         }
+        // Reserve a fresh identity before any destructive recovery work.
+        let generation = try nextSessionGeneration()
         let previous = (container: container, context: context, root: root, outbox: cloudOutbox)
         do {
             try PlayerSaveStoreConfiguration.cleanStoreFiles(
@@ -44,7 +46,7 @@ public extension PlayerSaveStore {
             replacementContext.autosaveEnabled = false
             try replacementContext.delete(model: PlayerSaveRoot.self)
             var save = PlayerSaveSanitizer.sanitize(.fresh)
-            save.sessionGeneration = currentSave.sessionGeneration &+ 1
+            save.sessionGeneration = generation
             let replacementRoot = try PlayerSaveRoot(save: save)
             replacementContext.insert(replacementRoot)
             container = replacement
@@ -76,11 +78,22 @@ public extension PlayerSaveStore {
 
     private func resetWithIncrementedSessionGeneration(_ base: PlayerSave, cloudState: CloudDeviceState? = nil) throws {
         var save = base
-        save.sessionGeneration = currentSave.sessionGeneration &+ 1
+        save.sessionGeneration = try nextSessionGeneration()
         let sanitized = try PlayerSaveSanitizer.sanitizeAndValidate(save)
         try commitGraph(
             sanitized, replacing: currentSave, slices: .all,
             cloudState: cloudState ?? cloudDeviceState, durability: .primaryOnly,
         )
+    }
+}
+
+@MainActor
+extension PlayerSaveStore {
+    func nextSessionGeneration() throws -> UInt64 {
+        let (generation, overflow) = currentSave.sessionGeneration.addingReportingOverflow(1)
+        guard !overflow else {
+            throw PlayerSavePersistenceError.invalidSave("The saved session generation is exhausted. Your progress is preserved.")
+        }
+        return generation
     }
 }

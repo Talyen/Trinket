@@ -160,16 +160,18 @@ extension CloudEconomicAction {
         let goldCarry = carry(starting.gold, delta: goldRemainder)
         let gemsCarry = carry(starting.gems, delta: gemsRemainder)
         save.roster.gold = min(PlayerRosterState.maxGoldBalance, max(0, SaturatedArithmetic.saturatingAdd(
-            SaturatedArithmetic.saturatingAdd(save.roster.gold, gold), goldCarry.correction,
+            save.roster.gold, SaturatedArithmetic.saturatingAdd(gold, goldCarry.correction),
         )))
-        for (resource, delta) in materials {
+        for (resource, delta) in materials where resource != .gems {
             save.homestead.resources[resource] = max(0, SaturatedArithmetic.saturatingAdd(
                 save.homestead.resources[resource, default: 0], delta,
             ))
         }
-        if gemsCarry.correction != 0 {
+        if materials[.gems] != nil || gemsCarry.correction != 0 {
+            // Combine the signed carry before either capacity limit can erase its offsetting delta.
             save.homestead.resources[.gems] = max(0, SaturatedArithmetic.saturatingAdd(
-                save.homestead.resources[.gems, default: 0], gemsCarry.correction,
+                save.homestead.resources[.gems, default: 0],
+                SaturatedArithmetic.saturatingAdd(materials[.gems, default: 0], gemsCarry.correction),
             ))
         }
         let remainders = HomesteadRewardRemainders(gold: goldCarry.remainder, gems: gemsCarry.remainder)

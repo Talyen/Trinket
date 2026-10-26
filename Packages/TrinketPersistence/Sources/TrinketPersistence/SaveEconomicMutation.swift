@@ -112,8 +112,7 @@ final class SaveEconomicMutation {
               }),
               (replayed.homestead.rewardRemainders ?? .zero) == (after.homestead.rewardRemainders ?? .zero),
               ids.allSatisfy({
-                  (replayed.roster.progressions[$0] ?? .initial).totalEarnedExperience
-                      == (after.roster.progressions[$0] ?? .initial).totalEarnedExperience
+                  (replayed.roster.progressions[$0] ?? .initial) == (after.roster.progressions[$0] ?? .initial)
               })
         else {
             throw ValidationFailure.incompleteEffects

@@ -70,8 +70,13 @@ struct CloudProductionClaims: Codable, Equatable, Sendable {
                 credit.pendingProduction[resource, default: 0], afterCollecting: alreadyCollected,
             )
             let accepted = claim(resource, start: start, quantity: amount)
+            let balance = save.homestead.balance(for: resource, gold: save.roster.gold)
+            let limit = resource == .gold ? PlayerRosterState.maxGoldBalance : Int.max
+            let granted = min(accepted, limit - max(0, balance))
+            // A peer may have filled the balance after this collection was
+            // admitted. Retain unpaid credit; its identity is still claimed once.
             let pending = PlayerHomesteadState.remainingProductionCredit(
-                max(save.homestead.pendingProduction[resource, default: 0], available), afterCollecting: UInt64(accepted),
+                max(save.homestead.pendingProduction[resource, default: 0], available), afterCollecting: UInt64(granted),
             )
             if pending > 0 {
                 save.homestead.pendingProduction[resource] = pending
@@ -79,12 +84,9 @@ struct CloudProductionClaims: Codable, Equatable, Sendable {
                 save.homestead.pendingProduction.removeValue(forKey: resource)
             }
             if resource == .gold {
-                save.roster.gold = min(PlayerRosterState.maxGoldBalance, SaturatedArithmetic.saturatingAdd(save.roster.gold, accepted))
+                save.roster.gold += granted
             } else {
-                save.homestead.resources[resource] = SaturatedArithmetic.saturatingAdd(
-                    save.homestead.resources[resource, default: 0],
-                    accepted,
-                )
+                save.homestead.resources[resource, default: 0] += granted
             }
         }
     }

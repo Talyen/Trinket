@@ -67,6 +67,64 @@ public struct CombatantProgression: Equatable, Hashable, Codable, Sendable {
         )
     }
 
+    /// Earned XP between two forward progressions, independent of the lifetime
+    /// display total's saturation. Backwards transitions have no earned award.
+    public func experienceGained(since previous: Self) -> Int? {
+        guard level >= previous.level, level > 0, previous.level > 0,
+              currentXP >= 0, previous.currentXP >= 0 else { return nil }
+        if level == previous.level {
+            return currentXP >= previous.currentXP ? currentXP - previous.currentXP : nil
+        }
+        guard previous.requiredXP > 0, previous.currentXP < previous.requiredXP else { return nil }
+        let firstLevel = previous.requiredXP - previous.currentXP
+        let intermediate = Self.experienceCost(startingAt: previous.level + 1, count: level - previous.level - 1)
+        return SaturatedArithmetic.saturatingAdd(
+            firstLevel, SaturatedArithmetic.saturatingAdd(intermediate, currentXP),
+        )
+    }
+
+    /// Sum a contiguous part of the canonical curve without subtracting large
+    /// lifetime totals or walking an untrusted saved level gap. All terms are
+    /// nonnegative, so saturating each addition preserves the capped result.
+    private static func experienceCost(startingAt level: Int, count: Int) -> Int {
+        guard count > 0 else { return 0 }
+        let steps = level - 1
+        let triangular = count.isMultiple(of: 2)
+            ? SaturatedArithmetic.saturatingMul(count / 2, count - 1)
+            : SaturatedArithmetic.saturatingMul(count, (count - 1) / 2)
+        let linear = SaturatedArithmetic.saturatingMul(
+            SaturatedArithmetic.saturatingAdd(steps, 5), triangular,
+        )
+        let paired = count / 2
+        // Sum floor(j²/2) for j in 0..<count: p(p-1)(4p+1)/3,
+        // plus 2p² for an unpaired final index. Divide before multiplying.
+        let squares: Int
+        if paired == 0 {
+            squares = 0
+        } else if paired % 3 == 2 {
+            squares = SaturatedArithmetic.saturatingMul(
+                SaturatedArithmetic.saturatingMul(paired, paired - 1),
+                SaturatedArithmetic.saturatingAdd(SaturatedArithmetic.saturatingMul(paired / 3, 4), 3),
+            )
+        } else {
+            let first = paired.isMultiple(of: 3) ? paired / 3 : paired
+            let second = paired.isMultiple(of: 3) ? paired - 1 : (paired - 1) / 3
+            squares = SaturatedArithmetic.saturatingMul(
+                SaturatedArithmetic.saturatingMul(first, second),
+                SaturatedArithmetic.saturatingAdd(SaturatedArithmetic.saturatingMul(paired, 4), 1),
+            )
+        }
+        let unpaired = count.isMultiple(of: 2) ? 0
+            : SaturatedArithmetic.saturatingMul(SaturatedArithmetic.saturatingMul(paired, paired), 2)
+        let parity = steps.isMultiple(of: 2) ? 0 : paired
+        return SaturatedArithmetic.saturatingAdd(
+            SaturatedArithmetic.saturatingMul(count, requiredXP(forLevel: level)),
+            SaturatedArithmetic.saturatingAdd(linear, SaturatedArithmetic.saturatingAdd(
+                squares, SaturatedArithmetic.saturatingAdd(unpaired, parity),
+            )),
+        )
+    }
+
     /// Point budget owned here; unlock legality lives in `TalentModels`.
     public var totalTalentPoints: Int {
         max(level, 0) / 2

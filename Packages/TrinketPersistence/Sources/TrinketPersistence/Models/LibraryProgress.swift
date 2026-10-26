@@ -55,10 +55,11 @@ public struct PlayerLibraryState: Codable, Equatable, Sendable {
     }
 
     mutating func merge(_ other: Self) {
-        guard isReadable, other.isReadable else {
-            if !other.isReadable {
-                self = other
-            }
+        // The caller supplies the preferred history first; opaque peers cannot
+        // be combined or replace an already preferred opaque payload.
+        guard isReadable else { return }
+        guard other.isReadable else {
+            self = other
             return
         }
         progress.merge(other.progress)

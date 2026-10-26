@@ -92,10 +92,8 @@ extension SaveEconomicReceipt {
         }
         var experience: [String: Int] = [:]
         for id in Set(before.roster.progressions.keys).union(after.roster.progressions.keys) {
-            let delta = SaturatedArithmetic.saturatingSub(
-                (after.roster.progressions[id] ?? .initial).totalEarnedExperience,
-                (before.roster.progressions[id] ?? .initial).totalEarnedExperience,
-            )
+            let delta = (after.roster.progressions[id] ?? .initial)
+                .experienceGained(since: before.roster.progressions[id] ?? .initial) ?? -1
             if delta != 0 {
                 experience[id] = delta
             }

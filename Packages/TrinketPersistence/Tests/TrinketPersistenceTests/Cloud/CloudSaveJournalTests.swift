@@ -5,6 +5,38 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct CloudSaveJournalTests {
+    @Test func `different journal checkpoints invalidate a prepared cloud transition`() throws {
+        var initial = CloudSaveSnapshot(PlayerSave.fresh)
+        initial.worldSeed = 1
+        var earned = initial
+        earned.roster.gold += 7
+        let journal = CloudSaveJournal([
+            CloudSaveMutation(id: "reward", changedSliceMask: PlayerSaveSlice.roster.rawValue, before: initial, after: earned),
+        ])
+        let data = try JSONEncoder().encode(journal)
+        #expect(try JSONDecoder().decode(CloudSaveJournal.self, from: data) == journal)
+        let copy = journal
+        #expect(copy == journal)
+
+        var payload = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        var checkpoint = try #require(payload["checkpoint"] as? [String: Any])
+        checkpoint["worldSeed"] = 2
+        payload["checkpoint"] = checkpoint
+        let changed = try JSONDecoder().decode(CloudSaveJournal.self, from: JSONSerialization.data(withJSONObject: payload))
+        #expect(journal.records.elementsEqual(changed.records))
+        #expect(journal.first?.before.worldSeed == 1)
+        #expect(changed.first?.before.worldSeed == 2)
+        #expect(changed != journal)
+
+        var source = CloudDeviceState()
+        source.account.journal = journal
+        let transition = CloudSaveTransition(sourceState: source, sourceSnapshot: earned, state: source)
+        #expect(transition.matches(state: source, local: earned))
+        var current = source
+        current.account.journal = changed
+        #expect(!transition.matches(state: current, local: earned))
+    }
+
     @Test func `legacy action pairs retain rewards selections and deferred gaps`() throws {
         let initial = CloudSaveSnapshot(PlayerSave.fresh)
         var earned = initial

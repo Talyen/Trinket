@@ -8,7 +8,7 @@ extension SpiresProgressModel {
         let rows = floors ?? []
         var map: [String: Int] = [:]
         for row in rows where !row.spireID.isEmpty {
-            map[row.spireID] = row.highestClearedFloor
+            map[row.spireID] = map[row.spireID].map { max($0, row.highestClearedFloor) } ?? row.highestClearedFloor
         }
         return PlayerSpiresState(highestClearedFloorBySpireID: map)
     }

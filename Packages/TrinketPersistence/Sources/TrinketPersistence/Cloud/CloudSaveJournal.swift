@@ -69,10 +69,8 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
     }
 
     static func == (lhs: Self, rhs: Self) -> Bool {
-        if lhs.history.sharesStorage(with: rhs.history), lhs.id == rhs.id {
-            return true
-        }
-        return lhs.id == rhs.id && lhs.checkpoint == rhs.checkpoint && lhs.records.elementsEqual(rhs.records)
+        guard lhs.id == rhs.id, lhs.checkpoint == rhs.checkpoint else { return false }
+        return lhs.history.sharesStorage(with: rhs.history) || lhs.records.elementsEqual(rhs.records)
     }
 
     mutating func acknowledge(_ ids: Set<String>) {

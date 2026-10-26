@@ -95,7 +95,7 @@ public enum VoyageCatalog {
         case "chapter-2": "the_iron_bear"
         case "chapter-3": "the_forge_golem"
         case "chapter-4": "the_frostwarden"
-        default: "the_blight_treant"
+        default: nil
         }
     }
 

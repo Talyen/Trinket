@@ -59,9 +59,8 @@ struct CloudEconomicAction: Codable, Equatable, Sendable {
 
         var experience: [String: Int] = [:]
         for (id, progression) in after.roster.progressions {
-            let starting = (before.roster.progressions[id] ?? .initial).totalEarnedExperience
-            let delta = SaturatedArithmetic.saturatingSub(progression.totalEarnedExperience, starting)
-            guard delta >= 0 else { return nil }
+            guard let delta = progression.experienceGained(since: before.roster.progressions[id] ?? .initial)
+            else { return nil }
             if delta != 0 {
                 experience[id] = delta
             }
@@ -94,37 +93,11 @@ struct CloudEconomicAction: Codable, Equatable, Sendable {
         merged.homestead.resources = existing.homestead.resources
         merged.homestead.rewardRemainders = existing.homestead.rewardRemainders
         let duplicate = claim?.isClaimed(in: existing, since: before) == true
-        for (id, delta) in experience {
-            let starting = existing.roster.progressions[id] ?? .initial
-            merged.roster.progressions[id] = duplicate ? starting : starting.addingExperience(delta)
+        for id in experience.keys {
+            merged.roster.progressions[id] = existing.roster.progressions[id] ?? .initial
         }
         guard !duplicate else { return }
-        let starting = existing.homestead.rewardRemainders ?? .zero
-        let goldCarry = replayRemainder(starting.gold, delta: goldRemainder)
-        let gemsCarry = replayRemainder(starting.gems, delta: gemsRemainder)
-        merged.roster.gold = SaturatedArithmetic.saturatingAdd(
-            SaturatedArithmetic.saturatingAdd(existing.roster.gold, gold), goldCarry.correction,
-        )
-        for (resource, delta) in materials where resource != .gems {
-            merged.homestead.resources[resource] = max(0, SaturatedArithmetic.saturatingAdd(
-                existing.homestead.resources[resource, default: 0], delta,
-            ))
-        }
-        if materials[.gems] != nil || gemsCarry.correction != 0 {
-            merged.homestead.resources[.gems] = max(0, SaturatedArithmetic.saturatingAdd(
-                SaturatedArithmetic.saturatingAdd(existing.homestead.resources[.gems, default: 0], materials[.gems, default: 0]),
-                gemsCarry.correction,
-            ))
-        }
-        var remainders = starting
-        remainders.gold = goldCarry.remainder
-        remainders.gems = gemsCarry.remainder
-        merged.homestead.rewardRemainders = remainders == .zero ? nil : remainders
-    }
-
-    private func replayRemainder(_ starting: Int, delta: Int) -> (remainder: Int, correction: Int) {
-        let total = starting + delta
-        return ((total % 100 + 100) % 100, total < 0 ? -1 : total / 100)
+        applyEffects(to: &merged)
     }
 
     private static func claims(from before: PlayerSave, to after: PlayerSave) -> [Claim]? {

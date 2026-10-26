@@ -123,4 +123,34 @@ struct LibraryProgressTests {
         let snapshot = try JSONDecoder().decode(PlayerSaveSnapshot.self, from: JSONEncoder().encode(PlayerSaveSnapshot(left)))
         #expect(try snapshot.decodedSave().library.encodedPayload() == opaque)
     }
+
+    @Test(arguments: [false, true]) @MainActor
+    func `newer opaque Library history survives cloud merge and reload`(newerIsIncoming: Bool) throws {
+        let olderPayload = Data("{\"version\":99,\"future\":\"older\"}".utf8)
+        let newerPayload = Data("{\"version\":99,\"future\":\"newer\"}".utf8)
+        var older = PlayerSave.testSeed
+        older.modifiedAt = Date(timeIntervalSince1970: 100)
+        older.library = PlayerLibraryState(payload: olderPayload)
+        var newer = older
+        newer.modifiedAt = Date(timeIntervalSince1970: 200)
+        newer.library = PlayerLibraryState(payload: newerPayload)
+
+        let merged = CloudSaveMerge.merge(
+            incoming: newerIsIncoming ? newer : older,
+            existing: newerIsIncoming ? older : newer,
+            base: nil,
+            preferIncoming: !newerIsIncoming,
+        )
+        #expect(try merged.library.encodedPayload() == newerPayload)
+        let snapshot = try JSONDecoder().decode(PlayerSaveSnapshot.self, from: JSONEncoder().encode(PlayerSaveSnapshot(merged)))
+        let context = try PersistenceTestContext()
+        let reloaded = try context.seedAndReload(snapshot.decodedSave())
+        #expect(try reloaded.library.encodedPayload() == newerPayload)
+
+        var readable = PlayerLibraryState()
+        readable.merge(newer.library)
+        #expect(try readable.encodedPayload() == newerPayload)
+        readable.merge(PlayerLibraryState())
+        #expect(try readable.encodedPayload() == newerPayload)
+    }
 }

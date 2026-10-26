@@ -18,6 +18,8 @@ repair, which uses that depth to generate the next floor. Preserve the node's
 identity, cleared state and readable payloads when repairing damaged scalars.
 Readable grid coordinates outside the floor's bounded geometry use the existing
 fallback before neighbor or map-projection arithmetic.
+An entered current-format map with a damaged entrance reconnects its retained
+first-floor entry; repair preserves rooms, progress and pinned rewards.
 
 Reads share one complete in-memory save value with independently observed domain
 sections and root fields. Views read the narrow section or `sessionGeneration`;
@@ -35,6 +37,8 @@ Load/repair sanitizes `root.toPlayerSave()` from the SwiftData graph. `PlayerSav
 Roster sanitization accepts current catalog IDs and applies [Core talent repair](../../Packages/TrinketCore/README.md).
 Progression repair uses Core's XP rollover rules after clamping invalid inputs;
 Persistence retains the terminal-level XP clamp rather than duplicating leveling.
+Duplicate progression rows retain the greatest repaired level/XP pair; duplicate
+Spire rows retain the highest cleared floor before graph reconciliation removes them.
 Roster hydration maps retired `sap-arrow` selections to `bounty-shot` before
 unknown-ID fallback, preserving the Stun-and-Gold choice in local and cloud saves. Rogue
 Venom Fangs Skill selections migrate to Feint before fallback; other combatants
@@ -283,6 +287,8 @@ effects using a checkpoint and lossless snapshot-field deltas. A receipt removes
 pending-request retries and reloads retain those same identities. Do not collapse
 separate payouts into one snapshot pair: duplicate-claim detection would then
 suppress unrelated earnings in the collapsed batch.
+Journal equality includes the checkpoint even when history storage is shared,
+so a prepared transition cannot accept a different replay baseline.
 
 Battle rewards (including defeat XP), Salvage, Shop purchases, Homestead,
 Mystery choices, forging, transmutation and inscription resolve complete actions
@@ -294,6 +300,9 @@ progress changes. Composite transactions retain ordered child actions, including
 intermediate purchase-and-salvage state that a final snapshot cannot reconstruct.
 Sanitation and Library reconciliation become part of the finalized last action.
 Commit retains full economic-coverage validation before publication or journaling.
+XP deltas use Core's progression distance, independent of saturated lifetime totals;
+coverage compares complete progressions. Current and historical economic replay
+share effect arithmetic while retaining their separate claim-admission policies.
 
 Action records use checkpoint-relative gap/change deltas; the last action reuses
 the enclosing final snapshot instead of duplicating Inventory/map payloads. Each
@@ -326,6 +335,9 @@ the uncovered quantities. Local metadata caches the next coordinates so a gamepl
 write never scans accumulated history. Action snapshots record the coordinates
 already consumed locally, preventing stale pending credit from returning through
 an unrelated reward. Spending does not alter these collection identities.
+If concurrent earnings fill a balance, replay consumes only the production credit
+actually paid and retains the unpaid portion for a later collection. Replaying the
+same collection cannot restore that credit again.
 
 #### Historical formats and outbox storage
 
@@ -412,6 +424,8 @@ rollback, account, and two-device evidence remain the
 ## Voyage payload
 
 Voyage persists a versioned optional `voyagePayload` on the root and in complete-save snapshots. Missing data initializes an empty board; unreadable active-route data is retained verbatim. The Voyage slice participates in change detection, publication, recovery, and reset. See [Voyage](../Product/Voyage.md#persistence).
+Unknown destination chapters fail admission and preserve the original payload;
+they never substitute another chapter's boss or regenerate the saved board.
 
 ## Library history
 
@@ -428,4 +442,5 @@ current random offers or current catalogs. Backfill never queues celebrations.
 Current companion, Library-tier and Spire changes evaluate a small pure project
 catalog in the same candidate as the triggering write. Wallet and selection-only
 changes do not reevaluate it. Readable same-epoch cloud histories merge by union.
+When both histories are opaque, retain the preferred branch's original bytes.
 [Library](../Product/Library.md) owns player-facing unlock and discovery rules.

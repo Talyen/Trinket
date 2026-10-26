@@ -148,7 +148,13 @@ extension RosterModel {
             (progressions ?? []).map {
                 ($0.combatantID, CombatantProgression(level: $0.level, currentXP: $0.currentXP, requiredXP: $0.requiredXP))
             },
-            uniquingKeysWith: { _, new in new },
+            uniquingKeysWith: { current, next in
+                // Rank repaired progress, retaining the raw winner so sanitation
+                // can still detect and persist repairs to malformed numeric fields.
+                let first = CombatantProgression.at(level: current.level).addingExperience(max(0, current.currentXP))
+                let second = CombatantProgression.at(level: next.level).addingExperience(max(0, next.currentXP))
+                return (first.level, first.currentXP) >= (second.level, second.currentXP) ? current : next
+            },
         )
         let abilityIDValues = Dictionary(
             (abilityLoadouts ?? []).map {
