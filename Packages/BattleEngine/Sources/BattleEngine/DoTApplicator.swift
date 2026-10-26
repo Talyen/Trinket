@@ -81,17 +81,13 @@ package enum DoTApplicator {
     ) async -> Bool {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return false }
 
-        var didDamage = false
-        var appliedPotency = potency
-        if application.dealsImmediateDamage {
-            let outcome = await DoTDamage.resolveDamage(
-                basePotency: potency, keyword: keyword, target: effectTarget,
-                sourceActorID: sourceActorID, provenance: provenance, in: &context,
-            )
-
-            appliedPotency = outcome.healthLost
-            didDamage = outcome.healthLost > 0
-        }
+        let outcome = await immediateDamage(
+            keyword: keyword, potency: potency, target: effectTarget,
+            sourceActorID: sourceActorID, application: application,
+            provenance: provenance, in: &context,
+        )
+        let didDamage = outcome.healthLost > 0
+        let appliedPotency = application.dealsImmediateDamage ? outcome.healthLost : potency
         guard appliedPotency > 0, context.roster.health(for: effectTarget) > 0 else { return didDamage }
 
         let appliedEffect = Effect.decayingDoT(keyword: keyword, potency: appliedPotency)
@@ -131,11 +127,12 @@ package enum DoTApplicator {
     ) async -> Bool {
         guard context.roster.health(for: effectTarget) > 0, potency > 0 else { return false }
 
-        var didDamage = await immediateDamage(
+        let outcome = await immediateDamage(
             keyword: .bleed, potency: potency, target: effectTarget,
             sourceActorID: sourceActorID, application: application,
             provenance: provenance, in: &context,
         )
+        var didDamage = outcome.healthLost > 0
 
         guard context.roster.health(for: effectTarget) > 0 else { return didDamage }
         guard !context.interceptDebuff(.bleed(potency), on: effectTarget) else { return didDamage }
@@ -194,9 +191,9 @@ package enum DoTApplicator {
         application: DoTApplication,
         provenance: DamageProvenance?,
         in context: inout BattleState,
-    ) async -> Bool {
-        guard application.dealsImmediateDamage else { return false }
-        let outcome = await DoTDamage.resolveDamage(
+    ) async -> CombatOutcome {
+        guard application.dealsImmediateDamage else { return .empty }
+        return await DoTDamage.resolveDamage(
             basePotency: potency,
             keyword: keyword,
             target: target,
@@ -204,7 +201,6 @@ package enum DoTApplicator {
             provenance: provenance,
             in: &context,
         )
-        return outcome.healthLost > 0
     }
 
     /// Drains decaying stacks without dealing damage. Stays on the applicator

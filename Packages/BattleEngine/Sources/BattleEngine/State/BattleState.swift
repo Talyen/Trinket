@@ -327,7 +327,7 @@ public struct BattleState {
             keyword: keyword,
             target: target,
             sourceActorID: sourceActorID,
-            operation: keyword == .burn || keyword == .poison ? .resolvedPeriodic : .periodic,
+            operation: .directDoTTick(keyword: keyword),
             in: &self,
         )
     }

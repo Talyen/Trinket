@@ -143,6 +143,10 @@ public struct DamageOperation: Equatable, Hashable, Sendable {
     public static let periodic = Self(kind: .periodic(natural: false), scaling: .statsAndItems, accuracy: .unavoidable)
     static let resolvedPeriodic = Self(kind: .periodic(natural: false), scaling: .resolved, accuracy: .unavoidable)
 
+    static func directDoTTick(keyword: Keyword) -> Self {
+        keyword == .burn || keyword == .poison ? .resolvedPeriodic : .periodic
+    }
+
     static func statusTick(scaling: Scaling, natural: Bool) -> Self {
         Self(kind: .periodic(natural: natural), scaling: scaling, accuracy: .unavoidable)
     }
