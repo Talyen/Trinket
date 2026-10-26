@@ -74,7 +74,17 @@ enum BattleAbilityRules {
     }
 
     static func healthCost(_ operations: [AbilityOperation], action: BattleActionContext, in context: BattleState) -> Int {
-        operations.reduce(0) { total, operation in
+        let attacks = operations.contains { operation in
+            switch operation {
+            case let .damage(component):
+                component.target != .actor && component.hasPotentialDamage
+                    && BattleDamageRules.isEnabled(component, action: action, in: context)
+            case .effect: operation.damageKeyword != nil
+            }
+        }
+        let attackCost = action.actor.role == .enemy && attacks
+            ? max(0, context.enemyModifiers.triggers.attackHealthCost) : 0
+        return operations.reduce(attackCost) { total, operation in
             guard case let .damage(component) = operation,
                   action.target(component.target, in: context).id == action.actor.id,
                   let amount = BattleDamageRules.amount(component, action: action, in: context) else { return total }

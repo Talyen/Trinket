@@ -34189,6 +34189,34 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "枯萎脈衝"}}
       }
     },
+    "traits.blood_offering.description": {
+      "comment": "ContentManifest/traits.tsv: blood_offering, description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Angriffe kosten <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> und verursachen <value id=\"quantity_2\">%2$lld</value> <keyword id=\"bleed\">Blutung</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Attacks cost <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> and apply <value id=\"quantity_2\">%2$lld</value> <keyword id=\"bleed\">Bleed</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques cuestan <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> y aplican <value id=\"quantity_2\">%2$lld</value> de <keyword id=\"bleed\">Sangrado</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques coûtent <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> et appliquent <value id=\"quantity_2\">%2$lld</value> de <keyword id=\"bleed\">Saignement</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃時に<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>消費し、<keyword id=\"bleed\">出血</keyword>を<value id=\"quantity_2\">%2$lld</value>付与する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격 시 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 소모하고 <keyword id=\"bleed\">출혈</keyword>을 <value id=\"quantity_2\">%2$lld</value> 부여한다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Os ataques custam <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> e aplicam <value id=\"quantity_2\">%2$lld</value> de <keyword id=\"bleed\">Sangramento</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊消耗<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>，並施加<value id=\"quantity_2\">%2$lld</value>層<keyword id=\"bleed\">流血</keyword>"}}
+      }
+    },
+    "traits.blood_offering.name": {
+      "comment": "ContentManifest/traits.tsv: blood_offering, name",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Blutopfer"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Blood Offering"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Ofrenda de sangre"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Offrande de sang"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "血の供物"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "피의 공물"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Oferenda de sangue"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "血之獻祭"}}
+      }
+    },
     "traits.blood_scent.description": {
       "comment": "ContentManifest/traits.tsv: blood_scent, description",
       "extractionState": "manual",
@@ -34553,6 +34581,34 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "斷層線"}}
       }
     },
+    "traits.firestarter.description": {
+      "comment": "ContentManifest/traits.tsv: firestarter, description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Standardangriffe verursachen <value id=\"quantity_1\">%1$lld</value> <keyword id=\"burn\">Brand</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Basic attacks apply <value id=\"quantity_1\">%1$lld</value> <keyword id=\"burn\">Burn</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los ataques básicos aplican <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"burn\">Quemadura</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les attaques de base appliquent <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"burn\">Brûlure</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "通常攻撃で<keyword id=\"burn\">炎上</keyword>を<value id=\"quantity_1\">%1$lld</value>付与する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "기본 공격이 <keyword id=\"burn\">화상</keyword>을 <value id=\"quantity_1\">%1$lld</value> 부여한다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Os ataques básicos aplicam <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"burn\">Queimadura</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "普通攻擊施加<value id=\"quantity_1\">%1$lld</value>層<keyword id=\"burn\">燃燒</keyword>"}}
+      }
+    },
+    "traits.firestarter.name": {
+      "comment": "ContentManifest/traits.tsv: firestarter, name",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Brandstifter"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Firestarter"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Incendiario"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Incendiaire"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "放火魔"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "방화범"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Incendiário"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "縱火者"}}
+      }
+    },
     "traits.furnace_pulse.description": {
       "comment": "ContentManifest/traits.tsv: furnace_pulse, description",
       "extractionState": "manual",
@@ -34721,6 +34777,34 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "隱藏獠牙"}}
       }
     },
+    "traits.hollow_frame.description": {
+      "comment": "ContentManifest/traits.tsv: hollow_frame, description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Immun gegen Lebensraub"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Cannot be Leeched"}},
+        "es": {"stringUnit": {"state": "translated", "value": "No se le puede robar vida"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Ne peut pas subir de vol de vie"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "体力を吸収されない"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "체력을 흡수당하지 않는다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Não pode ter a vida drenada"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "生命無法被汲取"}}
+      }
+    },
+    "traits.hollow_frame.name": {
+      "comment": "ContentManifest/traits.tsv: hollow_frame, name",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Hohle Hülle"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Hollow Frame"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cuerpo hueco"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Corps creux"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "空洞の躯"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "텅 빈 몸체"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Corpo oco"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "空洞軀殼"}}
+      }
+    },
     "traits.incorporeal.description": {
       "comment": "ContentManifest/traits.tsv: incorporeal, description",
       "extractionState": "manual",
@@ -34861,6 +34945,62 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "失去平衡"}}
       }
     },
+    "traits.pilfer.description": {
+      "comment": "ContentManifest/traits.tsv: pilfer, description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Stiehlt vor dem Angriff <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Steal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> before attacking"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Roba <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> antes de atacar"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Vole <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword> avant d'attaquer"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "攻撃前に<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>奪う"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격 전에 <keyword id=\"block\">방어도</keyword>를 <value id=\"quantity_1\">%1$lld</value> 훔친다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Rouba <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> antes de atacar"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "攻擊前竊取<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
+      }
+    },
+    "traits.pilfer.name": {
+      "comment": "ContentManifest/traits.tsv: pilfer, name",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Stibitzen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Pilfer"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Hurto"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Larcin"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "かすめ取り"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "훔치기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Furto"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "竊取"}}
+      }
+    },
+    "traits.plague_mask.description": {
+      "comment": "ContentManifest/traits.tsv: plague_mask, description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Stellt jedes Mal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her, wenn ein Gegner Schaden durch <keyword id=\"poison\">Gift</keyword> erleidet"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> whenever an opponent takes <keyword id=\"poison\">Poison</keyword> damage"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> cada vez que un oponente recibe daño de <keyword id=\"poison\">Veneno</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> chaque fois qu'un adversaire subit des dégâts de <keyword id=\"poison\">Poison</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "対戦相手が<keyword id=\"poison\">毒</keyword>ダメージを受けるたびに、<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "상대가 <keyword id=\"poison\">독</keyword> 피해를 받을 때마다 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 회복한다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> sempre que um oponente sofre dano de <keyword id=\"poison\">Veneno</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每當對手受到<keyword id=\"poison\">中毒</keyword>傷害時，恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"}}
+      }
+    },
+    "traits.plague_mask.name": {
+      "comment": "ContentManifest/traits.tsv: plague_mask, name",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Pestmaske"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Plague Mask"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Máscara de la peste"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Masque de peste"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "疫病の仮面"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "역병 가면"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Máscara da peste"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "瘟疫面具"}}
+      }
+    },
     "traits.poison_hardened.description": {
       "comment": "ContentManifest/traits.tsv: poison_hardened, description",
       "extractionState": "manual",
@@ -34943,6 +35083,34 @@
         "ko": {"stringUnit": {"state": "translated", "value": "빛나는 심판"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Julgamento Radiante"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "光輝審判"}}
+      }
+    },
+    "traits.reform.description": {
+      "comment": "ContentManifest/traits.tsv: reform, description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Stellt zu Beginn jedes Zuges <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> at the start of each turn"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> al inicio de cada turno"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> au début de chaque tour"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "各ターン開始時に<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "매 턴 시작 시 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 회복한다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> no início de cada turno"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每回合開始時恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"}}
+      }
+    },
+    "traits.reform.name": {
+      "comment": "ContentManifest/traits.tsv: reform, name",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wiederformung"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Reform"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Recomposición"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Reconstitution"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "再形成"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "재형성"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Recomposição"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "重塑"}}
       }
     },
     "traits.restoring_light.description": {

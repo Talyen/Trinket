@@ -9770,6 +9770,14 @@ enum L10n {
         LocalizedStringResource("traits.blighted_pulse.name", defaultValue: "Blighted Pulse", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static func traits_blood_offering_description(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
+        LocalizedStringResource("traits.blood_offering.description", defaultValue: "Attacks cost <value id=\"quantity_1\">\(value1)</value> <keyword id=\"health\">Health</keyword> and apply <value id=\"quantity_2\">\(value2)</value> <keyword id=\"bleed\">Bleed</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var traits_blood_offering_name: LocalizedStringResource {
+        LocalizedStringResource("traits.blood_offering.name", defaultValue: "Blood Offering", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static func traits_blood_scent_description(_ value1: Int) -> LocalizedStringResource {
         LocalizedStringResource("traits.blood_scent.description", defaultValue: "Attacks against <keyword id=\"bleed\">Bleeding</keyword> enemies deal <value id=\"quantity_1\">\(value1)</value> additional damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -9874,6 +9882,14 @@ enum L10n {
         LocalizedStringResource("traits.fault_lines.name", defaultValue: "Fault Lines", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static func traits_firestarter_description(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("traits.firestarter.description", defaultValue: "Basic attacks apply <value id=\"quantity_1\">\(value1)</value> <keyword id=\"burn\">Burn</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var traits_firestarter_name: LocalizedStringResource {
+        LocalizedStringResource("traits.firestarter.name", defaultValue: "Firestarter", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static func traits_furnace_pulse_description(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
         LocalizedStringResource("traits.furnace_pulse.description", defaultValue: "Deals <value id=\"quantity_1\">\(value1)</value> <keyword id=\"stun\">Stun</keyword> or <value id=\"quantity_2\">\(value2)</value> <keyword id=\"burn\">Burn</keyword> damage every other turn to all enemies", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -9922,6 +9938,14 @@ enum L10n {
         LocalizedStringResource("traits.hidden_fangs.name", defaultValue: "Hidden Fangs", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static var traits_hollow_frame_description: LocalizedStringResource {
+        LocalizedStringResource("traits.hollow_frame.description", defaultValue: "Cannot be Leeched", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var traits_hollow_frame_name: LocalizedStringResource {
+        LocalizedStringResource("traits.hollow_frame.name", defaultValue: "Hollow Frame", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static func traits_incorporeal_description(_ value1: Int) -> LocalizedStringResource {
         LocalizedStringResource("traits.incorporeal.description", defaultValue: "<keyword id=\"physical\">Physical</keyword> damage taken reduced by <value id=\"quantity_1\">\(value1)</value>%", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -9962,6 +9986,22 @@ enum L10n {
         LocalizedStringResource("traits.off_balance.name", defaultValue: "Off Balance", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static func traits_pilfer_description(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("traits.pilfer.description", defaultValue: "Steal <value id=\"quantity_1\">\(value1)</value> <keyword id=\"block\">Block</keyword> before attacking", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var traits_pilfer_name: LocalizedStringResource {
+        LocalizedStringResource("traits.pilfer.name", defaultValue: "Pilfer", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static func traits_plague_mask_description(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("traits.plague_mask.description", defaultValue: "Restore <value id=\"quantity_1\">\(value1)</value> <keyword id=\"health\">Health</keyword> whenever an opponent takes <keyword id=\"poison\">Poison</keyword> damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var traits_plague_mask_name: LocalizedStringResource {
+        LocalizedStringResource("traits.plague_mask.name", defaultValue: "Plague Mask", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static func traits_poison_hardened_description(_ value1: Int) -> LocalizedStringResource {
         LocalizedStringResource("traits.poison_hardened.description", defaultValue: "<keyword id=\"poison\">Poison</keyword> damage taken reduced by <value id=\"quantity_1\">\(value1)</value>%", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -9984,6 +10024,14 @@ enum L10n {
 
     static var traits_radiant_judgment_name: LocalizedStringResource {
         LocalizedStringResource("traits.radiant_judgment.name", defaultValue: "Radiant Judgment", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static func traits_reform_description(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("traits.reform.description", defaultValue: "Restore <value id=\"quantity_1\">\(value1)</value> <keyword id=\"health\">Health</keyword> at the start of each turn", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var traits_reform_name: LocalizedStringResource {
+        LocalizedStringResource("traits.reform.name", defaultValue: "Reform", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func traits_restoring_light_description(_ value1: Int) -> LocalizedStringResource {

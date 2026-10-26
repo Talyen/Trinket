@@ -51,6 +51,9 @@ package extension HealingEngine {
         guard let actor = context.roster.combatant(for: sourceActorID),
               context.roster.health(for: actor.combatant) > 0
         else { return .empty }
+        if let target, context.modifiers(for: target.id).triggers.cannotBeLeeched {
+            return .empty
+        }
         if actor.role == .enemy, let target,
            context.modifiers(for: target.id).triggers.enemyCannotLeechFromTarget {
             return .empty

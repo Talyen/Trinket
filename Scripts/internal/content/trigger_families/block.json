@@ -485,6 +485,10 @@
         "kind": "percent",
         "order": 109
       }
+    },
+    {
+      "name": "attackStealBlock",
+      "type": "Int"
     }
   ]
 }

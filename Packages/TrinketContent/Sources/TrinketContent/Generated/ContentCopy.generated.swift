@@ -4273,6 +4273,8 @@ public enum ContentCopy {
             (L10n.traits_blighted_pulse_description(2), [2])
         case "Blighted Pulse":
             (L10n.traits_blighted_pulse_name, [])
+        case "Attacks cost 1 Health and apply 1 Bleed":
+            (L10n.traits_blood_offering_description(1, 1), [1, 1])
         case "Attacks against Bleeding enemies deal 1 additional damage":
             (L10n.traits_blood_scent_description(1), [1])
         case "Blood Scent":
@@ -4323,6 +4325,10 @@ public enum ContentCopy {
             (L10n.traits_fault_lines_description(30), [30])
         case "Fault Lines":
             (L10n.traits_fault_lines_name, [])
+        case "Basic attacks apply 1 Burn":
+            (L10n.traits_firestarter_description(1), [1])
+        case "Firestarter":
+            (L10n.traits_firestarter_name, [])
         case "Deals 1 Stun or 1 Burn damage every other turn to all enemies":
             (L10n.traits_furnace_pulse_description(1, 1), [1, 1])
         case "Furnace Pulse":
@@ -4347,6 +4353,10 @@ public enum ContentCopy {
             (L10n.traits_hidden_fangs_description(2), [2])
         case "Hidden Fangs":
             (L10n.traits_hidden_fangs_name, [])
+        case "Cannot be Leeched":
+            (L10n.traits_hollow_frame_description, [])
+        case "Hollow Frame":
+            (L10n.traits_hollow_frame_name, [])
         case "Physical damage taken reduced by 30%":
             (L10n.traits_incorporeal_description(30), [30])
         case "Incorporeal":
@@ -4365,6 +4375,14 @@ public enum ContentCopy {
             (L10n.traits_off_balance_description(20), [20])
         case "Off Balance":
             (L10n.traits_off_balance_name, [])
+        case "Steal 1 Block before attacking":
+            (L10n.traits_pilfer_description(1), [1])
+        case "Pilfer":
+            (L10n.traits_pilfer_name, [])
+        case "Restore 1 Health whenever an opponent takes Poison damage":
+            (L10n.traits_plague_mask_description(1), [1])
+        case "Plague Mask":
+            (L10n.traits_plague_mask_name, [])
         case "Poison damage taken reduced by 30%":
             (L10n.traits_poison_hardened_description(30), [30])
         case "Poison-Hardened":
@@ -4377,6 +4395,10 @@ public enum ContentCopy {
             (L10n.traits_radiant_judgment_description(1), [1])
         case "Radiant Judgment":
             (L10n.traits_radiant_judgment_name, [])
+        case "Restore 1 Health at the start of each turn":
+            (L10n.traits_reform_description(1), [1])
+        case "Reform":
+            (L10n.traits_reform_name, [])
         case "Dealing Holy damage restores 1 Health":
             (L10n.traits_restoring_light_description(1), [1])
         case "Restoring Light":
@@ -4945,6 +4967,7 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Physical attacks have a ", regex: try? NSRegularExpression(pattern: "^Physical\\ attacks\\ have\\ a\\ ([0-9]+)%\\ chance\\ to\\ deal\\ ([0-9]+)%\\ more\\ damage$"), count: 2, make: { values in L10n.talents_wolf_physical_t3_1_description(values[0], values[1]) }),
         NumericTemplate(prefix: "Physical Critical Hits deal ", regex: try? NSRegularExpression(pattern: "^Physical\\ Critical\\ Hits\\ deal\\ ([0-9]+)%\\ more\\ damage\\ to\\ Bleeding\\ enemies$"), count: 1, make: { values in L10n.talents_wolf_physical_t3_2_description(values[0]) }),
         NumericTemplate(prefix: "Deals ", regex: try? NSRegularExpression(pattern: "^Deals\\ ([0-9]+)\\ Poison\\ or\\ Bleed\\ damage\\ every\\ other\\ turns?\\ to\\ all\\ enemies$"), count: 1, make: { values in L10n.traits_blighted_pulse_description(values[0]) }),
+        NumericTemplate(prefix: "Attacks cost ", regex: try? NSRegularExpression(pattern: "^Attacks\\ cost\\ ([0-9]+)\\ Health\\ and\\ apply\\ ([0-9]+)\\ Bleed$"), count: 2, make: { values in L10n.traits_blood_offering_description(values[0], values[1]) }),
         NumericTemplate(prefix: "Attacks against Bleeding enemies deal ", regex: try? NSRegularExpression(pattern: "^Attacks\\ against\\ Bleeding\\ enemies\\ deal\\ ([0-9]+)\\ additional\\ damage$"), count: 1, make: { values in L10n.traits_blood_scent_description(values[0]) }),
         NumericTemplate(prefix: "Bleed damage taken reduced by ", regex: try? NSRegularExpression(pattern: "^Bleed\\ damage\\ taken\\ reduced\\ by\\ ([0-9]+)%$"), count: 1, make: { values in L10n.traits_bloodless_description(values[0]) }),
         NumericTemplate(prefix: "While holding Block, attacks deal ", regex: try? NSRegularExpression(pattern: "^While\\ holding\\ Block,\\ attacks\\ deal\\ ([0-9]+)\\ additional\\ damage$"), count: 1, make: { values in L10n.traits_bulwark_force_description(values[0]) }),
@@ -4958,6 +4981,7 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Attacks against Stunned enemies deal ", regex: try? NSRegularExpression(pattern: "^Attacks\\ against\\ Stunned\\ enemies\\ deal\\ ([0-9]+)\\ additional\\ damage$"), count: 1, make: { values in L10n.traits_dread_exploitation_description(values[0]) }),
         NumericTemplate(prefix: "Attacks against Burning enemies deal ", regex: try? NSRegularExpression(pattern: "^Attacks\\ against\\ Burning\\ enemies\\ deal\\ ([0-9]+)%\\ additional\\ damage$"), count: 1, make: { values in L10n.traits_fan_the_flames_description(values[0]) }),
         NumericTemplate(prefix: "Stun damage taken increased by ", regex: try? NSRegularExpression(pattern: "^Stun\\ damage\\ taken\\ increased\\ by\\ ([0-9]+)%$"), count: 1, make: { values in L10n.traits_fault_lines_description(values[0]) }),
+        NumericTemplate(prefix: "Basic attacks apply ", regex: try? NSRegularExpression(pattern: "^Basic\\ attacks\\ apply\\ ([0-9]+)\\ Burn$"), count: 1, make: { values in L10n.traits_firestarter_description(values[0]) }),
         NumericTemplate(prefix: "Deals ", regex: try? NSRegularExpression(pattern: "^Deals\\ ([0-9]+)\\ Stun\\ or\\ ([0-9]+)\\ Burn\\ damage\\ every\\ other\\ turns?\\ to\\ all\\ enemies$"), count: 2, make: { values in L10n.traits_furnace_pulse_description(values[0], values[1]) }),
         NumericTemplate(prefix: "Dealing Holy damage adds ", regex: try? NSRegularExpression(pattern: "^Dealing\\ Holy\\ damage\\ adds\\ ([0-9]+)\\ Holy\\ damage\\ to\\ the\\ next\\ attack$"), count: 1, make: { values in L10n.traits_gathering_zeal_description(values[0]) }),
         NumericTemplate(prefix: "Holy damage taken reduced by ", regex: try? NSRegularExpression(pattern: "^Holy\\ damage\\ taken\\ reduced\\ by\\ ([0-9]+)%$"), count: 1, make: { values in L10n.traits_hallowed_description(values[0]) }),
@@ -4967,9 +4991,12 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Taking Health damage reduces the next damage dealt by ", regex: try? NSRegularExpression(pattern: "^Taking\\ Health\\ damage\\ reduces\\ the\\ next\\ damage\\ dealt\\ by\\ ([0-9]+)$"), count: 1, make: { values in L10n.traits_loose_rubble_description(values[0]) }),
         NumericTemplate(prefix: "Frozen enemies deal ", regex: try? NSRegularExpression(pattern: "^Frozen\\ enemies\\ deal\\ ([0-9]+)\\ less\\ damage$"), count: 1, make: { values in L10n.traits_numbing_presence_description(values[0]) }),
         NumericTemplate(prefix: "Physical and Stun damage taken increased by ", regex: try? NSRegularExpression(pattern: "^Physical\\ and\\ Stun\\ damage\\ taken\\ increased\\ by\\ ([0-9]+)%$"), count: 1, make: { values in L10n.traits_off_balance_description(values[0]) }),
+        NumericTemplate(prefix: "Steal ", regex: try? NSRegularExpression(pattern: "^Steal\\ ([0-9]+)\\ Block\\ before\\ attacking$"), count: 1, make: { values in L10n.traits_pilfer_description(values[0]) }),
+        NumericTemplate(prefix: "Restore ", regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ Health\\ whenever\\ an\\ opponent\\ takes\\ Poison\\ damage$"), count: 1, make: { values in L10n.traits_plague_mask_description(values[0]) }),
         NumericTemplate(prefix: "Poison damage taken reduced by ", regex: try? NSRegularExpression(pattern: "^Poison\\ damage\\ taken\\ reduced\\ by\\ ([0-9]+)%$"), count: 1, make: { values in L10n.traits_poison_hardened_description(values[0]) }),
         NumericTemplate(prefix: "Holy damage taken increased by ", regex: try? NSRegularExpression(pattern: "^Holy\\ damage\\ taken\\ increased\\ by\\ ([0-9]+)%$"), count: 1, make: { values in L10n.traits_profane_description(values[0]) }),
         NumericTemplate(prefix: "Deals ", regex: try? NSRegularExpression(pattern: "^Deals\\ ([0-9]+)\\ Holy\\ damage\\ every\\ other\\ turns?\\ to\\ all\\ enemies$"), count: 1, make: { values in L10n.traits_radiant_judgment_description(values[0]) }),
+        NumericTemplate(prefix: "Restore ", regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ Health\\ at\\ the\\ start\\ of\\ each\\ turns?$"), count: 1, make: { values in L10n.traits_reform_description(values[0]) }),
         NumericTemplate(prefix: "Dealing Holy damage restores ", regex: try? NSRegularExpression(pattern: "^Dealing\\ Holy\\ damage\\ restores\\ ([0-9]+)\\ Health$"), count: 1, make: { values in L10n.traits_restoring_light_description(values[0]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Block\\ when\\ dealing\\ Stun\\ or\\ Holy\\ damage$"), count: 1, make: { values in L10n.traits_righteous_guard_description(values[0]) }),
         NumericTemplate(prefix: "Reaching full Health makes the next attack deal ", regex: try? NSRegularExpression(pattern: "^Reaching\\ full\\ Health\\ makes\\ the\\ next\\ attack\\ deal\\ ([0-9]+)\\ additional\\ damage$"), count: 1, make: { values in L10n.traits_sated_fury_description(values[0]) }),

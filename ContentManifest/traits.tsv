@@ -48,3 +48,9 @@ stonehide	Stonehide	Physical damage taken reduced by 10%	damage_taken_percent:ph
 fault_lines	Fault Lines	Stun damage taken increased by 30%	damage_taken_vulnerability:stun:0.30	
 loose_rubble	Loose Rubble	Taking Health damage reduces the next damage dealt by 1		onHealthLossNextDamageReduction:1
 off_balance	Off Balance	Physical and Stun damage taken increased by 20%	damage_taken_vulnerability:physical:0.20|damage_taken_vulnerability:stun:0.20	
+blood_offering	Blood Offering	Attacks cost 1 Health and apply 1 Bleed		attackHealthCost:1|attacksApplyBleed:1
+plague_mask	Plague Mask	Restore 1 Health whenever an opponent takes Poison damage		healOnOpponentPoisonDamage:1
+reform	Reform	Restore 1 Health at the start of each turn		healthAtTurnStart:1
+firestarter	Firestarter	Basic attacks apply 1 Burn		basicAttackApplyBurn:1
+pilfer	Pilfer	Steal 1 Block before attacking		attackStealBlock:1
+hollow_frame	Hollow Frame	Cannot be Leeched		cannotBeLeeched:true

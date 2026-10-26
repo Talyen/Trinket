@@ -5,7 +5,7 @@ import TrinketCore
 enum GameContentTraitsGenerated {
     static let definitions: [CombatantTraitDefinition] = {
         var list = [CombatantTraitDefinition]()
-        list.reserveCapacity(49)
+        list.reserveCapacity(55)
         list.append(CombatantTraitDefinition(
             id: "watchful_guard",
             name: "Watchful Guard",
@@ -335,6 +335,45 @@ enum GameContentTraitsGenerated {
             name: "Off Balance",
             description: "Physical and Stun damage taken increased by 20%",
             modifiers: [.damageTakenVulnerability(.physical, 0.20), .damageTakenVulnerability(.stun, 0.20)]
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "blood_offering",
+            name: "Blood Offering",
+            description: "Attacks cost 1 Health and apply 1 Bleed",
+            triggers: CombatTraitTriggers {
+                $0.attackHealthCost = 1
+                $0.attacksApplyBleed = 1
+            }
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "plague_mask",
+            name: "Plague Mask",
+            description: "Restore 1 Health whenever an opponent takes Poison damage",
+            triggers: CombatTraitTriggers { $0.healOnOpponentPoisonDamage = 1 }
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "reform",
+            name: "Reform",
+            description: "Restore 1 Health at the start of each turn",
+            triggers: CombatTraitTriggers { $0.healthAtTurnStart = 1 }
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "firestarter",
+            name: "Firestarter",
+            description: "Basic attacks apply 1 Burn",
+            triggers: CombatTraitTriggers { $0.basicAttackApplyBurn = 1 }
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "pilfer",
+            name: "Pilfer",
+            description: "Steal 1 Block before attacking",
+            triggers: CombatTraitTriggers { $0.attackStealBlock = 1 }
+        ))
+        list.append(CombatantTraitDefinition(
+            id: "hollow_frame",
+            name: "Hollow Frame",
+            description: "Cannot be Leeched",
+            triggers: CombatTraitTriggers { $0.cannotBeLeeched = true }
         ))
         return list
     }()

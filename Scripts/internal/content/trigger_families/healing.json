@@ -570,6 +570,18 @@
         "kind": "int",
         "order": 108
       }
+    },
+    {
+      "name": "healOnOpponentPoisonDamage",
+      "type": "Int"
+    },
+    {
+      "name": "healthAtTurnStart",
+      "type": "Int"
+    },
+    {
+      "name": "cannotBeLeeched",
+      "type": "Bool"
     }
   ]
 }

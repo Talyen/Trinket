@@ -52,6 +52,24 @@ least one stack grows. Fully capped pools emit no amplification feedback. Legacy
 `multiplyDoT` respects negative-status protection on the existing debuff; growth
 does not consume Fae Ward's interception of a new debuff.
 
+## Enemy identity traits
+
+Blood Offering pays 1 Health once before each attack action and attaches 1 Bleed
+to its hits. The cost bypasses Block and mitigation, follows ordinary Health-cost
+affordability, and is paid again for a repeated attack; support actions and
+intercepted actions do not pay. Pilfer steals up to 1 Block from the selected
+opponent before an attack, using ordinary theft feedback and prevention.
+Firestarter attaches 1 Burn once per Basic action, including Basics whose damage
+is authored as an effect; Skill, Ultimate and later status ticks do not apply it.
+
+Plague Mask restores 1 Health after an opponent actually loses Health to Poison,
+including ongoing Poison from any source. It does not reward blocked damage,
+Poison damage to the wearer, or a defeated wearer. Reform restores 1 Health at
+the beginning of each enemy turn, before control skips. Both use ordinary healing
+modifiers, caps and feedback. Hollow Frame prevents all Leech restoration from
+its wearer, including companion-to-Hero Leech, before chance rolls and rewards;
+it does not prevent the attack damage.
+
 ## Saturation and conditional damage
 
 Card preparations, DoT attachment/growth/detonation, and triggered Thorns gains

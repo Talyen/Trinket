@@ -145,6 +145,7 @@ package enum DamagePipeline {
                 sourceActorID: sourceActorID, in: &context,
             )
         }
+        await EnemyTraitEngine.poisonHealing(from: state, context: &context)
         if state.damageKeyword == .bleed {
             await CombatTriggerEngine.afterBleedDamage(
                 healthLost: state.healthLost, target: state.combatant,

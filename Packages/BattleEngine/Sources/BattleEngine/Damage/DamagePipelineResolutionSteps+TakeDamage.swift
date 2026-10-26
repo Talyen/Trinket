@@ -155,6 +155,7 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) async {
         guard defender.role == .enemy,
+              !context.modifiers(for: defender.id).triggers.cannotBeLeeched,
               let sourceActorID,
               let source = context.roster.combatant(for: sourceActorID),
               source.role == .companion,

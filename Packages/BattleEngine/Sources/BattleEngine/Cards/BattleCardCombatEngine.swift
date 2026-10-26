@@ -130,6 +130,8 @@ package enum BattleCardCombatEngine {
         let enemy = context.enemy
         guard context.roster.enemy.isAlive else { return }
 
+        await EnemyTraitEngine.turnHealth(context: &context)
+        guard !context.isBattleOver, context.roster.enemy.isAlive else { return }
         DefensePoolEngine.decayBlock(on: enemy, in: &context)
 
         if context.roster.hasPendingActionSkip(for: .enemy) {

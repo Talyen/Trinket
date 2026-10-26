@@ -9,6 +9,7 @@ package enum EnemyTraitEngine {
               context.health(of: state.combatant) > 0,
               context.roster.enemy.isAlive
         else { return }
+        await basicBurn(from: state, context: &context)
         await basicFreezeDamage(from: state, context: &context)
         guard state.options.isPrimaryAttack,
               context.health(of: state.combatant) > 0,
@@ -19,6 +20,12 @@ package enum EnemyTraitEngine {
               context.roster.enemy.isAlive
         else { return }
         let triggers = context.enemyModifiers.triggers
+        if triggers.attacksApplyBleed > 0 {
+            await DoTApplicator.applyBleed(
+                potency: triggers.attacksApplyBleed, to: state.combatant,
+                sourceActorID: context.enemy.id, application: .afterHit, in: &context,
+            )
+        }
         if triggers.attacksApplyPoison > 0 {
             await context.applyDecayingDoT(
                 keyword: .poison,

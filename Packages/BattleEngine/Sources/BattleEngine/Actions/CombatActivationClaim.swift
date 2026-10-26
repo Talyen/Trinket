@@ -8,6 +8,7 @@ package enum CombatActivationClaim: Hashable, Sendable {
     case arcaneReservoir
     case arcaneSurge
     case ashenArsenal
+    case basicAttackApplyBurn
     case basicAttackFreezeBuildup
     case batteringRam
     case beacon

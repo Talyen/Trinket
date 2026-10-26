@@ -576,6 +576,18 @@
         "kind": "percent",
         "order": 107
       }
+    },
+    {
+      "name": "attackHealthCost",
+      "type": "Int"
+    },
+    {
+      "name": "attacksApplyBleed",
+      "type": "Int"
+    },
+    {
+      "name": "basicAttackApplyBurn",
+      "type": "Int"
     }
   ]
 }

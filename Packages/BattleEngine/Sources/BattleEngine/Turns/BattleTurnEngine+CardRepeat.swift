@@ -59,6 +59,8 @@ extension BattleTurnEngine {
         let actor = facts.action.actor
         let abilityTarget = facts.action.selectedTarget
 
+        guard await EnemyTraitEngine.beforeAttack(facts, context: &context) else { return }
+
         var totalDealt = 0
         var logKeyword = resolvedAbility.damageKeyword
         var appliedEffects: [Effect] = []
