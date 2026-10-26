@@ -126,11 +126,11 @@ struct DefeatedSourceDoTRegressionTests {
         let burn = ActiveEffect(id: 100, effect: .burn(6), remainingTurns: 0, sourceActorID: "enemy")
         var battle = BattleStateTestFactory.makeMinimalBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 20),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
             heroEffects: [burn],
             heroHealth: 15,
             companionHealth: 10,
             enemyHealth: 50,
-            enemyMaxHealth: 100,
             enemyModifiers: .withTriggers {
                 $0.criticalChanceBonus = -1
                 $0.onBurnDamageHealLowestAllyFlat = 4
