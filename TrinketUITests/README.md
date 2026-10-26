@@ -151,8 +151,10 @@ Assert a journey’s return destination before using helpers that navigate elsew
 
 ## Coverage ownership
 
-- `SmokeBattleTests` owns Campaign entry, manual play, earned victory, committed
-  claim evidence, background return, and Continue navigation. Duplicate settlement
+- `SmokeBattleTests` owns Campaign entry, earned victory, committed claim,
+  background return, Continue, and production-speed rapid cards/drag/retreat.
+  The victory journey uses Auto-Battle; the input journey owns manual play and
+  retreat once, replacing the separate slowed retreat launch. Duplicate settlement
   protection is package-owned by `PlaythroughLifecycleTests`. The termination
   journey uses the Chapter 1 victory fixture, taps the real claim, terminates at
   its stable committed-checkpoint identifier, then verifies the credited Gold,
@@ -161,17 +163,13 @@ Assert a journey’s return destination before using helpers that navigate elsew
   relaunch check only found the already-unlocked first stage; `DefeatCompletionTests`
   owns retry/settlement correctness.
 - `BattleFlowUITests` shares one launch for inspection, dismissal, cancelled drag,
-  and committed drag, retaining hand membership and sheet assertions. Production-speed
-  rapid plays select two distinct card IDs before tapping either, sharing another
-  battle with drag, background return, and a usable exit.
-  Successful plays check the selected ability's departure: draw effects can keep
-  the total hand size unchanged.
-  Its Duo-only rotation journey runs through `player-coverage.sh duo`; it protects
-  retained hand membership, reachable native controls, and post-rotation card play.
-  Other destinations skip this profile-specific method. Actual folding remains
-  an interactive Device Hub check.
-  Card departure and retention queries target buttons by the selected hand-card ID.
-  Retreat smoke slows automatic battle ticks while exercising its menu; normal-speed input and exit remain in `BattleLifecycleUITests`.
+  and committed drag. Successful plays check the selected card's departure;
+  draw effects can keep the total hand size unchanged.
+  `DuoRotationUITests` runs only through Profiles in `player-coverage.sh duo`,
+  retaining hand membership, reachable controls and post-rotation play. Keeping
+  its intentional runtime skip outside FullUI permits CI's complete-execution
+  proof before retrying classified launch failures. Actual folding remains an
+  interactive Device Hub check.
 - Localization retains every language and screenshot surface, but captures progression
   from Battle's shared `CombatantDetailPane` after dismissing ability inspection,
   before the same Campaign battle earns its talent choices. The seven language
@@ -218,12 +216,13 @@ Assert a journey’s return destination before using helpers that navigate elsew
   startup ownership reconciliation. Live approval, decline/retry, refund/repurchase,
   and restore-failure recovery stay separate.
   Cancellation never granting access is package-owned by `FullGameStoreTests`;
-  declined Ask to Buy retries from the locked character. Debug entitlement
-  observations avoid repeated Collection trips
-  where purchase/unlock wiring already has a UI owner. Live App Store restoration
-  evidence remains separate from local entitlement recovery.
-  The refund journey allows its initial StoreKit purchase up to 60 seconds; the
-  offer must dismiss and earned-character access must succeed before refund begins.
+  declined Ask to Buy retries from the locked character. Active approval and
+  restore-failure recovery observe app entitlement and purchase controls without
+  repeating Collection navigation. Cold recovery and decline/retry retain character
+  access wiring. Refund checks Gold and completed Campaign stages across relaunch
+  before repurchasing the same earned character. Its initial purchase allows
+  StoreKit up to 60 seconds and requires offer dismissal and app entitlement before
+  refunding. Live App Store restoration remains separate from local recovery.
 - [Player coverage](../Docs/Platform/PlayerCoverage.md) owns settings profiles,
   twenty-Contract real-audio soak, interrupted settlement, and deferred live checks.
   Profiles require a played card to leave the hand and actually enter the stage unlocked by a claim.

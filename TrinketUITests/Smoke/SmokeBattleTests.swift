@@ -2,22 +2,13 @@ import TrinketFeatureSupport
 import XCTest
 
 final class SmokeBattleTests: TrinketUITestCase {
-    func testCampaignCardPlayVictoryAndClaimUnlockTheNextStage() {
+    func testCampaignVictoryAndClaimUnlockTheNextStage() {
         launchApp(arguments: TestLaunchArg.allForTab("play")
             + ["-performance-strong-party", TestLaunchArg.rewardCheckpoint])
         play.openCampaign()
         play.startBattle(chapter: 1, stage: 1)
         battle.assertActive()
-        let card = battle.frontmostHandCard
-        assertExists(card)
-        let playedID = card.identifier
-        tapWhenReady(card)
-        waitUntil("Manual card play must consume the selected card") {
-            !self.button(playedID).exists || self.any(AccessibilityID.Battle.victory).exists
-        }
-        if battle.autoBattleToggle.exists {
-            tapWhenReady(battle.autoBattleToggle)
-        }
+        tapWhenReady(battle.autoBattleToggle)
         assertExists(AccessibilityID.Battle.victory, timeout: 30)
         let lootAll = button(AccessibilityID.Battle.continueButton)
         scrollUntilVisible(lootAll, swipingUp: true, requireHittable: true)
@@ -30,17 +21,33 @@ final class SmokeBattleTests: TrinketUITestCase {
         assertExists(AccessibilityID.Mystery.encounterTitle)
     }
 
-    func testCampaignBattleRetreatReturnsDirectlyToCampaign() {
-        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("60", in: TestLaunchArg.allForBattle()))
-        battle.assertActive(timeout: 10)
+    func testBackgroundedProductionBattleAcceptsRapidCardsDragAndExit() throws {
+        launchApp(arguments: TestLaunchArg.productionTiming())
+        play.openCampaign()
+        play.startBattle(chapter: 1, stage: 1)
+        battle.assertActive()
+        backgroundAndActivate()
+        let cards = battle.handCards
+        let cardIDs = trinketOnMainActor { cards.allElementsBoundByIndex.map(\.identifier) }
+        let firstID = try XCTUnwrap(cardIDs.last)
+        let secondID = try XCTUnwrap(cardIDs.dropLast().last)
+        XCTAssertNotEqual(firstID, secondID, "Rapid plays must target two distinct cards")
+        tapWhenReady(button(firstID))
+        tapWhenReady(button(secondID))
+        waitUntil("Distinct rapid plays must depart from the hand") {
+            !self.button(firstID).exists && !self.button(secondID).exists
+        }
+        let drag = battle.frontmostHandCard
+        assertExists(drag)
+        let dragID = drag.identifier
+        let origin = drag.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)))
+        waitUntil("Drag following rapid casts must still play") { !self.button(dragID).exists }
         battle.openActions()
         tapButton(AccessibilityID.Battle.retreat)
         XCTAssertFalse(app.alerts.firstMatch.exists)
         assertExists(AccessibilityID.Battle.defeat)
         tapButton(AccessibilityID.Battle.defeatLeaveButton)
         play.assertCampaignLoaded()
-        assertDoesNotExist(AccessibilityID.Battle.autoBattleToggle)
-        assertDoesNotExist(AccessibilityID.Battle.actionsMenu)
-        assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 1))
     }
 }

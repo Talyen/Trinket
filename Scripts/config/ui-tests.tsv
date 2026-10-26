@@ -11,6 +11,7 @@ FullUI||OptionsUITests
 FullUI||BattleLifecycleUITests
 FullUI||HomesteadControlsUITests
 Profiles||CriticalAccessibilityUITests
+Profiles||DuoRotationUITests
 Soak||RepeatedPlayUITests
 FullUI||AudioLifecycleUITests
 

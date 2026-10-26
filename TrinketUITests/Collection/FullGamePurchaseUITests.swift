@@ -10,28 +10,30 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         try startStoreSession()
         let session = try XCTUnwrap(storeSession)
         try await session.setSimulatedError(.generic(.networkError(URLError(.notConnectedToInternet))), forAPI: .appStoreSync)
-        launchApp(arguments: TestLaunchArg.allForTab("options"))
+        launchApp(arguments: TestLaunchArg.allForTab("options") + ["-coverage-diagnostics"])
         assertExistsAfterScroll(AccessibilityID.FullGame.restore, requireHittable: true)
         tapButton(AccessibilityID.FullGame.restore)
         assertExists(AccessibilityID.FullGame.outcome)
-        assertExists(AccessibilityID.FullGame.options)
+        assertFullGameAccess(false)
         try await session.setSimulatedError(nil, forAPI: .appStoreSync)
         tapButton(AccessibilityID.FullGame.options)
         assertPurchaseProductLoaded()
         tapButton(AccessibilityID.FullGame.purchase)
         assertDoesNotExist(AccessibilityID.FullGame.offer)
-        assertWarlockAccessible()
+        assertFullGameAccess(true)
     }
 
-    func testAskToBuyApprovalWhileActiveUnlocksEarnedCharacter() throws {
+    func testAskToBuyApprovalWhileActiveUpdatesAccessAndPurchaseControls() throws {
         let pending = try beginDeferredPurchase()
         try XCTUnwrap(storeSession).approveAskToBuyTransaction(identifier: pending.identifier)
-        assertWarlockAccessible()
+        assertFullGameAccess(true)
+        assertDoesNotExist(AccessibilityID.FullGame.options)
+        assertDoesNotExist(AccessibilityID.FullGame.restore)
     }
 
     func testTerminatedApprovalRestoresAccessWithoutErasingLocalProgress() throws {
         let pending = try beginDeferredPurchase(arguments:
-            TestLaunchArg.completedStages(["chapter-1-stage-1"]) + ["-coverage-diagnostics"])
+            TestLaunchArg.completedStages(["chapter-1-stage-1"]))
         let before = try coverageReport()
         let gold = try XCTUnwrap(before["gold"] as? Int)
         let completed = try XCTUnwrap(before["completedStages"] as? [String])
@@ -55,20 +57,14 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
     }
 
     func testDeclinedAskToBuyRemainsLockedAndAllowsAnotherPurchase() throws {
-        try skipUnavailablePurchaseAutomation()
-        try launchOptionsOffer(arguments: ["-coverage-diagnostics"])
+        let pending = try beginDeferredPurchase()
         let session = try XCTUnwrap(storeSession)
-        session.askToBuyEnabled = true
-        tapButton(AccessibilityID.FullGame.purchase)
-        let pending = try pendingTransaction(in: session)
-        dismissSheet(AccessibilityID.FullGame.offer)
-        assertWarlockLocked()
-        assertFullGameAccess(false)
         try session.declineAskToBuyTransaction(identifier: pending.identifier)
         waitUntil("Decline must clear its pending transaction") {
             !session.allTransactions().contains { $0.pendingAskToBuyConfirmation }
         }
         assertFullGameAccess(false)
+        assertWarlockLocked()
         // Legacy transaction state varies by runtime; prove denial through the purchase guard.
         tapButton(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
         assertExists(AccessibilityID.FullGame.offer)
@@ -81,23 +77,29 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
 
     func testRefundRemovesAccessWithoutErasingEarnedProgress() throws {
         try skipUnavailablePurchaseAutomation()
-        try launchOptionsOffer()
+        try launchOptionsOffer(arguments: TestLaunchArg.completedStages(["chapter-1-stage-1"]) + ["-coverage-diagnostics"])
+        let before = try coverageReport()
+        let gold = try XCTUnwrap(before["gold"] as? Int)
+        let completed = try XCTUnwrap(before["completedStages"] as? [String])
+        XCTAssertTrue(completed.contains("chapter-1-stage-1"), "Refund recovery requires earned progress")
         tapButton(AccessibilityID.FullGame.purchase)
         // iOS 18's StoreKit test service can still be processing after the ordinary UI deadline.
         assertDoesNotExist(AccessibilityID.FullGame.offer, timeout: 60)
-        assertWarlockAccessible()
+        assertFullGameAccess(true)
         let session = try XCTUnwrap(storeSession)
         let transaction = try XCTUnwrap(session.allTransactions().first)
         try session.refundTransaction(identifier: transaction.identifier)
         waitUntil("Refund must be reflected in StoreKit") {
             session.allTransactions().contains { $0.identifier == transaction.identifier && $0.cancelDate != nil }
         }
-        tabBar.select(.options)
+        assertFullGameAccess(false)
         assertExistsAfterScroll(AccessibilityID.FullGame.options, requireHittable: true)
         assertExists(AccessibilityID.FullGame.restore)
+        relaunchApp(arguments: ["-selectedTab", "collection", "-coverage-diagnostics"])
         assertWarlockLocked()
-        relaunchApp(arguments: ["-selectedTab", "collection"])
-        assertWarlockLocked()
+        let after = try coverageReport()
+        XCTAssertEqual(after["gold"] as? Int, gold, "Revocation must preserve earned Gold across relaunch")
+        XCTAssertEqual(after["completedStages"] as? [String], completed, "Revocation must preserve Campaign progress")
         // Recruitment survives: repurchasing restores access to the same earned character.
         tabBar.select(.options)
         tapButton(AccessibilityID.FullGame.options)
@@ -109,13 +111,13 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
 
     private func beginDeferredPurchase(arguments: [String] = []) throws -> SKTestTransaction {
         try skipUnavailablePurchaseAutomation()
-        try launchOptionsOffer(arguments: arguments)
+        try launchOptionsOffer(arguments: ["-coverage-diagnostics"] + arguments)
         let session = try XCTUnwrap(storeSession)
         session.askToBuyEnabled = true
         tapButton(AccessibilityID.FullGame.purchase)
         let pending = try pendingTransaction(in: session)
         dismissSheet(AccessibilityID.FullGame.offer)
-        assertWarlockLocked()
+        assertFullGameAccess(false)
         return pending
     }
 

@@ -391,4 +391,4 @@ esac
                               'TRINKET_COVERAGE_AUDIT_POLICY': 'representative'}, expected=1)
             self.assertTrue((root / 'profile-command').read_text().strip().endswith('--audit-policy representative'))
             self.assertEqual((root / 'calls').read_text().strip(),
-                             'ui --no-build BattleFlowUITests/testDuoRotationPreservesBattleAndCardPlay plan=FullUI duo=1')
+                             'ui --no-build DuoRotationUITests/testDuoRotationPreservesBattleAndCardPlay plan=Profiles duo=1')

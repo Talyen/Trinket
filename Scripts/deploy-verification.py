@@ -28,7 +28,7 @@ CRITICAL_CASES = {
     'audio': 'AudioLifecycleUITests/testRealBackendsPlayAfterBattleAndForegroundRouting',
     'purchase': 'FullGamePurchaseUITests/testDeclinedAskToBuyRemainsLockedAndAllowsAnotherPurchase',
     'save': 'BattleLifecycleUITests/testCommittedRewardSurvivesTerminationWithoutReseeding',
-    'battle': 'BattleLifecycleUITests/testBackgroundedProductionBattleAcceptsRapidCardsDragAndExit',
+    'battle': 'SmokeBattleTests/testBackgroundedProductionBattleAcceptsRapidCardsDragAndExit',
     'navigation': 'PlayModeNavigationUITests/testLabyrinthBossContinueOpensAUsableNextFloor',
 }
 

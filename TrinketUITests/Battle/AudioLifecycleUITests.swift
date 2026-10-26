@@ -19,7 +19,7 @@ final class AudioLifecycleUITests: TrinketUITestCase {
             trinketOnMainActor { (musicVolume.value as? String).map { $0 != "0%" } ?? false }
         }
         let enabledVolume = try trinketOnMainActor { try XCTUnwrap(musicVolume.value as? String) }
-        retainScreenshot(named: "music-volume-after-native-drag")
+        attachSuccessScreenshot(named: "music-volume-after-native-drag")
         waitUntil("Music must start after enabling simulator music") {
             do { return try (self.coverageReport()["musicStarts"] as? Int ?? 0) > 0 }
             catch { return false }

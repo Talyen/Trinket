@@ -13,7 +13,8 @@
     {
       "automaticallyIncludesTests": false,
       "selectedTests": [
-        "CriticalAccessibilityUITests"
+        "CriticalAccessibilityUITests",
+        "DuoRotationUITests"
       ],
       "target": {
         "containerPath": "container:Trinket.xcodeproj",

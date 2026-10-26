@@ -49,8 +49,8 @@ elif [[ "$mode" != soak ]]; then
   python3 Scripts/coverage_profiles.py run --udid "$SIMULATOR_UDID" --output "$coverage_output" \
     --audit-policy "${TRINKET_COVERAGE_AUDIT_POLICY:-all}" || coverage_status=1
   if [[ "$mode" == duo ]]; then
-    TEST_RUNNER_TRINKET_DUO_PROFILE=1 TRINKET_UI_SUCCESS_SCREENSHOTS=1 TRINKET_UI_PLAN=FullUI \
-      ./Scripts/test.sh ui --no-build BattleFlowUITests/testDuoRotationPreservesBattleAndCardPlay || coverage_status=1
+    TEST_RUNNER_TRINKET_DUO_PROFILE=1 TRINKET_UI_SUCCESS_SCREENSHOTS=1 TRINKET_UI_PLAN=Profiles \
+      ./Scripts/test.sh ui --no-build DuoRotationUITests/testDuoRotationPreservesBattleAndCardPlay || coverage_status=1
   fi
   exit "$coverage_status"
 else
