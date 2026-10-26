@@ -24,6 +24,9 @@ def main() -> None:
     parser.add_argument('--comparison', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--experiments', action='store_true', help='also remove the three known abandoned experiment builds')
     parser.add_argument('--resources', action='store_true', help='also verify and expire completed release duplicates (may hash large artifacts)')
+    parser.add_argument('--release-duplicates-only', action='store_true', help='verify at most one backed-up ready release; preserve receipts and authoritative artifacts')
+    parser.add_argument('--intermediates-only', action='store_true', help='expire only idle compiler scratch, preserving all evidence and products')
+    parser.add_argument('--receipt', type=Path, help='write a compact cleanup/dry-run receipt')
     parser.add_argument('--primary', action='store_true', help='inspect/clean the primary checkout rather than this task checkout')
     args = parser.parse_args()
     try:
@@ -53,8 +56,18 @@ def main() -> None:
             else:
                 retention.finish(path, root, args.owner_pid, args.status, comparison=args.comparison)
         else:
-            retention.cleanup(root, apply=args.apply, experiments=args.experiments)
-            if args.resources:
+            if args.release_duplicates_only:
+                from internal import release_retention
+                decisions = []
+                release_retention.cleanup(root, apply=args.apply, max_verify=1, decisions=decisions)
+                if args.receipt:
+                    from internal.cli import write_json_atomic
+                    write_json_atomic(args.receipt, {'schema': 1, 'dry_run': not args.apply,
+                                      'policy': 'one-verified-release-duplicate', 'decisions': decisions})
+                return
+            retention.cleanup(root, apply=args.apply, experiments=args.experiments,
+                              intermediates_only=args.intermediates_only, receipt=args.receipt)
+            if args.resources and not args.intermediates_only:
                 from internal import release_retention
                 release_retention.cleanup(root, apply=args.apply)
     except (OSError, ValueError, subprocess.SubprocessError) as error:

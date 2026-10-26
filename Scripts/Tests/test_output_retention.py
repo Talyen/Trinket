@@ -15,6 +15,28 @@ from internal import output_retention as retention
 
 
 class OutputRetentionTests(ScriptRegressionTestCase):
+    def test_intermediate_only_cleanup_preserves_products_and_unique_evidence(self):
+        old = self.output('.DerivedData/runs/old/Build/Intermediates.noindex/object.o', age=4 * 86400)
+        kept = self.output('.DerivedData/runs/pinned/Build/Intermediates.noindex/object.o', age=4 * 86400)
+        self.output('.DerivedData/runs/pinned/' + retention.KEEP, age=4 * 86400)
+        product = self.output('.DerivedData/runs/old/Build/Products/App.app/binary', age=4 * 86400)
+        evidence = self.output('.DerivedData/runs/old/TestResults/failure.trace', age=4 * 86400)
+        warm = self.output('.DerivedData/CompilationCache.noindex/data.v1', age=4 * 86400)
+        for file in [old, kept]:
+            for parent in file.parents:
+                if parent == self.root: break
+                os.utime(parent, (0, 0))
+        receipt = self.root / 'cleanup.json'
+        with patch.object(retention, 'process_snapshot', return_value=self.processes), \
+             patch.object(retention.subprocess, 'run', return_value=subprocess.CompletedProcess('lsof', 1, '', '')):
+            retention.cleanup(self.root, apply=False, intermediates_only=True, receipt=receipt, now=self.now, verbose=False)
+            self.assertTrue(old.exists())
+            self.assertEqual(len(json.loads(receipt.read_text())['decisions']), 1)
+            retention.cleanup(self.root, apply=True, intermediates_only=True, receipt=receipt, now=self.now, verbose=False)
+        self.assertFalse(old.exists())
+        self.assertTrue(all(file.exists() for file in [kept, product, evidence, warm]))
+        self.assertEqual(json.loads(receipt.read_text())['decisions'][0]['action'], 'removed')
+
     def test_legacy_swiftpm_cache_expires_after_three_days_without_touching_sources(self):
         old = self.output('Packages/TrinketCore/.build/debug/product', age=4 * 86400)
         source = self.output('Packages/TrinketCore/Sources/source.swift', age=4 * 86400)
@@ -211,7 +233,11 @@ class OutputRetentionTests(ScriptRegressionTestCase):
         self.assertTrue(orphan.exists())
         pin.unlink()
         maintenance.cleanup(results, False)
-        self.assertFalse(orphan.exists())
+        self.assertTrue(orphan.exists())
+        review = json.loads((results / '.retention-review.json').read_text())
+        self.assertFalse(review['permanent_deletion_approved'])
+        self.assertEqual(review['candidates'][0]['path'], str(orphan))
+        self.assertEqual(review['reclaimed_bytes'], 0)
 
     def test_guidance_receipts_only_expire_for_this_repository(self):
         owned = self.output('receipts/trinket-agent-owned.json', content=json.dumps({'root': str(self.root.resolve())}))

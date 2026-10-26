@@ -5,7 +5,7 @@ source Scripts/lib/lock.sh
 
 trinket_output_retention_begin() {
   local path="$1" comparison="${2:-false}" pid="${BASHPID:-$$}" cleanup
-  [[ "${TRINKET_OUTPUT_RETENTION_READY:-0}" == 1 ]] || python3 Scripts/cleanup-outputs.py --apply >/dev/null || return $?
+  [[ "${TRINKET_OUTPUT_RETENTION_READY:-0}" == 1 ]] || python3 Scripts/cleanup-outputs.py --apply --intermediates-only >/dev/null || return $?
   export TRINKET_OUTPUT_RETENTION_READY=1
   if python3 Scripts/cleanup-outputs.py --begin "$path" --owner-pid "$pid"; then
     printf -v cleanup 'trinket_output_retention_finish %q %q %q "$?"' "$path" "$pid" "$comparison"

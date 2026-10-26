@@ -256,6 +256,20 @@ the required toolchain.
 
 ### Output retention
 
+New task creation automatically retires only compiler scratch under idle run tenants
+(`Build/Intermediates.noindex`, `Index.noindex`, `ModuleCache.noindex`) after three
+days. Products, package checkouts, diagnostic evidence and shared compilation caches
+remain intact. Active/unknown owners, pins, leases and path-scoped open files block
+removal. Process identity queries inspect only the invocation and direct owner,
+never the whole host. A compact receipt is kept under `.DerivedData/Retention/`.
+
+Use `cleanup-outputs.py --dry-run --primary --intermediates-only --receipt PATH`
+for an exact plan; `--apply` applies that policy. `--release-duplicates-only` instead
+verifies at most one backed-up ready deployment per call and preserves authoritative
+artifacts/receipts. Existing release hashes, UUID checks and grace periods apply.
+Unique historical evidence is outside these automatic additions and requires an
+exact reviewed deletion batch; no general evidence age/size purge is added.
+
 `python3 Scripts/cleanup-outputs.py --dry-run` lists expired known output paths,
 protected paths, and allocated-byte totals without writing a report. `--apply`
 removes those candidates. Add `--experiments` for the three abandoned build
@@ -314,8 +328,10 @@ retained for 14 days. Allocated bytes do not measure compressed transfer size,
 cache effectiveness or game RAM. No hosted caches are deleted by the reporter.
 
 Successful logs disappear after consumers finish. Failure and comparison evidence (including agent evaluations under
-`.DerivedData/AgentEvaluationResults/`)
-expires after 24 hours; timing entries expire individually. Live owners, leases,
+`.DerivedData/AgentEvaluationResults/`) becomes eligible for review after 24 hours;
+automatic producer cleanup preserves these historical outputs and writes a bounded
+`.retention-review.json` candidate receipt in TestResults. No permanent deletion of
+unique evidence occurs without exact-batch approval; timing entries expire individually. Live owners, leases,
 locks, and explicitly kept output prevent deletion. Unknown owner state or an
 unreadable process inventory prevents cleanup. Symlinks are never followed.
 Expiry runs opportunistically through the existing tools, with no background job.

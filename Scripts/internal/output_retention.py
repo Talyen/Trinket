@@ -44,7 +44,7 @@ def safe_path(path: Path, boundary: Path) -> bool:
                    if parent.resolve().is_relative_to(resolved_boundary))
 
 
-def run_cache_roots(root: Path) -> list[Path]:
+def run_cache_roots(root: Path, *, intermediates_only: bool = False) -> list[Path]:
     parent = root / '.DerivedData/runs'
     paths = []
     if safe_path(parent, root) and parent.is_dir():
@@ -55,6 +55,12 @@ def run_cache_roots(root: Path) -> list[Path]:
     if safe_path(packages, root) and packages.is_dir():
         paths.extend(p for p in packages.glob('*/.build')
                      if safe_path(p, root) and p.is_dir())
+    if intermediates_only:
+        # Exact compiler scratch roots only. Preserve products, result bundles,
+        # package checkouts, diagnostic logs and the warm shared compilation cache.
+        paths = [base / relative for base in paths if base.parent == root / '.DerivedData/runs'
+                 for relative in ('Build/Intermediates.noindex', 'Index.noindex', 'ModuleCache.noindex')
+                 if safe_path(base / relative, root) and (base / relative).is_dir()]
     return paths
 
 
@@ -89,11 +95,14 @@ def managed_path(path: Path, root: Path) -> bool:
 
 
 def process_snapshot() -> dict[int, tuple[str, str]]:
+    # Only this invocation and its direct owner are inspected. Other owners are
+    # protected conservatively by PID liveness, and cache removal checks scoped
+    # open files. Never enumerate unrelated host processes.
     # Simulator startup can temporarily stall process inspection on hosted Macs.
     # Retry that transient timeout once; malformed or unavailable inventories still fail closed.
     for timeout in (10, 30):
         try:
-            result = subprocess.run(['ps', '-axo', 'pid=,lstart=,command='], capture_output=True,
+            result = subprocess.run(['ps', '-p', f'{os.getpid()},{os.getppid()}', '-o', 'pid=,lstart=,command='], capture_output=True,
                                     text=True, check=True, timeout=timeout)
             break
         except subprocess.TimeoutExpired:
@@ -111,6 +120,18 @@ def process_snapshot() -> dict[int, tuple[str, str]]:
     if not processes:
         raise ValueError('empty process snapshot; refusing cleanup')
     return processes
+
+
+def process_alive(pid: int) -> bool:
+    if type(pid) is not int or pid <= 0:
+        return True
+    try:
+        os.kill(pid, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
 
 
 def protection(path: Path, root: Path, processes: dict[int, tuple[str, str]]) -> str:
@@ -142,11 +163,13 @@ def protection(path: Path, root: Path, processes: dict[int, tuple[str, str]]) ->
                 pid, started = identity['pid'], identity['started']
                 if type(pid) is not int or pid <= 0 or not isinstance(started, str) or not started.strip():
                     return 'unknown owner'
-                if pid in processes and processes[pid][0] == started:
+                if ((pid in processes and processes[pid][0] == started)
+                        or (pid not in processes and process_alive(pid))):
                     return f'active owner {pid}'
             except (OSError, ValueError, KeyError, TypeError):
                 return 'unknown owner'
-    # Older runs predate owner markers. Never expire a path named by a live job.
+    # Preserve paths named by a known invoking owner; other processes are checked
+    # through exact ownership/lease PIDs and path-scoped open-file queries.
     for pid, (_, command) in processes.items():
         relative = str(path.relative_to(root))
         if pid != os.getpid() and (original_path in command or str(path) in command or relative in command):
@@ -172,7 +195,7 @@ def protection(path: Path, root: Path, processes: dict[int, tuple[str, str]]) ->
             pid = int(slot.read_text().split()[0])
         except (OSError, ValueError, IndexError):
             return 'unknown lease or lock owner'
-        if pid in processes and runtime_output:
+        if pid != os.getpid() and (pid in processes or process_alive(pid)) and runtime_output:
             return f'active lease or lock {pid}'
     return ''
 
@@ -302,13 +325,14 @@ def finish(path: Path, root: Path, pid: int, status: int, *, comparison: bool = 
 
 
 def expire_run_caches(root: Path, *, apply: bool, now: float, processes: dict,
-                      verbose: bool, max_age: float) -> tuple[int, int]:
-    paths = run_cache_roots(root)
+                      verbose: bool, max_age: float, intermediates_only: bool = False,
+                      decisions: list | None = None) -> tuple[int, int]:
+    paths = run_cache_roots(root, intermediates_only=intermediates_only)
     if not paths:
         return 0, 0
     def expire():
         return expire_paths(paths, root, apply=apply, now=now, processes=processes,
-                            verbose=verbose, max_age=max_age, check_open=True)
+                            verbose=verbose, max_age=max_age, check_open=True, decisions=decisions)
     if not apply:
         return expire()
     # Slot allocation uses this same directory lock. A newly allocated agent
@@ -333,14 +357,25 @@ def expire_run_caches(root: Path, *, apply: bool, now: float, processes: dict,
 
 
 def cleanup(root: Path, *, apply: bool, experiments: bool = False,
-            now: float | None = None, receipts_dir: Path | None = None, verbose: bool = True) -> tuple[int, int]:
+            now: float | None = None, receipts_dir: Path | None = None, verbose: bool = True,
+            intermediates_only: bool = False, receipt: Path | None = None) -> tuple[int, int]:
     now = time.time() if now is None else now
     emit = print if verbose else lambda *args: None
     processes = process_snapshot()
     cache_age = run_cache_seconds()
+    decisions = []
     # Shared Xcode/host caches, arbitrary legacy folders and TestFlight are excluded.
     e, f = expire_run_caches(root, apply=apply, now=now, processes=processes,
-                             verbose=verbose, max_age=cache_age)
+                             verbose=verbose, max_age=cache_age,
+                             intermediates_only=intermediates_only, decisions=decisions)
+    if intermediates_only:
+        if receipt:
+            write_json_atomic(receipt, {'schema': 1, 'root': str(root), 'dry_run': not apply,
+                              'policy': 'idle-compiler-intermediates-only', 'decisions': decisions,
+                              'removed_or_eligible_allocated_bytes': f,
+                              'note': 'Reported allocation may share APFS extents; unique evidence/products preserved.'})
+        emit(f'{"Removed" if apply else "Eligible"}: {e} compiler scratch roots, {f} allocated bytes.')
+        return e, f
     paths = []
     for base in output_roots(root):
         if safe_path(base, root) and base.is_dir():
@@ -378,7 +413,7 @@ def cleanup(root: Path, *, apply: bool, experiments: bool = False,
 def expire_paths(paths: list[Path], boundary: Path, *, apply: bool, now: float | None = None,
                  processes: dict[int, tuple[str, str]] | None = None, verbose: bool = True,
                  immediate: set[Path] | None = None, max_age: float | None = None,
-                 check_open: bool = False) -> tuple[int, int]:
+                 check_open: bool = False, decisions: list | None = None) -> tuple[int, int]:
     now = time.time() if now is None else now
     processes = process_snapshot() if processes is None else processes
     emit = print if verbose else lambda *args: None
@@ -409,16 +444,20 @@ def expire_paths(paths: list[Path], boundary: Path, *, apply: bool, now: float |
             if reason:
                 emit(f'SKIP {path}: {reason}')
                 continue
-        if path in immediate or check_open:
-            opened = subprocess.run(['lsof', '-n', '-P', '+D', str(path)],
-                                    capture_output=True, text=True, timeout=30)
-            if opened.returncode != 1 or opened.stdout.strip() or opened.stderr.strip():
-                emit(f'SKIP {path}: open files or unavailable open-file inventory')
-                continue
+        opened = subprocess.run(['lsof', '-n', '-P', *(['+D', str(path)] if path.is_dir() else ['--', str(path)])],
+                                capture_output=True, text=True, timeout=30)
+        if opened.returncode != 1 or opened.stdout.strip() or opened.stderr.strip():
+            emit(f'SKIP {path}: open files or unavailable open-file inventory')
+            continue
         if apply:
             if not path.exists() or (path not in immediate and metadata(path)[0] > now - max_age):
                 continue
             remove(path)
+        if decisions is not None:
+            decisions.append({'path': str(path), 'allocated_bytes': size, 'newest_write': modified,
+                              'action': 'removed' if apply else 'eligible',
+                              'recovery': 'Regenerate with repository build/test entrypoints and retained Git inputs',
+                              'purpose': 'Compiler intermediates; products, logs, releases and package sources excluded'})
         count += 1
         total += size
         emit(f'{"REMOVE" if apply else "WOULD REMOVE"} {path}: {size} allocated bytes')
@@ -443,4 +482,12 @@ def expire_results(base: Path) -> tuple[int, int]:
     if base.name != 'TestResults' or not safe_path(base, base) or not base.is_dir():
         raise ValueError('expiry requires an explicit nonsymlink TestResults directory')
     boundary = ROOT if base.is_relative_to(ROOT) else base
-    return expire_paths(disposable_entries(base), boundary, apply=True)
+    decisions = []
+    result = expire_paths(disposable_entries(base), boundary, apply=False, decisions=decisions)
+    for item in decisions:
+        item.update(action='review-only', purpose='Historical diagnostic output',
+                    recovery='Not verified restorable; explicit exact-batch approval required')
+    write_json_atomic(base / '.retention-review.json', {'schema': 1, 'kind': 'trinket-evidence-review',
+                      'permanent_deletion_approved': False, 'candidates': decisions[:64],
+                      'more_candidates': len(decisions) > 64, 'reclaimed_bytes': 0})
+    return result

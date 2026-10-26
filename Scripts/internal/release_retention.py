@@ -82,13 +82,14 @@ def working_copies(run: Path, receipt: dict) -> list[tuple[Path, str]]:
     return result
 
 
-def cleanup(root: Path, *, apply: bool, now: float | None = None, verbose: bool = True) -> tuple[int, int]:
+def cleanup(root: Path, *, apply: bool, now: float | None = None, verbose: bool = True,
+            max_verify: int | None = None, decisions: list | None = None) -> tuple[int, int]:
     now = time.time() if now is None else now
     emit = print if verbose else lambda *args: None
     state = root / '.DerivedData/testflight'
     if not state.is_dir() or not retention.safe_path(state, root):
         return 0, 0
-    removed = allocated = 0
+    removed = allocated = verified = 0
     with deployment_lock(root, apply):
         processes = retention.process_snapshot()
         processes.pop(os.getpid(), None)
@@ -103,6 +104,14 @@ def cleanup(root: Path, *, apply: bool, now: float | None = None, verbose: bool 
                 reason = retention.protection(run, root, processes)
                 if reason:
                     raise ValueError(reason)
+                if not working_copies(run, receipt):
+                    emit(f'RETAIN receipt {receipt_path}: no duplicate working copies remain')
+                    continue
+                if max_verify is not None and verified >= max_verify:
+                    break
+                if not receipt.get('symbol_artifacts', {}).get('path'):
+                    raise ValueError('No authoritative backup recorded; original artifacts preserved')
+                verified += 1
                 preserved, manifest = symbols.verified_release(receipt)
                 preserved_at = (preserved / 'symbol-manifest.json').stat().st_mtime
                 eligible_at = max(completed_time(receipt, receipt_path), preserved_at) + MAX_AGE
@@ -149,6 +158,11 @@ def cleanup(root: Path, *, apply: bool, now: float | None = None, verbose: bool 
                             emit(f'SKIP {path}: receipt or owner changed')
                             continue
                         retention.remove(path)
+                    if decisions is not None:
+                        decisions.append({'path': str(path), 'allocated_bytes': size,
+                                          'action': 'removed' if apply else 'eligible',
+                                          'purpose': 'Hash-verified duplicate release working copy',
+                                          'recovery': str(preserved), 'receipt': str(receipt_path)})
                     removed += 1
                     allocated += size
                     emit(f'{"REMOVE" if apply else "WOULD REMOVE"} duplicate-release-{kind} {path}: '

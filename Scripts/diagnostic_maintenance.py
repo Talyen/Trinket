@@ -215,7 +215,7 @@ def cleanup(root: Path, keep: bool) -> None:
         if remove(root / "ci-diagnostics.json"):
             removed += 1
     expired, _ = expire_results(root)
-    print(f"Cleaned {removed} successful diagnostic artifact(s) and {expired} expired output(s) from {root}")
+    print(f"Cleaned {removed} successful diagnostic artifact(s) and identified {expired} historical output(s) for review (preserved) from {root}")
 
 
 def main(argv: list[str]) -> int:

@@ -56,6 +56,15 @@ class ReleaseRetentionTests(unittest.TestCase):
     def clean(self, apply=True):
         return releases.cleanup(self.root, apply=apply, now=self.now, verbose=False)
 
+    def test_bounded_pass_skips_already_retired_receipts(self):
+        retired = self.run.parent / '00-already-retired'
+        retired.mkdir()
+        (retired / 'receipt.json').write_text(json.dumps(self.receipt))
+        # Its paths belong to the actual fixture run, so this old receipt has no local duplicates.
+        self.assertEqual(releases.cleanup(self.root, apply=False, now=self.now,
+                                         verbose=False, max_verify=1)[0], 3)
+        self.assertTrue(self.ipa.exists())
+
     def test_dry_run_apply_and_recovery_are_idempotent(self):
         self.assertEqual(self.clean(False)[0], 3)
         self.assertTrue(self.ipa.exists())

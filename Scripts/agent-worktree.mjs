@@ -71,6 +71,12 @@ try {
         if (fs.existsSync(destination)) throw new Error(`Worktree already exists: ${destination}. Reuse it for this task only.`);
         // Refuse existing branches rather than accidentally reusing another chat's work.
         git(["rev-parse", "--verify", `${options["--base"] ?? "main"}^{commit}`], primary);
+        const retention = path.join(source, "Scripts/cleanup-outputs.py");
+        if (fs.existsSync(retention)) {
+          const maintenance = spawnSync("python3", [retention, "--apply", "--primary", "--intermediates-only", "--receipt", path.join(primary, ".DerivedData/Retention/latest-intermediates.json")], { cwd: source, encoding: "utf8", timeout: 20_000 });
+          if (maintenance.status !== 0) console.log("Idle compiler cleanup deferred; active or unavailable ownership is preserved.");
+          else if (maintenance.stdout.trim()) console.log(maintenance.stdout.trim());
+        }
         fs.mkdirSync(path.dirname(destination), { recursive: true });
         console.log(git(["worktree", "add", "--no-checkout", "-b", branch, destination, options["--base"] ?? "main"], primary));
         const { storageProfile, populateWorktree } = await import("./lib/worktree-storage.mjs");
