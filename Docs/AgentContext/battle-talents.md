@@ -446,15 +446,9 @@ damage during Mana empowerment, without adding hits or another Mana payment.
 
 ### Soul Drain and healer-provided Block
 
-Soul Drain converts remaining excess Leech healing after partner sharing into
-resolved Mana up to the owner's missing capacity. Only actual Mana restored is
-allocated; unused excess remains for later conversions. Resolved conversion does
-not repeat restoration bonuses or doubling rolls; ordinary Mana feedback and
-reactions remain. Legacy flat Leech Mana grants retain their separate behavior.
-Barrier Blessing and Reclaimed Reagents convert the healer's excess into recipient
-Block after sharing. Full conversion precedes half conversion, and one allocation
-prevents duplicate source/recipient spending. Shared Prescription, Contagious Joy,
-Blood Link, and Wishspring retain their existing targeting and preparation rules.
+Soul Drain, Barrier Blessing and Reclaimed Reagents follow the canonical
+[overflow allocation and conversion order](battle-healing.md#allocation-and-overflow).
+The named targeting and preparation exceptions below remain separate.
 
 ### Campfire Comfort
 
@@ -490,10 +484,8 @@ card repeats, ticks, and detonations do not reuse the allowance. The separate
 
 ### Shared Leech
 
-Symbiosis shares a fraction of actual Leech restoration. Shared Feast transfers
-only excess Leech restoration from Panther to its living ally. Do not reroll
-Critical Hits or apply healing magnitude bonuses a second time. Soul Sharing
-shares the first actual Leech restoration each turn even when its hit defeats the enemy.
+Symbiosis, Shared Feast and Soul Sharing use the canonical
+[Leech sharing contract](battle-healing.md#leech-and-shared-restoration).
 
 ### Living Archive, Wishspring, and Marrowmend
 

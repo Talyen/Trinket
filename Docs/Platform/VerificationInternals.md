@@ -196,6 +196,17 @@ deletions, authored test plans, generated project and schemes. Markdown, compile
 caches and Xcode user state are excluded. Change cache-version prefixes when layouts
 change. Assess cache value using restore, build and save durations together.
 
+CI package caches restore/save only each shard's declared tenants under
+`.DerivedData/host/<package>` or `.DerivedData/packages/<package>`, plus compiler
+input timestamps; dependencies build inside that owner. Native-only lanes omit
+simulator products. The `package-v2`/`package-native-v2` namespaces exclude older
+broad archives, while retaining toolchain/platform identities and prefix reuse.
+Package selection namespaces keys so qualification subsets cannot replace a full
+shard's immutable cache. Restored/final metadata-only footprint reports follow
+[output retention](../../Scripts/Reference.md#output-retention). Allocated bytes do
+not measure transfer compression, cache effectiveness or game RAM; the reporter
+never deletes hosted caches.
+
 Combined gates omit a repeated API-ban slice only after style has passed; standalone
 cheap slices retain the full registry. Unit mode delegates to the package runner
 and its timing/diagnostic records.

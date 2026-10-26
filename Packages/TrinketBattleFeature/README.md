@@ -190,12 +190,8 @@ never submit production gameplay commands, claim rewards, or change saves.
 
 ## Testing
 
-Ordinary task checks are selected automatically by
-[handoff](../../Docs/Platform/Verification.md#confidence-ladder). To select this package explicitly:
-
-```sh
-./Scripts/handoff.sh --package TrinketBattleFeature
-```
+Use the [verification procedure](../../Docs/Platform/Verification.md#confidence-ladder)
+for task checks and explicit package diagnostics.
 
 Semantic feedback classification lives in `CombatFeedbackPresenterTests`. Test
 exclusions and smoke ownership follow [Testing.md](../../Docs/Platform/Testing.md)

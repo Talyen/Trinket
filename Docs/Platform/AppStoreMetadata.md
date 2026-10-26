@@ -1,13 +1,12 @@
 # App Store submission draft
 
-Submission draft for App Store Connect app `6811284921`, currently named
-**Trinket!**. The intended submission includes iCloud progress sync; current
-published pages and the latest inspected beta remain local-only. Apply the
-cloud-enabled replacements below only with a verified enabled build. These are
-draft fields, not standing policy. Product facts (identifier, pricing, Family
-Sharing) live in
-[Purchases.md](Purchases.md); release prerequisites and commands remain in
-[Release.md](Release.md).
+Submission fields for existing App Store Connect app `6811284921`. These are
+candidate-dependent drafts, not a statement of live portal or distributed-build
+state. Use local-only copy unless the named candidate has verified iCloud sync;
+cloud-enabled replacements below require the
+[activation gates](CloudKitPreShipChecklist.md#prepared-testflight-activation).
+Product facts (identifier, pricing, Family Sharing) live in [Purchases.md](Purchases.md);
+release prerequisites and commands remain in [Release.md](Release.md).
 
 | Field | Draft |
 |---|---|
@@ -57,40 +56,19 @@ App Store Connect product `6811501717` uses the existing identifier from
 Submit the first non-consumable with the app version; product configuration alone
 does not submit it for review.
 
-### Read-only readiness check — October 12, 2026
+### Candidate evidence
 
-- Apple API: Full Game is a non-consumable in `MISSING_METADATA`, with Family
-  Sharing enabled, US-only availability, and no purchase review screenshot or
-  review note. English product localization is `PREPARE_FOR_SUBMISSION`.
-- App version **1.0** is `PREPARE_FOR_SUBMISSION`, with manual release, no selected
-  build, and no screenshot sets. Existing review contact fields are populated;
-  sign-in is not required. The app name is **Trinket!**. The stored description
-  and review notes still describe local-only progress and must be reconciled
-  with the eventual cloud-enabled submission. The description also predates Voyage.
-- Existing age-rating answers declare frequent/intense fantasy violence and
-  weapons, mild/infrequent horror, and no paid loot boxes, gambling, chat, UGC,
-  or advertising. These answers were read, not changed; a full release-artwork
-  review and App Privacy answer reconciliation remain outstanding.
-- iPhone 14 Pro, installed TestFlight **0.1.0 (24)**: live product loading showed
-  **$4.99**; Apple's sheet explicitly stated testing only/no charge. A fresh
-  purchase succeeded, the offer dismissed, and Options showed **Full Game ·
-  Purchased**. Restore Purchases was exercised to completion and ownership
-  remained; ownership also survived termination/relaunch. Existing Stage 1-8
-  progress was preserved. This is not proof of fresh-install restoration,
-  Family Sharing, refund handling, gameplay-reset behavior, or the changed UI.
-- The retained local build-24 receipt records `cloud_sync=NO` and source
-  `898ca7f19015a6f186a0ee2a5c02ffa02be31315`. It does not verify current cloud sync.
-- Release doctor confirmed Apple API access and the existing Personal Testing
-  internal group. Paid Apps Agreement/banking/tax status was not verified:
-  the browser was signed out. Older pending-account notes are historical;
-  sandbox purchase success does not establish production agreement status.
+Record portal checks, purchase/device outcomes and unresolved prerequisites in the
+candidate's release handoff. Before submission, recheck the
+[purchase prerequisites](Purchases.md#before-release), listing fields/screenshots,
+matching version/build and storefront availability under [Release](Release.md).
+A historical sandbox purchase does not establish current production agreements,
+Family Sharing or CloudKit readiness.
 
-Before submission, verify the agreement directly, prepare and upload the
-release-build purchase screenshot, add app screenshots, choose a matching
-version/build, and confirm intended storefront availability. No portal fields,
-website content, tester membership, uploads, or submission state were changed by
-this check. The release candidate and current cloud-enabled device checks remain
-pending under the [CloudKit checklist](CloudKitPreShipChecklist.md).
+The October 12, 2026 portal and build-24 inspection is preserved in Git at
+`47087791fa5b7f5fcd4466e6a7483bb5ac03ee94:Docs/Platform/AppStoreMetadata.md`
+and in the documentation-consolidation task's retained evidence. It is a dated
+baseline, not qualification of the next candidate.
 
 ## Cloud-enabled beta copy
 

@@ -304,16 +304,15 @@ archive arena there without changing the Mac's preferences. Leave `SYMROOT`,
 individually can separate compiled products and dSYMs from archive assembly.
 Signed archives, exported IPAs, and checksums remain separate
 per deployment; a build number or binary is never relabeled for reuse.
-Keep one verified archive, IPA, matching symbols and provenance record per uploaded
-build indefinitely in the authoritative symbol-artifact store. Receipts and failed
-build-number reservations never expire. Successful IPA inspection removes its
-temporary extraction after identity/signature validation, retaining compact proof;
-an explicit keep preserves the extraction too. Failed inspections remain available.
+[Output retention](../../Scripts/Reference.md#output-retention) owns authoritative
+release lifetimes, inspection scratch and duplicate-copy eligibility. Successful
+IPA inspection retains compact identity/signature proof before its scoped
+extraction is removed.
 
 `cleanup-outputs.py --dry-run --resources --primary` audits duplicate release
 working copies. Apply with `--apply --resources --primary` only after reviewing
-the inventory. Ready deployments get a 24-hour grace period after preservation
-and completion (legacy receipts use their last write as a conservative bound).
+the inventory. The retention window begins after preservation and completion;
+legacy receipts use their last write as a conservative bound.
 Each deletion revalidates the authoritative manifest, all archive hashes, matching
 native UUIDs/dSYMs and IPA checksum/resources. Working copies must also match;
 unknown/mismatched outputs, live owners/open files, locks, recent writes and keeps

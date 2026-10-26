@@ -65,9 +65,5 @@ This supports iOS 18.0 without `isolated deinit`, which requires iOS 18.4+.
 
 ## Testing
 
-Ordinary task checks are selected automatically by
-[handoff](../../Docs/Platform/Verification.md#confidence-ladder). To select this package explicitly:
-
-```sh
-./Scripts/handoff.sh --package TrinketCore
-```
+Use the [verification procedure](../../Docs/Platform/Verification.md#confidence-ladder)
+for task checks and explicit package diagnostics.

@@ -291,9 +291,10 @@ whole-source and toolchain fingerprints as provenance; integration does not dema
 or trigger local compilation. No manual verification transcript is required.
 Previews establish no execution evidence. Visual artifacts still need capture and review.
 
-`--quiet` prints phase outcomes and bounded failures. Successful raw logs are
-removed; failed logs expire after 24 hours unless deliberately kept. Follow the
-printed full-log or documentation-report paths to inspect all relevant failures.
+`--quiet` prints phase outcomes and bounded failures. Follow the printed full-log
+or documentation-report paths to inspect all relevant failures.
+[Output retention](../../Scripts/Reference.md#output-retention) owns log lifetimes
+and protection of historical evidence.
 Missing Xcode makes selected compilation incomplete, with exit code 2; static-only
 checks can pass without Xcode and prove only their static scope.
 

@@ -2,7 +2,7 @@
 type: execution-plan
 status: active
 created: 2026-09-29
-updated: 2026-10-03
+updated: 2026-10-25
 expires: 2026-10-13
 ---
 
@@ -24,6 +24,11 @@ files or authored content manifests. This establishes the repository inventory;
 it does not establish the current contents of authenticated App Store Connect,
 previously uploaded screenshots, or external marketing material.
 
+Retained after the October 25 documentation review: implementation and external
+rollout are still outstanding in this inventory. Refresh the September 29 source
+and portal inventory before implementation; this pass changes no branding or
+publication authorization.
+
 ## Confirmed external references
 
 Line numbers below identify the baseline and may move during implementation.
@@ -37,7 +42,7 @@ Line numbers below identify the baseline and may move during implementation.
 | Support website | [Website/index.html](../../Website/index.html):6,7,12,15,21,24,25,27,29,31 | Replace every game-name occurrence in metadata, browser title, navigation, introduction, purchase/restore/Family Sharing/progress/refund copy. HTML uses `Fable &amp; Fang`. |
 | Privacy website | [Website/privacy.html](../../Website/privacy.html):6,7,12,16,18,21,23,27,30,32 | Replace every game-name occurrence, including both mentions on lines 16 and 21, and the Support footer. Keep data-practice statements unchanged. HTML uses `Fable &amp; Fang`. |
 | In-app external destinations | [FullGameOfferView.swift](../../Trinket/Features/Monetization/FullGameOfferView.swift):136–138, `TrinketPublicPages` | Privacy and Support URLs contain `/Trinket/`. Retain working URLs in the initial rename; see the URL decision below. The Swift enum name is internal. |
-| App Store and beta copy draft | [AppStoreMetadata.md](../Platform/AppStoreMetadata.md):3,38,42,50,85,92,97 | Use `Fable & Fang`, replacing the recorded `Trinket: Heroes & Companions` title and game-name prose in the description, review notes, and prepared cloud-enabled beta copy. Add an explicit Name row. Keep local-only and cloud-enabled copy separate. |
+| App Store and beta copy draft | [Localized submission fields](../Platform/AppStoreMetadata.md#localized-submission-fields), `Localization/Store/English.json` | Update canonical `Localization/Store/English.json` app-name and game-name fields, review notes and prepared cloud-enabled beta copy. Recheck the live portal name separately; dated observations remain in the metadata draft's historical evidence pointer. Keep local-only and cloud-enabled copy separate. |
 | Default TestFlight What to Test text | [Scripts/internal/testflight.rb](../../Scripts/internal/testflight.rb):158 | Change the fallback `Trinket <version> (<build>)…` to `Fable & Fang…`. Explicit `--notes` files still need their own copy review. The READY message at line 333 is developer output and can remain. |
 | Public GitHub release title | [.github/workflows/release.yml](../../.github/workflows/release.yml):117 | Change `Trinket ${{ github.ref_name }}` to `Fable & Fang ${{ github.ref_name }}`. Keep workflow identity, tags, release gates, and artifact paths unchanged. |
 | Public repository introduction | [README.md](../../README.md):1; [cliff.toml](../../cliff.toml), `changelog.header` (generates the introduction in [CHANGELOG.md](../../CHANGELOG.md)) | Rename the README game heading and authored changelog header. Regenerate the changelog through the requested release workflow; do not hand-edit it. Preserve package links and existing release URLs. No title-brand references were found in current `ReleaseNotes/` text. |

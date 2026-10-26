@@ -18,9 +18,5 @@ Load the matching reference, not the whole inventory. The
 
 ## Testing
 
-Ordinary task checks are selected automatically by
-[handoff](../../Docs/Platform/Verification.md#confidence-ladder). To select this package explicitly:
-
-```sh
-./Scripts/handoff.sh --package TrinketDesignSystem
-```
+Use the [verification procedure](../../Docs/Platform/Verification.md#confidence-ladder)
+for task checks and explicit package diagnostics.

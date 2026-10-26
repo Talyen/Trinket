@@ -56,8 +56,8 @@ after capture freezes, not during the measured interaction.
 The runner retains session-scoped results under `.DerivedData/PerformanceResults/`,
 including successful calibration runs. Set `TRINKET_PERFORMANCE_OUTPUT_DIR=<path>`
 to choose a fresh directory; existing directories are rejected to prevent mixing
-runs. Reports follow the shared [output-retention controls](../../Scripts/Reference.md#output-retention);
-keep evidence explicitly when an active investigation needs it beyond 24 hours.
+runs. [Output retention](../../Scripts/Reference.md#output-retention) owns review,
+preservation and keep/release controls for those reports.
 If UI execution fails,
 the runner still collects available reports and returns failure. Raw logs and
 result bundles remain beside the reports for investigation.
@@ -365,8 +365,8 @@ swept or permanently deleted by this producer.
 For ad-hoc SwiftUI table exports, use an owned temporary directory and keep the
 compact analysis in the capture directory. Pin raw XML explicitly if needed for
 follow-up; avoid leaving multi-gigabyte derived tables beside captures. Existing
-test/log output retention remains 24 hours with active-owner/keep safeguards; do
-not broaden it into a purge of screenshots, saves, raw captures or release symbols. The default location is
+[output retention](../../Scripts/Reference.md#output-retention) owns diagnostic review
+and protection of screenshots, saves, raw captures and release symbols. The default location is
 `~/Library/Developer/Trinket/BuildArtifacts/profiles/`, outside disposable worktrees;
 `TRINKET_SYMBOL_BACKUP_ROOT` changes the shared artifact root. An explicit `--output`
 uses the supplied location, whose lifetime the caller owns. Existing output is never
@@ -399,37 +399,13 @@ preflight actions.
 
 During capture, reproduce the exact interaction under the [evidence contract](#evidence-contract).
 
-### Unresolved device evidence
+### Device qualification
 
-Direct-launch, app-scoped CPU and Animation Hitches capture has worked over Wi-Fi;
-attachment and device-wide capture remain unreliable. Launch, scrolling, Campaign
-transitions and card play have recorded hitches. Their remaining causes and
-shipping-device improvements need controlled attribution and matched measurements.
-
-Existing optimizations reduce recurring Stun rendering and compositor work, and
-spread hidden-root layout. Their evidence does not establish hitch elimination, a global
-FPS floor, lower total launch CPU, or faster readiness. Retain native navigation,
-sheet motion, artwork budgets and pinning. Full-card warmup and removal of Combat
-Log navigation chrome did not justify adoption. SwiftUI attribution instrumentation
-added symbol-lookup overhead, so its gesture timings are not production measurements.
-
-Thermal/Low Power Mode, cold/settled/revisit memory, background/foreground and
-direct-touch dismissal evidence remain open. Controlled refresh-cadence, first-use
-artwork, equipment/shared browsing, save/reward returns and rapid-combat checks
-also remain incomplete. Resume under the investigation loop when a player-visible
-problem is reproducible or tools permit the missing checks.
-Closed investigations do not waive these gaps or justify visual reductions.
-
-Detailed measurements and rejected experiments remain in Git history and retained
-profiles under `~/Library/Developer/Trinket/BuildArtifacts/profiles/`, especially
-`iphone-investigation-20261019/` and `iphone-hitches-followup-20261019/`.
-Older capture diagnostics used `.DerivedData/PerformanceResults/`. Check artifact
-availability and matching binaries/symbols before reuse; historical observations
-do not establish today's device, installed build, or tool reliability.
-
-The weekly [real-player soak](PlayerCoverage.md) retains diagnostic simulator
-footprint/audio observations. It supplies functional ownership and repeated-play
-coverage, not hardware budgets or authoritative audible/thermal evidence.
+The active [iPhone performance campaign](../Plans/IPhonePerformance.md) owns
+recorded investigation results, remaining device evidence and restoration duties.
+Resume measurements under the investigation loop above; recheck capture
+availability, matching binaries/symbols and the actual device/build before reuse.
+Historical successes or closed experiments do not establish current readiness.
 
 ## Memory and energy
 

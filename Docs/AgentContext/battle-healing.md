@@ -8,10 +8,14 @@ Use with [engine ownership](battle-engine.md) for healing, overflow, bounded gai
 transferred overflow, maximum-Health and Block allocations, and unspent overflow.
 Each consuming consequence allocates from the remainder. Block conversions spend
 only accepted Block, preserving rejected or capacity-limited overflow for later
-consequences. Soul Drain likewise allocates its resolved Mana conversion after
-partner sharing. Barrier Blessing converts
-the healer's remaining excess to recipient resolved Block, without repeating Block bonuses or fight pacing. Reclaimed Reagents converts half
-instead; full conversion takes precedence when both apply.
+consequences. Soul Drain converts remaining excess Leech after partner sharing to
+resolved Mana up to the living owner's missing capacity. Allocate only actual
+restoration; unused excess remains for later conversions. Resolved conversion
+skips restoration bonuses and doubling rolls but retains ordinary Mana feedback
+and reactions. Legacy flat Leech Mana grants keep their separate behavior.
+Barrier Blessing converts the healer's remaining excess after sharing to recipient
+resolved Block, without repeating Block bonuses or fight pacing. Reclaimed Reagents
+converts half instead; full conversion takes precedence when both apply.
 Transfers offer at most the recipient's missing Health so nested healing cannot convert overflow already
 owned by the parent. Echoes and Leech success read actual restoration. Independent
 observers such as Wishspring read original overflow without consuming it.
@@ -85,7 +89,10 @@ powers retain their strength and describe that same additional fraction.
 Symbiosis shares its wearer's actual Leech restoration with the living partner,
 whether equipped by a Hero or Companion. Its saved `companionLeechSharePercent`
 field remains unchanged. Shares apply recipient healing reduction without
-repeating healer bonuses, and cannot trigger another Leech share. Recheck the source's
+repeating healer bonuses or Critical Hit rolls, and cannot trigger another Leech
+share. Shared Feast transfers only Panther's excess Leech to its living ally.
+Soul Sharing shares the first actual Leech restoration each turn even when its
+hit defeats the enemy. Recheck the source's
 survival after restoration and each share: lethal healing reactions preserve the
 committed Leech feedback but stop later personal rewards, shares, and ally Mana.
 Toxic Remedy replaces its recipient's prepared Poison attack damage with half

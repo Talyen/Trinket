@@ -2,7 +2,7 @@
 type: execution-plan
 status: active
 created: 2026-10-09
-updated: 2026-10-23
+updated: 2026-10-25
 expires: 2026-10-23
 ---
 
@@ -14,6 +14,10 @@ Complete the seven approved real-player coverage areas, preserving card-play
 semantics, saves, artwork and sound. The original October 9 task authorized review,
 repairs, integration, push and CI follow-through. Live account operations, sync
 enablement and deployment remain excluded.
+
+Retained after the October 25 documentation review: FullUI/profile/Soak acceptance
+remains incomplete in the recorded evidence. Current-main hosted coverage was not
+refreshed by this documentation pass.
 
 ## Recorded status
 

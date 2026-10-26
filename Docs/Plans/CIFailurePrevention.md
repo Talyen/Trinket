@@ -2,7 +2,7 @@
 type: execution-plan
 status: active
 created: 2026-10-17
-updated: 2026-10-23
+updated: 2026-10-25
 expires: 2026-10-24
 ---
 
@@ -16,6 +16,10 @@ native Settings evidence, atomic consumer/fixture migration and deterministic as
 Local integration `577efc7e0` passed the 55 selected script suites and lightweight
 gates; hosted qualification and observation remain outstanding. The original task
 authorized branch publication, hosted validation and seven-day follow-up.
+
+Retained after the October 25 documentation review: hosted qualification, the
+seven-day comparison and the missing-follow-up decision remain unclosed in the
+recorded evidence. This pass did not rerun CI or recreate the automation.
 
 ## Recorded blockers
 

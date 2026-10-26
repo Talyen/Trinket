@@ -115,9 +115,8 @@ Use explicit `--samples` increases and additional seeds to confirm candidates.
 take much longer even at the default sample count.
 
 The CLI writes a findings brief and JSON sidecar under the gitignored
-`BalanceSweepReports/` directory. Reports remain available for comparison for 24 hours. Use the
-[keep/release controls](../../Scripts/Reference.md#output-retention) when an active
-investigation needs a longer window, then release its evidence when finished. The runner owns process isolation,
+`BalanceSweepReports/` directory. [Output retention](../../Scripts/Reference.md#output-retention)
+owns comparison-evidence review and keep/release controls. The runner owns process isolation,
 sampling, pacing, policy, and report schemas. Workers receive the canonical
 `BalanceSweepConfig` as JSON, with only mode, concurrency, and work slice changed;
 do not forward settings through a second CLI flag list. Documentation should not mirror those

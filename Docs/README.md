@@ -37,6 +37,7 @@ outgoing links are references, not additional workflow steps.
 | App Store metadata draft (data, not policy) | [App Store field drafts](Platform/AppStoreMetadata.md); [Release](Platform/Release.md) owns the procedure |
 | CloudKit enablement gates | [CloudKit checklist](Platform/CloudKitPreShipChecklist.md) (ordered gates); [storage contract](AgentContext/persistence-storage.md) owns save behavior |
 | Commit format, hooks, and push preconditions | [Platform/Release.md](Platform/Release.md) |
+| Artifact lifetimes and cleanup eligibility | [Output retention](../Scripts/Reference.md#output-retention); release-copy validation in [Release](Platform/Release.md#options-and-recovery) |
 | Audit procedure | [Audits/README.md](Audits/README.md) plus the cited audit file |
 
 Link to the owner for detailed rules. A short local summary is useful when it
@@ -55,7 +56,7 @@ not a substitute for a usable explanation.
 | `Docs/Audits/Proposals.md` | Narrow durable audit memory; evidence pointers must continue to resolve |
 | Active execution plans | Temporary, with advisory review dates; allowed only directly under `Docs/Plans/` |
 | Completed or cancelled plans | Fold current requirements into their canonical owners, then delete; no outcome archive |
-| Diagnostic logs and comparison output | Successful logs are removed after consumers finish; remaining output expires after 24 hours unless explicitly kept for active investigation |
+| Diagnostic output, caches and release artifacts | [Output retention](../Scripts/Reference.md#output-retention) owns lifetimes, protection and review versus deletion; [Release](Platform/Release.md#options-and-recovery) owns release-copy validation and recovery |
 | Task deliverables | Handoff writes compact execution reports automatically; integration adds the task scope and preserves `.DerivedData/Deliverables/` outside the checkout. `agent-worktree.mjs evidence` preserves other files. These deliverables do not expire with diagnostic logs |
 | Evals | Representative validation fixtures, not standing workflow policy |
 

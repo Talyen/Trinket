@@ -92,19 +92,12 @@ See `Tests/README.md` for test ownership and conventions.
 
 ## Testing
 
-Ordinary task checks are selected automatically by
-[handoff](../../Docs/Platform/Verification.md#confidence-ladder). To select this package explicitly:
-
-```sh
-./Scripts/handoff.sh --package BattleEngine
-```
+Use the [verification procedure](../../Docs/Platform/Verification.md#confidence-ladder)
+for task checks and explicit package diagnostics.
 
 The package command skips `BattleBalanceToolsTests` and `BalanceSweepCLITests` by
-default so balance sweeps do not run in unit or deployment verification. Run those tests only when
-explicitly evaluating the balance tools:
-
-```sh
-./Scripts/test-package.sh --include-balance-sweep-tests BattleEngine
-```
+default so balance sweeps do not run in unit or deployment verification. Balance-tool selection uses
+`test-package.sh --include-balance-sweep-tests BattleEngine` under the same
+verification policy.
 
 Use `BattleStateTestFactory.makeBattle(...)` with a fixed seed for deterministic outcomes.

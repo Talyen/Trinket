@@ -225,19 +225,16 @@ and use the current invocation's evidence.
 
 After the aggregate has been staged, successful invocation artifacts are ephemeral
 by default. `ci-diagnostics.sh --cleanup` removes passed bundles, reports, manifests,
-and raw logs while retaining failed evidence and the recent timing entries (24-hour expiry per entry).
-UI CI jobs retain compact current-job timing and aggregate JSON for 14 days,
+and raw logs while retaining failed evidence and recent timing entries.
+UI CI jobs retain compact current-job timing and aggregate JSON,
 including passing runs; cached timing is cleared before a CI invocation so old
 runs cannot be mistaken for the current one. Successful full bundles and screenshots
 remain ephemeral. Timing queries are bounded and optional; targeted-test evidence queries are
 bounded and fail when execution cannot be established.
-Pass `--keep` for a deliberate local investigation. The same cleanup sweeps
-orphaned bundles/logs from runs
-that crashed before writing a completion manifest, age-bounded by
-`TRINKET_OUTPUT_MAX_AGE_HOURS` (default 24 hours). Failed manifests, reports,
-attachments, and raw logs also expire after 24 hours. `--keep` marks the results
-directory for an active investigation until explicitly released; see
-[output cleanup](../../Scripts/Reference.md#output-retention).
+Pass `--keep` for a deliberate local investigation. Automatic producer cleanup
+records historical failure/orphan candidates for review rather than deleting
+unique evidence. [Output retention](../../Scripts/Reference.md#output-retention)
+owns the review window, timing expiry, deletion conditions and persistent keep controls.
 
 For GitHub Actions failures, prefer check-run annotations (SwiftLint / compiler)
 and a short `--log-failed` tail over scraping the full log when the excerpt only
@@ -261,8 +258,8 @@ with its own ownership receipt for the same results directory. It refuses to
 replace other nonempty directories; choose a fresh destination for legacy artifacts
 without a receipt. Existing symlink and overlapping-directory guards still apply.
 
-Hosted failure artifacts also retain 14 days; names include the run attempt so a
-rerun can retain new evidence without colliding with the original upload. The
+Hosted failure artifact names include the run attempt so a rerun can retain new
+evidence without colliding with the original upload. Their lifetime, the
 repository retention setting and large product-transfer exceptions are owned by
 [output retention](../../Scripts/Reference.md#output-retention).
 

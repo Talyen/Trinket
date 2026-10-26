@@ -144,6 +144,25 @@ doctor and dry-run need no opt-in.
 | `python3 Scripts/simulator-idle-cleanup.py --check` | Preview human-session idle cleanup; [operations](../Docs/Platform/SimulatorOperations.md#optional-human-session-idle-cleanup) owns opt-in installation/removal |
 | `./Scripts/balance-sweep.sh` | Headless battle balance sweep |
 
+### Resource reports
+
+`python3 Scripts/report-build-size.py --archive /path/Trinket.xcarchive --output /new/evidence`
+records universal app/catalog sizes, encoding groups and receipt source identity.
+`--app /path/Trinket.app` inspects an existing build instead. An expressly requested
+local diagnostic may add `--export-thinned` using existing signing credentials,
+the heavy-local flag and shared host lane. It never uploads or requests provisioning
+updates. Exported IPA catalogs are inspected inside temporary scope; native size
+reports, compact encoding groups, logical sizes and logs survive. Failed exports
+retain universal inventory/diagnostics without claiming thinning succeeded. These
+are local Xcode estimates, neither certified App Store delivery sizes nor RAM.
+
+`report-profile-inventory.py` defaults to the external artifact store's `profiles`
+root; `--root` selects another capture root. Choose a new output outside that root.
+It separates raw trace XML, unknown XML and named export candidates and always
+reports zero bytes eligible for deletion. Metadata, adjacent traces and keep/owner
+controls do not prove reproducibility or inactivity: verify capture identity,
+regeneration and consumers before a migration, preserving needed evidence first.
+
 ### Internal helpers
 
 Find an internal helper through its calling command, hook or workflow. These are
@@ -256,103 +275,63 @@ the required toolchain.
 
 ### Output retention
 
-New task creation automatically retires only compiler scratch under idle run tenants
-(`Build/Intermediates.noindex`, `Index.noindex`, `ModuleCache.noindex`) after three
-days. Products, package checkouts, diagnostic evidence and shared compilation caches
-remain intact. Active/unknown owners, pins, leases and path-scoped open files block
-removal. Process identity queries inspect only the invocation and direct owner,
-never the whole host. A compact receipt is kept under `.DerivedData/Retention/`.
+This matrix owns artifact lifetimes and cleanup eligibility. The executable owners
+are [output retention](internal/output_retention.py),
+[release-copy validation](../Docs/Platform/Release.md#options-and-recovery),
+[evidence preservation](../Docs/Platform/Release.md#evidence-and-cleanup) and the
+producing hosted workflows. Age alone never proves that an artifact is disposable.
 
-Use `cleanup-outputs.py --dry-run --primary --intermediates-only --receipt PATH`
-for an exact plan; `--apply` applies that policy. `--release-duplicates-only` instead
-verifies at most one backed-up ready deployment per call and preserves authoritative
-artifacts/receipts. Existing release hashes, UUID checks and grace periods apply.
-Unique historical evidence is outside these automatic additions and requires an
-exact reviewed deletion batch; no general evidence age/size purge is added.
+| Artifact | Default lifetime / review point | Removal conditions |
+|---|---|---|
+| Successful test/gate invocation bundles, reports and raw logs | Until consumers finish | Producer cleanup removes successful output after staging; explicit keeps remain protected |
+| Historical failure, orphan and comparison evidence, including agent evaluations | Review after 24 hours (`TRINKET_OUTPUT_MAX_AGE_HOURS`) | Automatic producer cleanup writes `.retention-review.json`; permanent deletion of unique evidence requires exact-batch approval |
+| Local timing entries and temporary guidance receipts | 24 hours per timing entry; one day of inactivity for checkout-scoped guidance receipts | Existing expiry removes eligible entries/receipts individually |
+| Idle task tenants under `.DerivedData/runs/` and legacy `Packages/*/.build/` | Three days without writes (`TRINKET_RUN_MAX_AGE_DAYS`) | Explicit cleanup checks ownership, leases, keeps and open files under the simulator allocation lock; includes rebuildable products |
+| Compiler scratch retired at task creation | Same idle-cache window | Only `Build/Intermediates.noindex`, `Index.noindex` and `ModuleCache.noindex`; preserves products, package checkouts, diagnostics and shared compilation caches |
+| Successful IPA inspection / thinned-export scratch | Until inspection consumers finish | Scoped temporary cleanup retains compact validation/size proof; failed inspection output and explicit keeps remain available |
+| Ready TestFlight duplicate working copies | 24 hours after verified preservation and completion | Deployment-locked hash/UUID/receipt validation; unfinished, unknown, mismatched, active or kept copies remain protected |
+| Authoritative uploaded archive, IPA, matching symbols and provenance; deployment receipts and failed build-number reservations | Indefinite | Release working-copy cleanup never removes these records |
+| Task deliverables and preserved evidence snapshots | No automatic age expiry | Integration/cleanup preserves verified copies outside the task checkout |
+| Raw device traces, matching symbols and explicitly retained derived exports | Caller-owned / explicitly kept | No general profile sweep; preserve raw evidence and verify any proposed derivative deletion separately |
+| Hosted logs, bounded diagnostics, compact timing, size/cache reports and native qualification evidence | 14 days | Workflow expiry, subject to GitHub's repository retention cap |
+| Exact qualified release proof | 30 days | [Release verification workflow](../.github/workflows/release-verification.yml) owns this exception |
+| Hosted reusable build products, iOS runtime transfers and full performance traces | One day | Consumer window only; missing/expired products follow existing rebuild/validation policy |
 
-`python3 Scripts/cleanup-outputs.py --dry-run` lists expired known output paths,
-protected paths, and allocated-byte totals without writing a report. `--apply`
-removes those candidates. Add `--experiments` for the three abandoned build
-experiments (CPU optimization, BalanceSweep refactor, Labyrinth host tests). This
-explicit option checks for open files and active owners rather than relying on
-directory timestamps, which can change when a checkout moves.
-Shared Xcode/host/device caches, pinned tools, generated freshness state, release
-receipts and authoritative signed archives/symbols are preserved. Idle tenants under
-`.DerivedData/runs/` and legacy `Packages/*/.build/` expire after three days without writes, including their build
-products and intermediates; `TRINKET_RUN_MAX_AGE_DAYS` overrides this window.
-Recent writes, live owners, leases, keep markers and open files protect a tenant.
-Unavailable process/open-file inventories fail closed. Expiry shares the simulator
-slot allocation lock so it cannot remove a newly claimed agent cache. Arbitrary
-legacy build directories outside those explicit roots remain untouched. The balance
-CLI is rebuildable; retiring its inactive SwiftPM cache can make its next run slower.
+All local removal preserves live or unknown owners, leases, locks, keep markers
+and unavailable process/open-file inventories. Symlinks are never followed.
+Shared Xcode/host/device caches, pinned tools, generated freshness state and
+arbitrary legacy build directories are outside ordinary expiry. Process queries
+inspect only this invocation/direct owner and scoped open files. Cleanup is
+explicit or opportunistic through existing tools, with no background job.
 
-`--primary` selects this repository's primary checkout from a task worktree.
-Add `--resources` for the more expensive full verification and 24-hour expiry of
-ready TestFlight duplicate working copies. Review the dry run before applying;
-[release retention](../Docs/Platform/Release.md#options-and-recovery) owns eligibility,
-permanent artifacts and recovery. Reports distinguish protected releases and unknown
-state from eligible duplicate allocated bytes. Regular opportunistic cleanup does
-not hash all release archives.
+`python3 Scripts/cleanup-outputs.py --dry-run` lists known candidates, protection
+reasons and allocated bytes without writing a report; `--apply` applies that
+inventory's policy. From a task checkout, `--primary` selects the primary checkout.
+The balance CLI is rebuildable, so retiring its eligible SwiftPM cache can make
+the next run slower. Add `--experiments` only for the named CPU optimization,
+BalanceSweep refactor and Labyrinth host-test experiments; open-file/owner checks
+still apply rather than trusting directory timestamps.
 
-`python3 Scripts/report-build-size.py --archive /path/Trinket.xcarchive --output /new/evidence`
-records universal app/catalog sizes, encoding groups and source identity when the
-archive has an adjacent receipt. `--app /path/Trinket.app` inspects an existing build
-instead. Unsigned device Release CI retains this compact inventory for 14 days.
-These are neither device delivery sizes nor measured resident RAM.
-An expressly requested local diagnostic may add `--export-thinned` for a device
-size report using existing signing credentials, `TRINKET_ALLOW_HEAVY_LOCAL=1` and
-the shared host lane. It never uploads or requests provisioning updates; exported
-products are temporary. Each exported IPA's catalog is inspected inside that
-temporary scope; compact encoding groups and logical app/catalog sizes survive
-with the native size report/log. These are local Xcode thinning estimates, not
-certified App Store delivery sizes or measured RAM. Failed export
-leaves universal inventory and diagnostics without claiming thinning succeeded.
-
-`report-profile-inventory.py` defaults to the external artifact store's `profiles`
-root; `--root` selects another existing capture root. The output must be new and
-outside that root. Raw trace XML and unknown XML remain separate from named export
-candidates. Adjacent traces/provenance and retention controls are metadata leads,
-not proof of reproducibility or idle ownership. The report always declares zero
-bytes eligible for deletion. Verify capture identity, a regeneration recipe and
-consumer/owner state before a later migration; preserve needed evidence first.
-
-CI package caches restore/save only each shard's declared package tenants under
-`.DerivedData/host/<package>` and, for simulator lanes,
-`.DerivedData/packages/<package>`, plus compiler input timestamps. Dependencies
-build inside those tenants. Native-only lanes omit simulator products. Scoped
-`package-v2`/`package-native-v2` namespaces prevent restoring the old broad archives;
-the first run rebuilds, while subsequent runs retain existing toolchain/platform
-identity and prefix reuse. Package selection also namespaces keys, so qualification
-subsets cannot replace a full shard's immutable cache. Restored/final metadata-only footprint reports are
-retained for 14 days. Allocated bytes do not measure compressed transfer size,
-cache effectiveness or game RAM. No hosted caches are deleted by the reporter.
-
-Successful logs disappear after consumers finish. Failure and comparison evidence (including agent evaluations under
-`.DerivedData/AgentEvaluationResults/`) becomes eligible for review after 24 hours;
-automatic producer cleanup preserves these historical outputs and writes a bounded
-`.retention-review.json` candidate receipt in TestResults. No permanent deletion of
-unique evidence occurs without exact-batch approval; timing entries expire individually. Live owners, leases,
-locks, and explicitly kept output prevent deletion. Unknown owner state or an
-unreadable process inventory prevents cleanup. Symlinks are never followed.
-Expiry runs opportunistically through the existing tools, with no background job.
-`TRINKET_OUTPUT_MAX_AGE_HOURS` overrides the default for a deliberate investigation.
+For compiler scratch only, use `--dry-run --primary --intermediates-only
+--receipt PATH`; the compact receipt records `.DerivedData/Retention/` decisions.
+`--release-duplicates-only` verifies at most one ready backed-up deployment per
+call. `--resources` includes the more expensive release duplicate inventory;
+review its dry run before applying. Normal opportunistic cleanup does not hash
+all release archives. [Release](../Docs/Platform/Release.md#options-and-recovery)
+owns exact validation and recovery mechanics.
 
 ```sh
 python3 Scripts/cleanup-outputs.py --keep BalanceSweepReports/investigation
 python3 Scripts/cleanup-outputs.py --release BalanceSweepReports/investigation
 ```
 
-Keep/release accepts existing paths in the known repository output roots.
-`ci-diagnostics.sh --cleanup --keep` uses the same persistent keep marker.
-`TRINKET_KEEP_REPORTS=1` keeps a wrapper's output until released;
-`TRINKET_CLEANUP_TEST_ARTIFACTS=0` only defers cleanup through downstream consumers.
-Custom destinations outside these roots stay caller-owned. Temporary guidance
-receipts are scoped to this checkout and expire after one day of inactivity.
-Hosted logs, bounded failure diagnostics, compact timing, and native qualification
-evidence retain a 14-day window. The repository Actions retention setting must be
-at least 14 days or GitHub caps the workflow requests. Check it with
-`gh api repos/Talyen/Trinket/actions/permissions/artifact-and-log-retention`;
-changing the setting affects future evidence and cannot restore expired objects.
-Large reusable build-product and iOS runtime artifacts retain a one-day consumer
-window; full performance traces also expire after one day. Missing or expired
-products follow the existing rebuild/validation policy.
+Keep/release accepts existing paths in known repository output roots.
+`ci-diagnostics.sh --cleanup --keep` uses the same persistent marker.
+`TRINKET_KEEP_REPORTS=1` keeps wrapper output until released;
+`TRINKET_CLEANUP_TEST_ARTIFACTS=0` defers cleanup through downstream consumers.
+Custom destinations outside these roots remain caller-owned.
+
+Check GitHub's repository cap before relying on a workflow's requested window:
+`gh api repos/Talyen/Trinket/actions/permissions/artifact-and-log-retention`.
+A lower repository cap shortens retention; changing it affects future evidence
+and cannot restore expired objects.

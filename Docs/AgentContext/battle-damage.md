@@ -162,11 +162,10 @@ flat mitigation, typed resistance and Block; unapplied prepared protection remai
 
 ## Repeats, retaliation and living-owner rewards
 
-The Final Spark snapshots each original packet's outgoing magnitude and Critical
-Hit result before recipient defenses. Its repeat uses current defenses without
-rerolling or consuming another source preparation. Threefold Grace checks every
-positive qualifying Health-damage packet, including periodic and reaction damage,
-without enabling other keyword reactions on those paths.
+[Unique equipment](../Product/UniqueItems.md#card-cadence-and-reactions) owns
+The Final Spark's capture/replay rule; its
+[damage and resource contract](../Product/UniqueItems.md#damage-status-and-resource-rules)
+owns Threefold Grace's packet eligibility.
 Barbed adds flat damage to a consumed Thorns stack before blocked or poisoned
 Thorns multipliers; it does nothing without an active Thorns stack.
 Bristling checks Block remaining after the incoming hit. Spiteful heals only
@@ -188,8 +187,8 @@ Blood Money rewards, Golden Verdict's Stun theft, and Critical Hit Gold stop aft
 final defeat.
 Holy-triggered Purge and target weakening also stop if retaliation defeats their
 source; the Holy damage already committed remains.
-Red Harvest detonates Bleed and Huntsmaster’s Call draws a Companion card only
-after Physical Critical Hits remove Health.
+Red Harvest and Huntsmaster's Call follow their
+[Unique interaction rules](../Product/UniqueItems.md).
 Cutpurse Knife rolls a fixed 10% chance per positive Bleed damage packet to steal
 Gold equal to damage remaining plus damage absorbed by Block, including fully
 Blocked hits and periodic Bleed. Theft modifiers apply afterward; a defeated

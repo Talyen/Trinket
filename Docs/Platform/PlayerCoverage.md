@@ -36,10 +36,9 @@ run owns soak/recovery. Manual dispatch selects
 compatibility, profiles, soak, or all. Results are advisory for pushes, but requested-job failures produce a failed coverage aggregate. Requested FullUI also fails its advisory aggregate on failed, skipped, or unavailable execution; CI OK remains independent. Skipped
 jobs mean unrequested portfolios, not executed coverage.
 
-Run wrappers in CI or a bounded, task-relevant local diagnostic under
-[execution limits](Verification.md#execution-limits). Local diagnostics require
-`TRINKET_ALLOW_HEAVY_LOCAL=1`; separate user approval is not required to reproduce
-or resolve a concrete failure. The CI invocations are:
+[Verification](Verification.md#execution-limits) owns local authorization, selectors
+and resource limits, including its single focused diagnostic exception. The
+following commands select hosted portfolios:
 
 ```sh
 ./Scripts/player-coverage.sh ios18

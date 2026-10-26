@@ -77,9 +77,5 @@ through CloudKit. [Purchases](../../Docs/Platform/Purchases.md) owns the lifecyc
 
 ## Testing
 
-Ordinary task checks are selected automatically by
-[handoff](../../Docs/Platform/Verification.md#confidence-ladder). To select this package explicitly:
-
-```sh
-./Scripts/handoff.sh --package TrinketPersistence
-```
+Use the [verification procedure](../../Docs/Platform/Verification.md#confidence-ladder)
+for task checks and explicit package diagnostics.

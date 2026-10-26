@@ -84,9 +84,10 @@ uses full equipped Basic abilities, including utility effects, with normal
 - Kingbreaker snapshots enemy Block for each Stun packet, adds it before incoming
   mitigation, and bypasses Block without consuming it. Serpent's Eye checks
   Poison before each attack packet; other mitigation remains effective.
-- Oathkeeper and Bloodember share applicable numeric damage bonuses, counting
-  shared universal bonuses once. Resistances, durations, Leech and proc behavior
-  stay separate. Shared attacks consume the same first-attack and prepared-damage
+- Oathkeeper and Bloodember use the
+  [shared numeric damage policy](../AgentContext/battle-damage.md#stored-damage-and-detonation).
+  Resistances, durations, Leech and proc behavior stay separate. Shared attacks
+  consume the same first-attack and prepared-damage
   allowances as the original type, including Bounty Blade, Soul Burn, Ashen
   Vitality, Redline, Nimble Fang, Feigned Miss, Phantom Counter, and Temper Cycle. Consuming a
   shared bonus leaves none for a later hit of the original type. Stored
@@ -103,8 +104,9 @@ uses full equipped Basic abilities, including utility effects, with normal
 - Red Harvest detonates all remaining Bleed after a damaging Physical Critical
   Hit, using existing detonation rules. There is no turn allowance.
 - Threefold Grace rolls on each positive Burn, Freeze, or Holy Health-damage
-  packet dealt to an enemy by either party member. Success restores 1 Mana to
-  the item wearer through normal Mana-gain rules. Full Mana does not roll.
+  packet dealt to an enemy by either party member, including periodic and reaction
+  damage without enabling other keyword reactions on those paths. Success restores
+  1 Mana to the item wearer through normal Mana-gain rules. Full Mana does not roll.
 - Golden Verdict's Holy damage builds equal Stun. When that Holy hit completes
   a Stun, its Gold reward counts as theft and activates Gold-theft reactions.
 - Laughing Guard prevents passive Block decay only. Its Dodge reaction spends

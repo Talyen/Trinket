@@ -169,12 +169,8 @@ issue a second pop that briefly exposes the intermediate picker.
 
 ## Testing
 
-Ordinary task checks are selected automatically by
-[handoff](../../Docs/Platform/Verification.md#confidence-ladder). To select this package explicitly:
-
-```sh
-./Scripts/handoff.sh --package TrinketFeatureSupport
-```
+Use the [verification procedure](../../Docs/Platform/Verification.md#confidence-ladder)
+for task checks and explicit package diagnostics.
 
 Keep presentation-model, cache, and frame-analysis tests here. Shipping journeys stay
 with the closest UI smoke owner.

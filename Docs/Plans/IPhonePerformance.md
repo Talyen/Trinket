@@ -2,7 +2,7 @@
 type: execution-plan
 status: active
 created: 2026-10-12
-updated: 2026-10-23
+updated: 2026-10-25
 expires: 2026-10-26
 ---
 
@@ -32,10 +32,42 @@ the displayed value; direct drags established playback. These are automation
 leads, not proven player defects. Preserve reward assertions and the direct Music
 gesture; discarded tap/query prototypes and temporary logging remain removed.
 
-Later device investigations are recorded in the
-[performance playbook](../Platform/PerformanceInvestigationPlaybook.md#unresolved-device-evidence).
-Reconcile those results and release receipts before resuming this campaign;
-its older observations do not describe today's device or build state.
+### Later recorded investigations
+
+These observations were moved from the standing performance playbook during the
+October 25 documentation review; no device or installed build was rechecked.
+Reconcile them with release receipts before resuming the campaign.
+
+Direct-launch, app-scoped CPU and Animation Hitches capture has worked over Wi-Fi;
+attachment and device-wide capture remain unreliable. Launch, scrolling, Campaign
+transitions and card play have recorded hitches. Their remaining causes and
+shipping-device improvements need controlled attribution and matched measurements.
+
+Existing optimizations reduce recurring Stun rendering and compositor work, and
+spread hidden-root layout. Their evidence does not establish hitch elimination, a global
+FPS floor, lower total launch CPU, or faster readiness. Retain native navigation,
+sheet motion, artwork budgets and pinning. Full-card warmup and removal of Combat
+Log navigation chrome did not justify adoption. SwiftUI attribution instrumentation
+added symbol-lookup overhead, so its gesture timings are not production measurements.
+
+Thermal/Low Power Mode, cold/settled/revisit memory, background/foreground and
+direct-touch dismissal evidence remain open. Controlled refresh-cadence, first-use
+artwork, equipment/shared browsing, save/reward returns and rapid-combat checks
+also remain incomplete. Resume under the
+[investigation loop](../Platform/PerformanceInvestigationPlaybook.md#investigation-loop)
+when a player-visible problem is reproducible or tools permit the missing checks.
+Closed investigations do not waive these gaps or justify visual reductions.
+
+Detailed measurements and rejected experiments remain in Git history and retained
+profiles under `~/Library/Developer/Trinket/BuildArtifacts/profiles/`, especially
+`iphone-investigation-20261019/` and `iphone-hitches-followup-20261019/`.
+Older capture diagnostics used `.DerivedData/PerformanceResults/`. Check artifact
+availability and matching binaries/symbols before reuse; historical observations
+do not establish today's device, installed build, or tool reliability.
+
+The weekly [real-player soak](../Platform/PlayerCoverage.md) retains diagnostic simulator
+footprint/audio observations. It supplies functional ownership and repeated-play
+coverage, not hardware budgets or authoritative audible/thermal evidence.
 
 ## Remaining work
 
@@ -49,7 +81,8 @@ its older observations do not describe today's device or build state.
 - [ ] Repeat suspects three times, obtain attribution before editing, and collect
   three matched before/after runs. Label development and TestFlight evidence separately.
 - [ ] Review, verify, integrate/push, redeploy and validate any confirmed fixes;
-  restore changed phone settings, fold conclusions into the playbook and delete this plan.
+  restore changed phone settings, fold reusable requirements into the playbook,
+  preserve results in the handoff and delete this plan.
 
 ## Device safety and restoration
 

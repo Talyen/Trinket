@@ -128,12 +128,8 @@ pool without relaunching the app.
 
 ## Testing
 
-Ordinary task checks are selected automatically by
-[handoff](../../Docs/Platform/Verification.md#confidence-ladder). To select this package explicitly:
-
-```sh
-./Scripts/handoff.sh --package TrinketAppState
-```
+Use the [verification procedure](../../Docs/Platform/Verification.md#confidence-ladder)
+for task checks and explicit package diagnostics.
 
 `Support/AppTestContext.swift` builds isolated states (temp directory plus
 `UserDefaults` suite, torn down with the context). It defaults to full-game

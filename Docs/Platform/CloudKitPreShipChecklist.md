@@ -8,8 +8,8 @@ and missing evidence in release handoffs or TestFlight notes.
 builds may use Production for controlled testing; wider enablement requires all
 readiness stages below. Complete-save sync is implemented, but historical sync
 success and closure of its implementation plan do not establish current live readiness.
-[App Store readiness](AppStoreMetadata.md#read-only-readiness-check-october-12-2026)
-records the dated purchase/cloud evidence snapshot.
+[Candidate evidence](AppStoreMetadata.md#candidate-evidence) distinguishes dated
+purchase/cloud observations from the next candidate's release qualification.
 
 A paid Apple Developer membership is required for provisioning and multi-device
 sync verification. Local SwiftData and cloud-disabled checks need none. Identity
