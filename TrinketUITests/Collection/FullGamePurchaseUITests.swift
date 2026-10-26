@@ -1,7 +1,5 @@
 import Foundation
-import StoreKit
 import StoreKitTest
-import TrinketAppState
 import TrinketFeatureSupport
 import XCTest
 
@@ -26,11 +24,34 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
     }
 
     func testAskToBuyApprovalWhileActiveUnlocksEarnedCharacter() throws {
-        try verifyDeferredApproval(relaunch: false)
+        let pending = try beginDeferredPurchase()
+        try XCTUnwrap(storeSession).approveAskToBuyTransaction(identifier: pending.identifier)
+        assertWarlockAccessible()
     }
 
-    func testAskToBuyApprovalWhileTerminatedIsRecognizedOnRelaunch() throws {
-        try verifyDeferredApproval(relaunch: true)
+    func testTerminatedApprovalRestoresAccessWithoutErasingLocalProgress() throws {
+        let pending = try beginDeferredPurchase(arguments:
+            TestLaunchArg.completedStages(["chapter-1-stage-1"]) + ["-coverage-diagnostics"])
+        let before = try coverageReport()
+        let gold = try XCTUnwrap(before["gold"] as? Int)
+        let completed = try XCTUnwrap(before["completedStages"] as? [String])
+        XCTAssertTrue(completed.contains("chapter-1-stage-1"), "The recovery journey requires earned progress")
+        app.terminate()
+        try XCTUnwrap(storeSession).approveAskToBuyTransaction(identifier: pending.identifier)
+        relaunchApp(arguments: ["-selectedTab", "options", "-coverage-diagnostics"])
+
+        // Startup must recognize ownership without a Restore tap and retain this career.
+        assertExistsAfterScroll(AccessibilityID.FullGame.status)
+        assertDoesNotExist(AccessibilityID.FullGame.options)
+        assertDoesNotExist(AccessibilityID.FullGame.restore)
+        let after = try coverageReport()
+        XCTAssertEqual(after["gold"] as? Int, gold)
+        XCTAssertEqual(after["completedStages"] as? [String], completed)
+        assertWarlockAccessible()
+        tabBar.select(.play)
+        play.openCampaign()
+        let next = button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
+        waitUntil("Restored progress must leave the next stage playable") { next.isEnabled }
     }
 
     func testDeclinedAskToBuyRemainsLockedAndAllowsAnotherPurchase() throws {
@@ -56,35 +77,6 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         tapButton(AccessibilityID.FullGame.purchase)
         assertDoesNotExist(AccessibilityID.FullGame.offer)
         assertWarlockAccessible()
-    }
-
-    @MainActor
-    func testColdLaunchRecognizesPurchaseAndPreservesPopulatedLocalProgress() async throws {
-        try skipUnavailablePurchaseAutomation()
-        try startStoreSession()
-        let session = try XCTUnwrap(storeSession)
-        launchApp(arguments: TestLaunchArg.allForTab("play")
-            + TestLaunchArg.completedStages(["chapter-1-stage-1"]) + ["-coverage-diagnostics"])
-        play.openCampaign()
-        assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
-        waitUntil("Restored progress must unlock stage 2") {
-            self.button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled
-        }
-        app.terminate()
-        _ = try await session.buyProduct(identifier: FullGameStore.productID)
-        relaunchApp(arguments: ["-selectedTab", "options", "-coverage-diagnostics"])
-        // Current entitlements are recognized at launch without a Restore tap.
-        assertExistsAfterScroll(AccessibilityID.FullGame.status)
-        assertDoesNotExist(AccessibilityID.FullGame.options)
-        assertDoesNotExist(AccessibilityID.FullGame.restore)
-        assertWarlockAccessible()
-        assertFullGameAccess(true)
-        tabBar.select(.play)
-        play.openCampaign()
-        assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
-        waitUntil("Relaunched purchase must unlock stage 2") {
-            self.button(AccessibilityID.Play.stageAction(chapter: 1, stage: 2)).isEnabled
-        }
     }
 
     func testRefundRemovesAccessWithoutErasingEarnedProgress() throws {
@@ -115,26 +107,16 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         assertWarlockAccessible()
     }
 
-    private func verifyDeferredApproval(relaunch: Bool) throws {
+    private func beginDeferredPurchase(arguments: [String] = []) throws -> SKTestTransaction {
         try skipUnavailablePurchaseAutomation()
-        try launchOptionsOffer()
+        try launchOptionsOffer(arguments: arguments)
         let session = try XCTUnwrap(storeSession)
         session.askToBuyEnabled = true
         tapButton(AccessibilityID.FullGame.purchase)
         let pending = try pendingTransaction(in: session)
         dismissSheet(AccessibilityID.FullGame.offer)
         assertWarlockLocked()
-        if relaunch {
-            app.terminate()
-        }
-        try session.approveAskToBuyTransaction(identifier: pending.identifier)
-        waitUntil("Approval must clear pending state") {
-            session.allTransactions().contains { $0.identifier == pending.identifier && !$0.pendingAskToBuyConfirmation }
-        }
-        if relaunch {
-            relaunchApp(arguments: ["-selectedTab", "collection"])
-        }
-        assertWarlockAccessible()
+        return pending
     }
 
     private func pendingTransaction(in session: SKTestSession) throws -> SKTestTransaction {

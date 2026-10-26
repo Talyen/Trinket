@@ -273,7 +273,7 @@ exit 0
             write_executable(binaries / 'python3', '''#!/bin/sh
 case "$*" in
   *'definition --name ios18') printf 'fixture-phone\t18\n' ;;
-  *'--classes Smoke') printf 'SmokeBattleTests StarterOnboardingSmokeTests FullGamePurchaseSmokeTests\n' ;;
+  *'--classes Smoke') printf 'SmokeBattleTests SmokeShellTests FullGamePurchaseSmokeTests\n' ;;
   *'coverage_profiles.py run'*) printf '%s\n' "$*" > "$PWD/profile-command"; exit 1 ;;
   *) exit 2 ;;
 esac
@@ -287,7 +287,7 @@ esac
             calls = (root / 'calls').read_text().splitlines()
             self.assertTrue((root / 'profile-command').read_text().strip().endswith('--audit-policy all'))
             self.assertEqual(len(calls), 3)
-            self.assertIn('smoke --no-build SmokeBattleTests StarterOnboardingSmokeTests FullGamePurchaseSmokeTests', calls[0])
+            self.assertIn('smoke --no-build SmokeBattleTests SmokeShellTests FullGamePurchaseSmokeTests', calls[0])
             self.assertIn('FullGamePurchaseUITests', calls[1])
             self.assertIn('BattleLifecycleUITests/testCommittedRewardSurvivesTerminationWithoutReseeding', calls[1])
             self.assertIn('--destination fixture-ios18 TrinketPersistence', calls[2])

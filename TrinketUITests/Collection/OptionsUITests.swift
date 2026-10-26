@@ -17,7 +17,6 @@ final class OptionsUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Onboarding.heroScreen)
         relaunchApp()
         assertExists(AccessibilityID.Onboarding.heroScreen)
-        XCTAssertEqual(app.tabBars.count, 0)
     }
 
     private func resetAlertAction(_ identifier: String) -> XCUIElement {

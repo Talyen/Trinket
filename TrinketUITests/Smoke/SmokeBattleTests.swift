@@ -13,7 +13,7 @@ final class SmokeBattleTests: TrinketUITestCase {
         let playedID = card.identifier
         tapWhenReady(card)
         waitUntil("Manual card play must consume the selected card") {
-            !self.any(playedID).exists || self.any(AccessibilityID.Battle.victory).exists
+            !self.button(playedID).exists || self.any(AccessibilityID.Battle.victory).exists
         }
         if battle.autoBattleToggle.exists {
             tapWhenReady(battle.autoBattleToggle)
@@ -31,7 +31,7 @@ final class SmokeBattleTests: TrinketUITestCase {
     }
 
     func testCampaignBattleRetreatReturnsDirectlyToCampaign() {
-        launchApp(arguments: TestLaunchArg.allForBattle(fastTicks: true))
+        launchApp(arguments: TestLaunchArg.replacingBattleTickInterval("60", in: TestLaunchArg.allForBattle()))
         battle.assertActive(timeout: 10)
         battle.openActions()
         tapButton(AccessibilityID.Battle.retreat)

@@ -70,9 +70,9 @@ final class BattlePerformanceUITests: PerformanceJourneyUITestCase {
                 isPlay ? CGVector(dx: 0, dy: -120) : CGVector(dx: 48, dy: -20),
             ))
             if isPlay {
-                XCTAssertTrue(waitUntil { !self.any(cardID).exists }, "A successful release did not remove the selected card")
+                XCTAssertTrue(waitUntil { !self.button(cardID).exists }, "A successful release did not remove the selected card")
             } else {
-                XCTAssertTrue(any(cardID).exists, "Cancel gestures changed hand membership")
+                XCTAssertTrue(button(cardID).exists, "Cancel gestures changed hand membership")
             }
         }
         finishMeasurement(scenario, iteration: iteration, settle: 3, suite: "battle", control: stop)

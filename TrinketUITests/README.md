@@ -19,10 +19,12 @@ for coverage and retirement decisions.
 
 Author smoke and exhaustive membership once in `Scripts/config/ui-tests.tsv`.
 Each row supplies suite, smoke routing key (empty for other suites), and class.
-Selections follow registry row order. `./Scripts/generate.sh` updates only
-`selectedTests` in the UI plans, preserving other plan settings. Profiles and Soak plans are generated from the FullUI plan settings when first created. CI reads all FullUI classes through `check-testplan-sync.py --classes FullUI` and serial
+Selections follow registry row order. For UI membership changes alone, run
+`python3 Scripts/check-testplan-sync.py --generate`; it updates only `selectedTests`
+in the UI plans, preserving other settings and avoiding content-inventory compilation.
+Full project generation also invokes this generator. Profiles and Soak plans are generated from the FullUI plan settings when first created. CI reads all FullUI classes through `check-testplan-sync.py --classes FullUI` and serial
 smoke filters through `--classes Smoke`; local smoke routing uses the same rows. Add, remove, or move registrations with the source
-class, then regenerate. The checker rejects missing/duplicate classes, duplicate
+class, then regenerate the plans. The checker rejects missing/duplicate classes, duplicate
 routing keys, stale plan selections, and workflows bypassing registry selections.
 Focused runs require every requested filter and at least one executed test in the
 result tree. When export stalls, terminal per-test log records provide that proof;
@@ -168,6 +170,8 @@ Assert a journey’s return destination before using helpers that navigate elsew
   retained hand membership, reachable native controls, and post-rotation card play.
   Other destinations skip this profile-specific method. Actual folding remains
   an interactive Device Hub check.
+  Card departure and retention queries target buttons by the selected hand-card ID.
+  Retreat smoke slows automatic battle ticks while exercising its menu; normal-speed input and exit remain in `BattleLifecycleUITests`.
 - Localization retains every language and screenshot surface, but captures progression
   from Battle's shared `CombatantDetailPane` after dismissing ability inspection,
   before the same Campaign battle earns its talent choices. The seven language
@@ -178,7 +182,10 @@ Assert a journey’s return destination before using helpers that navigate elsew
   Collection and purchase journeys retain Collection entry wiring. The localized offer scrolls its
   content once and verifies Restore in the anchored footer beneath Purchase, following
   [Monetization](../Docs/Product/Monetization.md#offer).
-- Onboarding and recruitment verify earned characters remain unlocked in Collection.
+- `SmokeShellTests` owns onboarding, retained starter access after relaunch, and
+  the Collection → Homestead → Options → Play round-trip in the same career.
+  Shell and onboarding changes route to that one owner. Recruitment independently
+  verifies its earned companion remains unlocked in Collection.
   Full Game smoke owns character detail entry; equipment owns item detail/picker,
   equip, and actual unequip/reselect wiring. The equipment fixture keeps the target weapon
   visible. Reload/failed-write equipment semantics remain package-owned by
@@ -193,7 +200,7 @@ Assert a journey’s return destination before using helpers that navigate elsew
   Labyrinth inspector selection/dismissal.
 - Homestead accounting verifies displayed debit and tier in one launch;
   `PlayerHomesteadStoreTests` owns refused writes, exact debits and tiers across reload.
-  Accessibility profiles stop after the tier change. Shell smoke owns tab round-trips;
+  Accessibility profiles stop after the tier change.
   Full Game smoke proves native Options rows accept taps. Options owns Reset cancellation
   with preserved progression and confirmed erasure across relaunch; cancellation alone
   no longer incurs a cold launch. The former Haptics thumb/relaunch
@@ -202,8 +209,12 @@ Assert a journey’s return destination before using helpers that navigate elsew
   binding/playback persistence remains in `AudioLifecycleUITests`.
 - Full Game smoke seeds completed free chapters, opens Campaign from the Play
   hub, and taps the locked chapter's real offer entry. It purchases access to independently
-  recruited Warlock and opens his detail. Populated purchase recovery checks cold-launch
-  access, hidden purchase/restore actions, and retained progress. Restore-failure recovery stays separate.
+  recruited Warlock and opens his detail. Terminated Ask to Buy approval also owns
+  populated cold-launch recovery: hidden purchase/restore actions, unchanged Gold
+  and completed stages, recruited-character access, and a playable next stage.
+  The separate direct-purchase cold-launch case is retired; both enter the same
+  startup ownership reconciliation. Live approval, decline/retry, refund/repurchase,
+  and restore-failure recovery stay separate.
   Cancellation never granting access is package-owned by `FullGameStoreTests`;
   declined Ask to Buy retries from the locked character. Debug entitlement
   observations avoid repeated Collection trips

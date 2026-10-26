@@ -28,7 +28,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         let card = battle.frontmostHandCard
         let playedID = card.identifier
         tapWhenReady(card)
-        waitUntil("The rotated battle must still accept card play") { !self.any(playedID).exists }
+        waitUntil("The rotated battle must still accept card play") { !self.button(playedID).exists }
     }
 
     private var handCardIDs: Set<String> {
@@ -49,7 +49,7 @@ final class BattleFlowUITests: TrinketUITestCase {
         let inspectedCardID = inspectedCard.identifier
         inspectedCard.press(forDuration: 0.7)
         assertExists(AccessibilityID.Battle.abilityDetail)
-        XCTAssertTrue(any(inspectedCardID).exists, "Inspecting a card must not play it")
+        XCTAssertTrue(button(inspectedCardID).exists, "Inspecting a card must not play it")
         attachSuccessScreenshot(named: "hand-ability-inspection")
         dismissSheet(AccessibilityID.Battle.abilityDetail)
 
@@ -71,14 +71,14 @@ final class BattleFlowUITests: TrinketUITestCase {
         let tapCardID = tapCard.identifier
         tapWhenReady(tapCard)
         // Draw effects can replace a played card without reducing the hand size.
-        waitUntil("The first tap after dismissing details must play the card") { !self.any(tapCardID).exists }
+        waitUntil("The first tap after dismissing details must play the card") { !self.button(tapCardID).exists }
         let dragCard = battle.frontmostHandCard
         assertExists(dragCard)
         let dragCardID = dragCard.identifier
         let origin = dragCard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         assertCancelledDrag(from: origin, cardID: dragCardID)
         origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)))
-        waitUntil("A successful drag must play the selected card") { !self.any(dragCardID).exists }
+        waitUntil("A successful drag must play the selected card") { !self.button(dragCardID).exists }
         attachSuccessScreenshot(named: "hand-after-drag")
     }
 
@@ -90,7 +90,7 @@ final class BattleFlowUITests: TrinketUITestCase {
             withVelocity: XCUIGestureVelocity(rawValue: 40),
             thenHoldForDuration: 0.7,
         )
-        XCTAssertTrue(any(cardID).exists, "A drag below the play threshold must leave the selected card in hand")
+        XCTAssertTrue(button(cardID).exists, "A drag below the play threshold must leave the selected card in hand")
         assertDoesNotExist(AccessibilityID.Battle.abilityDetail)
 
         origin.press(
@@ -99,7 +99,7 @@ final class BattleFlowUITests: TrinketUITestCase {
             withVelocity: .fast,
             thenHoldForDuration: 0,
         )
-        XCTAssertTrue(any(cardID).exists, "A flick released inside the play boundary must cancel")
+        XCTAssertTrue(button(cardID).exists, "A flick released inside the play boundary must cancel")
         assertDoesNotExist(AccessibilityID.Battle.abilityDetail)
     }
 }

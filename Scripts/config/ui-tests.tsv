@@ -2,7 +2,6 @@
 Smoke|BATTLE|SmokeBattleTests
 Smoke|SHELL|SmokeShellTests
 Smoke|SHOP|SmokeShopTests
-Smoke|ONBOARDING|StarterOnboardingSmokeTests
 Smoke|MONETIZATION|FullGamePurchaseSmokeTests
 FullUI||BattleFlowUITests
 FullUI||PlayModeNavigationUITests

@@ -14,7 +14,7 @@ Apple-service readiness.
 | Live battle return; accepted claim termination; failed-write Leave; talent confirmation; normal-speed rapid cards/drag | `BattleLifecycleUITests`, AppState integration, BattleFeature card-play tests | Package checks plus nightly/manual FullUI |
 | Voyage, Spires, Labyrinth inspector | `PlayModeNavigationUITests` | Nightly/manual FullUI |
 | Homestead displayed cost/tier; Reset cancellation and confirmed erasure | `HomesteadControlsUITests`, `OptionsUITests`; Homestead durability in `PlayerHomesteadStoreTests` | Nightly/manual FullUI plus package checks |
-| Pending approvals active/terminated, decline, cancellation, populated purchase recovery, revocation | `FullGamePurchaseUITests`, existing StoreKit session | Nightly/manual FullUI; ordinary purchase smoke remains required |
+| Pending approvals active/terminated, decline, populated purchase recovery, revocation | `FullGamePurchaseUITests`; cancellation in `FullGameStoreTests` | Nightly/manual FullUI plus package checks; ordinary purchase smoke remains required |
 | Critical controls under native text sizes and Reduce Motion | `CriticalAccessibilityUITests` in Profiles | Nightly/manual Player coverage workflow |
 | Real audio backend routing across battles and foreground | `AudioLifecycleUITests`; existing audio backend tests | Nightly/manual FullUI |
 | Repeated UI ownership and progress | `RepeatedPlayUITests` in Soak | Weekly/manual Player coverage workflow |
@@ -133,8 +133,8 @@ needed beyond its actual expiry before it is removed. A failed profile retains i
 verdict while other settings execute. Soak failure does not hide the subsequent career/recovery
 verdicts. Archive interrupted inputs before opening recovery copies.
 
-The populated-purchase journey verifies startup entitlement recognition and
-preservation of local progress without tapping Restore. The separate failed-Restore
+The terminated-approval journey verifies startup entitlement recognition and
+preservation of Gold and completed stages without tapping Restore. The separate failed-Restore
 journey verifies usable recovery after a native restore error. Neither establishes
 successful ownership restoration after reinstall or live service ownership loss;
 those remain live purchase-readiness gates.

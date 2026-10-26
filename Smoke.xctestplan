@@ -19,7 +19,6 @@
         "SmokeBattleTests",
         "SmokeShellTests",
         "SmokeShopTests",
-        "StarterOnboardingSmokeTests",
         "FullGamePurchaseSmokeTests"
       ],
       "target": {

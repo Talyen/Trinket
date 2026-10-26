@@ -155,12 +155,11 @@ def classify(paths: list[str], root: Path = ROOT, *, base: str | None = None) ->
         elif matches(path, 'Trinket/Features/Collection/*', 'Trinket/Features/Homestead/*', 'Trinket/Features/Options/*', 'TrinketUITests/Collection/*', 'TrinketUITests/Support/*'): key = 'SHELL'
         elif matches(path, *(f'Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/{name}' for name in ('Accessibility/AccessibilityID.swift', 'Artwork/PreparedArtworkCache.swift', 'Artwork/PreparedArtwork.swift'))): key = 'SHELL'
         elif matches(path, 'Trinket/Features/Play/Shop/*'): key = 'SHOP'
-        elif matches(path, 'Trinket/Features/Onboarding/*'): key = 'ONBOARDING'
+        elif matches(path, 'Trinket/Features/Onboarding/*'): key = 'SHELL'
         elif matches(path, 'Trinket/Features/Play/*', 'TrinketUITests/Play/*'): key = 'SHELL'
         elif matches(path, 'TrinketUITests/Smoke/*.swift'):
             route.add('smoke_targets', Path(path).stem)
-            if Path(path).stem == 'SmokeShellTests': key = 'ONBOARDING'
-            else: return
+            return
         if key is None: route.smoke_unresolved = True
         else: route.add('smoke_targets', smoke[key])
 

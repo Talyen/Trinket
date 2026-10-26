@@ -36,7 +36,7 @@ final class BattleLifecycleUITests: TrinketUITestCase {
         battle.assertActive()
     }
 
-    func testBackgroundedTalentConfirmationExposesNextEarnedChoice() throws {
+    func testBackgroundedTalentConfirmationsFinishAndLeaveTheNextStagePlayable() throws {
         launchApp(arguments: TestLaunchArg.allForTab("play")
             + ["-coverage-talent-pair", "-hold-talent-confirmation"])
         play.openCampaign()
@@ -47,16 +47,19 @@ final class BattleLifecycleUITests: TrinketUITestCase {
         assertExistsAfterScroll(AccessibilityID.Battle.continueButton, requireHittable: true)
         tapButton(AccessibilityID.Battle.continueButton)
         assertExists(AccessibilityID.TalentChoice.screen)
-        let heroTree = try XCTUnwrap(CombatantTalentCatalog.allConfigs["ranger"]?.trees.first)
-        let node = try XCTUnwrap(heroTree.nodes.first)
-        tapButton(AccessibilityID.TalentChoice.tree(id: heroTree.id))
-        tapButton(AccessibilityID.TalentChoice.node(id: node.id))
-        tapButton(AccessibilityID.TalentChoice.unlockButton)
-        assertExists(AccessibilityID.Debug.talentConfirmationCheckpoint)
-        backgroundAndActivate()
-        let companionTree = try XCTUnwrap(CombatantTalentCatalog.allConfigs["wolf"]?.trees.first)
-        assertExists(AccessibilityID.TalentChoice.tree(id: companionTree.id))
-        assertDoesNotExist(AccessibilityID.Debug.talentConfirmationCheckpoint)
+        for combatantID in ["ranger", "wolf"] {
+            let tree = try XCTUnwrap(CombatantTalentCatalog.allConfigs[combatantID]?.trees.first)
+            let node = try XCTUnwrap(tree.nodes.first)
+            tapButton(AccessibilityID.TalentChoice.tree(id: tree.id))
+            tapButton(AccessibilityID.TalentChoice.node(id: node.id))
+            tapButton(AccessibilityID.TalentChoice.unlockButton)
+            assertExists(AccessibilityID.Debug.talentConfirmationCheckpoint)
+            backgroundAndActivate()
+            assertDoesNotExist(AccessibilityID.Debug.talentConfirmationCheckpoint)
+        }
+        play.assertCampaignLoaded()
+        tapButton(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
+        assertExists(AccessibilityID.Mystery.encounterTitle)
     }
 
     func testBackgroundedProductionBattleAcceptsRapidCardsDragAndExit() throws {
@@ -70,17 +73,17 @@ final class BattleLifecycleUITests: TrinketUITestCase {
         let firstID = try XCTUnwrap(cardIDs.last)
         let secondID = try XCTUnwrap(cardIDs.dropLast().last)
         XCTAssertNotEqual(firstID, secondID, "Rapid plays must target two distinct cards")
-        tapWhenReady(any(firstID))
-        tapWhenReady(any(secondID))
+        tapWhenReady(button(firstID))
+        tapWhenReady(button(secondID))
         waitUntil("Distinct rapid plays must depart from the hand") {
-            !self.any(firstID).exists && !self.any(secondID).exists
+            !self.button(firstID).exists && !self.button(secondID).exists
         }
         let drag = battle.frontmostHandCard
         assertExists(drag)
         let dragID = drag.identifier
         let origin = drag.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)))
-        waitUntil("Drag following rapid casts must still play") { !self.any(dragID).exists }
+        waitUntil("Drag following rapid casts must still play") { !self.button(dragID).exists }
         battle.openActions()
         tapButton(AccessibilityID.Battle.retreat)
         assertExists(AccessibilityID.Battle.defeat)

@@ -2,25 +2,7 @@ import TrinketFeatureSupport
 import XCTest
 
 final class SmokeShellTests: TrinketUITestCase {
-    func testTabShellsAreReachable() {
-        launchApp(arguments: TestLaunchArg.allForTab("play"))
-        assertExists(AccessibilityID.Play.campaignModeCard, timeout: 10)
-
-        tabBar.select(.collection)
-        assertExists(AccessibilityID.Collection.heroesCategory, timeout: 10)
-
-        tabBar.select(.homestead)
-        assertExists(AccessibilityID.Homestead.resourceWallet, timeout: 10)
-
-        tabBar.select(.options)
-        assertExists(AccessibilityID.Screen.options, timeout: 10)
-        tabBar.select(.play)
-        play.assertLoaded(timeout: 10)
-    }
-}
-
-final class StarterOnboardingSmokeTests: TrinketUITestCase {
-    func testStarterRouletteLandsOnGameModeHub() {
+    func testNewCareerSurvivesRelaunchAndNavigatesEveryTab() {
         launchApp(arguments: [
             TestLaunchArg.resetState,
             TestLaunchArg.disableCloudSync,
@@ -60,5 +42,12 @@ final class StarterOnboardingSmokeTests: TrinketUITestCase {
         let companionCard = AccessibilityID.CombatantDetail.collectionCard(name: companionName)
         assertExistsAfterScroll(companionCard, requireHittable: true)
         XCTAssertFalse(button(companionCard).label.hasSuffix(", locked"), "The selected starter companion must remain unlocked")
+
+        tabBar.select(.homestead)
+        assertExists(AccessibilityID.Homestead.resourceWallet)
+        tabBar.select(.options)
+        assertExists(AccessibilityID.Screen.options)
+        tabBar.select(.play)
+        assertExists(AccessibilityID.Play.campaignModeCard)
     }
 }

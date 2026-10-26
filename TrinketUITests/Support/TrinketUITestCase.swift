@@ -67,12 +67,8 @@ enum TestLaunchArg {
         testLaunchArgs + self.screen(screen)
     }
 
-    static func allForBattle(fastTicks: Bool = false) -> [String] {
-        let args = allForScreen("battle")
-        if fastTicks {
-            return replacingBattleTickInterval("0.01", in: args)
-        }
-        return args
+    static func allForBattle() -> [String] {
+        allForScreen("battle")
     }
 
     static func productionTiming(tab: String = "play", audio: Bool = false) -> [String] {

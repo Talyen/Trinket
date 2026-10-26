@@ -31,6 +31,8 @@ class UIRegistrationTests(unittest.TestCase):
             ('Trinket/Features/Play/Shop/Probe.swift', 'SHOP'),
             ('Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Probe.swift', 'BATTLE'),
             ('Trinket/Features/Collection/Probe.swift', 'SHELL'),
+            ('Trinket/Features/Onboarding/Probe.swift', 'SHELL'),
+            ('TrinketUITests/Smoke/SmokeShellTests.swift', 'SHELL'),
         ):
             self.assertEqual(classify([path]).smoke_targets, [smoke[key]])
         self.assertEqual(REGISTRY.testplan_failures(), [])
