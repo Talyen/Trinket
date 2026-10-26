@@ -47,8 +47,7 @@ public enum VictoryRewardApplier {
         if let candidate = loot.item,
            InventoryDuplicatePolicy.containsDuplicate(of: candidate, in: save.inventory.items) {
             payableItem = nil
-            let range = BattleLoot.quantityRange(forLevel: encounterLevel)
-            consolationGold = range.lowerBound + (range.upperBound - range.lowerBound) / 2
+            consolationGold = BattleLoot.duplicateItemConsolationGold(forLevel: encounterLevel)
         } else {
             consolationGold = 0
         }

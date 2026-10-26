@@ -63,6 +63,33 @@ public struct BattleRewardPlan: Equatable, Sendable {
         return BattleRewardSettlement(inputs: inputs, award: award, replacementExperience: 0)
     }
 
+    /// Keep captured rolls, but replace items that became unavailable after
+    /// launch with the same consolation used by unsettled encounter rewards.
+    public func resolvingOwnedItems(in inventory: [InventoryItem], encounterLevel: Int) -> Self {
+        var owned = inventory
+        var available: [InventoryItem] = []
+        var duplicateCount = 0
+        for item in items {
+            if InventoryDuplicatePolicy.containsDuplicate(of: item, in: owned) {
+                duplicateCount += 1
+            } else {
+                available.append(item)
+                owned.append(item)
+            }
+        }
+        guard duplicateCount > 0 else { return self }
+        let consolation = BattleLoot.duplicateItemConsolationGold(forLevel: encounterLevel)
+        return Self(
+            stageGold: SaturatedArithmetic.saturatingAdd(stageGold, SaturatedArithmetic.saturatingMul(consolation, duplicateCount)),
+            goldFindPercent: goldFindPercent, goldFindFlat: goldFindFlat,
+            gemsFindBonus: gemsFindBonus, gemsFindPercent: gemsFindPercent,
+            initialRewardRemainders: initialRewardRemainders, goldOverflowExperience: goldOverflowExperience,
+            heroExperience: heroExperience, companionExperience: companionExperience,
+            defeatHeroExperience: defeatHeroExperience, defeatCompanionExperience: defeatCompanionExperience,
+            materials: materials, items: available, completionBonus: completionBonus,
+        )
+    }
+
     public func resolve(
         battleGold: BattleGoldFlow,
         materials: [ResourceAmount]? = nil,

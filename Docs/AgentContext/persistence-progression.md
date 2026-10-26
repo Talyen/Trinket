@@ -30,6 +30,9 @@ Battle launch captures reward quantities, recipients, bonuses, and Gold-overflow
 XP in that plan. `RewardSettlementInputs` projects wallet reservations
 and recipient progression at a recorded production date. Content's pure settlement
 produces `BattleRewardSettlement`; the same value drives the reveal and completion.
+If a captured item becomes owned before settlement, the plan retains the other
+rolls and converts the duplicate to the usual level-scaled consolation Gold.
+Claim revalidation repeats that check so a later ownership change refreshes the reveal.
 A positive net Gold award fills available wallet space; only the excess becomes
 XP in proportion to the overflow fraction of the original award. Preserve generic
 battle spending in the net calculation for compatibility. Current combat content

@@ -3,6 +3,7 @@ import Foundation
 import Testing
 import TrinketBattleFeature
 import TrinketContent
+import TrinketCore
 import TrinketFeatureContracts
 import TrinketFeatureSupport
 import TrinketPersistenceTestSupport
@@ -608,5 +609,71 @@ extension AppStatePlayFlowTests {
             #expect(refreshed.launch.configuration.rngSeed == configuration.rngSeed)
             #expect(state.battleCoordinator.activatePrepared(refreshed.launch.configuration))
         }
+    }
+}
+
+extension AppStatePlayFlowTests {
+    @Test func `a delayed forge completion refreshes a conflicting battle reward before claiming`() throws {
+        let state = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        let enemy = try #require(GameContent.enemies.first?.combatant)
+        let recipe = try #require(EquipmentRecipe.all.first { recipe in
+            GameContent.uniqueItems.contains { $0.baseType.id == recipe.baseID }
+        })
+        try state.playerSave.performFixtureMutation { save in
+            save.inventory.items = []
+            save.homestead.nodeTiers[recipe.buildingID] = 4
+            for resource in HomesteadResource.allCases where resource != .gold {
+                save.homestead.resources[resource] = 999
+            }
+        }
+        let beforeForge = state.playerSave.currentSave
+        var planned: BlacksmithForgePlan?
+        for seed in UInt64(1) ... 4096 {
+            var random = SeededRandomNumberGenerator(seed: seed)
+            if case let .success(plan) = BlacksmithForgePlan.prepare(
+                recipeID: recipe.id, rewardLevel: 40, inventory: beforeForge.inventory.items,
+                homestead: beforeForge.homestead, gold: beforeForge.roster.gold, using: &random,
+            ), plan.item.rarity == .unique {
+                planned = plan
+                break
+            }
+        }
+        let forge = try #require(planned)
+        let battleItem = InventoryItem(
+            id: "battle-unique-instance", templateID: forge.item.templateID, baseType: forge.item.baseType,
+            rarity: forge.item.rarity, displayName: forge.item.displayName, affixes: forge.item.affixes,
+            isCorrupted: forge.item.isCorrupted, affixPowers: forge.item.affixPowers,
+        )
+        let input = BattleLaunchInput(
+            origin: .journey(stageID: stage.id), hero: beforeForge.roster.activeHero,
+            companion: beforeForge.roster.activeCompanion, encounter: ScaledEncounter(combatant: enemy, level: 1),
+            stageReward: StageReward(gold: 10, itemTemplateIDs: []), pendingRewardItem: battleItem,
+        )
+        #expect(state.battleCoordinator.activateBattle(input, route: .journey(stage)))
+        let configuration = try #require(state.battle.activeBattle)
+        let original = try #require(state.settleBattleRewards(configuration, battleGold: .init()))
+        #expect(original.award.items == [battleItem])
+
+        // A pending Forge owns its roll before the player starts this battle.
+        // Its successful retry commits that same plan after battle activation.
+        try state.playerSave.performFixtureMutation { save in
+            let result = forge.apply(inventory: &save.inventory.items, homestead: &save.homestead, gold: &save.roster.gold)
+            if case .failure = result {
+                Issue.record("The pending Forge must commit")
+            }
+        }
+        guard case let .staleSettlement(refreshed) = state.completeActiveBattle(
+            configuration, battleGold: .init(), settlement: original,
+        ) else {
+            Issue.record("A newly owned reward must refresh the reveal")
+            return
+        }
+        #expect(refreshed.award.items.isEmpty)
+        #expect(refreshed.award.goldDelta > original.award.goldDelta)
+        let goldBeforeClaim = state.playerSave.roster.gold
+        #expect(state.completeActiveBattle(configuration, battleGold: .init(), settlement: refreshed).didComplete)
+        #expect(state.playerSave.roster.gold == goldBeforeClaim + refreshed.award.goldDelta)
+        #expect(state.playerSave.inventory.items.count(where: { $0.templateID == forge.item.templateID }) == 1)
     }
 }

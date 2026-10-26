@@ -4,6 +4,26 @@ import TrinketCore
 @testable import TrinketContent
 
 struct RewardSettlementTests {
+    @Test func `owned item consolation preserves other captured rewards and Voyage bonus`() throws {
+        let first = try #require(GameContent.uniqueItems.first)
+        let second = try #require(GameContent.uniqueItems.first { $0.templateID != first.templateID })
+        let plan = BattleRewardPlan(
+            stageGold: 10, goldFindPercent: 0, heroExperience: 3, companionExperience: 5,
+            materials: [ResourceAmount(.wood, 5)], items: [first, second],
+            completionBonus: VoyageCompletionBonus(gold: 20, materials: [.wood: 5]),
+        )
+        let adjusted = plan.resolvingOwnedItems(in: [first], encounterLevel: 1)
+        let withoutBonus = adjusted.resolve(battleGold: .init(), includingCompletionBonus: false)
+        let withBonus = adjusted.resolve(battleGold: .init())
+        #expect(withoutBonus.items == [second])
+        #expect(withoutBonus.goldGained == 10 + BattleLoot.duplicateItemConsolationGold(forLevel: 1))
+        #expect(withoutBonus.materials == [ResourceAmount(.wood, 5)])
+        #expect(withBonus.goldGained == withoutBonus.goldGained + (20 + withoutBonus.goldGained) / 5)
+        #expect(withBonus.materials == [ResourceAmount(.wood, 7)])
+        #expect(adjusted.heroExperience == plan.heroExperience)
+        #expect(adjusted.companionExperience == plan.companionExperience)
+    }
+
     private func inputs(
         gold: Int = 0,
         goldLimit: Int = 100,

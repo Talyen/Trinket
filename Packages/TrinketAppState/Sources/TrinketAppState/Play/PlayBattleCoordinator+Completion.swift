@@ -65,10 +65,11 @@ extension PlayBattleCoordinator {
             ) else { return SaveActionAttempt(.unavailable) }
             guard settlement == nil || settlement == resolved else { return SaveActionAttempt(.staleSettlement(resolved)) }
             let earnedVoyageRewards: BattleRewardAward? = if case .voyage = route {
-                run.launch.rewardPlan.resolve(
+                rewardPlan(for: run, configuration: configuration).resolve(
                     battleGold: resolved.award.goldFlow,
                     materials: baseMaterials,
                     includingCompletionBonus: false,
+                    rewardRemainders: resolved.inputs.rewardRemainders,
                 )
             } else {
                 nil
@@ -106,12 +107,19 @@ extension PlayBattleCoordinator {
         at date: Date = Date(),
     ) -> BattleRewardSettlement? {
         guard let run = activeRegistration(for: configuration) else { return nil }
-        return run.launch.rewardPlan.settle(
+        return rewardPlan(for: run, configuration: configuration).settle(
             battleGold: battleGold,
             inputs: RewardSettlementInputs(
                 save: playerSave.currentSave, hero: configuration.hero.combatant, companion: configuration.companion.combatant, at: date,
             ),
             materials: materialRewards,
+        )
+    }
+
+    private func rewardPlan(for run: PlayBattleRunRegistration, configuration: BattleRunConfiguration) -> BattleRewardPlan {
+        run.launch.rewardPlan.resolvingOwnedItems(
+            in: playerSave.inventory.items,
+            encounterLevel: configuration.enemyEncounterLevel ?? configuration.hero.progression.level,
         )
     }
 

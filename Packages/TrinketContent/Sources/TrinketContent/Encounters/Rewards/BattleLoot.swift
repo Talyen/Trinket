@@ -32,6 +32,11 @@ public enum BattleLoot {
         return minQty ... maxQty
     }
 
+    public static func duplicateItemConsolationGold(forLevel level: Int) -> Int {
+        let range = quantityRange(forLevel: level)
+        return range.lowerBound + (range.upperBound - range.lowerBound) / 2
+    }
+
     /// One captured encounter level drives currency quantities and item quality.
     public static func resolve(
         _ request: LootRequest,

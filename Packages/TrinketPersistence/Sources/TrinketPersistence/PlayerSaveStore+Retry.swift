@@ -66,8 +66,11 @@ extension PlayerSaveStore {
             } catch {
                 result = .persistFailed(PlayerSavePersistenceError.mapped(error))
             }
-            guard !Task.isCancelled, sessionGeneration == generation else { return nil }
+            guard sessionGeneration == generation else { return nil }
+            // Once an attempt has finished, cancellation cannot undo its result.
+            // Report accepted or terminal outcomes before deciding whether to retry.
             guard case let .persistFailed(error) = result, error.isRetryable else { return result }
+            guard !Task.isCancelled else { return nil }
             do { try await Task.sleep(for: .seconds(delay)) } catch { return nil }
             delay = SaveRetryPolicy.nextDelay(after: delay)
         }

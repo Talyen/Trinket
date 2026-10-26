@@ -153,6 +153,29 @@ struct PendingSaveRecoveryTests {
         #expect(try context.makeReloadedStore().roster.gold == 47)
     }
 
+    @Test func `cancellation during a committed transaction preserves the reported outcome and durable reward`() async throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let initialGold = store.roster.gold
+        let pending = Task {
+            await store.retryingSaveTransaction {
+                let result: SaveTransactionResult<Int, Never> = store.persistAction(logging: "Cancellation fixture") { save in
+                    let granted = save.grantGold(7)
+                    return .success(granted)
+                }
+                withUnsafeCurrentTask { $0?.cancel() }
+                return result
+            }
+        }
+        guard case let .committed(granted) = await pending.value else {
+            Issue.record("A committed reward must remain successful when its task is cancelled")
+            return
+        }
+        #expect(granted == 7)
+        #expect(store.roster.gold == initialGold + 7)
+        #expect(try context.makeReloadedStore().roster.gold == initialGold + 7)
+    }
+
     @Test(arguments: [false, true])
     func `awaited transaction stops at validation failure even after a transient failure`(transientFirst: Bool) async throws {
         let context = try PersistenceTestContext()
