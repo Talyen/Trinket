@@ -12,28 +12,6 @@ public enum BalanceProgressionReportFormatter {
         elapsedSeconds: Double,
     ) -> String {
         var lines: [String] = []
-        appendHeader(
-            config: config,
-            records: records,
-            playerStates: playerStates,
-            truncatedRuns: truncatedRuns,
-            elapsedSeconds: elapsedSeconds,
-            into: &lines,
-        )
-        appendSummary(hotspots: hotspots, playerStates: playerStates, into: &lines)
-        appendFlaggedHotspots(hotspots.filter(\.isFlagged), into: &lines)
-        appendModeDetails(hotspots: hotspots, into: &lines)
-        return lines.joined(separator: "\n")
-    }
-
-    private static func appendHeader(
-        config: BalanceSweepConfig,
-        records: [ProgressionBattleRecord],
-        playerStates: [PlayerProgressionState],
-        truncatedRuns: Int,
-        elapsedSeconds: Double,
-        into lines: inout [String],
-    ) {
         lines.append("# Multi-Mode Progression & Hotspot Balance Report")
         lines.append("")
         lines.append("- **Mode**: Mode Progression Simulation")
@@ -52,13 +30,6 @@ public enum BalanceProgressionReportFormatter {
                 )
         }
         lines.append("")
-    }
-
-    private static func appendSummary(
-        hotspots: [NodeHotspotSummary],
-        playerStates: [PlayerProgressionState],
-        into lines: inout [String],
-    ) {
         let avgEndLevel = playerStates.isEmpty ? 0 : Double(playerStates.map(\.heroLevel).reduce(0, +)) / Double(playerStates.count)
         lines.append("## Progression Summary")
         lines.append("")
@@ -69,6 +40,7 @@ public enum BalanceProgressionReportFormatter {
         lines.append("| Total Nodes Evaluated | \(hotspots.count) |")
         lines.append("| Difficulty Hotspots Flagged | \(hotspots.filter(\.isFlagged).count) |")
         lines.append("")
+        return (lines + flaggedHotspots(hotspots.filter(\.isFlagged)) + modeDetails(hotspots)).joined(separator: "\n")
     }
 
     private static func cells(_ hotspot: NodeHotspotSummary)
@@ -83,19 +55,11 @@ public enum BalanceProgressionReportFormatter {
         )
     }
 
-    private static func appendFlaggedHotspots(
-        _ flaggedHotspots: [NodeHotspotSummary],
-        into lines: inout [String],
-    ) {
+    private static func flaggedHotspots(_ flaggedHotspots: [NodeHotspotSummary]) -> [String] {
+        var lines = ["## Difficulty Hotspots", ""]
         if flaggedHotspots.isEmpty {
-            lines.append("## Difficulty Hotspots")
-            lines.append("")
-            lines.append("No difficulty hotspots flagged from the decided samples.")
-            lines.append("")
-            return
+            return lines + ["No difficulty hotspots flagged from the decided samples.", ""]
         }
-        lines.append("## Difficulty Hotspots")
-        lines.append("")
         lines.append("| Mode | Location | Step | Enemy | Win Rate | Player Lvl | Enemy Lvl | Power | Status | Reason |")
         lines.append("| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |")
         for hotspot in flaggedHotspots {
@@ -105,13 +69,11 @@ public enum BalanceProgressionReportFormatter {
                     "| \(hotspot.step.mode.displayName) | \(hotspot.step.containerTitle) | \(hotspot.step.displayTitle) | \(hotspot.step.enemyID) | \(c.win) | \(c.player) | \(c.enemy) | \(c.power) | **\(hotspot.status.displayName)** | \(hotspot.flagReason ?? "-") |",
                 )
         }
-        lines.append("")
+        return lines + [""]
     }
 
-    private static func appendModeDetails(
-        hotspots: [NodeHotspotSummary],
-        into lines: inout [String],
-    ) {
+    private static func modeDetails(_ hotspots: [NodeHotspotSummary]) -> [String] {
+        var lines: [String] = []
         for mode in SimulationGameMode.allCases {
             let modeHotspots = hotspots.filter { $0.step.mode == mode }
             guard !modeHotspots.isEmpty else { continue }
@@ -128,5 +90,6 @@ public enum BalanceProgressionReportFormatter {
             }
             lines.append("")
         }
+        return lines
     }
 }

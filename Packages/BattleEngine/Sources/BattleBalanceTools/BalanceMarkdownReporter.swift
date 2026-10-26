@@ -32,26 +32,24 @@ public enum BalanceMarkdownReporter {
         _ report: BalanceSweepReport,
         snapshots: BalanceTierSnapshots,
     ) -> String {
-        var lines: [String] = []
-        appendReportHeader(report, into: &lines)
+        var lines = reportHeader(report)
         if !report.records.isEmpty {
             for tierStats in snapshots.tiers where tierStats.battles > 0 {
-                BalanceMarkdownTables.appendIdentityTier(
+                lines += BalanceMarkdownTables.identityTier(
                     tierStats,
                     compared: snapshots.comparedTiers.first { $0.tier == tierStats.tier },
-                    into: &lines,
                 )
             }
         }
         for section in report.contrastSections where !section.rows.isEmpty {
-            BalanceMarkdownTables.appendContrasts(title: section.title, summaries: section.rows, into: &lines)
+            lines += BalanceMarkdownTables.contrasts(title: section.title, summaries: section.rows)
         }
-        BalanceMarkdownTables.appendUnderNAppendix(tiers: snapshots.tiers, report: report, into: &lines)
-        appendReportNotes(report: report, into: &lines)
+        lines += BalanceMarkdownTables.underNAppendix(tiers: snapshots.tiers, report: report)
+        lines += reportNotes(report)
         return lines.joined(separator: "\n")
     }
 
-    private static func appendReportHeader(_ report: BalanceSweepReport, into lines: inout [String]) {
+    private static func reportHeader(_ report: BalanceSweepReport) -> [String] {
         let roster = report.config.resolvedRoster
         let samples = report.config.battlesPerTier
         let expectedHeroN = roster.enemies.isEmpty || roster.heroes.isEmpty ? 0 : samples * roster.enemies.count / roster.heroes.count
@@ -93,11 +91,11 @@ public enum BalanceMarkdownReporter {
             header.append("- Warning: samples < \(BalanceSweepConfig.contrastFlagMinPairs); contrast flags are disabled.")
         }
         header.append("")
-        lines.append(contentsOf: header)
+        return header
     }
 
-    private static func appendReportNotes(report: BalanceSweepReport, into lines: inout [String]) {
-        lines.append(contentsOf: [
+    private static func reportNotes(_ report: BalanceSweepReport) -> [String] {
+        [
             "## Notes",
             "",
             "- Win rates are under `\(report.policyID)` autoplay, not human play. Timeouts are excluded from win rate.",
@@ -111,6 +109,6 @@ public enum BalanceMarkdownReporter {
             "- Enemy power uses `EnemyPowerCurve`: smoothstep between L1/L20/L40 anchors, then uncapped logarithmic HP growth and linear damage growth.",
             "- Fight pacing is \(report.config.appliesFightPacing ? "ON" : "OFF") for this sweep (`--pacing off` measures raw kit power).",
             "",
-        ])
+        ]
     }
 }

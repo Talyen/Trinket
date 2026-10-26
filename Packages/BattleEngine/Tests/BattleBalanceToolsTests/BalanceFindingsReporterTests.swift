@@ -101,8 +101,7 @@ struct BalanceFindingsReporterTests {
         var large = contrast
         large.pairs = Int.max
         large.decidedPairs = Int.max - 1
-        var lines: [String] = []
-        BalanceMarkdownTables.appendContrasts(title: "Contrasts", summaries: [large], into: &lines)
+        let lines = BalanceMarkdownTables.contrasts(title: "Contrasts", summaries: [large])
         #expect(lines.contains(
             "| `cinderbloom` | `fireball` | sibling | `phoenix` | Early | 0.0% | 0.0% | +18.8 pp | +0.00 | +0.0 | \(Int.max) | \(Int.max - 1) | ⚠ HIGH |",
         ))
