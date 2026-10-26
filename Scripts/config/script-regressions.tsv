@@ -30,7 +30,8 @@ Scripts/agent-search.py	test_agent_callers.py,test_agent_investigate.py,test_age
 Scripts/agent-sim-lifetime.py	test_agent_sim_lifetime.py
 Scripts/simulator-idle-cleanup.py	test_simulator_idle_cleanup.py
 Scripts/agent-watch-ci.sh	test_policy_scripts.py
-Scripts/agent-worktree.mjs	test_agent_integration.py,test_git_safety.py
+Scripts/agent-worktree.mjs	test_agent_integration.py,test_git_safety.py,test_worktree_storage.py
+Scripts/lib/worktree-storage.mjs	test_worktree_storage.py
 Scripts/aggregate-performance-results.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py
 Scripts/apply-scheme-storekit.py	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py
 Scripts/assert-generated-output.sh	test_build_process.py,test_ci_build_scripts.py,test_ci_gate_scripts.py,test_project_generation.py
