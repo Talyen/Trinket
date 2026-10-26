@@ -17,6 +17,8 @@ regenerates them from the manifests.
 
 Quoted TSV fields must close correctly. Keyword and resource lists reject empty
 entries and duplicates; use one token per keyword or resource.
+Integer quantities must fit a 64-bit Swift `Int`; validation rejects oversized
+values before writing catalogs.
 
 ### Affixes (`ContentManifest/affixes.tsv`)
 
@@ -58,6 +60,10 @@ arbitrary activation conditions. Damage types use “deal [type] damage”; the
 normal damaging hit produces its associated damage-over-time effect or control
 buildup. Row position does not increase a talent’s power budget; see
 [PD-013](../Docs/Product/Decisions.md).
+
+Generation validates historical ID positions and complete prerequisite rows for
+each represented tree. The Swift catalog tests also check tree affinities against
+each combatant's authored configuration.
 
 ### Enemy traits (`ContentManifest/traits.tsv`)
 
@@ -167,6 +173,9 @@ node_id	title	summary	icon_id	category	tier	stage_name	cost	bonus_title	bonus_de
 - `production`: pipe-separated `resource:quantity` positive ASCII integer daily rates (e.g. `gems:1|stone:1`), or empty for no passive production. Each tier supplies its complete rate, not an increment over the previous tier.
 - `modifiers`: affix-token combat bonuses for that tier. Default scope is hero and companion; prefix `hero.` / `companion.` to target one side. Combat tokens include `outgoing_damage_percent:0.02`, `incoming_damage_reduction_percent:0.02`, `dodge_chance_bonus:0.02` (all additive, rounded via `CombatRounding`). Homestead-only percentage tokens use integer percentages: `astral_chance:N`, `gold_find:N`, `experience_percent:N`, and `gems_find_percent:N`. Combat percentage tokens use fractions, including `maximum_health_percent`, `damage_dealt_percent:keyword`, `critical_damage_percent`, `health_restored_percent`, `mana_restored_percent`, `leech_healing_percent`, `block_gained_percent`, `companion_damage_dealt_percent`, and `ranged_damage_dealt_percent`. Existing flat tokens and Homestead metadata `gold_find_flat:N`, `experience:N`, and `gems_find:N` remain supported for current consumers. Descriptions use player-directed wording without trailing periods; production uses `Produce N {resource} per Day`.
 - Four rows per node; each numeric bonus and each production quantity increases at every tier. Node metadata must match across tiers for the same `node_id`.
+
+A shared combat modifier cannot repeat a Hero-only or Companion-only modifier for
+the same field. Separate Hero and Companion values remain valid.
 
 Homestead catalogs are manifest-driven via `homestead_nodes.tsv`. The `GameContent` registry reads the generated catalogs directly; `HomesteadEffects` computes tier effects from them.
 

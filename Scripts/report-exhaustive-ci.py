@@ -18,8 +18,9 @@ def report(pages: list[dict]) -> tuple[str, list[str]]:
         outcome = job.get('conclusion') or job['status']
         if outcome not in ('success', 'skipped'):
             warnings.append(f"Advisory exhaustive shard: {job['name']} — {outcome}")
+    skipped = sum(job.get('conclusion') == 'skipped' for job in jobs)
     title = 'attention required' if warnings else (
-        'not run' if all(job.get('conclusion') == 'skipped' for job in jobs) else 'passed'
+        'not run' if skipped == len(jobs) else 'incomplete' if skipped else 'passed'
     )
     lines = [f'### Exhaustive UI: {title} (advisory)', '',
              '| Shard | Result |', '|---|---|']
@@ -27,7 +28,10 @@ def report(pages: list[dict]) -> tuple[str, list[str]]:
         outcome = job.get('conclusion') or job['status']
         name = job['name'].replace('|', '\\|').replace('\n', ' ')
         lines.append(f"| [{name}]({job['html_url']}) | {outcome} |")
-    lines += ['', *warnings, '', 'Exhaustive UI remains advisory; these results do not block CI OK.', '']
+    lines += ['', *warnings]
+    if skipped:
+        lines.append(f'{skipped} skipped shard(s) provide no execution evidence.')
+    lines += ['', 'Exhaustive UI remains advisory; these results do not block CI OK.', '']
     return '\n'.join(lines), warnings
 
 

@@ -45,7 +45,7 @@ Scripts/build-metadata.py	test_build_artifacts.py,test_build_metadata.py,test_bu
 Scripts/build-symbols.py	test_build_symbols.py
 Scripts/build.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_metadata.py,test_build_process.py,test_ci_build_scripts.py
 Scripts/change-budget.sh	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py
-Scripts/check-accessibility-ids.py	test_swift_style_policy.py,test_ui_policy.py
+Scripts/check-accessibility-ids.py	test_swift_style_policy.py,test_ui_policy.py,test_audit_tooling_regressions.py
 Scripts/check-agent-invariants.sh	test_policy_scripts.py,test_swift_invariants.py,test_swift_style_policy.py
 Scripts/check-api-bans.sh	test_policy_scripts.py,test_swift_style_policy.py
 Scripts/check-artwork-budget.sh	test_swift_style_policy.py,test_ui_policy.py
@@ -53,7 +53,7 @@ Scripts/check-build-cache-paths.py	test_ci_build_scripts.py
 Scripts/check-build-cache-paths.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_process.py,test_ci_build_scripts.py
 Scripts/check-docs.py	test_documentation.py
 Scripts/check-exclusivity-footguns.sh	test_policy_scripts.py,test_swift_invariants.py,test_swift_style_policy.py
-Scripts/check-links.py	test_agent_read.py,test_documentation.py,test_internal_cli.py
+Scripts/check-links.py	test_agent_read.py,test_documentation.py,test_internal_cli.py,test_audit_tooling_regressions.py
 Scripts/check-module-boundaries.sh	test_policy_scripts.py,test_swift_style_policy.py
 Scripts/check-plans.py	test_documentation.py,test_agent_integration.py
 Scripts/check-staged-project.sh	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py
@@ -67,7 +67,7 @@ Scripts/ci-diagnostics.py	test_ci_effort.py,test_ci_improvements.py,test_failure
 Scripts/ci-diagnostics.sh	test_ci_session_scripts.py,test_failure_diagnostics.py,test_test_timing.py
 Scripts/ci-gate.sh	test-lib-args.sh,test_ci_gate_scripts.py,test_ci_handoff_routing.py,test_documentation.py,test_verification_policy.py
 Scripts/ci-infra-rerun.sh	test_policy_scripts.py
-Scripts/ci-path-filter.py	test_ci_effort.py,test_ci_path_filter.py
+Scripts/ci-path-filter.py	test_ci_effort.py,test_ci_path_filter.py,test_audit_tooling_regressions.py
 Scripts/ci-reuse.py	test_ci_effort.py
 Scripts/deploy-verification.py	test_deploy_verification.py
 Scripts/ci-run-budget.py	test_ci_gate_scripts.py,test_ci_improvements.py
@@ -89,7 +89,7 @@ Scripts/config/testflight.example.json	test_testflight.py
 Scripts/config/ui-tests.tsv	test_build_process.py,test_ci_build_scripts.py,test_documentation.py,test_project_generation.py,test_ui_registration.py
 Scripts/config/uitest-system-query-allowlist.txt	test_swift_style_policy.py,test_ui_policy.py
 Scripts/content-inspect.py	test_content_inspect.py
-Scripts/content_codegen.py	test_codegen_abilities.py,test_codegen_common.py,test_codegen_homestead.py,test_codegen_stages.py,test_codegen_talents.py,test_codegen_triggers.py,test_content_codegen.py
+Scripts/content_codegen.py	test_codegen_abilities.py,test_codegen_common.py,test_codegen_homestead.py,test_codegen_stages.py,test_codegen_talents.py,test_codegen_triggers.py,test_content_codegen.py,test_content_boundary_regressions.py
 Scripts/coverage_profiles.py	test_player_coverage.py
 Scripts/diagnostic_maintenance.py	test_ci_effort.py,test_ci_session_scripts.py,test_failure_diagnostics.py,test_output_retention.py,test_test_timing.py
 Scripts/ensure-ci-tools.sh	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py
@@ -116,17 +116,17 @@ Scripts/internal/cli.py	test_ci_effort.py,test_internal_cli.py,test_localization
 Scripts/internal/deploy_cache.py	test_deploy_verification.py
 Scripts/internal/content/abilities.py	test_codegen_abilities.py,test_content_codegen.py,test_content_inspect.py
 Scripts/internal/content/affix_rolling.py	test_codegen_common.py,test_codegen_homestead.py,test_codegen_stages.py,test_codegen_talents.py,test_codegen_triggers.py,test_content_codegen.py,test_content_inspect.py
-Scripts/internal/content/common.py	test_check_unused_assets.py,test_codegen_abilities.py,test_codegen_common.py,test_codegen_homestead.py,test_codegen_stages.py,test_codegen_talents.py,test_codegen_triggers.py,test_content_codegen.py,test_content_inspect.py
-Scripts/internal/content/content_codegen_modifiers.py	test_codegen_common.py,test_codegen_homestead.py,test_codegen_stages.py,test_codegen_talents.py,test_codegen_triggers.py,test_content_codegen.py,test_content_inspect.py
+Scripts/internal/content/common.py	test_check_unused_assets.py,test_codegen_abilities.py,test_codegen_common.py,test_codegen_homestead.py,test_codegen_stages.py,test_codegen_talents.py,test_codegen_triggers.py,test_content_codegen.py,test_content_inspect.py,test_content_boundary_regressions.py
+Scripts/internal/content/content_codegen_modifiers.py	test_content_boundary_regressions.py,test_codegen_common.py,test_codegen_homestead.py,test_codegen_stages.py,test_codegen_talents.py,test_codegen_triggers.py,test_content_codegen.py,test_content_inspect.py
 Scripts/internal/content/content_codegen_triggers.py	test_codegen_common.py,test_codegen_homestead.py,test_codegen_stages.py,test_codegen_talents.py,test_codegen_triggers.py,test_content_codegen.py,test_content_inspect.py
-Scripts/internal/content/homestead.py	test_codegen_homestead.py,test_content_codegen.py,test_content_inspect.py
+Scripts/internal/content/homestead.py	test_codegen_homestead.py,test_content_codegen.py,test_content_inspect.py,test_content_boundary_regressions.py
 Scripts/internal/content/inspection.py	test_content_inspect.py
 Scripts/internal/content/items.py	test_content_codegen.py,test_content_inspect.py
 Scripts/internal/content/modifier_schema.py	test_codegen_common.py,test_codegen_homestead.py,test_codegen_stages.py,test_codegen_talents.py,test_codegen_triggers.py,test_content_codegen.py,test_content_inspect.py
 Scripts/internal/content/modifiers.json	test_codegen_common.py,test_codegen_homestead.py,test_codegen_stages.py,test_codegen_talents.py,test_codegen_triggers.py,test_content_codegen.py,test_content_inspect.py
 Scripts/internal/content/roster.py	test_content_codegen.py,test_content_inspect.py
 Scripts/internal/content/stages.py	test_codegen_stages.py,test_content_codegen.py,test_content_inspect.py
-Scripts/internal/content/talents.py	test_codegen_talents.py,test_content_codegen.py,test_content_inspect.py
+Scripts/internal/content/talents.py	test_codegen_talents.py,test_content_codegen.py,test_content_inspect.py,test_content_boundary_regressions.py
 Scripts/internal/content/trigger_families/*.json	test_codegen_common.py,test_codegen_homestead.py,test_codegen_stages.py,test_codegen_talents.py,test_codegen_triggers.py,test_content_codegen.py,test_content_inspect.py
 Scripts/internal/diagnostics/diagnostic_limits.py	test_codegen_abilities.py,test_failure_diagnostics.py,test_internal_cli.py,test_package_diagnostics.py,test_test_timing.py,test_ci_gate_scripts.py,test_ci_improvements.py
 Scripts/internal/diagnostics/diagnostic_model.py	test_failure_diagnostics.py,test_package_diagnostics.py,test_test_timing.py,test_ci_gate_scripts.py,test_ci_improvements.py
@@ -144,8 +144,8 @@ Scripts/internal/performance/performance_model.py	test_aggregate_performance.py,
 Scripts/internal/playthrough_report.py	test_playthrough_sweep.py
 Scripts/internal/policy_scan.py	test_policy_scripts.py,test_swift_invariants.py,test_swift_style_policy.py,test_ui_policy.py,test_ci_build_scripts.py
 Scripts/internal/profile_exports.py	test_profile_exports.py
-Scripts/internal/source_declarations.py	test_agent_callers.py,test_agent_investigate.py,test_agent_read.py
-Scripts/internal/swift_policy.py	test_agent_callers.py,test_agent_investigate.py,test_agent_read.py,test_documentation.py,test_swift_invariants.py,test_swift_style_policy.py
+Scripts/internal/source_declarations.py	test_agent_callers.py,test_agent_investigate.py,test_agent_read.py,test_audit_tooling_regressions.py
+Scripts/internal/swift_policy.py	test_agent_callers.py,test_agent_investigate.py,test_agent_read.py,test_documentation.py,test_swift_invariants.py,test_swift_style_policy.py,test_audit_tooling_regressions.py
 Scripts/internal/testflight.rb	test_testflight.py
 Scripts/internal/ui_registration.py	test_agent_context.py,test_ci_handoff_routing.py,test_deploy_verification.py,test_documentation.py,test_pre_push.py,test_project_generation.py,test_ui_registration.py
 Scripts/lib/app-build.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_process.py,test_ci_build_scripts.py,test_verification_policy.py
@@ -199,7 +199,7 @@ Scripts/release-notes-user.py	test_release_notes_user.py
 Scripts/release-notes.sh	test_policy_scripts.py,test_swift_style_policy.py
 Scripts/release.sh	test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py
 Scripts/report-art-memory.sh	test_ci_build_scripts.py,test_media_asset_scripts.py
-Scripts/report-exhaustive-ci.py	test_ci_gate_scripts.py
+Scripts/report-exhaustive-ci.py	test_ci_gate_scripts.py,test_exhaustive_report_regressions.py
 Scripts/restore-ci-test-products.sh	test_build_metadata.py
 Scripts/run-env.sh	test-run-env.sh,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py
 Scripts/run-simulator.sh	test_build_metadata.py,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py,test_inspection.py

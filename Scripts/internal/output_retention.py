@@ -301,11 +301,18 @@ def begin(path: Path, root: Path, pid: int) -> None:
     if pid not in processes:
         raise ValueError('output owner is not running')
     owner = marker(path, OWNER)
+    if owner.is_symlink():
+        raise ValueError('output already has an unknown owner')
     if owner.exists():
-        identity = json.loads(owner.read_text())
-        if type(identity.get('pid')) is not int or not isinstance(identity.get('started'), str):
+        try:
+            identity = json.loads(owner.read_text())
+            owner_pid, started = identity['pid'], identity['started']
+        except (OSError, ValueError, KeyError, TypeError):
+            raise ValueError('output already has an unknown owner') from None
+        if type(owner_pid) is not int or owner_pid <= 0 or not isinstance(started, str) or not started.strip():
             raise ValueError('output already has an unknown owner')
-        if processes.get(identity['pid'], ('', ''))[0] == identity['started']:
+        if ((owner_pid in processes and processes[owner_pid][0] == started)
+                or (owner_pid not in processes and process_alive(owner_pid))):
             raise ValueError('output already has a live owner')
     write_json_atomic(owner, {'pid': pid, 'started': processes[pid][0]})
 

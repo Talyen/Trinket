@@ -13,7 +13,62 @@ from internal.markdown import heading_slugs, unfenced_lines
 from internal.cli import ROOT
 from internal.doc_diagnostics import report_failures
 SKIP_PARTS = {".git", ".DerivedData", ".tools", ".build", "Generated", "BalanceSweepReports"}
-LINK = re.compile(r"\[[^\]]*\]\(\s*(<[^>]*>|[^\s)]*)(?:\s+[^)]*)?\)")
+LINK_START = re.compile(r"\[[^\]]*\]\(\s*")
+
+
+def link_targets(lines: list[str]):
+    """Read inline destinations outside fences/code, preserving balanced parentheses."""
+    visible = dict(unfenced_lines(lines))
+    text = '\n'.join(visible.get(number, '') for number in range(1, len(lines) + 1))
+    # Code spans can cross physical lines. Only an equal-length backtick run closes one.
+    masked = list(text)
+    for paragraph in re.finditer(r'\S.*?(?=\n[ \t]*\n|\Z)', text, re.S):
+        runs = list(re.finditer(r'`+', paragraph[0]))
+        index = 0
+        while index < len(runs):
+            opening = runs[index]
+            prefix = paragraph[0][:opening.start()]
+            escaped = (len(prefix) - len(prefix.rstrip('\\'))) % 2
+            closing = None if escaped else next((other for other in range(index + 1, len(runs))
+                                                if len(runs[other][0]) == len(opening[0])), None)
+            if closing is None:
+                index += 1
+                continue
+            for offset in range(paragraph.start() + opening.start(), paragraph.start() + runs[closing].end()):
+                if masked[offset] != '\n':
+                    masked[offset] = ' '
+            index = closing + 1
+    text = ''.join(masked)
+    for match in LINK_START.finditer(text):
+        start = end = match.end()
+        if start < len(text) and text[start] == '<':
+            end = text.find('>', start + 1)
+            if end < 0:
+                continue
+            target = text[start + 1:end]
+            end += 1
+        else:
+            depth = 0
+            while end < len(text):
+                character = text[end]
+                if character == '\\' and end + 1 < len(text):
+                    end += 2
+                    continue
+                if character == '(':
+                    depth += 1
+                elif character == ')':
+                    if depth == 0:
+                        break
+                    depth -= 1
+                elif character.isspace():
+                    break
+                end += 1
+            if depth:
+                continue
+            target = text[start:end]
+        if not re.match(r'(?:\s+(?:"[^"\n]*"|\'[^\'\n]*\'|\([^\n]*?\)))?\s*\)', text[end:]):
+            continue
+        yield text.count('\n', 0, match.start()) + 1, re.sub(r'\\([\\()<>])', r'\1', target)
 
 
 def markdown_files() -> list[Path]:
@@ -42,36 +97,34 @@ def broken_links(files: list[Path]) -> list[str]:
     slug_cache: dict[Path, set[str]] = {}
     resolved_root = ROOT.resolve()
     for source in files:
-        for line_number, line in unfenced_lines(source.read_text(encoding="utf-8").splitlines()):
-            for raw in LINK.findall(line):
-                target = raw.strip("<>")
-                if not target or re.match(r"[A-Za-z][A-Za-z0-9+.-]*:", target):
-                    continue
-                path_text, _, fragment = target.partition("#")
-                path_text, fragment = unquote(path_text), unquote(fragment)
-                if path_text:
-                    resolved = (source.parent / path_text).resolve()
-                    if not resolved.exists():
-                        failures.append(
-                            f"{source.relative_to(ROOT)}:{line_number}: missing link target {path_text}"
-                        )
-                        continue
-                else:
-                    resolved = source
-                if not fragment:
-                    continue
-                if resolved.is_dir():
-                    resolved = resolved / "README.md"
-                if resolved.suffix != ".md" or not resolved.is_file():
-                    continue
-                if resolved not in slug_cache:
-                    slug_cache[resolved] = heading_slugs(resolved)
-                slugs = slug_cache[resolved]
-                if fragment not in slugs:
-                    destination = resolved.relative_to(resolved_root) if resolved.is_relative_to(resolved_root) else resolved
+        for line_number, target in link_targets(source.read_text(encoding="utf-8").splitlines()):
+            if not target or re.match(r"[A-Za-z][A-Za-z0-9+.-]*:", target):
+                continue
+            path_text, _, fragment = target.partition("#")
+            path_text, fragment = unquote(path_text), unquote(fragment)
+            if path_text:
+                resolved = (source.parent / path_text).resolve()
+                if not resolved.exists():
                     failures.append(
-                        f"{source.relative_to(ROOT)}:{line_number}: missing heading {destination}#{fragment}"
+                        f"{source.relative_to(ROOT)}:{line_number}: missing link target {path_text}"
                     )
+                    continue
+            else:
+                resolved = source
+            if not fragment:
+                continue
+            if resolved.is_dir():
+                resolved = resolved / "README.md"
+            if resolved.suffix != ".md" or not resolved.is_file():
+                continue
+            if resolved not in slug_cache:
+                slug_cache[resolved] = heading_slugs(resolved)
+            slugs = slug_cache[resolved]
+            if fragment not in slugs:
+                destination = resolved.relative_to(resolved_root) if resolved.is_relative_to(resolved_root) else resolved
+                failures.append(
+                    f"{source.relative_to(ROOT)}:{line_number}: missing heading {destination}#{fragment}"
+                )
     return failures
 
 
@@ -83,14 +136,12 @@ def affected_documents(files: list[Path], paths: set[Path]) -> list[Path]:
         if source.resolve() in affected:
             selected.append(source)
             continue
-        for _, line in unfenced_lines(source.read_text(encoding='utf-8').splitlines()):
-            targets = []
-            for raw in LINK.findall(line):
-                target = raw.strip('<>').partition('#')[0]
-                if target and not re.match(r'[A-Za-z][A-Za-z0-9+.-]*:', target):
-                    resolved = (source.parent / unquote(target)).resolve()
-                    targets.append(resolved / 'README.md' if resolved.is_dir() else resolved)
-            if any(target in affected for target in targets):
+        for _, target in link_targets(source.read_text(encoding='utf-8').splitlines()):
+            target = target.partition('#')[0]
+            if target and not re.match(r'[A-Za-z][A-Za-z0-9+.-]*:', target):
+                resolved = (source.parent / unquote(target)).resolve()
+                if (resolved / 'README.md' if resolved.is_dir() else resolved) not in affected:
+                    continue
                 selected.append(source)
                 break
     return selected

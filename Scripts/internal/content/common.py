@@ -178,10 +178,25 @@ def _validate_snake_id(label: str, value: str, row_id: str) -> None:
         )
 
 
+def parse_typed_int(raw: str, label: str) -> int:
+    """Single home for generated Swift integer values. Accepts surrounding
+    whitespace and explicit +/- signs; rejects non-integers and infinities."""
+    try:
+        value = raw.strip()
+        if not re.fullmatch(r"[+-]?[0-9]+(?:_[0-9]+)*", value):
+            raise ValueError("not a Swift integer literal")
+        number = int(value)
+    except ValueError as error:
+        raise ValueError(f"Integer value for {label} must be an integer, got {raw!r}") from error
+    if not -(1 << 63) <= number < (1 << 63):
+        raise ValueError(f"Integer value for {label} must fit a Swift Int, got {raw!r}")
+    return number
+
+
 def _validate_positive_int(label: str, value: str, row_id: str, minimum: int = 0) -> None:
     if not re.fullmatch(r"[0-9]+", value):
         raise ValueError(f"{label} for {row_id} must be an integer")
-    if int(value) < minimum:
+    if parse_typed_int(value, f"{label} for {row_id}") < minimum:
         if minimum == 1:
             raise ValueError(f"{label} for {row_id} must be positive")
         raise ValueError(f"{label} for {row_id} must be non-negative")
@@ -213,7 +228,7 @@ def parse_material_tokens(raw: str, minimum: int = 0) -> list[tuple[str, int]]:
         _ensure_unique(seen, resource, "resource")
         if not re.fullmatch(r"[+-]?[0-9]+", quantity.strip()):
             raise ValueError(f"Resource quantity {quantity.strip()!r} must be an integer")
-        amount = int(quantity.strip())
+        amount = parse_typed_int(quantity, f"Resource quantity for {resource}")
         if amount < minimum:
             requirement = "positive" if minimum == 1 else "non-negative"
             raise ValueError(f"Resource quantity for {resource} must be {requirement}")

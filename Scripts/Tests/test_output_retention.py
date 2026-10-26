@@ -204,6 +204,47 @@ class OutputRetentionTests(ScriptRegressionTestCase):
                 retention.finish(path, self.root, 123, status, comparison=comparison)
             self.assertEqual(path.exists(), survives)
 
+    def test_begin_preserves_live_foreign_owner_outside_process_snapshot(self):
+        path = self.output('.DerivedData/HandoffResults/foreign/log').parent
+        owner = path / retention.OWNER
+        write_json(owner, {'pid': 456, 'started': 'Mon Oct 5 01:00:00 2026'})
+        original = owner.read_bytes()
+        with patch.object(retention, 'process_snapshot', return_value=self.processes), \
+             patch.object(retention, 'process_alive', return_value=True) as alive:
+            with self.assertRaisesRegex(ValueError, 'live owner'):
+                retention.begin(path, self.root, 123)
+        alive.assert_called_once_with(456)
+        self.assertEqual(owner.read_bytes(), original)
+
+    def test_begin_recovers_proven_dead_owner_outside_process_snapshot(self):
+        path = self.output('.DerivedData/HandoffResults/dead/log').parent
+        owner = path / retention.OWNER
+        write_json(owner, {'pid': 456, 'started': 'Mon Oct 5 01:00:00 2026'})
+        with patch.object(retention, 'process_snapshot', return_value=self.processes), \
+             patch.object(retention, 'process_alive', return_value=False) as alive:
+            retention.begin(path, self.root, 123)
+        alive.assert_called_once_with(456)
+        self.assertEqual(json.loads(owner.read_text()), {'pid': 123, 'started': self.processes[123][0]})
+
+    def test_begin_preserves_ambiguous_owner_markers(self):
+        path = self.output('.DerivedData/HandoffResults/unknown/log').parent
+        owner = path / retention.OWNER
+        identities = [
+            {'pid': 0, 'started': 'unknown'}, {'pid': -1, 'started': 'unknown'},
+            {'pid': 456, 'started': ''}, {'pid': 456, 'started': '  '},
+            {'pid': True, 'started': 'unknown'}, {'started': 'unknown'}, [], 'broken owner',
+        ]
+        for identity in identities:
+            with self.subTest(identity=identity):
+                write_json(owner, identity)
+                original = owner.read_bytes()
+                with patch.object(retention, 'process_snapshot', return_value=self.processes), \
+                     patch.object(retention, 'process_alive') as alive:
+                    with self.assertRaisesRegex(ValueError, 'unknown owner'):
+                        retention.begin(path, self.root, 123)
+                alive.assert_not_called()
+                self.assertEqual(owner.read_bytes(), original)
+
     def test_staged_diagnostics_survive_cleanup_and_aliases_cannot_target_results_root(self):
         from script_test_support import load_script
         maintenance = load_script('retention_maintenance', 'diagnostic_maintenance.py')

@@ -97,13 +97,15 @@ def parse_homestead_combat_tokens(
         scope, separator, body = token.partition(".")
         if not separator or scope not in {"hero", "companion"}:
             scope, body = "both", token
-        key = (scope, *modifier_field_key(body))
-        if key in seen:
-            raise ValueError(
-                f"Duplicate homestead bonus for {key[0]!r} scope: "
-                f"{token!r} repeats {seen[key]!r}; merge into one token"
-            )
-        seen[key] = token
+        scopes = ("hero", "companion") if scope == "both" else (scope,)
+        for recipient in scopes:
+            key = (recipient, *modifier_field_key(body))
+            if key in seen:
+                raise ValueError(
+                    f"Duplicate homestead bonus for {recipient!r} scope: "
+                    f"{token!r} repeats {seen[key]!r}; merge into one token"
+                )
+            seen[key] = token
         swift = modifier_token_to_swift(body)
         if scope in ("hero", "both"):
             hero.append(swift)

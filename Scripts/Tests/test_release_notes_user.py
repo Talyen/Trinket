@@ -26,6 +26,27 @@ def commit(
 
 class ReleaseNotesUserTests(unittest.TestCase):
 
+    def test_automatic_baseline_ignores_unmerged_future_release_tags(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def git(*args):
+                return run_captured(["git", "-c", "commit.gpgsign=false", *args], cwd=root, check=True)
+            git("init", "-b", "main")
+            git("config", "user.name", "Fixture")
+            git("config", "user.email", "fixture@example.invalid")
+            git("commit", "--allow-empty", "-m", "feat: previous release")
+            git("tag", "v1.0.0")
+            git("commit", "--allow-empty", "-m", "fix: restore battle rewards")
+            git("checkout", "-b", "future-release")
+            git("commit", "--allow-empty", "-m", "feat: future release")
+            git("tag", "v99.0.0")
+            git("checkout", "main")
+            with patch.object(notes, "ROOT", root):
+                baseline = notes.latest_tag()
+                parsed = notes.load_commits(baseline)
+            self.assertEqual(baseline, "v1.0.0")
+            self.assertEqual([entry.subject for entry in parsed], ["fix: restore battle rewards"])
+
 
     def test_git_log_preserves_marker_text_and_unusual_product_filenames(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

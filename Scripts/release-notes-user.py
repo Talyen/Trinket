@@ -93,7 +93,7 @@ def run(*args: str) -> str:
 
 
 def latest_tag() -> str | None:
-    tags = run("git", "tag", "-l", "v[0-9]*", "--sort=-v:refname").splitlines()
+    tags = run("git", "tag", "-l", "v[0-9]*", "--merged", "HEAD", "--sort=-v:refname").splitlines()
     return tags[0] if tags else None
 
 

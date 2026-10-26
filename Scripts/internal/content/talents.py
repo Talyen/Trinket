@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 
 from internal.content.common import (
     GENERATED_DIR,
@@ -16,7 +17,7 @@ from internal.content.common import (
     swift_escape,
     write_generated_file,
 )
-from internal.content.content_codegen_modifiers import modifiers_swift
+from internal.content.content_codegen_modifiers import VALID_KEYWORDS, modifiers_swift
 from internal.content.content_codegen_triggers import power_arguments_swift, triggers_swift
 
 
@@ -96,16 +97,33 @@ def generate_talent_catalog(rows: list[TalentRow], combatant_ids: list[str]) -> 
 
 def validate_talent_rows(rows: list[TalentRow], combatant_ids: list[str] | None = None) -> None:
     seen: set[str] = set()
+    trees: dict[tuple[str, str], set[tuple[int, int]]] = {}
     sorted_cids = sorted(combatant_ids, key=len, reverse=True) if combatant_ids is not None else None
     for row in rows:
         _ensure_unique(seen, row.id, "talent id")
 
         _validate_snake_id("talent id", row.id, row.id)
-        if sorted_cids is not None:
-            combatant_id_for_talent(row.id, sorted_cids)
+        owner = combatant_id_for_talent(row.id, sorted_cids) if sorted_cids is not None else None
+        match = re.fullmatch(r"(.+)_([a-z]+)_t([1-9][0-9]*)_([12])", row.id)
+        if (match is None or match[2] not in {keyword.lower() for keyword in VALID_KEYWORDS}
+                or owner is not None and match[1] != owner or not 1 <= int(match[3]) <= 19):
+            raise ValueError(f"Invalid talent position for {row.id}; use combatant_keyword_t1...19_1...2")
+        trees.setdefault((match[1], match[2]), set()).add((int(match[3]), int(match[4])))
         _require_non_empty("talent name", row.name, row.id)
         _validate_game_icon(row.icon_id, row.id)
         _require_non_empty("talent description", row.description, row.id)
 
         modifiers_swift(row.modifiers, row.id)
         triggers_swift(row.triggers, row.id)
+
+    if combatant_ids is not None:
+        missing = set(combatant_ids) - {owner for owner, _ in trees}
+        if missing:
+            raise ValueError(f"Talent manifest missing combatants: {sorted(missing)}")
+    for (owner, keyword), positions in trees.items():
+        required = {(row, slot) for row in range(1, 4) for slot in (1, 2)} | {(4, 1)}
+        if not required <= positions:
+            raise ValueError(f"Talent tree {owner}_{keyword} needs two nodes in rows 1...3 and row 4 slot 1")
+        rows_present = {row for row, _ in positions}
+        if rows_present != set(range(1, max(rows_present) + 1)):
+            raise ValueError(f"Talent tree {owner}_{keyword} rows must be contiguous")

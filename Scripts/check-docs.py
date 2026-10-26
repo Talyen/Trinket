@@ -116,8 +116,7 @@ def audit_inventory_failures() -> list[str]:
                 continue
             if not in_ownership:
                 continue
-            for raw in _check_links.LINK.findall(line):
-                target = raw.strip().split(maxsplit=1)[0].strip("<>")
+            for _, target in _check_links.link_targets([line]):
                 if "/" not in target and AUDIT_GUIDE_PATTERN.match(Path(target).name):
                     linked.add(Path(target).name)
     for name in sorted(set(guides) - linked):
