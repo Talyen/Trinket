@@ -59,7 +59,7 @@ extension PlaythroughCareer {
             try executeBattle(action)
         case .campaign, .enterLabyrinth, .labyrinth, .contracts, .contract, .spire:
             try executeMode(action)
-        case .equip, .equipInSlot, .party, .upgrade, .collect:
+        case .equip, .equipInSlot, .unequipInSlot, .party, .upgrade, .collect:
             try await executeInvestment(action)
         }
     }
@@ -164,6 +164,13 @@ extension PlaythroughCareer {
                     .value == .committed,
                 "equip item",
             )
+            summary.equipmentChanges += 1
+        case let .unequipInSlot(combatantID, slot):
+            guard let combatant = (store.roster.heroes + store.roster.companions).first(where: { $0.id == combatantID }),
+                  store.roster.equipmentLoadout(for: combatant).itemID(for: slot) != nil else {
+                throw PlaythroughFailure.rejected("unequip identity")
+            }
+            try require(store.editCombatant(.unequipItem(slot), for: combatant.id).value == .committed, "unequip item")
             summary.equipmentChanges += 1
         case let .party(heroID, companionID):
             guard let hero = store.roster.heroes.first(where: { $0.id == heroID }),

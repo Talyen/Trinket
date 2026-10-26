@@ -49,7 +49,7 @@ The test controller chooses among observed actions. It never grants progress,
 inserts victories, alters enemy health, or calls mode completion to bypass a battle.
 Targeted correctness fixtures are explicitly separate from fresh career reports.
 Equipment uses the same edit operation as Collection. The shared simulation policy
-`effect-aligned-affix-budget-v2` considers every legal slot, reserves other characters'
+`effect-aligned-affix-budget-v3` considers every legal slot, reserves other characters'
 worn items, and accepts only strict improvements to the whole resulting loadout.
 It retains ties and includes displaced off-hand gear in its comparison, preventing
 idle A-to-B-to-A swaps. Its aligned-affix budget weights non-Basic rarity and
@@ -59,8 +59,12 @@ and actual saved rolls break ties only for matching affix portfolios when no mag
 gets weaker. Unrelated equal-budget kits retain the worn gear. Conditional effects still use coarse
 keyword alignment; this is a deterministic heuristic, not a combat optimizer. Older
 reports retain their policy ID and must not be treated as runs of the current policy.
-New journal actions retain the destination slot; older default-slot actions still
-replay with their original meaning. Summaries identify the equipment policy.
+A bow-to-melee plan may remove the quiver before equipping the primary; the
+selector scores the complete pair after that removal. The runner journals the
+production unequip and equip commands separately, so a reload between them leaves
+a legal bow-only loadout and replay resumes from the committed removal.
+New journal actions retain the destination slot, including explicit removals;
+older default-slot equip actions still replay with their original meaning. Summaries identify the equipment policy.
 Talent, Shop, Mystery,
 Contracts, and Homestead actions use their owning production operations.
 

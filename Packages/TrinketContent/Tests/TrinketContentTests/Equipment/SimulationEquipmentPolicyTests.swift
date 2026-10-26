@@ -129,6 +129,53 @@ struct SimulationEquipmentPolicyTests {
         ) == nil)
     }
 
+    @Test(arguments: ["mace", "maul"])
+    func `bow and quiver can switch to a stronger legal melee loadout`(baseID: String) throws {
+        let owner = try holyKnight()
+        let bow = try basedItem("bow", baseID: "shortbow", count: 1)
+        let quiver = try basedItem("quiver", baseID: "quiver", count: 1)
+        let melee = try basedItem("melee", baseID: baseID, count: 4)
+        let reserved = try basedItem("reserved", baseID: baseID, count: 8)
+        let inventory = [bow, quiver, melee, reserved]
+        var loadout = EquipmentLoadout(itemIDsBySlot: [.weapon: bow.id, .secondaryWeapon: quiver.id])
+        #expect(!loadout.canEquip(melee, in: .weapon, inventory: inventory))
+        let upgrade = try #require(SimulationEquipmentPolicy.nextUpgrade(
+            for: owner, inventory: inventory, loadout: loadout, reservedItemIDs: [reserved.id],
+        ))
+        #expect(upgrade.itemID == melee.id)
+        #expect(upgrade.unequipFirst == .secondaryWeapon)
+        if let slot = upgrade.unequipFirst {
+            loadout.unequip(slot)
+        }
+        loadout.equip(melee, in: upgrade.slot, inventory: inventory)
+        #expect(loadout.itemID(for: .weapon) == melee.id)
+        #expect(loadout.itemID(for: .secondaryWeapon) == nil)
+        #expect(loadout.sanitized(for: owner, inventory: inventory) == loadout)
+        #expect(inventory.contains { $0.id == quiver.id })
+    }
+
+    @Test func `quiver removal never hides a downgrade in the complete weapon pair`() throws {
+        let owner = try holyKnight()
+        let bow = try basedItem("bow", baseID: "shortbow", count: 2)
+        let quiver = try basedItem("quiver", baseID: "quiver", count: 4)
+        let melee = try basedItem("melee", baseID: "maul", count: 3)
+        #expect(SimulationEquipmentPolicy.nextUpgrade(
+            for: owner, inventory: [bow, quiver, melee],
+            loadout: EquipmentLoadout(itemIDsBySlot: [.weapon: bow.id, .secondaryWeapon: quiver.id]),
+        ) == nil)
+    }
+
+    private func basedItem(_ id: String, baseID: String, count: Int) throws -> InventoryItem {
+        let base = try #require(GameContent.itemBaseType(matching: baseID))
+        return InventoryItem(
+            id: id,
+            baseType: base,
+            rarity: .basic,
+            displayName: id,
+            affixes: (0 ..< count).map { ItemAffix(id: "generic-\($0)", title: "Generic", description: "", keywords: []) },
+        )
+    }
+
     private func holyKnight() throws -> Combatant {
         let knight = try #require(GameContent.hero(matching: "knight"))
         return knight.withAbilityLoadout(AbilityLoadout(

@@ -197,7 +197,10 @@ legal unlocks, and retains its inventory. Only victories award items through the
 shared loot resolver at the fought encounter level, including ownership exclusion,
 active-party loot bias, the opening Journey boss reward and seeded Spire rewards.
 The shared `SimulationEquipmentPolicy` accepts strict whole-loadout improvements,
-retains ties, respects ownership, and supports secondary slots. It checks resolved
+retains ties, respects ownership, and supports secondary slots. Bow-to-melee upgrades
+include any required quiver removal in the complete-loadout score and expose that
+removal before the equip command. Both the headless and save-backed runners apply
+the same plan through their owning equipment operations. It checks resolved
 modifier effects for resistance and Mana usability instead of treating affinity tags
 as activation requirements. Shared-damage bonuses are evaluated on the whole candidate
 loadout; they do not grant the source damage type's attacks or procs. Saved modifier

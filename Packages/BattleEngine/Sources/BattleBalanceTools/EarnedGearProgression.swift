@@ -47,6 +47,9 @@ final class EarnedGearProgression {
                 for: owner, inventory: inventory, loadout: worn, reservedItemIDs: reserved,
             ) {
                 guard let item = inventory.first(where: { $0.id == upgrade.itemID }) else { break }
+                if let slot = upgrade.unequipFirst {
+                    worn.unequip(slot)
+                }
                 worn.equip(item, in: upgrade.slot, inventory: inventory)
             }
             equipment[owner.id] = worn

@@ -86,6 +86,9 @@ extension PlaythroughCareer {
                     return item.id
                 }),
             ) {
+                if let slot = upgrade.unequipFirst {
+                    try await perform(.unequipInSlot(combatant: combatant.id, slot: slot))
+                }
                 try await perform(.equipInSlot(combatant: combatant.id, item: upgrade.itemID, slot: upgrade.slot))
             }
         }

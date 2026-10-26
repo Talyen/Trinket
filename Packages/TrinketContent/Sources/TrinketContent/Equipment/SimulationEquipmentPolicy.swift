@@ -2,11 +2,13 @@ import TrinketCore
 
 /// Shared headless/career heuristic; it does not rank gear for the player UI.
 public enum SimulationEquipmentPolicy {
-    public static let id = "effect-aligned-affix-budget-v2"
+    public static let id = "effect-aligned-affix-budget-v3"
 
     public struct Upgrade: Equatable, Sendable {
         public let itemID: String
         public let slot: ItemSlot
+        /// Commit this removal before equipping; its cost is included in the upgrade score.
+        public let unequipFirst: ItemSlot?
     }
 
     /// Retain ties, respect other owners, and compare the entire resulting legal
@@ -23,14 +25,24 @@ public enum SimulationEquipmentPolicy {
         var best = scorer.score(current)
         var upgrade: Upgrade?
         for item in inventory.sorted(by: { $0.id < $1.id }) where !worn.contains(item.id) && !reservedItemIDs.contains(item.id) {
-            for slot in combatant.role.equipmentSlots where current.canEquip(item, in: slot, inventory: inventory) {
+            for slot in combatant.role.equipmentSlots {
                 var candidate = current
+                let unequipFirst: ItemSlot?
+                if slot == .weapon, !item.baseType.isRanged,
+                   let secondaryID = current.itemID(for: .secondaryWeapon),
+                   inventory.first(where: { $0.id == secondaryID })?.baseType.isQuiver == true {
+                    candidate.unequip(.secondaryWeapon)
+                    unequipFirst = .secondaryWeapon
+                } else {
+                    unequipFirst = nil
+                }
+                guard candidate.canEquip(item, in: slot, inventory: inventory) else { continue }
                 candidate.equip(item, in: slot, inventory: inventory)
                 candidate = candidate.sanitized(for: combatant, inventory: inventory)
                 let value = scorer.score(candidate)
                 if value.isImprovement(over: best) {
                     best = value
-                    upgrade = Upgrade(itemID: item.id, slot: slot)
+                    upgrade = Upgrade(itemID: item.id, slot: slot, unequipFirst: unequipFirst)
                 }
             }
         }

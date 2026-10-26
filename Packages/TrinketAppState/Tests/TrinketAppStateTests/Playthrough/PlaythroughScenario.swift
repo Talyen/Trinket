@@ -56,6 +56,7 @@ enum PlaythroughAction: Codable, Equatable {
     case upgrade(String, Int)
     case equip(combatant: String, item: String)
     case equipInSlot(combatant: String, item: String, slot: ItemSlot)
+    case unequipInSlot(combatant: String, slot: ItemSlot)
     case party(hero: String, companion: String)
     case corrupt(String)
     case enterLabyrinth
