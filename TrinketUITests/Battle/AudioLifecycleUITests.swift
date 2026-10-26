@@ -27,22 +27,22 @@ final class AudioLifecycleUITests: TrinketUITestCase {
         tabBar.select(.play)
         play.openExplore()
         tapButtonAfterScroll(AccessibilityID.Play.contractsModeCard)
-        var plays = 0
         try completeAudioContract {
             let musicStarts = try XCTUnwrap(coverageReport()["musicStarts"] as? Int)
             backgroundAndActivate()
-            // Observe the restart while still in battle: returning to the board
-            // starts menu music and could otherwise mask a failed foreground resume.
-            waitUntil("Foreground routing must restart battle music") {
-                ((try? self.coverageReport())?["musicStarts"] as? Int ?? 0) > musicStarts
+            let plays = try XCTUnwrap(coverageReport()["sfxPlays"] as? Int)
+            let card = battle.frontmostHandCard
+            let playedID = card.identifier
+            tapWhenReady(card)
+            // Check both backends before Auto-Battle or leaving can supply unrelated audio.
+            waitUntil("The resumed battle must accept a card and play music and sound") {
+                guard let resumed = try? self.coverageReport() else { return false }
+                return (resumed["musicStarts"] as? Int ?? 0) > musicStarts
+                    && (resumed["sfxPlays"] as? Int ?? 0) > plays
+                    && !self.button(playedID).exists
             }
-            plays = try XCTUnwrap(coverageReport()["sfxPlays"] as? Int)
         }
-        var after: [String: Any] = [:]
-        waitUntil("The resumed battle must schedule another sound") {
-            after = (try? self.coverageReport()) ?? [:]
-            return (after["sfxPlays"] as? Int ?? 0) > plays
-        }
+        let after = try coverageReport()
         XCTAssertEqual(after["audioFailures"] as? Int, 0)
         XCTAssertEqual(after["duplicateMusicOwners"] as? Int, 0)
         let attachment = XCTAttachment(string: String(describing: after))

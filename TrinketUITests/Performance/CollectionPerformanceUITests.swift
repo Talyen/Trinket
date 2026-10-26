@@ -5,13 +5,12 @@ import XCTest
 
 final class CollectionPerformanceUITests: PerformanceJourneyUITestCase {
     @MainActor
-    func testDetailAndAbility() throws {
+    func testCombatantDetailScroll() throws {
         try XCTSkipUnless(selected("combatant-detail-scroll"), "Scenario not selected")
         for iteration in 1 ... repetitionCount {
             launchApp(arguments: TestLaunchArg.performanceArguments(from: TestLaunchArg.allForScreen("hero:knight"))
                 + ["-performance-talent-point", "-performance-shine-loadout"])
             combatantDetail.assertLoaded(for: "Knight")
-            RunLoop.current.run(until: Date().addingTimeInterval(10))
             measured("combatant-detail-scroll", iteration: iteration, scrolling: app.scrollViews.firstMatch)
         }
     }

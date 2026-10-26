@@ -94,7 +94,7 @@
     },
     "combatant-detail-scroll": {
       "group": "collection",
-      "test": "CollectionPerformanceUITests/testDetailAndAbility"
+      "test": "CollectionPerformanceUITests/testCombatantDetailScroll"
     },
     "equipment-picker-scroll": {
       "group": "collection",

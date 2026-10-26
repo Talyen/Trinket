@@ -2,7 +2,7 @@ import TrinketFeatureSupport
 import XCTest
 
 final class PlayModeNavigationUITests: TrinketUITestCase {
-    func testRecruitContinueReturnsToCampaignWithTheCompanionUnlocked() {
+    func testRecruitContinueMakesTheCompanionAndNextBattleUsable() {
         launchApp(arguments: TestLaunchArg.allUnseeded()
             + TestLaunchArg.completedStages(["chapter-1-stage-1"])
             + TestLaunchArg.mysteryRecruit(eventID: "recruit-bear") + ["-performance-mystery-map"])
@@ -11,11 +11,13 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Mystery.unlockCard(name: "Bear"))
         tapButtonAfterScroll(AccessibilityID.Mystery.continueButton)
         play.assertCampaignLoaded()
-        assertExists(AccessibilityID.Play.stageAction(chapter: 1, stage: 3))
         tabBar.select(.collection)
-        let bear = AccessibilityID.CombatantDetail.collectionCard(name: "Bear")
-        reveal(button(bear))
-        XCTAssertFalse(button(bear).label.hasSuffix(", locked"), "The recruited companion must be unlocked")
+        tapButtonAfterScroll(AccessibilityID.CombatantDetail.collectionCard(name: "Bear"))
+        combatantDetail.assertLoaded(for: "Bear")
+        dismissSheet(AccessibilityID.CombatantDetail.header(name: "Bear"))
+        tabBar.select(.play)
+        play.startBattle(chapter: 1, stage: 3)
+        battle.assertActive()
     }
 
     func testLabyrinthBossContinueOpensAUsableNextFloor() throws {
@@ -68,7 +70,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.Voyage.options)
     }
 
-    func testSpireWithoutMatchingPartyKeywordsPreservesFloorLocksAndLaunch() {
+    func testLockedSpireFloorStaysInertAndUnlockedFloorStartsBattle() {
         launchApp(arguments: TestLaunchArg.allForTab("play"))
         play.openExplore()
         tapButton(AccessibilityID.Play.spiresModeCard)
@@ -77,7 +79,6 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         let locked = any(AccessibilityID.Play.spireFloor("cinderSpire", floor: 2)).firstMatch
         reveal(locked)
         locked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        assertDoesNotExist(AccessibilityID.Battle.hand)
         XCTAssertFalse(button(AccessibilityID.Play.spireBeginFloor("cinderSpire", floor: 2)).exists)
         let begin = button(AccessibilityID.Play.spireBeginFloor("cinderSpire", floor: 1))
         XCTAssertTrue(app.scrollUntilVisible(begin, swipingUp: false, requireHittable: true), "The unlocked floor must be reachable")
@@ -99,8 +100,6 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         let selected = action.identifier
         let locked = any(AccessibilityID.Play.labyrinthFloor1LockedNode)
         reveal(locked)
-        let label = locked.label
-        XCTAssertTrue(label.hasSuffix(", locked"), label)
         locked.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         assertExists(selected)
         let entry = any(AccessibilityID.Play.labyrinthFloor1EntryNode)

@@ -32,16 +32,6 @@ a suite summary alone does not. Documented individual skips remain visible in re
 executes the Full Game purchase journey; the documented iOS 26.5 purchase skip
 is local-only.
 
-The merchant smoke journey owns the purchase button, displayed gold debit, and
-return to Play. Purchased-item ownership and sold-stock rejection are proved by
-`ShopPurchaseApplierTests` and `AppStateShopEncounterTests`; smoke avoids a second
-purchase attempt and a Collection traversal. The equipment UI journey owns picker,
-equip, and unequip-control wiring. `PresentationModelTests` proves equipment survives
-reload, including failed-write rollback and retry, so the UI journey avoids another
-cold app launch. The Debug-only equipment fixture retains equipped items and the target weapon,
-so the selected weapon is visible without keyboard search or a broad scroll budget. The Labyrinth boss/Continue journey retains
-its battle and floor-selection interactions because they protect distinct UI wiring.
-
 ## Launch args
 
 Defined as `TestLaunchArg` in `Support/TrinketUITestCase.swift` and parsed by
@@ -162,9 +152,11 @@ Assert a journey’s return destination before using helpers that navigate elsew
   proves recovery by starting another battle in the same process. Its former
   relaunch check only found the already-unlocked first stage; `DefeatCompletionTests`
   owns retry/settlement correctness.
-- `BattleFlowUITests` shares one launch for inspection, dismissal, cancelled drag,
-  and committed drag. Successful plays check the selected card's departure;
-  draw effects can keep the total hand size unchanged.
+- `BattleFlowUITests` shares one launch for inspection, dismissal, a held cancelled
+  drag, and a committed drag after cancellation. `BattleCardGesturePolicyTests` owns
+  numeric movement/play boundaries; the second sub-threshold flick is retired.
+  Successful plays check the selected card's departure; draw effects can keep
+  the total hand size unchanged.
   `DuoRotationUITests` runs only through Profiles in `player-coverage.sh duo`,
   retaining hand membership, reachable controls and post-rotation play. Keeping
   its intentional runtime skip outside FullUI permits CI's complete-execution
@@ -182,8 +174,9 @@ Assert a journey’s return destination before using helpers that navigate elsew
   [Monetization](../Docs/Product/Monetization.md#offer).
 - `SmokeShellTests` owns onboarding, retained starter access after relaunch, and
   the Collection → Homestead → Options → Play round-trip in the same career.
-  Shell and onboarding changes route to that one owner. Recruitment independently
-  verifies its earned companion remains unlocked in Collection.
+  Shell and onboarding changes route to that one owner. Recruitment opens the earned
+  companion's detail in Collection and starts the next Campaign battle, proving
+  usable access instead of matching a lock label.
   Full Game smoke owns character detail entry; equipment owns item detail/picker,
   equip, and actual unequip/reselect wiring. The equipment fixture keeps the target weapon
   visible. Reload/failed-write equipment semantics remain package-owned by
@@ -207,8 +200,8 @@ Assert a journey’s return destination before using helpers that navigate elsew
   case is retired: it protected a narrow preference binding at the cost of two
   launches. Dedicated Haptics UI persistence is no longer proved; real Music slider
   binding/playback persistence remains in `AudioLifecycleUITests`. One Contract
-  covers music restart before leaving the resumed battle and subsequent SFX;
-  menu music cannot satisfy the foreground assertion. The twenty-Contract soak
+  plays a card after foreground return and checks its departure, music restart and
+  subsequent SFX before Auto-Battle or board return can supply unrelated audio. The twenty-Contract soak
   owns repeated-battle audio coverage; `MusicPlayerRoutingTests` owns route rules.
 - Full Game smoke seeds completed free chapters, opens Campaign from the Play
   hub, and taps the locked chapter's real offer entry. It purchases access to independently
@@ -249,6 +242,8 @@ own explicit interaction windows, including victory and Mystery reveals.
 
 Exit unselected tests before launch/probe setup. In multi-step equipment and talent
 journeys, run only prerequisites for selected steps and skip trailing actions.
+Combatant-detail scrolling starts after launch preparation and detail readiness;
+there is no additional ten-second sleep. Existing animation-tail budgets remain.
 Resolve sampler coordinates and gesture setup before capture. Snapshot scroll probes
 outside `measured`, using one resolved surface for both snapshots and gestures;
 failed movement retains the hierarchy and shared failure screenshot.

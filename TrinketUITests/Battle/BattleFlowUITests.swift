@@ -40,13 +40,6 @@ final class BattleFlowUITests: TrinketUITestCase {
         assertExists(dragCard)
         let dragCardID = dragCard.identifier
         let origin = dragCard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        assertCancelledDrag(from: origin, cardID: dragCardID)
-        origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)))
-        waitUntil("A successful drag must play the selected card") { !self.button(dragCardID).exists }
-        attachSuccessScreenshot(named: "hand-after-drag")
-    }
-
-    private func assertCancelledDrag(from origin: XCUICoordinate, cardID: String) {
         // Cross the shared movement boundary, then hold beyond native long-press recognition.
         origin.press(
             forDuration: 0.05,
@@ -54,16 +47,10 @@ final class BattleFlowUITests: TrinketUITestCase {
             withVelocity: XCUIGestureVelocity(rawValue: 40),
             thenHoldForDuration: 0.7,
         )
-        XCTAssertTrue(button(cardID).exists, "A drag below the play threshold must leave the selected card in hand")
+        XCTAssertTrue(button(dragCardID).exists, "A cancelled drag must leave the selected card in hand")
         assertDoesNotExist(AccessibilityID.Battle.abilityDetail)
-
-        origin.press(
-            forDuration: 0.05,
-            thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -60)),
-            withVelocity: .fast,
-            thenHoldForDuration: 0,
-        )
-        XCTAssertTrue(button(cardID).exists, "A flick released inside the play boundary must cancel")
-        assertDoesNotExist(AccessibilityID.Battle.abilityDetail)
+        origin.press(forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)))
+        waitUntil("A successful drag after cancellation must play the selected card") { !self.button(dragCardID).exists }
+        attachSuccessScreenshot(named: "hand-after-drag")
     }
 }
