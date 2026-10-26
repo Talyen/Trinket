@@ -5,6 +5,33 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct CloudSaveMergeEconomyRegressionTests {
+    @Test(arguments: [false, true]) @MainActor
+    func `fractional reward carry is reconciled before the Gold cap and survives reload`(reverseBranches: Bool) throws {
+        var base = PlayerSave.testSeed
+        base.roster.gold = 990
+        base.homestead = PlayerHomesteadState(
+            resources: [:], nodeTiers: [:], lastProductionAt: base.homestead.lastProductionAt,
+            rewardRemainders: HomesteadRewardRemainders(gold: 90),
+        )
+        var first = base
+        var second = base
+        // Each device pays out the shared baseline fraction, alongside independent Gold.
+        var fractions = try #require(base.homestead.rewardRemainders)
+        #expect(fractions.bonus(for: .gold, amount: 1, percent: 25) == 1)
+        first.homestead.rewardRemainders = fractions
+        second.homestead.rewardRemainders = fractions
+        first.roster.gold = 999
+        second.roster.gold = 998
+        let merged = CloudSaveMerge.merge(
+            incoming: reverseBranches ? second : first, existing: reverseBranches ? first : second,
+            base: base, preferIncoming: true,
+        )
+        let context = try PersistenceTestContext()
+        let reloaded = try context.seedAndReload(merged).currentSave
+        #expect(reloaded.roster.gold == GoldBalance.maximum)
+        #expect(reloaded.homestead.rewardRemainders?.gold == 40)
+    }
+
     @Test @MainActor func `shared upgrades charge once while distinct builds retain their costs through reload`() throws {
         let date = Date(timeIntervalSince1970: 2000000000)
         var base = PlayerSave.testSeed

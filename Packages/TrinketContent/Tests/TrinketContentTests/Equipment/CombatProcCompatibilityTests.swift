@@ -4,6 +4,23 @@ import TrinketCore
 @testable import TrinketContent
 
 struct CombatProcCompatibilityTests {
+    @Test(arguments: ["keen", "beacon", "beastbond", "the_returning_gale", "red_harvest", "blood_price", "infected", "denouncing"])
+    func `compatibility transforms retain unrelated saved roll ranges`(id: String) throws {
+        let original = ItemAffixPower(
+            description: "Start combat with 3 Block.", modifiers: [.companionDamageDealt(2)],
+            triggers: CombatTraitTriggers {
+                $0.startBattleBlock = 3
+                $0.holyDamageHealFlat = 2
+            },
+            triggerRollRanges: [.startBattleBlock: 3 ... 5],
+        )
+        let normalized = InventoryItem.normalizedPower(original, affixID: id)
+        let restored = try #require(ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([normalized])).first)
+        #expect(restored.triggerRollRanges == original.triggerRollRanges)
+        #expect(restored.triggers.startBattleBlock == 3)
+        #expect(restored.rolledMax().triggers.startBattleBlock == 5)
+    }
+
     @Test(arguments: [
         "spitebloom",
         "ashen_wake",

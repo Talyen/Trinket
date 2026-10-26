@@ -108,6 +108,8 @@ selection stays stable. Affix rows may provide `basic_roll_ranges` and
 rolling. `ItemAffixPower` stores optional bounds alongside its saved magnitude,
 defaulting to none for earlier saves. Generation owns the typed field list and exclusion reasons;
 rolling behavior, numeric text replacement, and gameplay remain authored.
+Compatibility transforms preserve saved roll bounds alongside unchanged magnitudes,
+including when only description formatting or another trigger changes.
 `InventoryItem` normalizes saved Spitebloom, Ashen Wake, Cauterize, Toxic Remedy,
 Beacon, Infected, Toxic Incense, Heartshock, Whiplash, and Denouncing powers before
 scaling, perfect-roll inspection, and corruption. Keep legacy serialized fields for decoding, preserve

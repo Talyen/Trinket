@@ -17,7 +17,7 @@ extension InventoryItem {
             description.removeLast()
         }
         guard description != power.description else { return power }
-        return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: power.triggers)
+        return power.replacing(description: description)
     }
 
     private static func normalizedRulePower(_ original: ItemAffixPower, affixID: String) -> ItemAffixPower {
@@ -81,7 +81,7 @@ extension InventoryItem {
         default:
             return original
         }
-        return ItemAffixPower(description: description, modifiers: original.modifiers, triggers: triggers)
+        return original.replacing(description: description, triggers: triggers)
     }
 
     private static func normalizedLeechPower(_ power: ItemAffixPower) -> ItemAffixPower {
@@ -91,10 +91,7 @@ extension InventoryItem {
             }
             return false
         }), case let .leechGainedPercent(amount) = modifier else { return power }
-        return ItemAffixPower(
-            description: "Leech restores an additional \(Self.wholePercent(amount))% of damage dealt",
-            modifiers: power.modifiers, triggers: power.triggers,
-        )
+        return power.replacing(description: "Leech restores an additional \(Self.wholePercent(amount))% of damage dealt")
     }
 
     private static func normalizedReworkedUnique(_ power: ItemAffixPower, affixID: String) -> ItemAffixPower {
@@ -109,7 +106,7 @@ extension InventoryItem {
         if missingCurrentTrigger {
             triggers.merge(current.triggers)
         }
-        return ItemAffixPower(description: current.description, modifiers: power.modifiers, triggers: triggers)
+        return power.replacing(description: current.description, triggers: triggers)
     }
 
     private static func normalizedBeastbond(_ power: ItemAffixPower) -> ItemAffixPower {
@@ -133,7 +130,7 @@ extension InventoryItem {
             modifiers.append(.companionPhysicalDamageDealt(actual))
         }
         let description = "Increase your Companion's Physical damage by \(actual)"
-        return ItemAffixPower(description: description, modifiers: modifiers, triggers: power.triggers)
+        return power.replacing(description: description, modifiers: modifiers)
     }
 
     static func normalizedCombatProcPower(_ power: ItemAffixPower, affixID: String) -> ItemAffixPower? {
@@ -179,7 +176,7 @@ extension InventoryItem {
         default:
             return normalizedAdditionalCombatProcPower(power, affixID: affixID)
         }
-        return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: triggers)
+        return power.replacing(description: description, triggers: triggers)
     }
 
     private static func normalizedAdditionalCombatProcPower(_ power: ItemAffixPower, affixID: String) -> ItemAffixPower? {
@@ -206,7 +203,7 @@ extension InventoryItem {
         default:
             return normalizedPreparedReactionPower(power, affixID: affixID)
         }
-        return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: triggers)
+        return power.replacing(description: description, triggers: triggers)
     }
 
     private static func normalizedPreparedReactionPower(_ power: ItemAffixPower, affixID: String) -> ItemAffixPower? {
@@ -226,7 +223,7 @@ extension InventoryItem {
         default:
             return nil
         }
-        return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: triggers)
+        return power.replacing(description: description, triggers: triggers)
     }
 
     private static func normalizedGoldPower(_ power: ItemAffixPower, affixID: String) -> ItemAffixPower? {
@@ -247,6 +244,17 @@ extension InventoryItem {
             description = "On victory, gain 1 Gold for each different card you played, up to 7"
         default: return nil
         }
-        return ItemAffixPower(description: description, modifiers: power.modifiers, triggers: triggers)
+        return power.replacing(description: description, triggers: triggers)
+    }
+}
+
+private extension ItemAffixPower {
+    func replacing(
+        description: String, modifiers: [AffixModifier]? = nil, triggers: CombatTraitTriggers? = nil,
+    ) -> Self {
+        Self(
+            description: description, modifiers: modifiers ?? self.modifiers,
+            triggers: triggers ?? self.triggers, triggerRollRanges: triggerRollRanges,
+        )
     }
 }

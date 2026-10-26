@@ -31,6 +31,8 @@ and full replacements use this same publication boundary.
 Load/repair sanitizes `root.toPlayerSave()` from the SwiftData graph. `PlayerSave.currentSchemaVersion` versions the value-layer payload and its sanitizer/mapping migrations independently of the SwiftData migration version declared by `PlayerSaveSchema`; bumping one does not imply bumping the other. Slice writes expand through `PlayerSaveSlice.sanitizeTargets`: inventory also sanitizes roster (equipped items must exist) and homestead, homestead also sanitizes library (building upgrades reconcile research tiers), and labyrinth also sanitizes roster (recruit eligibility feeds map healing). Labyrinth sanitize runs on labyrinth mutations and full load, not on every inventory or roster write; recruit eligibility is applied when a map is generated.
 
 Roster sanitization accepts current catalog IDs and applies [Core talent repair](../../Packages/TrinketCore/README.md).
+Progression repair uses Core's XP rollover rules after clamping invalid inputs;
+Persistence retains the terminal-level XP clamp rather than duplicating leveling.
 Roster hydration maps retired `sap-arrow` selections to `bounty-shot` before
 unknown-ID fallback, preserving the Stun-and-Gold choice in local and cloud saves. Rogue
 Venom Fangs Skill selections migrate to Feint before fallback; other combatants
@@ -253,7 +255,7 @@ failure preserves the local snapshot and outbox.
 | Shop | Merge purchase markers; deduplicate charges only for the same pinned item and price. Fall back to a readable stock copy when the preferred peer is unreadable. |
 | Mystery | Preserve events pinned on either Labyrinth/Voyage branch, using a readable offer when the preferred copy is damaged. Independent completions combine altar cooldown reductions; duplicates count once even with different rewards. A newly completed pinned altar preserves its reset when cooldown equals the shared base, including on a map created after that base. |
 | Contracts | Merge offers by difficulty against the shared base so unrelated progress cannot resurrect a completed offer. Distinguish victory from refresh receipts: two refreshes cannot suppress independent rewards once the base tracks claims. Older peers retain conservative overlap detection. |
-| Balances | Combine independent shared-base changes and floor concurrent overspending at zero. Preserve a one-sided resource change even if another shared action disables reward combination. First attachment of unrelated older saves takes the larger balance per resource. |
+| Balances | Combine independent shared-base changes, including fractional reward carries, before applying capacity limits or flooring concurrent overspending at zero. Preserve a one-sided resource change even if another shared action disables reward combination. First attachment of unrelated older saves takes the larger balance per resource. |
 
 #### Voyage merge rules
 
