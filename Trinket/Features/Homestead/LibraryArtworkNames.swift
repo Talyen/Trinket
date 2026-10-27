@@ -7,7 +7,7 @@ enum LibraryArtworkNames {
         case .bestiary:
             GameContent.enemies.prefix(2).compactMap { $0.combatant.artReference?.thumbnailImageName }
         case .research:
-            EquipmentRecipe.archery.filter { $0.researchID != nil }.compactMap { $0.forgeArtwork?.thumbnailImageName }
+            EquipmentRecipe.archery.compactMap { $0.researchID != nil ? $0.forgeArtwork?.thumbnailImageName : nil }
         case let .researchProject(id):
             project(id)
         case let .researchRecipe(id):

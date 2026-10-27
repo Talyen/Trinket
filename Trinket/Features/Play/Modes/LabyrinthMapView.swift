@@ -35,7 +35,7 @@ struct LabyrinthMapView: View {
     }
 
     private var floors: [LabyrinthCluster] {
-        state.clusters.filter { $0.depthBand > 0 }.sorted { $0.depthBand < $1.depthBand }
+        state.clusters.lazy.filter { $0.depthBand > 0 }.sorted { $0.depthBand < $1.depthBand }
     }
 
     private var viewedCluster: LabyrinthCluster? {

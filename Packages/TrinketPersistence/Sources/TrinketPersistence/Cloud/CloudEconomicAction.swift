@@ -122,7 +122,7 @@ struct CloudEconomicAction: Codable, Equatable, Sendable {
             result.append(.labyrinth(seed: after.labyrinth.worldSeed, nodeID: node.id))
         }
         let completedRuns = (after.voyage.completedRunIDs ?? []).subtracting(before.voyage.completedRunIDs ?? [])
-        for run in [after.voyage.activeRun, before.voyage.activeRun].compactMap(\.self) {
+        for run in [after.voyage.activeRun, before.voyage.activeRun].lazy.compactMap(\.self) {
             for node in run.nodes where before.voyage.node(runID: run.id, nodeID: node.id)?.isCleared != true
                 && (after.voyage.node(runID: run.id, nodeID: node.id)?.isCleared == true || completedRuns.contains(run.id)) {
                 guard node.type.isCombat else { return nil }

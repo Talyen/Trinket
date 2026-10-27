@@ -408,7 +408,7 @@ private struct HomesteadPurchasePresentation {
 
     mutating func revealValues() {
         let previous = previousTier.map { HomesteadEffectLine.lines(for: $0, nodeID: nodeID) } ?? []
-        highlightedEffects = Set(HomesteadEffectLine.lines(for: targetTier, nodeID: nodeID).filter { line in
+        highlightedEffects = Set(HomesteadEffectLine.lines(for: targetTier, nodeID: nodeID).lazy.filter { line in
             line.resource == nil && !previous.contains { $0.id == line.id && $0.value == line.value }
         }.map(\.id))
         highlightsProduction = targetTier.production.contains { output in

@@ -193,12 +193,8 @@ public struct ItemAffixDefinition: Identifiable, Equatable, Hashable, Sendable {
     }
 
     public func isAligned(withBuildKeywords bias: Set<Keyword>) -> Bool {
-        if isBuildGeneric {
-            return true
-        }
         guard !bias.isEmpty else { return true }
-        let damageKeywords = keywords.filter { $0.category == .damageType }
-        return damageKeywords.isSubset(of: bias)
+        return keywords.allSatisfy { $0.category != .damageType || bias.contains($0) }
     }
 
     public func resolved(for rarity: Rarity) -> ItemAffix {

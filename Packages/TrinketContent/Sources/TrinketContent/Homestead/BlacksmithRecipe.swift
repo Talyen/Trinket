@@ -43,8 +43,9 @@ public struct EquipmentRecipe: Identifiable, Hashable, Sendable {
         .init("plate_armor", iron: 40, secondary: .hide, quantity: 20),
     ]
 
+    private static let blacksmithRecipes = all + focusedBlacksmith
     private static let recipesByID = Dictionary(
-        (all + archery + outfitter + focusedBlacksmith).map { ($0.id, $0) },
+        (all + archery + outfitter + focusedBlacksmith).lazy.map { ($0.id, $0) },
         uniquingKeysWith: { first, _ in first },
     )
 
@@ -116,7 +117,7 @@ public extension EquipmentRecipe {
 
     static func recipes(for building: HomesteadNodeID) -> [Self] {
         switch building {
-        case .blacksmithForge: all + focusedBlacksmith
+        case .blacksmithForge: blacksmithRecipes
         case .archeryRange: archery
         case .woolTailoring: outfitter
         default: []

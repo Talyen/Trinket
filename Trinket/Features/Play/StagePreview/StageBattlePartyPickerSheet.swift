@@ -51,7 +51,7 @@ enum BattlePartySlot: String {
     /// Both the shelf and the grid share the ordering captured once per
     /// presentation so selection changes animate emphasis without reordering.
     func resolveCombatants(ids: [String], in roster: PlayerRosterState) -> [Combatant] {
-        let current = Dictionary(uniqueKeysWithValues: combatants(in: roster).map { ($0.id, $0) })
+        let current = Dictionary(uniqueKeysWithValues: combatants(in: roster).lazy.map { ($0.id, $0) })
         return ids.compactMap { current[$0] }
     }
 }

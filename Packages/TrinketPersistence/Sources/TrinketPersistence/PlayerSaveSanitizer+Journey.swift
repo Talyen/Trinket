@@ -9,7 +9,7 @@ extension PlayerSaveSanitizer {
     ) -> JourneyProgressState {
         let activeChapters = chapters ?? GameContent.chapters
         let validChapterIDs = Set(activeChapters.lazy.map(\.id))
-        let allStages = activeChapters.flatMap(\.stages)
+        let allStages = activeChapters.lazy.flatMap(\.stages)
         let validStageIDs = Set(allStages.lazy.map(\.id))
 
         var sanitized = journey

@@ -19,13 +19,14 @@ struct WishingWellView: View {
     @State private var visibleIDs: Set<String> = []
 
     private var missing: [InventoryItem] {
-        let owned = Set(playerSave.inventory.items.map(\.templateID))
+        let owned = Set(playerSave.inventory.items.lazy.map(\.templateID))
         return (showsTrinkets ? GameContent.trinketItems : GameContent.uniqueItems).filter { !owned.contains($0.templateID) }
     }
 
     private var hasMissingItems: Bool {
-        let owned = Set(playerSave.inventory.items.map(\.templateID))
-        return (GameContent.uniqueItems + GameContent.trinketItems).contains { !owned.contains($0.templateID) }
+        let owned = Set(playerSave.inventory.items.lazy.map(\.templateID))
+        return GameContent.uniqueItems.contains { !owned.contains($0.templateID) }
+            || GameContent.trinketItems.contains { !owned.contains($0.templateID) }
     }
 
     var body: some View {
@@ -36,7 +37,8 @@ struct WishingWellView: View {
                 Text(L10n.homestead_wish_rates).foregroundStyle(.secondary)
                 Text(L10n.homestead_wish_last).foregroundStyle(.secondary)
                 if let id = playerSave.homestead.wishedTemplateID,
-                   let item = (GameContent.uniqueItems + GameContent.trinketItems).first(where: { $0.templateID == id }) {
+                   let item = GameContent.uniqueItems.first(where: { $0.templateID == id })
+                   ?? GameContent.trinketItems.first(where: { $0.templateID == id }) {
                     Text(L10n.homestead_wishing_for(item.localizedDisplayName(locale: locale))).trinketTypography(.rowTitle)
                     Button(action: clearWish) {
                         HStack {

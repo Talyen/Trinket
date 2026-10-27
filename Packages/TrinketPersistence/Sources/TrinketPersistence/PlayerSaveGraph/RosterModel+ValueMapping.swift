@@ -153,7 +153,7 @@ extension RosterModel {
             }
         }
         let progressionValues = Dictionary(
-            (progressions ?? []).map {
+            (progressions ?? []).lazy.map {
                 ($0.combatantID, CombatantProgression(level: $0.level, currentXP: $0.currentXP, requiredXP: $0.requiredXP))
             },
             uniquingKeysWith: { current, next in
@@ -165,13 +165,13 @@ extension RosterModel {
             },
         )
         let abilityIDValues = Dictionary(
-            (abilityLoadouts ?? []).map {
+            (abilityLoadouts ?? []).lazy.map {
                 ($0.combatantID, RosterHydration.AbilityLoadoutIDs(basicID: $0.basicID, skillID: $0.skillID, ultimateID: $0.ultimateID))
             },
             uniquingKeysWith: { _, new in new },
         )
         let equipmentValues = Dictionary(
-            (equipmentLoadouts ?? []).map { loadoutModel in
+            (equipmentLoadouts ?? []).lazy.map { loadoutModel in
                 (
                     loadoutModel.combatantID,
                     loadoutModel.toEquipmentLoadout(),
@@ -180,7 +180,7 @@ extension RosterModel {
             uniquingKeysWith: { _, new in new },
         )
         let talentValues = Dictionary(
-            (talentLoadouts ?? []).map { loadoutModel in
+            (talentLoadouts ?? []).lazy.map { loadoutModel in
                 (loadoutModel.combatantID, loadoutModel.unlockedNodeIDs)
             },
             uniquingKeysWith: { _, new in new },
