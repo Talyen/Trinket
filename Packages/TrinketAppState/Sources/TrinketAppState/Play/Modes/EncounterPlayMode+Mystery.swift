@@ -116,14 +116,14 @@ public extension EncounterPlayMode {
         action: MysteryEncounterAction,
         at date: Date,
     ) -> Bool {
-        playerSave.performSaveAction(key: SaveRetryKey.mysteryResolution) { [weak self] _ in
+        playerSave.performSaveAction(key: SaveRetryKey.mysteryResolution) { [weak self] isRetry in
             guard let self else { return SaveActionAttempt(false) }
             guard owns(mysterySession) else { return SaveActionAttempt(false) }
 
             mysterySession.markChoiceStarted()
             guard owns(mysterySession) else { return SaveActionAttempt(false) }
             switch playerSave.resolveMysteryEncounter(
-                mysterySession.resolutionRequest, action: action, using: &mysteryRandom, at: date,
+                mysterySession.resolutionRequest, action: action, using: &mysteryRandom, at: isRetry ? currentDate() : date,
             ) {
             case let .committed(outcome):
                 return SaveActionAttempt(applyMysteryOutcome(outcome, session: mysterySession))

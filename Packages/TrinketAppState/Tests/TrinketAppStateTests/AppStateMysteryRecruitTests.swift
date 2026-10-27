@@ -423,6 +423,32 @@ extension AppStateMysteryRecruitTests {
 
 #if DEBUG
 extension AppStateMysteryRecruitTests {
+    @Test func `mystery retry reserves production accrued after the failed attempt`() async throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
+        let event = try #require(GameContent.mysteryEvent(matching: "hidden-cache"))
+        let session = try attachPreparedMystery(event: event, to: state)
+        var date = Date()
+        state.encounters.currentDate = { date }
+        #expect(playerSave.persistFixtureBatch(logging: "Set up Gold production") { save in
+            save.roster.gold = GoldBalance.maximum - 20
+            save.homestead.nodeTiers[.wishingWell] = 1
+            save.homestead.pendingProduction = [:]
+            save.homestead.lastProductionAt = date
+        })
+
+        playerSave.forcesNextSaveFailure = true
+        #expect(!state.encounters.resolveMysteryChoice(session: session, choiceID: "take-coinpurse"))
+        #expect(playerSave.isRetryingSaveAction)
+        date = date.addingTimeInterval(2 * PlayerHomesteadState.secondsPerDay)
+
+        try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { playerSave.isRetryingSaveAction }
+        #expect(session.showsReward)
+        #expect(playerSave.roster.gold == GoldBalance.maximum - 2)
+        #expect(playerSave.homestead.pendingProduction[.gold] == 2)
+        #expect(playerSave.homestead.lastProductionAt == date)
+    }
+
     @Test func `pending corruption cannot be cancelled or replaced before retry`() async throws {
         let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
         let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
