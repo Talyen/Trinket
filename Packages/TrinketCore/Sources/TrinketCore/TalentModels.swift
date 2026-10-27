@@ -133,7 +133,7 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
     /// selections survive capping. Node IDs must be unique across all trees;
     /// duplicates collapse in `kept` and under-count the budget.
     public func cappedUnlocks(_ nodeIDs: Set<String>, budget: Int) -> Set<String> {
-        guard budget > 0 else { return [] }
+        guard budget > 0, !nodeIDs.isEmpty else { return [] }
         var kept: Set<String> = []
         let rows = Set(trees.lazy.flatMap { $0.nodes.lazy.map(\.row) }).sorted()
         for row in rows {
@@ -141,7 +141,7 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
                 for node in tree.nodes where node.row == row && nodeIDs.contains(node.id) {
                     guard tree.canUnlockOwnedNode(node, unlockedNodeIDs: kept) else { continue }
                     kept.insert(node.id)
-                    if kept.count == budget {
+                    if kept.count == budget || kept.count == nodeIDs.count {
                         return kept
                     }
                 }

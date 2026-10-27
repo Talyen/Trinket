@@ -121,7 +121,7 @@ public enum ShopStockPersistence {
 
         /// A purchase transfers only when both peers pinned the same item and price.
         func matchingPurchases(in other: Self) -> Set<String> {
-            guard !other.stock.purchasedOfferIDs.isEmpty else { return [] }
+            guard !stock.offers.isEmpty, !other.stock.purchasedOfferIDs.isEmpty else { return [] }
             let offersByID = Dictionary(uniqueKeysWithValues: other.stock.offers.lazy.map { ($0.id, $0) })
             return Set(stock.offers.lazy.filter { offer in
                 other.stock.purchasedOfferIDs.contains(offer.id) && offersByID[offer.id] == offer
@@ -145,7 +145,7 @@ struct ShopStockSnapshot: Codable {
         let resolved = offers.compactMap { $0.resolve() }
         let ids = Set(resolved.lazy.map(\.id))
         guard ids.count == resolved.count else { throw ShopPurchaseFailure.invalidOffer }
-        let validPurchased = Set(purchasedOfferIDs).intersection(ids)
+        let validPurchased = Set(purchasedOfferIDs.lazy.filter(ids.contains))
         return ShopStock(offers: resolved, purchasedOfferIDs: validPurchased)
     }
 

@@ -283,17 +283,18 @@ public struct Ability: Identifiable, Hashable, Sendable {
         branch: AbilityOutcomeBranch,
         using rng: inout some RandomNumberGenerator,
     ) -> Self {
-        let resolvedOperations = branch.operations.map { operation -> AbilityOperation in
-            guard branch.randomizeDamageKeywords, case let .damage(component) = operation else { return operation }
-            return .damage(DamageComponent(
-                component.amount,
-                keyword: Keyword.damageTypes.randomElement(using: &rng) ?? .physical,
-                target: component.target,
-                bonusAmount: component.bonusAmount,
-                condition: component.condition,
-                scaling: component.scaling, hasLeech: component.hasLeech,
-            ))
-        }
+        let resolvedOperations = !branch.randomizeDamageKeywords ? branch.operations : branch.operations
+            .map { operation -> AbilityOperation in
+                guard case let .damage(component) = operation else { return operation }
+                return .damage(DamageComponent(
+                    component.amount,
+                    keyword: Keyword.damageTypes.randomElement(using: &rng) ?? .physical,
+                    target: component.target,
+                    bonusAmount: component.bonusAmount,
+                    condition: component.condition,
+                    scaling: component.scaling, hasLeech: component.hasLeech,
+                ))
+            }
         return updatingDefinition {
             $0.operations = resolvedOperations
             $0.outcomeBranches = nil

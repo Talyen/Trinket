@@ -51,11 +51,13 @@ public struct PlayerLabyrinthState: Codable, Equatable, Sendable {
     }
 
     public func isNodeReachable(_ nodeID: String) -> Bool {
-        guard let node = nodes[nodeID] else { return false }
+        guard let node = nodes[nodeID], node.isRevealed, !node.isCleared,
+              node.id != LabyrinthGenerator.entranceNodeID else { return false }
         return isNodeReachable(node, using: reachabilityIndex())
     }
 
     public func reachableNodeIDSet() -> Set<String> {
+        guard !nodes.isEmpty else { return [] }
         let index = reachabilityIndex()
         return Set(nodes.values.lazy.filter { isNodeReachable($0, using: index) }.map(\.id))
     }

@@ -34,8 +34,11 @@ enum LibraryLegacyHistory {
         var ids = Set(save.journey.completedStageIDs.lazy.compactMap { stages[$0] })
         for (spire, highest) in save.spires.highestClearedFloorBySpireID {
             guard let pool = spires[spire], highest > 0 else { continue }
-            for floor in 1 ... min(highest, 10) {
-                ids.insert(pool[floor == 10 ? 4 : (floor - 1) % 4])
+            for enemy in pool.prefix(min(highest, 4)) {
+                ids.insert(enemy)
+            }
+            if highest >= 10 {
+                ids.insert(pool[4])
             }
         }
         for node in save.labyrinth.nodes.values where node.isCleared && node.type.isCombat {

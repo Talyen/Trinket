@@ -3,14 +3,20 @@ import TrinketContent
 import TrinketCore
 
 extension PlayerSaveSanitizer {
+    private static let catalogChapterIDs = Set(GameContent.chapters.lazy.map(\.id))
+    private static let catalogStageIDs = Set(GameContent.chapters.lazy.flatMap(\.stages).map(\.id))
+    private static let catalogSpireFloorCounts = Dictionary(
+        uniqueKeysWithValues: GameContent.spires.lazy.map { ($0.id.rawValue, $0.floorCount) },
+    )
+
     static func sanitizeJourney(
         _ journey: JourneyProgressState,
         chapters: [Chapter]? = nil,
     ) -> JourneyProgressState {
         let activeChapters = chapters ?? GameContent.chapters
-        let validChapterIDs = Set(activeChapters.lazy.map(\.id))
+        let validChapterIDs = chapters.map { Set($0.lazy.map(\.id)) } ?? catalogChapterIDs
         let allStages = activeChapters.lazy.flatMap(\.stages)
-        let validStageIDs = Set(allStages.lazy.map(\.id))
+        let validStageIDs = chapters.map { Set($0.lazy.flatMap(\.stages).map(\.id)) } ?? catalogStageIDs
 
         var sanitized = journey
         let beforeCompleted = journey.completedStageIDs.count
@@ -66,9 +72,10 @@ extension PlayerSaveSanitizer {
 
     static func sanitizeSpires(
         _ spires: PlayerSpiresState,
-        catalog: [SpireDefinition] = GameContent.spires,
+        catalog: [SpireDefinition]? = nil,
     ) -> PlayerSpiresState {
-        let floorCounts = Dictionary(uniqueKeysWithValues: catalog.lazy.map { ($0.id.rawValue, $0.floorCount) })
+        let floorCounts = catalog.map { Dictionary(uniqueKeysWithValues: $0.lazy.map { ($0.id.rawValue, $0.floorCount) }) }
+            ?? catalogSpireFloorCounts
         var sanitized: [String: Int] = [:]
         for (spireID, floor) in spires.highestClearedFloorBySpireID {
             guard let maxFloor = floorCounts[spireID] else { continue }

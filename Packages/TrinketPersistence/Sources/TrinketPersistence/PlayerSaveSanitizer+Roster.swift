@@ -3,12 +3,17 @@ import TrinketContent
 import TrinketCore
 
 extension PlayerSaveSanitizer {
+    private static let catalogHeroIDs = Set(GameContent.heroes.lazy.map(\.id))
+    private static let catalogCompanionIDs = Set(GameContent.companions.lazy.map(\.id))
+
     static func sanitizeRoster(
         _ roster: PlayerRosterState,
         inventory: PlayerInventoryState,
-        heroIDs: Set<String> = Set(GameContent.heroes.lazy.map(\.id)),
-        companionIDs: Set<String> = Set(GameContent.companions.lazy.map(\.id)),
+        heroIDs: Set<String>? = nil,
+        companionIDs: Set<String>? = nil,
     ) -> PlayerRosterState {
+        let heroIDs = heroIDs ?? catalogHeroIDs
+        let companionIDs = companionIDs ?? catalogCompanionIDs
         let validCombatantIDs = heroIDs.union(companionIDs)
 
         var sanitized = roster

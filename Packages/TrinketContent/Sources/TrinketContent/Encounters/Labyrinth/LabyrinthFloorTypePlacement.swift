@@ -115,11 +115,15 @@ enum LabyrinthFloorTypePlacement {
     ) -> [LabyrinthNodeType] {
         guard planned.count > 2 else { return planned }
         let middle = Array(planned.dropFirst().dropLast())
-        let kinds = Set(middle).sorted { $0.rawValue < $1.rawValue }
-        // Hex edges only cross adjacent rows; retain only earlier rooms with an unassigned neighbor.
+        let counts = middle.reduce(into: [LabyrinthNodeType: Int]()) { $0[$1, default: 0] += 1 }
+        let kinds = counts.keys.sorted { $0.rawValue < $1.rawValue }
+        // An assigned room remains in the frontier through its last unassigned neighbor.
+        let lastNeighbors = (0 ..< planned.count).map { previous in
+            (previous + 1 ..< planned.count).last { positions[previous].isAdjacent(to: positions[$0]) }
+        }
         let frontiers = (0 ... planned.count).map { index in
             (0 ..< index).filter { previous in
-                (index ..< planned.count).contains { positions[previous].isAdjacent(to: positions[$0]) }
+                lastNeighbors[previous].map { $0 >= index } ?? false
             }
         }
         let transitions = (0 ..< planned.count).map { index in
@@ -129,7 +133,7 @@ enum LabyrinthFloorTypePlacement {
         }
         var search = PlacementSearch(planned: planned, kinds: kinds, frontiers: transitions)
         var state = PlacementState(
-            index: 0, remaining: kinds.map { kind in middle.count(where: { $0 == kind }) }, frontierTypes: [],
+            index: 0, remaining: kinds.map { counts[$0, default: 0] }, frontierTypes: [],
         )
         var result: [LabyrinthNodeType] = []
         while state.index < planned.count {

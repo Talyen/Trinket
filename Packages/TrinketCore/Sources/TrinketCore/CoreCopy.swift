@@ -9,22 +9,27 @@ public enum CoreCopy {
         uniquingKeysWith: { first, _ in first },
     )
 
+    private static let keywordByStatusAlias = Dictionary(
+        Keyword.allCases.lazy.compactMap { keyword in keyword.statusAlias.map { ($0, keyword) } },
+        uniquingKeysWith: { first, _ in first },
+    )
+
     public static func description(_ english: String, locale: Locale = .current) -> LocalizedGameText {
         if let keyword = keywordByRulesText[english] {
             return keyword.localizedRules(locale: locale)
         }
-        if let keyword = Keyword.allCases.first(where: { $0.rawValue == english }) {
+        if let keyword = Keyword(rawValue: english) {
             return LocalizedGameText(markedText: keyword.markedName(locale: locale))
         }
         let rendered = LocalizedGameText(resource(english), locale: locale)
-        if let keyword = Keyword.allCases.first(where: { $0.statusAlias == english }) {
+        if let keyword = keywordByStatusAlias[english] {
             return LocalizedGameText(markedText: "<keyword id=\"\(String(describing: keyword).lowercased())\">\(rendered.text)</keyword>")
         }
         return rendered
     }
 
     public static func resource(_ english: String) -> LocalizedStringResource {
-        if let keyword = Keyword.allCases.first(where: { $0.rawValue == english }) {
+        if let keyword = Keyword(rawValue: english) {
             return keyword.nameResource
         }
         return switch english {
