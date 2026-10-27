@@ -121,7 +121,7 @@ extension BattleSession {
             configurationID: configurationID,
             snapshot: BattlePresentationSnapshot(configurationID: configurationID, state: state),
             events: result.events,
-            automaticCards: result.playedCards.filter { $0.id != excludingCardID },
+            automaticCards: excludingCardID.map { id in result.playedCards.filter { $0.id != id } } ?? result.playedCards,
             actions: result.actions,
             combatantChanges: result.combatantChanges,
         )

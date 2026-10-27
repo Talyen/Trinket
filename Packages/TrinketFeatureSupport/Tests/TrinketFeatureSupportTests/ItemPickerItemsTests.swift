@@ -53,6 +53,8 @@ struct ItemPickerItemsTests {
         var model = ItemPickerItems()
         model.update(inventory: items, loadout: .init(itemIDsBySlot: [.weapon: "equipped"]), slot: .weapon)
         #expect(model.eligible.map(\.id) == ["equipped", "b", "a", "z"])
+        #expect(model.matching(ItemPickerFilter()).map(\.id) == ["equipped", "b", "a", "z"])
+        #expect(model.matching(ItemPickerFilter(search: " \n ")).map(\.id) == ["equipped", "b", "a", "z"])
         #expect(model.matching(ItemPickerFilter(rarity: .astral)).map(\.id) == ["a", "z"])
         model.update(inventory: items.reversed(), loadout: .init(itemIDsBySlot: [.weapon: "z"]), slot: .weapon)
         #expect(model.eligible.map(\.id) == ["equipped", "b", "a", "z"])

@@ -113,7 +113,7 @@ struct CloudReceiptReplay {
         merged.roster.gold = existing.roster.gold
         merged.homestead.resources = existing.homestead.resources
         merged.homestead.rewardRemainders = existing.homestead.rewardRemainders
-        for id in Set(receipts.flatMap(\.effects.experience.keys)) {
+        for id in Set(receipts.lazy.flatMap(\.effects.experience.keys)) {
             merged.roster.progressions[id] = existing.roster.progressions[id] ?? .initial
         }
         var existingProduction = existing.homestead
@@ -176,6 +176,7 @@ struct CloudReceiptReplay {
     }
 
     func retireItems(in save: inout PlayerSave) {
+        guard !retiredItems.isEmpty else { return }
         for item in save.inventory.items where retiredItems.contains(item.id) {
             save.roster.unequip(itemID: item.id)
         }

@@ -29,12 +29,16 @@ struct ItemPickerItems {
             return
         }
         if inventoryChanged || localeChanged {
-            let previousItems = Dictionary(uniqueKeysWithValues: self.inventory.map { ($0.id, $0) })
-            // Keep cached descriptions only while their item and locale are unchanged.
-            searchText = Dictionary(uniqueKeysWithValues: inventory.compactMap { item in
-                guard !localeChanged, previousItems[item.id] == item, let text = searchText[item.id] else { return nil }
-                return (item.id, text)
-            })
+            if localeChanged {
+                searchText.removeAll(keepingCapacity: true)
+            } else {
+                let previousItems = Dictionary(uniqueKeysWithValues: self.inventory.map { ($0.id, $0) })
+                // Keep cached descriptions only while their item and locale are unchanged.
+                searchText = Dictionary(uniqueKeysWithValues: inventory.compactMap { item in
+                    guard previousItems[item.id] == item, let text = searchText[item.id] else { return nil }
+                    return (item.id, text)
+                })
+            }
             self.inventory = inventory
             searchLocale = locale
         }
@@ -80,6 +84,9 @@ struct ItemPickerItems {
 
     func matching(_ filter: ItemPickerFilter) -> [InventoryItem] {
         let words = Self.normalized(filter.search, locale: searchLocale).split(whereSeparator: \.isWhitespace)
+        if words.isEmpty, filter.rarity == nil, filter.keyword == nil {
+            return eligible
+        }
         return eligible.filter { item in
             (filter.rarity == nil || item.rarity == filter.rarity)
                 && (filter.keyword.map { keyword in item.affixes.contains { $0.keywords.contains(keyword) } } ?? true)

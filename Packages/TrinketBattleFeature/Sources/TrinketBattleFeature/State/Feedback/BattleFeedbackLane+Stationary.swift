@@ -43,7 +43,7 @@ extension BattleFeedbackLane {
             scheduled = chipBridge.balancedSchedule(
                 incoming,
                 at: date,
-                previous: activeItems.filter { !evictedItemIDs.contains($0.id) },
+                previous: evictedItemIDs.isEmpty ? activeItems : activeItems.filter { !evictedItemIDs.contains($0.id) },
             )
         }
         activeItems.append(scheduled)

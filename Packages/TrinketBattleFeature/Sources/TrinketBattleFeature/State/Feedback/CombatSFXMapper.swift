@@ -91,7 +91,9 @@ enum CombatSFXMapper {
         var selection = Selection()
         let cardSources = CombatCardSourceKey.cardSources(in: events)
         let thornsSources = Set(events.lazy.filter { $0.effectKind == .thornsApplied }.compactMap(CombatCardSourceKey.init))
-        let recorded = Set(damage.map { DamageKey(targetID: $0.targetID, keyword: $0.keyword) })
+        let recorded = Set(damage.lazy.map { DamageKey(targetID: $0.targetID, keyword: $0.keyword) })
+        var absorptionOrder: Int?
+        var searchedForAbsorption = false
         for (index, hit) in damage.enumerated() {
             var firstMatch: Int?
             var firstAbilityDamage: Int?
@@ -118,8 +120,15 @@ enum CombatSFXMapper {
                     ),
                     order: order, isCritical: hit.isCritical,
                 )
-                let absorptionOrder = events.firstIndex { $0.effectKind == .shieldAbsorbed } ?? order
-                selection.add(blocked, kind: .blockAbsorption, keyword: .block, clip: SFXID.blockAbsorb, order: absorptionOrder)
+                if blocked > 0 {
+                    if !searchedForAbsorption {
+                        absorptionOrder = events.firstIndex { $0.effectKind == .shieldAbsorbed }
+                        searchedForAbsorption = true
+                    }
+                    selection.add(
+                        blocked, kind: .blockAbsorption, keyword: .block, clip: SFXID.blockAbsorb, order: absorptionOrder ?? order,
+                    )
+                }
             }
         }
         for (order, event) in events.enumerated() {

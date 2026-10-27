@@ -84,7 +84,7 @@ final class CombatFeedbackChipBridge {
             displayScale: displayScale,
         )
         // Retain unmounted fragments until remount, but discard obsolete scale/direction contexts.
-        let liveContexts = Set(hosts.values.map {
+        let liveContexts = Set(hosts.values.lazy.map {
             ResolutionKey(combatantID: $0.combatantID, layoutDirection: $0.layoutDirection, displayScale: $0.displayScale)
         })
         liveRasters = liveRasters.filter { liveContexts.contains($0.key) }
@@ -117,7 +117,7 @@ final class CombatFeedbackChipBridge {
         case let .patch(items, removing):
             patchItems(items, removing: removing, affectedTargets: &affectedTargets)
         case let .replace(items):
-            let liveIDs = Set(items.map(\.id))
+            let liveIDs = Set(items.lazy.map(\.id))
             let retiredIDs = Set(motionTracks.keys).subtracting(liveIDs)
             releaseRasters(ids: retiredIDs)
             evictedIDs.formIntersection(liveIDs)
@@ -311,7 +311,7 @@ final class CombatFeedbackChipBridge {
         evictedIDs.formUnion(ids)
         // The reverse index answers target membership directly instead of
         // scanning every target's item dictionary.
-        suppressedTargets.formUnion(ids.compactMap { targetsByItemID[$0] })
+        suppressedTargets.formUnion(ids.lazy.compactMap { self.targetsByItemID[$0] })
         onEvict?(ids)
     }
 

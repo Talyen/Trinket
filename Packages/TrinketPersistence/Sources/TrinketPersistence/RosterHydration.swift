@@ -86,7 +86,7 @@ enum RosterHydration {
         let equippedIDs = loadouts.values.reduce(into: Set<String>()) {
             $0.formUnion($1.itemIDsBySlot.values)
         }
-        let equippedInventory = inventoryItems.filter { equippedIDs.contains($0.id) }
+        let equippedInventory = equippedIDs.isEmpty ? [] : inventoryItems.filter { equippedIDs.contains($0.id) }
         var resolved: [String: EquipmentLoadout] = [:]
         for (combatantID, loadout) in loadouts {
             guard let combatant = GameContent.combatant(matching: combatantID) else { continue }

@@ -181,7 +181,7 @@ extension BattleSession {
     ) {
         let taskOwner = spectacle.outcomeTask
         let generation = taskOwner.claim()
-        let latestFeedbackDelay = feedback.activeItems
+        let latestFeedbackDelay = feedback.activeItems.lazy
             .map { max(0, $0.expiresAt.timeIntervalSince(date)) }
             .max() ?? 0
         let pendingFeedbackDelay = max(0, feedback.pendingFeedbackEnd?.timeIntervalSince(date) ?? 0)

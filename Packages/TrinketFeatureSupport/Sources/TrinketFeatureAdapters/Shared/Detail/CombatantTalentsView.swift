@@ -72,7 +72,8 @@ public struct CombatantTalentsView: View {
     }
 
     private var displayedNodes: [TalentNode] {
-        tree.nodes.filter { visibleNodeIDs?.contains($0.id) ?? true }
+        guard let visibleNodeIDs else { return tree.nodes }
+        return tree.nodes.filter { visibleNodeIDs.contains($0.id) }
     }
 
     public var body: some View {

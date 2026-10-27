@@ -372,7 +372,7 @@ enum CloudSaveMerge {
         }
         merged.labyrinth.hasEntered = merged.labyrinth.hasEntered || other.labyrinth.hasEntered
         let existingClusterIDs = Set(merged.labyrinth.clusters.lazy.map(\.id))
-        merged.labyrinth.clusters.append(contentsOf: other.labyrinth.clusters.filter {
+        merged.labyrinth.clusters.append(contentsOf: other.labyrinth.clusters.lazy.filter {
             !existingClusterIDs.contains($0.id)
         })
         for (id, node) in other.labyrinth.nodes {

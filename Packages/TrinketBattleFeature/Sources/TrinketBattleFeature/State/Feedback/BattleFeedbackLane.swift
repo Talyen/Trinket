@@ -91,7 +91,7 @@ final class BattleFeedbackLane {
     }
 
     func noteItemsChanged() {
-        publish(.replace(activeItems.filter { !evictedItemIDs.contains($0.id) }))
+        publish(.replace(evictedItemIDs.isEmpty ? activeItems : activeItems.filter { !evictedItemIDs.contains($0.id) }))
     }
 
     func noteHitReactionsChanged(for combatantIDs: Set<String>) {
@@ -129,7 +129,7 @@ final class BattleFeedbackLane {
         presentSound(events, damage: damage, actionGroupID: actionGroupID, didDrawCards: didDrawCards, environment: environment)
         let knownIDs = Set(activeItems.lazy.flatMap(\.sourceEventIDs))
         let prepared = CombatFeedbackPresenter.makeItems(
-            from: events.filter { !knownIDs.contains($0.id) },
+            from: knownIDs.isEmpty ? events : events.filter { !knownIDs.contains($0.id) },
             at: date,
             actionGroupID: actionGroupID,
         )

@@ -84,6 +84,7 @@ enum BalancedFeedbackMotion {
         _ item: CombatFeedbackItem, geometry: Geometry,
         previous: [(CombatFeedbackItem, Geometry)], bounds: CGRect,
     ) -> Int {
+        guard !previous.isEmpty else { return 0 }
         let hasHeal = previous.contains { $0.0.feedbackClass == .heal }
         let hasDamage = previous.contains { isDamage($0.0) }
         let routes = item.region == .announcement ? [0, -1, 1, -2, 2]
@@ -101,10 +102,11 @@ enum BalancedFeedbackMotion {
             for elapsed in stride(from: 0.0, to: item.expiresAt.timeIntervalSince(item.availableAt), by: 0.015) {
                 let date = item.availableAt.addingTimeInterval(elapsed)
                 let sample = state(for: candidate, at: date)
+                guard sample.opacity > 0.15 else { continue }
                 let next = footprint(candidate, geometry: geometry, sample: sample, at: date, bounds: bounds).insetBy(dx: -3, dy: -3)
                 for (old, oldGeometry) in previous where date >= old.availableAt && date < old.expiresAt {
                     let oldSample = state(for: old, at: date)
-                    guard sample.opacity > 0.15, oldSample.opacity > 0.15 else { continue }
+                    guard oldSample.opacity > 0.15 else { continue }
                     let prior = footprint(old, geometry: oldGeometry, sample: oldSample, at: date, bounds: bounds).insetBy(dx: -3, dy: -3)
                     let intersection = next.intersection(prior)
                     guard !intersection.isNull else { continue }
