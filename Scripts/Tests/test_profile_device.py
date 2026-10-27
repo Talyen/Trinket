@@ -100,7 +100,11 @@ class DeviceProfilingTests(unittest.TestCase):
     def test_cleanup_permission_error_is_ignored_only_after_owned_process_exits(self):
         for status in (0, None):
             process = mock.Mock(pid=123)
-            process.poll.side_effect = [None, status]
+            process.poll.return_value = None
+            if status is None:
+                process.wait.side_effect = subprocess.TimeoutExpired("owned", 0.2)
+            else:
+                process.wait.return_value = status
             with self.subTest(exit_status=status), mock.patch.object(
                     module.os, "killpg", side_effect=PermissionError("process group unavailable")):
                 if status is None:
@@ -108,6 +112,7 @@ class DeviceProfilingTests(unittest.TestCase):
                         module.stop_owned(process)
                 else:
                     module.stop_owned(process)
+                process.wait.assert_called_once_with(timeout=0.2)
 
     def test_distribution_signature_is_refused_before_installation(self):
         with tempfile.TemporaryDirectory() as directory:
