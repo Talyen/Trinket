@@ -1,0 +1,74 @@
+name: Generated save recovery exploration
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generated-cases:
+    name: Explore save recovery and Voyage replay
+    runs-on: xcode-27
+    timeout-minutes: 40
+    env:
+      TEST_RUNNER_TRINKET_GENERATED_CASES: '512'
+      TRINKET_CLEANUP_TEST_ARTIFACTS: '0'
+      TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE: '0'
+      TRINKET_DIAGNOSTICS_SESSION_ID: generated-save-${{ github.run_id }}-${{ github.run_attempt }}
+      SKIP_GENERATE: '1'
+    steps:
+      - name: Reserve diagnostic time
+        shell: bash
+        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 40 * 60 - 180 ))" >> "$GITHUB_ENV"
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 1
+          sparse-checkout-cone-mode: true
+          sparse-checkout: |
+            Scripts
+            Packages
+            Trinket
+            TrinketUITests
+            Trinket.xcodeproj
+            StoreKit
+            ContentManifest
+            Localization
+            ArtManifest
+            MusicManifest
+            SoundManifest
+            .github
+      - uses: ./.github/actions/setup-trinket
+        with:
+          xcode-channel: verified
+      - name: Run generated cases
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 Scripts/ci-run-budget.py -- ./Scripts/test-package.sh --only-suite GeneratedSaveRecoveryTests TrinketPersistence
+          python3 Scripts/ci-run-budget.py -- ./Scripts/test-package.sh --only-suite CloudVoyageActionReplayTests TrinketPersistence
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          entries = [json.loads(line) for line in Path('.DerivedData/TestResults/timing-log.jsonl').read_text().splitlines()]
+          tests = [test for entry in entries for test in entry.get('tests', [])]
+          for suite in ('GeneratedSaveRecoveryTests/', 'CloudVoyageActionReplayTests/'):
+              cases = [test for test in tests if test['id'].startswith(suite) and len(test.get('arguments', [])) == 512]
+              if len(cases) != 1 or any(result != 'Passed' for result in cases[0]['arguments']):
+                  raise SystemExit(f'{suite} did not execute all 512 generated cases successfully')
+          PY
+      - name: Stage test diagnostics
+        if: always()
+        run: |
+          ./Scripts/ci-diagnostics.sh .DerivedData/TestResults
+          ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/GeneratedSaveResults
+      - name: Retain generated case evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: generated-save-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .DerivedData/GeneratedSaveResults/
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: warn

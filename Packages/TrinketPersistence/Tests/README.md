@@ -23,3 +23,9 @@ assertion owner; a suite name alone does not establish coverage. Retain the narr
 [Content/store split](../../TrinketContent/Tests/README.md) when moving rules.
 
 Harnesses: `Support/PersistenceTestContext.swift` (fresh temp dir per test) and `TrinketPersistenceTestSupport.SaveTestSupport` (`writeRoot`, `makeSave`, `makeSideContext`, `makeGeneratedItem`, store factory).
+
+Generated save-recovery and Voyage replay tests use fixed seed arguments; the
+reported seed reproduces the complete input. Ordinary package CI runs 64 and 32
+cases respectively. The manually dispatched **Generated save recovery exploration**
+workflow runs 512 of each and verifies the executed argument counts. It retains
+test diagnostics so a failing seed can be promoted to a focused regression.

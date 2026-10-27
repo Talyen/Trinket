@@ -7,7 +7,7 @@ import TrinketPersistenceTestSupport
 
 struct GeneratedSaveRecoveryTests {
     /// The argument is the entire reproducer: keep this mapping stable when adding cases.
-    @Test(arguments: Array(UInt64(1) ... 64))
+    @Test(arguments: GeneratedCaseSeeds.values(defaultCount: 64))
     func `damaged save combinations preserve independent progress`(seed: UInt64) throws {
         var generator = RecoveryGenerator(state: seed)
         let amounts = [Int.min, -1, 0, 1, 42, PlayerRosterState.maxGoldBalance, Int.max]

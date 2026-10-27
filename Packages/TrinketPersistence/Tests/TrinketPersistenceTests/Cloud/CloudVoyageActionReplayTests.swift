@@ -6,6 +6,52 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct CloudVoyageActionReplayTests {
+    @Test(arguments: GeneratedCaseSeeds.values(defaultCount: 32))
+    func `replayed Voyage claims pay once across retries and conflicting rewards`(seed: UInt64) throws {
+        var base = SaveTestSupport.makeSave(modifiedAt: Date(timeIntervalSince1970: 2000000000))
+        base.roster.gold = 100
+        base.homestead = PlayerHomesteadState(
+            resources: [:], nodeTiers: [:], lastProductionAt: base.modifiedAt,
+        )
+        let candidate = (1 ... 64).lazy.map { UInt64($0) }.first {
+            let offer = VoyageOffer(id: "route-\(seed)", chapterID: "chapter-1", difficulty: .easy, seed: $0)
+            return VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: [])[1].type == .battle
+        }
+        let routeSeed = try #require(candidate)
+        let offer = VoyageOffer(id: "route-\(seed)", chapterID: "chapter-1", difficulty: .easy, seed: routeSeed)
+        base.voyage.activeRun = VoyageRun(
+            offer: offer, nodes: VoyageGenerator.nodes(for: offer, eligibleRecruitEventIDs: []),
+        )
+        let firstGold = Int(seed % 13) + 1
+        let firstWood = Int(seed % 7) + 1
+        let nextGold = Int(seed % 11) + 1
+        let nextWood = Int(seed % 5) + 1
+        let accepted = try claimNextBattle(base, gold: firstGold, wood: firstWood)
+        let conflict = try claimNextBattle(base, gold: firstGold + 20, wood: firstWood + 10)
+        let next = try claimNextBattle(conflict.after.restored(), gold: nextGold, wood: nextWood)
+        let head = CloudSaveHead(
+            epoch: "epoch", resetCount: 0, authoritySequence: 0,
+            revision: CloudSaveRevision(id: "base", clock: ["remote": 1], snapshot: CloudSaveSnapshot(base)),
+        )
+        var replay = CloudReceiptReplay(head: head)
+
+        let first = try replay.apply(accepted, collectionPositions: [:], onto: base)
+        let retried = try replay.apply(accepted, collectionPositions: [:], onto: first)
+        let skipped = try replay.apply(conflict, collectionPositions: [:], onto: retried)
+        let both = try replay.apply(next, collectionPositions: [:], onto: skipped)
+        let retriedNext = try replay.apply(next, collectionPositions: [:], onto: both)
+
+        #expect(retried == first)
+        #expect(skipped == first)
+        #expect(retriedNext == both)
+        #expect(both.roster.gold == 100 + firstGold + nextGold)
+        #expect(both.homestead.resources[.wood] == firstWood + nextWood)
+        let run = try #require(both.voyage.activeRun)
+        #expect(run.nodes.prefix(2).allSatisfy(\.isCleared))
+        #expect(run.earnedGold == firstGold + nextGold)
+        #expect(run.earnedMaterials[.wood] == firstWood + nextWood)
+    }
+
     @Test @MainActor func `accepted Voyage actions exclude earlier rejected rewards from the final bonus after reload`() throws {
         var base = SaveTestSupport.makeSave()
         base.roster.gold = 100
