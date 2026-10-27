@@ -61,6 +61,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         try session.declineAskToBuyTransaction(identifier: pending.identifier)
         assertFullGameAccess(false)
         revealWarlock()
+        assertFullGameAccess(false)
         tapButton(AccessibilityID.CombatantDetail.collectionCard(name: "Warlock"))
         assertExists(AccessibilityID.FullGame.offer)
         session.askToBuyEnabled = false

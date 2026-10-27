@@ -86,11 +86,14 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
     }
 
     func testLabyrinthLockedTapPreservesSelectionAndBackgroundDismissesInspector() {
-        launchApp(arguments: TestLaunchArg.allForScreen("labyrinth-map"))
+        launchApp(arguments: TestLaunchArg.allForScreen("labyrinth-map") + ["-coverage-diagnostics"])
         if button(AccessibilityID.Play.labyrinthEnter).exists {
             tapButton(AccessibilityID.Play.labyrinthEnter)
         }
-        tapWhenReady(any(AccessibilityID.Play.labyrinthFloor1EntryNode))
+        let entryNode = any(AccessibilityID.Play.labyrinthFloor1EntryNode)
+        let hasEntry = entryNode.trinketWaitForExistence(timeout: Self.defaultTimeout)
+        XCTAssertTrue(hasEntry, "Labyrinth entry must appear; diagnostics: \((try? coverageReport()) ?? [:])")
+        tapWhenReady(entryNode)
         assertExists(AccessibilityID.Play.labyrinthNodeInspector)
         let action = app.buttons.matching(NSPredicate(
             format: "identifier BEGINSWITH %@", AccessibilityID.Play.labyrinthInspectorAction(""),

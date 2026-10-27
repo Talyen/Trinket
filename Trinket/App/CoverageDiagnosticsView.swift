@@ -6,7 +6,7 @@ import TrinketFeatureSupport
 import TrinketPersistence
 
 struct CoverageDiagnosticsView: View {
-    let playerSave: PlayerSaveStore
+    let appState: AppState
     @Environment(\.dynamicTypeSize) private var textSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -23,11 +23,17 @@ struct CoverageDiagnosticsView: View {
     }
 
     private var report: String {
+        let playerSave = appState.playerSave
         var values: [String: Any] = AudioCoverageDiagnostics.snapshot()
         values["largeText"] = textSize.isAccessibilitySize
         values["largestText"] = textSize == .accessibility5
         values["reduceMotion"] = reduceMotion
         values["fullGameAccess"] = playerSave.contentAccess.allowsChapter(4)
+        values["fullGameOwnership"] = String(describing: appState.fullGame.ownership)
+        values["gameplayActive"] = appState.play.isGameplayActive
+        values["selectedTab"] = appState.shellSession.selectedTab.rawValue
+        values["playPath"] = appState.shellSession.playPath.map(\.id)
+        values["pendingPlayDestination"] = appState.play.pendingDestination?.id ?? "none"
         values["gold"] = playerSave.roster.gold
         values["completedStages"] = playerSave.journey.completedStageIDs.sorted()
         do {
@@ -41,12 +47,12 @@ struct CoverageDiagnosticsView: View {
 }
 
 extension View {
-    func coverageTestEnvironment(playerSave: PlayerSaveStore) -> some View {
+    func coverageTestEnvironment(appState: AppState) -> some View {
         let arguments = ProcessInfo.processInfo.arguments
         let isOwned = arguments.contains("-store-name") && arguments.contains("-disable-cloud-sync")
         return overlay(alignment: .topTrailing) {
             if isOwned, arguments.contains("-coverage-diagnostics") {
-                CoverageDiagnosticsView(playerSave: playerSave)
+                CoverageDiagnosticsView(appState: appState)
             }
         }
         .debugFPSOverlay()
