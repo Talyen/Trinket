@@ -58,7 +58,7 @@ extension BattleCardCombatEngine {
         defer { context.uniques.card = previousUniqueCard }
         let partyDamageBonus: Int
         if context.resolution.hasPendingPartyCardDamage {
-            let livingParty = [context.roster.hero, context.roster.companion].filter(\.isAlive).map(\.id)
+            let livingParty = [context.roster.hero, context.roster.companion].compactMap { $0.isAlive ? $0.id : nil }
             partyDamageBonus = context.resolution.reservePartyCardDamage(livingSourceIDs: livingParty)
         } else {
             partyDamageBonus = 0

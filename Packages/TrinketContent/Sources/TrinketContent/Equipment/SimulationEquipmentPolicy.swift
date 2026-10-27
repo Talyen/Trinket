@@ -111,8 +111,8 @@ public enum SimulationEquipmentPolicy {
         init(combatant: Combatant, inventory: [InventoryItem]) {
             self.combatant = combatant
             self.inventory = inventory
-            keywords = Set(combatant.abilities.flatMap(\.keywords))
-            powers = Dictionary(uniqueKeysWithValues: inventory.map { item in
+            keywords = Set(combatant.abilities.lazy.flatMap(\.keywords))
+            powers = Dictionary(uniqueKeysWithValues: inventory.lazy.map { item in
                 (item.id, item.affixes.indices.map { item.resolvedPower(at: $0) })
             })
         }

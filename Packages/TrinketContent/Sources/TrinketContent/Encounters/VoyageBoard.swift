@@ -15,7 +15,7 @@ public enum VoyageBoard {
     ) -> [VoyageOffer] {
         let allowed = chapterIDs(access: access)
         var prepared = offers
-        if offers.count != VoyageDifficulty.allCases.count || Set(offers.map(\.chapterID)).count != VoyageDifficulty.allCases.count
+        if offers.count != VoyageDifficulty.allCases.count || Set(offers.lazy.map(\.chapterID)).count != VoyageDifficulty.allCases.count
             || offers.contains(where: { !allowed.contains($0.chapterID) }) {
             prepared = refreshedOffers(access: access, eligibleModifiers: eligibleModifiers, using: &rng)
         }
@@ -47,7 +47,7 @@ public enum VoyageBoard {
     ) -> [VoyageOffer] {
         guard let index = offers.firstIndex(where: { $0.id == offerID }) else { return offers }
         let previous = offers[index]
-        let used = Set(offers.map(\.chapterID))
+        let used = Set(offers.lazy.map(\.chapterID))
         let candidates = chapterIDs(access: access).filter { !used.contains($0) }
         let usedModifiers = Set(offers.enumerated().lazy.filter { $0.offset != index }.map(\.element.rewardModifier))
         let pool = eligibleModifiers.filter { !usedModifiers.contains($0) }

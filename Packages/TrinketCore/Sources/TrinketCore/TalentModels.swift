@@ -48,7 +48,7 @@ public struct TalentTree: Identifiable, Hashable, Codable, Sendable {
     }
 
     public var rows: [Int] {
-        Set(nodes.map(\.row)).sorted()
+        Set(nodes.lazy.map(\.row)).sorted()
     }
 
     public func nodes(forRow row: Int) -> [TalentNode] {
@@ -135,7 +135,7 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
     public func cappedUnlocks(_ nodeIDs: Set<String>, budget: Int) -> Set<String> {
         guard budget > 0 else { return [] }
         var kept: Set<String> = []
-        let rows = Set(trees.flatMap { $0.nodes.map(\.row) }).sorted()
+        let rows = Set(trees.lazy.flatMap { $0.nodes.lazy.map(\.row) }).sorted()
         for row in rows {
             for tree in trees {
                 for node in tree.nodes where node.row == row && nodeIDs.contains(node.id) {

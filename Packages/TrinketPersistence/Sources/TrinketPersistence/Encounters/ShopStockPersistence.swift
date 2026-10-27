@@ -120,7 +120,7 @@ public enum ShopStockPersistence {
 
         /// A purchase transfers only when both peers pinned the same item and price.
         func matchingPurchases(in other: Self) -> Set<String> {
-            let offersByID = Dictionary(uniqueKeysWithValues: other.stock.offers.map { ($0.id, $0) })
+            let offersByID = Dictionary(uniqueKeysWithValues: other.stock.offers.lazy.map { ($0.id, $0) })
             return Set(stock.offers.lazy.filter { offer in
                 other.stock.purchasedOfferIDs.contains(offer.id) && offersByID[offer.id] == offer
             }.map(\.id))

@@ -68,7 +68,7 @@ extension PlayerSaveSanitizer {
         _ spires: PlayerSpiresState,
         catalog: [SpireDefinition] = GameContent.spires,
     ) -> PlayerSpiresState {
-        let floorCounts = Dictionary(uniqueKeysWithValues: catalog.map { ($0.id.rawValue, $0.floorCount) })
+        let floorCounts = Dictionary(uniqueKeysWithValues: catalog.lazy.map { ($0.id.rawValue, $0.floorCount) })
         var sanitized: [String: Int] = [:]
         for (spireID, floor) in spires.highestClearedFloorBySpireID {
             guard let maxFloor = floorCounts[spireID] else { continue }

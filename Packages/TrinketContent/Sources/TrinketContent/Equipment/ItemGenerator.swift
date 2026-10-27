@@ -56,8 +56,12 @@ public struct ItemGenerator: Sendable {
         let rolledCount = fixedAffixCount ?? Self.affixCount(for: rarity, using: &randomNumberGenerator)
         let affixCount = max(rolledCount, guaranteedDefinitions.count)
         let remainingCount = max(0, affixCount - guaranteedDefinitions.count)
-        let remainingPool = eligibleAffixes.filter { definition in
-            !guaranteedIDs.contains(definition.id)
+        let remainingPool: [ItemAffixDefinition] = if remainingCount == 0 {
+            []
+        } else if guaranteedIDs.isEmpty {
+            eligibleAffixes
+        } else {
+            eligibleAffixes.filter { !guaranteedIDs.contains($0.id) }
         }
         let selectedDefinitions = guaranteedDefinitions + Self.weightedSample(
             remainingPool,

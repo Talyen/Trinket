@@ -9,7 +9,7 @@ public enum LabyrinthCatalog {
         excluding previousBossID: String?,
         using rng: inout some RandomNumberGenerator,
     ) -> String {
-        let pool = bossEnemyIDs.filter { $0 != previousBossID }
+        let pool = previousBossID == nil ? bossEnemyIDs : bossEnemyIDs.filter { $0 != previousBossID }
         let choices = pool.isEmpty ? bossEnemyIDs : pool
         return choices.randomElement(using: &rng) ?? bossEnemyIDs[0]
     }

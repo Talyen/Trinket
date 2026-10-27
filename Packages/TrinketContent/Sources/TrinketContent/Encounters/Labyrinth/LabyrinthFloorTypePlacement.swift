@@ -68,7 +68,7 @@ enum LabyrinthFloorTypePlacement {
             if state.index == planned.count - 1 {
                 return [planned[planned.count - 1]]
             }
-            return kinds.indices.filter { state.remaining[$0] > 0 }.map { kinds[$0] }
+            return kinds.indices.compactMap { state.remaining[$0] > 0 ? kinds[$0] : nil }
         }
 
         func advance(_ state: PlacementState, type: LabyrinthNodeType) -> (PlacementState, Int) {

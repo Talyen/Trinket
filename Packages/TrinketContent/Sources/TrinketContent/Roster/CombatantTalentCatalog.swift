@@ -161,7 +161,7 @@ public enum CombatantTalentCatalog {
     )
 
     public static let validNodeIDsByCombatantID = allConfigs.mapValues {
-        Set($0.trees.flatMap(\.nodes).map(\.id))
+        Set($0.trees.lazy.flatMap(\.nodes).map(\.id))
     }
 
     public static func validNodeIDs(for combatantID: String) -> Set<String> {

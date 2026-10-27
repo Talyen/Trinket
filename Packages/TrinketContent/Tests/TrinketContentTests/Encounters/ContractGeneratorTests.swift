@@ -25,6 +25,25 @@ struct ContractGeneratorTests {
         #expect(fallback.rewardModifier == .gold)
     }
 
+    @Test(arguments: [ContractDifficulty.easy, .hard])
+    func `unrestricted contracts preserve seeded selection and random state`(difficulty: ContractDifficulty) throws {
+        let modifiers: [RewardModifier] = [.gold, .astral, .trinket]
+        for seed in [UInt64(0), 7, 1772, 9001] {
+            var expectedRNG = SeededRandomNumberGenerator(seed: seed)
+            var actualRNG = expectedRNG
+            let pool = difficulty.isBoss ? GameContent.bossEnemies : GameContent.nonBossEnemies
+            let enemy = try #require(pool.randomElement(using: &expectedRNG))
+            let eligible = modifiers.filter { !enemy.isBoss || !$0.isItemFocused }
+            let modifier = eligible.randomElement(using: &expectedRNG) ?? .gold
+            let offer = ContractGenerator.makeOffer(
+                difficulty: difficulty, eligibleModifiers: modifiers, using: &actualRNG, id: "seeded",
+            )
+            #expect(offer.enemyID == enemy.id)
+            #expect(offer.rewardModifier == modifier)
+            #expect(actualRNG == expectedRNG)
+        }
+    }
+
     @Test func `legacy offers retain identity and receive a gold modifier`() throws {
         let data = Data(#"{"id":"legacy","difficulty":"hard","enemyID":"boss"}"#.utf8)
         let offer = try JSONDecoder().decode(ContractOffer.self, from: data)

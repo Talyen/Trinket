@@ -108,5 +108,5 @@ public struct BattleLootContext: Equatable, Sendable {
         enemyID.flatMap(GameContent.enemy(matching:))?.isBoss == true
     }
 
-    private static let bossEnemyIDs: Set<String> = Set(GameContent.bossEnemies.map(\.id))
+    private static let bossEnemyIDs: Set<String> = Set(GameContent.bossEnemies.lazy.map(\.id))
 }

@@ -59,13 +59,14 @@ public enum ContractGenerator {
         id: String = UUID().uuidString,
     ) -> ContractOffer {
         let pool = difficulty.isBoss ? GameContent.bossEnemies : GameContent.nonBossEnemies
-        let alternatives = pool.filter { !excludingEnemyIDs.contains($0.id) }
+        let alternatives = excludingEnemyIDs.isEmpty ? pool : pool.filter { !excludingEnemyIDs.contains($0.id) }
         guard let enemy = (alternatives.isEmpty ? pool : alternatives).randomElement(using: &rng) else {
             preconditionFailure("Contracts require ordinary enemies and bosses in the catalog")
         }
+        let modifiers = enemy.isBoss ? eligibleModifiers.filter { !$0.isItemFocused } : eligibleModifiers
         return ContractOffer(
             id: id, difficulty: difficulty, enemyID: enemy.id,
-            rewardModifier: eligibleModifiers.filter { !enemy.isBoss || !$0.isItemFocused }.randomElement(using: &rng) ?? .gold,
+            rewardModifier: modifiers.randomElement(using: &rng) ?? .gold,
         )
     }
 }

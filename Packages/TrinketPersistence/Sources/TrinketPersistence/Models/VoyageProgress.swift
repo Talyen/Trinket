@@ -166,8 +166,8 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
     }
 
     private var isValid: Bool {
-        guard version == 1, offers.isEmpty || (offers.count == 3 && Set(offers.map(\.id)).count == 3
-            && Set(offers.map(\.difficulty)).count == 3 && Set(offers.map(\.chapterID)).count == 3),
+        guard version == 1, offers.isEmpty || (offers.count == 3 && Set(offers.lazy.map(\.id)).count == 3
+            && Set(offers.lazy.map(\.difficulty)).count == 3 && Set(offers.lazy.map(\.chapterID)).count == 3),
             offers.allSatisfy({ !$0.id.isEmpty && VoyageCatalog.bossID(chapterID: $0.chapterID) != nil }) else { return false }
         guard let run = activeRun else { return true }
         guard !run.id.isEmpty, run.nodes.count == run.offer.difficulty.nodeCount, Set(run.nodes.lazy.map(\.id)).count == run.nodes.count,
