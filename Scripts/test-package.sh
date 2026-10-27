@@ -28,14 +28,16 @@ ITERATIONS=""
 RUN_UNTIL_FAILURE=false
 SUITE_FILTER_MODE=""
 TEST_SUITE=""
+TEST_TARGET=""
 
 usage() {
   cat <<'USAGE'
 Usage: ./Scripts/test-package.sh [--no-build] [--build-for-testing] [--destination DESTINATION] [--verbose] [--quiet] [--include-balance-sweep-tests] [--iterations COUNT] [--run-tests-until-failure] <Package> [Package...]
 
 --only-suite NAME or --skip-suite NAME selects disjoint Swift Testing suites
-within one package. Both use the same compiled test target; generic compilation
-and multiple-package calls reject these filters.
+within one package. Use TARGET/NAME to select a different test target; otherwise
+the package's main test target is used. Generic compilation and multiple-package
+calls reject these filters.
 
 Runs Swift package test schemes from inside their package directories, allocating
 a unique result bundle for each invocation so repeated runs do not collide.
@@ -93,12 +95,13 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --only-suite|--skip-suite)
-      if [[ -n "$SUITE_FILTER_MODE" || ! "${2:-}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
-        echo "Choose one --only-suite or --skip-suite with a Swift suite identifier." >&2
+      if [[ -n "$SUITE_FILTER_MODE" || ! "${2:-}" =~ ^([A-Za-z_][A-Za-z0-9_]*/)?[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+        echo "Choose one --only-suite or --skip-suite with a suite or target/suite identifier." >&2
         exit 2
       fi
       SUITE_FILTER_MODE="${1#--}"
-      TEST_SUITE="$2"
+      TEST_SUITE="${2##*/}"
+      if [[ "$2" == */* ]]; then TEST_TARGET="${2%%/*}"; fi
       shift 2
       ;;
     --include-balance-sweep-tests)
@@ -261,14 +264,20 @@ run_one_package() {
   package_dd="$(package_derived_data_path "$package")"
   mkdir -p "$package_dd"
 
+  local test_target="${TEST_TARGET:-${package}Tests}"
+  local target
   if [[ "$SUITE_FILTER_MODE" == only-suite ]]; then
-    package_test_filters+=("-only-testing:${package}Tests/$TEST_SUITE")
+    package_test_filters+=("-only-testing:$test_target/$TEST_SUITE")
   elif [[ "$SUITE_FILTER_MODE" == skip-suite ]]; then
-    package_test_filters+=("-skip-testing:${package}Tests/$TEST_SUITE")
+    package_test_filters+=("-skip-testing:$test_target/$TEST_SUITE")
   fi
 
   if [[ "$package" == "BattleEngine" && "$INCLUDE_BALANCE_SWEEP_TESTS" == "false" ]]; then
-    package_test_filters+=("-skip-testing:BattleBalanceToolsTests" "-skip-testing:BalanceSweepCLITests")
+    for target in BattleBalanceToolsTests BalanceSweepCLITests; do
+      if [[ -z "$SUITE_FILTER_MODE" || "$test_target" != "$target" ]]; then
+        package_test_filters+=("-skip-testing:$target")
+      fi
+    done
   fi
 
   if [[ "$ACTION" == "test-without-building" ]]; then

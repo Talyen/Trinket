@@ -219,6 +219,10 @@ python3 /Users/ryanmcintire/Developer/.coordination/heavy_lane.py \
   ./Scripts/test-package.sh --only-suite LabyrinthVictoryCompletionTests TrinketAppState
 ```
 
+For a suite outside the package's main test target, use the `target/suite` form,
+for example `--only-suite BattleBalanceToolsTests/BalanceFindingsReporterTests`.
+The selected target is included even when balance-tool tests are otherwise skipped.
+
 A busy lane or deadline ends the attempt. Preserve its logs, report what actually
 ran, and continue source work or hosted verification. Do not automatically retry,
 widen the selector, increase the deadline, or split a larger run into repeated

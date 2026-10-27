@@ -165,3 +165,22 @@ class PackageDiagnosticsTests(ScriptRegressionTestCase):
                         self.assertEqual(f"-skip-testing:{target}" in battle_args, excluded)
                     core_args = (root / "results/TrinketCore-current.args").read_text().splitlines()
                     self.assertFalse(any(arg.startswith("-skip-testing:") for arg in core_args))
+
+            for mode in ("only-suite", "skip-suite"):
+                with self.subTest(mode=mode):
+                    result = run_captured(
+                        ["bash", str(scripts / "test-package.sh"), "--destination", "id=fixture",
+                         f"--{mode}", "BattleBalanceToolsTests/BalanceFindingsReporterTests", "BattleEngine"],
+                        env={**os.environ, "FIXTURE_STATUS": "65", "GITHUB_ACTIONS": "true"},
+                    )
+                    self.assertEqual(result.returncode, 65, result.stdout + result.stderr)
+                    args = (root / "results/BattleEngine-current.args").read_text().splitlines()
+                    self.assertIn(f"-{mode.replace('-suite', '-testing')}:BattleBalanceToolsTests/BalanceFindingsReporterTests", args)
+                    self.assertNotIn("-skip-testing:BattleBalanceToolsTests", args)
+                    self.assertIn("-skip-testing:BalanceSweepCLITests", args)
+            for invalid in ("/Suite", "Target/", "Target/Suite/Method", "Target/-Suite"):
+                result = run_captured(
+                    ["bash", str(scripts / "test-package.sh"), "--only-suite", invalid, "BattleEngine"],
+                    env={**os.environ, "GITHUB_ACTIONS": "true"},
+                )
+                self.assertEqual(result.returncode, 2, invalid)
