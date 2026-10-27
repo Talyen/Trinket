@@ -406,8 +406,11 @@ class TrinketUITestCase: XCTestCase {
         if close.exists, close.isHittable {
             tapWhenReady(close)
         } else {
+            let grabber = app.buttons["Sheet Grabber"].firstMatch
             let bar = app.navigationBars.allElementsBoundByIndex.last { $0.isHittable }
-            let start = bar?.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1))
+            let start = (grabber.exists && grabber.isHittable
+                ? grabber.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)) : nil)
+                ?? bar?.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1))
                 ?? app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.09))
             start.press(forDuration: 0.1, thenDragTo: sheetDismissDragEnd)
         }

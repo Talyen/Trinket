@@ -207,9 +207,8 @@ struct CloudSaveOutboxTests {
         )
         let context = ModelContext(container)
         context.autosaveEnabled = false
-        let root = try LegacySaveGraphFixture.root(from: save)
+        let root = try LegacySaveGraphFixture.root(from: save, in: context)
         root.cloudStatePayload = metadata
-        context.insert(root)
         try context.save()
     }
 }

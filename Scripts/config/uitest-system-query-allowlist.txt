@@ -5,6 +5,7 @@ BackButton
 Close
 close
 Clear text
+Sheet Grabber
 # Native submenu options can omit their assigned accessibility identifiers.
 Astral
 
