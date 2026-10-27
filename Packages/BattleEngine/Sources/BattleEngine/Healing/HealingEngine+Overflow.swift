@@ -192,34 +192,16 @@ extension HealingEngine {
         target: CombatTraitTriggers,
         request: HealRequest,
     ) -> CombatTraitTriggers {
-        // One overflow, one conversion: the recipient's body decides what excess
-        // healing becomes, except self-heals where source and recipient coincide.
-        // Callers apply only the first matching branch (Block, then
-        // once-per-turn Block, then capped Block), so stacked overflow talents
-        // cannot triple-spend the same excess.
-        let isSelfHeal = request.sourceActorID == request.target.id
-        if isSelfHeal {
-            if let source,
-               source.overhealConvertsToBlock
-               || source.overhealConvertsToMaxHealth
-               || source.overhealShieldCap > 0
-               || source.overhealToBlockPercent > 0
-               || source.overhealFirstBlockPerTurn > 0 {
-                return source
-            }
-            return target
+        func hasConversion(_ triggers: CombatTraitTriggers) -> Bool {
+            triggers.overhealConvertsToBlock || triggers.overhealConvertsToMaxHealth
+                || triggers.overhealShieldCap > 0 || triggers.overhealToBlockPercent > 0
+                || triggers.overhealFirstBlockPerTurn > 0
         }
-        if target.overhealConvertsToBlock
-            || target.overhealConvertsToMaxHealth
-            || target.overhealShieldCap > 0
-            || target.overhealToBlockPercent > 0
-            || target.overhealFirstBlockPerTurn > 0 {
-            return target
+        // The recipient's conversion takes precedence except for self-heals.
+        if request.sourceActorID == request.target.id {
+            return source.flatMap { hasConversion($0) ? $0 : nil } ?? target
         }
-        if let source {
-            return source
-        }
-        return target
+        return hasConversion(target) ? target : (source ?? target)
     }
 
     private static func convertLeechOverflowToMana(

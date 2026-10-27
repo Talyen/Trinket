@@ -18,37 +18,35 @@ extension HealingEngine {
         in context: inout BattleState,
     ) -> Int {
         var amount = baseAmount
-        if amount > 0, request.amountBasis != .resolved, request.target.role != .enemy, !request.isHoTTick,
-           let sourceID = request.sourceActorID,
-           context.roster.health(for: request.target) < context.roster.maxHealth(for: request.target),
-           context.modifiers(for: sourceID).triggers.firstHealthRestorationBonusPerTurn > 0,
-           context.claimHeroTalent(.spriteTouch, actorID: sourceID) {
-            amount = SaturatedArithmetic.saturatingAdd(amount, context.modifiers(for: sourceID).triggers.firstHealthRestorationBonusPerTurn)
-        }
-        if amount > 0, request.amountBasis != .resolved,
-           request.target.role != .enemy, let sourceID = request.sourceActorID {
-            amount = CombatRounding.scaled(
-                amount, multiplier: context.modifiers(for: sourceID).triggers.healingMultiplier,
-            )
-        }
-        if amount > 0, request.amountBasis != .resolved,
-           request.target.role != .enemy,
-           context.roster.isBelowHalfHealth(for: request.target) {
-            amount = CombatRounding.scaled(
-                amount,
-                multiplier: context.modifiers(for: request.target.id).triggers.healBelowHalfMultiplier,
-            )
-        }
-        if amount > 0, request.amountBasis != .resolved,
-           request.target.role != .enemy, context.roster.hero.isAlive {
-            let hero = context.heroModifiers.triggers
-            if hero.fortifyingTonic,
-               context.roster.isBelowHalfHealth(for: request.target) {
-                amount = SaturatedArithmetic.saturatingAdd(amount, 2)
+        if request.amountBasis != .resolved, request.target.role != .enemy {
+            if amount > 0, !request.isHoTTick, let sourceID = request.sourceActorID,
+               context.roster.health(for: request.target) < context.roster.maxHealth(for: request.target),
+               context.modifiers(for: sourceID).triggers.firstHealthRestorationBonusPerTurn > 0,
+               context.claimHeroTalent(.spriteTouch, actorID: sourceID) {
+                amount = SaturatedArithmetic.saturatingAdd(
+                    amount, context.modifiers(for: sourceID).triggers.firstHealthRestorationBonusPerTurn,
+                )
             }
-            if hero.springSapHealthBonus > 0,
-               context.roster.activeEffects(for: request.target).contains(where: { $0.effect.kind == .thorns }) {
-                amount = SaturatedArithmetic.saturatingAdd(amount, hero.springSapHealthBonus)
+            if amount > 0, let sourceID = request.sourceActorID {
+                amount = CombatRounding.scaled(
+                    amount, multiplier: context.modifiers(for: sourceID).triggers.healingMultiplier,
+                )
+            }
+            if amount > 0, context.roster.isBelowHalfHealth(for: request.target) {
+                amount = CombatRounding.scaled(
+                    amount, multiplier: context.modifiers(for: request.target.id).triggers.healBelowHalfMultiplier,
+                )
+            }
+            if amount > 0, context.roster.hero.isAlive {
+                let hero = context.heroModifiers.triggers
+                if hero.fortifyingTonic,
+                   context.roster.isBelowHalfHealth(for: request.target) {
+                    amount = SaturatedArithmetic.saturatingAdd(amount, 2)
+                }
+                if hero.springSapHealthBonus > 0,
+                   context.roster.activeEffects(for: request.target).contains(where: { $0.effect.kind == .thorns }) {
+                    amount = SaturatedArithmetic.saturatingAdd(amount, hero.springSapHealthBonus)
+                }
             }
         }
         var enemyMultiplier = 1.0
