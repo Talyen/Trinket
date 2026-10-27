@@ -53,8 +53,4 @@ struct PlayBattleRunRegistration {
     var presentation: BattlePresentationContext {
         launch.presentation
     }
-
-    var universalModifiers: [AffixModifier] {
-        launch.universalModifiers
-    }
 }

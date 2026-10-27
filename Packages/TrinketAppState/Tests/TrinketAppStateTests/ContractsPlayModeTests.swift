@@ -134,7 +134,7 @@ struct ContractsPlayModeTests {
         #expect(play.contracts.startBattle(offerID: offer.id) == nil)
         let configuration = try #require(play.battle.activeBattle)
         let presentation = try #require(play.battlePresentation(for: configuration.runKey))
-        let pendingItem = try #require(play.battleRegistration(for: play.battle.activeBattle?.runKey)?.launch.inputs.launch
+        let pendingItem = try #require(play.battleCoordinator.registration(for: play.battle.activeBattle?.runKey)?.launch.inputs.launch
             .pendingRewardItem)
         if let keyword = modifier.requiredKeyword {
             #expect(pendingItem.baseType.keywordAffinities.contains(keyword))

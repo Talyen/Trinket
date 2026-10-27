@@ -47,7 +47,7 @@ struct VoyagePlayModeTests {
         #expect(play.voyage.handleNode(runID: run.id, nodeID: node.id) == nil)
         let retry = try #require(play.battle.activeBattle)
         #expect(retry.id != battle.id)
-        let item = try #require(play.battleRegistration(for: retry.runKey)?.launch.inputs.launch.pendingRewardItem)
+        let item = try #require(play.battleCoordinator.registration(for: retry.runKey)?.launch.inputs.launch.pendingRewardItem)
         #expect(item.baseType.keywordAffinities.contains(.freeze))
         #expect(item.affixes.contains { $0.keywords.contains(.freeze) })
         let state = play.playerSave.currentSave

@@ -94,7 +94,7 @@ struct BattleSessionAppIntegrationTests {
         let hero = state.playerSave.roster.activeHero
         state.journey.prepareBattle(for: stage)
         let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
-        let prepared = try #require(state.battleRegistration(for: runKey)?.launch.configuration)
+        let prepared = try #require(state.battleCoordinator.registration(for: runKey)?.launch.configuration)
         let item = try #require(GameContent.sampleInventoryItems.first { $0.baseType.defaultEquipmentSlot == .weapon })
         try state.playerSave.performFixtureMutation { save in
             save.inventory.appendUniqueItem(item)
@@ -122,7 +122,7 @@ struct BattleSessionAppIntegrationTests {
         state.journey.prepareBattle(for: second)
         let runKey = PlayBattleOrigin.journey(stageID: first.id).runKey
         let sibling = PlayBattleOrigin.journey(stageID: second.id).runKey
-        let registration = try #require(state.battleRegistration(for: runKey))
+        let registration = try #require(state.battleCoordinator.registration(for: runKey))
         let original = registration.launch.inputs.launch
         let encounter = try #require(original.encounter)
         let input = BattleLaunchInput(
@@ -240,9 +240,9 @@ struct BattleSessionAppIntegrationTests {
         )
         #expect(appState.labyrinth.startBattle(nodeID: combatNodeID) == nil)
         let original = try #require(appState.battle.activeBattle)
-        let originalLaunch = try #require(appState.battleRegistration(for: original.runKey)?.launch)
+        let originalLaunch = try #require(appState.battleCoordinator.registration(for: original.runKey)?.launch)
         let effects = appState.playerSave.labyrinth.effects(for: combatNodeID)
-        let originalUniversalModifiers = appState.battleUniversalModifiers(for: original.runKey)
+        let originalUniversalModifiers = originalLaunch.inputs.launch.universalModifiers
         #expect(originalUniversalModifiers.count == 1)
         #expect(originalUniversalModifiers == effects.combatModifiers)
         for case let .damageDealt(keyword, amount) in effects.combatModifiers {
@@ -254,10 +254,10 @@ struct BattleSessionAppIntegrationTests {
         appState.restartActiveBattle()
 
         let restarted = try #require(appState.battle.activeBattle)
-        let restartedLaunch = try #require(appState.battleRegistration(for: restarted.runKey)?.launch)
+        let restartedLaunch = try #require(appState.battleCoordinator.registration(for: restarted.runKey)?.launch)
         #expect(restarted.runKey == PlayBattleOrigin.labyrinth(nodeID: combatNodeID).runKey)
         #expect(
-            appState.battleUniversalModifiers(for: restarted.runKey) == originalUniversalModifiers,
+            restartedLaunch.inputs.launch.universalModifiers == originalUniversalModifiers,
         )
         #expect(restartedLaunch.inputs.launch.pendingRewardItem == originalLaunch.inputs.launch.pendingRewardItem)
         #expect(restartedLaunch.rewardPlan.items == originalLaunch.rewardPlan.items)
@@ -411,7 +411,7 @@ extension BattleSessionAppIntegrationTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         #expect(play.journey.startBattle(for: stage) == nil)
         let first = try #require(play.battle.activeBattle)
-        let initial = try #require(play.battleRegistration(for: first.runKey))
+        let initial = try #require(play.battleCoordinator.registration(for: first.runKey))
         play.endBattleReturningToOrigin()
         let request = BattleLaunchInput(
             origin: initial.launch.inputs.launch.origin,

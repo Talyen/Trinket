@@ -9,9 +9,6 @@ struct BattleLaunchAssembly {
     let rewardPlan: BattleRewardPlan
     let presentation: BattlePresentationContext
     let inputs: BattlePreparationInputs
-    var universalModifiers: [AffixModifier] {
-        inputs.launch.universalModifiers
-    }
 }
 
 extension PlayBattleCoordinator {

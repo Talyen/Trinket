@@ -23,7 +23,7 @@ struct AppStateSpiresTests {
         #expect(message == nil)
         #expect(state.battle.activeBattle?.runKey == PlayBattleOrigin.spire(spireID: .ironVein, floor: 1).runKey)
         #expect(state.battle.activeBattle?.enemy != nil)
-        #expect(state.battleRegistration(for: state.battle.activeBattle?.runKey)?.launch.inputs.launch.pendingRewardItem != nil)
+        #expect(state.battleCoordinator.registration(for: state.battle.activeBattle?.runKey)?.launch.inputs.launch.pendingRewardItem != nil)
         let presentation = try #require(state.battlePresentation(for: state.battle.activeBattle?.runKey))
         #expect(presentation.nodeModifiers.map(\.id) == [selected.id])
         let enemyModifiers = try #require(state.battle.activeBattle).enemyModifiers
@@ -33,7 +33,8 @@ struct AppStateSpiresTests {
         case let .damageTakenReduction(keyword, percent):
             #expect(enemyModifiers.damageTakenReduction(for: keyword) == Double(percent) / 100)
         case .reward(.keyword):
-            #expect(state.battleRegistration(for: state.battle.activeBattle?.runKey)?.launch.inputs.launch.pendingRewardItem != nil)
+            #expect(state.battleCoordinator.registration(for: state.battle.activeBattle?.runKey)?.launch.inputs.launch
+                .pendingRewardItem != nil)
         default:
             Issue.record("Unexpected Spire modifier: \(selected.id.rawValue)")
         }

@@ -198,14 +198,6 @@ public final class PlaySession: BattleProgressionDelegate {
         battleCoordinator.registration(for: runKey)?.presentation
     }
 
-    func battleUniversalModifiers(for runKey: BattleRunKey?) -> [AffixModifier] {
-        battleCoordinator.registration(for: runKey)?.universalModifiers ?? []
-    }
-
-    func battleRegistration(for runKey: BattleRunKey?) -> PlayBattleRunRegistration? {
-        battleCoordinator.registration(for: runKey)
-    }
-
     func finishBattleExit(for combatants: [Combatant]) {
         pendingDestination = nil
         queuePostBattleTalentChoices(for: combatants)

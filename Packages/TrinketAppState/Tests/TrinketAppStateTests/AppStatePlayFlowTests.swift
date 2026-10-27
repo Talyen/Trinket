@@ -154,7 +154,7 @@ struct AppStatePlayFlowTests {
         )
 
         state.journey.prepareBattle(for: stage)
-        let prepared = try #require(state.battleRegistration(for: runKey))
+        let prepared = try #require(state.battleCoordinator.registration(for: runKey))
 
         try PlayBattleLaunchTestSupport.setActiveParty(
             heroID: otherHero.id, companionID: otherCompanion.id, in: state,
@@ -165,7 +165,7 @@ struct AppStatePlayFlowTests {
 
         #expect(!state.battleCoordinator.activateBattle(mismatchedInput, route: prepared.route))
         #expect(state.battle.activeBattle == nil)
-        #expect(state.battleRegistration(for: runKey)?.launch.configuration.id == prepared.launch.configuration.id)
+        #expect(state.battleCoordinator.registration(for: runKey)?.launch.configuration.id == prepared.launch.configuration.id)
 
         #expect(state.journey.startBattle(for: stage) == nil)
         let active = try #require(state.battle.activeBattle)
@@ -233,7 +233,7 @@ struct AppStatePlayFlowTests {
 
     private func checkDuplicateDelivery(state: PlaySession) throws {
         let configuration = try #require(state.battle.activeBattle)
-        let registration = try #require(state.battleRegistration(for: configuration.runKey))
+        let registration = try #require(state.battleCoordinator.registration(for: configuration.runKey))
         let settlement = try #require(state.settleBattleRewards(configuration, battleGold: .init(gained: 5)))
 
         #expect(state.completeActiveBattle(configuration, battleGold: .init(gained: 5)).didComplete)
@@ -429,12 +429,12 @@ extension AppStatePlayFlowTests {
             return UInt64(seedDraws)
         }
         state.journey.prepareBattle(for: stage)
-        let original = try #require(state.battleRegistration(for: runKey))
+        let original = try #require(state.battleCoordinator.registration(for: runKey))
         state.journey.prepareBattle(for: siblingStage)
 
         state.journey.prepareBattle(for: stage)
 
-        #expect(state.battleRegistration(for: runKey)?.launch.configuration.id == original.launch.configuration.id)
+        #expect(state.battleCoordinator.registration(for: runKey)?.launch.configuration.id == original.launch.configuration.id)
         #expect(seedDraws == 2)
         #expect(state.journey.startBattle(for: stage) == nil)
         #expect(state.battle.activeBattle?.rngSeed == original.launch.configuration.rngSeed)
@@ -450,14 +450,14 @@ extension AppStatePlayFlowTests {
             return UInt64(seedDraws)
         }
         state.journey.prepareBattle(for: stage)
-        let original = try #require(state.battleRegistration(for: runKey))
+        let original = try #require(state.battleCoordinator.registration(for: runKey))
         #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") {
             $0.homestead.nodeTiers[.agilityTraining] = 1
         })
 
         state.journey.prepareBattle(for: stage)
 
-        let refreshed = try #require(state.battleRegistration(for: runKey))
+        let refreshed = try #require(state.battleCoordinator.registration(for: runKey))
         #expect(refreshed.launch.configuration.id != original.launch.configuration.id)
         #expect(refreshed.launch.inputs.party.homestead == state.playerSave.homestead)
         #expect(refreshed.launch.configuration.rngSeed == original.launch.configuration.rngSeed)
@@ -472,13 +472,13 @@ extension AppStatePlayFlowTests {
         let stage = try PlayBattleLaunchTestSupport.firstJourneyStage()
         state.journey.prepareBattle(for: stage)
         let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
-        let original = try #require(state.battleRegistration(for: runKey))
+        let original = try #require(state.battleCoordinator.registration(for: runKey))
         let siblingStage = try #require(GameContent.chapters.flatMap(\.stages).first {
             $0.encounter.isCombat && $0.id != stage.id
         })
         state.journey.prepareBattle(for: siblingStage)
         let siblingKey = PlayBattleOrigin.journey(stageID: siblingStage.id).runKey
-        let sibling = try #require(state.battleRegistration(for: siblingKey))
+        let sibling = try #require(state.battleCoordinator.registration(for: siblingKey))
 
         #expect(state.playerSave.persistFixtureBatch(logging: "Test setup") {
             $0.homestead.nodeTiers[.agilityTraining] = 1
@@ -486,9 +486,9 @@ extension AppStatePlayFlowTests {
         runtime.shouldRejectPreparation = true
         #expect(try !state.battleCoordinator.prepareCombat(original.launch.inputs.launch, route: #require(original.route)))
         #expect(!(state.battleCoordinator.preparedRuns[runKey] != nil))
-        #expect(state.battleRegistration(for: runKey) == nil)
+        #expect(state.battleCoordinator.registration(for: runKey) == nil)
         #expect(state.battleCoordinator.preparedRuns[siblingKey] != nil)
-        #expect(state.battleRegistration(for: siblingKey)?.launch.configuration.id == sibling.launch.configuration.id)
+        #expect(state.battleCoordinator.registration(for: siblingKey)?.launch.configuration.id == sibling.launch.configuration.id)
 
         runtime.shouldRejectPreparation = false
         runtime.shouldRejectActivation = false
@@ -497,7 +497,7 @@ extension AppStatePlayFlowTests {
         #expect(state.battleCoordinator.preparedRuns[siblingKey] != nil)
         state.endBattleReturningToOrigin()
         #expect(!(state.battleCoordinator.preparedRuns[siblingKey] != nil))
-        #expect(state.battleRegistration(for: siblingKey) == nil)
+        #expect(state.battleCoordinator.registration(for: siblingKey) == nil)
     }
 
     @Test func `rejected restart receives presentation without publishing candidate metadata`() throws {
@@ -519,7 +519,7 @@ extension AppStatePlayFlowTests {
         #expect(state.restartActiveBattle()?.title == PlayBattleCoordinator.activationFailureMessage.title)
         #expect(lookedUpReplacement)
         #expect(runtime.activeBattle?.id == active.id)
-        #expect(state.battleRegistration(for: active.runKey)?.launch.configuration.id == active.id)
+        #expect(state.battleCoordinator.registration(for: active.runKey)?.launch.configuration.id == active.id)
         #expect(state.battlePresentation(for: active)?.rewardPlan == original.rewardPlan)
     }
 
@@ -585,7 +585,7 @@ extension AppStatePlayFlowTests {
         let stage = try PlayBattleLaunchTestSupport.firstJourneyStage()
         let key = PlayBattleOrigin.journey(stageID: stage.id).runKey
         state.journey.prepareBattle(for: stage)
-        let prepared = try #require(state.battleRegistration(for: key))
+        let prepared = try #require(state.battleCoordinator.registration(for: key))
         let configuration = prepared.launch.configuration
         if activates {
             try #require(state.battleCoordinator.activatePrepared(configuration))
@@ -595,7 +595,7 @@ extension AppStatePlayFlowTests {
         // Keep all party/launch inputs identical; replacing progress changes generation.
         try state.playerSave.commitCloudState(state.playerSave.cloudDeviceState, replacing: incoming)
         let before = state.playerSave.currentSave
-        #expect(state.battleRegistration(for: key)?.launch.configuration.id == configuration.id)
+        #expect(state.battleCoordinator.registration(for: key)?.launch.configuration.id == configuration.id)
         if activates {
             #expect(state.settleBattleRewards(configuration, battleGold: .init()) == nil)
             #expect(!state.completeActiveBattle(configuration, battleGold: .init()).didComplete)
@@ -604,7 +604,7 @@ extension AppStatePlayFlowTests {
         } else {
             #expect(!state.battleCoordinator.activatePrepared(configuration))
             state.journey.prepareBattle(for: stage)
-            let refreshed = try #require(state.battleRegistration(for: key))
+            let refreshed = try #require(state.battleCoordinator.registration(for: key))
             #expect(refreshed.launch.configuration.id != configuration.id)
             #expect(refreshed.launch.configuration.rngSeed == configuration.rngSeed)
             #expect(state.battleCoordinator.activatePrepared(refreshed.launch.configuration))
