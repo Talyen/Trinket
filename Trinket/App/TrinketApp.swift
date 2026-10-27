@@ -276,6 +276,9 @@ private struct PreparedAppRoot: View {
             .task {
                 await loadInitialSave()
             }
+            .task {
+                await allowLocalSaveAfterCloudDelay()
+            }
             .onChange(of: isPreparationComplete, initial: false) { _, isComplete in
                 guard isComplete, !preparation.didCompleteLaunchPreparation else { return }
                 // Capture the encounter identity once so later encounters cannot
@@ -319,6 +322,13 @@ private struct PreparedAppRoot: View {
         // A failed cloud check leaves the durable local save available for offline play.
         await appState.playerSave.cloudSync?.synchronize()
         guard !Task.isCancelled else { return }
+        preparation.acknowledge(.initialSaveReady)
+    }
+
+    private func allowLocalSaveAfterCloudDelay() async {
+        guard appState.playerSave.cloudSync != nil, !preparation.isInitialSaveReady else { return }
+        try? await Task.sleep(for: .seconds(5))
+        guard !Task.isCancelled, !preparation.isInitialSaveReady else { return }
         preparation.acknowledge(.initialSaveReady)
     }
 
