@@ -211,11 +211,10 @@ struct BalanceFindingsReporterTests {
         #expect(stats.heroDurations.first?.shortRate == 0)
         #expect(stats.companionDurations.first?.shortRate == 0)
         #expect(BalanceFindingsReporter.render(report).contains("STALL"))
-        let short = identityRecord(enemyID: "short", isBoss: false, abilities: [], win: true, seed: 2)
-        let sparse = BalanceDurationAggregation.durationStats(
-            [short], minRounds: 10, maxRounds: 15, flagRate: 0.15,
-        )
-        #expect(!sparse.flagged)
+        var short = identityRecord(enemyID: "short", isBoss: false, abilities: [], win: true, seed: 2)
+        short.result.rounds = 1
+        let sparse = BalanceDurationAggregation.summarize([short], flagRate: 0.15).trash
+        #expect(sparse.shortBattles == 1 && !sparse.flagged)
         #expect(sparse.worstEnemyID == nil)
     }
 
@@ -244,6 +243,7 @@ struct BalanceFindingsReporterTests {
         #expect(boss.battles == 8 && boss.averageRounds == 6.5)
         #expect(boss.shortRate == 0.5 && boss.longRate == 0 && boss.flagReason == "FAST")
         #expect(stats.trashDuration.longBattles == 4 && stats.trashDuration.averageRoundsWhenLong == 11)
+        #expect(stats.trashDuration.worstEnemyID == "shared" && stats.bossDuration.worstEnemyID == nil)
         #expect(stats.bossDuration.shortBattles == 4 && stats.bossDuration.averageRoundsWhenShort == 12)
         #expect(stats.trashDuration.flagReason == "LONG" && stats.bossDuration.flagReason == "SHORT")
         let hero = try #require(stats.heroDurations.first)
@@ -265,7 +265,7 @@ struct BalanceFindingsReporterTests {
             Array(repeating: identityRecord(enemyID: id, isBoss: false, abilities: [], win: false, seed: 1), count: 8)
         }
         for source in [records, Array(records.reversed())] {
-            let stats = BalanceDurationAggregation.durationStats(source, minRounds: 5, maxRounds: 15, flagRate: 0.15)
+            let stats = BalanceDurationAggregation.summarize(source, flagRate: 0.15).trash
             #expect(stats.worstEnemyID == "alpha")
         }
     }

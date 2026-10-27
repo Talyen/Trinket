@@ -2,26 +2,57 @@ import BattleEngine
 import TrinketContent
 
 enum BalanceDurationAggregation {
-    static func durationStats(
-        _ records: [BalanceBattleRecord],
-        minRounds: Int,
-        maxRounds: Int,
-        flagRate: Double,
-    ) -> BalanceDurationBucketStats {
-        var total = DurationTally()
-        var enemies: [String: DurationTally] = [:]
+    private struct EnemyKey: Hashable {
+        let id: String
+        let isBoss: Bool
+    }
+
+    struct Summary {
+        var trash: BalanceDurationBucketStats
+        var boss: BalanceDurationBucketStats
+        var enemies: [BalanceEnemyDurationStats]
+        var heroes: [BalanceCombatantDurationStats]
+        var companions: [BalanceCombatantDurationStats]
+    }
+
+    static func summarize(_ records: [BalanceBattleRecord], flagRate: Double) -> Summary {
+        var trash = DurationTally()
+        var boss = DurationTally()
+        var enemies: [EnemyKey: DurationTally] = [:]
+        var heroes: [String: DurationTally] = [:]
+        var companions: [String: DurationTally] = [:]
         for record in records {
-            total.record(record, minRounds: minRounds, maxRounds: maxRounds)
-            enemies[record.enemyID, default: DurationTally()].record(record, minRounds: minRounds, maxRounds: maxRounds)
+            let sample = DurationSample(record)
+            if record.isBoss {
+                boss.record(sample)
+            } else {
+                trash.record(sample)
+            }
+            enemies[EnemyKey(id: record.enemyID, isBoss: record.isBoss), default: DurationTally()].record(sample)
+            heroes[record.heroID, default: DurationTally()].record(sample)
+            companions[record.companionID, default: DurationTally()].record(sample)
         }
+
+        return Summary(
+            trash: bucket(trash, enemies: enemies, isBoss: false, flagRate: flagRate),
+            boss: bucket(boss, enemies: enemies, isBoss: true, flagRate: flagRate),
+            enemies: enemyRows(enemies, flagRate: flagRate),
+            heroes: combatantRows(heroes, role: .hero, flagRate: flagRate),
+            companions: combatantRows(companions, role: .companion, flagRate: flagRate),
+        )
+    }
+
+    private static func bucket(
+        _ total: DurationTally, enemies: [EnemyKey: DurationTally], isBoss: Bool, flagRate: Double,
+    ) -> BalanceDurationBucketStats {
         let worstEnemy = enemies.lazy
-            .filter { $0.value.battles >= BalanceSweepConfig.identityFlagMinBattles && $0.value.longBattles > 0 }
+            .filter { $0.key.isBoss == isBoss && $0.value.battles >= BalanceSweepConfig.identityFlagMinBattles && $0.value.longBattles > 0 }
             .min {
                 if $0.value.longRate != $1.value.longRate {
                     return $0.value.longRate > $1.value.longRate
                 }
-                return $0.key < $1.key
-            }?.key
+                return $0.key.id < $1.key.id
+            }?.key.id
         let reason = total.flagReason(rate: flagRate, short: "SHORT", long: "LONG")
         return BalanceDurationBucketStats(
             battles: total.battles,
@@ -37,20 +68,8 @@ enum BalanceDurationAggregation {
         )
     }
 
-    private struct EnemyKey: Hashable {
-        let id: String
-        let isBoss: Bool
-    }
-
-    static func enemyDurationTable(
-        _ records: [BalanceBattleRecord],
-        flagRate: Double,
-    ) -> [BalanceEnemyDurationStats] {
-        var groups: [EnemyKey: DurationTally] = [:]
-        for record in records {
-            groups[EnemyKey(id: record.enemyID, isBoss: record.isBoss), default: DurationTally()].record(record)
-        }
-        return groups.sorted {
+    private static func enemyRows(_ groups: [EnemyKey: DurationTally], flagRate: Double) -> [BalanceEnemyDurationStats] {
+        groups.sorted {
             if $0.key.id != $1.key.id {
                 return $0.key.id < $1.key.id
             }
@@ -58,45 +77,42 @@ enum BalanceDurationAggregation {
         }.map { key, total in
             let reason = total.flagReason(rate: flagRate)
             return BalanceEnemyDurationStats(
-                enemyID: key.id,
-                isBoss: key.isBoss,
-                battles: total.battles,
-                averageRounds: total.averageRounds,
-                shortRate: total.shortRate,
-                longRate: total.longRate,
-                flagged: reason != nil,
-                flagReason: reason,
+                enemyID: key.id, isBoss: key.isBoss, battles: total.battles,
+                averageRounds: total.averageRounds, shortRate: total.shortRate, longRate: total.longRate,
+                flagged: reason != nil, flagReason: reason,
             )
         }
     }
 
-    static func combatantDurationTable(
-        _ records: [BalanceBattleRecord],
-        role: Combatant.Role,
-        idPath: KeyPath<BalanceBattleRecord, String>,
-        flagRate: Double,
+    private static func combatantRows(
+        _ groups: [String: DurationTally], role: Combatant.Role, flagRate: Double,
     ) -> [BalanceCombatantDurationStats] {
-        var groups: [String: DurationTally] = [:]
-        for record in records {
-            groups[record[keyPath: idPath], default: DurationTally()].record(record)
-        }
-        return groups.sorted { $0.key < $1.key }.map { id, total in
+        groups.sorted { $0.key < $1.key }.map { id, total in
             let reason = total.flagReason(rate: flagRate)
             return BalanceCombatantDurationStats(
-                combatantID: id,
-                role: role,
-                battles: total.battles,
-                averageRounds: total.averageRounds,
-                shortRate: total.shortRate,
-                longRate: total.longRate,
-                flagged: reason != nil,
-                flagReason: reason,
+                combatantID: id, role: role, battles: total.battles,
+                averageRounds: total.averageRounds, shortRate: total.shortRate, longRate: total.longRate,
+                flagged: reason != nil, flagReason: reason,
             )
         }
     }
 
-    /// All duration views use the same classification. A cap contributes observed
-    /// rounds and may be long, but never short; mixed opponents use their own bands.
+    /// A cap contributes observed rounds and may be long, but never short.
+    private struct DurationSample {
+        let rounds: Int
+        let isShort: Bool
+        let isLong: Bool
+
+        init(_ record: BalanceBattleRecord) {
+            let rounds = record.result.rounds
+            self.rounds = rounds
+            let floor = record.isBoss ? BalanceDurationThresholds.bossMinRounds : BalanceDurationThresholds.trashMinRounds
+            let ceiling = record.isBoss ? BalanceDurationThresholds.bossMaxRounds : BalanceDurationThresholds.trashMaxRounds
+            isShort = record.result.isDecided && rounds < floor
+            isLong = !isShort && rounds > ceiling
+        }
+    }
+
     private struct DurationTally {
         var battles = 0
         var shortBattles = 0
@@ -106,19 +122,15 @@ enum BalanceDurationAggregation {
         var shortRounds = 0.0
         var longRounds = 0.0
 
-        mutating func record(_ record: BalanceBattleRecord, minRounds: Int? = nil, maxRounds: Int? = nil) {
-            let floor = minRounds ??
-                (record.isBoss ? BalanceDurationThresholds.bossMinRounds : BalanceDurationThresholds.trashMinRounds)
-            let ceiling = maxRounds ??
-                (record.isBoss ? BalanceDurationThresholds.bossMaxRounds : BalanceDurationThresholds.trashMaxRounds)
-            let rounds = record.result.rounds
+        mutating func record(_ sample: DurationSample) {
+            let rounds = sample.rounds
             battles += 1
             totalRounds += Double(rounds)
-            self.maxRounds = max(self.maxRounds, rounds)
-            if record.result.isDecided, rounds < floor {
+            maxRounds = max(maxRounds, rounds)
+            if sample.isShort {
                 shortBattles += 1
                 shortRounds += Double(rounds)
-            } else if rounds > ceiling {
+            } else if sample.isLong {
                 longBattles += 1
                 longRounds += Double(rounds)
             }

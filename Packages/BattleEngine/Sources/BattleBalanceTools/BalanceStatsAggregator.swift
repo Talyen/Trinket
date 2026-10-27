@@ -151,8 +151,7 @@ public enum BalanceStatsAggregator {
     }
 }
 
-/// One tier's inputs and shared comparison context. Report assembly calls the
-/// metric owners directly rather than passing intermediate tuples between helpers.
+/// One tier's inputs and shared comparison context for report assembly.
 private struct TierAggregation {
     let tier: SimulationPowerTier
     let records: [BalanceBattleRecord]
@@ -202,17 +201,18 @@ private struct TierAggregation {
                 enemyHP += record.result.enemyHPRemainingFraction
             }
         }
+        let durations = BalanceDurationAggregation.summarize(records, flagRate: config.durationFlagRate)
         return BalanceTierStats(
             tier: tier, battles: records.count, decidedBattles: decided.count, wins: wins,
             timeouts: timeouts,
             averageRounds: records.isEmpty ? 0 : rounds / Double(records.count),
             averagePartyHPOnWin: wins == 0 ? 0 : partyHP / Double(wins),
             averageEnemyHPOnLoss: decided.count == wins ? 0 : enemyHP / Double(decided.count - wins),
-            trashDuration: durationBucket(isBoss: false),
-            bossDuration: durationBucket(isBoss: true),
-            enemyDurations: BalanceDurationAggregation.enemyDurationTable(records, flagRate: config.durationFlagRate),
-            heroDurations: combatantDurations(role: .hero, id: \.heroID),
-            companionDurations: combatantDurations(role: .companion, id: \.companionID),
+            trashDuration: durations.trash,
+            bossDuration: durations.boss,
+            enemyDurations: durations.enemies,
+            heroDurations: durations.heroes,
+            companionDurations: durations.companions,
             heroes: heroes,
             heroesTrash: ownerMargins(trash, id: \.heroID),
             heroesBoss: ownerMargins(boss, id: \.heroID, isBoss: true),
@@ -254,19 +254,6 @@ private struct TierAggregation {
             records: decided, left: \.heroID, right: right,
             peerRate: winRate, threshold: config.peerDeltaFlagThreshold,
         )
-    }
-
-    private func durationBucket(isBoss: Bool) -> BalanceDurationBucketStats {
-        BalanceDurationAggregation.durationStats(
-            records.filter { $0.isBoss == isBoss },
-            minRounds: isBoss ? BalanceDurationThresholds.bossMinRounds : BalanceDurationThresholds.trashMinRounds,
-            maxRounds: isBoss ? BalanceDurationThresholds.bossMaxRounds : BalanceDurationThresholds.trashMaxRounds,
-            flagRate: config.durationFlagRate,
-        )
-    }
-
-    private func combatantDurations(role: Combatant.Role, id: KeyPath<BalanceBattleRecord, String>) -> [BalanceCombatantDurationStats] {
-        BalanceDurationAggregation.combatantDurationTable(records, role: role, idPath: id, flagRate: config.durationFlagRate)
     }
 
     private func targetBand(isBoss: Bool) -> (lower: Double, upper: Double) {
