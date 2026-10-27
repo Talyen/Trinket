@@ -349,6 +349,8 @@
   "Packages/TrinketContent/Sources/TrinketContent/Encounters/Rewards/RewardModifier.swift::rareTierWeightBonusPercent::title:.unique:0::1": "authored.ab03334a9ac8e4c6",
   "Packages/TrinketContent/Sources/TrinketContent/Encounters/Rewards/RewardModifier.swift::rareTierWeightBonusPercent::title:.uniqueHoard:0::1": "authored.031c642b0ca2a82d",
   "Packages/TrinketContent/Sources/TrinketContent/Encounters/Rewards/RewardModifier.swift::rareTierWeightBonusPercent::title:.wood:0::1": "authored.62803d1ff5d9172c",
+  "Packages/TrinketContent/Sources/TrinketContent/Equipment/InventoryItem+Compatibility.swift::normalizedAdditionalCombatProcPower::compatibility-description::4": "authored.21496dd3271e6194",
+  "Packages/TrinketContent/Sources/TrinketContent/Equipment/InventoryItem+Compatibility.swift::normalizedAdditionalCombatProcPower::compatibility-description::5": "authored.ac407f97f61aff74",
   "Packages/TrinketContent/Sources/TrinketContent/Equipment/UniqueCatalog+Accessory.swift::bloodember_pendant::description::1": "authored.fceb6fdb9529a2ea",
   "Packages/TrinketContent/Sources/TrinketContent/Equipment/UniqueCatalog+Accessory.swift::bloodember_pendant::name::1": "authored.8e3456a2a3dbb3fc",
   "Packages/TrinketContent/Sources/TrinketContent/Equipment/UniqueCatalog+Accessory.swift::serpents_eye::description::1": "authored.680eb778440a9065",

@@ -81,6 +81,29 @@ struct CombatProcCompatibilityTests {
         #expect(stored.triggers.holyDamagePoisonFlat == 0 && stored.triggers.leechStunBelowHalfHealth == 0)
     }
 
+    @Test(arguments: [false, true])
+    func `migration keeps the stronger legacy or current magnitude`(legacyIsStronger: Bool) {
+        let old = legacyIsStronger ? 7 : 3
+        let current = legacyIsStronger ? 3 : 7
+        let power = ItemAffixPower(
+            description: "Saved power",
+            triggers: CombatTraitTriggers {
+                $0.poisonOnThornsDamage = old
+                $0.thornsDamageVsPoisonedFlat = current
+                $0.healthRestoredPoisonPercent = Double(old) / 10
+                $0.healthRestoredNextPoisonDamagePercent = Double(current) / 10
+            },
+        )
+        let thorns = InventoryItem.normalizedPower(power, affixID: "spitebloom")
+        #expect(thorns.triggers.thornsDamageVsPoisonedFlat == 7)
+        #expect(thorns.triggers.poisonOnThornsDamage == 0)
+        #expect(thorns.triggers.healthRestoredPoisonPercent == Double(old) / 10)
+        let poison = InventoryItem.normalizedPower(power, affixID: "mortar_and_pestle")
+        #expect(poison.triggers.healthRestoredNextPoisonDamagePercent == 0.7)
+        #expect(poison.triggers.healthRestoredPoisonPercent == 0)
+        #expect(poison.triggers.poisonOnThornsDamage == old)
+    }
+
     @Test(arguments: ["ruby_ring", "double_axe"])
     func `Toxic Remedy describes its effective fraction after equipment scaling`(baseID: String) throws {
         let definition = try #require(GameContent.itemAffixDefinition(matching: "mortar_and_pestle"))

@@ -138,27 +138,18 @@ extension InventoryItem {
         let description: String
         switch affixID {
         case "spitebloom":
-            triggers.thornsDamageVsPoisonedFlat = max(triggers.thornsDamageVsPoisonedFlat, triggers.poisonOnThornsDamage)
-            triggers.poisonOnThornsDamage = 0
-            let actual = triggers.thornsDamageVsPoisonedFlat
+            let actual = triggers.preserveMagnitude(from: \.poisonOnThornsDamage, in: \.thornsDamageVsPoisonedFlat)
             description = "Your Thorns deal \(actual) additional damage to Poisoned enemies"
         case "ashen_wake":
-            triggers.burnDamageVsPoisonedFlat = max(triggers.burnDamageVsPoisonedFlat, triggers.onBurnApplyPoison)
-            triggers.onBurnApplyPoison = 0
+            let actual = triggers.preserveMagnitude(from: \.onBurnApplyPoison, in: \.burnDamageVsPoisonedFlat)
             triggers.onBurnDealPoisonChancePercent = 0
-            let actual = triggers.burnDamageVsPoisonedFlat
             description = "Your Burn deals \(actual) additional damage to Poisoned enemies"
         case "cauterize":
-            triggers.bleedDamageVsBurningFlat = max(triggers.bleedDamageVsBurningFlat, triggers.onBleedDealBurnDamage)
-            triggers.onBleedDealBurnDamage = 0
+            let actual = triggers.preserveMagnitude(from: \.onBleedDealBurnDamage, in: \.bleedDamageVsBurningFlat)
             triggers.onBleedDealBurnChancePercent = 0
-            let actual = triggers.bleedDamageVsBurningFlat
             description = "Your Bleed deals \(actual) additional damage to Burning enemies"
         case "mortar_and_pestle":
-            triggers.healthRestoredNextPoisonDamagePercent = max(
-                triggers.healthRestoredNextPoisonDamagePercent, triggers.healthRestoredPoisonPercent,
-            )
-            triggers.healthRestoredPoisonPercent = 0
+            triggers.preserveMagnitude(from: \.healthRestoredPoisonPercent, in: \.healthRestoredNextPoisonDamagePercent)
             if triggers.healthRestoredNextPoisonDamagePercent == 0.5 {
                 description = "Your next Poison attack gains bonus damage equal to half your latest healing received"
             } else {
@@ -184,41 +175,21 @@ extension InventoryItem {
         let description: String
         switch affixID {
         case "infected":
-            triggers.bleedDamageVsPoisonedFlat = max(triggers.bleedDamageVsPoisonedFlat, triggers.onBleedApplyPoison)
-            triggers.onBleedApplyPoison = 0
+            let actual = triggers.preserveMagnitude(from: \.onBleedApplyPoison, in: \.bleedDamageVsPoisonedFlat)
             triggers.onBleedDealPoisonChancePercent = 0
             triggers.bleedPoisonOncePerTurn = false
-            let actual = triggers.bleedDamageVsPoisonedFlat
             description = "Your Bleed deals \(actual) additional damage to Poisoned enemies"
         case "brass_censer":
-            triggers.holyAttackDamageVsPoisonedFlat = max(triggers.holyAttackDamageVsPoisonedFlat, triggers.holyDamagePoisonFlat)
-            triggers.holyDamagePoisonFlat = 0
-            let actual = triggers.holyAttackDamageVsPoisonedFlat
+            let actual = triggers.preserveMagnitude(from: \.holyDamagePoisonFlat, in: \.holyAttackDamageVsPoisonedFlat)
             description = "Your Holy attacks deal \(actual) additional damage to Poisoned enemies"
         case "heartshock":
-            triggers.leechHealVsStunnedBelowHalfFlat = max(triggers.leechHealVsStunnedBelowHalfFlat, triggers.leechStunBelowHalfHealth)
-            triggers.leechStunBelowHalfHealth = 0
-            let actual = triggers.leechHealVsStunnedBelowHalfFlat
+            let actual = triggers.preserveMagnitude(from: \.leechStunBelowHalfHealth, in: \.leechHealVsStunnedBelowHalfFlat)
             description = "Below half Health, Leech restores \(actual) additional Health against Stunned enemies"
-        default:
-            return normalizedPreparedReactionPower(power, affixID: affixID)
-        }
-        return power.replacing(description: description, triggers: triggers)
-    }
-
-    private static func normalizedPreparedReactionPower(_ power: ItemAffixPower, affixID: String) -> ItemAffixPower? {
-        var triggers = power.triggers
-        let description: String
-        switch affixID {
         case "whiplash":
-            triggers.dodgeNextStunAttackBonus = max(triggers.dodgeNextStunAttackBonus, triggers.dodgeDealStunFlat)
-            triggers.dodgeDealStunFlat = 0
-            let actual = triggers.dodgeNextStunAttackBonus
+            let actual = triggers.preserveMagnitude(from: \.dodgeDealStunFlat, in: \.dodgeNextStunAttackBonus)
             description = "Dodging adds \(actual) damage to your next Stun attack"
         case "denouncing":
-            triggers.purgeNextHolyAttackBonus = max(triggers.purgeNextHolyAttackBonus, triggers.onPurgeDealHolyDamage)
-            triggers.onPurgeDealHolyDamage = 0
-            let actual = triggers.purgeNextHolyAttackBonus
+            let actual = triggers.preserveMagnitude(from: \.onPurgeDealHolyDamage, in: \.purgeNextHolyAttackBonus)
             description = "Purging an enemy adds \(actual) damage to your next Holy attack"
         default:
             return nil
@@ -256,5 +227,19 @@ private extension ItemAffixPower {
             description: description, modifiers: modifiers ?? self.modifiers,
             triggers: triggers ?? self.triggers, triggerRollRanges: triggerRollRanges,
         )
+    }
+}
+
+private extension CombatTraitTriggers {
+    /// Legacy and current fields may both be present in a saved power. Preserve
+    /// the stronger value and retire the old field without disturbing others.
+    @discardableResult
+    mutating func preserveMagnitude<Value: Comparable & ExpressibleByIntegerLiteral>(
+        from old: WritableKeyPath<Self, Value>, in current: WritableKeyPath<Self, Value>,
+    ) -> Value {
+        let value = max(self[keyPath: current], self[keyPath: old])
+        self[keyPath: current] = value
+        self[keyPath: old] = 0
+        return value
     }
 }
