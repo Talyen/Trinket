@@ -145,7 +145,7 @@ extension BattleSession {
 
     public func publishPreparedPreview(_ preview: BattlePreparedPreview) {
         guard runtimeTransition == .idle else { return }
-        guard preparedPreview.configurations.map(\.id) != preview.configurations.map(\.id)
+        guard !preparedPreview.configurations.elementsEqual(preview.configurations, by: { $0.id == $1.id })
             || preparedPreview.selected !== preview.selected else { return }
         preparedPreview = preview
         // Activation itself replaces the display; sibling membership is a read projection.

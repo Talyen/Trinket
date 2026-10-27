@@ -9,8 +9,8 @@ extension CloudSaveMerge {
             return eventID == GameContent.corruptionAltarEventID
                 || GameContent.mysteryEvent(matching: eventID)?.choices.contains { $0.effects.contains(.corruptItem) } == true
         }
-        if save.journey.claimedRewardStageIDs.subtracting(base.journey.claimedRewardStageIDs).contains(where: {
-            isAltar(save.journey.pinnedMysteryEventIDs[$0])
+        if save.journey.claimedRewardStageIDs.contains(where: {
+            !base.journey.claimedRewardStageIDs.contains($0) && isAltar(save.journey.pinnedMysteryEventIDs[$0])
         }) {
             return true
         }
@@ -35,10 +35,10 @@ extension CloudSaveMerge {
         guard let base = branches.base else { return 0 }
         let first = branches.incoming
         let second = branches.existing
-        let stages = first.journey.claimedRewardStageIDs.subtracting(base.journey.claimedRewardStageIDs)
-            .intersection(second.journey.claimedRewardStageIDs.subtracting(base.journey.claimedRewardStageIDs))
-        var count = stages.count { id in
-            guard let stage = GameContent.stage(id: id) else { return false }
+        var count = first.journey.claimedRewardStageIDs.count { id in
+            guard !base.journey.claimedRewardStageIDs.contains(id),
+                  second.journey.claimedRewardStageIDs.contains(id),
+                  let stage = GameContent.stage(id: id) else { return false }
             switch stage.encounter {
             case .mysteryEvent, .recruit: return true
             default: return false
@@ -104,9 +104,9 @@ extension CloudSaveMerge {
         incoming: PlayerSave, existing: PlayerSave, base: PlayerSave,
         incomingNewItemIDs: Set<String>, existingNewItemIDs: Set<String>,
     ) -> Bool {
-        let common = incoming.journey.claimedRewardStageIDs.subtracting(base.journey.claimedRewardStageIDs)
-            .intersection(existing.journey.claimedRewardStageIDs.subtracting(base.journey.claimedRewardStageIDs))
-        return common.contains { stageID in
+        incoming.journey.claimedRewardStageIDs.contains { stageID in
+            guard !base.journey.claimedRewardStageIDs.contains(stageID),
+                  existing.journey.claimedRewardStageIDs.contains(stageID) else { return false }
             let prefix = "\(stageID)-"
             var hasIncoming = false
             for id in incomingNewItemIDs where id.hasPrefix(prefix) {
@@ -122,7 +122,7 @@ extension CloudSaveMerge {
     private static func hasSharedContractClaim(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave) -> Bool {
         if let starting = base.contracts.completedOfferIDs,
            let first = incoming.contracts.completedOfferIDs, let second = existing.contracts.completedOfferIDs {
-            return !first.subtracting(starting).isDisjoint(with: second.subtracting(starting))
+            return first.contains { !starting.contains($0) && second.contains($0) }
         }
         // Older peers lack receipts; retain conservative overlap detection for them.
         return base.contracts.offers.contains { offer in
@@ -132,9 +132,8 @@ extension CloudSaveMerge {
     }
 
     private static func hasSharedSpireClaim(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave) -> Bool {
-        let sharedSpireIDs = Set(incoming.spires.highestClearedFloorBySpireID.keys)
-            .intersection(existing.spires.highestClearedFloorBySpireID.keys)
-        return sharedSpireIDs.contains { spireID in
+        incoming.spires.highestClearedFloorBySpireID.keys.contains { spireID in
+            guard existing.spires.highestClearedFloorBySpireID[spireID] != nil else { return false }
             let baseFloor = base.spires.highestClearedFloor(for: spireID)
             return incoming.spires.highestClearedFloor(for: spireID) > baseFloor
                 && existing.spires.highestClearedFloor(for: spireID) > baseFloor
@@ -142,9 +141,8 @@ extension CloudSaveMerge {
     }
 
     static func hasSharedShopPurchase(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave) -> Bool {
-        let stages = Set(incoming.journey.shopPayloads.keys).intersection(existing.journey.shopPayloads.keys)
-        if stages.contains(where: { id in
-            ShopStockPersistence.hasSharedNewPurchase(
+        if incoming.journey.shopPayloads.keys.contains(where: { id in
+            existing.journey.shopPayloads[id] != nil && ShopStockPersistence.hasSharedNewPurchase(
                 base: base.journey.shopPayloads[id],
                 incoming: incoming.journey.shopPayloads[id],
                 existing: existing.journey.shopPayloads[id],
@@ -153,9 +151,8 @@ extension CloudSaveMerge {
             return true
         }
         if sharesLabyrinthMap(incoming: incoming, existing: existing, base: base) {
-            let nodes = Set(incoming.labyrinth.nodes.keys).intersection(existing.labyrinth.nodes.keys)
-            if nodes.contains(where: { id in
-                ShopStockPersistence.hasSharedNewPurchase(
+            if incoming.labyrinth.nodes.keys.contains(where: { id in
+                existing.labyrinth.nodes[id] != nil && ShopStockPersistence.hasSharedNewPurchase(
                     base: base.labyrinth.nodes[id]?.shopPayload,
                     incoming: incoming.labyrinth.nodes[id]?.shopPayload,
                     existing: existing.labyrinth.nodes[id]?.shopPayload,

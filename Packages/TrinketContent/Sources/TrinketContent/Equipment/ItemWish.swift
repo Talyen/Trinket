@@ -1,7 +1,8 @@
 public enum ItemWish {
     public static func validTarget(_ id: String?, inventory: [InventoryItem]) -> String? {
-        guard let id, (GameContent.uniqueItems + GameContent.trinketItems).contains(where: { $0.templateID == id }),
-              !inventory.contains(where: { $0.templateID == id }) else { return nil }
+        guard let id, GameContent.uniqueItems.contains(where: { $0.templateID == id })
+            || GameContent.trinketItems.contains(where: { $0.templateID == id }),
+            !inventory.contains(where: { $0.templateID == id }) else { return nil }
         return id
     }
 
