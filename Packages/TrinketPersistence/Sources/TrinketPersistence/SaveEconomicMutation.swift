@@ -86,12 +86,13 @@ final class SaveEconomicMutation {
         }
         // All child actions became durable together. Scalar conflict selection
         // uses that commit time, including children before the finalized last one.
-        let committed = actions.dropLast().map { action in
+        var committed = actions.dropLast().map { action in
             var after = action.after
             after.modifiedAt = candidate.modifiedAt
             return action.finalized(at: after)
         }
-        return committed + [last.finalized(at: CloudSaveSnapshot(candidate))]
+        committed.append(last.finalized(at: CloudSaveSnapshot(candidate)))
+        return committed
     }
 
     static func validate(from before: PlayerSave, to after: PlayerSave, receipts: [SaveEconomicReceipt]) throws {
@@ -105,15 +106,18 @@ final class SaveEconomicMutation {
             }
             receipt.effects.applyEffects(to: &replayed)
         }
-        let ids = Set(replayed.roster.progressions.keys).union(after.roster.progressions.keys)
         guard replayed.roster.gold == after.roster.gold,
               HomesteadResource.allCases.allSatisfy({
                   replayed.homestead.resources[$0, default: 0] == after.homestead.resources[$0, default: 0]
               }),
-              (replayed.homestead.rewardRemainders ?? .zero) == (after.homestead.rewardRemainders ?? .zero),
-              ids.allSatisfy({
-                  (replayed.roster.progressions[$0] ?? .initial) == (after.roster.progressions[$0] ?? .initial)
-              })
+              (replayed.homestead.rewardRemainders ?? .zero) == (after.homestead.rewardRemainders ?? .zero)
+        else {
+            throw ValidationFailure.incompleteEffects
+        }
+        let ids = Set(replayed.roster.progressions.keys).union(after.roster.progressions.keys)
+        guard ids.allSatisfy({
+            (replayed.roster.progressions[$0] ?? .initial) == (after.roster.progressions[$0] ?? .initial)
+        })
         else {
             throw ValidationFailure.incompleteEffects
         }

@@ -20,6 +20,8 @@ struct CloudSaveMergeClaimsRegressionTests {
         let different = try payload(changedPrice, purchased: true)
         #expect(ShopStockPersistence.hasSharedNewPurchase(base: unpurchased, incoming: purchased, existing: purchased))
         #expect(!ShopStockPersistence.hasSharedNewPurchase(base: purchased, incoming: purchased, existing: purchased))
+        #expect(!ShopStockPersistence.hasSharedNewPurchase(base: purchased, incoming: purchased, existing: different))
+        #expect(!ShopStockPersistence.hasSharedNewPurchase(base: purchased, incoming: different, existing: purchased))
         #expect(!ShopStockPersistence.hasSharedNewPurchase(base: nil, incoming: purchased, existing: unpurchased))
         #expect(!ShopStockPersistence.hasSharedNewPurchase(base: nil, incoming: purchased, existing: different))
     }

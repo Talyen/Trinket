@@ -64,6 +64,26 @@ struct LabyrinthCatalogTests {
         )
     }
 
+    @Test func `single reward ownership matches general modifier resolution`() {
+        let owners = [
+            RewardOwnership(),
+            RewardOwnership(
+                ownedTrinketIDs: Set(GameContent.trinketItems.lazy.map(\.templateID)),
+                ownedUniqueIDs: Set(GameContent.uniqueItems.lazy.map(\.templateID)),
+            ),
+        ]
+        let ids = NodeModifierCatalog.modifiers.map(\.id) + [NodeModifierID("unknown")]
+        for owner in owners {
+            for boss in [false, true] {
+                for id in ids {
+                    #expect(owner.modifiers(ids: [id], enemyIsBoss: boss) == NodeModifierCatalog.modifiers(
+                        ids: [id], eligibleRewards: owner.eligibleModifiers, enemyIsBoss: boss,
+                    ))
+                }
+            }
+        }
+    }
+
     @Test func `single saved modifier matches general selection across encounters`() {
         let ids = NodeModifierCatalog.modifiers.map(\.id) + [NodeModifierID("unknown")]
         let enemies: [String?] = [nil, "unknown"] + GameContent.enemies.map { Optional($0.id) }

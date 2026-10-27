@@ -25,7 +25,9 @@ public enum SimulationEquipmentPolicy {
         var scorer = Scorer(combatant: combatant, inventory: inventory)
         var best = scorer.score(current)
         var upgrade: Upgrade?
-        for item in inventory.sorted(by: { $0.id < $1.id }) where !worn.contains(item.id) && !reservedItemIDs.contains(item.id) {
+        let candidates = inventory.lazy.filter { !worn.contains($0.id) && !reservedItemIDs.contains($0.id) }
+            .sorted { $0.id < $1.id }
+        for item in candidates {
             for slot in combatant.role.equipmentSlots {
                 var candidate = current
                 let unequipFirst: ItemSlot?
@@ -137,7 +139,7 @@ public enum SimulationEquipmentPolicy {
                 }
             }
             if cachedValues[bonusKeywords] == nil {
-                cachedValues[bonusKeywords] = Dictionary(uniqueKeysWithValues: inventory.map { item in
+                cachedValues[bonusKeywords] = Dictionary(uniqueKeysWithValues: inventory.lazy.map { item in
                     (item.id, value(item, bonusKeywords: bonusKeywords))
                 })
             }

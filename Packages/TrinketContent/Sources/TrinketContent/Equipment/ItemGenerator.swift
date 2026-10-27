@@ -20,12 +20,12 @@ public struct ItemGenerator: Sendable {
         requiredKeyword: Keyword? = nil,
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> InventoryItem {
+        if let fixedAffixCount, fixedAffixCount <= 0, guaranteedAffixIDs.isEmpty, requiredKeyword == nil {
+            return Self.emptyItem(id: id, templateID: templateID, baseType: baseType, rarity: rarity)
+        }
         let eligibleAffixes = affixDefinitions.filter { definition in
-            guard definition.isEligible(for: baseType) else { return false }
-            if requireBuildAlignment {
-                return definition.isAligned(withBuildKeywords: keywordBias)
-            }
-            return true
+            definition.isEligible(for: baseType)
+                && (!requireBuildAlignment || definition.isAligned(withBuildKeywords: keywordBias))
         }
 
         var guaranteedDefinitions: [ItemAffixDefinition] = []
@@ -83,6 +83,13 @@ public struct ItemGenerator: Sendable {
                 guard definition.slot != .trinket else { return catalog }
                 return catalog.rolled(using: &randomNumberGenerator)
             },
+        )
+    }
+
+    private static func emptyItem(id: String, templateID: String?, baseType: ItemBaseType, rarity: Rarity) -> InventoryItem {
+        InventoryItem(
+            id: id, templateID: templateID, baseType: baseType, rarity: rarity,
+            displayName: baseType.name, affixes: [], affixPowers: [],
         )
     }
 

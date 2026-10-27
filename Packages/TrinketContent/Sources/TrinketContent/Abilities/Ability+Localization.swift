@@ -15,7 +15,7 @@ public extension Ability {
         if let outcomeBranches, !outcomeBranches.isEmpty {
             let alternatives = outcomeBranches.map { branch in
                 if branch.randomizeDamageKeywords {
-                    let amount = branch.damageComponents.first?.amount ?? 0
+                    let amount = branch.operations.lazy.compactMap(\.damageComponent).first?.amount ?? 0
                     return LocalizedGameText(L10n.rule_ability_random_damage(amount), locale: locale, values: ["damage": amount])
                 }
                 return LocalizedGameText.joining(branch.operations.flatMap { localizedOperation($0, locale: locale) })

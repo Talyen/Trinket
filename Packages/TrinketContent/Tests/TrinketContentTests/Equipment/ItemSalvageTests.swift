@@ -4,6 +4,18 @@ import TrinketContentTestSupport
 import TrinketCore
 
 struct ItemSalvageTests {
+    @Test func `eligibility matches the yield table for every slot and rarity`() {
+        for slot in ItemSlot.allCases {
+            for rarity in Rarity.allCases {
+                let item = InventoryItem(
+                    id: "fixture", baseType: ItemBaseType(id: "fixture", name: "Fixture", slot: slot, keywordAffinities: []),
+                    rarity: rarity, displayName: "Fixture", affixes: [],
+                )
+                #expect(ItemSalvage.isEligible(item) == !ItemSalvage.yields(for: item).isEmpty)
+            }
+        }
+    }
+
     @Test func `yields match slot and rarity table`() throws {
         let basicWeapon = try ItemFixtures.makeBareItem("longsword", rarity: .basic)
         let astralAccessory = try ItemFixtures.makeBareItem("sapphire_ring", rarity: .astral)

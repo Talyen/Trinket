@@ -316,9 +316,9 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     private func orderedCollectionCombatants(_ combatants: [Combatant]) -> [Combatant] {
-        configuredCombatants(combatants)
-            .enumerated()
-            .map { offset, combatant in
+        combatants.enumerated()
+            .map { offset, original in
+                let combatant = configuredCombatant(original)
                 let unlocked = isUnlocked(combatant)
                 return (
                     offset: offset, combatant: combatant, unlocked: unlocked,

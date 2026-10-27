@@ -84,6 +84,7 @@ enum PlayerSaveStoreConfiguration {
         guard let keeper = primaries.first else {
             return nil
         }
+        guard primaries.count > 1 else { return keeper }
         let extras = primaries.filter { $0 !== keeper }
         guard !extras.isEmpty else { return keeper }
         guard !isCloudSyncEnabled else {

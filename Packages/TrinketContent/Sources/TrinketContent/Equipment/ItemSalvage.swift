@@ -2,11 +2,11 @@ import TrinketCore
 
 public enum ItemSalvage {
     public static func isEligible(_ item: InventoryItem) -> Bool {
-        !yields(for: item).isEmpty
+        salvageMaterials(for: item) != nil
     }
 
     public static func yields(for item: InventoryItem) -> [ResourceAmount] {
-        guard let (primary, secondary) = materials(for: item.baseType.slot) else { return [] }
+        guard let (primary, secondary) = salvageMaterials(for: item) else { return [] }
         let quantity: Int
         switch item.rarity {
         case .basic: quantity = 8
@@ -17,6 +17,11 @@ public enum ItemSalvage {
             ResourceAmount(primary, quantity),
             ResourceAmount(secondary, quantity / 2),
         ]
+    }
+
+    private static func salvageMaterials(for item: InventoryItem) -> (HomesteadResource, HomesteadResource)? {
+        guard item.rarity != .unique else { return nil }
+        return materials(for: item.baseType.slot)
     }
 
     private static func materials(for slot: ItemSlot) -> (HomesteadResource, HomesteadResource)? {

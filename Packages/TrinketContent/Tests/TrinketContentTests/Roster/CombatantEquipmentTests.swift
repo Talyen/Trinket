@@ -4,6 +4,18 @@ import TrinketContentTestSupport
 import TrinketCore
 
 struct CombatantEquipmentTests {
+    @Test func `batch eligibility matches individual checks for every slot`() throws {
+        let inventory = try ["longsword", "kite_shield", "leather_armor", "ruby_ring"].map {
+            try ItemFixtures.makeBareItem($0)
+        }
+        let loadout = EquipmentLoadout(itemIDsBySlot: [.weapon: inventory[0].id, .accessory: inventory[3].id])
+        for slot in ItemSlot.allCases {
+            #expect(loadout.equippableItems(in: slot, inventory: inventory) == inventory.filter {
+                loadout.canEquip($0, in: slot, inventory: inventory)
+            })
+        }
+    }
+
     @Test func `companion slots accept accessory and trinkets but not armor or weapons`() throws {
         let bear = try #require(GameContent.companions.first { $0.id == "bear" })
         let ring = try ItemFixtures.makeBareItem("ruby_ring", id: "ring-a")

@@ -31,10 +31,10 @@ struct ItemPickerItems {
         if inventoryChanged || localeChanged {
             if localeChanged {
                 searchText.removeAll(keepingCapacity: true)
-            } else {
+            } else if !searchText.isEmpty {
                 let previousItems = Dictionary(uniqueKeysWithValues: self.inventory.lazy.map { ($0.id, $0) })
                 // Keep cached descriptions only while their item and locale are unchanged.
-                searchText = Dictionary(uniqueKeysWithValues: inventory.compactMap { item in
+                searchText = Dictionary(uniqueKeysWithValues: inventory.lazy.compactMap { item in
                     guard previousItems[item.id] == item, let text = searchText[item.id] else { return nil }
                     return (item.id, text)
                 })
@@ -61,14 +61,16 @@ struct ItemPickerItems {
                 return Self.precedes(lhs, rhs)
             }
             order = Dictionary(uniqueKeysWithValues: sorted.enumerated().lazy.map { ($0.element.id, $0.offset) })
-        }
-        let newItems = candidates.filter { order[$0.id] == nil }
-        if !newItems.isEmpty {
-            for item in newItems.sorted(by: Self.precedes) {
-                order[item.id] = order.count
+            eligible = sorted
+        } else {
+            let newItems = candidates.filter { order[$0.id] == nil }
+            if !newItems.isEmpty {
+                for item in newItems.sorted(by: Self.precedes) {
+                    order[item.id] = order.count
+                }
             }
+            eligible = candidates.sorted { order[$0.id, default: 0] < order[$1.id, default: 0] }
         }
-        eligible = candidates.sorted { order[$0.id, default: 0] < order[$1.id, default: 0] }
         var candidateKeywords = Set<Keyword>()
         for candidate in candidates {
             for affix in candidate.affixes {

@@ -4,6 +4,15 @@ import TrinketContentTestSupport
 import TrinketCore
 
 struct ItemAffixMagnitudeRollTests {
+    @Test func `maximum percentage roll matches the last selectable value`() throws {
+        for points in Array(stride(from: 1, through: 500, by: 7)) + [3999, 4000, 40000] {
+            let magnitude = Double(points) / 100
+            let power = ItemAffixPower(description: "Saved power", modifiers: [.leechGainedPercent(magnitude)])
+            let expected = try #require(ItemAffixMagnitudeRoll.percentValues(around: magnitude).max())
+            #expect(power.rolledMax().modifiers == [.leechGainedPercent(expected)])
+        }
+    }
+
     @Test(arguments: [1e8, 1e18])
     func `oversized percentage powers preserve strength when rolled`(magnitude: Double) {
         let power = ItemAffixPower(description: "Saved power", modifiers: [.leechGainedPercent(magnitude)])

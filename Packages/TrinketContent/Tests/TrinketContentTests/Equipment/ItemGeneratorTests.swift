@@ -4,6 +4,18 @@ import TrinketContentTestSupport
 import TrinketCore
 
 struct ItemGeneratorTests {
+    @Test func `zero affix gear leaves the random generator untouched`() throws {
+        let base = try ItemFixtures.baseType("longsword")
+        var rng = SeededRandomNumberGenerator(seed: 3)
+        var untouched = SeededRandomNumberGenerator(seed: 3)
+        let item = ItemGenerator().generate(
+            id: "empty", baseType: base, rarity: .basic, fixedAffixCount: 0, using: &rng,
+        )
+        #expect(item.affixes.isEmpty)
+        #expect(item.affixPowers?.isEmpty == true)
+        #expect(rng.next() == untouched.next())
+    }
+
     @Test(arguments: [
         ("longsword", Rarity.basic, 1, 1), ("plate_armor", .basic, 80, 1),
         ("ruby_ring", .basic, 81, 2), ("longsword", .basic, 100, 2),

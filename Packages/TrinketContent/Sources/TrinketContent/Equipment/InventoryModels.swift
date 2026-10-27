@@ -176,6 +176,9 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
     /// Filters in inventory order, resolving worn gear once for the batch.
     public func equippableItems(in slot: ItemSlot, inventory: [InventoryItem]) -> [InventoryItem] {
         guard !inventory.isEmpty else { return [] }
+        if slot.baseItemSlot == .armor || slot.baseItemSlot == .accessory {
+            return inventory.filter { $0.baseType.canEquip(in: slot) }
+        }
         // Compatibility consults only worn items; keep those scans independent of inventory size.
         let equippedIDs = Set(itemIDsBySlot.values)
         let equippedItems = equippedIDs.isEmpty ? [] : inventory.filter { equippedIDs.contains($0.id) }

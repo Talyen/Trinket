@@ -22,8 +22,9 @@ public struct ItemInscriptionPlan: Sendable {
     }
 
     private static func canSelectAffix(for item: InventoryItem, index: Int) -> Bool {
-        isEligible(item) && item.affixes.indices.contains(index)
+        item.affixes.indices.contains(index)
             && (item.inscribedAffixIndex == nil || item.inscribedAffixIndex == index)
+            && isEligible(item)
     }
 
     public static func prepare(

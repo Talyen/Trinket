@@ -5,6 +5,18 @@ import TrinketCore
 @testable import TrinketPersistence
 
 extension CloudSaveSyncTests {
+    @Test func `collection positions must match every collected resource`() throws {
+        func receipt(_ positions: [HomesteadResource: UInt64]) -> SaveEconomicReceipt {
+            SaveEconomicReceipt(
+                kind: .collection(.init(positions: positions, pending: [:], nodeTiers: [:], date: Date(), gold: 0)),
+                effects: .committed(materials: [.stone: 1]),
+            )
+        }
+        try receipt([.stone: 0]).validate()
+        #expect(throws: CloudSaveError.unsupportedSave) { try receipt([.wood: 0]).validate() }
+        #expect(throws: CloudSaveError.unsupportedSave) { try receipt([.stone: 0, .wood: 0]).validate() }
+    }
+
     @Test func `maximum collection retains unpaid credit through receipt replay and stale branch reconciliation`() throws {
         let date = Date(timeIntervalSince1970: 2000000000)
         var base = PlayerSave.testSeed

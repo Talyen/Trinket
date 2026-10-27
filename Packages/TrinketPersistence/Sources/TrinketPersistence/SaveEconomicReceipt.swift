@@ -50,11 +50,12 @@ struct SaveEconomicReceipt: Codable, Equatable, Sendable {
             guard collection.date.timeIntervalSince1970.isFinite,
                   collection.pending.values.allSatisfy({ $0.isFinite && $0 >= 0 }),
                   let positions = collection.positions,
-                  Set(positions.keys) == Set(collectionAmounts.keys),
                   effects.gold >= 0, effects.materials.values.allSatisfy({ $0 > 0 }),
                   effects.experience.isEmpty, effects.goldRemainder == 0, effects.gemsRemainder == 0
             else { throw CloudSaveError.unsupportedSave }
-            for (resource, quantity) in collectionAmounts {
+            let amounts = collectionAmounts
+            guard positions.count == amounts.count else { throw CloudSaveError.unsupportedSave }
+            for (resource, quantity) in amounts {
                 guard let position = positions[resource], quantity > 0,
                       !position.addingReportingOverflow(UInt64(quantity)).overflow
                 else { throw CloudSaveError.unsupportedSave }

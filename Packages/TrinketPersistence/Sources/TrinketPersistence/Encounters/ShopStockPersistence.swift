@@ -87,7 +87,7 @@ public enum ShopStockPersistence {
     }
 
     static func hasSharedNewPurchase(base: Data?, incoming: Data?, existing: Data?) -> Bool {
-        guard let incoming, let existing,
+        guard let incoming, let existing, base != incoming, base != existing,
               let first = validStock(incoming),
               let second = incoming == existing ? first : validStock(existing),
               first.matches(second.encounter),

@@ -32,6 +32,9 @@ public extension BattleRewardPlan {
                 totalFlatExperienceBonus,
             )
         }
+        let heroExperience = experience(for: party.hero, highestLevel: highestLevels.hero, percent: victoryPercent)
+        let companionExperience = experience(for: party.companion, highestLevel: highestLevels.companion, percent: victoryPercent)
+        let sameExperiencePercent = victoryPercent == experienceEarnedPercent
         return Self(
             stageGold: rewardsAlreadyClaimed ? 0 : stageGold,
             goldFindPercent: SaturatedArithmetic.saturatingAdd(effects.goldFindPercent, victoryGoldBonusPercent),
@@ -45,10 +48,12 @@ public extension BattleRewardPlan {
                 // earned-Experience percentage like the battle XP recipients.
                 percent: SaturatedArithmetic.saturatingAdd(victoryPercent, effects.experienceBonusPercent),
             ),
-            heroExperience: experience(for: party.hero, highestLevel: highestLevels.hero, percent: victoryPercent),
-            companionExperience: experience(for: party.companion, highestLevel: highestLevels.companion, percent: victoryPercent),
-            defeatHeroExperience: experience(for: party.hero, highestLevel: highestLevels.hero, percent: experienceEarnedPercent),
-            defeatCompanionExperience: experience(
+            heroExperience: heroExperience,
+            companionExperience: companionExperience,
+            defeatHeroExperience: sameExperiencePercent ? heroExperience : experience(
+                for: party.hero, highestLevel: highestLevels.hero, percent: experienceEarnedPercent,
+            ),
+            defeatCompanionExperience: sameExperiencePercent ? companionExperience : experience(
                 for: party.companion,
                 highestLevel: highestLevels.companion,
                 percent: experienceEarnedPercent,

@@ -94,9 +94,9 @@ extension CloudSaveMerge {
             return true
         }
         if base.inventory.items.contains(where: { item in
-            ItemSalvage.isEligible(item)
-                && !incomingItemIDs.contains(item.id)
+            !incomingItemIDs.contains(item.id)
                 && !existingItemIDs.contains(item.id)
+                && ItemSalvage.isEligible(item)
         }) {
             return true
         }
