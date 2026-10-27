@@ -31,8 +31,10 @@ deletions and both rename endpoints. Briefing requires an explicit scope; use
 `--base <ref>` selects another comparison base, `--paths` selects an iteration, and `--working-tree` selects dirty
 files only. Worktree creation accepts `--base` only for a user-specified alternative.
 For a concrete local diagnostic, add `--diagnostic-package <package>`,
-`--diagnostic-suite <suite>`, and `--owner <thread-id>` to a scoped briefing.
-For a visual inspection, add `--visual-command --owner <thread-id>`. These print the
+and `--diagnostic-suite <suite>` to a scoped briefing. For a visual inspection,
+add `--visual-command`. Briefing uses `CODEX_THREAD_ID` for the host owner; pass
+`--owner <thread-id>` to override it or when it is unavailable. It uses the same
+`CODEX_HEAVY_LANE_HELPER` override as the local admission fallback. These print the
 bounded outer command without running it or granting broader authorization.
 Never omit task paths from final verification. Integration's `--reviewed-main <commit>`
 records combined-main review; `--keep-plan` retains intentionally unfinished plans.

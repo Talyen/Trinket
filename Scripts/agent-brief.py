@@ -22,7 +22,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     scope.add_argument('--working-tree', action='store_true')
     scope.add_argument('--base', help='include task commits since the shared ancestor of REF and HEAD, plus dirty files')
     parser.add_argument('--task')
-    parser.add_argument('--owner', help='thread ID for an explicitly requested local command')
+    parser.add_argument('--owner', help='override CODEX_THREAD_ID for a local command preview')
     local = parser.add_mutually_exclusive_group()
     local.add_argument('--diagnostic-package', help='package for one exact local diagnostic suite')
     local.add_argument('--visual-command', action='store_true', help='show the managed visual inspection command')
@@ -94,11 +94,13 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         handoff = ['./Scripts/handoff.sh', '--quiet', *(['--base', args.base] if args.base else ['--working-tree'] if args.working_tree else ['--paths', *paths])]
         emit('Iteration check (only the supplied scope)', [shlex.join(handoff)])
         if args.diagnostic_package or args.visual_command:
-            if not args.owner:
+            owner = args.owner or os.environ.get('CODEX_THREAD_ID')
+            if not owner:
                 emit('Local command needs an owner', ['Supply --owner <thread-id>; no local command has been printed or run.'])
             else:
-                lane = ['python3', '/Users/ryanmcintire/Developer/.coordination/heavy_lane.py',
-                        '--owner', args.owner, '--wait', '900', '--timeout', '30' if args.diagnostic_package else '300', '--']
+                helper = os.environ.get('CODEX_HEAVY_LANE_HELPER') or str(Path.home() / 'Developer/.coordination/heavy_lane.py')
+                lane = ['python3', helper,
+                        '--owner', owner, '--wait', '900', '--timeout', '30' if args.diagnostic_package else '300', '--']
                 if args.diagnostic_package:
                     command = [*lane, 'env', 'TRINKET_ALLOW_HEAVY_LOCAL=1', 'TRINKET_ISOLATE=1',
                                'TRINKET_PACKAGE_TEST_JOBS=1', 'TRINKET_SERIAL_TESTS=1',

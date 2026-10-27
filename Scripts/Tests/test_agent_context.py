@@ -276,9 +276,22 @@ class AgentContextTests(ScriptRegressionTestCase):
         command = shlex.split(line)
         self.assertEqual(command[6:9], ['--timeout', '300', '--'])
         self.assertEqual(command[-5:], ['./Scripts/handoff.sh', '--route', 'visual', '--paths', 'Scripts/agent-brief.py'])
-        missing = self.brief(*scope, '--visual-command')
+        with patch.dict(os.environ, {'CODEX_THREAD_ID': ''}):
+            missing = self.brief(*scope, '--visual-command')
         self.assertIn('Supply --owner <thread-id>', missing)
         self.assertNotIn('heavy_lane.py', missing)
+
+    def test_local_command_preview_uses_session_owner_and_configured_helper(self) -> None:
+        scope = ['--paths', 'Scripts/agent-brief.py', '--visual-command']
+        with patch.dict(os.environ, {'CODEX_THREAD_ID': 'session-123',
+                                     'CODEX_HEAVY_LANE_HELPER': '/tmp/host lane/heavy_lane.py'}):
+            output = self.brief(*scope)
+            line = next(line.strip() for line in output.splitlines() if 'heavy_lane.py' in line)
+            command = shlex.split(line)
+            self.assertEqual(command[:4], ['python3', '/tmp/host lane/heavy_lane.py', '--owner', 'session-123'])
+            override = self.brief(*scope, '--owner', 'explicit-owner')
+            line = next(line.strip() for line in override.splitlines() if 'heavy_lane.py' in line)
+            self.assertEqual(shlex.split(line)[3], 'explicit-owner')
 
     def test_local_command_previews_reject_incomplete_or_broad_selectors(self) -> None:
         for args in (['--diagnostic-package', 'TrinketCore'],

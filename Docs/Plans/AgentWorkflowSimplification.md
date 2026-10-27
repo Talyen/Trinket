@@ -145,7 +145,10 @@ and current retry policy; do not infer a failure rate from one historical case.
 The command reference now identifies briefing's required scope and `--base main`
 for a complete task; existing callers keep their explicit-scope behavior. Scoped
 briefing can print a host-admitted focused package-suite or visual command when
-provided the selector and owner, with the deadlines and evidence limits visible.
+provided the selector and an explicit or session-derived owner, with the deadlines
+and evidence limits visible. On this follow-up, both preview routes initially
+asked for an owner despite `CODEX_THREAD_ID` being available; they now use it and
+honor the existing host-helper override, with explicit owner selection retained.
 Focused fixtures cover scope endpoints, incomplete selectors and generated command
 arguments. These are source and fixture results, not measured end-to-end gains.
 
