@@ -94,9 +94,8 @@ enum BalanceIdentityMargins {
                 let band = targetBand(enemy.isBoss)
                 let ci = bucket.interval
                 let sampleTooLow = bucket.sampleTooLow
-                let isHard = ci.high < band.lower || bucket.wins == 0
-                let isEasy = ci.low > band.upper || bucket.wins == bucket.battles
-                let flagged = (isHard || isEasy) && !sampleTooLow
+                let flags = BalanceEncounterTargets.flags(wins: bucket.wins, battles: bucket.battles, interval: ci, band: band)
+                let flagged = flags.hard || flags.easy
                 let summary = WinRateSummary(
                     id: enemy.id,
                     ownerID: nil,
@@ -107,7 +106,7 @@ enum BalanceIdentityMargins {
                     wilsonHigh: ci.high,
                     deltaVsPeer: bucket.rate - ((band.lower + band.upper) / 2),
                     flagged: flagged,
-                    flagReason: flagged ? (isEasy ? "EASY" : "HARD") : nil,
+                    flagReason: flagged ? (flags.easy ? "EASY" : "HARD") : nil,
                     sampleTooLow: sampleTooLow,
                 )
                 return (enemy, summary)

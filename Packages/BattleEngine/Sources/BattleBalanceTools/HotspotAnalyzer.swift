@@ -109,24 +109,20 @@ public enum HotspotAnalyzer {
 
         let status: HotspotStatus
         let reason: String?
-        let minBattles = BalanceSweepConfig.identityFlagMinBattles
         let band = BalanceEncounterTargets.winBand(isBoss: step.isBoss)
-        let targetLowerBound = band.lower
-        let targetUpperBound = band.upper
-        let ciExcludesLow = wilson.high < targetLowerBound || wins == 0
-        let ciExcludesHigh = wilson.low > targetUpperBound || wins == total
+        let flags = BalanceEncounterTargets.flags(wins: wins, battles: total, interval: wilson, band: band)
 
-        if total >= minBattles, winRate < targetLowerBound, ciExcludesLow {
+        if winRate < band.lower, flags.hard {
             if levelGap >= 3.0 {
                 status = .levelGapWall
                 reason = String(format: "Level Gap (+%.1f levels)", levelGap)
             } else {
                 status = .overtuned
-                reason = String(format: "Win rate %.1f%% below %.0f%%", winRate * 100, targetLowerBound * 100)
+                reason = String(format: "Win rate %.1f%% below %.0f%%", winRate * 100, band.lower * 100)
             }
-        } else if total >= minBattles, winRate > targetUpperBound, ciExcludesHigh {
+        } else if winRate > band.upper, flags.easy {
             status = .undertuned
-            reason = String(format: "Win rate %.1f%% above %.0f%%", winRate * 100, targetUpperBound * 100)
+            reason = String(format: "Win rate %.1f%% above %.0f%%", winRate * 100, band.upper * 100)
         } else {
             status = .smooth
             reason = nil
