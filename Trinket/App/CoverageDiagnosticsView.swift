@@ -1,4 +1,5 @@
 #if DEBUG
+import StoreKit
 import SwiftUI
 import TrinketAppState
 import TrinketDesignSystem
@@ -7,6 +8,7 @@ import TrinketPersistence
 
 struct CoverageDiagnosticsView: View {
     let appState: AppState
+    @State private var entitlements: [String] = []
     @Environment(\.dynamicTypeSize) private var textSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -20,6 +22,24 @@ struct CoverageDiagnosticsView: View {
                 .frame(width: 1, height: 1)
                 .clipped()
         }
+        .task(id: appState.fullGame.ownership) {
+            var current: [String] = []
+            for await result in Transaction.currentEntitlements {
+                switch result {
+                case let .verified(transaction):
+                    current
+                        .append(
+                            "id=\(transaction.id) product=\(transaction.productID) environment=\(transaction.environment) revoked=\(transaction.revocationDate != nil)",
+                        )
+                case let .unverified(transaction, _):
+                    current.append("id=\(transaction.id) product=\(transaction.productID) unverified")
+                @unknown default:
+                    current.append("unknown verification result")
+                }
+            }
+            guard !Task.isCancelled else { return }
+            entitlements = current
+        }
     }
 
     private var report: String {
@@ -30,6 +50,7 @@ struct CoverageDiagnosticsView: View {
         values["reduceMotion"] = reduceMotion
         values["fullGameAccess"] = playerSave.contentAccess.allowsChapter(4)
         values["fullGameOwnership"] = String(describing: appState.fullGame.ownership)
+        values["currentEntitlements"] = entitlements
         values["gameplayActive"] = appState.play.isGameplayActive
         values["selectedTab"] = appState.shellSession.selectedTab.rawValue
         values["playPath"] = appState.shellSession.playPath.map(\.id)
