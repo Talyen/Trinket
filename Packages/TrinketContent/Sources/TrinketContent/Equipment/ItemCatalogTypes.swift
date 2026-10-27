@@ -131,7 +131,7 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
         modifiers = (try? container.decode([Failable].self, forKey: .modifiers))?.compactMap(\.value) ?? []
         triggers = try container.decode(CombatTraitTriggers.self, forKey: .triggers)
         let ranges = try container.decodeIfPresent([String: ClosedRange<Double>].self, forKey: .triggerRollRanges) ?? [:]
-        triggerRollRanges = Dictionary(uniqueKeysWithValues: ranges.compactMap { key, range in
+        triggerRollRanges = Dictionary(uniqueKeysWithValues: ranges.lazy.compactMap { key, range in
             CombatTriggerField(rawValue: key).map { ($0, range) }
         })
     }

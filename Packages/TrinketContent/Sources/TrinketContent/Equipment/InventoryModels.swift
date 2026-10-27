@@ -244,7 +244,7 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
     }
 
     public func itemIDs(inFamilyOf slot: ItemSlot) -> Set<String> {
-        Set(ItemSlot.allCases.compactMap { candidate in
+        Set(ItemSlot.allCases.lazy.compactMap { candidate in
             guard candidate.baseItemSlot == slot.baseItemSlot else { return nil }
             return itemIDsBySlot[candidate]
         })

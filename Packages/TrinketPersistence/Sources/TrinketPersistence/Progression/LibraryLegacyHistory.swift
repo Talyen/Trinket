@@ -31,7 +31,7 @@ enum LibraryLegacyHistory {
     ]
 
     static func defeatedEnemyIDs(in save: PlayerSave) -> Set<String> {
-        var ids = Set(save.journey.completedStageIDs.compactMap { stages[$0] })
+        var ids = Set(save.journey.completedStageIDs.lazy.compactMap { stages[$0] })
         for (spire, highest) in save.spires.highestClearedFloorBySpireID {
             guard let pool = spires[spire], highest > 0 else { continue }
             for floor in 1 ... min(highest, 10) {

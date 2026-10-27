@@ -80,7 +80,7 @@ public enum NodeModifierCatalog {
     /// Catalog enemies are immutable; bound this index to their authored IDs rather
     /// than retaining arbitrary encounter requests in a growing runtime cache.
     private static let enemyKeywordsByID: [String: Set<Keyword>] = Dictionary(
-        uniqueKeysWithValues: GameContent.enemies.map { enemy in
+        uniqueKeysWithValues: GameContent.enemies.lazy.map { enemy in
             let keywords = enemy.combatant.abilities.reduce(into: Set<Keyword>()) { result, ability in
                 result.formUnion(ability.keywords)
             }
@@ -89,7 +89,7 @@ public enum NodeModifierCatalog {
     )
 
     static let modifiersByNodeType: [LabyrinthNodeType: [NodeModifierDefinition]] = Dictionary(
-        uniqueKeysWithValues: LabyrinthNodeType.allCases.map { type in
+        uniqueKeysWithValues: LabyrinthNodeType.allCases.lazy.map { type in
             (type, modifiers.filter { $0.applies(to: type) })
         },
     )

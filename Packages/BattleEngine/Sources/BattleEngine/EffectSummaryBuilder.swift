@@ -16,7 +16,7 @@ public enum EffectSummaryBuilder {
         .controlMeter,
     ]
 
-    private static let priorityIndices = Dictionary(uniqueKeysWithValues: priorityOrder.enumerated().map {
+    private static let priorityIndices = Dictionary(uniqueKeysWithValues: priorityOrder.enumerated().lazy.map {
         ($0.element, $0.offset)
     })
 

@@ -401,8 +401,9 @@ package extension DamagePipeline {
             return
         }
         let critMultiplier = criticalMultiplier(for: state.sourceActorID, in: context)
-        let bonus = state.sourceActorID.map { context.modifiers(for: $0).criticalDamageBonus } ?? 0
-        let percent = state.sourceActorID.map { context.modifiers(for: $0).criticalDamagePercent } ?? 0
+        let modifiers = state.sourceActorID.map { context.modifiers(for: $0) }
+        let bonus = modifiers?.criticalDamageBonus ?? 0
+        let percent = modifiers?.criticalDamagePercent ?? 0
         let criticalDamage = SaturatedArithmetic.saturatingAdd(
             CombatRounding.scaled(state.remaining, multiplier: critMultiplier), bonus,
         )

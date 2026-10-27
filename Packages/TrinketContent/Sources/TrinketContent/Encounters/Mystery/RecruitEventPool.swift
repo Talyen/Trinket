@@ -50,10 +50,10 @@ enum RecruitEventPool {
     ]
 
     private static let eventsByID: [String: MysteryEvent] = Dictionary(
-        uniqueKeysWithValues: all.map { ($0.id, $0) },
+        uniqueKeysWithValues: all.lazy.map { ($0.id, $0) },
     )
     private static let eventsByCombatantID = Dictionary(
-        all.compactMap { event in event.unlockCombatantID.map { ($0, event) } },
+        all.lazy.compactMap { event in event.unlockCombatantID.map { ($0, event) } },
         uniquingKeysWith: { first, _ in first },
     )
 

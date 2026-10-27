@@ -58,8 +58,13 @@ struct NaturalReactionPhase {
 enum ElementalReactionEngine {
     /// Divide before adding: two Int.max facts still receive one exact rounding.
     static func bonus(_ amounts: Int...) -> Int {
-        let whole = amounts.reduce(0) { SaturatedArithmetic.saturatingAdd($0, max(0, $1) / 4) }
-        let remainder = amounts.reduce(0) { $0 + max(0, $1) % 4 }
+        var whole = 0
+        var remainder = 0
+        for amount in amounts {
+            let nonnegative = max(0, amount)
+            whole = SaturatedArithmetic.saturatingAdd(whole, nonnegative / 4)
+            remainder += nonnegative % 4
+        }
         return max(1, SaturatedArithmetic.saturatingAdd(whole, (remainder + 2) / 4))
     }
 
@@ -97,8 +102,9 @@ enum ElementalReactionEngine {
         context.roster.mutateRuntime(for: target) { runtime in
             if keyword == .freeze {
                 runtime.reactions.freezeGeneration = SaturatedArithmetic.saturatingAdd(runtime.reactions.freezeGeneration, 1)
-                runtime.reactions.shatter = bonus(healthDamage)
-                runtime.reactions.frostfire = bonus(healthDamage)
+                let amount = bonus(healthDamage)
+                runtime.reactions.shatter = amount
+                runtime.reactions.frostfire = amount
             } else if keyword == .stun {
                 runtime.reactions.stunGeneration = SaturatedArithmetic.saturatingAdd(runtime.reactions.stunGeneration, 1)
                 runtime.reactions.rupture = bonus(healthDamage)

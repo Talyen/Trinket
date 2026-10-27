@@ -96,7 +96,7 @@ struct StoredRosterSnapshot: Codable, Equatable, Sendable {
             abilityLoadouts: RosterHydration.rawAbilityLoadouts(from: abilityLoadouts),
             progressions: progressions,
             equipmentLoadouts: equipment.mapValues { slots in
-                EquipmentLoadout(itemIDsBySlot: Dictionary(uniqueKeysWithValues: slots.compactMap { key, value in
+                EquipmentLoadout(itemIDsBySlot: Dictionary(uniqueKeysWithValues: slots.lazy.compactMap { key, value in
                     ItemSlot(rawValue: key).map { ($0, value) }
                 }))
             },

@@ -75,7 +75,7 @@ enum MysteryEventPool {
     )
 
     private static let eventsByID: [String: MysteryEvent] = Dictionary(
-        uniqueKeysWithValues: all.map { ($0.id, $0) },
+        uniqueKeysWithValues: all.lazy.map { ($0.id, $0) },
     )
 
     static func event(matching id: String) -> MysteryEvent? {

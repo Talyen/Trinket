@@ -45,7 +45,7 @@ final class CloudSaveOutbox {
 
     var storedRecords: [StoredRecord] {
         rows.values.flatMap { journal in
-            journal.values.map { StoredRecord(journalID: $0.journalID, index: $0.index, payload: $0.payload) }
+            journal.values.lazy.map { StoredRecord(journalID: $0.journalID, index: $0.index, payload: $0.payload) }
         }
     }
 

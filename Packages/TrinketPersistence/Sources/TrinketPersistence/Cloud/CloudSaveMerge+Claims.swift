@@ -192,7 +192,7 @@ extension CloudSaveMerge {
         if !incomingCompleted.isDisjoint(with: existingCompleted) {
             return true
         }
-        return [incoming.voyage.activeRun, existing.voyage.activeRun].compactMap(\.self).contains { run in
+        return [incoming.voyage.activeRun, existing.voyage.activeRun].lazy.compactMap(\.self).contains { run in
             guard base.voyage.activeRun?.id == run.id || base.voyage.offers.contains(where: { $0.id == run.id })
             else { return false }
             return run.nodes.contains { node in

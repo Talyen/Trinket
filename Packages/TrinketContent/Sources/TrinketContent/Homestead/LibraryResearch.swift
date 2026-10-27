@@ -73,7 +73,7 @@ public struct ResearchProject: Identifiable, Hashable, Sendable {
 
     private static let projectsByID = Dictionary(all.lazy.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
     private static let researchIDsByRecipeID = Dictionary(
-        all.compactMap { project in project.recipeID.map { ($0, project.id) } },
+        all.lazy.compactMap { project in project.recipeID.map { ($0, project.id) } },
         uniquingKeysWith: { first, _ in first },
     )
 

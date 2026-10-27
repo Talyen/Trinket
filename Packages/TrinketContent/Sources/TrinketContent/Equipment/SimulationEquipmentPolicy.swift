@@ -122,7 +122,7 @@ public enum SimulationEquipmentPolicy {
             var bonusKeywords = keywords
             // Damage-bonus sharing does not grant Physical/Bleed attacks or their procs.
             for id in worn {
-                for power in powers[id, default: []].compactMap(\.self) {
+                for power in powers[id, default: []].lazy.compactMap(\.self) {
                     if power.triggers.physicalBonusesApplyToHoly, keywords.contains(.holy) {
                         bonusKeywords.insert(.physical)
                     }
