@@ -124,18 +124,22 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
     }
 
     private var activeProduction: [ResourceAmount] {
-        HomesteadNodeID.allCases.flatMap { nodeID -> [ResourceAmount] in
-            guard tier(for: nodeID) > 0 else { return [] }
-            return GameContent.homesteadNode(matching: nodeID)?.tier(tier(for: nodeID))?.production ?? []
-        }.filter { $0.quantity > 0 }
+        var production: [ResourceAmount] = []
+        for nodeID in HomesteadNodeID.allCases {
+            let nodeTier = tier(for: nodeID)
+            guard nodeTier > 0, let amounts = GameContent.homesteadNode(matching: nodeID)?.tier(nodeTier)?.production else { continue }
+            production.append(contentsOf: amounts.lazy.filter { $0.quantity > 0 })
+        }
+        return production
     }
 
     public func nextCollectibleDate(after date: Date, gold: Int) -> Date? {
         var projected = self
-        projected.settleProduction(at: date, gold: gold)
+        let activeProduction = projected.activeProduction
+        projected.settleProduction(at: date, gold: gold, activeProduction: activeProduction)
 
         var rates: [HomesteadResource: Double] = [:]
-        for production in projected.activeProduction {
+        for production in activeProduction {
             rates[production.resource, default: 0] += Double(production.quantity) / Self.secondsPerDay
         }
 
@@ -210,6 +214,10 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
     }
 
     public mutating func settleProduction(at date: Date, gold: Int) {
+        settleProduction(at: date, gold: gold, activeProduction: nil)
+    }
+
+    private mutating func settleProduction(at date: Date, gold: Int, activeProduction: [ResourceAmount]?) {
         guard date >= lastProductionAt else { return }
         let elapsed = date.timeIntervalSince(lastProductionAt)
         guard elapsed > 0 else {
@@ -217,7 +225,7 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
             return
         }
 
-        for production in activeProduction {
+        for production in activeProduction ?? self.activeProduction {
             let pending = pendingProduction[production.resource, default: 0]
             let generated = min(Double.greatestFiniteMagnitude, Double(production.quantity) * (elapsed / Self.secondsPerDay))
             if production.resource == .gold {

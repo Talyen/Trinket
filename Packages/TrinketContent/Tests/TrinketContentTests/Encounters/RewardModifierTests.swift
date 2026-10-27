@@ -61,6 +61,19 @@ struct RewardModifierTests {
         ) == .gold)
     }
 
+    @Test func `eligible rewards agree with individual resolution for collectible ownership`() {
+        let trinkets = Set(GameContent.trinketItems.map(\.templateID))
+        let uniques = Set(GameContent.uniqueItems.map(\.templateID))
+        for ownedTrinkets in [Set<String>(), trinkets] {
+            for ownedUniques in [Set<String>(), uniques] {
+                let expected = RewardModifier.allCases.filter {
+                    $0.resolved(ownedTrinketIDs: ownedTrinkets, ownedUniqueIDs: ownedUniques) == $0
+                }
+                #expect(RewardModifier.eligible(ownedTrinketIDs: ownedTrinkets, ownedUniqueIDs: ownedUniques) == expected)
+            }
+        }
+    }
+
     @Test(arguments: Keyword.allCases)
     func `every keyword guarantees matching generated gear with normal affix counts`(keyword: Keyword) throws {
         let matchingBases = GameContent.itemBaseTypes.filter { base in

@@ -177,6 +177,7 @@ public enum ItemCorruption {
         summaries: inout [CorruptionEffectSummary],
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) {
+        guard kinds.contains(.replaceAffix) || kinds.contains(.addAffix) else { return }
         let catalog = GameContent.itemAffixDefinitions.filter { $0.isEligible(for: baseType) }
         for kind in [CorruptionEffectKind.replaceAffix, .addAffix] where kinds.contains(kind) {
             let index: Int

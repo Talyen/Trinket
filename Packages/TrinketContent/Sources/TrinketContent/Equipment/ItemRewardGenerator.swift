@@ -1,6 +1,8 @@
 import TrinketCore
 
 public enum ItemRewardGenerator {
+    private static let catalogGearBases = GameContent.itemBaseTypes.filter { $0.slot != .trinket }
+
     public static func generate(
         id: String,
         rewardLevel: Int,
@@ -175,7 +177,7 @@ public enum ItemRewardGenerator {
         let normalBases = fallbackBaseType.flatMap { $0.slot != .trinket ? $0 : nil }.map { [$0] }
             ?? baseTypes.filter { $0.slot != .trinket }
         let effectiveBases = normalBases.isEmpty
-            ? GameContent.itemBaseTypes.filter { $0.slot != .trinket }
+            ? catalogGearBases
             : normalBases
         // Catalog invariant: at least one gear base ships with the game.
         precondition(!effectiveBases.isEmpty, "Item rewards require at least one non-Trinket base type.")

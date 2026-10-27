@@ -229,7 +229,15 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
     }
 
     public static func eligible(ownedTrinketIDs: Set<String>, ownedUniqueIDs: Set<String>) -> [Self] {
-        allCases.filter { $0.isEligible(ownedTrinketIDs: ownedTrinketIDs, ownedUniqueIDs: ownedUniqueIDs) }
+        let hasTrinket = GameContent.trinketItems.contains { !ownedTrinketIDs.contains($0.templateID) }
+        let hasUnique = GameContent.uniqueItems.contains { !ownedUniqueIDs.contains($0.templateID) }
+        return allCases.filter { modifier in
+            switch modifier {
+            case .trinket, .trinketHoard: hasTrinket
+            case .unique, .uniqueHoard: hasUnique
+            default: true
+            }
+        }
     }
 
     private func isEligible(ownedTrinketIDs: Set<String>, ownedUniqueIDs: Set<String>) -> Bool {

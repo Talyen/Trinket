@@ -14,11 +14,11 @@ public struct PlayerRosterState: Equatable, Sendable {
     public var unlockedTalents: [String: Set<String>]
 
     public var highestHeroLevel: Int {
-        unlockedHeroIDs.compactMap { progressions[$0]?.level }.max() ?? 1
+        unlockedHeroIDs.lazy.compactMap { progressions[$0]?.level }.max() ?? 1
     }
 
     public var highestCompanionLevel: Int {
-        unlockedCompanionIDs.compactMap { progressions[$0]?.level }.max() ?? 1
+        unlockedCompanionIDs.lazy.compactMap { progressions[$0]?.level }.max() ?? 1
     }
 
     public var activePartyAverageLevel: Int {

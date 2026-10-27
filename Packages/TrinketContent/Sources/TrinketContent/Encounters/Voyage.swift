@@ -103,7 +103,7 @@ public enum VoyageCatalog {
         if type.isCombat, let enemyID {
             return NodeModifierCatalog.combatModifiers(for: enemyID, nodeType: type)
         }
-        return NodeModifierCatalog.modifiers.filter { $0.applies(to: type) }
+        return NodeModifierCatalog.modifiersByNodeType[type] ?? []
     }
 
     /// Reward-keyword affinity per voyage destination. Stored as keywords (never

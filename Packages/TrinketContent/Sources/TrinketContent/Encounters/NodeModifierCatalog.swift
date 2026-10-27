@@ -88,7 +88,7 @@ public enum NodeModifierCatalog {
         },
     )
 
-    private static let modifiersByNodeType: [LabyrinthNodeType: [NodeModifierDefinition]] = Dictionary(
+    static let modifiersByNodeType: [LabyrinthNodeType: [NodeModifierDefinition]] = Dictionary(
         uniqueKeysWithValues: LabyrinthNodeType.allCases.map { type in
             (type, modifiers.filter { $0.applies(to: type) })
         },
@@ -185,6 +185,7 @@ public enum NodeModifierCatalog {
         } else {
             pool = combat + rewards
         }
+        guard let previousID else { return pool.randomElement(using: &rng)?.id }
         let different = pool.filter { $0.id != previousID }
         return (different.isEmpty ? pool : different).randomElement(using: &rng)?.id
     }

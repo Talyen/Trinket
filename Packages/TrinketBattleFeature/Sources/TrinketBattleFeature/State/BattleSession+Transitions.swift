@@ -12,12 +12,14 @@ extension BattleSession {
         handDeparture: (id: UUID, card: BattleCard)? = nil,
     ) {
         guard activeBattle?.id == playback.configurationID else { return }
-        let previousIDs = Set(presentation.hand.map(\.id))
         var snapshot = playback.snapshot
         if snapshot.isBattleOver {
-            let consumedIDs = Set(playback.automaticCards.map(\.id)).union(playedCardID.map { [$0] } ?? [])
+            var consumedIDs = Set(playback.automaticCards.lazy.map(\.id))
+            if let playedCardID {
+                consumedIDs.insert(playedCardID)
+            }
             let remaining = presentation.hand.filter { !consumedIDs.contains($0.id) }
-            let remainingIDs = Set(remaining.map(\.id))
+            let remainingIDs = Set(remaining.lazy.map(\.id))
             snapshot.hand = Array((remaining + snapshot.hand.filter { !remainingIDs.contains($0.id) })
                 .prefix(BattleHand.maxSize))
         }
@@ -25,8 +27,10 @@ extension BattleSession {
         let standaloneDraws = playback.events.filter {
             $0.effectKind == .cardsDrawn && !actionEventIDs.contains($0.id)
         }
-        let hasImplicitDeal = playback.snapshot.hand.contains { !previousIDs.contains($0.id) }
-            && !playback.events.contains { $0.effectKind == .cardsDrawn }
+        let hasImplicitDeal = !playback.events.contains { $0.effectKind == .cardsDrawn } && {
+            let previousIDs = Set(presentation.hand.lazy.map(\.id))
+            return playback.snapshot.hand.contains { !previousIDs.contains($0.id) }
+        }()
         if !standaloneDraws.isEmpty || hasImplicitDeal {
             feedback.record(standaloneDraws, at: date, environment: dependencies, didDrawCards: hasImplicitDeal)
         }
