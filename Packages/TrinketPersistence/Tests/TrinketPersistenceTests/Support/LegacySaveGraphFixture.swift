@@ -8,7 +8,16 @@ enum LegacySaveGraphFixture {
     private typealias Legacy = PlayerSaveSchemaV3
 
     static func root(from save: PlayerSave) throws -> PlayerSaveSchemaV3.PlayerSaveRoot {
-        let source = try PlayerSaveRoot(save: save)
+        // Register current model relationships before copying into the frozen schema.
+        let schema = PlayerSaveGraph.schema
+        let container = try ModelContainer(
+            for: schema,
+            configurations: ModelConfiguration(schema: schema, isStoredInMemoryOnly: true, cloudKitDatabase: .none),
+        )
+        let context = ModelContext(container)
+        let source = PlayerSaveRoot()
+        context.insert(source)
+        try source.update(from: save, context: context)
         let root = Legacy.PlayerSaveRoot(id: source.id)
         root.schemaVersion = 18
         root.modifiedAt = source.modifiedAt

@@ -222,7 +222,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         retainScreenshot(named: "reward-claim")
         tapButton(AccessibilityID.Battle.continueButton)
         play.assertCampaignLoaded()
-        tapButton(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
+        tapButtonAfterScroll(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
         assertExists(AccessibilityID.Mystery.encounterTitle)
     }
 
