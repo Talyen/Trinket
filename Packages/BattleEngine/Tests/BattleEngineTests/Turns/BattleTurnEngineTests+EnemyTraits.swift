@@ -159,6 +159,33 @@ extension BattleTurnEngineTests {
         #expect(battle.roster.hero.currentHealth == heroHealthBefore)
     }
 
+    @Test(arguments: [false, true], [0, 1, 2])
+    func `trait and stored Thorns report the actual retaliation`(stored: Bool, block: Int) {
+        var battle = BattleStateTestFactory.makeBattle(
+            enemyModifiers: .withTriggers { $0.thornsPercent = stored ? 0 : 0.5 },
+            dealOpeningHand: false, appliesFightPacing: false,
+        )
+        if stored {
+            battle.insertEffect(.thorns(2), to: battle.enemy, sourceID: battle.enemy.id, remainingTurns: 0)
+        }
+        DefensePoolEngine.set(block, on: battle.hero, in: &battle)
+        let heroHealth = battle.roster.hero.currentHealth
+        let result = battle.recordingResult { context in context.resolveTestDamage(
+            4, options: .attack(tier: .basic, scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        ) }
+        let retaliation = result.events.filter { $0.effectKind == .thornsTriggered }
+        if block == 2 {
+            #expect(retaliation.isEmpty)
+        } else {
+            #expect(retaliation.count == 1)
+            #expect(retaliation.first?.amount == 2 - block)
+            #expect(retaliation.first?.actorID == battle.enemy.id)
+            #expect(retaliation.first?.targetID == battle.hero.id)
+        }
+        #expect(heroHealth - battle.roster.hero.currentHealth == 2 - block)
+        #expect(battle.roster.enemy.activeEffects.contains { $0.effect.kind == .thorns } == false)
+    }
+
     @Test func `ambush applies only once through a composed build`() throws {
         var context = try enemyTraitContext("bandit")
         let target = context.hero

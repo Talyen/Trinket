@@ -76,10 +76,7 @@ package enum EnemyTraitEngine {
         let profile = context.modifiers(for: combatant.id)
         let interval = profile.triggers.turnFreezeDamageAllEnemiesInterval
         guard profile.triggers.turnFreezeDamageAllEnemies > 0,
-              context.roster.health(for: combatant) > 0,
-              context.turnCount > 0,
-              interval > 0,
-              context.turnCount.isMultiple(of: interval)
+              isPulseTurn(interval, for: combatant, in: context)
         else { return }
 
         await turnDamageAllEnemies(
@@ -101,10 +98,7 @@ package enum EnemyTraitEngine {
         guard triggers.turnRandomDamageAllEnemiesAmount > 0,
               let first = triggers.turnRandomDamageAllEnemiesKeywordA,
               let second = triggers.turnRandomDamageAllEnemiesKeywordB,
-              context.roster.health(for: combatant) > 0,
-              context.turnCount > 0,
-              interval > 0,
-              context.turnCount.isMultiple(of: interval)
+              isPulseTurn(interval, for: combatant, in: context)
         else { return }
 
         let chosen = BattleChance.succeeds(probability: 0.5, using: &context.rng) ? first : second
@@ -115,6 +109,11 @@ package enum EnemyTraitEngine {
             source: combatant,
             context: &context,
         )
+    }
+
+    private static func isPulseTurn(_ interval: Int, for combatant: Combatant, in context: BattleState) -> Bool {
+        context.roster.health(for: combatant) > 0 && context.turnCount > 0
+            && interval > 0 && context.turnCount.isMultiple(of: interval)
     }
 
     private static func turnDamageAllEnemies(
@@ -180,28 +179,10 @@ package enum EnemyTraitEngine {
 
         let thornsAmount = CombatRounding.scaled(damageTaken, multiplier: profile.triggers.thornsPercent)
         guard thornsAmount > 0 else { return }
-        var operation = DamageOperation.reaction()
-        operation.isThornsDamage = true
-        let outcome = await context.resolveDamage(
-            DamageRequest(
-                amount: thornsAmount,
-                target: attacker,
-                keyword: .physical,
-                sourceActorID: defender.id,
-                options: operation,
-            ),
+        await DamagePipeline.resolveThornsDamage(
+            amount: thornsAmount, keyword: .physical,
+            abilityName: profile.triggerAbilityName(.thornsPercent, fallback: "Trait"),
+            attacker: attacker, defender: defender, in: &context,
         )
-
-        if outcome.healthLost > 0 {
-            context.nextEvent(
-                kind: .effect(.thornsTriggered),
-                source: .init(defender),
-                abilityName: profile.triggerAbilityName(.thornsPercent, fallback: "Trait"),
-                target: attacker,
-                amount: outcome.healthLost,
-                keyword: .physical,
-            )
-        }
-        await DamagePipeline.thornsRewards(healthLost: outcome.healthLost, attacker: attacker, defender: defender, in: &context)
     }
 }

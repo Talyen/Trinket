@@ -411,19 +411,24 @@ package extension DamagePipeline {
         } else {
             .physical
         }
-        let healthLost = await resolveWardDamage(
-            amount: retaliation,
-            keyword: keyword,
-            abilityName: "Thorns",
-            target: attacker.combatant,
-            defender: state.combatant,
-            isThornsDamage: true,
-            in: &context,
+        await resolveThornsDamage(
+            amount: retaliation, keyword: keyword, abilityName: "Thorns",
+            attacker: attacker.combatant, defender: state.combatant, in: &context,
         )
-        await thornsRewards(healthLost: healthLost, attacker: attacker.combatant, defender: state.combatant, in: &context)
     }
 
-    static func thornsRewards(
+    static func resolveThornsDamage(
+        amount: Int, keyword: Keyword, abilityName: String,
+        attacker: Combatant, defender: Combatant, in context: inout BattleState,
+    ) async {
+        let healthLost = await resolveWardDamage(
+            amount: amount, keyword: keyword, abilityName: abilityName,
+            target: attacker, defender: defender, isThornsDamage: true, in: &context,
+        )
+        await thornsRewards(healthLost: healthLost, attacker: attacker, defender: defender, in: &context)
+    }
+
+    private static func thornsRewards(
         healthLost: Int,
         attacker: Combatant,
         defender: Combatant,
