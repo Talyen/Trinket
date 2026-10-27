@@ -4,6 +4,26 @@ import TrinketContent
 @testable import TrinketPersistence
 
 struct CloudSaveMergeClaimsRegressionTests {
+    @Test func `shared Shop purchase requires the same new pinned offer`() throws {
+        let save = PlayerSave.testSeed
+        let encounter = EncounterIdentity(location: .journey(stageID: ShopOfferGenerator.starterShopStageID), save: save)
+        let item = try #require(GameContent.trinketItems.first)
+        let offer = ShopOffer(id: "shared", item: item, price: 20)
+        let changedPrice = ShopOffer(id: offer.id, item: item, price: 21)
+        func payload(_ offer: ShopOffer, purchased: Bool) throws -> Data {
+            try ShopStockPersistence.encode(
+                ShopStock(offers: [offer], purchasedOfferIDs: purchased ? [offer.id] : []), encounter: encounter,
+            )
+        }
+        let purchased = try payload(offer, purchased: true)
+        let unpurchased = try payload(offer, purchased: false)
+        let different = try payload(changedPrice, purchased: true)
+        #expect(ShopStockPersistence.hasSharedNewPurchase(base: unpurchased, incoming: purchased, existing: purchased))
+        #expect(!ShopStockPersistence.hasSharedNewPurchase(base: purchased, incoming: purchased, existing: purchased))
+        #expect(!ShopStockPersistence.hasSharedNewPurchase(base: nil, incoming: purchased, existing: unpurchased))
+        #expect(!ShopStockPersistence.hasSharedNewPurchase(base: nil, incoming: purchased, existing: different))
+    }
+
     @Test(arguments: [true, false])
     func `offline purchases sharing an offer ID retain each pinned purchase charge`(differentItem: Bool) throws {
         var base = PlayerSave.testSeed

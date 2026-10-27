@@ -100,7 +100,7 @@ enum LabyrinthFloorGeometry {
             else { return nil }
 
             // A component leaving the frontier can never reconnect on a later row.
-            let nextLabels = Array(labels.dropFirst(oldCount))
+            let nextLabels = labels.dropFirst(oldCount)
             guard labels.prefix(oldCount).allSatisfy(nextLabels.contains) else { return nil }
             var canonical: [Int: Int] = [:]
             let components = nextLabels.map { label in

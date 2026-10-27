@@ -180,11 +180,14 @@ enum CloudSaveReconciler {
             epoch: request.id, resetCount: request.action == .reset ? 1 : 0,
             authoritySequence: 0, revision: request.revision,
         )
-        if let mutations = request.mutations, mutations.records.contains(where: { $0.receipts != nil || $0.actions != nil }) {
+        if let mutations = request.mutations {
+            guard mutations.hasActions || mutations.records.contains(where: { $0.receipts != nil }) else {
+                return resolution(head, request: request, outcome: .synchronized, backups: [], acceptedLocal: true)
+            }
             var replay = CloudReceiptReplay(head: head)
             try replay.includeAccepted(mutations)
             replay.install(into: &head)
-            if mutations.records.contains(where: { $0.actions != nil }) {
+            if mutations.hasActions {
                 head.formatVersion = 3
             }
         }
@@ -200,9 +203,9 @@ enum CloudSaveReconciler {
         if !mutations.isEmpty {
             var receiptReplay = CloudReceiptReplay(head: head)
             selected = try replay(mutations, onto: settledSave, receiptReplay: &receiptReplay)
-            if mutations.records.contains(where: { $0.receipts != nil || $0.actions != nil }) {
+            if mutations.hasActions || mutations.records.contains(where: { $0.receipts != nil }) {
                 receiptReplay.install(into: &head)
-                if mutations.records.contains(where: { $0.actions != nil }) {
+                if mutations.hasActions {
                     head.formatVersion = 3
                 }
             }

@@ -182,7 +182,7 @@ enum CloudSaveMerge {
             var talents = incoming.union(existing)
             if let base = branches.base?.roster.unlockedTalents[id] {
                 // Reset removes shared purchases; independently purchased talents still survive.
-                talents.subtract(base.subtracting(incoming).union(base.subtracting(existing)))
+                talents.subtract(base.lazy.filter { !incoming.contains($0) || !existing.contains($0) })
             }
             merged.roster.unlockedTalents[id] = talents.isEmpty ? nil : talents
         }

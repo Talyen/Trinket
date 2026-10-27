@@ -118,7 +118,7 @@ enum LabyrinthFloorTypePlacement {
         using rng: inout some RandomNumberGenerator,
     ) -> [LabyrinthNodeType] {
         guard planned.count > 2 else { return planned }
-        let middle = Array(planned.dropFirst().dropLast())
+        let middle = planned.dropFirst().dropLast()
         let counts = middle.reduce(into: [LabyrinthNodeType: Int]()) { $0[$1, default: 0] += 1 }
         let kinds = counts.keys.sorted { $0.rawValue < $1.rawValue }
         // An assigned room remains in the frontier through its last unassigned neighbor.

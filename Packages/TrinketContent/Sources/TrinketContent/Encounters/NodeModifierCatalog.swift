@@ -237,9 +237,15 @@ public enum NodeModifierCatalog {
         affinityKeywords: Set<Keyword> = [],
     ) -> [NodeModifierID] {
         if !existingModifierIDs.isEmpty {
-            let applicableIDs = Set(applicableModifiers(for: type, enemyID: enemyID).lazy.map(\.id))
-            if let existing = existingModifierIDs.first(where: applicableIDs.contains) {
-                return [existing]
+            if existingModifierIDs.count == 1, let existing = existingModifierIDs.first {
+                if applicableModifiers(for: type, enemyID: enemyID).contains(where: { $0.id == existing }) {
+                    return [existing]
+                }
+            } else {
+                let applicableIDs = Set(applicableModifiers(for: type, enemyID: enemyID).lazy.map(\.id))
+                if let existing = existingModifierIDs.first(where: applicableIDs.contains) {
+                    return [existing]
+                }
             }
         }
         return modifierIDs(

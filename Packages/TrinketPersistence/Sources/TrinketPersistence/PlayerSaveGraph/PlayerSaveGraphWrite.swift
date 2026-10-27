@@ -61,7 +61,7 @@ struct PlayerSaveGraphWrite {
         guard !state.isMapPayloadUnreadable else { return nil }
         return try JSONEncoder().encode(LabyrinthMapPayload(
             clusters: state.clusters,
-            nodes: Array(state.nodes.values).sorted { $0.id < $1.id },
+            nodes: state.nodes.values.sorted { $0.id < $1.id },
         ))
     }
 }

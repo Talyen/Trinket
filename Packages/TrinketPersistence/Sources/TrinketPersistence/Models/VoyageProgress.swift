@@ -92,7 +92,10 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
         runID: String, access: ContentAccessPolicy, eligibleModifiers: [RewardModifier] = RewardModifier.allCases,
     ) -> Bool {
         guard !isUnreadable, let run = activeRun, run.id == runID, !run.isComplete else { return false }
-        abandonedRunIDs = (abandonedRunIDs ?? []).union([runID])
+        if abandonedRunIDs == nil {
+            abandonedRunIDs = []
+        }
+        abandonedRunIDs?.insert(runID)
         replaceOffer(runID: runID, access: access, eligibleModifiers: eligibleModifiers)
         activeRun = nil
         return true
@@ -100,7 +103,10 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
 
     public mutating func dismissCompleted() {
         guard let run = activeRun, run.isComplete else { return }
-        completedRunIDs = (completedRunIDs ?? []).union([run.id])
+        if completedRunIDs == nil {
+            completedRunIDs = []
+        }
+        completedRunIDs?.insert(run.id)
         activeRun = nil
     }
 

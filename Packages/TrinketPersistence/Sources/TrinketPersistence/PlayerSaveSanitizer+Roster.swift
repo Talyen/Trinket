@@ -5,6 +5,7 @@ import TrinketCore
 extension PlayerSaveSanitizer {
     private static let catalogHeroIDs = Set(GameContent.heroes.lazy.map(\.id))
     private static let catalogCompanionIDs = Set(GameContent.companions.lazy.map(\.id))
+    private static let catalogCombatantIDs = catalogHeroIDs.union(catalogCompanionIDs)
 
     static func sanitizeRoster(
         _ roster: PlayerRosterState,
@@ -12,9 +13,13 @@ extension PlayerSaveSanitizer {
         heroIDs: Set<String>? = nil,
         companionIDs: Set<String>? = nil,
     ) -> PlayerRosterState {
+        let validCombatantIDs = if heroIDs == nil, companionIDs == nil {
+            catalogCombatantIDs
+        } else {
+            (heroIDs ?? catalogHeroIDs).union(companionIDs ?? catalogCompanionIDs)
+        }
         let heroIDs = heroIDs ?? catalogHeroIDs
         let companionIDs = companionIDs ?? catalogCompanionIDs
-        let validCombatantIDs = heroIDs.union(companionIDs)
 
         var sanitized = roster
         sanitized.gold = PlayerRosterState.clampedGoldBalance(roster.gold)

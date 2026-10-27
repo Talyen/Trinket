@@ -13,14 +13,19 @@ public enum VoyageBoard {
         access: ContentAccessPolicy, eligibleModifiers: [RewardModifier],
         using rng: inout some RandomNumberGenerator,
     ) -> [VoyageOffer] {
-        let allowed = chapterIDs(access: access)
+        func hasInvalidChapter() -> Bool {
+            let allowed = chapterIDs(access: access)
+            return offers.contains { !allowed.contains($0.chapterID) }
+        }
         var prepared = offers
         if offers.count != VoyageDifficulty.allCases.count || Set(offers.lazy.map(\.chapterID)).count != VoyageDifficulty.allCases.count
-            || offers.contains(where: { !allowed.contains($0.chapterID) }) {
+            || hasInvalidChapter() {
             prepared = refreshedOffers(access: access, eligibleModifiers: eligibleModifiers, using: &rng)
         }
-        for offer in prepared where retiredIDs.contains(offer.id) {
-            prepared = replacingOffer(offer.id, in: prepared, access: access, eligibleModifiers: eligibleModifiers, using: &rng)
+        if !retiredIDs.isEmpty {
+            for offer in prepared where retiredIDs.contains(offer.id) {
+                prepared = replacingOffer(offer.id, in: prepared, access: access, eligibleModifiers: eligibleModifiers, using: &rng)
+            }
         }
         return prepared
     }

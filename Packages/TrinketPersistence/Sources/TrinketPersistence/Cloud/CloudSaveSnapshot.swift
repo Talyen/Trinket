@@ -38,6 +38,7 @@ extension PlayerSaveSnapshot {
     }
 
     var campaignRank: Int {
+        guard !journey.completedStageIDs.isEmpty else { return 0 }
         let stages = GameContent.stages
         guard let index = stages.indices.reversed().first(where: { journey.completedStageIDs.contains(stages[$0].id) }) else {
             return 0

@@ -71,7 +71,10 @@ public struct PlayerContractsState: Codable, Equatable, Sendable {
         guard let replacement = ContractBoard.replacingOffer(
             offerID, in: offers, eligibleModifiers: eligibleModifiers, makeOffer: makeOffer,
         ) else { return false }
-        completedOfferIDs = (completedOfferIDs ?? []).union([offerID])
+        if completedOfferIDs == nil {
+            completedOfferIDs = []
+        }
+        completedOfferIDs?.insert(offerID)
         offers = replacement
         return true
     }

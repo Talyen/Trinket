@@ -94,8 +94,10 @@ public enum ShopStockPersistence {
               !first.stock.purchasedOfferIDs.isEmpty, !second.stock.purchasedOfferIDs.isEmpty
         else { return false }
         let priorIDs = base.flatMap { validStock($0)?.stock.purchasedOfferIDs } ?? []
-        return first.matchingPurchases(in: second).contains {
-            first.stock.purchasedOfferIDs.contains($0) && !priorIDs.contains($0)
+        let offersByID = Dictionary(uniqueKeysWithValues: second.stock.offers.lazy.map { ($0.id, $0) })
+        return first.stock.offers.contains { offer in
+            first.stock.purchasedOfferIDs.contains(offer.id) && !priorIDs.contains(offer.id)
+                && second.stock.purchasedOfferIDs.contains(offer.id) && offersByID[offer.id] == offer
         }
     }
 

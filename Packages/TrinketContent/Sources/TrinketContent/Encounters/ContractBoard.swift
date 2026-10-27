@@ -4,6 +4,7 @@ import Foundation
 /// Persistence supplies retirement history and owns refresh admission and claims.
 public enum ContractBoard {
     public static func retainedOffers(_ offers: [ContractOffer], excluding retiredIDs: Set<String>) -> [ContractOffer] {
+        guard !offers.isEmpty else { return [] }
         var ids: Set<String> = []
         var enemyIDs: Set<String> = []
         var valid: [ContractOffer] = []

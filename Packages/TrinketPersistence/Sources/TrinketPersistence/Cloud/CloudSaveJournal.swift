@@ -19,7 +19,7 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
     private(set) var checkpoint: CloudSaveSnapshot?
     private(set) var lastSnapshot: CloudSaveSnapshot?
     private var history = CloudSaveJournalRecords()
-    private var hasActions = false
+    private(set) var hasActions = false
 
     init(_ mutations: [CloudSaveMutation] = []) {
         id = UUID().uuidString

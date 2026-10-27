@@ -83,11 +83,12 @@ public enum BattleLoot {
             focuses: focuses,
             using: &rng,
         )
-        materials = materials.map { material in
+        for index in materials.indices {
+            let material = materials[index]
             var bonus = request.materialsFoundPercent
             bonus += Self.materialBonus(modifier, for: material.resource)
             bonus += Self.materialBonus(additionalModifier, for: material.resource)
-            return ResourceAmount(material.resource, CombatRounding.scaled(material.quantity, byPercent: bonus))
+            materials[index] = ResourceAmount(material.resource, CombatRounding.scaled(material.quantity, byPercent: bonus))
         }
 
         let item = rollItem(
@@ -120,7 +121,8 @@ public enum BattleLoot {
         // trapping the live loot roll.
         let resolvedBaseTypes = eligibleBaseTypes.isEmpty ? GameContent.itemBaseTypes : eligibleBaseTypes
         let guaranteesTrinket = enemyIsBoss && request.guaranteesTrinket
-            && GameContent.trinketItems.contains { !ownership.ownedTrinketIDs.contains($0.templateID) }
+            && (ownership.ownedTrinketIDs.isEmpty ? !GameContent.trinketItems.isEmpty
+                : GameContent.trinketItems.contains { !ownership.ownedTrinketIDs.contains($0.templateID) })
         var allowedTiers: Set<ItemDropTier> = if guaranteesTrinket {
             [.trinket]
         } else if let tier = modifier?.requiredItemTier {
