@@ -7,14 +7,17 @@ struct CombatBuildResolverTests {
     @Test(arguments: [
         (1, EnemyPowerCurve.Profile.standard, 0.05),
         (4, .standard, 0.19387665840501532),
-        (20, .standard, 2.2),
-        (30, .standard, 3.7),
+        (12, .standard, 1.177489430),
+        (20, .standard, 1.8),
+        (30, .standard, 3.5),
         (40, .standard, 5.2),
         (60, .standard, 6.55),
         (40, .spire, 3.25),
         (40, .recovery, 3.25),
         (1, .spire, 0.35),
         (1, .recovery, 0.35),
+        (20, .spire, 1.1),
+        (20, .recovery, 1.1),
     ])
     func `Countess stat tuning preserves shared abilities and mode boundaries`(
         level: Int, profile: EnemyPowerCurve.Profile, expectedDamageBonus: Double,
@@ -28,6 +31,15 @@ struct CombatBuildResolverTests {
             let otherBoss = try #require(GameContent.enemy(matching: "the_seraph"))
             #expect(abs(CombatBuildResolver.build(enemy: otherBoss, level: level)
                     .modifiers.outgoingDamagePercent - 5.85) < 0.000001)
+        }
+    }
+
+    @Test func `Countess standard damage grows smoothly across tuning anchors`() throws {
+        let enemy = try #require(GameContent.enemy(matching: "the_blood_countess"))
+        for level in 2 ... 80 {
+            let previous = CombatBuildResolver.build(enemy: enemy, level: level - 1)
+            let current = CombatBuildResolver.build(enemy: enemy, level: level)
+            #expect(current.modifiers.outgoingDamagePercent > previous.modifiers.outgoingDamagePercent)
         }
     }
 

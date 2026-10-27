@@ -61,6 +61,14 @@ public enum CombatBuildResolver {
                 let progress = Double(min(level, 40) - 20) / 20
                 profile.outgoingDamagePercent -= 0.65 * progress * progress * (3 - 2 * progress)
             }
+            // Ease the additional midgame adjustment in after level four and
+            // back out by forty, preserving both previously verified anchors.
+            let midProgress = if level <= 20 {
+                Double(min(max(level, 4), 20) - 4) / 16
+            } else {
+                Double(40 - min(level, 40)) / 20
+            }
+            profile.outgoingDamagePercent -= 0.40 * midProgress * midProgress * (3 - 2 * midProgress)
         }
 
         let scaledCombatant = CombatantLevelScaler.scale(enemy: enemy, level: level, profile: powerProfile)
