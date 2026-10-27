@@ -38,8 +38,16 @@ final class AbilityStorage: Hashable, Sendable {
 
     init(_ definition: Definition) {
         self.definition = definition
-        damageComponents = definition.operations.compactMap(\.damageComponent)
-        targetedEffects = definition.operations.compactMap(\.targetedEffect)
+        var damage: [DamageComponent] = []
+        var effects: [TargetedEffect] = []
+        for operation in definition.operations {
+            switch operation {
+            case let .damage(component): damage.append(component)
+            case let .effect(effect): effects.append(effect)
+            }
+        }
+        damageComponents = damage
+        targetedEffects = effects
     }
 
     func keywords(identityOnly: Bool, make: () -> [Keyword]) -> [Keyword] {

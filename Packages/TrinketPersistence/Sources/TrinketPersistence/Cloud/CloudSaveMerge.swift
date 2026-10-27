@@ -200,33 +200,6 @@ enum CloudSaveMerge {
         }
     }
 
-    private static func mergeInventory(
-        into merged: inout PlayerSave, from other: PlayerSave,
-        base: PlayerSave?,
-    ) {
-        let baseByID = Dictionary(
-            (base?.inventory.items ?? []).lazy.map { ($0.id, $0) },
-            uniquingKeysWith: { first, _ in first },
-        )
-        if !baseByID.isEmpty {
-            let otherByID = Dictionary(
-                other.inventory.items.lazy.map { ($0.id, $0) },
-                uniquingKeysWith: { first, _ in first },
-            )
-            merged.inventory.items = merged.inventory.items.compactMap { item in
-                guard let original = baseByID[item.id] else { return item }
-                // A shared physical item cannot survive its salvage on either device.
-                guard let changed = otherByID[item.id] else { return nil }
-                return item == original ? changed : item
-            }
-        }
-        let retainedIDs = Set(merged.inventory.items.lazy.map(\.id))
-        let candidates = other.inventory.items.lazy.filter {
-            baseByID[$0.id] == nil || retainedIDs.contains($0.id)
-        }
-        InventoryDuplicatePolicy.appendUniqueItems(candidates, to: &merged.inventory.items)
-    }
-
     private static func mergeSelections(into merged: inout PlayerSave, branches: Branches) {
         merged.roster.activeHeroID = branches.selected(\.roster.activeHeroID)
         merged.roster.activeCompanionID = branches.selected(\.roster.activeCompanionID)
@@ -248,11 +221,13 @@ enum CloudSaveMerge {
                 preferredAssignments[itemID] = (ownerID, slot)
             }
         }
-        for (ownerID, loadout) in merged.roster.equipmentLoadouts {
-            merged.roster.equipmentLoadouts[ownerID] = EquipmentLoadout(itemIDsBySlot: loadout.itemIDsBySlot.filter { slot, itemID in
-                guard let preferred = preferredAssignments[itemID] else { return true }
-                return preferred.ownerID == ownerID && preferred.slot == slot
-            })
+        if !preferredAssignments.isEmpty {
+            for (ownerID, loadout) in merged.roster.equipmentLoadouts {
+                merged.roster.equipmentLoadouts[ownerID] = EquipmentLoadout(itemIDsBySlot: loadout.itemIDsBySlot.filter { slot, itemID in
+                    guard let preferred = preferredAssignments[itemID] else { return true }
+                    return preferred.ownerID == ownerID && preferred.slot == slot
+                })
+            }
         }
         let abilityIDs = Set(branches.recent.roster.abilityLoadouts.keys).union(branches.other.roster.abilityLoadouts.keys)
         for id in abilityIDs {
@@ -411,5 +386,39 @@ private extension CloudSaveMerge {
         let left = incoming.experienceGained(since: base) ?? 0
         let right = existing.experienceGained(since: base) ?? 0
         return base.addingExperience(left).addingExperience(right)
+    }
+}
+
+private extension CloudSaveMerge {
+    static func mergeInventory(
+        into merged: inout PlayerSave, from other: PlayerSave,
+        base: PlayerSave?,
+    ) {
+        let baseByID = Dictionary(
+            (base?.inventory.items ?? []).lazy.map { ($0.id, $0) },
+            uniquingKeysWith: { first, _ in first },
+        )
+        if !baseByID.isEmpty {
+            let otherByID = Dictionary(
+                other.inventory.items.lazy.map { ($0.id, $0) },
+                uniquingKeysWith: { first, _ in first },
+            )
+            merged.inventory.items = merged.inventory.items.compactMap { item in
+                guard let original = baseByID[item.id] else { return item }
+                // A shared physical item cannot survive its salvage on either device.
+                guard let changed = otherByID[item.id] else { return nil }
+                return item == original ? changed : item
+            }
+        }
+        guard !other.inventory.items.isEmpty else { return }
+        if baseByID.isEmpty {
+            InventoryDuplicatePolicy.appendUniqueItems(other.inventory.items, to: &merged.inventory.items)
+            return
+        }
+        let retainedIDs = Set(merged.inventory.items.lazy.map(\.id))
+        let candidates = other.inventory.items.lazy.filter {
+            baseByID[$0.id] == nil || retainedIDs.contains($0.id)
+        }
+        InventoryDuplicatePolicy.appendUniqueItems(candidates, to: &merged.inventory.items)
     }
 }

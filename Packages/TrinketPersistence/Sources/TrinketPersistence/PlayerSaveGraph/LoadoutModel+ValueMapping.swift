@@ -5,7 +5,7 @@ import TrinketCore
 extension EquipmentLoadoutModel {
     func toEquipmentLoadout() -> EquipmentLoadout {
         EquipmentLoadout(itemIDsBySlot: Dictionary(
-            (slots ?? []).compactMap { slot in
+            (slots ?? []).lazy.compactMap { slot in
                 ItemSlot(rawValue: slot.slotID).map { ($0, slot.itemID) }
             },
             uniquingKeysWith: { _, new in new },

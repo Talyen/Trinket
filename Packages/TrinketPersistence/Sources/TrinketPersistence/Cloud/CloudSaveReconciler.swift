@@ -86,16 +86,18 @@ enum CloudSaveReconciler {
         // above so a clock-concurrent first upload cannot merge into (and later
         // let starter selection overwrite) the established save.
         let noProgressFirstUpload = request.baseEpoch == nil && !incoming.snapshot.hasProgress
+        let currentIncludesIncoming = current.includes(incoming.clock)
+        let incomingIncludesCurrent = !currentIncludesIncoming && incoming.includes(current.clock)
         let useIncoming: Bool = if noProgressFirstUpload {
             false
-        } else if current.includes(incoming.clock) {
+        } else if currentIncludesIncoming {
             false
-        } else if incoming.includes(current.clock) {
+        } else if incomingIncludesCurrent {
             true
         } else {
             preferred(incoming, over: current)
         }
-        let concurrent = !current.includes(incoming.clock) && !incoming.includes(current.clock)
+        let concurrent = !currentIncludesIncoming && !incomingIncludesCurrent
         var backups: [CloudSaveBackup] = []
         if concurrent || (!useIncoming && incoming.snapshot != current.snapshot) {
             backups.append(backup(
@@ -270,7 +272,7 @@ enum CloudSaveReconciler {
                 head.authoritySequence = try incremented(head.authoritySequence)
                 var claims = head.productionClaims ?? CloudProductionClaims()
                 for amount in collected {
-                    let start = claims.positions[amount.resource, default: 0]
+                    let start = claims.resources[amount.resource]?.last?.end ?? 0
                     guard !start.addingReportingOverflow(UInt64(amount.quantity)).overflow else {
                         throw CloudSaveError.unsupportedSave
                     }

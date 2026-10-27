@@ -74,7 +74,7 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
     }
 
     mutating func acknowledge(_ ids: Set<String>) {
-        guard records.contains(where: { ids.contains($0.id) }) else { return }
+        guard !ids.isEmpty, records.contains(where: { ids.contains($0.id) }) else { return }
         // Rebase only after receipt; old prefixes remain immutable if an archive
         // still references them. Separate domain action IDs survive the rebase.
         var remaining = Self()
@@ -145,11 +145,12 @@ struct CloudSaveJournal: Codable, Equatable, Sendable, Sequence {
             guard let key = Self.rowsKey, let rows = decoder.userInfo[key] as? [String: [Int: Data]],
                   let journal = rows[id], let checkpointData = journal[-1], count <= journal.count - 1
             else { throw CloudSaveError.unsupportedSave }
-            checkpoint = try JSONDecoder().decode(CloudSaveSnapshot.self, from: checkpointData)
+            let rowDecoder = JSONDecoder()
+            checkpoint = try rowDecoder.decode(CloudSaveSnapshot.self, from: checkpointData)
             lastSnapshot = checkpoint
             for index in 0 ..< count {
                 guard let data = journal[index] else { throw CloudSaveError.unsupportedSave }
-                try appendDecoded(JSONDecoder().decode(Record.self, from: data))
+                try appendDecoded(rowDecoder.decode(Record.self, from: data))
             }
         }
         guard (count == 0 && checkpoint == nil) || (count > 0 && checkpoint != nil) else { throw CloudSaveError.unsupportedSave }

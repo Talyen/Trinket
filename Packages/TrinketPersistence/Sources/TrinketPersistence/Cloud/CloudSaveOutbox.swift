@@ -63,12 +63,19 @@ final class CloudSaveOutbox {
 
     func prepare(_ state: CloudDeviceState) throws -> Update {
         var journals: [String: CloudSaveJournal] = [:]
-        for account in [state.account] + state.archives.values.map(\.state) {
-            for journal in [account.journal, account.pending?.mutations].compactMap(\.self) where !journal.isEmpty {
-                if journals[journal.id].map({ $0.count >= journal.count }) != true {
-                    journals[journal.id] = journal
-                }
+        func include(_ journal: CloudSaveJournal?) {
+            guard let journal, !journal.isEmpty else { return }
+            if journals[journal.id].map({ $0.count >= journal.count }) != true {
+                journals[journal.id] = journal
             }
+        }
+        func include(_ account: CloudAccountState) {
+            include(account.journal)
+            include(account.pending?.mutations)
+        }
+        include(state.account)
+        for archive in state.archives.values {
+            include(archive.state)
         }
         let encoder = JSONEncoder()
         var additions: [StoredRecord] = []

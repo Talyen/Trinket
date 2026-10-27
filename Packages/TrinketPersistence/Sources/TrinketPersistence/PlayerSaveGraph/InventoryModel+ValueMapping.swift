@@ -66,7 +66,7 @@ extension InventoryItemModel {
         inscribedAffixIndex = item.inscribedAffixIndex
         affixes = reconcileModels(
             existing: affixes ?? [],
-            values: Array(item.affixes.enumerated()),
+            values: item.affixes.indices.lazy.map { (offset: $0, element: item.affixes[$0]) },
             existingKey: \.id,
             valueKey: { $0.element.id },
             make: { ItemAffixModel() },
@@ -108,7 +108,7 @@ extension InventoryModel {
     func update(from inventory: PlayerInventoryState, powerPayloads: [String: Data], context: ModelContext?) {
         items = reconcileModels(
             existing: items ?? [],
-            values: Array(inventory.items.enumerated()),
+            values: inventory.items.indices.lazy.map { (offset: $0, element: inventory.items[$0]) },
             existingKey: \.id,
             valueKey: { $0.element.id },
             make: { InventoryItemModel() },

@@ -112,11 +112,14 @@ public struct ItemGenerator: Sendable {
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> [ItemAffixDefinition] {
         guard count > 0 else { return [] }
+        var totalWeight = 0
+        let hasPartyBias = !partyBias.isEmpty
         var pool = definitions.map { definition in
-            let weight = adjustedWeight(for: definition, keywordBias: keywordBias)
-            return (definition: definition, weight: partyBias.isEmpty ? weight : weight * partyBias.weight(for: definition.keywords))
+            let baseWeight = adjustedWeight(for: definition, keywordBias: keywordBias)
+            let weight = hasPartyBias ? baseWeight * partyBias.weight(for: definition.keywords) : baseWeight
+            totalWeight += weight
+            return (definition: definition, weight: weight)
         }
-        var totalWeight = pool.reduce(0) { $0 + $1.weight }
         var selected: [ItemAffixDefinition] = []
 
         while selected.count < count, totalWeight > 0 {

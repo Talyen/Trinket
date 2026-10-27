@@ -92,8 +92,9 @@ public enum ShopStockPersistence {
               first.matches(second.encounter)
         else { return false }
         let priorIDs = base.flatMap { validStock($0)?.stock.purchasedOfferIDs } ?? []
-        let sharedIDs = first.stock.purchasedOfferIDs.intersection(first.matchingPurchases(in: second))
-        return !sharedIDs.subtracting(priorIDs).isEmpty
+        return first.matchingPurchases(in: second).contains {
+            first.stock.purchasedOfferIDs.contains($0) && !priorIDs.contains($0)
+        }
     }
 
     static func setPayload(_ data: Data, encounter: EncounterIdentity, save: inout PlayerSave) {
@@ -120,6 +121,7 @@ public enum ShopStockPersistence {
 
         /// A purchase transfers only when both peers pinned the same item and price.
         func matchingPurchases(in other: Self) -> Set<String> {
+            guard !other.stock.purchasedOfferIDs.isEmpty else { return [] }
             let offersByID = Dictionary(uniqueKeysWithValues: other.stock.offers.lazy.map { ($0.id, $0) })
             return Set(stock.offers.lazy.filter { offer in
                 other.stock.purchasedOfferIDs.contains(offer.id) && offersByID[offer.id] == offer

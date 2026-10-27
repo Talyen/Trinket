@@ -39,8 +39,13 @@ public struct PartyLootBias: Equatable, Sendable {
     ) -> InventoryItem {
         precondition(!candidates.isEmpty, "Loot selection requires an eligible candidate.")
         guard !isEmpty else { return candidates[Int.random(in: candidates.indices, using: &random)] }
-        let weights = candidates.map { weight(for: $0.keywords) }
-        let index = WeightedLootSelection.index(in: weights, totalWeight: weights.reduce(0, +), weight: { $0 }, using: &random)
+        var totalWeight = 0
+        let weights = candidates.map { candidate in
+            let weight = weight(for: candidate.keywords)
+            totalWeight += weight
+            return weight
+        }
+        let index = WeightedLootSelection.index(in: weights, totalWeight: totalWeight, weight: { $0 }, using: &random)
         return candidates[index ?? candidates.count - 1]
     }
 }

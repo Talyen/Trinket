@@ -104,13 +104,13 @@ public enum ItemRewardGenerator {
             // gear instead of trapping; the keyword is dropped below.
             available = [.basic, .astral]
         }
-        let trinkets = available.contains(.trinket) ? GameContent.trinketItems.filter {
+        let trinkets = available.contains(.trinket) && eligibleTrinketIDs?.isEmpty != true ? GameContent.trinketItems.filter {
             !ownedTrinketIDs.contains($0.templateID)
                 && !reservedTrinketIDs.contains($0.templateID)
                 && (eligibleTrinketIDs?.contains($0.templateID) ?? true)
                 && (keywordBias.isEmpty || !$0.keywords.isDisjoint(with: keywordBias))
         } : []
-        let uniques = available.contains(.unique) ? GameContent.uniqueItems.filter {
+        let uniques = available.contains(.unique) && eligibleUniqueIDs?.isEmpty != true ? GameContent.uniqueItems.filter {
             !ownedUniqueIDs.contains($0.templateID)
                 && (eligibleUniqueIDs?.contains($0.templateID) ?? true)
                 && (keywordBias.isEmpty || !$0.keywords.isDisjoint(with: keywordBias))
