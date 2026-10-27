@@ -161,11 +161,11 @@
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Lebensraubaffix garantiert"}},
         "en": {"stringUnit": {"state": "translated", "value": "Guarantees a Leech affix"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Garantiza un afijo de Robo de vida"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Garantiza un afijo de Absorción"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Affixe Vol de vie garanti"}},
         "ja": {"stringUnit": {"state": "translated", "value": "吸収の付与効果を保証"}},
         "ko": {"stringUnit": {"state": "translated", "value": "흡혈 접사 확정"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Garante um afixo de Roubo de vida"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Garante um afixo de Drenagem"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "保證帶有吸血詞綴"}}
       }
     },
@@ -469,11 +469,11 @@
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Lebensraub-Lederrüstung"}},
         "en": {"stringUnit": {"state": "translated", "value": "Leech Leather Armor"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Armadura de cuero de Robo de vida"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Armadura de cuero de Absorción"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Armure de cuir de Vol de vie"}},
         "ja": {"stringUnit": {"state": "translated", "value": "吸収の革の鎧"}},
         "ko": {"stringUnit": {"state": "translated", "value": "흡혈 가죽 갑옷"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Armadura de couro de Roubo de vida"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Armadura de couro de Drenagem"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "吸血皮甲"}}
       }
     },
@@ -3298,7 +3298,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "TRINKET"}},
         "en": {"stringUnit": {"state": "translated", "value": "TRINKET"}},
         "es": {"stringUnit": {"state": "translated", "value": "ABALORIO"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "TRINKET"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "BIBELOT"}},
         "ja": {"stringUnit": {"state": "translated", "value": "トリンケット"}},
         "ko": {"stringUnit": {"state": "translated", "value": "트링킷"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "BERLOQUE"}},
