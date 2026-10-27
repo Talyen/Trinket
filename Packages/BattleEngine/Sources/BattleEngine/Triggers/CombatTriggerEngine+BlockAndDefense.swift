@@ -288,17 +288,10 @@ package extension CombatTriggerEngine {
         guard profile.triggers.onceBelowHealthPercentThreshold > 0,
               profile.triggers.onceBelowHealthPercentHeal > 0,
               context.roster.maxHealth(for: target) > 0,
+              context.roster.health(for: target) > 0,
               let runtime = context.roster.runtime(for: target),
               !runtime.hasTriggeredSecondWind
         else { return }
-
-        let deathsDoorOwnsLethalHit = DeathsDoorEngine.applies(to: target)
-            && context.roster.health(for: target) == 0
-            && (!context.roster.hasConsumedDeathsDoor(for: target)
-                || DeathsDoorEngine.hasLethalProtection(for: target, in: context))
-        if deathsDoorOwnsLethalHit {
-            return
-        }
 
         let percent = Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target))
         guard percent < profile.triggers.onceBelowHealthPercentThreshold else { return }

@@ -32,6 +32,7 @@ struct DeathsDoorEngineTests {
         companionHP: Int = 10,
         enemyHP: Int = 50,
         heroModifiers: CombatModifierProfile = .zero,
+        companionModifiers: CombatModifierProfile = .zero,
     ) -> BattleState {
         let hero = CombatantFixtures.combatant(id: "hero", role: .hero, maxHealth: 50)
         let companion = CombatantFixtures.combatant(id: "companion", role: .companion, maxHealth: 50)
@@ -41,6 +42,7 @@ struct DeathsDoorEngineTests {
             companion: companion,
             enemy: enemy,
             heroModifiers: heroModifiers,
+            companionModifiers: companionModifiers,
         )
         battle.roster.hero.currentHealth = heroHP
         battle.roster.companion.currentHealth = companionHP
@@ -133,6 +135,26 @@ struct DeathsDoorEngineTests {
         try #expect(events.contains(effectKind: .deathsDoorTriggered, keyword: .deathsDoor))
         try #expect(!events.contains { $0.abilityName == "Second Wind" })
         try #expect(!(context.roster.runtime(for: hero)?.hasTriggeredSecondWind ?? true))
+    }
+
+    @Test func `lethal damage preserves second wind for a revived hero`() {
+        var battle = makeContext(heroHP: 5, heroModifiers: .withTriggers {
+            $0.onceBelowHealthPercentThreshold = 0.25
+            $0.onceBelowHealthPercentHeal = 3
+        }, companionModifiers: CombatantTalentCatalog.profile(for: ["phoenix_health_t3_1"]))
+        battle.roster.hero.hasConsumedDeathsDoor = true
+        let hero = battle.hero
+
+        _ = battle.resolveTestDamage(5, to: hero, options: .attack(scaling: .flat, accuracy: .unavoidable))
+        #expect(battle.health(of: hero) == 5)
+        #expect(!battle.roster.hero.hasTriggeredSecondWind)
+
+        let events = battle.recordingResult { state in state.resolveTestDamage(
+            1, to: hero, options: .attack(scaling: .flat, accuracy: .unavoidable),
+        ) }.events
+        #expect(battle.health(of: hero) > 4)
+        #expect(battle.roster.hero.hasTriggeredSecondWind)
+        #expect(events.contains { $0.abilityName == "Second Wind" })
     }
 
     @Test func `hero and companion proc independently`() throws {

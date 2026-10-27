@@ -281,7 +281,7 @@ source may still control its target, but cannot grant that source Block.
 to ordinary damage operations, exempting Health costs.
 After lethal protection restores a party member, living-owner Health-loss rewards
 include Grizzly Guard and Redline. A final defeat grants neither; Second Wind
-keeps its pre-protection checkpoint.
+keeps its pre-protection checkpoint and spends its one-time heal only while its owner is alive.
 
 ## Universal reactions
 
