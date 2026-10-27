@@ -47,7 +47,20 @@ removing mechanisms. Do not push or publish as part of this plan without authori
    and [Duo guidance](../Platform/SimulatorOperations.md#duo-display-routing)
    already exist. These are observed tooling limitations, not proof that the app
    is broken or that a repository-only fix exists.
-5. **Measure copy-change and compatibility overhead.** Player-facing copy requires
+5. **Make the verification decision executable.** A focused diagnostic requires
+   agents to combine a concrete selector, a local opt-in, single-worker settings,
+   a 30-second execution deadline, a separate admission wait and an outer host-lane
+   wrapper. The visual route has different authorization and evidence requirements.
+   [Verification](../Platform/Verification.md#confidence-ladder) explains these,
+   but the agent still assembles the command and interprets multiple layers of
+   output. This is a source-review finding, not a measured failure rate.
+6. **Fix a concrete command-reference mismatch.**
+   [Scripts/Reference.md](../../Scripts/Reference.md#development) says briefing
+   defaults to the complete task against `main`, but `python3 Scripts/agent-brief.py`
+   exits with an error unless given `--paths`, `--working-tree`, `--base` or
+   `--task`. Handoff does have a complete-task default. An agent following the
+   reference can choose the wrong invocation or scope.
+7. **Measure copy-change and compatibility overhead.** Player-facing copy requires
    all configured locales and a separate AI review under
    [Localization](../Platform/Localization.md#agent-workflow). The workflow has
    resumable automation and retains legacy commands. Review where agents actually
@@ -65,6 +78,12 @@ removing mechanisms. Do not push or publish as part of this plan without authori
   the owner of cross-repository rules and coordinate changes there; do not silently
   weaken those rules in Trinket. Add a short decision table and ensure command
   examples and failure messages match the resulting policy.
+- [ ] **P1 — Correct the briefing scope mismatch.** Choose and document the
+  intended behavior after checking current callers: either provide the promised
+  complete-task default or state the required selector and give the exact
+  complete-task invocation. Test the no-argument behavior and scope of committed,
+  dirty, deleted and renamed task paths as applicable; retain existing explicit
+  selectors and consumers. Keep the executable and command reference aligned.
 - [ ] **P1 — Streamline the common workflow.** Exercise briefing, handoff and
   landing on naturally occurring documentation, Swift logic, UI and localization
   tasks. Record actual elapsed time, repeated lookups and confusing output where
@@ -77,6 +96,14 @@ removing mechanisms. Do not push or publish as part of this plan without authori
   reproducible, fix the responsible owner and add a targeted regression that checks
   descendants and lock release without signaling foreign work. If not, retain the
   evidence and a precise unresolved limitation instead of claiming a fix.
+- [ ] **P1 — Route verification without manual flag assembly.** Use the existing
+  briefing or handoff preview to present the exact next command for an ordinary
+  task, one explicitly selected focused diagnostic, and a visual inspection. Show
+  local versus hosted obligations, admission versus execution limits, and the
+  missing input when the selector or authorization cannot be inferred. Prefer
+  existing entry points and avoid a new mandatory wrapper. Do not infer permission
+  for broader work or claim a preview is evidence. Cover the routes and refusal
+  cases with targeted tooling fixtures and compare their output with the policy.
 - [ ] **P2 — Make visual inspection failures actionable.** Exercise the existing
   native fallback and bounded Duo diagnostics when the necessary environment is
   available. Improve diagnostics or a single routed recovery path only where
@@ -94,8 +121,12 @@ removing mechanisms. Do not push or publish as part of this plan without authori
   and no lost safeguards. Run focused regressions for changed tooling and the
   appropriate static handoff; use rendered/device evidence only when the change
   actually requires it. Update canonical owners, remove resolved friction entries,
-  and delete this plan when its accepted work is complete. Record unresolved
-  external prerequisites and distinguish local evidence from hosted CI.
+  and delete this plan when its accepted work is complete. For each sampled
+  scenario, compare the number of required manual decisions and document lookups
+  with the baseline, verify the emitted command and reported evidence, and record
+  waiting separately. A smaller instruction count alone is not proof of improvement.
+  Record unresolved external prerequisites and distinguish local evidence from
+  hosted CI.
 
 ## Measurement approach
 
@@ -110,6 +141,11 @@ the original question, separately from queue wait. Preserve the 30-second limit
 and current retry policy; do not infer a failure rate from one historical case.
 
 ## Status and blockers
+
+A fresh source review confirmed that the command reference promises a briefing
+scope default that the executable rejects, and identified manual assembly of the
+focused and visual verification routes as an opportunity to investigate. Neither
+finding establishes measured frequency or authorizes changes to resource limits.
 
 The supplied shared-machine rules now agree with the focused diagnostic example
 and automatic host admission. The briefing explains active-plan retention; sample
