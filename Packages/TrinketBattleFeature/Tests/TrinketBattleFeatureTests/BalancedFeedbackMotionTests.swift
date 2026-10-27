@@ -93,7 +93,7 @@ struct BalancedFeedbackMotionTests {
         let numbers = lane.activeItems.filter { $0.region == .impact }
         #expect(numbers.count == 2)
         #expect(Set(numbers.map(\.feedbackSpread)).count == 2)
-        #expect(numbers.allSatisfy { $0.availableAt.timeIntervalSince(start) <= 0.180001 })
+        #expect(numbers.allSatisfy { $0.availableAt == start })
     }
 
     @Test @MainActor func `six close corner gains keep distinct stationary rows`() {

@@ -208,9 +208,10 @@ width, with an 8-point center gap, 8-point outer margins, and clearance above th
 resource bars. Keep centers fixed through animation and numeric growth. The
 renderer and layout use the same region-specific peak bounds.
 
-New arrivals never move or evict older flights. The lane prefers an 80 ms stagger,
-with a hard 180 ms arrival-to-launch limit. New paths compare measured projected
-footprints throughout their lifetimes, strongly penalizing complete covering in
+New arrivals never move or evict older flights. Impact numbers launch at the impact
+cue; other regions prefer an 80 ms stagger with a hard 180 ms arrival-to-launch
+limit. New paths compare measured projected footprints throughout their lifetimes,
+strongly penalizing complete covering in
 either direction. Diagonal paths and fixed rows preserve visible space when the
 queue deadline forces concurrent launches. The host clamps the path to the
 portrait's peak footprint; spatial-edge fading cannot prematurely evict a flight.
@@ -227,9 +228,9 @@ contributions retain their accent halo and flash.
 Every admitted chip completes its full animation; there are no pending-count or
 corner-count evictions in Balanced. Reaction names retain 1.6 seconds. Apply
 sound and hit reactions from committed results immediately, independently of the
-bounded text stagger. Card inputs remain immediate; damage presentation follows
-its impact cue. The Debug Baseline alone retains the earlier pushes, merge
-extensions, spatial culling and two-chip corner cap for comparison.
+bounded stagger for non-impact text. Card inputs remain immediate; damage
+presentation follows its impact cue. The Debug Baseline alone retains the earlier
+pushes, merge extensions, spatial culling and two-chip corner cap for comparison.
 
 ### Host composition
 

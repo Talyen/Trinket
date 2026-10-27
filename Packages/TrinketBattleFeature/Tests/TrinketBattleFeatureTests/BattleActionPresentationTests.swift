@@ -72,6 +72,46 @@ struct BattleActionPresentationTests {
         #expect(!session.feedback.scheduledActions.contains { $0.id == beat.id })
     }
 
+    @Test(arguments: [0.0, 0.04, 0.12])
+    func `touch preparation counts toward the wind up before release`(held: TimeInterval) throws {
+        let session = BattleSessionTestSupport.makePassiveSession()
+        defer { session.endBattle() }
+        let card = try installAttacks(in: session)[0]
+        let start = Date.now
+        let release = start.addingTimeInterval(held)
+        session.beginCardCue(card, mode: .pressPreview, at: start)
+        #expect(session.playCard(cardID: card.id, at: release) == .committed)
+        let beat = try #require(session.feedback.scheduledActions.first { $0.actorID == session.heroID })
+        #expect(abs(beat.swingAt.timeIntervalSince(release) - max(0, 0.10 - held)) < 0.001)
+        #expect(abs(beat.impactAt.timeIntervalSince(beat.swingAt) - 0.15) < 0.001)
+    }
+
+    @Test func `inspecting a pressed attack cancels the preview without playing`() throws {
+        let session = BattleSessionTestSupport.makePassiveSession()
+        defer { session.endBattle() }
+        let card = try installAttacks(in: session)[0]
+        let actorID = try #require(session.heroID)
+        let health = session.engineState?.roster.enemy.currentHealth
+        session.beginCardCue(card, mode: .pressPreview)
+        #expect(session.feedback.attackReactionsByCombatantID[actorID]?.phase == .windUp)
+        session.presentAbilityDetail(card.ability)
+        #expect(session.feedback.attackReactionsByCombatantID[actorID]?.phase == .cancel)
+        #expect(session.feedback.scheduledActions.isEmpty)
+        #expect(session.engineState?.roster.enemy.currentHealth == health)
+        #expect(session.hand.contains { $0.id == card.id })
+    }
+
+    @Test func `cancelled preparation retargets from the current pose`() {
+        let start = Date.now
+        var motion = CombatantAttackMotion()
+        motion.adopt(CombatantAttackReaction(id: 1, phase: .windUp, startedAt: start), aim: .towardEnemy)
+        let cancelledAt = start.addingTimeInterval(0.05)
+        let pose = motion.pose(at: cancelledAt, aim: .towardEnemy)
+        motion.adopt(CombatantAttackReaction(id: 2, phase: .cancel, startedAt: cancelledAt), aim: .towardEnemy)
+        #expect(motion.pose(at: cancelledAt, aim: .towardEnemy) == pose)
+        #expect(motion.pose(at: cancelledAt.addingTimeInterval(0.451), aim: .towardEnemy) == .rest)
+    }
+
     @Test(arguments: [false, true])
     func `manual and automatic plays share impact delivery with auto battle enabled`(isAutomatic: Bool) throws {
         let environment = BattlePresentationDependencies(

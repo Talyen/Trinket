@@ -11,7 +11,9 @@ The departing card rises quickly, then eases upward through the artwork's
 dissolve, travelling 55% of its height with the existing departure duration.
 Holding to inspect, dragging to play, and cancelling a drag remain available.
 
-Touch-down immediately lifts the card with a small enlargement and shadow.
+Touch-down immediately lifts the card with a small enlargement and shadow. Damage
+cards also begin the attacker’s wind-up; cancellation or inspection smoothly
+returns the attacker to rest.
 Movement follows the finger from its original grab position in a stable hand
 coordinate space; the tap-versus-drag threshold does not delay visual pickup.
 Only lift and return animate independently of the finger's movement.
@@ -81,8 +83,8 @@ This section owns approved attack timing; [BattleFeedbackAttackRecipes.swift](..
 implements the motion recipes.
 
 Combatant attacks retain a visible wind-up, swing, and recovery for taps,
-drags, automatic cards, and enemy actions. Party attacks prepare for 0.10 seconds;
-enemy attacks prepare for 0.40 seconds. All attacks share a 0.15-second swing and
+drags, automatic cards, and enemy actions. Party attacks prepare for 0.10 seconds,
+including time spent pressing the card; enemy attacks prepare for 0.40 seconds. All attacks share a 0.15-second swing and
 0.45-second recovery. Prepared drags
 skip preparation and share that swing and recovery.
 Rapid attacks shorten preparation to a 0.08-second cap and overlap recovery to
@@ -94,9 +96,10 @@ status artwork, and resource bars appear together at the action’s apex. Trigge
 cards, counterattacks, enemy actions, and auto-battle use that same impact timing.
 Support results use their scheduled action cue. Victory celebration follows the
 visible lethal hit.
-Separate attacks retain distinct impacts; simultaneous components of one
-attack share the strongest recoil. Fully blocked direct hits recoil visibly
-with Block styling. Damage-over-time ticks remain quiet. These are presentation
+Damage numbers launch at impact even when other feedback is present; spatial routing
+separates simultaneous results. Separate attacks retain distinct impacts;
+simultaneous components of one attack share the strongest recoil. Fully blocked
+direct hits recoil visibly with Block styling. Damage-over-time ticks remain quiet. These are presentation
 beats only: the engine and current resources never wait for them.
 
 Automatic end turn keeps the 0.4-second grace period when no cards are playable.

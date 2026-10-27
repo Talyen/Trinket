@@ -9,6 +9,7 @@ extension BattleSession {
         at date: Date,
         playedCardID: Int? = nil,
         preparedCardID: Int? = nil,
+        preparedWindUpEndsAt: Date? = nil,
         handDeparture: (id: UUID, card: BattleCard)? = nil,
     ) {
         guard activeBattle?.id == playback.configurationID else { return }
@@ -48,7 +49,7 @@ extension BattleSession {
         let configurationID = playback.configurationID
         let changesByEventID = Dictionary(grouping: playback.combatantChanges, by: \.eventID)
         feedback.scheduleActions(
-            playback, preparedCardID: preparedCardID,
+            playback, preparedCardID: preparedCardID, preparedWindUpEndsAt: preparedWindUpEndsAt,
             at: date, cardPlayback: cardPlayback,
             handDeparture: handDeparture,
         ) { [weak self] events, damage, impactAt, groupID in

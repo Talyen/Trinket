@@ -137,9 +137,10 @@ Use `-launch-screen options -feedback-comparison` for direct managed inspection.
 Balanced retains native font/icon assets and portrait-capped 52-point travel.
 Central motion peaks at 1.85× after 85 ms, settles to 1.55× by 170 ms, starts
 rising at 240 ms, and fades over its final 280 ms of a 1.05-second lifetime.
-Measured raster footprints prefer an 80 ms stagger and 6 points of clearance,
-but each result launches within 180 ms of arrival. New numeric flights compare measured footprints before choosing a fixed center
-or diagonal path, with extra vertical separation on wider paths. Complete masking
+Impact numbers launch at contact; other feedback prefers an 80 ms stagger and
+launches within 180 ms of arrival. Raster paths seek 6 points of clearance. New
+numeric flights compare measured footprints before choosing a fixed center or
+diagonal path, with extra vertical separation on wider paths. Complete masking
 is strongly penalized in either direction: a small arrival cannot hide inside an
 older pop, and a new pop cannot completely cover an older result. Damage and
 healing prefer opposite sides; travel is clamped to the portrait at peak scale.

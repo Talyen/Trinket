@@ -38,7 +38,7 @@ enum BalancedFeedbackMotion {
         }
         let deadline = date.addingTimeInterval(maximumQueueDelay)
         var launch = date
-        if let last = relevant.last(where: { $0.region == incoming.region }) {
+        if incoming.region != .impact, let last = relevant.last(where: { $0.region == incoming.region }) {
             launch = max(launch, last.availableAt.addingTimeInterval(0.08))
         }
         launch = min(launch, deadline)

@@ -1,8 +1,10 @@
 import BattleEngine
+import Foundation
 import Observation
 
 enum BattleCardCuePresentationMode: Equatable {
     case preview
+    case pressPreview
     case tapCommit
 }
 
@@ -16,8 +18,15 @@ struct BattleCardCue: Equatable {
     let actorID: String
     var phase: Phase
     let mode: BattleCardCuePresentationMode
+    let startedAt: Date
     let denial: BattlePlayError?
     let resources: [BattleCardAssessment.ResourceUse]
+
+    func windUpEndsAt(releasedAt date: Date) -> Date {
+        mode == .pressPreview
+            ? startedAt.addingTimeInterval(CombatFeedbackAttackRecipes.timing(isPartyMember: true).preparation)
+            : date
+    }
 }
 
 @MainActor
@@ -35,6 +44,7 @@ final class BattleCardCueState {
         cardID: Int,
         assessment: BattleCardAssessment,
         mode: BattleCardCuePresentationMode? = nil,
+        at date: Date = .now,
     ) {
         guard assessment.denial == nil else { return }
         liftedCardIDs.insert(cardID)
@@ -44,7 +54,7 @@ final class BattleCardCueState {
         if let previous = current, previous.cardID == cardID, previous.phase == .lifted {
             current = BattleCardCue(
                 id: previous.id, cardID: cardID, actorID: assessment.actorID, phase: .lifted,
-                mode: resolvedMode,
+                mode: resolvedMode, startedAt: previous.startedAt,
                 denial: nil, resources: assessment.resources,
             )
             return
@@ -53,7 +63,7 @@ final class BattleCardCueState {
         nextID &+= 1
         current = BattleCardCue(
             id: nextID, cardID: cardID, actorID: assessment.actorID, phase: .lifted,
-            mode: resolvedMode,
+            mode: resolvedMode, startedAt: date,
             denial: nil, resources: assessment.resources,
         )
     }
@@ -84,7 +94,7 @@ final class BattleCardCueState {
         nextID &+= 1
         current = BattleCardCue(
             id: nextID, cardID: cardID, actorID: actorID, phase: .denied,
-            mode: .preview,
+            mode: .preview, startedAt: .now,
             denial: reason, resources: [],
         )
         scheduleClear(after: .milliseconds(400))

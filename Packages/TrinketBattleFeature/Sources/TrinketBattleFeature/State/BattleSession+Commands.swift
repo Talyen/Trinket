@@ -50,15 +50,16 @@ extension BattleSession {
                 return .rejected
             }
 
-            let preparedCardID = cardCues.current.flatMap {
-                $0.cardID == cardID && $0.phase == .lifted && $0.mode == .preview ? cardID : nil
+            let preparedCue = cardCues.current.flatMap { cue in
+                cue.cardID == cardID && cue.phase == .lifted && cue.mode != .tapCommit ? cue : nil
             }
             cardCues.commit(cardID: cardID)
 
             isShowingAutoBattlePauseNotice = false
             cancelPendingAutoEnd()
             presentCompletedCommand(
-                resolution.playback, at: date, playedCardID: cardID, preparedCardID: preparedCardID,
+                resolution.playback, at: date, playedCardID: cardID, preparedCardID: preparedCue?.cardID,
+                preparedWindUpEndsAt: preparedCue?.windUpEndsAt(releasedAt: date),
                 handDeparture: handDeparture,
             )
             return .committed

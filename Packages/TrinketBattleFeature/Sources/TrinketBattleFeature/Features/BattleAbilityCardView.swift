@@ -191,12 +191,17 @@ struct BattleAbilityCardView: View {
         if interactionResolution == .idle {
             interactionResolution = .pressing
             onInteractionChanged(true)
+            announceWindUpIfNeeded(mode: .pressPreview)
         }
         if !didExceedTapSlop,
            BattleCardGesturePolicy.exceedsTapSlop(translation: value.translation) {
             didExceedTapSlop = true
             interactionResolution = .dragging
-            announceWindUpIfNeeded(mode: .preview)
+            if didAnnounceWindUp {
+                onLift?(.preview)
+            } else {
+                announceWindUpIfNeeded(mode: .preview)
+            }
         }
         // A hold keeps its fan position; finger jitter must not start drag presentation.
         guard didExceedTapSlop else { return }
@@ -253,6 +258,7 @@ struct BattleAbilityCardView: View {
 
     private func presentInspection() {
         guard scenePhase == .active, !isDetailPresented else { return }
+        cancelAnnouncedWindUp()
         interactionResolution = .inspecting
         onInteractionChanged(true)
         inspectFeedbackToken &+= 1

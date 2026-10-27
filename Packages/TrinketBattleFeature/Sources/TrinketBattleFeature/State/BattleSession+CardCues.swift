@@ -1,13 +1,20 @@
 import BattleEngine
+import Foundation
 import TrinketContent
 
 extension BattleSession {
     func beginCardCue(
         _ card: BattleCard,
         mode: BattleCardCuePresentationMode = .preview,
+        at date: Date = .now,
     ) {
         guard canPresentCardCue, let state = engineState else { return }
         if cardCues.current?.cardID == card.id, cardCues.current?.phase == .lifted {
+            if mode == .preview, cardCues.current?.mode == .pressPreview {
+                let assessment = state.assessCard(card)
+                guard assessment.denial == nil else { return }
+                cardCues.begin(cardID: card.id, assessment: assessment, mode: mode, at: date)
+            }
             return
         }
         let assessment = state.assessCard(card)
@@ -15,9 +22,9 @@ extension BattleSession {
         if let previous = cardCues.current, previous.phase == .lifted, previous.cardID != card.id {
             publishAttackTelegraph(.cancel, for: previous.actorID)
         }
-        cardCues.begin(cardID: card.id, assessment: assessment, mode: mode)
-        if card.ability.dealsCombatDamage, mode == .preview {
-            publishAttackTelegraph(.windUp, for: assessment.actorID)
+        cardCues.begin(cardID: card.id, assessment: assessment, mode: mode, at: date)
+        if card.ability.dealsCombatDamage, mode != .tapCommit {
+            feedback.previewAttack(.windUp, for: assessment.actorID, at: date)
         }
     }
 

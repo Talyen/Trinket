@@ -5,6 +5,7 @@ extension BattleFeedbackLane {
     func scheduleActions(
         _ playback: BattleTransitionPlayback,
         preparedCardID: Int?,
+        preparedWindUpEndsAt: Date? = nil,
         at date: Date,
         cardPlayback: BattleCardPlaybackState,
         handDeparture: (id: UUID, card: BattleCard)? = nil,
@@ -38,7 +39,12 @@ extension BattleFeedbackLane {
             let windUp = actorID == nil || isPrepared ? 0 : (isBurst ? timing.preparationCap : timing.preparation)
             let revealAt = max(date, previousImpact ?? date)
             let startAt = card == nil ? revealAt : revealAt.addingTimeInterval(BattleMotion.cardDealDuration)
-            let swingAt = startAt.addingTimeInterval(windUp)
+            let preparedEnd = isBurst
+                ? min(preparedWindUpEndsAt ?? startAt, date.addingTimeInterval(timing.preparationCap))
+                : (preparedWindUpEndsAt ?? startAt)
+            let swingAt = isPrepared && actorID != nil
+                ? max(startAt, preparedEnd)
+                : startAt.addingTimeInterval(windUp)
             let impactAt = max(
                 swingAt.addingTimeInterval(actorID == nil ? 0 : timing.swing),
                 previousImpact?.addingTimeInterval(timing.swing) ?? date,
