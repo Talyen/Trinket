@@ -34,7 +34,7 @@ struct ItemPickerItems {
             } else if !searchText.isEmpty {
                 let previousItems = Dictionary(uniqueKeysWithValues: self.inventory.lazy.map { ($0.id, $0) })
                 // Keep cached descriptions only while their item and locale are unchanged.
-                searchText = Dictionary(uniqueKeysWithValues: inventory.lazy.compactMap { item in
+                searchText = Dictionary(uniqueKeysWithValues: inventory.compactMap { item in
                     guard previousItems[item.id] == item, let text = searchText[item.id] else { return nil }
                     return (item.id, text)
                 })
