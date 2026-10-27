@@ -137,7 +137,7 @@ public enum SimulationEquipmentPolicy {
                 }
             }
             if cachedValues[bonusKeywords] == nil {
-                cachedValues[bonusKeywords] = Dictionary(uniqueKeysWithValues: inventory.lazy.map { item in
+                cachedValues[bonusKeywords] = Dictionary(uniqueKeysWithValues: inventory.map { item in
                     (item.id, value(item, bonusKeywords: bonusKeywords))
                 })
             }
