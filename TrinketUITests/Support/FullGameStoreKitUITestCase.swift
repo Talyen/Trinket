@@ -45,10 +45,11 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
     }
 
     func assertFullGameAccess(_ expected: Bool) {
-        waitUntil("Full Game access must become \(expected)") {
+        let matched = trinketWaitUntil(timeout: Self.defaultTimeout) {
             do { return try self.coverageReport()["fullGameAccess"] as? Bool == expected }
             catch { return false }
         }
+        XCTAssertTrue(matched, "Full Game access must become \(expected); diagnostics: \((try? coverageReport()) ?? [:])")
     }
 
     func assertWarlockAccessible() {

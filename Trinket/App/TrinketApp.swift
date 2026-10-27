@@ -259,7 +259,7 @@ private struct PreparedAppRoot: View {
         .environment(battleSession)
         .environment(\.playSFX, playSFXAction)
         #if DEBUG
-            .coverageTestEnvironment(playerSave: appState.playerSave)
+            .coverageTestEnvironment(appState: appState)
         #endif
             .task {
                 await runPurchaseSync()
