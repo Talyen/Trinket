@@ -90,13 +90,23 @@ enum CombatSFXMapper {
     ) -> String? {
         var selection = Selection()
         let cardSources = CombatCardSourceKey.cardSources(in: events)
-        let thornsSources = Set(events.filter { $0.effectKind == .thornsApplied }.compactMap(CombatCardSourceKey.init))
+        let thornsSources = Set(events.lazy.filter { $0.effectKind == .thornsApplied }.compactMap(CombatCardSourceKey.init))
         let recorded = Set(damage.map { DamageKey(targetID: $0.targetID, keyword: $0.keyword) })
         for (index, hit) in damage.enumerated() {
-            let matching = events.indices.filter {
-                events[$0].targetID == hit.targetID && events[$0].keyword == hit.keyword && isDamageEvent(events[$0])
+            var firstMatch: Int?
+            var firstAbilityDamage: Int?
+            for eventIndex in events.indices {
+                let event = events[eventIndex]
+                guard event.targetID == hit.targetID, event.keyword == hit.keyword, isDamageEvent(event) else { continue }
+                if firstMatch == nil {
+                    firstMatch = eventIndex
+                }
+                if event.kind == .abilityDamage {
+                    firstAbilityDamage = eventIndex
+                    break
+                }
             }
-            let order = matching.first { events[$0].kind == .abilityDamage } ?? matching.first ?? (events.count + index)
+            let order = firstAbilityDamage ?? firstMatch ?? (events.count + index)
             switch hit.impact {
             case .dodged:
                 selection.offer(SFXID.dodge, priority: 0, order: order)

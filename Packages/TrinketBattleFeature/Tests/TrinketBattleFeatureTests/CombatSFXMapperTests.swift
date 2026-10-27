@@ -171,6 +171,17 @@ struct CombatSFXMapperTests {
         ], damage: [.init(targetID: "enemy", keyword: .burn, impact: .landed(blocked: 0, healthLost: 3), isCritical: false)]) == SFXID.heal)
     }
 
+    @Test func `structured damage prefers the first matching ability event over an earlier status`() {
+        let impact = BattleResolvedDamage(
+            targetID: "enemy", keyword: .poison, impact: .landed(blocked: 0, healthLost: 3), isCritical: false,
+        )
+        let status = event(1, kind: .status, amount: 3, keyword: .poison)
+        let ability = event(2, amount: 3, keyword: .poison)
+        #expect(CombatSFXMapper.clipID(for: [status, ability], damage: [impact]) == SFXID.hitPiercing)
+        #expect(CombatSFXMapper.clipID(for: [status], damage: [impact]) == SFXID.poisonTick)
+        #expect(CombatSFXMapper.clipID(for: [], damage: [impact]) == SFXID.hitPiercing)
+    }
+
     @Test func `partial absorption competes numerically while a dodge needs no amount`() {
         for (blocked, healthLost, clip) in [
             (5, 0, SFXID.blockAbsorb),

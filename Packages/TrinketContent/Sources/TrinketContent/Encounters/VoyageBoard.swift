@@ -48,7 +48,7 @@ public enum VoyageBoard {
         let previous = offers[index]
         let used = Set(offers.map(\.chapterID))
         let candidates = chapterIDs(access: access).filter { !used.contains($0) }
-        let usedModifiers = Set(offers.enumerated().filter { $0.offset != index }.map(\.element.rewardModifier))
+        let usedModifiers = Set(offers.enumerated().lazy.filter { $0.offset != index }.map(\.element.rewardModifier))
         let pool = eligibleModifiers.filter { !usedModifiers.contains($0) }
         let modifier = (pool.isEmpty ? eligibleModifiers : pool).randomElement(using: &rng) ?? .gold
         var replaced = offers

@@ -6,9 +6,11 @@ import TrinketPersistence
 
 public extension StageSelectRowPresentation where Item == VoyageOffer {
     static func voyageOffers(_ offers: [VoyageOffer], inventory: PlayerInventoryState) -> [Self] {
-        offers.map { offer in
+        guard !offers.isEmpty else { return [] }
+        let ownership = RewardOwnership(inventory)
+        return offers.map { offer in
             let modifier = offer.rewardModifier.resolved(
-                ownedTrinketIDs: inventory.ownedTrinketIDs, ownedUniqueIDs: inventory.ownedUniqueIDs,
+                ownedTrinketIDs: ownership.ownedTrinketIDs, ownedUniqueIDs: ownership.ownedUniqueIDs,
             )
             return Self(
                 item: offer, isActive: true, activeEyebrow: offer.difficulty.title, mapLabel: offer.difficulty.title,
@@ -30,8 +32,9 @@ public extension StageSelectRowPresentation where Item == VoyageOffer {
 
 public extension StageSelectRowPresentation where Item == VoyageNode {
     static func voyageNodes(_ run: VoyageRun, inventory: PlayerInventoryState) -> [Self] {
-        run.nodes.filter { !$0.isCleared }.map { node in
-            let isActive = node.id == run.nextNode?.id
+        let nextNodeID = run.nextNode?.id
+        return run.nodes.filter { !$0.isCleared }.map { node in
+            let isActive = node.id == nextNodeID
             return Self(
                 item: node, isActive: isActive, activeEyebrow: "",
                 mapLabel: "", title: node.enemyID.flatMap { GameContent.enemy(matching: $0)?.name } ?? node.type.title,

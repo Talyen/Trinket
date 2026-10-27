@@ -21,7 +21,7 @@ extension BattleSession {
             snapshot.hand = Array((remaining + snapshot.hand.filter { !remainingIDs.contains($0.id) })
                 .prefix(BattleHand.maxSize))
         }
-        let actionEventIDs = Set(playback.actions.flatMap(\.eventIDs))
+        let actionEventIDs = Set(playback.actions.lazy.flatMap(\.eventIDs))
         let standaloneDraws = playback.events.filter {
             $0.effectKind == .cardsDrawn && !actionEventIDs.contains($0.id)
         }

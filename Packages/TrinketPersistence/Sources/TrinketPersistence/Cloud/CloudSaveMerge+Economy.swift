@@ -115,7 +115,7 @@ extension CloudSaveMerge {
             resources.formUnion(homestead.validPendingProduction.keys)
             for (id, activeTier) in homestead.nodeTiers where activeTier > 0 {
                 guard let tier = GameContent.homesteadNode(matching: id)?.tier(activeTier) else { continue }
-                resources.formUnion(tier.production.filter { $0.quantity > 0 }.map(\.resource))
+                resources.formUnion(tier.production.lazy.filter { $0.quantity > 0 }.map(\.resource))
             }
         }
         return resources

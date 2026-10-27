@@ -139,7 +139,8 @@ enum CloudSaveMerge {
                 preferred: merged.journey.shopPayloads[id], other: payload,
             )
         }
-        if let last = GameContent.chapters.flatMap(\.stages).last(where: { merged.journey.completedStageIDs.contains($0.id) }) {
+        if let last = GameContent.chapters.reversed().lazy.flatMap({ $0.stages.reversed() })
+            .first(where: { merged.journey.completedStageIDs.contains($0.id) }) {
             merged.journey.complete(last, in: GameContent.chapters)
         }
     }
