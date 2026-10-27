@@ -120,8 +120,8 @@ launch effect prewarming exercises it before battle. Freeze snowflakes continue
 to transform a cached unit path. Both retain their existing motion and cadence.
 With native Reduce Motion enabled, Stun stars and Freeze crystals stay visible in
 a settled static pose, Death's Door keeps a steady border, and combatant cards
-omit attack lunges, impact recoil, and celebration transforms. Impact delivery,
-floating results, sounds, haptics, and action timing remain unchanged.
+omit attack lunges, impact recoil, and celebration transforms. Floating results
+remain stationary; impact delivery, sounds, haptics, and action timing remain unchanged.
 Automatic card reveals fade at their staging position; hand deals fade and hand
 reflow changes directly. Cast departures and defeated artwork fade in place
 without shrinking, rising, splitting, or emitting traveling particles. Finger
@@ -186,6 +186,20 @@ Death's Door appear lower right, interpreted from the recipient's perspective.
 DoT applications are status feedback; actual DoT damage uses the center region.
 Stripped Block appears as a loss in the lower right and does not trigger a Block
 absorption reaction.
+
+For card actions, meaningful authored damage and healing take the center. If neither
+occurs, the first successful authored operation takes the center, including Block
+or a status. Preserve operation attribution before automatic-play origin conversion
+and aggregation, so costs and triggered benefits remain secondary and cannot merge
+into the primary result. Multi-recipient results of the chosen operation share that
+emphasis. A direct Health cost stays in the setback region.
+
+Elemental reaction names share one announcement with their actual typed payoff,
+separate from the triggering hit and other reaction types. Carry reaction identity
+from resolution; do not infer it from a keyword or displayed name. If no payoff is
+available in the presentation beat, retain the standalone announcement or damage.
+Reduce Motion holds feedback at a fixed position and scale without the pop, travel,
+or shine sweep; Critical keeps a steady accent. Timing and expiry remain unchanged.
 
 Lower chips use 80% of the central base size, a smaller 0.85-to-1.20 pop settling
 to 1.0 at 0.16 seconds, a 0.92-second lifetime with a 0.34-second fade, and no automatic rise.

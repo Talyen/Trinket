@@ -176,7 +176,7 @@ final class CombatFeedbackRasterPool {
         }
         missCount += 1
         switch item.label {
-        case .amount:
+        case .amount, .reactionPayoff:
             numericMissCount += 1
         case .word where preparedCatalogKey != nil, .reaction where preparedCatalogKey != nil:
             unexpectedClosedVocabularyBuildCount += 1

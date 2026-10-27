@@ -267,6 +267,7 @@ enum ElementalReactionEngine {
         context.nextEvent(
             kind: .abilityDamage, source: context.eventSource(actorID: sourceID, fallback: context.enemy),
             abilityName: reaction.displayName, target: context.enemy, amount: outcome.healthLost, keyword: reaction.damageKeyword,
+            reactionPayoff: reaction,
         )
     }
 }

@@ -66,7 +66,8 @@ extension BattleTurnEngine {
         var appliedEffects: [Effect] = []
         var reservedKeywordOverride: Keyword?
         var pendingSettlement: CombatOutcome?
-        for operation in resolvedAbility.operations {
+        for (index, operation) in resolvedAbility.operations.enumerated() {
+            context.resolution.setAuthoredOperation(index)
             switch operation {
             case let .damage(component):
                 if let pending = pendingSettlement, let hit = pending.elementalHit {
@@ -90,6 +91,7 @@ extension BattleTurnEngine {
                     appliedEffects.append(applied)
                 }
             }
+            context.resolution.setAuthoredOperation(nil)
         }
 
         if let pending = pendingSettlement, let hit = pending.elementalHit {

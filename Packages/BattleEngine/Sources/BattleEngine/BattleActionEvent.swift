@@ -70,6 +70,10 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
     public let actionID: Int
     public let feedbackGroupID: Int
     public let origin: Origin
+    /// The authored card operation that produced this result, before automatic-play attribution.
+    public let authoredCardOperation: Int?
+    /// Identifies an elemental reaction's actual damage payoff.
+    public let reactionPayoff: CombatReaction?
     public let isFullyBlocked: Bool
     public let kind: Kind
     public var effectKind: EffectOutcome? {
@@ -114,11 +118,15 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
         feedbackGroupID: Int? = nil,
         origin: Origin = .direct,
         isFullyBlocked: Bool = false,
+        authoredCardOperation: Int? = nil,
+        reactionPayoff: CombatReaction? = nil,
     ) {
         self.id = id
         self.actionID = actionID
         self.feedbackGroupID = feedbackGroupID ?? actionID
         self.origin = origin
+        self.authoredCardOperation = authoredCardOperation
+        self.reactionPayoff = reactionPayoff
         self.isFullyBlocked = isFullyBlocked
         self.kind = kind
         self.actorID = actorID

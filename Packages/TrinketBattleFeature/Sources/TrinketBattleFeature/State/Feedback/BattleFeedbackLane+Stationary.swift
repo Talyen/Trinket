@@ -131,6 +131,7 @@ struct CombatFeedbackMergeCandidates {
         let keyword: Keyword
         let feedbackClass: CombatFeedbackClass
         let visualRole: CombatFeedbackVisualRole
+        let isPrimaryCardResult: Bool
 
         init(_ item: CombatFeedbackItem) {
             targetID = item.targetID
@@ -138,6 +139,7 @@ struct CombatFeedbackMergeCandidates {
             keyword = item.keyword
             feedbackClass = item.feedbackClass
             visualRole = item.visualRole
+            isPrimaryCardResult = item.isPrimaryCardResult
         }
     }
 

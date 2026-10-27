@@ -36,6 +36,8 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     var firstScheduledAt: Date
     var lastUpdatedAt: Date?
     var isCritical: Bool
+    let isPrimaryCardResult: Bool
+    let isCardHealthCost: Bool
     var criticalAt: Date?
 
     init(
@@ -54,8 +56,12 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         firstScheduledAt: Date? = nil,
         isCritical: Bool = false,
         effectKind: ActionEvent.EffectOutcome? = nil,
+        isPrimaryCardResult: Bool = false,
+        isCardHealthCost: Bool = false,
     ) {
         self.effectKind = effectKind
+        self.isPrimaryCardResult = isPrimaryCardResult
+        self.isCardHealthCost = isCardHealthCost
         lastReceivedAt = firstScheduledAt ?? availableAt
         self.id = id
         self.sourceEventIDs = sourceEventIDs
@@ -77,6 +83,15 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     var region: CombatFeedbackRegion {
         if case .reaction = label {
             return .announcement
+        }
+        if case .reactionPayoff = label {
+            return .announcement
+        }
+        if isCardHealthCost {
+            return .setback
+        }
+        if isPrimaryCardResult {
+            return .impact
         }
         if case .word(.cleanse) = label {
             return .benefit

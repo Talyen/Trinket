@@ -32,6 +32,7 @@ struct CombatResolution {
         var prismaticEdgeDidRoll = false
         var prismaticEdgeKeyword: Keyword?
         var enemyAttack: EnemyTraitEngine.Attack?
+        var authoredOperation: Int?
     }
 
     private struct Card {
@@ -72,6 +73,16 @@ struct CombatResolution {
 
     var actionID: Int? {
         currentAction?.id
+    }
+
+    var authoredCardOperation: Int? {
+        guard currentAction?.cardID != nil else { return nil }
+        return currentAction?.authoredOperation
+    }
+
+    mutating func setAuthoredOperation(_ index: Int?) {
+        guard !actions.isEmpty else { return }
+        actions[actions.count - 1].authoredOperation = index
     }
 
     var actionContext: BattleActionContext? {

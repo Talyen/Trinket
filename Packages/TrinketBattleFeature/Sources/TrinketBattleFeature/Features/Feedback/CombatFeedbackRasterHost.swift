@@ -26,6 +26,7 @@ struct CombatFeedbackRasterSlot: View {
 
 private struct CombatFeedbackRasterHost: UIViewRepresentable {
     @Environment(\.balancedCombatFeedback) private var balancedCombatFeedback
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let bridge: CombatFeedbackChipBridge
     let combatantID: String
     let layoutDirection: LayoutDirection
@@ -48,6 +49,7 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
     func makeUIView(context _: Context) -> CombatFeedbackRasterUIView {
         let view = CombatFeedbackRasterUIView()
         view.usesBalancedFeedback = balancedCombatFeedback
+        view.reduceMotion = reduceMotion
         view.bottomInset = bottomInset
         bridge.register(
             view,
@@ -64,6 +66,7 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
             context.coordinator.bridge = bridge
         }
         uiView.usesBalancedFeedback = balancedCombatFeedback
+        uiView.reduceMotion = reduceMotion
         uiView.bottomInset = bottomInset
         bridge.register(
             uiView,
@@ -122,6 +125,14 @@ final class CombatFeedbackRasterUIView: UIView {
     private var orderedLayers: [ChipLayer] = []
     private var reusableLayers: [CALayer] = []
     var usesBalancedFeedback = false
+    var reduceMotion = false {
+        didSet {
+            if reduceMotion != oldValue {
+                tickMotion(at: .now)
+            }
+        }
+    }
+
     #if DEBUG
     private(set) var debugApplyCount = 0
     private(set) var debugLayoutCount = 0
@@ -476,11 +487,17 @@ private extension CombatFeedbackRasterUIView {
             if usesBalancedFeedback {
                 state = BalancedFeedbackMotion.state(for: chip.item, at: date)
             }
+            if reduceMotion {
+                state = CombatFeedbackAnimationState(
+                    opacity: 1, scale: chip.item.region == .announcement ? 1.25 : chip.item.region == .impact ? 1.2 : 0.96,
+                    riseProgress: 0, shineProgress: 1,
+                )
+            }
             let elapsed = sample.elapsed
             let scale = slot.fitScale * state.scale
             var position = CGPoint(
                 x: chip.basePosition.x,
-                y: chip.basePosition.y - chip.lanePush.offset(at: elapsed) - riseDistance * state.riseProgress,
+                y: chip.basePosition.y - chip.lanePush.offset(at: reduceMotion ? 1000 : elapsed) - riseDistance * state.riseProgress,
             )
             var edgeOpacity = StationaryFeedbackLayout.edgeOpacity(centerY: position.y, in: bounds)
             if usesBalancedFeedback {
@@ -492,7 +509,7 @@ private extension CombatFeedbackRasterUIView {
                         height: chip.reservationSize.height * slot.fitScale,
                     ),
                     state: state,
-                    elapsed: elapsed,
+                    elapsed: reduceMotion ? 0.4 : elapsed,
                     bounds: bounds,
                 )
                 edgeOpacity = 1
@@ -504,11 +521,11 @@ private extension CombatFeedbackRasterUIView {
                 evicted?.insert(chip.item.id)
             }
             updateLayer(chip.layer, position: position, scale: scale, opacity: Float(state.opacity * edgeOpacity), index: index)
-            let shadowOpacity = sample.shadowOpacity
+            let shadowOpacity: Float = reduceMotion ? (chip.item.isCritical ? 1 : 0) : sample.shadowOpacity
             if chip.layer.shadowOpacity != shadowOpacity {
                 chip.layer.shadowOpacity = shadowOpacity
             }
-            updateShine(for: chip, state: state, flashOpacity: sample.flashOpacity)
+            updateShine(for: chip, state: state, flashOpacity: reduceMotion ? 0 : sample.flashOpacity)
         }
         guard let evicted, !evicted.isEmpty else { return }
         for id in evicted {

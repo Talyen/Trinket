@@ -40,6 +40,7 @@ struct ElementalReactionTests {
         #expect(outcome.value.healthLost == 1)
         #expect(reactions(outcome.events) == [.shatter])
         #expect(outcome.events.contains { $0.abilityName == "Shatter" && $0.kind == .abilityDamage && $0.amount == 5 && !$0.isCritical })
+        #expect(outcome.events.first { $0.abilityName == "Shatter" && $0.kind == .abilityDamage }?.reactionPayoff == .shatter)
         #expect(state.roster.enemy.currentHealth == 74)
         #expect(state.roster.hasControlStatus(for: state.enemy, keyword: .freeze))
         #expect(DefensePoolEngine.blockPoints(in: state.activeEffects(of: state.enemy)) == 0)

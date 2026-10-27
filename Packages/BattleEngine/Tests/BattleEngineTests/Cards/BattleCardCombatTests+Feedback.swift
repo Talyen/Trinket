@@ -19,6 +19,8 @@ extension BattleCardCombatTests {
         let thorns = try #require(events.first { $0.effectKind == .thornsApplied })
         #expect(block.origin == .direct)
         #expect(thorns.origin == .automatic)
+        #expect(block.authoredCardOperation == 0)
+        #expect(thorns.authoredCardOperation == nil)
         #expect(Set(events.map(\.feedbackGroupID)).count == 1)
         let next = battle.performTestAction(ability)
         #expect(next.first?.feedbackGroupID != block.feedbackGroupID)
@@ -26,6 +28,16 @@ extension BattleCardCombatTests {
             context.performTestAction(ability)
         }
         #expect(automatic.filter { $0.effectKind == .shieldApplied }.allSatisfy { $0.origin == .automatic })
+    }
+
+    @Test func `automatic card retains its authored Block operation`() throws {
+        let ability = Ability(id: "guard", name: "Guard", tier: .basic, effects: [.shield(.block, 4)])
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(heroAbilities: [ability], appliesFightPacing: false)
+        let card = try #require(battle.hand.cards.first)
+        let events = try battle.withAutomaticPlay { context in try context.playCard(cardID: card.id).events }
+        let block = try #require(events.first { $0.effectKind == .shieldApplied })
+        #expect(block.origin == .automatic)
+        #expect(block.authoredCardOperation == 0)
     }
 
     @Test(arguments: [2, 8])

@@ -270,6 +270,9 @@ enum BattleSessionTestSupport {
         actionID: Int? = nil,
         abilityID: String = "slash",
         abilityName: String = "Slash",
+        authoredCardOperation: Int? = nil,
+        reactionPayoff: CombatReaction? = nil,
+        origin: ActionEvent.Origin = .direct,
     ) -> ActionEvent {
         ActionEvent(
             id: id,
@@ -284,7 +287,10 @@ enum BattleSessionTestSupport {
             amount: amount,
             keyword: keyword,
             isCritical: isCritical,
+            origin: origin,
             isFullyBlocked: isFullyBlocked,
+            authoredCardOperation: authoredCardOperation,
+            reactionPayoff: reactionPayoff,
         )
     }
 }

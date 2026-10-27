@@ -21,6 +21,9 @@ enum CombatFeedbackPresenter {
         if case .reaction = label {
             return -1
         }
+        if case .reactionPayoff = label {
+            return -1
+        }
         return displayPriority(for: feedbackClass)
     }
 
@@ -59,16 +62,20 @@ enum CombatFeedbackPresenter {
         at date: Date,
         actionGroupID: Int? = nil,
     ) -> [CombatFeedbackItem] {
-        let filteredSources = filterDisplayable(events).enumerated().map { order, event in
-            PreparedSource(event: event, sourceEventIDs: [event.id], originalOrder: order)
+        let filtered = filterDisplayable(events)
+        let primaryEvents = primaryCardEvents(in: filtered)
+        let filteredSources = filtered.enumerated().map { order, event in
+            PreparedSource(
+                event: event, sourceEventIDs: [event.id], originalOrder: order,
+                isPrimary: primaryEvents.contains(event.id),
+            )
         }
         var groupOrder: [PresentationGroupKey] = []
         var grouped: [
             PresentationGroupKey: [(source: PreparedSource, label: CombatFeedbackChipLabel, feedbackClass: CombatFeedbackClass)]
         ] =
             [:]
-        for source in consolidate(filteredSources) {
-            guard let label = CombatFeedbackChipLabel.from(event: source.event), !label.isZeroNumeric else { continue }
+        for (source, label) in labels(for: consolidate(filteredSources)) {
             let key = PresentationGroupKey(actionID: actionGroupID ?? source.event.feedbackGroupID, targetID: source.event.targetID)
             if grouped[key] == nil {
                 groupOrder.append(key)
@@ -103,6 +110,8 @@ enum CombatFeedbackPresenter {
                     reactionKind: event.kind == .status || event.origin == .periodic ? .none : reactionKind(for: feedbackClass),
                     isCritical: event.isCritical,
                     effectKind: feedbackClass == .directDamage ? nil : (feedbackClass == .heal ? .instantHeal : event.effectKind),
+                    isPrimaryCardResult: item.source.isPrimary,
+                    isCardHealthCost: isCardHealthCost(event),
                 )
             }
         }
@@ -112,6 +121,7 @@ enum CombatFeedbackPresenter {
         var event: ActionEvent
         var sourceEventIDs: [Int]
         let originalOrder: Int
+        let isPrimary: Bool
     }
 
     private struct AggregationKey: Hashable {
@@ -125,11 +135,54 @@ enum CombatFeedbackPresenter {
         let keyword: Keyword
         let family: Family
         let isNegative: Bool
+        let isPrimary: Bool
+        let isCardHealthCost: Bool
+        let reactionPayoff: CombatReaction?
     }
 
     private struct PresentationGroupKey: Hashable {
         let actionID: Int
         let targetID: String
+    }
+
+    private struct PrimaryCandidate {
+        let event: ActionEvent
+        let operation: Int
+        let isHitOrHeal: Bool
+    }
+
+    private static func labels(for sources: [PreparedSource]) -> [(PreparedSource, CombatFeedbackChipLabel)] {
+        var consumed: Set<Int> = []
+        return sources.compactMap { original in
+            var source = original
+            guard !consumed.contains(source.event.id) else { return nil }
+            guard var label = CombatFeedbackChipLabel.from(event: source.event), !label.isZeroNumeric else { return nil }
+            if let payoff = source.event.reactionPayoff,
+               sources.contains(where: {
+                   $0.event.kind == .reaction(payoff) && $0.event.targetID == source.event.targetID
+                       && $0.event.feedbackGroupID == source.event.feedbackGroupID
+               }) {
+                return nil
+            }
+            if case let .reaction(reaction) = source.event.kind {
+                let payoffs = sources.filter {
+                    $0.event.reactionPayoff == reaction && $0.event.targetID == source.event.targetID
+                        && $0.event.feedbackGroupID == source.event.feedbackGroupID && $0.event.amount > 0
+                }
+                if !payoffs.isEmpty {
+                    let total = payoffs.reduce(0) { SaturatedArithmetic.saturatingAdd($0, $1.event.amount) }
+                    label = .reactionPayoff(reaction, total)
+                    source.sourceEventIDs += payoffs.flatMap(\.sourceEventIDs)
+                    for duplicate in sources where duplicate.event.id != source.event.id
+                        && duplicate.event.kind == .reaction(reaction) && duplicate.event.targetID == source.event.targetID
+                        && duplicate.event.feedbackGroupID == source.event.feedbackGroupID {
+                        consumed.insert(duplicate.event.id)
+                        source.sourceEventIDs += duplicate.sourceEventIDs
+                    }
+                }
+            }
+            return (source, label)
+        }
     }
 
     private static func filterDisplayable(_ events: [ActionEvent]) -> [ActionEvent] {
@@ -152,6 +205,9 @@ enum CombatFeedbackPresenter {
                 }
                 let descriptor = CombatFeedbackEffectPresentation.descriptor(for: effectKind)
                 if descriptor.feedbackClass == .buff || descriptor.feedbackClass == .resource, event.origin != .direct {
+                    if event.authoredCardOperation != nil {
+                        return descriptor.shouldDisplay(amount: event.amount)
+                    }
                     guard let source = CombatCardSourceKey(event) else { return false }
                     if cardSources == nil {
                         cardSources = CombatCardSourceKey.cardSources(in: events)
@@ -167,7 +223,7 @@ enum CombatFeedbackPresenter {
         var result: [PreparedSource] = []
         var keyIndices: [AggregationKey: Int] = [:]
         for source in sources {
-            guard let key = aggregationKey(for: source.event) else {
+            guard let key = aggregationKey(for: source) else {
                 result.append(source)
                 continue
             }
@@ -188,7 +244,8 @@ enum CombatFeedbackPresenter {
         return result
     }
 
-    private static func aggregationKey(for event: ActionEvent) -> AggregationKey? {
+    private static func aggregationKey(for source: PreparedSource) -> AggregationKey? {
+        let event = source.event
         let family: AggregationKey.Family
         switch event.kind {
         case .abilityDamage, .status:
@@ -210,7 +267,42 @@ enum CombatFeedbackPresenter {
             keyword: classify(event) == .heal ? .health : event.keyword,
             family: family,
             isNegative: event.amount < 0,
+            isPrimary: source.isPrimary,
+            isCardHealthCost: isCardHealthCost(event),
+            reactionPayoff: event.reactionPayoff,
         )
+    }
+
+    private static func primaryCardEvents(in events: [ActionEvent]) -> Set<Int> {
+        var candidates: [Int: [PrimaryCandidate]] = [:]
+        for event in events {
+            guard let operation = event.authoredCardOperation,
+                  let label = CombatFeedbackChipLabel.from(event: event), !label.isZeroNumeric,
+                  event.effectKind != .blockSpent, event.reactionPayoff == nil else { continue }
+            if isCardHealthCost(event) {
+                continue
+            }
+            let isHitOrHeal = event.kind == .abilityDamage || event.effectKind == .instantHeal || event.effectKind == .overheal
+            candidates[event.feedbackGroupID, default: []].append(PrimaryCandidate(
+                event: event,
+                operation: operation,
+                isHitOrHeal: isHitOrHeal,
+            ))
+        }
+        var result: Set<Int> = []
+        for entries in candidates.values {
+            let hitsAndHeals = entries.filter(\.isHitOrHeal)
+            if hitsAndHeals.isEmpty, let first = entries.map(\.operation).min() {
+                result.formUnion(entries.lazy.filter { $0.operation == first }.map(\.event.id))
+            } else {
+                result.formUnion(hitsAndHeals.map(\.event.id))
+            }
+        }
+        return result
+    }
+
+    private static func isCardHealthCost(_ event: ActionEvent) -> Bool {
+        event.authoredCardOperation != nil && event.kind == .abilityDamage && event.actorID == event.targetID
     }
 
     private static func visualRole(for event: ActionEvent) -> CombatFeedbackVisualRole {

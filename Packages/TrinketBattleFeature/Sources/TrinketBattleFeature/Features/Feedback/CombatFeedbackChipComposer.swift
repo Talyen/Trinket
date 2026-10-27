@@ -103,7 +103,7 @@ enum CombatFeedbackChipComposer {
             displayScale: scale,
             needsShineMask: needsShineMask,
             maximumDigitWidth: atlas.maximumDigitWidth(face: face),
-            textOnly: presentation.reaction != nil,
+            textOnly: presentation.reaction != nil && !presentation.showsReactionPayoff,
             // UIStyleCheck: allow - Raster names blend the two existing keyword semantic colors.
             secondaryTextTint: presentation.reaction.map { UIColor($0.preparationKeyword.visualStyle.color).cgColor },
         )

@@ -27,6 +27,7 @@ struct CombatFeedbackChipPresentation: Hashable {
     let trailingStyle: Style
     let text: String?
     var reaction: CombatReaction?
+    var showsReactionPayoff = false
 
     static func resolve(
         label: CombatFeedbackChipLabel,
@@ -37,6 +38,11 @@ struct CombatFeedbackChipPresentation: Hashable {
         switch label {
         case let .reaction(reaction):
             return Self(leadingStyle: nil, trailingStyle: .keyword(reaction.damageKeyword), text: label.displayString, reaction: reaction)
+        case let .reactionPayoff(reaction, _):
+            return Self(
+                leadingStyle: nil, trailingStyle: .keyword(reaction.damageKeyword), text: label.displayString,
+                reaction: reaction, showsReactionPayoff: true,
+            )
         case .amount:
             let style = trailingStyle(
                 keyword: keyword,

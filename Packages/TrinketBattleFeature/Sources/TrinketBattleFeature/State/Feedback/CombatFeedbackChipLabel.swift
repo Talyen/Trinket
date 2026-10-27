@@ -10,6 +10,7 @@ enum CombatFeedbackChipLabel: Hashable {
     case amount(Int, additive: Bool = true)
     case word(CombatFeedbackChipWord)
     case reaction(CombatReaction)
+    case reactionPayoff(CombatReaction, Int)
 
     func merging(with other: Self) -> Self? {
         switch (self, other) {
@@ -29,6 +30,8 @@ enum CombatFeedbackChipLabel: Hashable {
             Self.formatAmount(value)
         case let .reaction(reaction):
             String(localized: reaction.nameResource)
+        case let .reactionPayoff(reaction, amount):
+            "\(String(localized: reaction.nameResource)) \(Self.formatAmount(amount))"
         case .word:
             ""
         }
@@ -55,7 +58,7 @@ enum CombatFeedbackChipLabel: Hashable {
         switch self {
         case let .amount(value, _):
             value == 0
-        case .word, .reaction:
+        case .word, .reaction, .reactionPayoff:
             false
         }
     }
