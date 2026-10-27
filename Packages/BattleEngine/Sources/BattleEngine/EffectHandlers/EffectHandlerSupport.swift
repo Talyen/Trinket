@@ -9,6 +9,7 @@ enum EffectRemoval {
     }
 
     static func removeDebuffs(from effects: inout [ActiveEffect], keywords: Set<Keyword>) -> [ActiveEffect] {
+        guard !keywords.isEmpty else { return [] }
         let removed = removeMatching(from: &effects, keyword: nil) {
             $0.effect.isRemovableDebuff && keywords.contains($0.keyword)
         }

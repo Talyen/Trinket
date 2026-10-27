@@ -173,11 +173,10 @@ public struct PlayerRosterState: Equatable, Sendable {
     public mutating func unequip(itemID: String) -> Bool {
         var didUnequip = false
         for (combatantID, loadout) in equipmentLoadouts {
+            guard loadout.itemIDsBySlot.values.contains(itemID) else { continue }
             let retained = loadout.itemIDsBySlot.filter { $0.value != itemID }
-            if retained.count != loadout.itemIDsBySlot.count {
-                equipmentLoadouts[combatantID] = EquipmentLoadout(itemIDsBySlot: retained)
-                didUnequip = true
-            }
+            equipmentLoadouts[combatantID] = EquipmentLoadout(itemIDsBySlot: retained)
+            didUnequip = true
         }
         return didUnequip
     }

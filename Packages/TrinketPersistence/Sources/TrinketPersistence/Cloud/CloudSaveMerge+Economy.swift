@@ -10,11 +10,11 @@ extension CloudSaveMerge {
             incoming.homestead.lastProductionAt > $0.homestead.lastProductionAt
                 && existing.homestead.lastProductionAt > $0.homestead.lastProductionAt
         } ?? false
-        let producedResources = overlappingProduction ? productionResources(
+        let collections = productionCollections(branches: branches)
+        let producedResources = overlappingProduction && collections == nil ? productionResources(
             in: [base?.homestead, incoming.homestead, existing.homestead].compactMap(\.self),
         ) : []
         let sharedUpgradeCosts = sharedUpgradeCosts(branches: branches)
-        let collections = productionCollections(branches: branches)
         let canCombine = branches.canCombineIndependentRewards
         var remainders = HomesteadRewardRemainders.zero
         for resource in HomesteadResource.allCases {

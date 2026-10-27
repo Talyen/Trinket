@@ -20,7 +20,7 @@ extension CloudSaveMerge {
            }) {
             return true
         }
-        let runs = [save.voyage.activeRun, base.voyage.activeRun].compactMap(\.self)
+        let runs = [save.voyage.activeRun, base.voyage.activeRun].lazy.compactMap(\.self)
         return runs.contains { run in
             run.nodes.contains { node in
                 base.voyage.node(runID: run.id, nodeID: node.id)?.isCleared != true
@@ -52,7 +52,7 @@ extension CloudSaveMerge {
             }
         }
         var seen: Set<String> = []
-        for run in [first.voyage.activeRun, second.voyage.activeRun, base.voyage.activeRun].compactMap(\.self)
+        for run in [first.voyage.activeRun, second.voyage.activeRun, base.voyage.activeRun].lazy.compactMap(\.self)
             where seen.insert(run.id).inserted {
             count += run.nodes.count { node in
                 (node.type == .mystery || node.type == .recruit)
@@ -68,6 +68,10 @@ extension CloudSaveMerge {
 
     static func hasDuplicateClaim(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave?) -> Bool {
         guard let base else { return true }
+        if hasSharedContractClaim(incoming: incoming, existing: existing, base: base)
+            || hasSharedSpireClaim(incoming: incoming, existing: existing, base: base) {
+            return true
+        }
         let baseItemIDs = Set(base.inventory.items.lazy.map(\.id))
         let incomingItemIDs = Set(incoming.inventory.items.lazy.map(\.id))
         let existingItemIDs = Set(existing.inventory.items.lazy.map(\.id))
@@ -76,8 +80,7 @@ extension CloudSaveMerge {
         if hasSharedJourneyClaim(
             incoming: incoming, existing: existing, base: base,
             incomingNewItemIDs: incomingNewItemIDs, existingNewItemIDs: existingNewItemIDs,
-        ) || hasSharedContractClaim(incoming: incoming, existing: existing, base: base)
-            || hasSharedSpireClaim(incoming: incoming, existing: existing, base: base) {
+        ) {
             return true
         }
         let distinctNewItems = !incomingNewItemIDs.isEmpty && !existingNewItemIDs.isEmpty

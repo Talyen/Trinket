@@ -27,15 +27,9 @@ public struct BlacksmithForgePlan: Sendable {
         guard let recipe = BlacksmithRecipe.matching(recipeID),
               isAvailable(recipe, homestead: homestead, unlockedRecipeIDs: unlockedRecipeIDs) else { return .failure(.unavailable) }
         guard homestead.canAfford(cost: recipe.cost, gold: gold) else { return .failure(.insufficientResources) }
-        var ownedTrinketIDs: Set<String> = []
         var ownedUniqueIDs: Set<String> = []
-        for item in inventory {
-            if item.isTrinket {
-                ownedTrinketIDs.insert(item.templateID)
-            }
-            if item.rarity == .unique {
-                ownedUniqueIDs.insert(item.templateID)
-            }
+        for item in inventory where item.rarity == .unique {
+            ownedUniqueIDs.insert(item.templateID)
         }
         let item = ItemRewardGenerator.generate(
             id: "forge-\(UUID().uuidString)",
@@ -45,7 +39,7 @@ public struct BlacksmithForgePlan: Sendable {
             ),
             allowedTiers: recipe.requiredKeyword == nil ? [.basic, .astral, .unique] : [.basic, .astral],
             requiredKeyword: recipe.requiredKeyword,
-            ownedTrinketIDs: ownedTrinketIDs,
+            ownedTrinketIDs: [],
             ownedUniqueIDs: ownedUniqueIDs,
             partyBias: partyBias,
             eligibleUniqueIDs: uniqueIDsByBase[recipe.baseID] ?? [],

@@ -186,8 +186,8 @@ public enum SimulationEquipmentPolicy {
         }
 
         private func legacyAlignment(_ affix: ItemAffix) -> Bool {
-            let damage = affix.keywords.filter { $0.category == .damageType }
-            return damage.isSubset(of: keywords) && (combatant.hasMana || !affix.keywords.contains(.mana))
+            affix.keywords.allSatisfy { $0.category != .damageType || keywords.contains($0) }
+                && (combatant.hasMana || !affix.keywords.contains(.mana))
         }
 
         private func isRelevant(_ modifier: AffixModifier, bonusKeywords: Set<Keyword>) -> Bool {

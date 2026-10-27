@@ -6,16 +6,15 @@ public enum CombatantBorderAccent: Sendable {
         from effects: [ActiveEffect],
         controlAccentRequiresPendingSkip: Bool = false,
     ) -> Keyword? {
-        if effects.contains(where: { $0.effect.kind == .deathsDoor }) {
-            return .deathsDoor
-        }
-        if controlAccentRequiresPendingSkip {
-            if let control = effects.first(where: \.isAwaitingActionSkip) {
-                return control.keyword
+        var control: Keyword?
+        for active in effects {
+            if active.effect.kind == .deathsDoor {
+                return .deathsDoor
             }
-        } else if let control = effects.first(where: \.effect.isActionSkipPending) {
-            return control.keyword
+            if control == nil, controlAccentRequiresPendingSkip ? active.isAwaitingActionSkip : active.effect.isActionSkipPending {
+                control = active.keyword
+            }
         }
-        return nil
+        return control
     }
 }

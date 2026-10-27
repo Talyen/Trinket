@@ -18,4 +18,14 @@ struct MusicLyricsTests {
         #expect(MusicLyricFrame.at(3, in: phrases)?.phrase == 1)
         #expect(MusicLyricFrame.at(.nan, in: phrases) == nil)
     }
+
+    @Test func `overlapping and out of order timings retain prefix and first active word`() throws {
+        let overlapping = [MusicLyricPhrase(text: "one two three", timings: [0, 3, 1, 4, 2, 5])]
+        let frame = try #require(MusicLyricFrame.at(2, in: overlapping))
+        #expect(frame.visibleWords == 3 && frame.activeWord == 0)
+
+        let outOfOrder = [MusicLyricPhrase(text: "one two three", timings: [0, 1, 3, 4, 1, 5])]
+        let later = try #require(MusicLyricFrame.at(2, in: outOfOrder))
+        #expect(later.visibleWords == 1 && later.activeWord == 2)
+    }
 }

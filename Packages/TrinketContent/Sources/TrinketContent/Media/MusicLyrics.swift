@@ -29,10 +29,26 @@ public struct MusicLyricFrame: Equatable, Sendable {
                   return time >= first.start && time < last.end
               }) else { return nil }
         let words = phrases[phrase].words
+        var visibleWords = 0
+        var activeWord: Int?
+        var stillVisible = true
+        for (index, word) in words.enumerated() {
+            if stillVisible, word.start <= time {
+                visibleWords += 1
+            } else {
+                stillVisible = false
+            }
+            if activeWord == nil, time >= word.start, time < word.end {
+                activeWord = index
+            }
+            if !stillVisible, activeWord != nil {
+                break
+            }
+        }
         return Self(
             phrase: phrase,
-            visibleWords: words.prefix { $0.start <= time }.count,
-            activeWord: words.firstIndex { time >= $0.start && time < $0.end },
+            visibleWords: visibleWords,
+            activeWord: activeWord,
         )
     }
 }

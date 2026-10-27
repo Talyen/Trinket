@@ -5,6 +5,15 @@ import TrinketCore
 @testable import TrinketContent
 
 struct ControlMeterIntegrationTests {
+    @Test func `border accent keeps deaths door priority and first eligible control`() {
+        let lingering = ActiveEffect(id: 1, effect: .controlMeter(.stun, 10, 10), remainingTurns: 1)
+        let pending = ActiveEffect(id: 2, effect: .controlMeter(.freeze, 10, 10), remainingTurns: 0)
+        let door = ActiveEffect(id: 3, effect: .deathsDoor, remainingTurns: 0)
+        #expect(CombatantBorderAccent.keyword(from: [lingering, pending]) == .stun)
+        #expect(CombatantBorderAccent.keyword(from: [lingering, pending], controlAccentRequiresPendingSkip: true) == .freeze)
+        #expect(CombatantBorderAccent.keyword(from: [lingering, pending, door]) == .deathsDoor)
+    }
+
     private func makeControlBattle(
         heroAbilities: [Ability] = [.slash], companionAbilities: [Ability] = [],
         enemyMaxHealth: Int = 100, actionIntervalTurns: Int? = nil,

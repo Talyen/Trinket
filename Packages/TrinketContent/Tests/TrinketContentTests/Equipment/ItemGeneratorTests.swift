@@ -233,4 +233,26 @@ struct ItemGeneratorTests {
         #expect(fallback.baseType.id == "flail")
         #expect(fallback.rarity == .basic)
     }
+
+    @Test func `unrestricted collectible pools preserve selection and random state`() {
+        for tier in [ItemDropTier.trinket, .unique] {
+            for seed in 0 ..< 20 {
+                var unrestricted = SeededRandomNumberGenerator(seed: UInt64(seed))
+                var explicit = unrestricted
+                let first = ItemRewardGenerator.generate(
+                    id: "reward", rewardLevel: 1, allowedTiers: [tier],
+                    ownedTrinketIDs: [], ownedUniqueIDs: [], using: &unrestricted,
+                )
+                let second = ItemRewardGenerator.generate(
+                    id: "reward", rewardLevel: 1, allowedTiers: [tier],
+                    ownedTrinketIDs: [], ownedUniqueIDs: [],
+                    eligibleTrinketIDs: Set(GameContent.trinketItems.lazy.map(\.templateID)),
+                    eligibleUniqueIDs: Set(GameContent.uniqueItems.lazy.map(\.templateID)),
+                    using: &explicit,
+                )
+                #expect(first == second)
+                #expect(unrestricted == explicit)
+            }
+        }
+    }
 }

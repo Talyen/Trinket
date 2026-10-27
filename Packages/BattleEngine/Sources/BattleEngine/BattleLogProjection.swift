@@ -105,9 +105,9 @@ public struct LogEntry: Identifiable, Equatable {
             resources = []
         case .ability:
             var parts = [L10n.log_use(actor, ability)]
-            parts += damage.map {
+            parts.append(contentsOf: damage.lazy.map {
                 L10n.log_damage(actor, $0.amount, $0.keyword.nameResource, ContentCopy.resource($0.targetName), ability)
-            }
+            })
             if healthCost > 0 {
                 parts.append(L10n.log_cost(actor, healthCost))
             }
@@ -148,7 +148,7 @@ public struct LogEntry: Identifiable, Equatable {
             default: resources = []
             }
         }
-        return resources.map { LocalizedGameText($0, locale: locale).text }.joined(separator: "\n")
+        return resources.lazy.map { LocalizedGameText($0, locale: locale).text }.joined(separator: "\n")
     }
 
     private func localizedEffects(locale: Locale) -> [LocalizedStringResource] {

@@ -55,25 +55,20 @@ public enum ItemRewardGenerator {
         case .astral: rarity = .astral
         case .basic: rarity = .basic
         }
-        let baseType = rewardBaseType(
+        let selection = rewardBaseType(
             baseTypes: availability.hasGearPool ? baseTypes : GameContent.itemBaseTypes, fallbackBaseType: fallbackBaseType,
             requiredKeyword: requiredKeyword, keywordBias: keywordBias,
             itemGenerator: itemGenerator, using: &randomNumberGenerator,
         )
-        // A keyword with no eligible base or affix was already degraded to
-        // unbiased gear; don't hand the unsatisfiable requirement downstream.
-        let effectiveKeyword = requiredKeyword.flatMap {
-            Self.supportsKeyword($0, base: baseType, itemGenerator: itemGenerator) ? $0 : nil
-        }
         return itemGenerator.generate(
             id: id,
-            templateID: "\(baseType.id)-\(rarity.rawValue)",
-            baseType: baseType,
+            templateID: "\(selection.base.id)-\(rarity.rawValue)",
+            baseType: selection.base,
             rarity: rarity,
             keywordBias: keywordBias,
             partyBias: partyBias,
             guaranteedAffixIDs: guaranteedAffixIDs,
-            requiredKeyword: effectiveKeyword,
+            requiredKeyword: selection.keyword,
             using: &randomNumberGenerator,
         )
     }
@@ -104,17 +99,29 @@ public enum ItemRewardGenerator {
             // gear instead of trapping; the keyword is dropped below.
             available = [.basic, .astral]
         }
-        let trinkets = available.contains(.trinket) && eligibleTrinketIDs?.isEmpty != true ? GameContent.trinketItems.filter {
-            !ownedTrinketIDs.contains($0.templateID)
-                && !reservedTrinketIDs.contains($0.templateID)
-                && (eligibleTrinketIDs?.contains($0.templateID) ?? true)
-                && (keywordBias.isEmpty || !$0.keywords.isDisjoint(with: keywordBias))
-        } : []
-        let uniques = available.contains(.unique) && eligibleUniqueIDs?.isEmpty != true ? GameContent.uniqueItems.filter {
-            !ownedUniqueIDs.contains($0.templateID)
-                && (eligibleUniqueIDs?.contains($0.templateID) ?? true)
-                && (keywordBias.isEmpty || !$0.keywords.isDisjoint(with: keywordBias))
-        } : []
+        let trinkets: [InventoryItem] = if !available.contains(.trinket) || eligibleTrinketIDs?.isEmpty == true {
+            []
+        } else if ownedTrinketIDs.isEmpty, reservedTrinketIDs.isEmpty, eligibleTrinketIDs == nil, keywordBias.isEmpty {
+            GameContent.trinketItems
+        } else {
+            GameContent.trinketItems.filter {
+                !ownedTrinketIDs.contains($0.templateID)
+                    && !reservedTrinketIDs.contains($0.templateID)
+                    && (eligibleTrinketIDs?.contains($0.templateID) ?? true)
+                    && (keywordBias.isEmpty || !$0.keywords.isDisjoint(with: keywordBias))
+            }
+        }
+        let uniques: [InventoryItem] = if !available.contains(.unique) || eligibleUniqueIDs?.isEmpty == true {
+            []
+        } else if ownedUniqueIDs.isEmpty, eligibleUniqueIDs == nil, keywordBias.isEmpty {
+            GameContent.uniqueItems
+        } else {
+            GameContent.uniqueItems.filter {
+                !ownedUniqueIDs.contains($0.templateID)
+                    && (eligibleUniqueIDs?.contains($0.templateID) ?? true)
+                    && (keywordBias.isEmpty || !$0.keywords.isDisjoint(with: keywordBias))
+            }
+        }
         if trinkets.isEmpty {
             available.remove(.trinket)
         }
@@ -154,19 +161,19 @@ public enum ItemRewardGenerator {
         keywordBias: Set<Keyword>,
         itemGenerator: ItemGenerator,
         using randomNumberGenerator: inout some RandomNumberGenerator,
-    ) -> ItemBaseType {
+    ) -> (base: ItemBaseType, keyword: Keyword?) {
         if let keyword = requiredKeyword {
             func supports(_ base: ItemBaseType) -> Bool {
                 Self.supportsKeyword(keyword, base: base, itemGenerator: itemGenerator)
             }
             if let selected = baseTypes.filter(supports).randomElement(using: &randomNumberGenerator) {
-                return selected
+                return (selected, keyword)
             }
             if let fallback = fallbackBaseType, supports(fallback) {
-                return fallback
+                return (fallback, keyword)
             }
             if let selected = GameContent.itemBaseTypes.filter(supports).randomElement(using: &randomNumberGenerator) {
-                return selected
+                return (selected, keyword)
             }
             // Content drift: no base supports the keyword. Fall through to
             // unbiased gear below instead of trapping the live reward.
@@ -185,6 +192,6 @@ public enum ItemRewardGenerator {
             ? effectiveBases
             : effectiveBases.filter { !$0.keywordAffinities.isDisjoint(with: keywordBias) }
         let pool = biasedBases.isEmpty ? effectiveBases : biasedBases
-        return pool.randomElement(using: &randomNumberGenerator) ?? effectiveBases[0]
+        return (pool.randomElement(using: &randomNumberGenerator) ?? effectiveBases[0], nil)
     }
 }

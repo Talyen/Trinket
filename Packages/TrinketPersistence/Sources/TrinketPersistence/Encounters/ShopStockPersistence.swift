@@ -89,7 +89,8 @@ public enum ShopStockPersistence {
     static func hasSharedNewPurchase(base: Data?, incoming: Data?, existing: Data?) -> Bool {
         guard let incoming, let existing,
               let first = validStock(incoming), let second = validStock(existing),
-              first.matches(second.encounter)
+              first.matches(second.encounter),
+              !first.stock.purchasedOfferIDs.isEmpty, !second.stock.purchasedOfferIDs.isEmpty
         else { return false }
         let priorIDs = base.flatMap { validStock($0)?.stock.purchasedOfferIDs } ?? []
         return first.matchingPurchases(in: second).contains {
