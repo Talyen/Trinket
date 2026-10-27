@@ -21,7 +21,7 @@ public enum InventoryDuplicatePolicy {
         var instances: Set<String> = []
         var trinkets: Set<String> = []
         var uniques: Set<String> = []
-        for item in items {
+        func recordOwnership(_ item: InventoryItem) {
             instances.insert(item.id)
             if item.isTrinket {
                 trinkets.insert(item.templateID)
@@ -30,18 +30,15 @@ public enum InventoryDuplicatePolicy {
                 uniques.insert(item.templateID)
             }
         }
+        for item in items {
+            recordOwnership(item)
+        }
         for item in candidates {
             guard !instances.contains(item.id),
                   !item.isTrinket || !trinkets.contains(item.templateID),
                   item.rarity != .unique || !uniques.contains(item.templateID) else { continue }
             // A rejected item must not reserve any of its other ownership keys.
-            instances.insert(item.id)
-            if item.isTrinket {
-                trinkets.insert(item.templateID)
-            }
-            if item.rarity == .unique {
-                uniques.insert(item.templateID)
-            }
+            recordOwnership(item)
             items.append(item)
         }
     }

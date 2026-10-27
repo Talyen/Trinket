@@ -53,11 +53,7 @@ struct CloudReceiptReplay {
         let before = try action.before.restored()
         let after = try action.after.restored()
         let receipt = action.receipt
-        let retiredID: String? = if case let .salvage(id) = receipt.effects.claim {
-            id
-        } else {
-            nil
-        }
+        let retiredID = retiredItemID(for: receipt)
         if receipt.isDuplicate(in: existing, since: before, retiredItemIDs: retiredItems)
             || retiredID.map({ retiredItems.contains($0) }) == true {
             var retained = existing
@@ -66,9 +62,7 @@ struct CloudReceiptReplay {
         }
         var merged = try CloudSaveMerge.mergeChanges(from: action.before, to: action.after, into: existing)
         reconcileVoyageEarnings(action, before: before, after: after, existing: existing, merged: &merged)
-        var production = existing.homestead
-        production.settleProduction(at: merged.homestead.lastProductionAt, gold: existing.roster.gold)
-        merged.homestead.pendingProduction = production.pendingProduction
+        restorePendingProduction(from: existing, into: &merged)
         if case .collection = receipt.kind {
             try productionClaims.replay(receipt, onto: &merged)
         } else {
@@ -116,9 +110,7 @@ struct CloudReceiptReplay {
         for id in Set(receipts.lazy.flatMap(\.effects.experience.keys)) {
             merged.roster.progressions[id] = existing.roster.progressions[id] ?? .initial
         }
-        var existingProduction = existing.homestead
-        existingProduction.settleProduction(at: merged.homestead.lastProductionAt, gold: existing.roster.gold)
-        merged.homestead.pendingProduction = existingProduction.pendingProduction
+        restorePendingProduction(from: existing, into: &merged)
         try applyEffects(receipts, before: before, existing: existing, merged: &merged)
         reconcileProduction(receipts, positions: mutation.collectionPositions ?? [:], after: after, merged: &merged)
     }
@@ -129,11 +121,7 @@ struct CloudReceiptReplay {
     ) throws {
         var applied: [SaveEconomicReceipt] = []
         for receipt in receipts {
-            let retiredID: String? = if case let .salvage(id) = receipt.effects.claim {
-                id
-            } else {
-                nil
-            }
+            let retiredID = retiredItemID(for: receipt)
             let duplicateRetirement = retiredID.map { retiredItems.contains($0) } ?? false
             if case .collection = receipt.kind {
                 try productionClaims.replay(receipt, onto: &merged)
@@ -147,6 +135,17 @@ struct CloudReceiptReplay {
                 retiredItems.insert(retiredID)
             }
         }
+    }
+
+    private func retiredItemID(for receipt: SaveEconomicReceipt) -> String? {
+        guard case let .salvage(id) = receipt.effects.claim else { return nil }
+        return id
+    }
+
+    private func restorePendingProduction(from existing: PlayerSave, into merged: inout PlayerSave) {
+        var production = existing.homestead
+        production.settleProduction(at: merged.homestead.lastProductionAt, gold: existing.roster.gold)
+        merged.homestead.pendingProduction = production.pendingProduction
     }
 
     private func reconcileProduction(
