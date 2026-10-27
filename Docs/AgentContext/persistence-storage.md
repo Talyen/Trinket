@@ -249,6 +249,12 @@ leaves the pending request and journal intact for the next fetch. Archive confli
 snapshots in the same atomic server operation before installing the merge; archive
 failure preserves the local snapshot and outbox.
 
+A request created during the current synchronization attempt has not yet been
+sent, so its first upload need not look up a receipt. Every previously pending
+request still checks for a receipt before retrying, including after a lost response.
+CloudKit may read an existing head while preparing its zone and subscription;
+preparation and account verification still finish before the head is accepted.
+
 #### Snapshot merge rules
 
 | Concern | Required result |

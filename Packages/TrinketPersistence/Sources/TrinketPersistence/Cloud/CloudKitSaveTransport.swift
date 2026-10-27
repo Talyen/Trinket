@@ -32,8 +32,18 @@ actor CloudKitSaveTransport: CloudSaveTransport {
     }
 
     func fetchHead(accountID: String) async throws -> CloudServerSave? {
-        try await prepare(accountID)
-        guard let record = try await fetch(recordID("head"), accountID: accountID) else { return nil }
+        // Existing zones can be read while their subscription is prepared.
+        // A genuinely new zone still has to be created before its first read.
+        async let preparation: Void = prepare(accountID)
+        let record: CKRecord?
+        do {
+            record = try await fetch(recordID("head"), accountID: accountID)
+        } catch let error as CKError where error.code == .zoneNotFound {
+            try await preparation
+            record = try await fetch(recordID("head"), accountID: accountID)
+        }
+        try await preparation
+        guard let record else { return nil }
         guard let asset = record["payload"] as? CKAsset, let url = asset.fileURL else {
             throw CloudSaveError.unsupportedSave
         }

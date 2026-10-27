@@ -65,10 +65,11 @@ public final class PlayerSaveCloudSync {
         for attempt in 0 ..< 8 {
             try Task.checkCancellation()
             guard store.cloudDeviceState.activeAccountID == accountID else { throw CloudSaveError.accountChanged }
+            var newRequestID: String?
             if store.cloudDeviceState.account.pending == nil {
                 let state = store.cloudDeviceState.account
                 if state.resetRequested || state.base?.revision.snapshot != CloudSaveSnapshot(store.currentSave) {
-                    _ = try enqueue(state.resetRequested ? .reset : .upload, in: store)
+                    newRequestID = try enqueue(state.resetRequested ? .reset : .upload, in: store).id
                 }
             }
             let server = try await transport.fetchHead(accountID: accountID)
@@ -81,7 +82,10 @@ public final class PlayerSaveCloudSync {
                 continue
             }
 
-            if let receipt = try await transport.fetchReceipt(accountID: accountID, requestID: request.id) {
+            // A request created in this attempt has never been sent. Existing
+            // pending requests still check their receipt for a lost response.
+            if request.id != newRequestID,
+               let receipt = try await transport.fetchReceipt(accountID: accountID, requestID: request.id) {
                 guard let server else { throw CloudSaveError.missingHead }
                 if try await finish(request, receipt: receipt, server: server, accountID: accountID, in: store) {
                     return

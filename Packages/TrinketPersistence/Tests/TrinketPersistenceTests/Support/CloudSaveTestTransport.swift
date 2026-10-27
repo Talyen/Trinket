@@ -16,6 +16,7 @@ actor CloudSaveTestTransport: CloudSaveTransport {
     var failNextCommit = false
     var loseNextCommitResponse = false
     var conflictsRemaining = 0
+    private(set) var receiptFetchCount = 0
     /// Runs on the MainActor because test actions mutate the @MainActor
     /// store between fetch and verify. Awaiting it from this actor serializes
     /// the fake the same way the real transport serializes on the store.
@@ -81,6 +82,7 @@ actor CloudSaveTestTransport: CloudSaveTransport {
 
     func fetchReceipt(accountID: String, requestID: String) async throws -> CloudSaveReceipt? {
         try verify(accountID)
+        receiptFetchCount += 1
         if let action = nextReceiptFetchAction {
             nextReceiptFetchAction = nil
             try await action()

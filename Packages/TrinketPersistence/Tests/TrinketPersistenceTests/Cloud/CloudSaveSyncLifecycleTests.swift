@@ -4,6 +4,22 @@ import TrinketCore
 @testable import TrinketPersistence
 
 extension CloudSaveSyncTests {
+    @Test @MainActor func `new upload skips receipt lookup but a lost response is recovered`() async throws {
+        let context = try PersistenceTestContext()
+        let transport = CloudSaveTestTransport()
+        let store = try cloudStore(context, transport: transport)
+        await transport.configure(loseResponse: true)
+        #expect(await store.cloudSync?.synchronize() == false)
+        #expect(await transport.receiptFetchCount == 0)
+        let pending = try #require(store.cloudDeviceState.account.pending)
+        #expect(await transport.account().receipts[pending.id] != nil)
+        #expect(await store.cloudSync?.synchronize() == true)
+        #expect(await transport.receiptFetchCount == 1)
+        #expect(store.cloudDeviceState.account.pending == nil)
+        #expect(await transport.account().receipts.count == 1)
+        #expect(try context.makeReloadedStore().cloudDeviceState.account.pending == nil)
+    }
+
     @Test @MainActor func `receipt arriving after an older head cannot erase its uploaded earnings`() async throws {
         let context = try PersistenceTestContext()
         let transport = CloudSaveTestTransport()
@@ -11,6 +27,8 @@ extension CloudSaveSyncTests {
         let sync = try #require(store.cloudSync)
         #expect(await sync.synchronize())
         #expect(store.persistFixtureBatch(logging: "Offline earnings") { $0.roster.gold += 17 })
+        await transport.configure(failCommit: true)
+        #expect(await sync.synchronize() == false)
         await transport.onNextReceiptFetch {
             // A previous attempt can finish after a retry has fetched the old
             // head. Its immutable receipt then arrives before its new head.
