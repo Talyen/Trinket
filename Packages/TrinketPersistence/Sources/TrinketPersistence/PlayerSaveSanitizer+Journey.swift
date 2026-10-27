@@ -10,7 +10,7 @@ extension PlayerSaveSanitizer {
         let activeChapters = chapters ?? GameContent.chapters
         let validChapterIDs = Set(activeChapters.map(\.id))
         let allStages = activeChapters.flatMap(\.stages)
-        let validStageIDs = Set(allStages.map(\.id))
+        let validStageIDs = Set(allStages.lazy.map(\.id))
 
         var sanitized = journey
         let beforeCompleted = journey.completedStageIDs.count

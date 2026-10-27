@@ -12,7 +12,7 @@ extension BattleFeedbackLane {
     ) {
         advance(to: date)
         automaticPlayback = cardPlayback
-        let attackingActors = Set(playback.actions.filter(\.isAttack).map(\.actorID))
+        let attackingActors = Set(playback.actions.lazy.filter(\.isAttack).map(\.actorID))
         acceleratePendingActions(for: attackingActors, at: date)
         let groups = orderedActionGroups(playback)
         var automaticCards = playback.automaticCards
@@ -196,11 +196,11 @@ extension BattleFeedbackLane {
         _ playback: BattleTransitionPlayback,
     ) -> [(action: BattleResolvedAction?, events: [ActionEvent])] {
         let eventsByID = Dictionary(uniqueKeysWithValues: playback.events.map { ($0.id, $0) })
-        let assignedIDs = Set(playback.actions.flatMap(\.eventIDs))
+        let assignedIDs = Set(playback.actions.lazy.flatMap(\.eventIDs))
         var groups = playback.actions.map { action in
             (action: Optional(action), events: action.eventIDs.compactMap { eventsByID[$0] })
         }
-        let changedEventIDs = Set(playback.combatantChanges.map(\.eventID))
+        let changedEventIDs = Set(playback.combatantChanges.lazy.map(\.eventID))
         let remaining = playback.events.filter {
             !assignedIDs.contains($0.id) && ($0.milestone == nil || changedEventIDs.contains($0.id))
         }

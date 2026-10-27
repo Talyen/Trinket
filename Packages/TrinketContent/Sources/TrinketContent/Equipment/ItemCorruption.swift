@@ -146,7 +146,7 @@ public enum ItemCorruption {
 
         applyBumpEffects(kinds: kinds, affixes: &affixes, summaries: &summaries, using: &randomNumberGenerator)
 
-        let markedIndex = affixes.indices.filter { affixes[$0].mark != nil }.min {
+        let markedIndex = affixes.indices.lazy.filter { affixes[$0].mark != nil }.min {
             (affixes[$0].mark?.rawValue ?? Int.max) < (affixes[$1].mark?.rawValue ?? Int.max)
         } ?? affixes.indices.randomElement(using: &randomNumberGenerator)
         let mutated = InventoryItem(

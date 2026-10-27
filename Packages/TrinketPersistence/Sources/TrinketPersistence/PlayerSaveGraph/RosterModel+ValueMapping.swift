@@ -142,8 +142,16 @@ extension RosterModel {
 
     func toPlayerRosterState() -> PlayerRosterState {
         let unlocked = unlockedCombatants ?? []
-        let heroIDs = Set(unlocked.filter { $0.role == Self.heroRole }.map(\.combatantID))
-        let companionIDs = Set(unlocked.filter { $0.role == Self.companionRole }.map(\.combatantID))
+        var heroIDs: Set<String> = []
+        var companionIDs: Set<String> = []
+        for combatant in unlocked {
+            if combatant.role == Self.heroRole {
+                heroIDs.insert(combatant.combatantID)
+            }
+            if combatant.role == Self.companionRole {
+                companionIDs.insert(combatant.combatantID)
+            }
+        }
         let progressionValues = Dictionary(
             (progressions ?? []).map {
                 ($0.combatantID, CombatantProgression(level: $0.level, currentXP: $0.currentXP, requiredXP: $0.requiredXP))

@@ -14,9 +14,18 @@ public enum InventoryDuplicatePolicy {
     }
 
     public static func appendUniqueItems(_ candidates: some Sequence<InventoryItem>, to items: inout [InventoryItem]) {
-        var instances = Set(items.lazy.map(\.id))
-        var trinkets = Set(items.lazy.filter(\.isTrinket).map(\.templateID))
-        var uniques = Set(items.lazy.filter { $0.rarity == .unique }.map(\.templateID))
+        var instances: Set<String> = []
+        var trinkets: Set<String> = []
+        var uniques: Set<String> = []
+        for item in items {
+            instances.insert(item.id)
+            if item.isTrinket {
+                trinkets.insert(item.templateID)
+            }
+            if item.rarity == .unique {
+                uniques.insert(item.templateID)
+            }
+        }
         for item in candidates {
             guard !instances.contains(item.id),
                   !item.isTrinket || !trinkets.contains(item.templateID),

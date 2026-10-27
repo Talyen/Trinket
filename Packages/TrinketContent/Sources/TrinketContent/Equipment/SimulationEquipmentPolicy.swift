@@ -21,6 +21,7 @@ public enum SimulationEquipmentPolicy {
     ) -> Upgrade? {
         let current = loadout.sanitized(for: combatant, inventory: inventory)
         let worn = Set(current.itemIDsBySlot.values)
+        var secondaryIsQuiver: Bool?
         var scorer = Scorer(combatant: combatant, inventory: inventory)
         var best = scorer.score(current)
         var upgrade: Upgrade?
@@ -28,11 +29,18 @@ public enum SimulationEquipmentPolicy {
             for slot in combatant.role.equipmentSlots {
                 var candidate = current
                 let unequipFirst: ItemSlot?
-                if slot == .weapon, !item.baseType.isRanged,
-                   let secondaryID = current.itemID(for: .secondaryWeapon),
-                   inventory.first(where: { $0.id == secondaryID })?.baseType.isQuiver == true {
-                    candidate.unequip(.secondaryWeapon)
-                    unequipFirst = .secondaryWeapon
+                if slot == .weapon, !item.baseType.isRanged {
+                    if secondaryIsQuiver == nil {
+                        secondaryIsQuiver = current.itemID(for: .secondaryWeapon).flatMap { secondaryID in
+                            inventory.first { $0.id == secondaryID }
+                        }?.baseType.isQuiver == true
+                    }
+                    if secondaryIsQuiver == true {
+                        candidate.unequip(.secondaryWeapon)
+                        unequipFirst = .secondaryWeapon
+                    } else {
+                        unequipFirst = nil
+                    }
                 } else {
                     unequipFirst = nil
                 }
