@@ -208,9 +208,9 @@ width, with an 8-point center gap, 8-point outer margins, and clearance above th
 resource bars. Keep centers fixed through animation and numeric growth. The
 renderer and layout use the same region-specific peak bounds.
 
-New arrivals never move or evict older flights. Impact numbers launch at the impact
-cue; other regions prefer an 80 ms stagger with a hard 180 ms arrival-to-launch
-limit. New paths compare measured projected footprints throughout their lifetimes,
+New arrivals never move or evict older flights. Impact numbers, reaction payoffs,
+and direct Health costs launch at the impact cue; other feedback prefers an 80 ms
+stagger with a hard 180 ms arrival-to-launch limit. New paths compare measured projected footprints throughout their lifetimes,
 strongly penalizing complete covering in
 either direction. Diagonal paths and fixed rows preserve visible space when the
 queue deadline forces concurrent launches. The host clamps the path to the

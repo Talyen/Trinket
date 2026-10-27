@@ -96,6 +96,43 @@ struct BalancedFeedbackMotionTests {
         #expect(numbers.allSatisfy { $0.availableAt == start })
     }
 
+    @Test @MainActor func `reaction payoffs and health costs appear at impact`() {
+        let lane = BattleFeedbackLane(balanced: true)
+        defer { lane.release() }
+        let start = Date.now.addingTimeInterval(10)
+        lane.record([
+            BattleSessionTestSupport.makeActionEvent(id: 1, kind: .reaction(.frostfire), amount: 0, keyword: .burn, actionID: 1),
+            BattleSessionTestSupport.makeActionEvent(
+                id: 2, kind: .abilityDamage, amount: 2, keyword: .burn, actionID: 1, reactionPayoff: .frostfire,
+            ),
+            BattleSessionTestSupport.makeActionEvent(id: 3, kind: .reaction(.venomflash), amount: 0, keyword: .burn, actionID: 1),
+            BattleSessionTestSupport.makeActionEvent(
+                id: 4, kind: .abilityDamage, amount: 3, keyword: .burn, actionID: 1, reactionPayoff: .venomflash,
+            ),
+        ], at: start)
+        let payoffs = lane.activeItems.filter {
+            if case .reactionPayoff = $0.label {
+                true
+            } else {
+                false
+            }
+        }
+        #expect(payoffs.count == 2)
+        #expect(payoffs.allSatisfy { $0.availableAt == start })
+
+        let first = BattleSessionTestSupport.makeActionEvent(
+            id: 5, kind: .abilityDamage, amount: 4, keyword: .health, targetID: "hero", authoredCardOperation: 0,
+        )
+        let second = BattleSessionTestSupport.makeActionEvent(
+            id: 6, kind: .abilityDamage, amount: 1000, keyword: .health, targetID: "hero", authoredCardOperation: 0,
+        )
+        lane.record([first], at: start)
+        lane.record([second], at: start)
+        let costs = lane.activeItems.filter(\.isCardHealthCost)
+        #expect(costs.count == 2)
+        #expect(costs.allSatisfy { $0.availableAt == start })
+    }
+
     @Test @MainActor func `six close corner gains keep distinct stationary rows`() {
         let lane = BattleFeedbackLane(balanced: true)
         defer { lane.release() }
