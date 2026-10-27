@@ -19,7 +19,7 @@ analyzer_rules:
 unused_declaration:
   include_public_and_open: false
 
-swiftlint_version: 0.65.0
+swiftlint_version: 0.65.1
 
 # XCTest assertion idioms still apply to UI tests. single_test_class and
 # balanced_xctest_lifecycle do not fit our shared XCTest base classes.
@@ -71,6 +71,8 @@ opt_in_rules:
   # `Button { }`, default no-op closures, and `while predicate() {}` drains.
 
 disabled_rules:
+  # Keep existing artwork scaling until changes can be reviewed in rendered UI.
+  - legacy_swiftui_aspect_ratio
   # SwiftFormat owns these mechanical rewrites in the style gate
   # (see .swiftformat --enable: isEmpty, preferContains, preferFirstWhere,
   # preferCountWhere, preferMinOverSorted, preferFlatMap, preferSwiftTesting).

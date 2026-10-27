@@ -32,6 +32,14 @@ they do not block CloudKit development. Provisioning alone completes no readines
 
 ## Remaining live verification
 
+The September 13 Development baseline verified two-way sync between the owner's
+iPhone and a Simulator, and an offline-device reset without restoring stale
+progress. A disposable-zone server harness also verified concurrent Homestead
+collection/upgrade and recovery after a committed response was lost. The detailed
+record is in Git at `297a4b884^:Docs/Plans/CloudKitLaunchPreparation.md`;
+its separately retained JSON was not present at its recorded path during the
+October 26 review. These results are historical, not current-candidate proof.
+
 Resume when test accounts, controllable devices, and a named cloud-enabled build
 are available, or before changing the distributed default or submitting with sync.
 The validation scenarios below include the outstanding account, failure, upgrade,

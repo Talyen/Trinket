@@ -69,6 +69,23 @@ do not create another app or change the bundle ID to match the display name.
    observed outcomes. Run CloudKit's Development and TestFlight stages separately;
    a successful local-only TestFlight launch does not verify iCloud sync.
 
+### Triage a player report
+
+Record the app version and build, device and iOS version, approximate time, and
+the player's steps and visible result. Ask for only the information needed to
+reproduce; do not ask a player to reset or reinstall before preserving progress.
+Review available TestFlight feedback and Apple's crash and performance reports for
+the matching build. Apple diagnostics depend on availability and the player's
+sharing settings; absence of a report is not proof of an absence of crashes.
+
+Match a crash's binary UUID to the retained build archive and dSYM before
+interpreting symbols. Use the release receipt and symbol procedure below; a
+different build's symbols cannot establish a diagnosis. MetricKit's local log
+summaries supplement those reports; they do not create a developer-operated
+upload service. Keep shared reports and support messages under the published
+privacy policy and avoid including save contents unless needed and provided by
+the player.
+
 ### Produce release artifacts
 
 Prepare the release in its isolated task worktree. Defer tagging until after
