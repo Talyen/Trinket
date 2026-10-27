@@ -1,0 +1,60 @@
+name: Balance diagnostics
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Sweep mode; all is a deep run
+        type: choice
+        options:
+          - identity
+          - ability-contrast
+          - affix-contrast
+          - talent-contrast
+          - mode-progression
+          - all
+        default: identity
+      tier:
+        description: Power tier
+        type: choice
+        options:
+          - all
+          - early
+          - middle
+          - lateGame
+        default: all
+      samples:
+        description: Samples per matchup, 1–512; blank uses the CLI default
+        type: string
+        default: ''
+      seed:
+        description: Seed, 0–4294967295; blank uses the CLI default
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  balance:
+    runs-on: xcode-27
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: ./.github/actions/setup-trinket
+      - name: Run balance diagnostic
+        env:
+          BALANCE_MODE: ${{ inputs.mode }}
+          BALANCE_TIER: ${{ inputs.tier }}
+          BALANCE_SAMPLES: ${{ inputs.samples }}
+          BALANCE_SEED: ${{ inputs.seed }}
+        run: ./Scripts/ci-balance-sweep.sh
+      - name: Keep reports and run information
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: balance-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .DerivedData/BalanceSweepResults/
+          include-hidden-files: true
+          retention-days: 14
+          if-no-files-found: warn

@@ -98,8 +98,12 @@ new confirmed gameplay defect or a material content/progression change.
 Will-o-Wisp uses Ray of Frost, Frostbolt and Blizzard. Its Basic no longer doubles
 damage against an already Frozen target; player-owned Ice Shot is unchanged.
 
-Manual CLI only — **no CI gates** or scheduled automations. Use the script's
-`--help` output for current modes, defaults, and tuning flags.
+Run the manually dispatched [Balance diagnostics workflow](../../.github/workflows/balance-sweep.yml)
+for hosted sweeps. Its default is the identity screen; choose a contrast or deep
+mode and more samples or another seed to investigate findings. Reports and run
+information are retained as a workflow artifact. Findings are advisory: execution
+failures fail the diagnostic, but balance findings do not gate CI. There is no
+scheduled balance sweep. Use the script's `--help` for the full CLI surface.
 
 ```sh
 ./Scripts/balance-sweep.sh --help
