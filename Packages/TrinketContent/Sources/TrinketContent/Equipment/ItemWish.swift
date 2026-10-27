@@ -14,11 +14,9 @@ public enum ItemWish {
         using random: inout some RandomNumberGenerator,
     ) -> InventoryItem {
         if let wishedTemplateID, let wish = candidates.first(where: { $0.templateID == wishedTemplateID }) {
-            let others = candidates.filter { $0.templateID != wishedTemplateID }
-            if others.isEmpty || Int.random(in: 0 ... 1, using: &random) == 0 {
-                return wish
-            }
-            return partyBias.select(from: others, using: &random)
+            guard candidates.contains(where: { $0.templateID != wishedTemplateID }) else { return wish }
+            guard Int.random(in: 0 ... 1, using: &random) != 0 else { return wish }
+            return partyBias.select(from: candidates.filter { $0.templateID != wishedTemplateID }, using: &random)
         }
         return partyBias.select(from: candidates, using: &random)
     }

@@ -101,7 +101,11 @@ enum LabyrinthFloorTypePlacement {
             var best = Int.max
             for type in choices(from: state) {
                 let (next, conflicts) = advance(state, type: type)
+                guard conflicts < best else { continue }
                 best = min(best, conflicts + minimumConflicts(from: next))
+                if best == 0 {
+                    break
+                }
             }
             memo[state] = best
             return best

@@ -229,8 +229,10 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
     }
 
     public static func eligible(ownedTrinketIDs: Set<String>, ownedUniqueIDs: Set<String>) -> [Self] {
-        let hasTrinket = GameContent.trinketItems.contains { !ownedTrinketIDs.contains($0.templateID) }
-        let hasUnique = GameContent.uniqueItems.contains { !ownedUniqueIDs.contains($0.templateID) }
+        let hasTrinket = ownedTrinketIDs.isEmpty ? !GameContent.trinketItems.isEmpty
+            : GameContent.trinketItems.contains { !ownedTrinketIDs.contains($0.templateID) }
+        let hasUnique = ownedUniqueIDs.isEmpty ? !GameContent.uniqueItems.isEmpty
+            : GameContent.uniqueItems.contains { !ownedUniqueIDs.contains($0.templateID) }
         if hasTrinket, hasUnique {
             return allCases
         }
@@ -245,8 +247,12 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
 
     private func isEligible(ownedTrinketIDs: Set<String>, ownedUniqueIDs: Set<String>) -> Bool {
         switch self {
-        case .trinket, .trinketHoard: GameContent.trinketItems.contains { !ownedTrinketIDs.contains($0.templateID) }
-        case .unique, .uniqueHoard: GameContent.uniqueItems.contains { !ownedUniqueIDs.contains($0.templateID) }
+        case .trinket, .trinketHoard:
+            ownedTrinketIDs.isEmpty ? !GameContent.trinketItems.isEmpty
+                : GameContent.trinketItems.contains { !ownedTrinketIDs.contains($0.templateID) }
+        case .unique, .uniqueHoard:
+            ownedUniqueIDs.isEmpty ? !GameContent.uniqueItems.isEmpty
+                : GameContent.uniqueItems.contains { !ownedUniqueIDs.contains($0.templateID) }
         // Gear-base catalog invariant (ItemRewardGenerator preconditions a
         // non-Trinket base) keeps every hoard family non-empty.
         case .armsHoard, .armorHoard, .ringHoard, .amuletHoard: true

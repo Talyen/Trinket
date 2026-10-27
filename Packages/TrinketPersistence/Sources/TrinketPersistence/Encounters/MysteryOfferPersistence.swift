@@ -5,6 +5,7 @@ import TrinketCore
 public enum MysteryOfferPersistence {
     static func mergedPayload(preferred: Data?, other: Data?) -> Data? {
         guard let preferred, let other else { return preferred ?? other }
+        guard preferred != other else { return preferred }
         if hasReadableOffers(preferred) {
             return preferred
         }

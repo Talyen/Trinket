@@ -35,8 +35,10 @@ public struct ThemedGearGenerator: Sendable {
     ) -> ThemedGearBuild {
         let resolvedBias = keywordBias ?? combatant.keywordProfile
         var trinketsByBase: [ItemBaseType: InventoryItem] = [:]
-        for trinket in GameContent.trinketItems where trinketsByBase[trinket.baseType] == nil {
-            trinketsByBase[trinket.baseType] = trinket
+        if baseTypes.contains(where: { $0.slot == .trinket }) {
+            for trinket in GameContent.trinketItems where trinketsByBase[trinket.baseType] == nil {
+                trinketsByBase[trinket.baseType] = trinket
+            }
         }
         var slots = combatant.role.equipmentSlots
         if singlePiece {

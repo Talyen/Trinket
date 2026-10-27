@@ -95,7 +95,7 @@ extension ItemAffixModel {
         id = affix.id
         title = affix.title
         affixDescription = affix.description
-        keywordRawValues = affix.keywords.map(\.rawValue).sorted()
+        keywordRawValues = affix.keywords.lazy.map(\.rawValue).sorted()
         isCorrupted = affix.isCorrupted
     }
 }

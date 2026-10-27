@@ -300,10 +300,9 @@ enum CloudSaveMerge {
             ? branches.existing.voyage : branches.incoming.voyage
         merged.voyage = selectedVoyage
         var mergeVoyage = alternateVoyage
-        let currentVoyageCleared = merged.voyage.activeRun?.nodes.count(where: \.isCleared) ?? 0
-        let otherVoyageCleared = alternateVoyage.activeRun?.nodes.count(where: \.isCleared) ?? 0
         if merged.voyage.activeRun?.id == alternateVoyage.activeRun?.id,
-           otherVoyageCleared > currentVoyageCleared {
+           (alternateVoyage.activeRun?.nodes.count(where: \.isCleared) ?? 0)
+           > (merged.voyage.activeRun?.nodes.count(where: \.isCleared) ?? 0) {
             merged.voyage = alternateVoyage
             mergeVoyage = selectedVoyage
         }

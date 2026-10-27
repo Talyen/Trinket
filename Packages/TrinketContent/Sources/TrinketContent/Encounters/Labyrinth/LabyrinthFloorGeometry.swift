@@ -54,17 +54,13 @@ enum LabyrinthFloorGeometry {
             return count
         }
 
-        func successors(of state: State) -> [State] {
-            columnChoices(after: state).compactMap { nextState(from: state, columns: $0) }
-        }
-
-        private func columnChoices(after state: State) -> [[Int]] {
+        func columnChoices(after state: State) -> [[Int]] {
             let row = state.row + 1
             let choices = LabyrinthFloorGeometry.choicesByParity[row % 2]
             return row < rowCount - 1 ? choices.middle : choices.single
         }
 
-        private func nextState(from state: State, columns: [Int]) -> State? {
+        func nextState(from state: State, columns: [Int]) -> State? {
             let doubles = state.doubles + (columns.count == 2 ? 1 : 0)
             let remainingMiddleRows = max(0, rowCount - state.row - 3)
             guard doubles <= doubleCount, doubles + remainingMiddleRows >= doubleCount else { return nil }
@@ -147,7 +143,8 @@ enum LabyrinthFloorGeometry {
             let total = search.completions(from: state)
             precondition(total > 0, "Labyrinth floor constraints must produce a layout")
             var ticket = UInt64.random(in: 0 ..< total, using: &rng)
-            for next in search.successors(of: state) {
+            for columns in search.columnChoices(after: state) {
+                guard let next = search.nextState(from: state, columns: columns) else { continue }
                 let count = search.completions(from: next)
                 if ticket < count {
                     state = next

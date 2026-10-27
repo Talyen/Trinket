@@ -221,9 +221,9 @@ public enum ItemCorruption {
             (.bumpUp, .up, .empowered), (.bumpDown, .down, .weakened),
         ]
         for (kind, direction, priority) in effects where kinds.contains(kind) {
-            let candidates = affixes.indices.filter { !affixes[$0].isNew }.flatMap { index in
+            let candidates = Array(affixes.indices.lazy.filter { !affixes[$0].isNew }.flatMap { index in
                 affixes[index].power.bumpCandidates(direction: direction).map { (index, $0) }
-            }
+            })
             guard let (index, target) = candidates.randomElement(using: &randomNumberGenerator) else { continue }
             affixes[index].power = affixes[index].power.bumped(target: target, direction: direction)
             if priority.rawValue < (affixes[index].mark?.rawValue ?? Int.max) {

@@ -37,7 +37,7 @@ enum EffectRemovalOperation {
     ) {
         let keywords: [Keyword] = effectKind == .cleanseApplied
             ? EffectRemoval.distinctSortedKeywords(from: removed)
-            : removed.map(\.keyword).sorted { $0.rawValue < $1.rawValue }
+            : removed.lazy.map(\.keyword).sorted { $0.rawValue < $1.rawValue }
         for keyword in keywords {
             context.nextEvent(
                 kind: .effect(effectKind),

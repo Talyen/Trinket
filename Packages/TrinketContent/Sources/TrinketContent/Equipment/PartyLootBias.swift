@@ -33,6 +33,16 @@ public struct PartyLootBias: Equatable, Sendable {
         return 4
     }
 
+    private func weight(for item: InventoryItem) -> Int {
+        if item.affixes.contains(where: { !$0.keywords.isDisjoint(with: sharedKeywords) }) {
+            return 7
+        }
+        if item.affixes.contains(where: { !$0.keywords.isDisjoint(with: favoredKeywords) }) {
+            return 6
+        }
+        return 4
+    }
+
     func select(
         from candidates: [InventoryItem],
         using random: inout some RandomNumberGenerator,
@@ -41,7 +51,7 @@ public struct PartyLootBias: Equatable, Sendable {
         guard !isEmpty else { return candidates[Int.random(in: candidates.indices, using: &random)] }
         var totalWeight = 0
         let weights = candidates.map { candidate in
-            let weight = weight(for: candidate.keywords)
+            let weight = weight(for: candidate)
             totalWeight += weight
             return weight
         }

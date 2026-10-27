@@ -118,7 +118,7 @@ final class CombatFeedbackChipBridge {
             patchItems(items, removing: removing, affectedTargets: &affectedTargets)
         case let .replace(items):
             let liveIDs = Set(items.lazy.map(\.id))
-            let retiredIDs = Set(motionTracks.keys).subtracting(liveIDs)
+            let retiredIDs = Set(motionTracks.keys.lazy.filter { !liveIDs.contains($0) })
             releaseRasters(ids: retiredIDs)
             evictedIDs.formIntersection(liveIDs)
             for id in retiredIDs {
@@ -133,9 +133,12 @@ final class CombatFeedbackChipBridge {
                 replacement[item.targetID, default: [:]][item.id] = item
                 targetsByItemID[item.id] = item.targetID
             }
-            affectedTargets.formUnion(Set(itemsByTarget.keys).union(replacement.keys).filter {
-                itemsByTarget[$0] != replacement[$0]
-            })
+            for target in itemsByTarget.keys where itemsByTarget[target] != replacement[target] {
+                affectedTargets.insert(target)
+            }
+            for target in replacement.keys where itemsByTarget[target] == nil {
+                affectedTargets.insert(target)
+            }
             itemsByTarget = replacement
         case .reset:
             evictedIDs.removeAll()
