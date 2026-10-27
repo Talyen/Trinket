@@ -88,6 +88,9 @@ enum CombatSFXMapper {
         damage: [BattleResolvedDamage] = [],
         didDrawCards: Bool = false,
     ) -> String? {
+        if events.isEmpty, damage.isEmpty {
+            return didDrawCards ? SFXID.abilityDraw : nil
+        }
         var selection = Selection()
         let cardSources = CombatCardSourceKey.cardSources(in: events)
         let thornsSources = Set(events.lazy.filter { $0.effectKind == .thornsApplied }.compactMap(CombatCardSourceKey.init))

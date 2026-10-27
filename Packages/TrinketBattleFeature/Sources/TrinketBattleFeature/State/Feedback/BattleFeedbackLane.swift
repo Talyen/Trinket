@@ -278,6 +278,7 @@ final class BattleFeedbackLane {
         damage: [BattleResolvedDamage],
         at date: Date,
     ) {
+        guard !due.isEmpty || !damage.isEmpty else { return }
         let recordedTargets = Set(damage.lazy.filter { $0.reactionKind != nil }.map(\.targetID))
         var reactions: [String: CombatantHitReaction] = [:]
         var strongestItems: [String: CombatFeedbackItem] = [:]
