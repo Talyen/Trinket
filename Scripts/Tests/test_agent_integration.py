@@ -1,18 +1,88 @@
 from __future__ import annotations
 
 import fcntl
+from datetime import datetime, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+import time
 from unittest import mock
 
 from script_test_support import ROOT, ScriptRegressionTestCase, load_script, run_captured, write_executable
 
 
 class AgentIntegrationTests(ScriptRegressionTestCase):
+    def test_routine_expiry_preserves_changed_kept_and_unclassified_reports(self):
+        module = load_script('agent_integrate_expiry_protection_test', 'agent-integrate.py')
+        evidence = self.root / '.git/trinket-evidence/codex/completed'
+        head = self.git(self.root, 'rev-parse', 'HEAD')
+        snapshot = evidence / (head[:12] + '-fixture')
+        reports = snapshot / 'files/.DerivedData/Deliverables/Verification'
+        reports.mkdir(parents=True)
+        contents = json.dumps({'version': 2, 'route': 'static', 'exit_status': 0, 'local_state': 'checks passed',
+                               'checks': [{'id': 'docs-final', 'outcome': 'passed'}]})
+        kept = reports / ('static-' + 'a' * 32 + '.json')
+        changed = reports / ('static-' + 'b' * 32 + '.json')
+        unknown = reports / ('static-' + 'c' * 32 + '.json')
+        for report in (kept, changed, unknown):
+            report.write_text(contents)
+        kept.with_name(kept.name + '.retention-keep').touch()
+        digest = hashlib.sha256(contents.encode()).hexdigest()
+        (snapshot / 'evidence.json').write_text(json.dumps({'branch': 'codex/completed', 'preserved_at_commit': head,
+            'routine_reports': {str(path.relative_to(snapshot / 'files')): digest for path in (kept, changed)}}))
+        changed.write_text('changed investigation evidence')
+        now = time.time()
+        completion = evidence / 'routine-completion.json'
+        completion.write_text(json.dumps({'schema': 1, 'branch': 'codex/completed', 'head': head,
+            'completed_at': datetime.fromtimestamp(now - 8 * 86400, timezone.utc).isoformat()}))
+        os.utime(completion, (now - 8 * 86400,) * 2)
+        for report in (kept, changed, unknown):
+            os.utime(report, (now - 8 * 86400,) * 2)
+        self.assertEqual(module.expire_routine_evidence(self.root), 0)
+        self.assertTrue(all(report.exists() for report in (kept, changed, unknown)))
+
+    def test_routine_reports_expire_only_after_completed_task_and_grace_period(self):
+        module = load_script('agent_integrate_expiry_test', 'agent-integrate.py')
+        task = self.task('expiry')
+        reports = task / '.DerivedData/Deliverables/Verification'
+        reports.mkdir(parents=True)
+        successful = {'version': 2, 'route': 'static', 'exit_status': 0, 'local_state': 'checks passed',
+                      'checks': [{'id': 'docs-final', 'outcome': 'passed'}]}
+        name = 'static-' + 'a' * 32 + '.json'
+        (reports / name).write_text(json.dumps(successful))
+        (reports / ('static-' + 'b' * 32 + '.json')).write_text(json.dumps({**successful, 'exit_status': 1}))
+        (reports / ('static-' + 'c' * 32 + '.json')).write_text(json.dumps({**successful, 'route': 'visual'}))
+        self.assertEqual(self.helper(task, 'evidence', str((reports / name).relative_to(task))).returncode, 0)
+        self.assertEqual(self.helper(task, 'integrate').returncode, 0)
+        evidence = self.root / '.git/trinket-evidence/codex/expiry'
+        now = time.time()
+        real_run = subprocess.run
+        def run(command, *args, **kwargs):
+            if command[0] == 'lsof':
+                return subprocess.CompletedProcess(command, 1, '', '')
+            return real_run(command, *args, **kwargs)
+        with mock.patch.object(module.subprocess, 'run', side_effect=run):
+            self.assertEqual(module.expire_routine_evidence(self.root, now=now + 8 * 86400), 0)
+            self.assertEqual(self.helper(task, 'cleanup').returncode, 0)
+            self.assertEqual(module.expire_routine_evidence(self.root, now=now + 6 * 86400), 0)
+            completion = evidence / 'routine-completion.json'
+            marker = json.loads(completion.read_text())
+            marker['completed_at'] = datetime.fromtimestamp(now - 8 * 86400, timezone.utc).isoformat()
+            completion.write_text(json.dumps(marker))
+            os.utime(completion, (now - 8 * 86400,) * 2)
+            for report in evidence.glob('*/files/.DerivedData/Deliverables/Verification/' + name):
+                os.utime(report, (now - 8 * 86400,) * 2)
+            self.create('next-task')
+        # The explicit request, failures and visual reports remain intact.
+        self.assertEqual(len(list(evidence.glob('*/files/.DerivedData/Deliverables/Verification/' + name))), 1)
+        self.assertTrue(list(evidence.glob('*/files/.DerivedData/Deliverables/Verification/static-' + 'b' * 32 + '.json')))
+        self.assertTrue(list(evidence.glob('*/files/.DerivedData/Deliverables/Verification/static-' + 'c' * 32 + '.json')))
+        self.assertTrue((evidence / 'routine-expiry.jsonl').is_file())
+
     def test_evidence_copy_fallback_keeps_independent_bytes(self):
         module = load_script('agent_integrate_copy_test', 'agent-integrate.py')
         source, target = self.root / 'source', self.root / 'copy'

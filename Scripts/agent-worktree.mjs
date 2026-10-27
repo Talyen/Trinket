@@ -77,6 +77,12 @@ try {
           if (maintenance.status !== 0) console.log("Idle compiler cleanup deferred; active or unavailable ownership is preserved.");
           else if (maintenance.stdout.trim()) console.log(maintenance.stdout.trim());
         }
+        const evidence = path.join(source, "Scripts/agent-integrate.py");
+        if (fs.existsSync(evidence)) {
+          const maintenance = spawnSync("python3", [evidence, "--expire-routine-evidence"], { cwd: source, encoding: "utf8", timeout: 20_000 });
+          if (maintenance.status !== 0) console.log("Routine evidence expiry deferred; retained evidence is preserved.");
+          else if (maintenance.stdout.trim()) console.log(maintenance.stdout.trim());
+        }
         fs.mkdirSync(path.dirname(destination), { recursive: true });
         console.log(git(["worktree", "add", "--no-checkout", "-b", branch, destination, options["--base"] ?? "main"], primary));
         const { storageProfile, populateWorktree } = await import("./lib/worktree-storage.mjs");

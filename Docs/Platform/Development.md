@@ -101,7 +101,12 @@ only after comparing actual source and retained bytes. A separate
 `preservations.jsonl` records each preservation event; changed or damaged snapshots
 are preserved separately. New evidence files use independent copy-on-write clones
 when supported, falling back to ordinary copies; both are verified against the
-source. No mutable hard links or age-based evidence deletion are used. Failed
+source. No mutable hard links are used. After completed worktree cleanup, newly
+classified successful static handoff reports expire after seven days during later
+task creation; their original snapshot inventory and expiry journal remain.
+Explicit evidence requests, keep markers, failures, visual or release evidence,
+unclassified reports, active tasks and older unclassified snapshots do not expire.
+The task report's verification-report paths can therefore expire. Failed
 preservation stops landing or cleanup; raw build logs expire
 separately. Save visual artifacts in Deliverables. For other task-local evidence,
 use `node Scripts/agent-worktree.mjs evidence <paths...>`; without paths it prints

@@ -15,6 +15,7 @@ import tempfile
 import shutil
 import hashlib
 import ctypes
+import time
 from datetime import datetime, timezone
 
 
@@ -68,7 +69,24 @@ def copy_evidence(source: Path, target: Path) -> None:
     shutil.copy2(source, target, follow_symlinks=False)
 
 
-def preserve_evidence(source: Path, names: list[str]) -> Path:
+def routine_report(path: Path) -> bool:
+    """Recognize only successful static handoff reports, never visual or release proof."""
+    if not re.fullmatch(r'(auto|static)-[0-9a-f]{32}\.json', path.name):
+        return False
+    try:
+        data = json.loads(path.read_text())
+        checks = data['checks']
+        return (data['version'] == 2 and data['route'] in ('auto', 'static')
+                and data['exit_status'] == 0 and data['local_state'] == 'checks passed'
+                and isinstance(checks, list) and bool(checks)
+                and all(isinstance(check, dict)
+                        and re.fullmatch(r'(docs|docs-final|scripts|scripts-syntax|cheap-[0-9]+)', check.get('id', ''))
+                        and check.get('outcome') in ('passed', 'deferred to CI') for check in checks))
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+
+
+def preserve_evidence(source: Path, names: list[str], *, routine: bool = False) -> Path:
     """Copy explicit deliverables before cleanup, without following symlinks."""
     paths = []
     for name in names:
@@ -124,6 +142,12 @@ def preserve_evidence(source: Path, names: list[str]) -> Path:
         if actual == expected:
             if not source_unchanged():
                 raise RuntimeError('Evidence changed during preservation; original files retained')
+            if not routine:
+                # An explicit evidence request must never inherit automatic expiry.
+                keep = candidate / '.retention-keep'
+                if keep.is_symlink():
+                    raise RuntimeError('Evidence keep marker cannot follow a symlink')
+                keep.touch()
             record_preservation(destination, candidate, head)
             print(f'Reused verified task evidence: {candidate}')
             return candidate
@@ -140,9 +164,13 @@ def preserve_evidence(source: Path, names: list[str]) -> Path:
             raise RuntimeError(f'Evidence copy verification failed: {path}')
     if not source_unchanged():
         raise RuntimeError('Evidence changed during preservation; original files retained')
+    reports = {name: digest for name, digest in expected.items()
+               if routine and Path(name).parent == Path('.DerivedData/Deliverables/Verification')
+               and routine_report(source / name)}
     (saved / 'evidence.json').write_text(json.dumps({
         'preserved_at_commit': head, 'branch': git(source, 'branch', '--show-current'),
         'files': [str(path.relative_to(source)) for path in sorted(set(paths))],
+        'routine_reports': reports,
     }, indent=2) + '\n')
     record_preservation(destination, saved, head)
     print(f'Preserved task evidence: {saved}')
@@ -162,7 +190,7 @@ def record_preservation(destination: Path, saved: Path, head: str) -> None:
 def preserve_default_evidence(source: Path) -> Path | None:
     deliverables = source / '.DerivedData/Deliverables'
     if deliverables.exists() or deliverables.is_symlink():
-        return preserve_evidence(source, ['.DerivedData/Deliverables'])
+        return preserve_evidence(source, ['.DerivedData/Deliverables'], routine=True)
 
 
 def save_task_report(source: Path, base: str, head: str, paths: list[str], *, landed: bool = False) -> Path:
@@ -178,6 +206,7 @@ def save_task_report(source: Path, base: str, head: str, paths: list[str], *, la
         'version': 1, 'branch': git(source, 'branch', '--show-current'),
         'static_verified_commit': head, 'verified_against_main': base, 'changed_paths': paths,
         'verification_reports': sorted(str(path.relative_to(source)) for path in (directory / 'Verification').glob('*.json')),
+        'verification_report_retention': 'Routine successful static reports may expire seven days after task cleanup.',
         'completion_state': 'locally integrated; hosted verification pending' if landed else 'local checks passed; landing pending',
         'limitations': 'Landing checks are static; compiled and visual results are in the referenced reports. Hosted evidence requires an authorized push.',
     })
@@ -255,7 +284,90 @@ def cleanup(source: Path) -> None:
         main_head = git(target, 'rev-parse', 'HEAD')
         subprocess.run(['git', '-C', str(source), 'merge-base', '--is-ancestor', head, main_head], check=True)
         preserve_default_evidence(source)
+        evidence = evidence_directory(source)
+        from internal.cli import write_json_atomic
         remove_integrated_worktree(source, target, branch, head, main_head=main_head)
+        write_json_atomic(evidence / 'routine-completion.json', {
+            'schema': 1, 'branch': branch, 'head': head,
+            'completed_at': datetime.now(timezone.utc).isoformat(),
+        })
+
+
+def expire_routine_evidence(source: Path, *, now: float | None = None) -> int:
+    """Expire classified reports only after task cleanup; unknown evidence stays put."""
+    now = time.time() if now is None else now
+    common = Path(git(source, 'rev-parse', '--path-format=absolute', '--git-common-dir')).resolve()
+    root = common / 'trinket-evidence' / 'codex'
+    if not root.is_dir() or root.is_symlink() or root.parent.is_symlink():
+        return 0
+    removed = 0
+    def kept(path: Path) -> bool:
+        return path.exists() or path.is_symlink()
+    with integration_lock(common):
+        records = git(source, 'worktree', 'list', '--porcelain', '-z').split('\0\0')
+        active = {line[len('branch refs/heads/'):] for record in records for line in record.split('\0')
+                  if line.startswith('branch refs/heads/')}
+        for branch_dir in root.iterdir():
+            if branch_dir.is_symlink() or not branch_dir.is_dir() or not re.fullmatch(r'[a-z0-9][a-z0-9_-]{0,63}', branch_dir.name):
+                continue
+            branch = 'codex/' + branch_dir.name
+            completion = branch_dir / 'routine-completion.json'
+            if branch in active or completion.is_symlink() or not completion.is_file():
+                continue
+            try:
+                finished = json.loads(completion.read_text())
+                stamp = datetime.fromisoformat(finished['completed_at'])
+                head = finished['head']
+                if (finished['schema'] != 1 or finished['branch'] != branch or stamp.tzinfo is None
+                        or not re.fullmatch(r'[0-9a-f]{40}', head)
+                        or max(stamp.timestamp(), completion.stat().st_mtime) > now - 7 * 86400):
+                    continue
+            except (OSError, ValueError, KeyError, TypeError):
+                continue
+            for snapshot in branch_dir.glob(head[:12] + '-*'):
+                manifest = snapshot / 'evidence.json'
+                if snapshot.is_symlink() or not snapshot.is_dir() or manifest.is_symlink() or not manifest.is_file():
+                    continue
+                try:
+                    saved = json.loads(manifest.read_text())
+                    if saved['branch'] != branch or saved['preserved_at_commit'] != head or not isinstance(saved['routine_reports'], dict):
+                        continue
+                    for name, expected in saved['routine_reports'].items():
+                        relative = Path(name)
+                        if (relative.parent != Path('.DerivedData/Deliverables/Verification')
+                                or not re.fullmatch(r'[0-9a-f]{64}', expected)):
+                            continue
+                        path = snapshot / 'files' / relative
+                        ancestors = [path, *[p for p in path.parents if p.is_relative_to(common)]]
+                        if (any(p.is_symlink() for p in ancestors) or not path.is_file()
+                                or path.stat().st_mtime > now - 7 * 86400
+                                or any(kept(p / '.retention-keep') for p in ancestors if p.is_dir())
+                                or kept(path.with_name(path.name + '.retention-keep'))):
+                            continue
+                        if not routine_report(path) or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+                            continue
+                        opened = subprocess.run(['lsof', '-n', '-P', '--', str(path)], capture_output=True, text=True, timeout=30)
+                        if opened.returncode != 1 or opened.stdout.strip() or opened.stderr.strip():
+                            continue
+                        journal = branch_dir / 'routine-expiry.jsonl'
+                        if journal.is_symlink():
+                            continue
+                        with journal.open('a') as stream:
+                            stream.write(json.dumps({'snapshot': snapshot.name, 'file': name, 'sha256': expected,
+                                                     'scheduled_at': datetime.fromtimestamp(now, timezone.utc).isoformat()}) + '\n')
+                            stream.flush()
+                            os.fsync(stream.fileno())
+                        if (any(p.is_symlink() for p in ancestors)
+                                or any(kept(p / '.retention-keep') for p in ancestors if p.is_dir())
+                                or kept(path.with_name(path.name + '.retention-keep'))
+                                or not path.is_file() or path.stat().st_mtime > now - 7 * 86400
+                                or hashlib.sha256(path.read_bytes()).hexdigest() != expected):
+                            continue
+                        path.unlink()
+                        removed += 1
+                except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
+                    continue
+    return removed
 
 
 class ReviewRequired(RuntimeError):
@@ -339,7 +451,9 @@ def integrate(source: Path, *, reviewed_main: str | None = None, keep_plan: bool
 if __name__ == "__main__":
     try:
         source = Path(__file__).resolve().parents[1]
-        if sys.argv[1:2] == ['--evidence']:
+        if sys.argv[1:] == ['--expire-routine-evidence']:
+            print(f'Expired {expire_routine_evidence(source)} routine verification report(s).')
+        elif sys.argv[1:2] == ['--evidence']:
             if sys.argv[2:]:
                 preserve_evidence(source, sys.argv[2:])
             else:
