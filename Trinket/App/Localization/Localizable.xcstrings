@@ -904,7 +904,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "%1$lld von %2$lld Zielen abgeschlossen"}},
         "en": {"stringUnit": {"state": "translated", "value": "%1$lld of %2$lld objectives complete"}},
         "es": {"stringUnit": {"state": "translated", "value": "%1$lld de %2$lld objetivos completados"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "%1$lld objectifs sur %2$lld terminés"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Objectifs accomplis : %1$lld sur %2$lld"}},
         "ja": {"stringUnit": {"state": "translated", "value": "目標%2$lld個中%1$lld個を達成"}},
         "ko": {"stringUnit": {"state": "translated", "value": "목표 %2$lld개 중 %1$lld개 완료"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "%1$lld de %2$lld objetivos concluídos"}},
@@ -1353,7 +1353,7 @@
         "en": {"stringUnit": {"state": "translated", "value": "Win a Contract to refresh"}},
         "es": {"stringUnit": {"state": "translated", "value": "Gana un Contrato para renovar"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Remportez un contrat pour actualiser"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "依頼を達成すると更新"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "依頼を達成すると更新可能"}},
         "ko": {"stringUnit": {"state": "translated", "value": "의뢰에서 승리하면 새로고침 가능"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Vença um Contrato para atualizar"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "贏得委託戰鬥後即可重新整理"}}
@@ -1772,7 +1772,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "%1$@ von %2$@ Verbesserungen"}},
         "en": {"stringUnit": {"state": "translated", "value": "%1$@ of %2$@ upgrades"}},
         "es": {"stringUnit": {"state": "translated", "value": "%1$@ de %2$@ mejoras"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "%1$@ améliorations sur %2$@"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Améliorations : %1$@ sur %2$@"}},
         "ja": {"stringUnit": {"state": "translated", "value": "強化 %1$@ / %2$@"}},
         "ko": {"stringUnit": {"state": "translated", "value": "업그레이드 %2$@개 중 %1$@개"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "%1$@ de %2$@ melhorias"}},
@@ -1982,7 +1982,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "%1$@ von %2$@ Verbesserungen"}},
         "en": {"stringUnit": {"state": "translated", "value": "%1$@ of %2$@ upgrades"}},
         "es": {"stringUnit": {"state": "translated", "value": "%1$@ de %2$@ mejoras"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "%1$@ améliorations sur %2$@"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Améliorations : %1$@ sur %2$@"}},
         "ja": {"stringUnit": {"state": "translated", "value": "強化 %1$@ / %2$@"}},
         "ko": {"stringUnit": {"state": "translated", "value": "업그레이드 %2$@개 중 %1$@개"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "%1$@ de %2$@ melhorias"}},
@@ -2488,7 +2488,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "Esporas absorbentes"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Spores siphonnantes"}},
         "ja": {"stringUnit": {"state": "translated", "value": "吸収する胞子"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "착취 포자"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "흡수 포자"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Esporos Drenantes"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "吸取孢子"}}
       }
@@ -2825,7 +2825,7 @@
         "fr": {"stringUnit": {"state": "translated", "value": "Annuler la sélection"}},
         "ja": {"stringUnit": {"state": "translated", "value": "選択を解除"}},
         "ko": {"stringUnit": {"state": "translated", "value": "선택 해제"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dispensar seleção"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cancelar seleção"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "取消選取"}}
       }
     },
@@ -3103,7 +3103,7 @@
         "en": {"stringUnit": {"state": "translated", "value": "Polishing ancient trinkets…"}},
         "es": {"stringUnit": {"state": "translated", "value": "Puliendo abalorios antiguos…"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Polissage des bibelots antiques…"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "古代の装飾品を磨いています…"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "古代のトリンケットを磨いています…"}},
         "ko": {"stringUnit": {"state": "translated", "value": "고대 트링킷 연마 중…"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Polindo berloques antigos…"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "正在擦亮古老飾物…"}}
@@ -3190,7 +3190,7 @@
         "ja": {"stringUnit": {"state": "translated", "value": "トリンケット"}},
         "ko": {"stringUnit": {"state": "translated", "value": "트링킷"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "TRINKET"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "飾物"}}
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "TRINKET"}}
       }
     },
     "ui.mysterycorruptioncontent.1_corrupted_7db4d": {
@@ -3295,7 +3295,7 @@
       "comment": "Trinket/Features/Play/Mystery/MysteryCorruptionContent.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "TRINKET"}},
+        "de": {"stringUnit": {"state": "translated", "value": "SCHMUCKSTÜCK"}},
         "en": {"stringUnit": {"state": "translated", "value": "TRINKET"}},
         "es": {"stringUnit": {"state": "translated", "value": "ABALORIO"}},
         "fr": {"stringUnit": {"state": "translated", "value": "BIBELOT"}},
@@ -3745,11 +3745,11 @@
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Boss-Liedtexte"}},
         "en": {"stringUnit": {"state": "translated", "value": "Boss Lyrics"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Letras de jefes"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Letras de canciones de jefes"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Paroles des chansons des boss"}},
         "ja": {"stringUnit": {"state": "translated", "value": "ボス曲の歌詞"}},
         "ko": {"stringUnit": {"state": "translated", "value": "보스 곡 가사"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Letras dos chefes"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Letras das músicas dos chefes"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "頭目歌曲歌詞"}}
       }
     },
@@ -4156,7 +4156,7 @@
         "ja": {"stringUnit": {"state": "translated", "value": "%1$@、ロック中"}},
         "ko": {"stringUnit": {"state": "translated", "value": "%1$@, 잠김"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "%1$@, bloqueado"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "%1$@，尚未解鎖"}}
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "%1$@，已鎖定"}}
       }
     },
     "ui.shopencounterview.buy_64e3c": {
@@ -4478,7 +4478,7 @@
         "ja": {"stringUnit": {"state": "translated", "value": "トリンケット"}},
         "ko": {"stringUnit": {"state": "translated", "value": "트링킷"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "TRINKET"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "飾物"}}
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "TRINKET"}}
       }
     },
     "ui.voyageview.1_voyage_2e333": {
@@ -4503,7 +4503,7 @@
         "en": {"stringUnit": {"state": "translated", "value": "Abandon Voyage"}},
         "es": {"stringUnit": {"state": "translated", "value": "Abandonar Travesía"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Abandonner l’expédition"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "遠征を放棄"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "航海を放棄"}},
         "ko": {"stringUnit": {"state": "translated", "value": "항해 포기"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Abandonar Viagem"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "放棄遠征"}}
@@ -4559,7 +4559,7 @@
         "en": {"stringUnit": {"state": "translated", "value": "Refresh Voyages"}},
         "es": {"stringUnit": {"state": "translated", "value": "Renovar Travesías"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Actualiser les expéditions"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "遠征を更新"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "航海を更新"}},
         "ko": {"stringUnit": {"state": "translated", "value": "항해 새로고침"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Atualizar Viagens"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "重新整理遠征"}}
@@ -4601,7 +4601,7 @@
         "en": {"stringUnit": {"state": "translated", "value": "Voyage options"}},
         "es": {"stringUnit": {"state": "translated", "value": "Opciones de Travesía"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Options d’expédition"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "遠征のオプション"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "航海のオプション"}},
         "ko": {"stringUnit": {"state": "translated", "value": "항해 설정"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Opções de Viagem"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "遠征選項"}}

@@ -427,11 +427,11 @@
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Chance auf %1$@: %2$@"}},
         "en": {"stringUnit": {"state": "translated", "value": "%1$@ chance %2$@"}},
-        "es": {"stringUnit": {"state": "translated", "value": "%1$@ de probabilidad de %2$@"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Probabilidad de %1$@: %2$@"}},
         "fr": {"stringUnit": {"state": "translated", "value": "%1$@ : %2$@ de chances"}},
         "ja": {"stringUnit": {"state": "translated", "value": "%1$@確率 %2$@"}},
         "ko": {"stringUnit": {"state": "translated", "value": "%1$@ 확률 %2$@"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "%1$@ de chance de %2$@"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Chance de %1$@: %2$@"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "%1$@機率%2$@"}}
       }
     },
@@ -441,11 +441,11 @@
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Schaden: %1$@"}},
         "en": {"stringUnit": {"state": "translated", "value": "%1$@ damage"}},
-        "es": {"stringUnit": {"state": "translated", "value": "%1$@ de daño"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Daño de tipo %1$@"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Dégâts de type %1$@"}},
         "ja": {"stringUnit": {"state": "translated", "value": "%1$@ダメージ"}},
         "ko": {"stringUnit": {"state": "translated", "value": "%1$@ 피해"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "%1$@ de dano"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dano do tipo %1$@"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "%1$@傷害"}}
       }
     },
@@ -455,11 +455,11 @@
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Erlittener Schaden: %1$@"}},
         "en": {"stringUnit": {"state": "translated", "value": "%1$@ damage taken"}},
-        "es": {"stringUnit": {"state": "translated", "value": "%1$@ de daño recibido"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Daño recibido de tipo %1$@"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Dégâts de type %1$@ subis"}},
         "ja": {"stringUnit": {"state": "translated", "value": "被%1$@ダメージ"}},
         "ko": {"stringUnit": {"state": "translated", "value": "받는 %1$@ 피해"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "%1$@ de dano recebido"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dano recebido do tipo %1$@"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "承受的%1$@傷害"}}
       }
     },
@@ -500,7 +500,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "La probabilidad astral al forjar aumenta en %1$@"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Chances de forge astrale augmentées de %1$@"}},
         "ja": {"stringUnit": {"state": "translated", "value": "星界級の鍛造確率が%1$@上昇"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "성운 등급 제작 확률 %1$@ 증가"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "성운 등급 단조 확률 %1$@ 증가"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "A chance de forjar itens Astrais aumenta em %1$@"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "星界級鍛造機率提高%1$@"}}
       }
@@ -526,7 +526,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Entzaubern bei Angriffen"}},
         "en": {"stringUnit": {"state": "translated", "value": "Attack Purge"}},
         "es": {"stringUnit": {"state": "translated", "value": "Purga al atacar"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Dissipation des attaques"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Dissipation à l’attaque"}},
         "ja": {"stringUnit": {"state": "translated", "value": "攻撃の強化解除"}},
         "ko": {"stringUnit": {"state": "translated", "value": "공격 강화 해제"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Expurgo nos ataques"}},
@@ -763,8 +763,8 @@
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Chance auf astrale Schmiedestücke"}},
         "en": {"stringUnit": {"state": "translated", "value": "Forge Astral odds"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Probabilidad astral de forja"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Chances de forge astrale"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Probabilidad de forjar equipo astral"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Chances de forger un objet astral"}},
         "ja": {"stringUnit": {"state": "translated", "value": "星界級の鍛造確率"}},
         "ko": {"stringUnit": {"state": "translated", "value": "성운 등급 제작 확률"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Chance Astral na forja"}},
@@ -1279,7 +1279,7 @@
       "comment": "Packages/TrinketFeatureSupport/Sources/TrinketFeatureSupport/Shared/Detail/ItemDetailView.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "TRINKET"}},
+        "de": {"stringUnit": {"state": "translated", "value": "SCHMUCKSTÜCK"}},
         "en": {"stringUnit": {"state": "translated", "value": "TRINKET"}},
         "es": {"stringUnit": {"state": "translated", "value": "ABALORIO"}},
         "fr": {"stringUnit": {"state": "translated", "value": "BIBELOT"}},
