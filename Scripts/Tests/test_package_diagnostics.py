@@ -98,7 +98,7 @@ class PackageDiagnosticsTests(ScriptRegressionTestCase):
         import os
         import subprocess
 
-        with tempfile.TemporaryDirectory() as directory:
+        with tempfile.TemporaryDirectory(prefix="package workers ") as directory:
             root = self.make_repo_fixture(directory, (
                 'Scripts/test-package.sh', 'Scripts/package-diagnostics.py',
                 'Scripts/script_diagnostics.py', 'Scripts/phase-timing.py',
@@ -118,15 +118,18 @@ class PackageDiagnosticsTests(ScriptRegressionTestCase):
                 'prepare_generated_inputs() { :; }\n'
                 'package_test_scheme() { echo "$1"; }\n'
                 'package_derived_data_path() { echo "$PWD/dd/$1"; }\n'
+                'build_stamp_path() { echo "$PWD/results/$2.stamp"; }\n'
+                'assert_no_build_inputs_are_fresh() { :; }\n'
                 'begin_build_stamps() { :; }\n'
                 'touch_build_stamp() { :; }\n'
             )
             (scripts / "lib/app-build.sh").write_text(
-                'trinket_set_package_scheme_args() { TRINKET_PACKAGE_SCHEME_ARGS=(fixture); }\n'
+                'trinket_set_package_scheme_args() { TRINKET_PACKAGE_SCHEME_ARGS=(--fixture-destination "$3"); }\n'
                 'trinket_set_local_simulator_architecture_args() { TRINKET_LOCAL_SIMULATOR_ARCHITECTURE_ARGS=(fixture); }\n'
             )
             (scripts / "xcode-runner.sh").write_text(
                 'xcode_runner_prepare() {\n'
+                '  printf "%s\\n" "$3" >"$PWD/results/$1.prefix"\n'
                 '  XCODE_RUNNER_INVOCATION_ID="$1-current"\n'
                 '  XCODE_RUNNER_RESULT_BUNDLE_PATH="$PWD/results/$1.xcresult"\n'
                 '  XCODE_RUNNER_LOG_PATH="$PWD/results/$1.log"\n'
@@ -146,6 +149,9 @@ class PackageDiagnosticsTests(ScriptRegressionTestCase):
                 (["--build-for-testing"], [], "0"),
                 (["--destination", "id=fixture"], [], "0"),
                 (["--destination", "id=fixture"], ["--include-balance-sweep-tests"], "0"),
+                (["--destination", "id=fixture"], ["--iterations", "3", "--run-tests-until-failure"], "0"),
+                (["--destination", "id=fixture"], ["--report-prefix", "custom run"], "0"),
+                (["--no-build", "--destination", "id=fixture"], [], "0"),
             )
             for action, extra, status in cases:
                 with self.subTest(action=action, extra=extra, status=status):
@@ -165,6 +171,16 @@ class PackageDiagnosticsTests(ScriptRegressionTestCase):
                         self.assertEqual(f"-skip-testing:{target}" in battle_args, excluded)
                     core_args = (root / "results/TrinketCore-current.args").read_text().splitlines()
                     self.assertFalse(any(arg.startswith("-skip-testing:") for arg in core_args))
+                    if "--report-prefix" in extra:
+                        self.assertEqual((root / "results/BattleEngine.prefix").read_text().strip(), "custom run-BattleEngine")
+                    for args in (core_args, battle_args):
+                        expected_destination = "generic/platform=iOS Simulator" if action == ["--build-for-testing"] else "id=fixture"
+                        self.assertEqual(args[args.index("--fixture-destination") + 1], expected_destination)
+                        self.assertEqual("-resultBundlePath" in args, action != ["--build-for-testing"])
+                    if "--iterations" in extra:
+                        for args in (core_args, battle_args):
+                            self.assertEqual(args[args.index("-test-iterations") + 1], "3")
+                            self.assertIn("-run-tests-until-failure", args)
 
             for mode in ("only-suite", "skip-suite"):
                 with self.subTest(mode=mode):

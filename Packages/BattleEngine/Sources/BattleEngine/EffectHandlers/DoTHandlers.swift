@@ -197,12 +197,7 @@ extension EffectHandlers {
             sourceActorID: sourceID,
             in: &context,
         )
-        if var updated = context.roster.activeEffects(for: target).first(where: { $0.id == active.id }) {
-            updated.remainingTurns -= 1
-            ActiveEffectMutation.finishTurn(
-                active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
-            )
-        }
+        ActiveEffectMutation.finishPulsedTurn(active, on: target, in: &context)
     }
 }
 

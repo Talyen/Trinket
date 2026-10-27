@@ -37,12 +37,15 @@ package struct UniqueDamageScratch {
     var enemyBlock = 0
 }
 
-package struct DamageResolutionState {
-    public let amount: Int
-    public let combatant: Combatant
-    public let sourceActorID: String?
-    public let damageKeyword: Keyword?
+/// Both phases query the same live source and attack Leech rules; committed
+/// hits still retain their own immutable copy of the relevant facts.
+protocol DamageSourceFacts {
+    var sourceActorID: String? { get }
+    var options: DamageOperation { get }
+    var talentAttackHasLeech: Bool { get }
+}
 
+extension DamageSourceFacts {
     func partySource(in context: BattleState) -> CombatantRuntime? {
         guard let sourceActorID,
               let source = context.roster.combatant(for: sourceActorID),
@@ -56,6 +59,13 @@ package struct DamageResolutionState {
         return options.abilityHasLeech || talentAttackHasLeech
             || sourceActorID.map { context.modifiers(for: $0).triggers.attackLeechPercent > 0 } == true
     }
+}
+
+package struct DamageResolutionState: DamageSourceFacts {
+    public let amount: Int
+    public let combatant: Combatant
+    public let sourceActorID: String?
+    public let damageKeyword: Keyword?
 
     public let options: DamageOperation
     var provenance: DamageProvenance?

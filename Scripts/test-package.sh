@@ -317,35 +317,25 @@ run_one_package() {
   if [[ "$defer_output" == "true" || "$DEFER_TERMINAL_OUTPUT" == "true" ]]; then
     runner_args+=(--defer-terminal-output)
   fi
+  local scheme_destination="$DESTINATION"
   if [[ "$ACTION" == "build-for-testing" ]]; then
-    # Generic destination compile that --no-build test runs reuse; no result
-    # bundle is produced (compiles have no test cases to record).
-    trinket_set_package_scheme_args "$scheme" iphonesimulator 'generic/platform=iOS Simulator' "$package_dd"
-    xcodebuild_args=(
-      xcodebuild build-for-testing \
-        "${TRINKET_PACKAGE_SCHEME_ARGS[@]}" \
-    )
-  else
-    trinket_set_package_scheme_args "$scheme" iphonesimulator "$DESTINATION" "$package_dd"
-    xcodebuild_args=(
-      xcodebuild "$ACTION" \
-        "${TRINKET_PACKAGE_SCHEME_ARGS[@]}" \
-    )
-    # Result bundles back test timing and failure diagnostics; build-for-testing
-    # runs skip them to avoid writing bulky unused xcresults.
-    if [[ "$ACTION" == "test" || "$ACTION" == "test-without-building" ]]; then
-      xcodebuild_args+=(-resultBundlePath "$result_bundle")
-      if [[ -n "$ITERATIONS" ]]; then
-        xcodebuild_args+=(-test-iterations "$ITERATIONS")
-      fi
-      if [[ "$RUN_UNTIL_FAILURE" == "true" ]]; then
-        xcodebuild_args+=(-run-tests-until-failure)
-      fi
+    # Generic compilation produces no test result bundle.
+    scheme_destination='generic/platform=iOS Simulator'
+  fi
+  trinket_set_package_scheme_args "$scheme" iphonesimulator "$scheme_destination" "$package_dd"
+  xcodebuild_args=(xcodebuild "$ACTION" "${TRINKET_PACKAGE_SCHEME_ARGS[@]}")
+  if [[ "$ACTION" != "build-for-testing" ]]; then
+    # Result bundles back test timing and failure diagnostics.
+    xcodebuild_args+=(-resultBundlePath "$result_bundle")
+    if [[ -n "$ITERATIONS" ]]; then
+      xcodebuild_args+=(-test-iterations "$ITERATIONS")
+    fi
+    if [[ "$RUN_UNTIL_FAILURE" == "true" ]]; then
+      xcodebuild_args+=(-run-tests-until-failure)
     fi
     # Opt-in serial execution for diagnosing stack-pressure crashes on small
     # worker-thread stacks; parallel remains the default.
-    if [[ "${TRINKET_SERIAL_TESTS:-0}" == "1" ]] \
-      && [[ "$ACTION" == "test" || "$ACTION" == "test-without-building" ]]; then
+    if [[ "${TRINKET_SERIAL_TESTS:-0}" == "1" ]]; then
       xcodebuild_args+=(-parallel-testing-enabled NO)
     fi
   fi
@@ -453,60 +443,32 @@ else
   echo "Running ${#PACKAGES[@]} package test schemes in parallel (jobs=$jobs)..."
 fi
 
+worker_args=(--defer-terminal-output)
+case "$ACTION" in
+  test-without-building) worker_args=(--no-build "${worker_args[@]}") ;;
+  build-for-testing) worker_args=(--build-for-testing "${worker_args[@]}") ;;
+esac
+if [[ -n "$DESTINATION" ]]; then worker_args+=(--destination "$DESTINATION"); fi
+if [[ "$QUIET" == "true" ]]; then worker_args+=(--quiet); fi
+if [[ "$VERBOSE" == "true" ]]; then worker_args+=(--verbose); fi
+if [[ -n "$REPORT_PREFIX" ]]; then worker_args+=(--report-prefix "$REPORT_PREFIX"); fi
+if [[ "$INCLUDE_BALANCE_SWEEP_TESTS" == "true" ]]; then worker_args+=(--include-balance-sweep-tests); fi
+if [[ -n "$ITERATIONS" ]]; then worker_args+=(--iterations "$ITERATIONS"); fi
+if [[ "$RUN_UNTIL_FAILURE" == "true" ]]; then worker_args+=(--run-tests-until-failure); fi
+
 failed=0
-printf '%s\n' "${PACKAGES[@]}" | xargs -P "$jobs" -I{} bash -c '
+# Children share the prepared generation stamp and write per-package evidence.
+printf '%s\n' "${PACKAGES[@]}" | env DERIVED_DATA_PATH="$DERIVED_DATA_PATH" RESULTS_DIR="$RESULTS_DIR" \
+  TRINKET_PACKAGE_OUTPUT_ROOT="$package_output_root" SKIP_GENERATE=1 \
+  xargs -P "$jobs" -I{} bash -c '
   set -euo pipefail
   package="$1"
-  destination="$2"
-  action="$3"
-  quiet="$4"
-  verbose="$5"
-  report_prefix="$6"
-  include_balance="$7"
-  output_root="$8"
-  derived_data_path="$9"
-  results_dir="${10}"
-  iterations="${11}"
-  run_until_failure="${12}"
-
-  export DERIVED_DATA_PATH="$derived_data_path"
-  export RESULTS_DIR="$results_dir"
-  export TRINKET_PACKAGE_OUTPUT_ROOT="$output_root"
-  # Children already share a prepared generate stamp / SKIP_GENERATE from parents.
-  export SKIP_GENERATE=1
-
-  package_args=("$package" --defer-terminal-output)
-  if [[ -n "$destination" ]]; then
-    package_args+=(--destination "$destination")
-  fi
-  case "$action" in
-    test-without-building) package_args=(--no-build "${package_args[@]}") ;;
-    build-for-testing) package_args=(--build-for-testing "${package_args[@]}") ;;
-  esac
-  if [[ "$quiet" == "true" ]]; then
-    package_args+=(--quiet)
-  fi
-  if [[ "$verbose" == "true" ]]; then
-    package_args+=(--verbose)
-  fi
-  if [[ -n "$report_prefix" ]]; then
-    package_args+=(--report-prefix "$report_prefix")
-  fi
-  if [[ "$include_balance" == "true" ]]; then
-    package_args+=(--include-balance-sweep-tests)
-  fi
-  if [[ -n "$iterations" ]]; then
-    package_args+=(--iterations "$iterations")
-  fi
-  if [[ "$run_until_failure" == "true" ]]; then
-    package_args+=(--run-tests-until-failure)
-  fi
-
+  shift
   status=0
-  ./Scripts/test-package.sh "${package_args[@]}" >"$output_root/$package.stdout" 2>&1 || status=$?
-  printf "%s\n" "$status" >"$output_root/$package.status"
+  ./Scripts/test-package.sh "$package" "$@" >"$TRINKET_PACKAGE_OUTPUT_ROOT/$package.stdout" 2>&1 || status=$?
+  printf "%s\n" "$status" >"$TRINKET_PACKAGE_OUTPUT_ROOT/$package.status"
   exit "$status"
-' _ {} "$DESTINATION" "$ACTION" "$QUIET" "$VERBOSE" "$REPORT_PREFIX" "$INCLUDE_BALANCE_SWEEP_TESTS" "$package_output_root" "$DERIVED_DATA_PATH" "$RESULTS_DIR" "$ITERATIONS" "$RUN_UNTIL_FAILURE" || failed=1
+' _ {} "${worker_args[@]}" || failed=1
 
 # One bounded report for the invocation; verbose mode retains complete worker output.
 summary_args=("$package_output_root" "${PACKAGES[@]}")

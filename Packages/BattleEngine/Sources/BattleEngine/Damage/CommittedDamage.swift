@@ -3,7 +3,7 @@ import TrinketCore
 
 /// Hit facts frozen after defense and Health commitment. Reactions mutate the
 /// live battle in order; they cannot modify outgoing calculations or this hit.
-package struct CommittedDamage {
+package struct CommittedDamage: DamageSourceFacts {
     let amount: Int
     let combatant: Combatant
     let sourceActorID: String?
@@ -46,19 +46,5 @@ package struct CommittedDamage {
         blockAbsorbingOwners = state.blockAbsorbingOwners
         brokenBlockOwners = state.brokenBlockOwners
         heroCardBlockBroken = state.heroCardBlockBroken
-    }
-
-    func partySource(in context: BattleState) -> CombatantRuntime? {
-        guard let sourceActorID,
-              let source = context.roster.combatant(for: sourceActorID),
-              source.role != .enemy else { return nil }
-        return source
-    }
-
-    /// Fractional grants qualify for riders without selecting ability-strength restoration.
-    func hasGuaranteedAttackLeech(in context: BattleState) -> Bool {
-        guard options.isAttackHit else { return false }
-        return options.abilityHasLeech || talentAttackHasLeech
-            || sourceActorID.map { context.modifiers(for: $0).triggers.attackLeechPercent > 0 } == true
     }
 }

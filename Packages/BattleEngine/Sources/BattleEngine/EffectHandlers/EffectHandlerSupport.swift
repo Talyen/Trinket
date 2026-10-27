@@ -172,6 +172,14 @@ enum ActiveEffectMutation {
         }
     }
 
+    /// A pulse can replace or remove its stack through reactions. Age only the
+    /// current instance, preserving any changes that happened during the pulse.
+    static func finishPulsedTurn(_ active: ActiveEffect, on target: Combatant, in context: inout BattleState) {
+        guard var current = context.roster.activeEffects(for: target).first(where: { $0.id == active.id }) else { return }
+        current.remainingTurns -= 1
+        finishTurn(active, replacement: current.remainingTurns > 0 ? current : nil, on: target, in: &context)
+    }
+
     static func removeMatching(
         from target: Combatant,
         in context: inout BattleState,
