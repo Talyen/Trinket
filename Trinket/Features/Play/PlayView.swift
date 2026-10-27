@@ -16,6 +16,7 @@ struct PlayView: View {
     @Environment(EncounterPlayMode.self) private var encounters
     @Environment(\.isLaunchPresentationReady) private var isLaunchPresentationReady
     @State private var stageMessage: StageMapMessage?
+    @State private var restoredStack = false
     let restoresPendingDestination: Bool
 
     init(restoresPendingDestination: Bool = true) {
@@ -30,6 +31,7 @@ struct PlayView: View {
                 navigationPath: $shellSession.playPath,
                 stageMessage: $stageMessage,
             )
+            .id(restoredStack)
             PlayBattleOverlay(stageMessage: $stageMessage)
         }
         .toolbarVisibility(
@@ -59,6 +61,9 @@ struct PlayView: View {
 
         if let destination = play.consumePendingDestination() {
             shellSession.playPath = destination.navigationPath
+            // Mount the stack with its restored path after launch layout has
+            // settled; some SwiftUI runtimes miss an early multi-level push.
+            restoredStack.toggle()
         }
     }
 }

@@ -43,14 +43,8 @@ struct PlayBrowsingStack: View {
     }
 
     private var browsingPath: Binding<[PlayLaunchDestination]> {
-        // Read the path while constructing the view so externally restored
-        // destinations invalidate the stack as well as direct link taps.
-        let observedPath = navigationPath
-        return Binding(
-            get: {
-                _ = observedPath
-                return navigationPath
-            },
+        Binding(
+            get: { navigationPath },
             set: { newPath in
                 // Drops writes while battle/mystery/shop own the screen so a
                 // swipe-back during activation cannot desync the path; the
