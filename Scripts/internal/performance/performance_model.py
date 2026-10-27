@@ -68,6 +68,8 @@ def validate_report_consistency(report: dict[str, Any], samples: float) -> list[
         p95 = finite_number(report, "p95FrameMs")
         p99 = finite_number(report, "p99FrameMs")
         maximum = finite_number(report, "maxFrameMs")
+        average_fps = finite_number(report, "averageFPS")
+        low_fps = finite_number(report, "onePercentLowFPS")
     except ValueError:
         # Domain validation already reports missing and non-finite metrics.
         return []
@@ -78,6 +80,12 @@ def validate_report_consistency(report: dict[str, Any], samples: float) -> list[
         failures.append(f"{scenario}: missedDeadlineRatio does not match missed deadlines / sample count")
     if not p95 <= p99 <= maximum:
         failures.append(f"{scenario}: expected p95 frame time <= p99 frame time <= maximum frame time")
+    if min(average_fps, low_fps, p95, p99, maximum) <= 0:
+        failures.append(f"{scenario}: sampled frame rates and frame times must be positive")
+    if low_fps > average_fps and not math.isclose(low_fps, average_fps, rel_tol=1e-9):
+        failures.append(f"{scenario}: 1% low FPS cannot exceed average FPS")
+    if maximum > 0 and average_fps > 0 and average_fps * maximum < 1000 - 1e-6:
+        failures.append(f"{scenario}: average FPS is incompatible with maximum frame time")
     return failures
 
 

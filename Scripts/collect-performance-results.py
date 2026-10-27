@@ -18,7 +18,6 @@ def main() -> int:
     args = parser.parse_args()
 
     records: list[dict[str, object]] = []
-    seen: set[str] = set()
     malformed: list[str] = []
     for path in sorted(args.results_dir.rglob("*.log")):
         with path.open(errors="replace") as source:
@@ -35,10 +34,6 @@ def main() -> int:
                 if not isinstance(record, dict):
                     malformed.append(f"{path}: performance payload is not an object")
                     continue
-                key = json.dumps(record, sort_keys=True)
-                if key in seen:
-                    continue
-                seen.add(key)
                 record["sourceLog"] = str(path.relative_to(args.results_dir))
                 records.append(record)
 

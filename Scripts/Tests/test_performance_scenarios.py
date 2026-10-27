@@ -22,6 +22,13 @@ class PerformanceScenarioTests(unittest.TestCase):
     def setUp(self) -> None:
         self.baseline = json.loads((ROOT / 'Performance/Baselines/simulator-60.json').read_text())
 
+    def test_failed_git_provenance_is_not_recorded_as_a_real_hash(self) -> None:
+        environment = load_script('performance_environment_failure', 'performance_environment.py')
+        with mock.patch.object(environment.subprocess, 'check_output', side_effect=subprocess.CalledProcessError(1, 'git')):
+            with self.assertRaisesRegex(SystemExit, 'cannot capture source provenance'):
+                environment.command('git', 'diff', '--binary', 'HEAD', raw=True, required=True)
+            self.assertEqual(environment.command('xcodebuild', '-version'), 'unknown')
+
     def test_provenance_hashes_exact_diff_and_unusual_untracked_source_names(self) -> None:
         environment = load_script('performance_environment', 'performance_environment.py')
         with tempfile.TemporaryDirectory() as directory:

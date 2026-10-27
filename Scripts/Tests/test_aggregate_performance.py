@@ -18,6 +18,21 @@ aggregate_performance = load_script("aggregate_performance", "aggregate-performa
 
 
 class AggregatePerformanceTests(unittest.TestCase):
+    def test_collection_preserves_duplicate_reports_for_coverage_validation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            logs = root / "TestResults"
+            logs.mkdir()
+            line = "TRINKET_PERFORMANCE_REPORT " + json.dumps(report()) + "\n"
+            (logs / "run.log").write_text(line * 2)
+            output = root / "reports.json"
+            run_captured([sys.executable, str(SCRIPT.with_name("collect-performance-results.py")), str(logs), str(output)], expected=0)
+            records = json.loads(output.read_text())["reports"]
+            self.assertEqual(len(records), 2)
+            status, summary = self.run_aggregate(records)
+            self.assertEqual(status, 1)
+            self.assertIn("expected iterations 1..1, found [1, 1]", summary)
+
     def test_collection_retains_invalid_iterations_for_validation(self) -> None:
         for iteration in (None, "broken"):
             with self.subTest(iteration=iteration), tempfile.TemporaryDirectory() as directory:

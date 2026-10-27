@@ -172,7 +172,10 @@ readable for historical comparison.
 Deadline and severe-stall counts use each callback's expected refresh period, so
 refresh-rate transitions do not create false misses. JSON and legacy accessibility
 reports require a supported schema; additive fields remain readable. Schema-6
-comparison also checks that counts, missed ratios and percentile ordering agree.
+comparison also checks that counts, missed ratios and percentile ordering agree,
+and that positive frame times and rates are consistent with one another. Duplicate
+records remain in collected evidence so the coverage check can reject them. Git
+source provenance must be captured successfully before a run starts.
 
 The summary distinguishes **coverage failure**, **performance finding**, and
 **clean observation**. Missing evidence always fails, even in observation mode.

@@ -13,11 +13,13 @@ from pathlib import Path
 from internal.cli import write_json_atomic
 
 
-def command(*args: str, raw: bool = False) -> str | bytes:
+def command(*args: str, raw: bool = False, required: bool = False) -> str | bytes:
     try:
         output = subprocess.check_output(args, stderr=subprocess.DEVNULL, timeout=120)
         return output if raw else output.decode().strip()
     except (OSError, subprocess.SubprocessError) as error:
+        if required:
+            raise SystemExit(f"performance_environment.py: {' '.join(args)} failed ({error}); cannot capture source provenance") from error
         # Provenance matters here: name the failed command so "unknown"
         # fields can be told apart from genuinely empty ones.
         print(f"performance_environment.py: {' '.join(args)} failed ({error}); recording unknown", file=sys.stderr)
@@ -33,17 +35,17 @@ def main() -> None:
         raise SystemExit("repetitions must be an integer") from None
     output = Path(sys.argv[1])
     # --porcelain is the stable spelling of --short: one status run feeds both.
-    git_status = command("git", "status", "--porcelain")
+    git_status = command("git", "status", "--porcelain", required=True)
     untracked = [Path(os.fsdecode(name)) for name in
-                 command("git", "ls-files", "-z", "--others", "--exclude-standard", raw=True).split(b"\0") if name]
+                 command("git", "ls-files", "-z", "--others", "--exclude-standard", raw=True, required=True).split(b"\0") if name]
     payload = {
         "capturedAt": datetime.now(timezone.utc).isoformat(),
         "host": platform.platform(),
         "xcode": command("xcodebuild", "-version"),
-        "gitCommit": command("git", "rev-parse", "HEAD"),
+        "gitCommit": command("git", "rev-parse", "HEAD", required=True),
         "gitDirty": bool(git_status),
         "gitStatus": git_status,
-        "trackedDiffSHA256": hashlib.sha256(command("git", "diff", "--binary", "HEAD", raw=True)).hexdigest(),
+        "trackedDiffSHA256": hashlib.sha256(command("git", "diff", "--binary", "HEAD", raw=True, required=True)).hexdigest(),
         "untrackedSourceSHA256": {
             str(path): hashlib.sha256(path.read_bytes()).hexdigest()
             for path in untracked if path.is_file() and path.suffix in {".swift", ".py", ".sh", ".json", ".xctestplan"}

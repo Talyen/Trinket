@@ -90,6 +90,23 @@ class ComparePerformanceTests(unittest.TestCase):
             self.assertEqual(status, 0)
             self.assertNotIn("coverage failure", summary)
 
+    def test_interaction_frame_statistics_must_be_physically_possible(self) -> None:
+        for overrides, reason in (
+            ({"averageFPS": 0}, "frame rates and frame times must be positive"),
+            ({"onePercentLowFPS": 0}, "frame rates and frame times must be positive"),
+            ({"p95FrameMs": 0}, "frame rates and frame times must be positive"),
+            ({"onePercentLowFPS": 70}, "1% low FPS cannot exceed average FPS"),
+            ({"averageFPS": 5, "onePercentLowFPS": 5}, "average FPS is incompatible with maximum frame time"),
+        ):
+            with self.subTest(overrides=overrides):
+                status, summary = self.run_comparison([report(schemaVersion=6, **overrides)], mode="observe")
+                self.assertEqual(status, 1)
+                self.assertIn(reason, summary)
+
+        status, _ = self.run_comparison([report(schemaVersion=6, averageFPS=10, onePercentLowFPS=10,
+                                                 p95FrameMs=100, p99FrameMs=100, maxFrameMs=100)], mode="observe")
+        self.assertEqual(status, 0)
+
     def test_legacy_metrics_do_not_require_current_interaction_consistency(self) -> None:
         status, summary = self.run_comparison([report(missedDeadlineRatio=0.4)], mode="observe")
         self.assertEqual(status, 0)
