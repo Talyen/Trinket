@@ -16,12 +16,14 @@ enum LabyrinthSanitizer {
             )
         }
 
-        sanitized.clusters = sanitized.clusters.map { cluster in
-            LabyrinthCluster(
-                id: cluster.id,
-                depthBand: max(0, cluster.depthBand),
-                nodeIDs: cluster.nodeIDs,
-            )
+        if sanitized.clusters.contains(where: { $0.depthBand < 0 }) {
+            sanitized.clusters = sanitized.clusters.map { cluster in
+                LabyrinthCluster(
+                    id: cluster.id,
+                    depthBand: max(0, cluster.depthBand),
+                    nodeIDs: cluster.nodeIDs,
+                )
+            }
         }
 
         if sanitized.mapVersion == LabyrinthGenerator.currentMapVersion {
@@ -40,13 +42,13 @@ enum LabyrinthSanitizer {
 
         let validNodeIDs = Set(sanitized.nodes.keys)
         let clustersByID = Dictionary(sanitized.clusters.lazy.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-        let existingNodes = sanitized.nodes
-        for (id, node) in existingNodes {
-            sanitized.nodes[id] = sanitizedLabyrinthNode(
+        let worldSeed = sanitized.worldSeed
+        sanitized.nodes = sanitized.nodes.mapValues { node in
+            sanitizedLabyrinthNode(
                 node,
                 validNodeIDs: validNodeIDs,
                 cluster: clustersByID[node.clusterID],
-                worldSeed: sanitized.worldSeed,
+                worldSeed: worldSeed,
                 eligibleRewards: eligibleRewards,
             )
         }

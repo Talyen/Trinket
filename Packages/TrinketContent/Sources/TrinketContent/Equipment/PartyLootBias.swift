@@ -34,6 +34,9 @@ public struct PartyLootBias: Equatable, Sendable {
     }
 
     private func weight(for item: InventoryItem) -> Int {
+        if sharedKeywords.isEmpty {
+            return item.affixes.contains { !$0.keywords.isDisjoint(with: favoredKeywords) } ? 6 : 4
+        }
         var favored = false
         for affix in item.affixes {
             if !affix.keywords.isDisjoint(with: sharedKeywords) {

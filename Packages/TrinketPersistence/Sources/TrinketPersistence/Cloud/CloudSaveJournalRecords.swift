@@ -61,6 +61,7 @@ struct CloudSaveJournalRecords: Sendable, Sequence {
     }
 
     func suffix(after skipped: Int) -> [(index: Int, record: Record)] {
+        guard skipped < count else { return [] }
         var result: [(index: Int, record: Record)] = []
         result.reserveCapacity(Swift.max(0, count - Swift.max(0, skipped)))
         var offset = 0

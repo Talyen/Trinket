@@ -67,7 +67,7 @@ public enum ShopStockPersistence {
     static func mergedPayload(preferred: Data?, other: Data?) -> Data? {
         guard let preferred, let other else { return preferred ?? other }
         guard let first = validStock(preferred) else { return validStock(other) == nil ? preferred : other }
-        guard let second = validStock(other), first.matches(second.encounter) else { return preferred }
+        guard let second = preferred == other ? first : validStock(other), first.matches(second.encounter) else { return preferred }
         do {
             var stock = first.stock
             stock.purchasedOfferIDs.formUnion(first.matchingPurchases(in: second))
@@ -94,6 +94,9 @@ public enum ShopStockPersistence {
               !first.stock.purchasedOfferIDs.isEmpty, !second.stock.purchasedOfferIDs.isEmpty
         else { return false }
         let priorIDs = base.flatMap { validStock($0)?.stock.purchasedOfferIDs } ?? []
+        if incoming == existing {
+            return !first.stock.purchasedOfferIDs.isSubset(of: priorIDs)
+        }
         let offersByID = Dictionary(uniqueKeysWithValues: second.stock.offers.lazy.map { ($0.id, $0) })
         return first.stock.offers.contains { offer in
             first.stock.purchasedOfferIDs.contains(offer.id) && !priorIDs.contains(offer.id)

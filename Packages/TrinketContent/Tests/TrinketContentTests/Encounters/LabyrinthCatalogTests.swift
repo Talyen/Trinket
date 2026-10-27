@@ -64,6 +64,25 @@ struct LabyrinthCatalogTests {
         )
     }
 
+    @Test func `single saved modifier matches general selection across encounters`() {
+        let ids = NodeModifierCatalog.modifiers.map(\.id) + [NodeModifierID("unknown")]
+        let enemies: [String?] = [nil, "unknown"] + GameContent.enemies.map { Optional($0.id) }
+        for type in LabyrinthNodeType.allCases {
+            for enemyID in enemies {
+                for id in ids {
+                    let single = NodeModifierCatalog.resolvedModifierIDs(
+                        for: type, enemyID: enemyID, existingModifierIDs: [id], worldSeed: 7, nodeID: "n",
+                    )
+                    let general = NodeModifierCatalog.resolvedModifierIDs(
+                        for: type, enemyID: enemyID, existingModifierIDs: [id, NodeModifierID("unknown")],
+                        worldSeed: 7, nodeID: "n",
+                    )
+                    #expect(single == general)
+                }
+            }
+        }
+    }
+
     @Test func `shop nodes resolve one shop modifier`() {
         let shopPool = NodeModifierCatalog.modifiers.filter { $0.applies(to: .shop) }
         #expect(!shopPool.isEmpty)
