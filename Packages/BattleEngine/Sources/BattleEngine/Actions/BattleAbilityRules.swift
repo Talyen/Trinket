@@ -43,6 +43,7 @@ enum BattleAbilityRules {
     }
 
     static func resolveOutcome(_ ability: Ability, actor: Combatant, in context: inout BattleState) -> Ability {
+        guard ability.conditionalOutcome != nil || ability.outcomeBranches != nil else { return ability }
         let action = BattleActionContext(actor: actor, in: context)
         let outcomes = possibleOutcomes(ability, action: action, in: context)
         return outcomes.resolve(using: &context.rng)

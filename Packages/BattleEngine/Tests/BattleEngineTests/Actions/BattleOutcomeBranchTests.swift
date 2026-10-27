@@ -4,6 +4,14 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BattleOutcomeBranchTests {
+    @Test func `ordinary abilities preserve their definition and random state`() {
+        var battle = BattleStateTestFactory.makeMinimalBattle(rngSeed: 7, appliesFightPacing: false)
+        let initialRNG = battle.rng
+        let selected = BattleAbilityRules.resolveOutcome(.slash, actor: battle.hero, in: &battle)
+        #expect(selected == .slash)
+        #expect(battle.rng == initialRNG)
+    }
+
     @Test(arguments: [Keyword.block, .thorns, .health])
     func `luck potion resolves one seeded combat gain`(keyword: Keyword) throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
