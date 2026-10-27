@@ -105,16 +105,8 @@ final class EarnedGearProgression {
         state: PlayerProgressionState, enemy: Enemy, enemyLevel: Int,
         profile: EnemyPowerCurve.Profile, seed: UInt64, enemyModifiers: [AffixModifier] = [],
     ) -> ConfiguredSimulationMatchup {
-        SimulationMatchupBuilder.build(
-            hero: hero, companion: companion, enemy: enemy,
-            tier: .band(forLevel: state.heroLevel), heroLevel: state.heroLevel, companionLevel: state.companionLevel,
-            enemyLevel: enemyLevel, enemyPowerProfile: profile,
-            heroLoadout: heroLoadout, companionLoadout: companionLoadout, seed: seed,
-            heroGear: .init(inventory: inventory, loadout: equipment[hero.id] ?? EquipmentLoadout()),
-            companionGear: .init(inventory: inventory, loadout: equipment[companion.id] ?? EquipmentLoadout()),
-            heroTalents: talents[hero.id] ?? [], companionTalents: talents[companion.id] ?? [],
-            enemyAdditionalModifiers: enemyModifiers,
-        )
+        EarnedCareerCheckpoint(targetLevel: enemyLevel, state: state, party: self)
+            .matchup(enemy: enemy, seed: seed, profile: profile, enemyModifiers: enemyModifiers)
     }
 
     private func resolveGeneric(step: ModeProgressionStep, encounterLevel: Int, context: BattleLootContext) -> BattleLootResult {

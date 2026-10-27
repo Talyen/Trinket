@@ -5,6 +5,32 @@ import TrinketCore
 @testable import BattleBalanceTools
 
 struct EarnedGearProgressionTests {
+    @Test func `checkpoint and live matchups share the frozen earned party`() throws {
+        let step = BalanceTestFixtures.step(enemyLevel: 20)
+        let controller = InterleavingPlayerController(
+            campaignTracker: .init(steps: [step]), spireTracker: .init(steps: []), labyrinthTracker: .init(steps: []),
+            initialState: PlayerProgressionState(heroLevel: 20, companionLevel: 19), worldSeed: 43,
+        )
+        controller.recordOutcome(step: step, won: true)
+        let party = try #require(controller.earnedParty)
+        let state = controller.state
+        let checkpoint = EarnedCareerCheckpoint(targetLevel: 20, state: state, party: party)
+        let enemy = try #require(GameContent.enemy(matching: step.enemyID))
+        let expected = checkpoint.matchup(enemy: enemy, seed: 11)
+        #expect(party.matchup(state: state, enemy: enemy, enemyLevel: 20, profile: .standard, seed: 11) == expected)
+
+        let modifiers: [AffixModifier] = [.damageDealt(.physical, 3)]
+        let spire = party.matchup(state: state, enemy: enemy, enemyLevel: 20, profile: .spire, seed: 11, enemyModifiers: modifiers)
+        let spireEnemy = CombatBuildResolver.build(enemy: enemy, level: 20, profile: .spire)
+        #expect(spire.enemy == spireEnemy.combatant)
+        #expect(spire.enemyModifiers.damageDealtBonus[.physical, default: 0]
+            == spireEnemy.modifiers.damageDealtBonus[.physical, default: 0] + 3)
+
+        party.invest(state: PlayerProgressionState(heroLevel: 40, companionLevel: 40))
+        #expect(party.talents != checkpoint.talents)
+        #expect(checkpoint.matchup(enemy: enemy, seed: 11) == expected)
+    }
+
     @Test func `victory loot persists but losses previews and level 35 never generate equipment`() throws {
         let step = BalanceTestFixtures.step(enemyLevel: 34)
         let controller = InterleavingPlayerController(

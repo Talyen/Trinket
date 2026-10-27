@@ -28,13 +28,20 @@ public struct EarnedCareerCheckpoint: Sendable {
     }
 
     public func matchup(enemy: Enemy, seed: UInt64) -> ConfiguredSimulationMatchup {
+        matchup(enemy: enemy, seed: seed, profile: .standard, enemyModifiers: [])
+    }
+
+    func matchup(
+        enemy: Enemy, seed: UInt64, profile: EnemyPowerCurve.Profile, enemyModifiers: [AffixModifier],
+    ) -> ConfiguredSimulationMatchup {
         SimulationMatchupBuilder.build(
             hero: hero, companion: companion, enemy: enemy, tier: .band(forLevel: state.heroLevel),
-            heroLevel: state.heroLevel, companionLevel: state.companionLevel, enemyLevel: targetLevel,
+            heroLevel: state.heroLevel, companionLevel: state.companionLevel, enemyLevel: targetLevel, enemyPowerProfile: profile,
             heroLoadout: heroLoadout, companionLoadout: companionLoadout, seed: seed,
             heroGear: .init(inventory: inventory, loadout: equipment[hero.id] ?? EquipmentLoadout()),
             companionGear: .init(inventory: inventory, loadout: equipment[companion.id] ?? EquipmentLoadout()),
             heroTalents: talents[hero.id] ?? [], companionTalents: talents[companion.id] ?? [],
+            enemyAdditionalModifiers: enemyModifiers,
         )
     }
 }
