@@ -47,7 +47,8 @@ struct CloudVoyageActionReplayTests {
         #expect(both.roster.gold == 100 + firstGold + nextGold)
         #expect(both.homestead.resources[.wood] == firstWood + nextWood)
         let run = try #require(both.voyage.activeRun)
-        #expect(run.nodes.prefix(2).allSatisfy(\.isCleared))
+        let firstTwoCleared = run.nodes.prefix(2).allSatisfy(\.isCleared)
+        #expect(firstTwoCleared)
         #expect(run.earnedGold == firstGold + nextGold)
         #expect(run.earnedMaterials[.wood] == firstWood + nextWood)
     }
