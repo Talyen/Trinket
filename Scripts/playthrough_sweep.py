@@ -584,8 +584,9 @@ def run_sweep(args):
         source = args.output / "interrupted"
         archive = args.output / "interrupted-archive"
         shutil.copytree(source, archive)
-        summaries.append(worker(args, template, "recovery", "recover", archive))
         summaries.append(worker(args, template, "replay", "replay", archive))
+        summaries.append(worker(args, template, "recovery", "recover", archive,
+                                expected=args.output / "replay" / "final-save.json"))
         summaries.append(worker(args, template, "before-settlement-interrupted", crash_before_settlement=True))
         before_archive = args.output / "before-settlement-archive"
         shutil.copytree(args.output / "before-settlement-interrupted", before_archive)

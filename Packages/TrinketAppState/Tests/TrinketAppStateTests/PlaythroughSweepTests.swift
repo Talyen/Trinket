@@ -195,13 +195,10 @@ struct PlaythroughSweepTests {
         let records = try Data(contentsOf: URL(fileURLWithPath: source).appendingPathComponent("actions.jsonl"))
             .split(separator: 0x0A).map { try PlaythroughJournal.decodeRecord(Data($0)) }
         let last = try #require(records.last)
-        // A launch consumes its recorded seed but does not commit save changes.
-        // Other interrupted commands require a replayed post-command snapshot.
+        // An interrupted command requires a replayed post-command snapshot.
         let expected: CloudSaveSnapshot
         if let path = request.expected {
             expected = try JSONDecoder().decode(CloudSaveSnapshot.self, from: Data(contentsOf: URL(fileURLWithPath: path)))
-        } else if case .campaign = last.action {
-            expected = last.state
         } else if last.result == "committed" {
             expected = last.state
         } else {

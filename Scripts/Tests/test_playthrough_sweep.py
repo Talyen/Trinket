@@ -334,6 +334,11 @@ class CrashBoundaryTests(unittest.TestCase):
                         return dict(worker=name, exitCode=86, termination='injectedInterruption')
                     self.assertTrue(source.name.endswith('archive'))
                     self.assertEqual((source / 'store' / 'raw').read_bytes(), b'unmodified interrupted input')
+                    if name == 'replay':
+                        (folder / 'final-save.json').write_text('{}')
+                    if name == 'recovery':
+                        self.assertEqual(kwargs['expected'], arguments.output / 'replay' / 'final-save.json')
+                        self.assertTrue(kwargs['expected'].is_file(), 'replay must finish before recovery')
                     recovered.append(name)
                     outcome = 'cloudProcessRecovered' if operation == 'cloud-recover' else \
                         'recoveredCapturedStore' if operation == 'recover' else 'replayedUnknownOutcome'
