@@ -20,26 +20,25 @@ struct FullGameStorefront {
     static let system = Self(
         currentOwnership: resolveCurrentOwnership,
         observeUpdates: { receive in
-            for await result in Transaction.updates {
-                guard !Task.isCancelled else { return }
-                if let transaction = delivery(result) {
-                    await receive(transaction)
-                }
-            }
+            await receiveDeliveries(from: Transaction.updates, receive: receive)
         },
         recoverUnfinished: { receive in
-            for await result in Transaction.unfinished {
-                guard !Task.isCancelled else { return }
-                if let transaction = delivery(result) {
-                    await receive(transaction)
-                }
-            }
+            await receiveDeliveries(from: Transaction.unfinished, receive: receive)
         },
         loadProduct: {
             try await Product.products(for: [FullGameStore.productID]).first { $0.id == FullGameStore.productID }
         },
         sync: { try await AppStore.sync() },
     )
+
+    private static func receiveDeliveries(from transactions: Transaction.Transactions, receive: Receive) async {
+        for await result in transactions {
+            guard !Task.isCancelled else { return }
+            if let transaction = delivery(result) {
+                await receive(transaction)
+            }
+        }
+    }
 
     static func delivery(_ result: VerificationResult<Transaction>) -> FullGameTransaction? {
         switch result {
