@@ -50,12 +50,13 @@ public struct BattleLootContext: Equatable, Sendable {
         modifier: NodeModifierDefinition? = nil,
     ) -> BattleLootResult {
         let selected = modifier ?? GameContent.spireModifier(for: floor, worldSeed: worldSeed)
-        let definitions = ownership.modifiers(ids: selected.map { [$0.id] } ?? [], enemyIsBoss: isBoss(enemyID: floor.enemyID))
+        let enemyIsBoss = isBoss(enemyID: floor.enemyID)
+        let definitions = ownership.modifiers(ids: selected.map { [$0.id] } ?? [], enemyIsBoss: enemyIsBoss)
         let effects = NodeModifierEffects.combining(definitions)
         return resolve(
             .spire(floor: floor, rewardModifier: effects.rewardModifier),
             encounterLevel: encounterLevel ?? EncounterLevelResolver.spireEnemyLevel(for: floor),
-            enemyIsBoss: isBoss(enemyID: floor.enemyID),
+            enemyIsBoss: enemyIsBoss,
         )
     }
 
@@ -73,10 +74,11 @@ public struct BattleLootContext: Equatable, Sendable {
     }
 
     public func contract(for offer: ContractOffer, encounterLevel: Int) -> BattleLootResult {
-        resolve(
-            .contract(offerID: offer.id, modifier: ownership.resolved(offer.rewardModifier, enemyIsBoss: isBoss(enemyID: offer.enemyID))),
+        let enemyIsBoss = isBoss(enemyID: offer.enemyID)
+        return resolve(
+            .contract(offerID: offer.id, modifier: ownership.resolved(offer.rewardModifier, enemyIsBoss: enemyIsBoss)),
             encounterLevel: encounterLevel,
-            enemyIsBoss: isBoss(enemyID: offer.enemyID),
+            enemyIsBoss: enemyIsBoss,
         )
     }
 

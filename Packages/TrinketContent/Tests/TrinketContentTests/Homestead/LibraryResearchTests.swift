@@ -3,6 +3,26 @@ import TrinketCore
 @testable import TrinketContent
 
 struct LibraryResearchTests {
+    @Test func `catalog lookups preserve authored order and missing results`() {
+        let recipes = EquipmentRecipe.all + EquipmentRecipe.archery + EquipmentRecipe.outfitter + EquipmentRecipe.focusedBlacksmith
+        for recipe in recipes {
+            #expect(EquipmentRecipe.matching(recipe.id) == recipes.first { $0.id == recipe.id })
+            #expect(recipe.researchID == ResearchProject.all.first { $0.recipeID == recipe.id }?.id)
+        }
+        #expect(EquipmentRecipe.matching("missing-recipe") == nil)
+        for project in ResearchProject.all {
+            #expect(ResearchProject.matching(project.id) == ResearchProject.all.first { $0.id == project.id })
+        }
+        #expect(ResearchProject.matching("missing-project") == nil)
+        for event in RecruitEventPool.all {
+            if let combatantID = event.unlockCombatantID {
+                #expect(RecruitEventPool.event(unlocking: combatantID) == RecruitEventPool.all
+                    .first { $0.unlockCombatantID == combatantID })
+            }
+        }
+        #expect(RecruitEventPool.event(unlocking: "missing-combatant") == nil)
+    }
+
     @Test func `encounters do not satisfy defeat studies and upgrades retain earned facts`() {
         var history = LibraryProgress()
         for id in ["slime", "goblin", "the_blight_treant"] {

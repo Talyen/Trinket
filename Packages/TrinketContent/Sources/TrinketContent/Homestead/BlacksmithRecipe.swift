@@ -11,7 +11,7 @@ public struct EquipmentRecipe: Identifiable, Hashable, Sendable {
     public let buildingID: HomesteadNodeID
     public let requiredKeyword: Keyword?
     public var researchID: String? {
-        ResearchProject.all.first { $0.recipeID == id }?.id
+        ResearchProject.researchID(forRecipeID: id)
     }
 
     private init(_ baseID: String, iron: Int, secondary: HomesteadResource = .wood, quantity: Int) {
@@ -43,11 +43,13 @@ public struct EquipmentRecipe: Identifiable, Hashable, Sendable {
         .init("plate_armor", iron: 40, secondary: .hide, quantity: 20),
     ]
 
+    private static let recipesByID = Dictionary(
+        (all + archery + outfitter + focusedBlacksmith).map { ($0.id, $0) },
+        uniquingKeysWith: { first, _ in first },
+    )
+
     public static func matching(_ id: String) -> Self? {
-        all.first { $0.id == id }
-            ?? archery.first { $0.id == id }
-            ?? outfitter.first { $0.id == id }
-            ?? focusedBlacksmith.first { $0.id == id }
+        recipesByID[id]
     }
 }
 

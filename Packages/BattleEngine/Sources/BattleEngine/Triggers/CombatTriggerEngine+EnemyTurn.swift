@@ -29,9 +29,15 @@ package extension CombatTriggerEngine {
         adding: (T, T) -> T = (+),
         in context: BattleState,
     ) -> (chance: T, source: Combatant?) {
-        let living = livingAllies(in: context)
-        let total = living.reduce(0) { adding($0, $1.profile.triggers[keyPath: chance]) }
-        let source = living.first { $0.profile.triggers[keyPath: chance] > 0 }?.combatant
+        var total: T = 0
+        var source: Combatant?
+        for ally in livingAllies(in: context) {
+            let value = ally.profile.triggers[keyPath: chance]
+            total = adding(total, value)
+            if source == nil, value > 0 {
+                source = ally.combatant
+            }
+        }
         return (total, source)
     }
 

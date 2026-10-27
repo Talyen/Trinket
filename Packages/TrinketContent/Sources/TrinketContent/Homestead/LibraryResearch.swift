@@ -71,8 +71,18 @@ public struct ResearchProject: Identifiable, Hashable, Sendable {
         ),
     ]
 
+    private static let projectsByID = Dictionary(all.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+    private static let researchIDsByRecipeID = Dictionary(
+        all.compactMap { project in project.recipeID.map { ($0, project.id) } },
+        uniquingKeysWith: { first, _ in first },
+    )
+
     public static func matching(_ id: String) -> Self? {
-        all.first { $0.id == id }
+        projectsByID[id]
+    }
+
+    static func researchID(forRecipeID id: String) -> String? {
+        researchIDsByRecipeID[id]
     }
 
     public func progress(in history: LibraryProgress) -> [Bool] {

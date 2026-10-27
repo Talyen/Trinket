@@ -50,8 +50,9 @@ enum QuietAffixRules {
             0
         }
         bonus = SaturatedArithmetic.saturatingAdd(bonus, prismatic)
-        if DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant))
-            > DefensePoolEngine.blockPoints(in: sourceEffects) {
+        if triggers.attackDamageVsHigherBlockBonus != 0,
+           DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant))
+           > DefensePoolEngine.blockPoints(in: sourceEffects) {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.attackDamageVsHigherBlockBonus)
         }
         if state.targetStatus.isBurning, state.targetStatus.isPoisoned {

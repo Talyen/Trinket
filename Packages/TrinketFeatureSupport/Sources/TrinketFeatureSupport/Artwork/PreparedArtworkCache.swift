@@ -390,8 +390,8 @@ public final class PreparedArtworkCache {
         return image.bytesPerRow * image.height
     }
 
-    static var defaultPresentationImageNames: [String] {
+    static let defaultPresentationImageNames: [String] = {
         let portraits = Set(ArtCatalog.portraitBackgroundArtByID.values.map(\.imageName))
         return ArtCatalog.allImageNames.filter { !portraits.contains($0) }
-    }
+    }()
 }

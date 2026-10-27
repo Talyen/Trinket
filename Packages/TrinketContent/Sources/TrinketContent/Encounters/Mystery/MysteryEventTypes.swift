@@ -23,7 +23,7 @@ public struct MysteryChoice: Hashable, Sendable {
     }
 
     public var itemPool: MysteryItemPool? {
-        effects.compactMap { effect in
+        effects.lazy.compactMap { effect in
             if case let .gainItem(pool) = effect {
                 return pool
             }

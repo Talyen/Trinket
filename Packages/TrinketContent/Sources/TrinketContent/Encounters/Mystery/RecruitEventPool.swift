@@ -52,12 +52,16 @@ enum RecruitEventPool {
     private static let eventsByID: [String: MysteryEvent] = Dictionary(
         uniqueKeysWithValues: all.map { ($0.id, $0) },
     )
+    private static let eventsByCombatantID = Dictionary(
+        all.compactMap { event in event.unlockCombatantID.map { ($0, event) } },
+        uniquingKeysWith: { first, _ in first },
+    )
 
     static func event(matching id: String) -> MysteryEvent? {
         eventsByID[id]
     }
 
     static func event(unlocking combatantID: String) -> MysteryEvent? {
-        all.first { $0.unlockCombatantID == combatantID }
+        eventsByCombatantID[combatantID]
     }
 }
