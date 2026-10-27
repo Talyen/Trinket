@@ -23,6 +23,9 @@ and `--dry-run` to preview without executing anything.
 | Inspect changed visuals | `handoff.sh --route visual --paths <files...>` in a persistent terminal | Managed build/launch/capture session; actual image and interaction review still required |
 | Requested release qualification | `TRINKET_ALLOW_HEAVY_LOCAL=1 handoff.sh --route release --paths <files...>` | Full release verification without publishing |
 
+Wrap the outermost command for authorized compiled and visual routes as described
+below; the table shows the selected project command inside that wrapper.
+
 The default `auto` route and local `static` route never enable compiled work,
 even if a shell inherited `TRINKET_ALLOW_HEAVY_LOCAL=1`. Direct package edits,
 shared-fixture consumers, app/UI changes and public-API consumer checks remain
@@ -46,7 +49,24 @@ local work; selectors alone never enable the override.
 Dry-run previews need no opt-in. The bounded visual route remains authorized by
 the visual completion gate below.
 
-Local `build.sh`, compiled `test.sh`, `test-package.sh`, and managed `run-simulator.sh --isolate` automatically enter the shared host admission helper before allocating resources. Hosted CI and nested commands reuse their existing ownership; human simulator play is unchanged. The helper defaults to `~/Developer/.coordination/heavy_lane.py`; `CODEX_HEAVY_LANE_HELPER` can select its existing location. Busy or missing admission exits 75 with no build or simulator setup, rather than reporting a passed check. Automatic admission waits up to 900 seconds and limits the command to five minutes. Wrap focused diagnostics explicitly as below to impose their shorter execution deadline.
+Wrap the outermost authorized local build, compiled test, or simulator/rendered
+inspection command with the shared host admission helper, including when invoking
+handoff or another wrapper. Use `--wait 900 --timeout 300` by default; the focused
+diagnostic example below uses its shorter limit. For an essential physical-device
+build or performance investigation, a justified limit up to 900 seconds is allowed;
+investigate a timeout before extending it. Run heavy evidence before acquiring the
+integration lock. The shared host policy at
+`/Users/ryanmcintire/Developer/.coordination/README.md` owns admission and recovery.
+
+Local `build.sh`, compiled `test.sh`, `test-package.sh`, and managed
+`run-simulator.sh --isolate` also automatically enter the helper before allocating
+resources when no outer lease exists. This fallback does not replace the required
+outermost wrapper. Hosted CI and nested commands reuse their existing ownership;
+human simulator play is unchanged. The helper defaults to
+`~/Developer/.coordination/heavy_lane.py`; `CODEX_HEAVY_LANE_HELPER` can select
+its existing location. Busy or missing admission exits 75 without starting a build
+or simulator setup. Automatic admission waits up to 900 seconds and limits the
+command to five minutes.
 
 | Authorized local work | Admission wait | Execution deadline |
 |---|---|---|
@@ -200,8 +220,9 @@ The visual completion gate and interactive play retain their bounded build/launc
 exceptions. Bare FullUI additionally requires
 `TRINKET_ALLOW_FULL_UI=1`. Never forge `CI`/`GITHUB_ACTIONS` or use flags to bypass
 resource policy. Stubbed script fixtures may simulate these environments without
-starting real builds or simulators. Local script regressions use at most two
-workers (`TRINKET_SCRIPT_TEST_JOBS=1` serializes them on a busy machine).
+starting real builds or simulators. Focused regressions use one worker and a
+30-second deadline per attempt; set `TRINKET_SCRIPT_TEST_JOBS=1` for script
+regressions. Other authorized local script runs use at most two workers.
 
 ### Single focused local diagnostic
 

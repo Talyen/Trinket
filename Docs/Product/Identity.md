@@ -11,9 +11,10 @@ builds use iCloud as described below. Players begin without login or identity
 prompts. Identity and sync errors must not gate local play.
 Do not add Sign in with Apple, Google, hosted accounts, or Game Center integration.
 
-Options → **Reset Game Progress** requires confirmation and clears progress on
-this device and, when linked to iCloud, its synced devices. Its copy must describe
-the applicable scope. Do not add a separate
+Options → **Reset Game Progress** requires confirmation and resets progress on
+this device. When linked to iCloud, the reset propagates to synced devices, but
+progress from an offline device can return when it reconnects under
+[PD-031](Decisions.md). Its copy must describe the applicable scope. Do not add a separate
 Delete Account action when no Trinket account exists. Reset never removes Full Game
 ownership; purchase access and restoration follow [Monetization.md](Monetization.md)
 and remain independent of save synchronization.
@@ -26,8 +27,9 @@ account share progress silently. Offline or signed-out players retain local play
 there is no login splash, save-progress prompt, or manual sync funnel. A quiet
 Options status may be added only if useful.
 
-Reset must remove or replace synced progress so the wipe propagates to other
-devices. Update reset, support, and privacy copy when that behavior ships. Players
+Reset must replace synced progress so the reset propagates to other devices;
+reconnecting offline progress is reconciled conservatively and may restore earlier
+progress. Update reset, support, and privacy copy when that behavior ships. Players
 can also manage iCloud data through Apple's system settings.
 
 The [CloudKit pre-ship checklist](../Platform/CloudKitPreShipChecklist.md) owns
