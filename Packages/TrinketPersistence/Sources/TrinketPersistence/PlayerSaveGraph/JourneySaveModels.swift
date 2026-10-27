@@ -68,11 +68,11 @@ extension JourneyProgressModel {
     func update(from state: JourneyProgressState, context: ModelContext?) {
         activeChapterID = state.activeChapterID
         activeStageID = state.activeStageID
-        let allStageIDs = state.completedStageIDs
-            .union(state.claimedRewardStageIDs)
-            .union(Set(state.pinnedMysteryEventIDs.keys))
-            .union(Set(state.mysteryOfferPayloads.keys))
-            .union(Set(state.shopPayloads.keys))
+        var allStageIDs = state.completedStageIDs
+        allStageIDs.formUnion(state.claimedRewardStageIDs)
+        allStageIDs.formUnion(state.pinnedMysteryEventIDs.keys)
+        allStageIDs.formUnion(state.mysteryOfferPayloads.keys)
+        allStageIDs.formUnion(state.shopPayloads.keys)
         stages = reconcileModels(
             existing: stages ?? [],
             values: allStageIDs.sorted(),

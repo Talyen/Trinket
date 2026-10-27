@@ -235,9 +235,11 @@ public enum NodeModifierCatalog {
         eligibleRewards: [RewardModifier] = RewardModifier.allCases,
         affinityKeywords: Set<Keyword> = [],
     ) -> [NodeModifierID] {
-        let applicableIDs = Set(applicableModifiers(for: type, enemyID: enemyID).map(\.id))
-        if let existing = existingModifierIDs.first(where: applicableIDs.contains) {
-            return [existing]
+        if !existingModifierIDs.isEmpty {
+            let applicableIDs = Set(applicableModifiers(for: type, enemyID: enemyID).lazy.map(\.id))
+            if let existing = existingModifierIDs.first(where: applicableIDs.contains) {
+                return [existing]
+            }
         }
         return modifierIDs(
             for: type, enemyID: enemyID, worldSeed: worldSeed, nodeID: nodeID, eligibleRewards: eligibleRewards,

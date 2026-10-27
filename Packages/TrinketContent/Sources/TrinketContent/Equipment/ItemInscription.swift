@@ -16,17 +16,25 @@ public struct ItemInscriptionPlan: Sendable {
     }
 
     public static func choices(for item: InventoryItem, index: Int) -> [ItemAffixDefinition] {
-        guard isEligible(item), item.affixes.indices.contains(index),
-              item.inscribedAffixIndex == nil || item.inscribedAffixIndex == index else { return [] }
-        let occupied = Set(item.affixes.enumerated().filter { $0.offset != index }.map(\.element.id))
+        guard canSelectAffix(for: item, index: index) else { return [] }
+        let occupied = Set(item.affixes.enumerated().lazy.filter { $0.offset != index }.map(\.element.id))
         return GameContent.itemAffixDefinitions.filter { $0.isEligible(for: item.baseType) && !occupied.contains($0.id) }
+    }
+
+    private static func canSelectAffix(for item: InventoryItem, index: Int) -> Bool {
+        isEligible(item) && item.affixes.indices.contains(index)
+            && (item.inscribedAffixIndex == nil || item.inscribedAffixIndex == index)
     }
 
     public static func prepare(
         item: InventoryItem, index: Int, affixID: String,
         using random: inout some RandomNumberGenerator,
     ) -> Self? {
-        guard let definition = choices(for: item, index: index).first(where: { $0.id == affixID }) else { return nil }
+        guard canSelectAffix(for: item, index: index),
+              let definition = GameContent.itemAffixDefinition(matching: affixID),
+              definition.isEligible(for: item.baseType),
+              !item.affixes.enumerated().contains(where: { $0.offset != index && $0.element.id == affixID })
+        else { return nil }
         var affixes = item.affixes
         var powers = item.affixes.indices.compactMap { item.unscaledPower(at: $0) }
         guard powers.count == item.affixes.count else { return nil }

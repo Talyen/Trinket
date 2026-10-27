@@ -24,7 +24,7 @@ public struct BlacksmithForgePlan: Sendable {
         guard let recipe = BlacksmithRecipe.matching(recipeID),
               isAvailable(recipe, homestead: homestead, unlockedRecipeIDs: unlockedRecipeIDs) else { return .failure(.unavailable) }
         guard homestead.canAfford(cost: recipe.cost, gold: gold) else { return .failure(.insufficientResources) }
-        let uniqueIDs = Set(GameContent.uniqueItems.filter { $0.baseType.id == recipe.baseID }.map(\.templateID))
+        let uniqueIDs = Set(GameContent.uniqueItems.lazy.filter { $0.baseType.id == recipe.baseID }.map(\.templateID))
         let item = ItemRewardGenerator.generate(
             id: "forge-\(UUID().uuidString)",
             rewardLevel: rewardLevel,

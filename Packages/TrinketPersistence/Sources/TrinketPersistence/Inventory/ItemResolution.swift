@@ -42,12 +42,12 @@ enum ItemResolution {
         forKey key: K,
     ) throws -> Set<Keyword> {
         let values = try container.decode([String].self, forKey: key)
-        return Set(values.compactMap(Keyword.init(rawValue:)))
+        return Set(values.lazy.compactMap(Keyword.init(rawValue:)))
     }
 
     static func decodeKeywordSet(_ decoder: Decoder) throws -> Set<Keyword> {
         let values = try [String](from: decoder)
-        return Set(values.compactMap(Keyword.init(rawValue:)))
+        return Set(values.lazy.compactMap(Keyword.init(rawValue:)))
     }
 
     /// Trinket-authoritative overwrite for the SwiftData codec. Returns the

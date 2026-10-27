@@ -38,7 +38,7 @@ extension PlayerSaveSnapshot {
     }
 
     var campaignRank: Int {
-        GameContent.chapters.flatMap(\.stages).enumerated()
+        GameContent.chapters.lazy.flatMap(\.stages).enumerated().lazy
             .filter { journey.completedStageIDs.contains($0.element.id) }
             .map { $0.offset + 1 }.max() ?? 0
     }

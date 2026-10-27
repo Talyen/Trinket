@@ -19,7 +19,9 @@ public extension PlayerRosterState {
         switch edit {
         case let .selectAbility(abilityID):
             let choices = combatant.abilityChoices
-            guard let ability = (choices.basics + choices.skills + choices.ultimates).first(where: { $0.id == abilityID })
+            guard let ability = choices.basics.first(where: { $0.id == abilityID })
+                ?? choices.skills.first(where: { $0.id == abilityID })
+                ?? choices.ultimates.first(where: { $0.id == abilityID })
             else { return false }
             setLoadout(loadout(for: combatant).selecting(ability), for: combatant)
         case let .equipItem(itemID, slot):

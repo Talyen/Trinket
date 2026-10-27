@@ -68,9 +68,9 @@ extension CloudSaveMerge {
 
     static func hasDuplicateClaim(incoming: PlayerSave, existing: PlayerSave, base: PlayerSave?) -> Bool {
         guard let base else { return true }
-        let baseItemIDs = Set(base.inventory.items.map(\.id))
-        let incomingItemIDs = Set(incoming.inventory.items.map(\.id))
-        let existingItemIDs = Set(existing.inventory.items.map(\.id))
+        let baseItemIDs = Set(base.inventory.items.lazy.map(\.id))
+        let incomingItemIDs = Set(incoming.inventory.items.lazy.map(\.id))
+        let existingItemIDs = Set(existing.inventory.items.lazy.map(\.id))
         let incomingNewItemIDs = incomingItemIDs.subtracting(baseItemIDs)
         let existingNewItemIDs = existingItemIDs.subtracting(baseItemIDs)
         if hasSharedJourneyClaim(
@@ -108,9 +108,14 @@ extension CloudSaveMerge {
             .intersection(existing.journey.claimedRewardStageIDs.subtracting(base.journey.claimedRewardStageIDs))
         return common.contains { stageID in
             let prefix = "\(stageID)-"
-            let first = incomingNewItemIDs.filter { $0.hasPrefix(prefix) }
-            let second = existingNewItemIDs.filter { $0.hasPrefix(prefix) }
-            return first.isEmpty || second.isEmpty || !first.isDisjoint(with: second)
+            var hasIncoming = false
+            for id in incomingNewItemIDs where id.hasPrefix(prefix) {
+                hasIncoming = true
+                if existingNewItemIDs.contains(id) {
+                    return true
+                }
+            }
+            return !hasIncoming || !existingNewItemIDs.contains { $0.hasPrefix(prefix) }
         }
     }
 

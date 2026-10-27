@@ -83,6 +83,30 @@ struct HomesteadActivityTests {
         #expect(GameContent.trinketItems.allSatisfy { !ItemInscriptionPlan.isEligible($0) })
     }
 
+    @Test func `inscription preparation accepts exactly the offered affixes without consuming random values on rejection`() throws {
+        let base = try #require(GameContent.itemBaseType(matching: "greatsword"))
+        var generator = SeededRandomNumberGenerator(seed: 91)
+        let item = ItemGenerator().generate(
+            id: "inscription-choices",
+            baseType: base,
+            rarity: .astral,
+            fixedAffixCount: 3,
+            using: &generator,
+        )
+        for index in [-1, 0, 1, 2, 3] {
+            let offered = Set(ItemInscriptionPlan.choices(for: item, index: index).map(\.id))
+            for id in GameContent.itemAffixDefinitions.map(\.id) + ["unknown-affix"] {
+                var random = SeededRandomNumberGenerator(seed: 7)
+                var untouched = random
+                let plan = ItemInscriptionPlan.prepare(item: item, index: index, affixID: id, using: &random)
+                #expect((plan != nil) == offered.contains(id))
+                if plan == nil {
+                    #expect(random.next() == untouched.next())
+                }
+            }
+        }
+    }
+
     @Test func `corruption preserves inscription position and inscription clears only replaced corruption mark`() throws {
         let base = try #require(GameContent.itemBaseType(matching: "leather_armor"))
         var random = SeededRandomNumberGenerator(seed: 123)
