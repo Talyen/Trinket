@@ -33,7 +33,7 @@ enum LabyrinthSanitizer {
             )
         }
 
-        let validClusterIDs = Set(sanitized.clusters.map(\.id))
+        let validClusterIDs = Set(sanitized.clusters.lazy.map(\.id))
         sanitized.nodes = sanitized.nodes.filter { _, node in
             validClusterIDs.contains(node.clusterID) || node.id == LabyrinthGenerator.entranceNodeID
         }
@@ -91,7 +91,7 @@ enum LabyrinthSanitizer {
         eligibleRecruitEventIDs: [String],
         eligibleRewards: [RewardModifier],
     ) {
-        var clusterIDs = Set(labyrinth.clusters.map(\.id))
+        var clusterIDs = Set(labyrinth.clusters.lazy.map(\.id))
         for boss in labyrinth.nodes.values.filter({ $0.type == .boss && $0.isCleared })
             .sorted(by: { $0.depth < $1.depth }) {
             guard boss.depth < Int.max else { continue }
@@ -109,7 +109,7 @@ enum LabyrinthSanitizer {
                     beyond: boss, in: &labyrinth,
                     eligibleRecruitEventIDs: eligibleRecruitEventIDs, eligibleRewards: eligibleRewards,
                 )
-                clusterIDs = Set(labyrinth.clusters.map(\.id))
+                clusterIDs = Set(labyrinth.clusters.lazy.map(\.id))
             }
         }
     }

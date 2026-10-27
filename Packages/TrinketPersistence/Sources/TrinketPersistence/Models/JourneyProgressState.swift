@@ -72,7 +72,7 @@ public extension JourneyProgressState {
         guard let chapter = chapters.first(where: { $0.id == chapterID }),
               let lastStage = chapter.stages.last
         else { return }
-        let stageIDs = Set(chapter.stages.map(\.id))
+        let stageIDs = Set(chapter.stages.lazy.map(\.id))
         completedStageIDs.formUnion(stageIDs)
         claimedRewardStageIDs.formUnion(stageIDs)
         setActiveStage(Self.nextStage(after: lastStage, in: chapters), fallbackChapterID: chapter.id)

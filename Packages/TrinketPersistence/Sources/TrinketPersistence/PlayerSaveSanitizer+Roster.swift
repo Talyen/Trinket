@@ -6,8 +6,8 @@ extension PlayerSaveSanitizer {
     static func sanitizeRoster(
         _ roster: PlayerRosterState,
         inventory: PlayerInventoryState,
-        heroIDs: Set<String> = Set(GameContent.heroes.map(\.id)),
-        companionIDs: Set<String> = Set(GameContent.companions.map(\.id)),
+        heroIDs: Set<String> = Set(GameContent.heroes.lazy.map(\.id)),
+        companionIDs: Set<String> = Set(GameContent.companions.lazy.map(\.id)),
     ) -> PlayerRosterState {
         let validCombatantIDs = heroIDs.union(companionIDs)
 

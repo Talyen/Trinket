@@ -86,7 +86,7 @@ extension ItemAffixModel {
             id: id,
             title: title,
             description: affixDescription,
-            keywords: Set(keywordRawValues.compactMap { Keyword(rawValue: $0) }),
+            keywords: Set(keywordRawValues.lazy.compactMap { Keyword(rawValue: $0) }),
             isCorrupted: isCorrupted,
         )
     }

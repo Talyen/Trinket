@@ -141,7 +141,7 @@ struct CloudEconomicAction: Codable, Equatable, Sendable {
         }) {
             return nil
         }
-        let remainingItems = Set(after.inventory.items.map(\.id))
+        let remainingItems = Set(after.inventory.items.lazy.map(\.id))
         for item in before.inventory.items where ItemSalvage.isEligible(item) && !remainingItems.contains(item.id) {
             result.append(.salvage(item.id))
         }

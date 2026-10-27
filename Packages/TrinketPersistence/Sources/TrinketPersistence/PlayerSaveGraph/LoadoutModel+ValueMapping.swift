@@ -32,7 +32,7 @@ extension EquipmentLoadoutModel {
 
 extension TalentLoadoutModel {
     var unlockedNodeIDs: Set<String> {
-        Set((unlockedNodes ?? []).map(\.nodeID))
+        Set((unlockedNodes ?? []).lazy.map(\.nodeID))
     }
 
     func update(from nodeIDs: [String], context: ModelContext?) {

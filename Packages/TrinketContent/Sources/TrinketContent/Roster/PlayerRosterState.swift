@@ -77,8 +77,8 @@ public struct PlayerRosterState: Equatable, Sendable {
         Self(
             activeHeroID: starterHeroID,
             activeCompanionID: "wolf",
-            unlockedHeroIDs: Set(GameContent.heroes.map(\.id)),
-            unlockedCompanionIDs: Set(GameContent.companions.map(\.id)),
+            unlockedHeroIDs: Set(GameContent.heroes.lazy.map(\.id)),
+            unlockedCompanionIDs: Set(GameContent.companions.lazy.map(\.id)),
             abilityLoadouts: [:],
             progressions: [
                 "knight": CombatantProgression(level: 2, currentXP: 3, requiredXP: 15),
@@ -232,8 +232,8 @@ public struct PlayerRosterState: Equatable, Sendable {
 
     public mutating func unlockAllCombatants(atLevel level: Int = 20) {
         let progression = CombatantProgression.at(level: level)
-        unlockedHeroIDs = Set(GameContent.heroes.map(\.id))
-        unlockedCompanionIDs = Set(GameContent.companions.map(\.id))
+        unlockedHeroIDs = Set(GameContent.heroes.lazy.map(\.id))
+        unlockedCompanionIDs = Set(GameContent.companions.lazy.map(\.id))
         for combatantID in unlockedHeroIDs.union(unlockedCompanionIDs) {
             progressions[combatantID] = progression
         }

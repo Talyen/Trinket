@@ -141,7 +141,7 @@ struct ShopStockSnapshot: Codable {
 
     func resolve() throws -> ShopStock {
         let resolved = offers.compactMap { $0.resolve() }
-        let ids = Set(resolved.map(\.id))
+        let ids = Set(resolved.lazy.map(\.id))
         guard ids.count == resolved.count else { throw ShopPurchaseFailure.invalidOffer }
         let validPurchased = Set(purchasedOfferIDs).intersection(ids)
         return ShopStock(offers: resolved, purchasedOfferIDs: validPurchased)

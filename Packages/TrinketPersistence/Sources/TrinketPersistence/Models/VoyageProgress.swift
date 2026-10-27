@@ -170,7 +170,7 @@ public struct PlayerVoyageState: Codable, Equatable, Sendable {
             && Set(offers.map(\.difficulty)).count == 3 && Set(offers.map(\.chapterID)).count == 3),
             offers.allSatisfy({ !$0.id.isEmpty && VoyageCatalog.bossID(chapterID: $0.chapterID) != nil }) else { return false }
         guard let run = activeRun else { return true }
-        guard !run.id.isEmpty, run.nodes.count == run.offer.difficulty.nodeCount, Set(run.nodes.map(\.id)).count == run.nodes.count,
+        guard !run.id.isEmpty, run.nodes.count == run.offer.difficulty.nodeCount, Set(run.nodes.lazy.map(\.id)).count == run.nodes.count,
               run.nodes.first?.type == .battle, run.nodes.last?.type == .boss,
               !run.nodes.dropLast().contains(where: { $0.type == .boss }),
               run.earnedGold >= 0, run.earnedMaterials.values.allSatisfy({ $0 >= 0 }),

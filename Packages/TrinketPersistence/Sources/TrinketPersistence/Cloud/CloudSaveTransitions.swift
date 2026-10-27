@@ -128,7 +128,7 @@ enum CloudSaveTransitions {
             )
         }
         if let applied = request.mutations, !applied.isEmpty {
-            let ids = Set(applied.records.map(\.id))
+            let ids = Set(applied.records.lazy.map(\.id))
             state.account.journal?.acknowledge(ids)
         }
         let sourceUnchanged = local == request.revision.snapshot

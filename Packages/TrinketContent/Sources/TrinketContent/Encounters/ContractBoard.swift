@@ -28,7 +28,7 @@ public enum ContractBoard {
         makeOffer: (ContractDifficulty, Set<String>, [RewardModifier]) -> ContractOffer = ContractGenerator.randomOffer,
     ) -> [ContractOffer] {
         let retained = retainedOffers(offers, excluding: retiredIDs)
-        var excludedEnemyIDs = Set(retained.map(\.enemyID))
+        var excludedEnemyIDs = Set(retained.lazy.map(\.enemyID))
         return ContractDifficulty.allCases.map { difficulty in
             if let offer = retained.first(where: { $0.difficulty == difficulty }) {
                 return offer
@@ -63,7 +63,7 @@ public enum ContractBoard {
     ) -> [ContractOffer]? {
         guard let index = offers.firstIndex(where: { $0.id == offerID }) else { return nil }
         var replaced = offers
-        replaced[index] = makeOffer(offers[index].difficulty, Set(offers.map(\.enemyID)), eligibleModifiers)
+        replaced[index] = makeOffer(offers[index].difficulty, Set(offers.lazy.map(\.enemyID)), eligibleModifiers)
         return replaced
     }
 }
