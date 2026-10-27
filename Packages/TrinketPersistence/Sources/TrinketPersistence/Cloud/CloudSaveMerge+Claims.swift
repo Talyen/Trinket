@@ -110,6 +110,7 @@ extension CloudSaveMerge {
         incoming.journey.claimedRewardStageIDs.contains { stageID in
             guard !base.journey.claimedRewardStageIDs.contains(stageID),
                   existing.journey.claimedRewardStageIDs.contains(stageID) else { return false }
+            guard !incomingNewItemIDs.isEmpty, !existingNewItemIDs.isEmpty else { return true }
             let prefix = "\(stageID)-"
             var hasIncoming = false
             for id in incomingNewItemIDs where id.hasPrefix(prefix) {

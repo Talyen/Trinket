@@ -7,6 +7,7 @@ public extension EquipmentLoadout {
         in loadouts: [String: EquipmentLoadout],
         prioritizing combatantID: String? = nil,
     ) -> [String: EquipmentLoadout] {
+        guard !loadouts.isEmpty else { return loadouts }
         var orderedIDs = loadouts.keys.sorted()
         if let combatantID {
             orderedIDs.removeAll { $0 == combatantID }

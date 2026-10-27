@@ -105,6 +105,7 @@ public struct NodeModifierEffects: Equatable, Sendable {
     public static let zero = Self()
 
     public static func combining(_ modifiers: [NodeModifierDefinition]) -> Self {
+        guard !modifiers.isEmpty else { return .zero }
         var effects = Self.zero
         var combat = NodeCombatBonuses()
         for modifier in modifiers {
@@ -154,12 +155,15 @@ private struct NodeCombatBonuses {
     var attackPurgeCount = 0
 
     var modifiers: [AffixModifier] {
-        var result: [AffixModifier] = damageDealtBonus
-            .sorted { $0.key.rawValue < $1.key.rawValue }
-            .map { .damageDealt($0.key, $0.value) }
-        result += damageTakenReduction
-            .sorted { $0.key.rawValue < $1.key.rawValue }
-            .map { .damageTakenPercent($0.key, Double($0.value) / 100) }
+        var result: [AffixModifier] = []
+        if !damageDealtBonus.isEmpty {
+            result.append(contentsOf: damageDealtBonus.sorted { $0.key.rawValue < $1.key.rawValue }
+                .lazy.map { AffixModifier.damageDealt($0.key, $0.value) })
+        }
+        if !damageTakenReduction.isEmpty {
+            result.append(contentsOf: damageTakenReduction.sorted { $0.key.rawValue < $1.key.rawValue }
+                .lazy.map { AffixModifier.damageTakenPercent($0.key, Double($0.value) / 100) })
+        }
         if blockGainedBonus != 0 {
             result.append(.blockGained(blockGainedBonus))
         }

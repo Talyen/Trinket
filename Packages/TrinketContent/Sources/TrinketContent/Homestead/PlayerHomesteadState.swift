@@ -124,6 +124,7 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
     }
 
     private var activeProduction: [ResourceAmount] {
+        guard !nodeTiers.isEmpty else { return [] }
         var production: [ResourceAmount] = []
         for nodeID in HomesteadNodeID.allCases {
             let nodeTier = tier(for: nodeID)
@@ -136,6 +137,7 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
     public func nextCollectibleDate(after date: Date, gold: Int) -> Date? {
         var projected = self
         let activeProduction = projected.activeProduction
+        guard !activeProduction.isEmpty else { return nil }
         projected.settleProduction(at: date, gold: gold, activeProduction: activeProduction)
 
         var rates: [HomesteadResource: Double] = [:]
@@ -225,9 +227,15 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
             return
         }
 
-        for production in activeProduction ?? self.activeProduction {
+        let production = activeProduction ?? self.activeProduction
+        guard !production.isEmpty else {
+            lastProductionAt = date
+            return
+        }
+        let days = elapsed / Self.secondsPerDay
+        for production in production {
             let pending = pendingProduction[production.resource, default: 0]
-            let generated = min(Double.greatestFiniteMagnitude, Double(production.quantity) * (elapsed / Self.secondsPerDay))
+            let generated = min(Double.greatestFiniteMagnitude, Double(production.quantity) * days)
             if production.resource == .gold {
                 let capacity = Double(GoldBalance.maximum)
                     - Double(balance(for: .gold, gold: gold))

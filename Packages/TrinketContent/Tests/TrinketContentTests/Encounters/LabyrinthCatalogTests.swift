@@ -188,6 +188,12 @@ struct LabyrinthCatalogTests {
         #expect(neighbors.allSatisfy { $0.isAdjacent(to: center) })
         #expect(!center.isAdjacent(to: center))
         #expect(!center.isAdjacent(to: distant))
+        for row in -3 ... 3 {
+            for column in -3 ... 3 {
+                let other = LabyrinthGridPosition(row: row, column: column)
+                #expect(center.isAdjacent(to: other) == center.neighbors.contains(other))
+            }
+        }
     }
 
     @Test func `modifier catalog has unique I ds and non empty copy`() {

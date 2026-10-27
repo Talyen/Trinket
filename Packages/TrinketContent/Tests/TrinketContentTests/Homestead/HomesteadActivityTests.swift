@@ -194,6 +194,32 @@ struct HomesteadActivityTests {
         let trinket = try #require(GameContent.trinketItems.first)
         #expect(ItemWish.select(from: [trinket], wishedTemplateID: wish.templateID, using: &random) == trinket)
     }
+
+    @Test func `wish selection preserves candidate order and subsequent random stream`() throws {
+        let candidates = Array(GameContent.uniqueItems.prefix(3))
+        try #require(candidates.count == 3)
+        let wish = try #require(candidates.first)
+        let pools = [[wish], [wish, wish], candidates, Array(candidates.reversed()), [candidates[1], candidates[2]]]
+        for pool in pools {
+            for seed in UInt64(0) ..< 32 {
+                var expectedRandom = SeededRandomNumberGenerator(seed: seed)
+                let expected: InventoryItem = if let found = pool.first(where: { $0.templateID == wish.templateID }) {
+                    if !pool.contains(where: { $0.templateID != wish.templateID }) || Int.random(in: 0 ... 1, using: &expectedRandom) == 0 {
+                        found
+                    } else {
+                        PartyLootBias().select(
+                            from: pool.filter { $0.templateID != wish.templateID }, using: &expectedRandom,
+                        )
+                    }
+                } else {
+                    PartyLootBias().select(from: pool, using: &expectedRandom)
+                }
+                var actualRandom = SeededRandomNumberGenerator(seed: seed)
+                #expect(ItemWish.select(from: pool, wishedTemplateID: wish.templateID, using: &actualRandom) == expected)
+                #expect(actualRandom.next() == expectedRandom.next())
+            }
+        }
+    }
 }
 
 extension HomesteadActivityTests {

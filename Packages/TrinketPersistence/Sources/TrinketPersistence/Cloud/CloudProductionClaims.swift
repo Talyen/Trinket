@@ -37,6 +37,10 @@ struct CloudProductionClaims: Codable, Equatable, Sendable {
     mutating func claim(_ resource: HomesteadResource, start: UInt64, quantity: Int) -> Int {
         let end = start + UInt64(quantity)
         var intervals = resources[resource, default: []]
+        if intervals.isEmpty {
+            resources[resource] = [Interval(start: start, end: end)]
+            return quantity
+        }
         let overlaps = intervals.reduce(UInt64(0)) { total, interval in
             let lower = max(start, interval.start)
             let upper = min(end, interval.end)

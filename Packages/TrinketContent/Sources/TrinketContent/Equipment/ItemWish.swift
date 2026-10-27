@@ -13,11 +13,23 @@ public enum ItemWish {
         partyBias: PartyLootBias = PartyLootBias(),
         using random: inout some RandomNumberGenerator,
     ) -> InventoryItem {
-        if let wishedTemplateID, candidates.count == 1, candidates[0].templateID == wishedTemplateID {
-            return candidates[0]
-        }
-        if let wishedTemplateID, let wish = candidates.first(where: { $0.templateID == wishedTemplateID }) {
-            guard candidates.contains(where: { $0.templateID != wishedTemplateID }) else { return wish }
+        if let wishedTemplateID {
+            var wish: InventoryItem?
+            var hasAlternative = false
+            for candidate in candidates {
+                if candidate.templateID == wishedTemplateID {
+                    if wish == nil {
+                        wish = candidate
+                    }
+                } else {
+                    hasAlternative = true
+                }
+                if wish != nil, hasAlternative {
+                    break
+                }
+            }
+            guard let wish else { return partyBias.select(from: candidates, using: &random) }
+            guard hasAlternative else { return wish }
             guard Int.random(in: 0 ... 1, using: &random) != 0 else { return wish }
             return partyBias.select(from: candidates.filter { $0.templateID != wishedTemplateID }, using: &random)
         }

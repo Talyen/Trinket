@@ -36,6 +36,7 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
     }
 
     public static func from(nodeTiers: [HomesteadNodeID: Int]) -> Self {
+        guard !nodeTiers.isEmpty else { return .zero }
         var effects = Self.zero
         for nodeID in HomesteadNodeID.allCases {
             let tier = nodeTiers[nodeID, default: 0]
@@ -67,8 +68,10 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
     public func adjustedMaterials(
         _ amounts: [ResourceAmount], remainders: inout HomesteadRewardRemainders,
     ) -> [ResourceAmount] {
+        guard gemsFindBonus != 0 || gemsFindPercent > 0 else { return amounts }
         let gems = amounts.lazy.filter { $0.resource == .gems && $0.quantity > 0 }
             .reduce(0) { SaturatedArithmetic.saturatingAdd($0, $1.quantity) }
+        guard gems > 0 else { return amounts }
         let bonus = SaturatedArithmetic.saturatingAdd(
             gemsFindBonus, remainders.bonus(for: .gems, amount: gems, percent: gemsFindPercent),
         )
@@ -87,6 +90,9 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
 
     public func adjustedGold(_ amount: Int, remainders: inout HomesteadRewardRemainders) -> Int {
         guard amount > 0 else { return 0 }
+        if goldFindPercent == 0, goldFindFlat == 0 {
+            return amount
+        }
         if goldFindPercent < 0 {
             return SaturatedArithmetic.saturatingAdd(CombatRounding.scaled(amount, byPercent: goldFindPercent), goldFindFlat)
         }

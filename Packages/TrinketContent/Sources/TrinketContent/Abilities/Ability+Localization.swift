@@ -13,23 +13,27 @@ public extension Ability {
     internal func localizedGeneratedSummary(locale: Locale) -> LocalizedGameText {
         let operations: [LocalizedGameText]
         if let outcomeBranches, !outcomeBranches.isEmpty {
-            let alternatives = outcomeBranches.map { branch in
+            let alternatives = outcomeBranches.lazy.map { branch in
                 if branch.randomizeDamageKeywords {
                     let amount = branch.operations.lazy.compactMap(\.damageComponent).first?.amount ?? 0
                     return LocalizedGameText(L10n.rule_ability_random_damage(amount), locale: locale, values: ["damage": amount])
                 }
                 return LocalizedGameText.joining(branch.operations.flatMap { localizedOperation($0, locale: locale) })
             }
-            operations = alternatives.dropFirst().reduce(into: Array(alternatives.prefix(1))) { result, next in
-                guard let first = result.first else { result = [next]; return }
-                let previous = first.scoped(to: "first")
-                let next = next.scoped(to: "second")
-                let text = LocalizedGameText(
-                    L10n.rule_ability_alternative(previous.markedText, next.markedText),
-                    locale: locale,
-                    values: previous.values.merging(next.values) { first, _ in first },
-                )
-                result = [text]
+            var iterator = alternatives.makeIterator()
+            if var combined = iterator.next() {
+                while let alternative = iterator.next() {
+                    let previous = combined.scoped(to: "first")
+                    let next = alternative.scoped(to: "second")
+                    combined = LocalizedGameText(
+                        L10n.rule_ability_alternative(previous.markedText, next.markedText),
+                        locale: locale,
+                        values: previous.values.merging(next.values) { first, _ in first },
+                    )
+                }
+                operations = [combined]
+            } else {
+                operations = []
             }
         } else {
             operations = self.operations.flatMap { localizedOperation($0, locale: locale) }

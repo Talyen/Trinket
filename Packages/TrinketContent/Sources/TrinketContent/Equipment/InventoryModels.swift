@@ -181,7 +181,10 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         }
         // Compatibility consults only worn items; keep those scans independent of inventory size.
         let equippedIDs = Set(itemIDsBySlot.values)
-        let equippedItems = equippedIDs.isEmpty ? [] : inventory.filter { equippedIDs.contains($0.id) }
+        if equippedIDs.isEmpty {
+            return inventory.filter { $0.baseType.canEquip(in: slot) && (slot != .secondaryWeapon || !$0.baseType.isQuiver) }
+        }
+        let equippedItems = inventory.filter { equippedIDs.contains($0.id) }
         return inventory.filter {
             canEquip(baseType: $0.baseType, candidateID: $0.id, in: slot, inventory: equippedItems)
         }

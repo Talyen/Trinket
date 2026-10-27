@@ -5,14 +5,16 @@ import TrinketCore
 
 struct CombatantEquipmentTests {
     @Test func `batch eligibility matches individual checks for every slot`() throws {
-        let inventory = try ["longsword", "kite_shield", "leather_armor", "ruby_ring"].map {
+        let inventory = try ["longsword", "kite_shield", "leather_armor", "ruby_ring", "quiver"].map {
             try ItemFixtures.makeBareItem($0)
         }
-        let loadout = EquipmentLoadout(itemIDsBySlot: [.weapon: inventory[0].id, .accessory: inventory[3].id])
-        for slot in ItemSlot.allCases {
-            #expect(loadout.equippableItems(in: slot, inventory: inventory) == inventory.filter {
-                loadout.canEquip($0, in: slot, inventory: inventory)
-            })
+        let loadouts = [EquipmentLoadout(), EquipmentLoadout(itemIDsBySlot: [.weapon: inventory[0].id, .accessory: inventory[3].id])]
+        for loadout in loadouts {
+            for slot in ItemSlot.allCases {
+                #expect(loadout.equippableItems(in: slot, inventory: inventory) == inventory.filter {
+                    loadout.canEquip($0, in: slot, inventory: inventory)
+                })
+            }
         }
     }
 

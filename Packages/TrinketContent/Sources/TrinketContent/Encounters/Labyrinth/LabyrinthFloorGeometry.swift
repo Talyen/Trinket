@@ -66,7 +66,8 @@ enum LabyrinthFloorGeometry {
             guard doubles <= doubleCount, doubles + remainingMiddleRows >= doubleCount else { return nil }
 
             let oldCount = state.columns.count
-            var labels = state.components + columns.indices.map { $0 + oldCount }
+            var labels = state.components
+            labels.append(contentsOf: columns.indices.lazy.map { $0 + oldCount })
             var oldDegrees = state.degrees
             var degrees = Array(repeating: 0, count: columns.count)
             var cycles = state.cycles
@@ -102,15 +103,8 @@ enum LabyrinthFloorGeometry {
             // A component leaving the frontier can never reconnect on a later row.
             let nextLabels = labels.dropFirst(oldCount)
             guard labels.prefix(oldCount).allSatisfy(nextLabels.contains) else { return nil }
-            var canonical: [Int: Int] = [:]
-            let components = nextLabels.map { label in
-                if let existing = canonical[label] {
-                    return existing
-                }
-                let next = canonical.count
-                canonical[label] = next
-                return next
-            }
+            // Every row choice contains one or two columns.
+            let components = nextLabels.count == 1 ? [0] : [0, nextLabels.first == nextLabels.last ? 0 : 1]
             return State(
                 row: state.row + 1,
                 columns: columns,
@@ -148,9 +142,9 @@ enum LabyrinthFloorGeometry {
                 let count = search.completions(from: next)
                 if ticket < count {
                     state = next
-                    positions += next.columns.map {
+                    positions.append(contentsOf: next.columns.lazy.map {
                         LabyrinthGridPosition(row: next.row, column: ($0 - next.row) / 2)
-                    }
+                    })
                     break
                 }
                 ticket -= count
