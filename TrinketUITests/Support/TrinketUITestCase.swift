@@ -466,11 +466,7 @@ extension XCUIElement {
             }
         }
         guard trinketWaitUntil(timeout: timeout, condition: { isReady(self) }) else {
-            XCTFail(
-                "Control '\(identifier)' not ready: exists=\(exists), enabled=\(isEnabled), hittable=\(isHittable), frame=\(frame)",
-                file: file,
-                line: line,
-            )
+            XCTFail("Control not ready before the interaction deadline (exists: \(exists))", file: file, line: line)
             return
         }
         // Animations can flip hittability between predicate fulfillment and

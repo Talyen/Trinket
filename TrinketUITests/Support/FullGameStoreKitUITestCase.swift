@@ -49,7 +49,11 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
             do { return try self.coverageReport()["fullGameAccess"] as? Bool == expected }
             catch { return false }
         }
-        XCTAssertTrue(matched, "Full Game access must become \(expected); diagnostics: \((try? coverageReport()) ?? [:])")
+        guard !matched else { return }
+        let transactions = storeSession?.allTransactions().map {
+            "id=\($0.identifier) product=\($0.productIdentifier) state=\($0.state.rawValue) pending=\($0.pendingAskToBuyConfirmation) cancelled=\($0.cancelDate != nil)"
+        } ?? []
+        XCTFail("Full Game access must become \(expected); diagnostics: \((try? coverageReport()) ?? [:]); transactions: \(transactions)")
     }
 
     func assertWarlockAccessible() {
