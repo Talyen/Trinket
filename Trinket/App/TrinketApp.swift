@@ -273,6 +273,9 @@ private struct PreparedAppRoot: View {
             .task {
                 await runResourcePreparation()
             }
+            .task {
+                await loadInitialSave()
+            }
             .onChange(of: isPreparationComplete, initial: false) { _, isComplete in
                 guard isComplete, !preparation.didCompleteLaunchPreparation else { return }
                 // Capture the encounter identity once so later encounters cannot
@@ -309,6 +312,14 @@ private struct PreparedAppRoot: View {
     private func runPurchaseSync() async {
         await appState.fullGame.start()
         appState.synchronizePurchaseAccess()
+    }
+
+    private func loadInitialSave() async {
+        guard !preparation.isInitialSaveReady else { return }
+        // A failed cloud check leaves the durable local save available for offline play.
+        await appState.playerSave.cloudSync?.synchronize()
+        guard !Task.isCancelled else { return }
+        preparation.acknowledge(.initialSaveReady)
     }
 
     private func runPreparationDelay() async {

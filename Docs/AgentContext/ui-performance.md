@@ -37,8 +37,10 @@ starts deferred catalog decoding as soon as priority work finishes; deferred wor
 can continue after the cover closes, subject to the shared admission limits
 below. Before changing launch timing or decode policy to fill a perceived idle
 window, check pending artwork work and those limits. Root and hidden-tab layout
-start after resource preparation, and launch cast rendering starts after those
-layouts acknowledge readiness. Hidden cast warmups acquire their artwork and
+start after resource preparation and the initial cloud save check. A failed cloud
+check leaves the loaded local save available; later sync continues in the active
+scene. Launch cast rendering starts after those layouts acknowledge readiness.
+Hidden cast warmups acquire their artwork and
 textures before constructing the live effect, then run their bounded rendering
 allowance. That allowance is not a GPU completion fence.
 Launch completion is latched so finishing starter selection does not reopen the

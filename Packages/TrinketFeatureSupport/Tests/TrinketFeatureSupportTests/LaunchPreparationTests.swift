@@ -5,19 +5,22 @@ struct LaunchPreparationTests {
     private final class DummyToken {}
 
     private static let requiredGates: [LaunchPreparationEvent] = [
-        .resourcesReady, .minimumLoadingTimeComplete, .selectedRootLaidOut,
+        .initialSaveReady, .resourcesReady, .minimumLoadingTimeComplete, .selectedRootLaidOut,
         .hiddenTabsWarmed, .castEffectsPrepared, .preparationDelayComplete,
     ]
 
     @Test
     @MainActor
-    func `should mount root requires both resources and minimum loading time`() {
+    func `should mount root waits for the initial save as well as resources and minimum loading time`() {
         let prep = LaunchPreparation(isPreparationDelayComplete: true)
 
         prep.acknowledge(.resourcesReady)
         #expect(!prep.shouldMountRoot)
 
         prep.acknowledge(.minimumLoadingTimeComplete)
+        #expect(!prep.shouldMountRoot)
+
+        prep.acknowledge(.initialSaveReady)
         #expect(prep.shouldMountRoot)
     }
 
@@ -25,6 +28,7 @@ struct LaunchPreparationTests {
     @MainActor
     func `are root layouts prepared differentiates starter flow`() {
         let prep = LaunchPreparation(isPreparationDelayComplete: true)
+        prep.acknowledge(.initialSaveReady)
         prep.acknowledge(.resourcesReady)
         prep.acknowledge(.minimumLoadingTimeComplete)
         prep.acknowledge(.selectedRootLaidOut)

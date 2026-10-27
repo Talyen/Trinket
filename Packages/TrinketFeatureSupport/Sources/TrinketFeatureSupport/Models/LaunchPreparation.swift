@@ -3,12 +3,13 @@ import SwiftUI
 /// Single owner for launch-gating state behind the launch cover.
 ///
 /// Collapsing launch gates here maintains one observable state machine
-/// (`resources ∧ minimumTime ∧ layouts ∧ castEffects ∧ delay`) with an explicit
+/// (`save ∧ resources ∧ minimumTime ∧ layouts ∧ castEffects ∧ delay`) with an explicit
 /// acknowledge API. All mutations go through `acknowledge(_:)`; direct writes
 /// from views are a defect.
 @MainActor
 @Observable
 public final class LaunchPreparation {
+    public private(set) var isInitialSaveReady = false
     public private(set) var isResourcePreparationComplete = false
     public private(set) var isMinimumLoadingTimeComplete = false
     public private(set) var areCastEffectsPrepared = false
@@ -27,6 +28,8 @@ public final class LaunchPreparation {
 
     public func acknowledge(_ event: LaunchPreparationEvent) {
         switch event {
+        case .initialSaveReady:
+            isInitialSaveReady = true
         case .resourcesReady:
             isResourcePreparationComplete = true
         case .minimumLoadingTimeComplete:
@@ -47,7 +50,7 @@ public final class LaunchPreparation {
     }
 
     public var shouldMountRoot: Bool {
-        isResourcePreparationComplete && isMinimumLoadingTimeComplete
+        isInitialSaveReady && isResourcePreparationComplete && isMinimumLoadingTimeComplete
     }
 
     public func areRootLayoutsPrepared(starterSelectionComplete: Bool) -> Bool {
@@ -64,6 +67,7 @@ public final class LaunchPreparation {
 }
 
 public enum LaunchPreparationEvent: Sendable, Equatable {
+    case initialSaveReady
     case resourcesReady
     case minimumLoadingTimeComplete
     case castEffectsPrepared
