@@ -30,22 +30,24 @@ struct ItemPickerItems {
         }
         if inventoryChanged || localeChanged {
             let previousItems = Dictionary(uniqueKeysWithValues: self.inventory.map { ($0.id, $0) })
-            // Reuse descriptions only for equal items in the same normalization locale.
-            searchText = Dictionary(uniqueKeysWithValues: inventory.map { item in
-                if !localeChanged, previousItems[item.id] == item, let text = searchText[item.id] {
-                    return (item.id, text)
-                }
-                let fields = [item.localizedDisplayName(locale: locale), item.baseType.localizedName(locale: locale)]
-                    + item.displayedAffixes.flatMap {
-                        [ContentCopy.localized($0.title, locale: locale), ContentCopy.localized($0.description, locale: locale)]
-                    }
-                    + item.keywords.map { $0.localizedName(locale: locale) }
-                return (item.id, Self.normalized(fields.joined(separator: " "), locale: locale))
+            // Keep cached descriptions only while their item and locale are unchanged.
+            searchText = Dictionary(uniqueKeysWithValues: inventory.compactMap { item in
+                guard !localeChanged, previousItems[item.id] == item, let text = searchText[item.id] else { return nil }
+                return (item.id, text)
             })
             self.inventory = inventory
             searchLocale = locale
         }
         let candidates = loadout.equippableItems(in: slot, inventory: inventory)
+        // Other slots cannot appear in this picker, so defer their localization until eligible.
+        for item in candidates where searchText[item.id] == nil {
+            let fields = [item.localizedDisplayName(locale: locale), item.baseType.localizedName(locale: locale)]
+                + item.displayedAffixes.flatMap {
+                    [ContentCopy.localized($0.title, locale: locale), ContentCopy.localized($0.description, locale: locale)]
+                }
+                + item.keywords.map { $0.localizedName(locale: locale) }
+            searchText[item.id] = Self.normalized(fields.joined(separator: " "), locale: locale)
+        }
         if order.isEmpty {
             let equippedID = loadout.itemID(for: slot)
             let sorted = candidates.sorted { lhs, rhs in

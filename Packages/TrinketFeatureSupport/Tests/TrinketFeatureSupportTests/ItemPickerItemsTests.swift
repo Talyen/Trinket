@@ -87,6 +87,21 @@ struct ItemPickerItemsTests {
         #expect(model.matching(ItemPickerFilter(search: "sword", rarity: .astral)).count == count / 2)
     }
 
+    @Test func `search follows items becoming eligible and changing while hidden`() {
+        let old = makeItem("sword", name: "Old")
+        let updated = makeItem("sword", name: "New", keyword: .burn)
+        var model = ItemPickerItems()
+        model.update(inventory: [old], loadout: .init(), slot: .armor)
+        #expect(model.matching(ItemPickerFilter(search: "old")).isEmpty)
+        model.update(inventory: [old], loadout: .init(), slot: .weapon)
+        #expect(model.matching(ItemPickerFilter(search: "old")).map(\.id) == [old.id])
+        model.update(inventory: [old], loadout: .init(), slot: .armor)
+        model.update(inventory: [updated], loadout: .init(), slot: .armor)
+        model.update(inventory: [updated], loadout: .init(), slot: .weapon)
+        #expect(model.matching(ItemPickerFilter(search: "old")).isEmpty)
+        #expect(model.matching(ItemPickerFilter(search: "new", keyword: .burn)).map(\.id) == [updated.id])
+    }
+
     private func makeItem(
         _ id: String,
         name: String = "Sword",
