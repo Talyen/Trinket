@@ -50,6 +50,10 @@ enum CloudSaveReconciler {
             ], acceptedLocal: true)
         }
 
+        if !sameEpoch, request.action == .upload {
+            return reconcileAfterReset(request, incoming: incomingSave, existing: existing, head: head, settled: oldSave)
+        }
+
         guard sameEpoch, request.authoritySequence == existing.authoritySequence else {
             head.revision.snapshot = CloudSaveSnapshot(oldSave)
             return resolution(head, request: request, outcome: .progressChanged, backups: [
@@ -69,6 +73,25 @@ enum CloudSaveReconciler {
             }
             return try applyProduction(request, head: head, save: oldSave, at: server.serverTime)
         }
+    }
+
+    private static func reconcileAfterReset(
+        _ request: CloudSaveRequest, incoming: PlayerSave, existing: CloudSaveHead,
+        head: CloudSaveHead, settled: PlayerSave,
+    ) -> Resolution {
+        // Across resets there is no safe shared economy or production cursor.
+        // Merge snapshots conservatively instead of replaying old receipts.
+        var head = head
+        var merged = !request.revision.snapshot.hasProgress
+            ? settled
+            : CloudSaveMerge.merge(incoming: incoming, existing: settled, base: nil, preferIncoming: false)
+        merged.homestead.lastProductionAt = max(merged.homestead.lastProductionAt, settled.homestead.lastProductionAt)
+        CloudReceiptReplay(head: head).retireItems(in: &merged)
+        head.revision.snapshot = CloudSaveSnapshot(merged)
+        return resolution(head, request: request, outcome: .synchronized, backups: [
+            backup(existing.revision, epoch: existing.epoch, requestID: request.id, suffix: "previous"),
+            backup(request.revision, epoch: request.baseEpoch, requestID: request.id, suffix: "incoming"),
+        ])
     }
 
     private static func reconcileUpload(

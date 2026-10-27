@@ -236,8 +236,9 @@ reject synchronization before publication; clocks never wrap or stop advancing s
 
 #### Admission and receipts
 
-Merge concurrent branches within the same reset epoch without player conflict
-prompts. Each durable mutation records an identified domain action with
+Merge concurrent branches within an account without player conflict prompts.
+Across reset epochs, merge snapshots conservatively rather than replaying old
+economic or production receipts. Each durable mutation records an identified domain action with
 reconstructible before/after snapshots in the local outbox. Uploads carry those
 actions, their acknowledged base snapshot and a stable request ID; the server
 replays them into one complete projected save and an immutable receipt.
@@ -389,9 +390,10 @@ receipts remain recoverable after a lost response.
 
 ### Reset and account isolation
 
-Reset advances the server epoch and invalidates older progress and claims.
-Concurrent stale reset requests cannot wipe a newer epoch. Backups from older
-epochs are never automatically restored. Signing out keeps a local copy and an
+Reset advances the server epoch and invalidates older production claims. A later
+offline upload merges its snapshot with the new epoch, so old progress can return;
+both snapshots are backed up, and unrelated balances retain the larger value.
+Concurrent stale reset requests cannot wipe a newer epoch. Signing out keeps a local copy and an
 account archive. Further signed-out play stays separate; returning to an account
 restores its own archive/cloud head, retaining the guest copy locally. Switching
 accounts never uploads the previous account's progress into the new account.

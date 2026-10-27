@@ -527,7 +527,7 @@ extension CloudSaveSyncTests {
         #expect(cloud.head?.head.revision.snapshot.roster.gold == 108)
     }
 
-    @Test @MainActor func `reset wins over returning offline progress and invalidates its claims`() async throws {
+    @Test @MainActor func `returning offline progress merges after reset and survives reload`() async throws {
         let transport = CloudSaveTestTransport()
         let first = try PersistenceTestContext()
         let second = try PersistenceTestContext()
@@ -544,11 +544,11 @@ extension CloudSaveSyncTests {
         try a.resetGameplayProgress()
         #expect(await a.cloudSync?.synchronize() == true)
         #expect(await b.cloudSync?.synchronize() == true)
-        #expect(b.roster.gold == 0)
-        #expect(b.journey.completedStageIDs.isEmpty)
+        #expect(b.roster.gold == 888)
+        #expect(!b.journey.completedStageIDs.isEmpty)
         #expect(b.cloudDeviceState.account.base?.epoch != oldEpoch)
         #expect(await transport.account().backups.contains { $0.snapshot.roster.gold == 888 })
-        #expect(try second.makeReloadedStore().worldSeed == a.worldSeed)
+        #expect(try second.makeReloadedStore().roster.gold == 888)
     }
 
     @Test @MainActor func `account switching and signed out play never enter another accounts save`() async throws {

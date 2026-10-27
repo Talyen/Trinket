@@ -61,7 +61,7 @@ and the critical device scenarios in stage 4. Record the actual scope at each st
 | Network, quota and interrupted requests | Network loss/reconnect, quota errors, `serverRecordChanged`, lost responses and termination preserve accepted actions and once-only replay. |
 | Upgrade and rollback | A populated beta save survives restart, upgrade and sync disablement at its existing URL, including outbox/account metadata. Store-open errors preserve original files. |
 | Remote publication | Preserve newer local mutations, invalidate stale encounters, and refresh imported starter-choice navigation. Own-upload acknowledgements do not interrupt gameplay. |
-| Reset with an offline device | Reset propagates and invalidates outstanding claims; reconnecting stale devices cannot resurrect prior progress. |
+| Reset with an offline device | Reset invalidates old production claims; reconnecting offline progress merges conservatively and can restore previously reset progress. Stale reset requests cannot reset the newer epoch. |
 | Homestead actions | Offline Collect/Upgrade complete after durable local writes. Overlapping production pays once; distinct upgrades survive. Concurrent Collect/Upgrade preserve the production cursor; interrupted uploads cannot lose or duplicate rewards. |
 
 ## Required readiness gates
@@ -83,7 +83,8 @@ Stages 1–2 precede controlled Development play; stages 3–4 precede wider ena
 - [ ] Establish the validation scenarios through source and isolated tests before
   live trials. Keep the existing local SwiftData URL and mirroring disabled;
   explicit sync owns complete-save projection and atomic head/backup commits.
-  Reject stale reset epochs and production sequences; duplicate local roots fail
+  Merge offline uploads across reset epochs without replaying old production receipts;
+  reject stale reset requests and production sequences. Duplicate local roots fail
   safely when opening for cloud play.
 - [ ] Prove populated upgrade/rollback, failure preservation, local offline action
   acceptance, and replay-safe legacy receipts. Retain credential-free coverage

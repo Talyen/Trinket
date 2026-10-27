@@ -49,6 +49,70 @@ struct CloudStarterSelectionMergeTests {
         #expect(imported.roster.progressions == established.roster.progressions)
     }
 
+    @Test func `first attachment after a reset merges local starter progress`() throws {
+        var cloud = establishedSave()
+        cloud.roster = PlayerRosterState(
+            activeHeroID: "knight", activeCompanionID: "bear",
+            unlockedHeroIDs: ["knight"], unlockedCompanionIDs: ["bear"],
+            abilityLoadouts: [:], progressions: [:], equipmentLoadouts: [:], gold: 68,
+        )
+        var local = unfinishedSave()
+        local.starterSelection = .complete
+        local.roster.gold = 5
+        local.homestead.pendingProduction[.food] = 4
+        let server = CloudServerSave(
+            head: CloudSaveHead(
+                epoch: "reset-epoch", resetCount: 1, authoritySequence: 0,
+                revision: CloudSaveRevision(id: "cloud", clock: ["first-device": 1], snapshot: CloudSaveSnapshot(cloud)),
+            ),
+            changeToken: Data(), serverTime: cloud.homestead.lastProductionAt,
+        )
+        let request = CloudSaveRequest(
+            id: "first-upload", action: .upload, baseEpoch: nil, baseRevisionID: nil, authoritySequence: 0,
+            revision: CloudSaveRevision(id: "first-upload", clock: ["new-device": 1], snapshot: CloudSaveSnapshot(local)),
+        )
+
+        let resolution = try CloudSaveReconciler.resolve(request, against: server)
+        let merged = try resolution.head.revision.snapshot.restored()
+        #expect(merged.roster.unlockedHeroIDs.isSuperset(of: ["knight", "ranger"]))
+        #expect(merged.roster.unlockedCompanionIDs.isSuperset(of: ["bear", "wolf"]))
+        #expect(merged.roster.gold == 68)
+        #expect(merged.homestead.pendingProduction[.food] == 4)
+        #expect(resolution.head.epoch == "reset-epoch")
+        #expect(resolution.backups.count == 2)
+
+        let retry = CloudSaveRequest(
+            id: "second-upload", action: .upload, baseEpoch: nil, baseRevisionID: nil, authoritySequence: 0,
+            revision: CloudSaveRevision(id: "second-upload", clock: ["new-device": 2], snapshot: CloudSaveSnapshot(local)),
+        )
+        let retryServer = CloudServerSave(head: resolution.head, changeToken: Data(), serverTime: server.serverTime)
+        let retried = try CloudSaveReconciler.resolve(retry, against: retryServer).head.revision.snapshot.restored()
+        #expect(retried.roster.gold == merged.roster.gold)
+        #expect(retried.homestead.pendingProduction[.food] == merged.homestead.pendingProduction[.food])
+        #expect(retried.roster.unlockedHeroIDs == merged.roster.unlockedHeroIDs)
+    }
+
+    @Test func `a stale reset request cannot reset a newer epoch`() throws {
+        let cloud = establishedSave()
+        let server = CloudServerSave(
+            head: CloudSaveHead(
+                epoch: "new-epoch", resetCount: 2, authoritySequence: 0,
+                revision: CloudSaveRevision(id: "cloud", clock: ["first-device": 1], snapshot: CloudSaveSnapshot(cloud)),
+            ),
+            changeToken: Data(), serverTime: cloud.homestead.lastProductionAt,
+        )
+        let request = CloudSaveRequest(
+            id: "stale-reset", action: .reset, baseEpoch: "old-epoch", baseRevisionID: "old", authoritySequence: 0,
+            revision: CloudSaveRevision(id: "stale-reset", clock: ["second-device": 1], snapshot: CloudSaveSnapshot(.fresh)),
+        )
+
+        let resolution = try CloudSaveReconciler.resolve(request, against: server)
+        #expect(resolution.receipt.outcome == .progressChanged)
+        #expect(resolution.head.epoch == "new-epoch")
+        #expect(resolution.head.resetCount == 2)
+        #expect(try resolution.head.revision.snapshot.restored().roster == cloud.roster)
+    }
+
     @Test(arguments: [false, true])
     func `Hero selection survives a newer unstarted branch and same-phase choices use recency`(incompleteIncoming: Bool) {
         let chosen = unfinishedSave()
