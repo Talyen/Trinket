@@ -77,6 +77,12 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
              [shlex.join(['./Scripts/handoff.sh', '--quiet', *(['--base', args.base] if args.base else [])])])
         emit('Landing (from the task worktree after review/commit; includes final static handoff)',
              ['node Scripts/agent-worktree.mjs integrate'])
+        plans = [root / path for path in paths if Path(path).parent == Path('Docs/Plans')
+                 and Path(path).name != 'README.md' and (root / path).is_file()]
+        if plans:
+            check_plans = load_sibling('brief_check_plans', 'check-plans.py')
+            if any(check_plans.plan_metadata(plan)[0].get('status') == 'active' for plan in plans):
+                emit('Active plan in scope', ['Close it when finished, or retain intentional unfinished work with node Scripts/agent-worktree.mjs integrate --keep-plan'])
         emit('Finish (after reporting and any remaining work)', ['node Scripts/agent-worktree.mjs cleanup'])
         if args.full: emit('Plan detail (sequential under that tenant)', [check.command + (' (deferred to CI locally)' if check.deferred else '') for check in verification_plan(route, root=root, smoke=args.smoke)])
         if route.smoke_unresolved: print('UI note: no single smoke owner was inferred. Apply the Testing rubric; add coverage only for a qualifying unique shipping outcome. Do not substitute bare smoke.')

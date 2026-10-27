@@ -16,7 +16,7 @@ and `--dry-run` to preview without executing anything.
 |---|---|---|
 | Ordinary task verification | `handoff.sh --quiet` | Scoped static checks; compilation and test obligations reported as deferred to CI |
 | Cheap static checks only | `handoff.sh --route static --paths <files...>` | Style, scripts/docs and cheap invariants; no compilation or simulator |
-| One concrete local diagnostic | Exact selector under the [single focused diagnostic limits](#single-focused-local-diagnostic) | One bounded attempt without additional approval; setup counts toward the deadline |
+| One concrete local diagnostic | Exact selector under the [single focused diagnostic limits](#single-focused-local-diagnostic) | Bounded attempts without additional approval; setup counts toward each deadline |
 | Expressly requested local package diagnostic | `TRINKET_ALLOW_HEAVY_LOCAL=1 handoff.sh --package <Package...> --paths <files...>` | Selected package tests, executed serially |
 | Expressly requested local app compilation | `TRINKET_ALLOW_HEAVY_LOCAL=1 handoff.sh --app-only --paths <files...>` | App and unchanged downstream consumers compile |
 | Expressly requested local UI diagnostic | `TRINKET_ALLOW_HEAVY_LOCAL=1 handoff.sh --ui <Class[/method]> --paths <files...>` | The selected registered Smoke/FullUI journey |
@@ -46,7 +46,12 @@ local work; selectors alone never enable the override.
 Dry-run previews need no opt-in. The bounded visual route remains authorized by
 the visual completion gate below.
 
-Local `build.sh`, compiled `test.sh`, `test-package.sh`, and managed `run-simulator.sh --isolate` automatically enter the shared host admission helper before allocating resources. Hosted CI and nested commands reuse their existing ownership; human simulator play is unchanged. The helper defaults to `~/Developer/.coordination/heavy_lane.py`; `CODEX_HEAVY_LANE_HELPER` can select its existing location. Busy or missing admission exits 75 with no build or simulator setup, rather than reporting a passed check. Its default wait is 30 seconds and command deadline five minutes. Other explicit diagnostic wrappers still follow the machine admission guidance.
+Local `build.sh`, compiled `test.sh`, `test-package.sh`, and managed `run-simulator.sh --isolate` automatically enter the shared host admission helper before allocating resources. Hosted CI and nested commands reuse their existing ownership; human simulator play is unchanged. The helper defaults to `~/Developer/.coordination/heavy_lane.py`; `CODEX_HEAVY_LANE_HELPER` can select its existing location. Busy or missing admission exits 75 with no build or simulator setup, rather than reporting a passed check. Automatic admission waits up to 900 seconds and limits the command to five minutes. Wrap focused diagnostics explicitly as below to impose their shorter execution deadline.
+
+| Authorized local work | Admission wait | Execution deadline |
+|---|---|---|
+| Single focused diagnostic | Up to 900 seconds | 30 seconds per attempt; retry a timeout under the same limits |
+| Essential build or simulator inspection | Up to 900 seconds | Five minutes by default; applicable device exceptions follow the shared host policy |
 
 Before landing, follow [review and integration](Development.md#landing-and-review).
 Local integration requires static checks and visual review only when the
@@ -206,14 +211,15 @@ test method or one small, directly relevant test suite/file; an entire package,
 unfiltered UI plan, performance sweep or release suite does not qualify.
 
 Wrap the outermost command with the shared host admission helper using
-`--wait 30 --timeout 30`. The 30-second execution budget includes generation,
-compilation, simulator setup and the test itself. Use one worker and the existing
+`--wait 900 --timeout 30`. Admission wait and execution time are separate: the
+30-second execution budget includes generation, compilation, simulator setup and
+the test itself. Use one worker and the existing
 isolated checkout and managed simulator lease. Set `TRINKET_ALLOW_HEAVY_LOCAL=1`
 only on that command; the flag does not grant broader authorization. For example:
 
 ```sh
 python3 /Users/ryanmcintire/Developer/.coordination/heavy_lane.py \
-  --owner "$CODEX_THREAD_ID" --wait 30 --timeout 30 -- \
+  --owner "$CODEX_THREAD_ID" --wait 900 --timeout 30 -- \
   env TRINKET_ALLOW_HEAVY_LOCAL=1 TRINKET_ISOLATE=1 \
   TRINKET_PACKAGE_TEST_JOBS=1 TRINKET_SERIAL_TESTS=1 \
   ./Scripts/test-package.sh --only-suite LabyrinthVictoryCompletionTests TrinketAppState
@@ -223,12 +229,13 @@ For a suite outside the package's main test target, use the `target/suite` form,
 for example `--only-suite BattleBalanceToolsTests/BalanceFindingsReporterTests`.
 The selected target is included even when balance-tool tests are otherwise skipped.
 
-A busy lane or deadline ends the attempt. Preserve its logs, report what actually
-ran, and continue source work or hosted verification. Do not automatically retry,
-widen the selector, increase the deadline, or split a larger run into repeated
-diagnostics. Another local compiled attempt or a longer/broader run requires an
-express user request. This exception supplies diagnostic evidence only; it does
-not replace final static handoff, hosted qualification or required visual review.
+A busy lane or deadline ends the attempt. Retry a timed-out diagnostic under the
+same limits; investigate before widening the selector or changing the deadline.
+Preserve logs and report what actually ran. Do not split a larger run into repeated
+diagnostics; a longer or broader run requires an express user request. Continue
+independent source work while waiting for admission. This exception supplies
+diagnostic evidence only; it does not replace final static handoff, hosted
+qualification or required visual review.
 
 ### Local play
 

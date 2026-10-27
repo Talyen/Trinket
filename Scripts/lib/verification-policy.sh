@@ -29,5 +29,5 @@ trinket_host_admit() {
     echo "Deferred: shared heavy-work admission helper unavailable; no work started. Use hosted CI or configure CODEX_HEAVY_LANE_HELPER." >&2
     return 75
   fi
-  exec python3 "$helper" --owner "${CODEX_THREAD_ID:-trinket:$$}" --wait 30 --timeout 300 -- bash "$@"
+  exec python3 "$helper" --owner "${CODEX_THREAD_ID:-trinket:$$}" --wait 900 --timeout 300 -- bash "$@"
 }

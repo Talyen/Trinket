@@ -834,7 +834,7 @@ source Scripts/lib/simctl.sh
             with tempfile.TemporaryDirectory() as directory:
                 script = '''
 source Scripts/run-env.sh
-trap 'test ! -e "$resource"; ! kill -0 "$worker" 2>/dev/null' EXIT
+trap 'test ! -e "$resource"; ! kill -0 "$worker" 2>/dev/null; ! kill -0 "$nested" 2>/dev/null' EXIT
 if [[ "$1" == lock ]]; then
   resource="$2/generation.lock"
   trinket_dir_lock_acquire "$resource" 0
@@ -861,10 +861,18 @@ PS
   trinket_track_test_guests
   touch "$2/guest-started"
 fi
-bash -c 'trap "" INT TERM; printf ready > "$1/worker-ready"; while :; do sleep 1; done' _ "$2" &
+cat > "$2/worker.sh" <<'WORKER'
+trap '' INT TERM
+bash -c 'trap "" INT TERM; printf "%s" "$$" > "$1/nested-pid"; while :; do sleep 1; done' _ "$1" &
+while [[ ! -s "$1/nested-pid" ]]; do sleep 0.01; done
+printf ready > "$1/worker-ready"
+wait
+WORKER
+bash "$2/worker.sh" "$2" &
 worker=$!
 while [[ ! -e "$2/worker-ready" ]]; do sleep 0.01; done
-printf '%s %s\\n' "$resource" "$worker"
+nested="$(cat "$2/nested-pid")"
+printf '%s %s %s\\n' "$resource" "$worker" "$nested"
 wait "$worker"
 echo continued > "$2/continued"
 '''
@@ -880,7 +888,7 @@ echo continued > "$2/continued"
                 try:
                     ready, _, _ = select.select([process.stdout], [], [], 10)
                     self.assertTrue(ready, "cancellation fixture did not publish worker readiness")
-                    resource_path, worker_pid = process.stdout.readline().split()
+                    resource_path, worker_pid, nested_pid = process.stdout.readline().split()
                     resource = Path(resource_path)
                     self.assertTrue(resource.exists())
                     os.kill(int(worker_pid), 0)
@@ -894,11 +902,13 @@ echo continued > "$2/continued"
                         self.assertFalse(Path(str(resource) + ".guest-tests").exists())
                     with self.assertRaises(ProcessLookupError):
                         os.kill(int(worker_pid), 0)
+                    with self.assertRaises(ProcessLookupError):
+                        os.kill(int(nested_pid), 0)
                     fixture_stopped = True
                 finally:
                     # Failed readiness/assertions must not leak an immortal worker.
                     # After both exit checks pass, the old group ID is no longer ours.
-                    if not fixture_stopped:
+                    if not fixture_stopped and process.poll() is None:
                         try:
                             os.killpg(process.pid, signal.SIGKILL)
                         except ProcessLookupError:

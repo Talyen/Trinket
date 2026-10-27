@@ -62,7 +62,7 @@ removing mechanisms. Do not push or publish as part of this plan without authori
 
 ## Implementation plan
 
-- [ ] **P0 — Establish one resource-policy answer.** Reconcile focused-test retry,
+- [x] **P0 — Establish one resource-policy answer.** Reconcile focused-test retry,
   admission wait, execution deadline, and authorization across the supplied
   machine instructions, shared coordination guidance, and Trinket verification
   owner. Preserve the 30-second focused execution limit and one worker. Identify
@@ -77,7 +77,7 @@ removing mechanisms. Do not push or publish as part of this plan without authori
   Remove duplicated or stale guidance from its current owner; preserve the CLI
   and its existing consumers. Keep detailed recovery information available on
   demand rather than forcing it into every task.
-- [ ] **P1 — Investigate cancellation with owned fixtures.** Reproduce the
+- [x] **P1 — Investigate cancellation with owned fixtures.** Reproduce the
   surviving-child report using isolated, task-owned processes and private locks.
   Trace the runner and host-lane ownership boundaries before changing them. If
   reproducible, fix the responsible owner and add a targeted regression that checks
@@ -89,7 +89,7 @@ removing mechanisms. Do not push or publish as part of this plan without authori
   supported by evidence; distinguish app state, capture, display and input failures.
   Preserve managed leases and never terminate foreign processes. Report any
   platform/tool limitation that remains outside repository control.
-- [ ] **P2 — Audit translation and legacy workflow costs.** Sample a small copy
+- [x] **P2 — Audit translation and legacy workflow costs.** Sample a small copy
   change without committing it or inventing review evidence; inspect existing
   recovery and cache behavior. Identify a concrete bottleneck before proposing
   an automation improvement. Inventory actual references to compatibility options
@@ -105,7 +105,22 @@ removing mechanisms. Do not push or publish as part of this plan without authori
 
 ## Status and blockers
 
-Planning only; no workflow changes or timing measurements have been made. The
-cross-repository policy reconciliation needs its shared owner and must respect
-instructions supplied to each session. Simulator and Duo work depends on available
-tooling; do not promise a fix before reproducing the cause.
+The supplied shared-machine rules now agree with the focused diagnostic example
+and automatic host admission. The briefing explains active-plan retention; sample
+documentation, logic, UI and localization routes were inspected, but elapsed
+end-to-end comparisons and representative landings have not been measured.
+
+The owned nested-shell cancellation fixture passes for INT and TERM; it did not
+reproduce the reported surviving compiler or establish the root cause. The friction
+log retains that limitation. A temporary store-subtitle change produced seven
+pending translations in seven locales in under one second; no AI translation or
+review was performed. Existing compatibility flags and manual localization commands
+still have documented or test consumers, so none were removed. Failure messages now
+point to the automated localization coordinator.
+
+A managed iPhone simulator built and launched Trinket and produced a readable Play
+screen capture. Native interaction was blocked by an existing uncertain per-device
+reservation; Computer Use reported that the Mac is locked. No input or Duo display
+qualification was performed. Keep the reservation intact and use the existing
+native recovery procedure after the prerequisite is resolved; do not infer that
+the old session has ended. The capture is retained with task evidence.

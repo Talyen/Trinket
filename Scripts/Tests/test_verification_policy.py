@@ -117,6 +117,7 @@ class VerificationPolicyTests(ScriptRegressionTestCase):
                     self.assertFalse((root / 'preparation').exists())
                     admitted = json.loads((root / 'admission.json').read_text())
                     self.assertEqual(admitted[:2], ['--owner', 'fixture-owner'])
+                    self.assertEqual(admitted[2:6], ['--wait', '900', '--timeout', '300'])
                     self.assertEqual(admitted[admitted.index('--') + 1:], ['bash', str(scripts / name), *args])
             for settings in ({'RYAN_HEAVY_LANE_ACTIVE': '1234'}, {'GITHUB_ACTIONS': 'true'}):
                 (root / 'admission.json').unlink(missing_ok=True)

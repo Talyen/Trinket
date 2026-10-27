@@ -86,7 +86,7 @@ class InspectionTests(unittest.TestCase):
         session.reservation.write_text('uncertain native session from another checkout')
         bridge = self.bridge()
         with patch('internal.inspection.Bridge', return_value=bridge):
-            with self.assertRaises(FileExistsError): session.native()
+            with self.assertRaisesRegex(ValueError, 'already reserved.*native session recovery'): session.native()
             self.assertEqual(bridge.calls, [])
             session.close()
         self.assertEqual(session.reservation.read_text(), 'uncertain native session from another checkout')

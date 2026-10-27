@@ -91,7 +91,7 @@ def main(argv=None) -> int:
             errors = check(args.root)
             if errors:
                 print('\n'.join(errors), file=sys.stderr)
-                print('Reviewed entries were applied; localization remains incomplete. Resume with localization.py prepare.', file=sys.stderr)
+                print('Reviewed entries were applied; localization remains incomplete. Resume with python3 Scripts/localization.py run.', file=sys.stderr)
                 return 1
             print('Localization PASS: applied resources and all configured locales are current and reviewed.')
         else:
@@ -99,7 +99,7 @@ def main(argv=None) -> int:
             errors = check(args.root, paths)
             if errors:
                 print('\n'.join(errors), file=sys.stderr)
-                print('Run python3 Scripts/localization.py prepare; translate/review its queue, then apply the response.', file=sys.stderr)
+                print('Run python3 Scripts/localization.py run to translate, independently review, and apply the queue.', file=sys.stderr)
                 return 1
             print('Localization PASS: affected sources, catalogs and consumers are consistent; full coverage remains CI-owned.'
                   if paths else 'Localization PASS: all configured locales are current and reviewed; resources are consistent.')

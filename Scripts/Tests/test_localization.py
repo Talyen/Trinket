@@ -233,6 +233,7 @@ output.write_text(json.dumps({'translations': results}))
         hosted = run_python('localization.py', '--root', str(self.root), 'check', '--paths', source,
                             env={**os.environ, 'GITHUB_ACTIONS': 'true'}, expected=1)
         self.assertIn('missing, stale', hosted.stderr)
+        self.assertIn('Scripts/localization.py run', hosted.stderr)
         self.assertTrue(check(self.root, ['unknown-input.config']))
         self.assertTrue(check(self.root, ['Localization/glossary.json']))
         self.assertTrue(any('unlocalized literal' in error for error in check(self.root, [str(other)])))
@@ -252,6 +253,7 @@ output.write_text(json.dumps({'translations': results}))
         path.write_bytes(encoded(response))
         result = run_python('localization.py', '--root', str(self.root), 'apply', str(path), expected=1)
         self.assertIn('localization remains incomplete', result.stderr)
+        self.assertIn('Scripts/localization.py run', result.stderr)
         self.assertEqual(len(plan(self.root)['requests']), 2)
 
     def test_preparation_preserves_drafts_and_review_requires_valid_current_translations(self):

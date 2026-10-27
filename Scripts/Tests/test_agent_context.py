@@ -336,6 +336,25 @@ class AgentContextTests(ScriptRegressionTestCase):
         final = output.split('Final task verification', 1)[1].splitlines()[1].strip()
         self.assertEqual(shlex.split(final), ['./Scripts/handoff.sh', '--quiet'])
 
+    def test_active_plan_scope_explains_explicit_retention_without_defaulting_to_it(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.make_repo_fixture(directory, ('Scripts/build-inputs.env', 'Scripts/config/ui-tests.tsv'))
+            plan = root / 'Docs/Plans/Example.md'
+            plan.parent.mkdir(parents=True)
+            plan.write_text('---\ntype: execution-plan\nstatus: active\ncreated: 2026-01-01\nupdated: 2026-01-01\nexpires: 2026-02-01\n---\n')
+            def brief(path: str) -> str:
+                output = StringIO()
+                with redirect_stdout(output):
+                    self.assertEqual(BRIEF.main(['--paths', path], root=root), 0)
+                return output.getvalue()
+            output = brief('Docs/Plans/Example.md')
+            self.assertIn('integrate --keep-plan', output)
+            self.assertIn('Close it when finished', output)
+            self.assertIn('  node Scripts/agent-worktree.mjs integrate\n', output)
+            self.assertNotIn('Active plan in scope', brief('Docs/Plans/README.md'))
+            plan.unlink()
+            self.assertNotIn('Active plan in scope', brief('Docs/Plans/Example.md'))
+
 
     def test_agent_context_routes_each_semantic_owner_to_one_required_card(self) -> None:
         cases = (

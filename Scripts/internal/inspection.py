@@ -145,7 +145,13 @@ class Inspection:
             # Persist uncertainty before dispatch so interrupted starts cannot be silently replaced.
             self.reservation.parent.mkdir(parents=True, exist_ok=True)
             starting = {'device': self.udid, 'state': 'starting; inspect Xcode if interrupted', 'recovery': str(self.recovery.resolve())}
-            with self.reservation.open('x') as stream:
+            try:
+                reservation = self.reservation.open('x')
+            except FileExistsError as error:
+                raise ValueError(f'Native session already reserved for this simulator: {self.reservation}. '
+                                 'Do not start a replacement; follow native session recovery in '
+                                 'Docs/Platform/SimulatorOperations.md.') from error
+            with reservation as stream:
                 self.reservation_owned = True
                 self.reservation.chmod(0o600)
                 json.dump(starting, stream)
