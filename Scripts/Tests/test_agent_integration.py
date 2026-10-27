@@ -16,6 +16,52 @@ from script_test_support import ROOT, ScriptRegressionTestCase, load_script, run
 
 
 class AgentIntegrationTests(ScriptRegressionTestCase):
+    def test_legacy_routine_expiry_requires_integrated_provenance_and_keeps_other_evidence(self):
+        module = load_script('legacy_evidence_expiry_test', 'agent-integrate.py')
+        head = self.git(self.root, 'rev-parse', 'HEAD')
+        snapshot = self.root / '.git/trinket-evidence/codex/legacy' / (head[:12] + '-fixture')
+        reports = snapshot / 'files/.DerivedData/Deliverables/Verification'
+        reports.mkdir(parents=True)
+        names = ['static-' + c * 32 + '.json' for c in 'abcd']
+        relative = ['.DerivedData/Deliverables/Verification/' + name for name in names]
+        success = {'version': 2, 'route': 'static', 'exit_status': 0, 'local_state': 'checks passed',
+                   'checks': [{'id': 'docs-final', 'outcome': 'passed'}]}
+        for name, value in zip(names, [success, {**success, 'exit_status': 1}, {**success, 'route': 'visual'}, success]):
+            (reports / name).write_text(json.dumps(value))
+        (reports / (names[3] + '.retention-keep')).touch()
+        task_report = reports.parent / 'task-report.json'
+        task_report.write_text(json.dumps({'branch': 'codex/legacy', 'static_verified_commit': head,
+            'completion_state': 'locally integrated; hosted verification pending', 'verification_reports': relative}))
+        manifest = snapshot / 'evidence.json'
+        manifest.write_text(json.dumps({'branch': 'codex/legacy', 'preserved_at_commit': head,
+                                        'files': relative + ['.DerivedData/Deliverables/task-report.json']}))
+        now = time.time()
+        for path in [snapshot, manifest, task_report, *reports.iterdir()]:
+            os.utime(path, (now - 8 * 86400,) * 2)
+        unknown = self.root / '.git/trinket-evidence/codex/unknown' / ('0' * 12 + '-fixture')
+        unknown_report = unknown / 'files' / relative[0]
+        unknown_report.parent.mkdir(parents=True)
+        unknown_report.write_text(json.dumps(success))
+        unknown_task = unknown / 'files/.DerivedData/Deliverables/task-report.json'
+        unknown_task.write_text(json.dumps({'branch': 'codex/unknown', 'static_verified_commit': '0' * 40,
+            'completion_state': 'locally integrated; hosted verification pending', 'verification_reports': relative}))
+        unknown_manifest = unknown / 'evidence.json'
+        unknown_manifest.write_text(json.dumps({'branch': 'codex/unknown', 'preserved_at_commit': '0' * 40,
+                                                'files': relative + ['.DerivedData/Deliverables/task-report.json']}))
+        for path in (unknown, unknown_report, unknown_task, unknown_manifest):
+            os.utime(path, (now - 8 * 86400,) * 2)
+        real_run = subprocess.run
+        def run(command, *args, **kwargs):
+            if command[0] == 'lsof':
+                return subprocess.CompletedProcess(command, 1, '', '')
+            return real_run(command, *args, **kwargs)
+        with mock.patch.object(module.subprocess, 'run', side_effect=run):
+            self.assertEqual(module.expire_legacy_routine_evidence(self.root, now=now), 1)
+        self.assertFalse((reports / names[0]).exists())
+        self.assertTrue(all((reports / name).exists() for name in names[1:]))
+        self.assertTrue(unknown_report.exists())
+        self.assertTrue((snapshot.parent / 'routine-expiry.jsonl').exists())
+
     def test_routine_expiry_preserves_changed_kept_and_unclassified_reports(self):
         module = load_script('agent_integrate_expiry_protection_test', 'agent-integrate.py')
         evidence = self.root / '.git/trinket-evidence/codex/completed'

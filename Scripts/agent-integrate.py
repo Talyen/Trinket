@@ -370,6 +370,91 @@ def expire_routine_evidence(source: Path, *, now: float | None = None) -> int:
     return removed
 
 
+def expire_legacy_routine_evidence(source: Path, *, now: float | None = None, limit: int = 4) -> int:
+    """Expire legacy static reports only when an integrated task report proves their provenance."""
+    now = time.time() if now is None else now
+    common = Path(git(source, 'rev-parse', '--path-format=absolute', '--git-common-dir')).resolve()
+    root = common / 'trinket-evidence' / 'codex'
+    if not root.is_dir() or root.is_symlink() or root.parent.is_symlink():
+        return 0
+    removed = 0
+    ancestry = {}
+    def kept(path: Path) -> bool:
+        return path.exists() or path.is_symlink()
+    with integration_lock(common):
+        records = git(source, 'worktree', 'list', '--porcelain', '-z').split('\0\0')
+        active = {line[len('branch refs/heads/'):] for record in records for line in record.split('\0')
+                  if line.startswith('branch refs/heads/')}
+        for branch_dir in sorted(root.iterdir()):
+            if branch_dir.is_symlink() or not branch_dir.is_dir() or not re.fullmatch(r'[a-z0-9][a-z0-9_-]{0,63}', branch_dir.name):
+                continue
+            branch = 'codex/' + branch_dir.name
+            if branch in active:
+                continue
+            for manifest in sorted(branch_dir.glob('*/evidence.json')):
+                snapshot = manifest.parent
+                task_report = snapshot / 'files/.DerivedData/Deliverables/task-report.json'
+                if (snapshot.is_symlink() or manifest.is_symlink()
+                        or any(path.is_symlink() for path in (task_report, *task_report.parents)
+                               if path.is_relative_to(common))):
+                    continue
+                try:
+                    saved = json.loads(manifest.read_text())
+                    if 'routine_reports' in saved or saved['branch'] != branch or not isinstance(saved['files'], list):
+                        continue
+                    head = saved['preserved_at_commit']
+                    if not re.fullmatch(r'[0-9a-f]{40}', head):
+                        continue
+                    task = json.loads(task_report.read_text())
+                    if (task['branch'] != branch or task['static_verified_commit'] != head
+                            or task['completion_state'] != 'locally integrated; hosted verification pending'
+                            or not isinstance(task['verification_reports'], list)
+                            or max(snapshot.stat().st_mtime, manifest.stat().st_mtime, task_report.stat().st_mtime) > now - 7 * 86400):
+                        continue
+                    if head not in ancestry:
+                        result = subprocess.run(['git', '-C', str(source), 'merge-base', '--is-ancestor', head, 'main'],
+                                                capture_output=True, timeout=5)
+                        ancestry[head] = result.returncode == 0
+                    if not ancestry[head]:
+                        continue
+                    for name in saved['files']:
+                        relative = Path(name)
+                        if relative.parent != Path('.DerivedData/Deliverables/Verification') or name not in task['verification_reports']:
+                            continue
+                        path = snapshot / 'files' / relative
+                        ancestors = [path, *[p for p in path.parents if p.is_relative_to(common)]]
+                        if (any(p.is_symlink() for p in ancestors) or not path.is_file()
+                                or path.stat().st_mtime > now - 7 * 86400
+                                or any(kept(p / '.retention-keep') for p in ancestors if p.is_dir())
+                                or kept(path.with_name(path.name + '.retention-keep')) or not routine_report(path)):
+                            continue
+                        expected = hashlib.sha256(path.read_bytes()).hexdigest()
+                        opened = subprocess.run(['lsof', '-n', '-P', '--', str(path)], capture_output=True, text=True, timeout=5)
+                        if opened.returncode != 1 or opened.stdout.strip() or opened.stderr.strip():
+                            continue
+                        journal = branch_dir / 'routine-expiry.jsonl'
+                        if journal.is_symlink():
+                            continue
+                        with journal.open('a') as stream:
+                            stream.write(json.dumps({'snapshot': snapshot.name, 'file': name, 'sha256': expected,
+                                                     'legacy': True, 'scheduled_at': datetime.fromtimestamp(now, timezone.utc).isoformat()}) + '\n')
+                            stream.flush()
+                            os.fsync(stream.fileno())
+                        if (any(p.is_symlink() for p in ancestors)
+                                or any(kept(p / '.retention-keep') for p in ancestors if p.is_dir())
+                                or kept(path.with_name(path.name + '.retention-keep'))
+                                or not path.is_file() or path.stat().st_mtime > now - 7 * 86400
+                                or hashlib.sha256(path.read_bytes()).hexdigest() != expected):
+                            continue
+                        path.unlink()
+                        removed += 1
+                        if removed >= limit:
+                            return removed
+                except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
+                    continue
+    return removed
+
+
 class ReviewRequired(RuntimeError):
     """The combined revision needs source review before a separate landing attempt."""
 
@@ -452,7 +537,8 @@ if __name__ == "__main__":
     try:
         source = Path(__file__).resolve().parents[1]
         if sys.argv[1:] == ['--expire-routine-evidence']:
-            print(f'Expired {expire_routine_evidence(source)} routine verification report(s).')
+            count = expire_routine_evidence(source) + expire_legacy_routine_evidence(source)
+            print(f'Expired {count} routine verification report(s).')
         elif sys.argv[1:2] == ['--evidence']:
             if sys.argv[2:]:
                 preserve_evidence(source, sys.argv[2:])

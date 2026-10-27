@@ -161,6 +161,8 @@ trinket_run_env_init() {
     RESULTS_DIR="$DERIVED_DATA_PATH/TestResults"
   fi
 
+  trinket_build_lease_acquire || return 1
+
   if [[ "${TRINKET_ISOLATE:-}" == "1" ]]; then
     export TMPDIR="$DERIVED_DATA_PATH/tmp"
     export TMP="$TMPDIR"

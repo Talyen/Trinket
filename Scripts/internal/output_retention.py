@@ -71,6 +71,17 @@ def run_cache_roots(root: Path, *, intermediates_only: bool = False, products: b
     if not intermediates_only and safe_path(packages, root) and packages.is_dir():
         paths.extend(p for p in packages.glob('*/.build')
                      if safe_path(p, root) and p.is_dir())
+    for relative in ('Build/Intermediates.noindex', 'Device/Build/Intermediates.noindex'):
+        path = root / '.DerivedData' / relative
+        if safe_path(path, root) and path.is_dir():
+            paths.append(path)
+    if products:
+        # Device products are admitted only after independently verifying their
+        # retained binaries and dSYMs in expire_paths.
+        for relative in ('Build/Products', 'Device/Build/Products'):
+            path = root / '.DerivedData' / relative
+            if safe_path(path, root) and path.is_dir():
+                paths.append(path)
     return paths
 
 
@@ -192,13 +203,15 @@ def protection(path: Path, root: Path, processes: dict[int, tuple[str, str]]) ->
     # conservatively preserves output rather than reclaiming a foreign job.
     derived = root / '.DerivedData'
     runtime_output = path.is_relative_to(derived) or (path.name == '.build' and path.parent.parent == root / 'Packages')
-    legacy_owner = legacy_runtime_owner(root, ('.active-sim', '.active-ui', '.simulator-cleanup.lock'))
+    legacy_owner = legacy_runtime_owner(root, ('.active-sim', '.active-ui', '.active-build', '.simulator-cleanup.lock'))
     if legacy_owner is not None and runtime_output:
         return f'active or unknown legacy lease {legacy_owner}'
     slots = []
     lease_root = primary_worktree_root(root)
     lease_state = lease_root / '.DerivedData'
-    for directory in (lease_state / '.active-sim', lease_state / '.active-ui'):
+    if (lease_state / '.active-build').is_symlink():
+        return 'unknown build lease state'
+    for directory in (lease_state / '.active-sim', lease_state / '.active-ui', lease_state / '.active-build'):
         if safe_path(directory, lease_root) and directory.is_dir():
             slots.extend(p for p in directory.glob("*.slot") if p.is_file())
     for lock in (derived / '.performance.lock', derived / '.generate.lock', derived / 'testflight/.deploy.lock'):
@@ -242,6 +255,18 @@ def remove(path: Path) -> None:
         path.with_name(path.name + name).unlink(missing_ok=True)
 
 
+def unmanaged_build_active() -> bool:
+    """Fail closed when an unmanaged Apple build/profile process may use shared paths."""
+    for name in ('Xcode', 'xcodebuild', 'xcrun', 'swift', 'swift-frontend', 'xctrace', 'devicectl', 'lldb', 'debugserver'):
+        try:
+            result = subprocess.run(['/usr/bin/pgrep', '-x', name], capture_output=True, text=True, timeout=5)
+        except (OSError, subprocess.SubprocessError):
+            return True
+        if result.returncode != 1 or result.stdout.strip() or result.stderr.strip():
+            return True
+    return False
+
+
 def finish_retired_products(retired: Path) -> None:
     products = retired / 'Products'
     if products.exists() or products.is_symlink():
@@ -251,7 +276,7 @@ def finish_retired_products(retired: Path) -> None:
 
 
 def remove_products(path: Path, root: Path) -> None:
-    """Detach products before slow deletion so interrupted cleanup cannot look reusable."""
+    """Detach a build tree before slow deletion so an interruption cannot leave a partial tree."""
     parent = root / '.DerivedData/Retention/retired-products'
     if not safe_path(parent, root):
         raise ValueError('Unsafe retired-products directory')
@@ -281,7 +306,8 @@ def retired_product_paths(root: Path) -> list[Path]:
             original = Path(record['original'])
             if (record['schema'] == 1
                     and not original.is_absolute() and '..' not in original.parts
-                    and original.parts[:2] == ('.DerivedData', 'runs') and original.name == 'Products'):
+                    and original.parts[:1] == ('.DerivedData',)
+                    and original.name in ('Products', 'Intermediates.noindex')):
                 paths.append(path)
         except (OSError, ValueError, KeyError, TypeError):
             continue
@@ -525,6 +551,13 @@ def expire_paths(paths: list[Path], boundary: Path, *, apply: bool, now: float |
             continue
         if path not in immediate and modified > now - max_age:
             continue
+        shared = path in (boundary / '.DerivedData/Build/Intermediates.noindex',
+                          boundary / '.DerivedData/Build/Products',
+                          boundary / '.DerivedData/Device/Build/Intermediates.noindex',
+                          boundary / '.DerivedData/Device/Build/Products')
+        if shared and unmanaged_build_active():
+            emit(f'SKIP {path}: an unmanaged build or Xcode may be active')
+            continue
         # Recheck before mutation: new keep controls or owners invalidate a candidate.
         if apply:
             reason = protection(path, boundary, process_snapshot())
@@ -536,10 +569,25 @@ def expire_paths(paths: list[Path], boundary: Path, *, apply: bool, now: float |
         if opened.returncode != 1 or opened.stdout.strip() or opened.stderr.strip():
             emit(f'SKIP {path}: open files or unavailable open-file inventory')
             continue
-        if apply:
-            if not path.exists() or (path not in immediate and metadata(path)[0] > now - max_age):
+        device_products = path == boundary / '.DerivedData/Device/Build/Products'
+        if device_products:
+            from internal.device_product_retention import verified_device_products
+            if not verified_device_products(path):
+                emit(f'SKIP {path}: exact device binaries and symbols are not independently verified')
                 continue
-            if path.name == 'Products' and path.is_relative_to(boundary / '.DerivedData/runs'):
+        if apply:
+            if (not path.exists() or (path not in immediate and metadata(path)[0] > now - max_age)
+                    or (shared and unmanaged_build_active())
+                    or (device_products and not verified_device_products(path))):
+                continue
+            if shared and (unmanaged_build_active() or protection(path, boundary, process_snapshot())):
+                continue
+            if shared:
+                reopened = subprocess.run(['lsof', '-n', '-P', '+D', str(path)],
+                                          capture_output=True, text=True, timeout=30)
+                if reopened.returncode != 1 or reopened.stdout.strip() or reopened.stderr.strip():
+                    continue
+            if shared or (path.name == 'Products' and path.is_relative_to(boundary / '.DerivedData/runs')):
                 remove_products(path, boundary)
             elif path.parent == boundary / '.DerivedData/Retention/retired-products':
                 finish_retired_products(path)

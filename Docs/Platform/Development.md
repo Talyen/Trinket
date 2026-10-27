@@ -104,8 +104,12 @@ when supported, falling back to ordinary copies; both are verified against the
 source. No mutable hard links are used. After completed worktree cleanup, newly
 classified successful static handoff reports expire after seven days during later
 task creation; their original snapshot inventory and expiry journal remain.
-Explicit evidence requests, keep markers, failures, visual or release evidence,
-unclassified reports, active tasks and older unclassified snapshots do not expire.
+Legacy snapshots can also expire successful static reports when an integrated
+task record, matching commit and report path establish provenance. Old snapshots
+did not record whether a report was explicitly requested, so unmarked legacy
+reports meeting those conditions also expire. New explicit evidence requests,
+keep markers, failures, visual or release evidence, unclassifiable reports and
+active tasks remain.
 The task report's verification-report paths can therefore expire. Failed
 preservation stops landing or cleanup; raw build logs expire
 separately. Save visual artifacts in Deliverables. For other task-local evidence,

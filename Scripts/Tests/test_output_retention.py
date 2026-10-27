@@ -15,6 +15,54 @@ from internal import output_retention as retention
 
 
 class OutputRetentionTests(ScriptRegressionTestCase):
+    def test_shared_build_cleanup_respects_producer_and_unmanaged_processes(self):
+        primary = self.output('.DerivedData/Build/Intermediates.noindex/object', age=2 * 86400)
+        primary_product = self.output('.DerivedData/Build/Products/app', age=2 * 86400)
+        device = self.output('.DerivedData/Device/Build/Intermediates.noindex/object', age=2 * 86400)
+        symbols = self.output('.DerivedData/Device/Build/Products/app.dSYM/symbol', age=2 * 86400)
+        for file in (primary, primary_product, device, symbols):
+            for parent in file.parents:
+                if parent == self.root: break
+                os.utime(parent, (0, 0))
+        lease = self.root / '.DerivedData/.active-build/fixture.slot'
+        lease.parent.mkdir(parents=True)
+        lease.write_text('123 build')
+        with patch.object(retention, 'process_snapshot', return_value=self.processes), \
+             patch.object(retention.subprocess, 'run', return_value=subprocess.CompletedProcess('lsof', 1, '', '')):
+            self.assertEqual(retention.cleanup(self.root, apply=True, intermediates_only=True,
+                                               products=True, now=self.now, verbose=False)[0], 0)
+            self.assertTrue(all(path.exists() for path in (primary, primary_product, device, symbols)))
+            lease.unlink()
+            with patch.object(retention, 'unmanaged_build_active', return_value=True):
+                self.assertEqual(retention.cleanup(self.root, apply=True, intermediates_only=True,
+                                                   products=True, now=self.now, verbose=False)[0], 0)
+            with patch.object(retention, 'unmanaged_build_active', return_value=False):
+                self.assertEqual(retention.cleanup(self.root, apply=True, intermediates_only=True,
+                                                   products=True, now=self.now, verbose=False)[0], 3)
+        self.assertTrue(symbols.exists())
+
+    def test_device_products_require_repeated_independent_backup_verification(self):
+        product = self.output('.DerivedData/Device/Build/Products/Release-iphoneos/app', age=2 * 86400)
+        for path in product.parents:
+            if path == self.root: break
+            os.utime(path, (0, 0))
+        with patch.object(retention, 'process_snapshot', return_value=self.processes), \
+             patch.object(retention, 'unmanaged_build_active', return_value=False), \
+             patch.object(retention.subprocess, 'run', return_value=subprocess.CompletedProcess('lsof', 1, '', '')), \
+             patch('internal.device_product_retention.verified_device_products', side_effect=[True, False]) as verified:
+            self.assertEqual(retention.cleanup(self.root, apply=True, intermediates_only=True,
+                                               products=True, now=self.now, verbose=False)[0], 0)
+        self.assertEqual(verified.call_count, 2)
+        self.assertTrue(product.exists())
+        with patch.object(retention, 'process_snapshot', return_value=self.processes), \
+             patch.object(retention, 'unmanaged_build_active', return_value=False), \
+             patch.object(retention.subprocess, 'run', return_value=subprocess.CompletedProcess('lsof', 1, '', '')), \
+             patch('internal.device_product_retention.verified_device_products', return_value=True) as verified:
+            self.assertEqual(retention.cleanup(self.root, apply=True, intermediates_only=True,
+                                               products=True, now=self.now, verbose=False)[0], 1)
+        self.assertEqual(verified.call_count, 2)
+        self.assertFalse(product.exists())
+
     def test_nested_package_and_host_scratch_expire_without_touching_products_or_evidence(self):
         old = [self.output(name, age=2 * 86400) for name in (
             '.DerivedData/runs/agent-1/packages/BattleEngine/Build/Intermediates.noindex/object',

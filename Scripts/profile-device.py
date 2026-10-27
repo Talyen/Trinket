@@ -26,6 +26,7 @@ import xml.etree.ElementTree as ET
 from internal.build_symbols import artifact_root, app_manifest, digest, preserve_profile_symbols, symbolicated_app_frames
 from internal.cli import primary_worktree_root
 from internal.profile_exports import BoundedLog, limit_export_file, measurement_exports
+from internal.shared_build_lease import shared_build_lease
 
 ROOT = Path(__file__).resolve().parents[1]
 BUNDLE = "com.ryanmcintire.Trinket"
@@ -254,7 +255,11 @@ def main() -> int:
     report = {"status": "failed", "bundleIdentifier": BUNDLE,
               "derivedExports": {"retained": args.retain_exports, "maximumFileBytes": export_limit,
                                  "policy": "explicit investigation pin" if args.retain_exports else "temporary; removed when command exits"}}
+    lease = None
     try:
+        guard = shared_build_lease(ROOT)
+        guard.__enter__()
+        lease = guard
         developer = os.environ.get("DEVELOPER_DIR") or subprocess.check_output(
             ["xcode-select", "-p"], text=True).strip()
         os.environ["DEVELOPER_DIR"] = developer
@@ -353,6 +358,8 @@ def main() -> int:
         report["error"] = "Cancelled; partial evidence retained."
         print(f"Cancelled. Diagnostics: {output}", file=sys.stderr)
     finally:
+        if lease is not None:
+            lease.__exit__(None, None, None)
         (output / "result.json").write_text(json.dumps(report, indent=2) + "\n")
     return 0 if report["status"] == "passed" else 1
 

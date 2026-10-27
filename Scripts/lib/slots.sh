@@ -90,6 +90,42 @@ trinket_bind_agent_slot() {
   fi
 }
 
+# Shared build consumers publish a lease under the same lifecycle lock used by
+# retention. Nested shells get their own marker; no live owner is reclaimed.
+trinket_build_lease_acquire() {
+  local owner lock_owner token state lock path cleanup
+  lock_owner="${BASHPID:-}"
+  [[ -n "$lock_owner" ]] || lock_owner="$(exec /bin/sh -c 'echo "$PPID"')"
+  trinket_slot_owner_token token
+  owner="${token%%:*}"
+  if [[ "${TRINKET_BUILD_LEASE_OWNER:-}" == "$token" && -f "${TRINKET_BUILD_LEASE_PATH:-}" ]]; then
+    return 0
+  fi
+  state="${TRINKET_SIM_STATE_ROOT:?}/.active-build"
+  lock="${TRINKET_SIM_STATE_ROOT:?}/.active-sim/.sim-lifecycle.lock"
+  if [[ -L "$state" || -L "${TRINKET_SIM_STATE_ROOT:?}/.active-sim" ]]; then
+    echo "Unsafe shared build lease path; preserving existing state." >&2
+    return 1
+  fi
+  trinket_dir_lock_acquire "$lock" 10 || return 1
+  if [[ -L "$state" ]]; then
+    trinket_dir_lock_release "$lock" "$lock_owner"
+    return 1
+  fi
+  mkdir -p "$state"
+  path="$state/$owner-${RANDOM:-0}.slot"
+  if ! trinket_lock_claim_file "$path" "$owner build"; then
+    trinket_dir_lock_release "$lock" "$lock_owner"
+    return 1
+  fi
+  trinket_dir_lock_release "$lock" "$lock_owner"
+  TRINKET_BUILD_LEASE_PATH="$path"
+  TRINKET_BUILD_LEASE_OWNER="$token"
+  export TRINKET_BUILD_LEASE_PATH TRINKET_BUILD_LEASE_OWNER
+  printf -v cleanup 'trinket_release_owned_slot %q %q' "$path" "$token"
+  trinket_dir_lock_chain_trap "$cleanup"
+}
+
 trinket_sim_slot_acquire() {
   local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_simulator_state_root)/.active-sim}"
   local lock="$active_dir/.sim-lifecycle.lock" result=0 owner_pid="${BASHPID:-}"
