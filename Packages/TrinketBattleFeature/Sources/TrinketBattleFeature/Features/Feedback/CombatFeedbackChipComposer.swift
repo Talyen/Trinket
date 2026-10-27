@@ -188,7 +188,7 @@ enum CombatFeedbackChipComposer {
                 }
                 context?.saveGState()
                 context?.setBlendMode(.sourceIn)
-                let right = drawings.map(\.frame.rect.maxX).max() ?? 1
+                let right = drawings.lazy.map(\.frame.rect.maxX).max() ?? 1
                 context?.drawLinearGradient(gradient, start: CGPoint(x: horizontalPadding, y: 0), end: CGPoint(x: right, y: 0), options: [])
                 context?.restoreGState()
                 context?.endTransparencyLayer()

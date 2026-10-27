@@ -32,7 +32,7 @@ struct ItemPickerItems {
             if localeChanged {
                 searchText.removeAll(keepingCapacity: true)
             } else {
-                let previousItems = Dictionary(uniqueKeysWithValues: self.inventory.map { ($0.id, $0) })
+                let previousItems = Dictionary(uniqueKeysWithValues: self.inventory.lazy.map { ($0.id, $0) })
                 // Keep cached descriptions only while their item and locale are unchanged.
                 searchText = Dictionary(uniqueKeysWithValues: inventory.compactMap { item in
                     guard previousItems[item.id] == item, let text = searchText[item.id] else { return nil }
@@ -60,7 +60,7 @@ struct ItemPickerItems {
                 }
                 return Self.precedes(lhs, rhs)
             }
-            order = Dictionary(uniqueKeysWithValues: sorted.enumerated().map { ($0.element.id, $0.offset) })
+            order = Dictionary(uniqueKeysWithValues: sorted.enumerated().lazy.map { ($0.element.id, $0.offset) })
         }
         let newItems = candidates.filter { order[$0.id] == nil }
         if !newItems.isEmpty {

@@ -433,7 +433,7 @@ private extension CombatFeedbackRasterUIView {
             layoutBalancedFeedback()
             return
         }
-        stationaryLayout.retain(ids: Set(orderedLayers.map(\.item.id)), in: bounds)
+        stationaryLayout.retain(ids: Set(orderedLayers.lazy.map(\.item.id)), in: bounds)
         for chip in orderedLayers where chip.item.region != .announcement {
             let sizeScale = StationaryFeedbackLayout.sizeScale
                 * (chip.item.region == .impact ? 1 : CombatFeedbackMotionSampler.statusSizeScale)

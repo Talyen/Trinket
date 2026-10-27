@@ -371,5 +371,5 @@ extension CombatTraitTriggers {
 
 public extension CombatTraitTriggers {
     /// Every populated affix trigger field must be rollable or explicitly excused.
-    static let affixMagnitudeFieldIDs: Set<CombatTriggerField> = Set(affixMagnitudeFields.map(\.field))
+    static let affixMagnitudeFieldIDs: Set<CombatTriggerField> = Set(affixMagnitudeFields.lazy.map(\.field))
 }

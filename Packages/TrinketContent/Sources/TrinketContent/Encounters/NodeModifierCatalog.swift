@@ -57,7 +57,7 @@ public enum NodeModifierCatalog {
     }
 
     public static let modifiersByID: [NodeModifierID: NodeModifierDefinition] =
-        Dictionary(uniqueKeysWithValues: modifiers.map { ($0.id, $0) })
+        Dictionary(uniqueKeysWithValues: modifiers.lazy.map { ($0.id, $0) })
 
     public static func modifier(id: NodeModifierID) -> NodeModifierDefinition? {
         modifiersByID[id]

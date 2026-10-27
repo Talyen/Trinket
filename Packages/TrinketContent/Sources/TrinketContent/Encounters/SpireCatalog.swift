@@ -16,7 +16,7 @@ enum SpireCatalog {
         spire(.resonanceHall, "Resonance Hall", "One blow that stops the world", .stun),
     ]
 
-    static let spiresByID: [SpireID: SpireDefinition] = Dictionary(uniqueKeysWithValues: spires.map { ($0.id, $0) })
+    static let spiresByID: [SpireID: SpireDefinition] = Dictionary(uniqueKeysWithValues: spires.lazy.map { ($0.id, $0) })
 
     static func spire(id: SpireID) -> SpireDefinition? {
         spiresByID[id]

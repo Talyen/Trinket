@@ -14,7 +14,7 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
     ] + Keyword.allCases.map(Self.keyword)
 
     private static let modifiersByRawValue: [String: Self] = {
-        var modifiers = Dictionary(uniqueKeysWithValues: allCases.map { ($0.rawValue, $0) })
+        var modifiers = Dictionary(uniqueKeysWithValues: allCases.lazy.map { ($0.rawValue, $0) })
         // Preserve the lowercase keyword spelling accepted by older saves,
         // including Death's Door alongside its canonical deathsDoor identifier.
         for keyword in Keyword.allCases {

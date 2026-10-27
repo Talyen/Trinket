@@ -95,7 +95,7 @@ public struct LocalizedGameText: Sendable {
     public func scoped(to prefix: String) -> Self {
         Self(
             markedText: markedText.replacingOccurrences(of: "<value id=\"", with: "<value id=\"\(prefix)_"),
-            values: Dictionary(uniqueKeysWithValues: values.map { ("\(prefix)_\($0.key)", $0.value) }),
+            values: Dictionary(uniqueKeysWithValues: values.lazy.map { ("\(prefix)_\($0.key)", $0.value) }),
         )
     }
 }

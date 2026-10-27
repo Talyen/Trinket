@@ -265,7 +265,7 @@ enum CloudSaveReconciler {
         switch request.action {
         case .collect:
             let collected = save.homestead.collectProduction(at: date, gold: &save.roster.gold)
-            outcome = .collected(Dictionary(uniqueKeysWithValues: collected.map { ($0.resource, $0.quantity) }))
+            outcome = .collected(Dictionary(uniqueKeysWithValues: collected.lazy.map { ($0.resource, $0.quantity) }))
             if !collected.isEmpty {
                 head.authoritySequence = try incremented(head.authoritySequence)
                 var claims = head.productionClaims ?? CloudProductionClaims()

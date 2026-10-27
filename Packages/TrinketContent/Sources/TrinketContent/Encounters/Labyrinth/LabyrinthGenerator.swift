@@ -26,7 +26,7 @@ public enum LabyrinthGenerator {
             eligibleRewards: eligibleRewards,
             using: &rng,
         )
-        var nodes = Dictionary(uniqueKeysWithValues: first.nodes.map { ($0.id, $0) })
+        var nodes = Dictionary(uniqueKeysWithValues: first.nodes.lazy.map { ($0.id, $0) })
         let entrance = LabyrinthNode(
             id: entranceNodeID,
             type: .entrance,

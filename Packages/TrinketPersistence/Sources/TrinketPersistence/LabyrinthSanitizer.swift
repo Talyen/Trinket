@@ -39,7 +39,7 @@ enum LabyrinthSanitizer {
         }
 
         let validNodeIDs = Set(sanitized.nodes.keys)
-        let clustersByID = Dictionary(sanitized.clusters.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let clustersByID = Dictionary(sanitized.clusters.lazy.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         let existingNodes = sanitized.nodes
         for (id, node) in existingNodes {
             sanitized.nodes[id] = sanitizedLabyrinthNode(

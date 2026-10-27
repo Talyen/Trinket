@@ -251,7 +251,7 @@ final class CombatFeedbackRasterPool {
                 displayScale: displayScale,
             )
             guard !Task.isCancelled, catalogWarmupGeneration == generation else { return nil }
-            let catalogKeys = Set(CombatFeedbackClosedVocabulary.appearances.map {
+            let catalogKeys = Set(CombatFeedbackClosedVocabulary.appearances.lazy.map {
                 CombatFeedbackRasterKey(appearance: $0, layoutDirection: .leftToRight, displayScale: displayScale)
             })
             guard catalogKeys.count <= capacity else { return nil }

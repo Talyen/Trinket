@@ -391,7 +391,7 @@ public final class PreparedArtworkCache {
     }
 
     static let defaultPresentationImageNames: [String] = {
-        let portraits = Set(ArtCatalog.portraitBackgroundArtByID.values.map(\.imageName))
+        let portraits = Set(ArtCatalog.portraitBackgroundArtByID.values.lazy.map(\.imageName))
         return ArtCatalog.allImageNames.filter { !portraits.contains($0) }
     }()
 }

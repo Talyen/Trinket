@@ -142,7 +142,7 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
         try container.encode(modifiers, forKey: .modifiers)
         try container.encode(triggers, forKey: .triggers)
         if !triggerRollRanges.isEmpty {
-            let ranges = Dictionary(uniqueKeysWithValues: triggerRollRanges.map { ($0.key.rawValue, $0.value) })
+            let ranges = Dictionary(uniqueKeysWithValues: triggerRollRanges.lazy.map { ($0.key.rawValue, $0.value) })
             try container.encode(ranges, forKey: .triggerRollRanges)
         }
     }

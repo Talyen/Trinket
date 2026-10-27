@@ -81,7 +81,7 @@ struct StoredRosterSnapshot: Codable, Equatable, Sendable {
         }
         progressions = roster.progressions
         equipment = roster.equipmentLoadouts.mapValues {
-            Dictionary(uniqueKeysWithValues: $0.itemIDsBySlot.map { ($0.key.rawValue, $0.value) })
+            Dictionary(uniqueKeysWithValues: $0.itemIDsBySlot.lazy.map { ($0.key.rawValue, $0.value) })
         }
         unlockedTalents = roster.unlockedTalents
         gold = roster.gold

@@ -195,7 +195,7 @@ extension BattleFeedbackLane {
     private func orderedActionGroups(
         _ playback: BattleTransitionPlayback,
     ) -> [(action: BattleResolvedAction?, events: [ActionEvent])] {
-        let eventsByID = Dictionary(uniqueKeysWithValues: playback.events.map { ($0.id, $0) })
+        let eventsByID = Dictionary(uniqueKeysWithValues: playback.events.lazy.map { ($0.id, $0) })
         let assignedIDs = Set(playback.actions.lazy.flatMap(\.eventIDs))
         var groups = playback.actions.map { action in
             (action: Optional(action), events: action.eventIDs.compactMap { eventsByID[$0] })

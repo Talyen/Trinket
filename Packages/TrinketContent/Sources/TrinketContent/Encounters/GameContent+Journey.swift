@@ -4,7 +4,7 @@ import TrinketCore
 public extension GameContent {
     static let chapters: [Chapter] = GameContentChaptersGenerated.chapters
 
-    private static let chaptersByID = Dictionary(chapters.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+    private static let chaptersByID = Dictionary(chapters.lazy.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
 
     static func chapter(containing stage: Stage) -> Chapter {
         chaptersByID[stage.chapterID] ?? chapters[0]

@@ -72,7 +72,7 @@ public struct HomesteadNodeDefinition: Identifiable, Hashable, Sendable {
 }
 
 public enum HomesteadNodeCatalog {
-    public static let maxTierByNodeID: [HomesteadNodeID: Int] = Dictionary(uniqueKeysWithValues: GameContent.homesteadNodes.map { (
+    public static let maxTierByNodeID: [HomesteadNodeID: Int] = Dictionary(uniqueKeysWithValues: GameContent.homesteadNodes.lazy.map { (
         $0.id,
         $0.maxTier,
     ) })
