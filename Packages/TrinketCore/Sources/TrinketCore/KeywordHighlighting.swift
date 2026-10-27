@@ -24,7 +24,7 @@ public extension Keyword {
         return "\\b(?:\(alternatives.joined(separator: "|")))\\b"
     }()
 
-    static let termLookup = Dictionary(uniqueKeysWithValues: styledTerms.map {
+    static let termLookup = Dictionary(uniqueKeysWithValues: styledTerms.lazy.map {
         ($0.term.lowercased(), $0.keyword)
     })
 

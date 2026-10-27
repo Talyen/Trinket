@@ -114,9 +114,9 @@ private extension BattleState {
             }
             if case let .blessedAegis(block, holyDamage) = targeted.effect {
                 for ally in action.allies(in: self) where health(of: ally) > 0 {
-                    targets.append(contentsOf: EffectApplication.aegisEffects(block: block, holyDamage: holyDamage).map {
-                        .init(combatantID: ally.id, intent: .effect($0))
-                    })
+                    for effect in EffectApplication.aegisEffects(block: block, holyDamage: holyDamage) {
+                        targets.append(.init(combatantID: ally.id, intent: .effect(effect)))
+                    }
                 }
                 continue
             }

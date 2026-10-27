@@ -18,7 +18,7 @@ public struct LocalizedGameText: Sendable {
 
     private static let expression = try? NSRegularExpression(pattern: #"<(keyword|value) id="([a-z0-9_]+)">([^<]*)</\1>"#)
     private static let keywordByID: [String: Keyword] = Dictionary(
-        uniqueKeysWithValues: Keyword.allCases.map { (String(describing: $0).lowercased(), $0) },
+        uniqueKeysWithValues: Keyword.allCases.lazy.map { (String(describing: $0).lowercased(), $0) },
     )
 
     public init(_ resource: LocalizedStringResource, locale: Locale, values: [String: Int] = [:]) {

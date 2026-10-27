@@ -223,7 +223,7 @@ final class CombatFeedbackChipBridge {
     }
 
     private func availableTargets(at now: Date) -> Set<String> {
-        Set(itemsByTarget.compactMap { targetID, items in
+        Set(itemsByTarget.lazy.compactMap { targetID, items in
             items.values.contains { $0.availableAt <= now && now < $0.expiresAt }
                 ? targetID
                 : nil

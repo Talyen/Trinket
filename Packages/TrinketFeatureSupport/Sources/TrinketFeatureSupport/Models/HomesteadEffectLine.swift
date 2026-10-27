@@ -23,9 +23,9 @@ public struct HomesteadEffectLine: Identifiable, Equatable, Sendable {
     public static func lines(for tier: HomesteadNodeTier, nodeID: HomesteadNodeID? = nil) -> [Self] {
         let bonus = tier.combatBonus
         var lines = bonus.heroModifiers.map { line(for: $0, companion: false) }
-        lines += bonus.companionModifiers
-            .filter { !bonus.heroModifiers.contains($0) }
-            .map { line(for: $0, companion: true) }
+        for modifier in bonus.companionModifiers where !bonus.heroModifiers.contains(modifier) {
+            lines.append(line(for: modifier, companion: true))
+        }
         if bonus.astralChanceBonusPercent != 0 {
             lines.append(bonusLine(
                 .astralFind, L10n.ui_homesteadeffectline_astral_drop_rates_7c313,

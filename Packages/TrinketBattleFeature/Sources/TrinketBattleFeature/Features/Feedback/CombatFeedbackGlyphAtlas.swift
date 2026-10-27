@@ -150,6 +150,7 @@ final class CombatFeedbackGlyphAtlas {
             }
         }
         let numericFragments = CombatFeedbackChipLabel.numericAtlasFragments
+        let contents = requiredIcons.map(Content.icon) + numericFragments.map(Content.fragment)
         var requests: [Key] = []
 
         for typography in CombatFeedbackTypographyTier.allCases {
@@ -157,8 +158,12 @@ final class CombatFeedbackGlyphAtlas {
                 typography: typography,
                 displayScaleHundredths: displayScaleHundredths,
             )
-            let contents = requiredIcons.map(Content.icon) + numericFragments.map(Content.fragment)
-            requests += contents.map { Key(face: face, content: $0) }.filter { glyphs[$0] == nil }
+            for content in contents {
+                let key = Key(face: face, content: content)
+                if glyphs[key] == nil {
+                    requests.append(key)
+                }
+            }
         }
         return requests
     }

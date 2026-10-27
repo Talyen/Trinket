@@ -24,7 +24,7 @@ public extension BattleSession {
         if let activeBattle {
             configurations.append(activeBattle)
         }
-        return Set(configurations.flatMap { BattleArtworkPreparation.artworkNames(for: $0) })
+        return Set(configurations.lazy.flatMap { BattleArtworkPreparation.artworkNames(for: $0) })
     }
 
     internal func installSimulationPresentation() {

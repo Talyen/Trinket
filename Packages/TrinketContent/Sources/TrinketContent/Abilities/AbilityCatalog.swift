@@ -9,6 +9,6 @@ public enum AbilityCatalog {
     }
 
     private static let abilitiesByID: [String: Ability] = Dictionary(
-        uniqueKeysWithValues: all.map { ($0.id, $0) },
+        uniqueKeysWithValues: all.lazy.map { ($0.id, $0) },
     )
 }

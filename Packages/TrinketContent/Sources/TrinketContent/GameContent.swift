@@ -6,11 +6,11 @@ public enum GameContent {
     public static let itemAffixDefinitions: [ItemAffixDefinition] = ItemAffixCatalog.definitions
 
     private static let itemBaseTypesByID = Dictionary(
-        uniqueKeysWithValues: itemBaseTypes.map { ($0.id, $0) },
+        uniqueKeysWithValues: itemBaseTypes.lazy.map { ($0.id, $0) },
     )
 
     private static let itemAffixDefinitionsByID = Dictionary(
-        uniqueKeysWithValues: itemAffixDefinitions.map { ($0.id, $0) },
+        uniqueKeysWithValues: itemAffixDefinitions.lazy.map { ($0.id, $0) },
     )
 
     public static func itemBaseType(matching id: String) -> ItemBaseType? {

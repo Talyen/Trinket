@@ -8,11 +8,11 @@ public extension GameContent {
     static let enemies: [Enemy] = GameContentEnemiesGenerated.enemies
 
     private static let combatantsByID: [String: Combatant] = Dictionary(
-        uniqueKeysWithValues: combatants.map { ($0.id, $0) },
+        uniqueKeysWithValues: combatants.lazy.map { ($0.id, $0) },
     )
 
     private static let enemiesByID: [String: Enemy] = Dictionary(
-        uniqueKeysWithValues: enemies.map { ($0.id, $0) },
+        uniqueKeysWithValues: enemies.lazy.map { ($0.id, $0) },
     )
 
     static func hero(matching id: String) -> Combatant? {

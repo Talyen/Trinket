@@ -33,7 +33,8 @@ public extension StageSelectRowPresentation where Item == VoyageOffer {
 public extension StageSelectRowPresentation where Item == VoyageNode {
     static func voyageNodes(_ run: VoyageRun, inventory: PlayerInventoryState) -> [Self] {
         let nextNodeID = run.nextNode?.id
-        return run.nodes.filter { !$0.isCleared }.map { node in
+        return run.nodes.compactMap { node in
+            guard !node.isCleared else { return nil }
             let isActive = node.id == nextNodeID
             return Self(
                 item: node, isActive: isActive, activeEyebrow: "",

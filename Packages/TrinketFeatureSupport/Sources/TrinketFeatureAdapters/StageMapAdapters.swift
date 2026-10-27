@@ -38,34 +38,33 @@ public extension StageSelectRowPresentation where Item == Stage {
         progress: JourneyProgressState,
         worldSeed: UInt64,
     ) -> [Self] {
-        chapter.stages
-            .filter { !progress.isCompleted($0) }
-            .map { stage in
-                Self(
-                    item: stage,
-                    isActive: progress.isActive(stage),
-                    activeEyebrow: stage.mapLabel,
-                    mapLabel: stage.mapLabel,
-                    title: stage.encounterSubjectName(worldSeed: worldSeed),
-                    encounterTypeTitle: stage.encounterTypeTitle,
-                    icon: GameIcon(id: stage.encounter.iconID),
-                    tint: stage.encounter.mapTint,
-                    primaryActionTitle: stage.encounter.primaryActionTitle,
-                    showsPartyPicker: stage.encounter.isCombat,
-                    isArtworkInteractive: stage.encounter.isCombat,
-                    rowAccessibilityID: AccessibilityID.Play.stageRow(
-                        chapter: stage.chapterNumber,
-                        stage: stage.stageNumber,
-                    ),
-                    artworkAccessibilityID: artworkAccessibilityID(for: stage),
-                    actionAccessibilityID: AccessibilityID.Play.stageAction(
-                        chapter: stage.chapterNumber,
-                        stage: stage.stageNumber,
-                    ),
-                    activeDetailAccessibilityID: AccessibilityID.Play.activeStageDetail,
-                    partyControlAccessibilityID: AccessibilityID.Play.stagePartyControl,
-                )
-            }
+        chapter.stages.compactMap { stage in
+            guard !progress.isCompleted(stage) else { return nil }
+            return Self(
+                item: stage,
+                isActive: progress.isActive(stage),
+                activeEyebrow: stage.mapLabel,
+                mapLabel: stage.mapLabel,
+                title: stage.encounterSubjectName(worldSeed: worldSeed),
+                encounterTypeTitle: stage.encounterTypeTitle,
+                icon: GameIcon(id: stage.encounter.iconID),
+                tint: stage.encounter.mapTint,
+                primaryActionTitle: stage.encounter.primaryActionTitle,
+                showsPartyPicker: stage.encounter.isCombat,
+                isArtworkInteractive: stage.encounter.isCombat,
+                rowAccessibilityID: AccessibilityID.Play.stageRow(
+                    chapter: stage.chapterNumber,
+                    stage: stage.stageNumber,
+                ),
+                artworkAccessibilityID: artworkAccessibilityID(for: stage),
+                actionAccessibilityID: AccessibilityID.Play.stageAction(
+                    chapter: stage.chapterNumber,
+                    stage: stage.stageNumber,
+                ),
+                activeDetailAccessibilityID: AccessibilityID.Play.activeStageDetail,
+                partyControlAccessibilityID: AccessibilityID.Play.stagePartyControl,
+            )
+        }
     }
 
     private static func artworkAccessibilityID(for stage: Stage) -> String {

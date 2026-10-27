@@ -154,7 +154,7 @@ public enum CombatantTalentCatalog {
     ]
 
     public static let allConfigs: [String: CombatantTalentConfig] = Dictionary(
-        uniqueKeysWithValues: combatantTreeAffinities.map { combatantID, affinities in
+        uniqueKeysWithValues: combatantTreeAffinities.lazy.map { combatantID, affinities in
             let trees = affinities.map { makeTree(combatantID: combatantID, name: $0.name, keyword: $0.keyword) }
             return (combatantID, CombatantTalentConfig(combatantID: combatantID, trees: trees))
         },

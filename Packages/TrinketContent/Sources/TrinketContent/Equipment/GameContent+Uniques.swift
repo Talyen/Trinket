@@ -7,7 +7,7 @@ public extension GameContent {
     static let uniqueItems: [InventoryItem] = UniqueCatalog.definitions.compactMap(resolve)
 
     private static let uniquesByID: [String: InventoryItem] = Dictionary(
-        uniqueKeysWithValues: uniqueItems.map { ($0.id, $0) },
+        uniqueKeysWithValues: uniqueItems.lazy.map { ($0.id, $0) },
     )
 
     static func unique(matching id: String) -> InventoryItem? {

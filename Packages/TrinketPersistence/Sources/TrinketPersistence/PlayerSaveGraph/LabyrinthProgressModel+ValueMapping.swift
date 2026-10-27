@@ -25,7 +25,7 @@ extension LabyrinthProgressModel {
             let payload = try JSONDecoder().decode(LabyrinthMapPayload.self, from: mapPayload)
             state.clusters = payload.clusters
             state.nodes = Dictionary(
-                payload.nodes.map { ($0.id, $0) },
+                payload.nodes.lazy.map { ($0.id, $0) },
                 uniquingKeysWith: { _, new in new },
             )
         } catch {

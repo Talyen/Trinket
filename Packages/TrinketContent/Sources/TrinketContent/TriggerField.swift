@@ -80,7 +80,7 @@ extension TriggerMerge where Value == [Int] {
     static var union: Self {
         Self { current, incoming in
             guard !incoming.isEmpty else { return current }
-            return current.isEmpty ? incoming.sorted() : Array(Set(current).union(incoming)).sorted()
+            return current.isEmpty ? incoming.sorted() : Set(current).union(incoming).sorted()
         }
     }
 }
