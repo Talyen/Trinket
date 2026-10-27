@@ -70,8 +70,8 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         let triggers = context.modifiers(for: source.id).triggers
-        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
-        guard state.damageKeyword == .burn || sharedKeyword == .burn, state.options.isAttackHit,
+        let keywords = DamageKeywords(state.damageKeyword, triggers: triggers)
+        guard keywords.contains(.burn), state.options.isAttackHit,
               let bonus = context.consumeTalentPreparation(\.nextBurnDamageBonus, for: source) else { return }
         state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
     }
@@ -141,15 +141,15 @@ package extension DamagePipeline {
               let source = context.roster.combatant(for: sourceActorID), source.role == .companion
         else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
-        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
-        if keyword == .bleed || sharedKeyword == .bleed, triggers.bleedAttackDamageBonus > 0 {
+        let keywords = DamageKeywords(keyword, triggers: triggers)
+        if keywords.contains(.bleed), triggers.bleedAttackDamageBonus > 0 {
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, triggers.bleedAttackDamageBonus)
         }
         if keyword == .stun, triggers.firstStunAttackBonusPerTurn > 0,
            context.claimHeroTalent(.groundSlam, actorID: sourceActorID) {
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, triggers.firstStunAttackBonusPerTurn)
         }
-        if keyword == .physical || sharedKeyword == .physical, triggers.firstPhysicalAttackBlockDamagePercent > 0,
+        if keywords.contains(.physical), triggers.firstPhysicalAttackBlockDamagePercent > 0,
            context.claimHeroTalent(.batteringRam, actorID: sourceActorID) {
             let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant))
             let bonus = CombatRounding.scaled(block, multiplier: triggers.firstPhysicalAttackBlockDamagePercent)
@@ -165,7 +165,7 @@ package extension DamagePipeline {
               context.roster.combatant(for: sourceActorID)?.role == .companion
         else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
-        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
+        let keywords = DamageKeywords(state.damageKeyword, triggers: triggers)
         if state.targetStatus.isBleeding,
            context.roster.isBelowHalfHealth(for: state.combatant),
            triggers.attackVsBleedingBelowHalfMultiplier > 1 {
@@ -173,19 +173,19 @@ package extension DamagePipeline {
                 state.remaining, multiplier: triggers.attackVsBleedingBelowHalfMultiplier,
             )
         }
-        if state.damageKeyword == .bleed || sharedKeyword == .bleed,
+        if keywords.contains(.bleed),
            state.options.isAttackHit, state.isCritical,
            triggers.bleedCriticalDamageMultiplier > 1 {
             state.remaining = CombatRounding.scaled(
                 state.remaining, multiplier: triggers.bleedCriticalDamageMultiplier,
             )
         }
-        if state.damageKeyword == .bleed || sharedKeyword == .bleed, state.options.isAttackHit,
+        if keywords.contains(.bleed), state.options.isAttackHit,
            let source = context.roster.combatant(for: sourceActorID),
            context.consumeTalentPreparation(\.doubleNextBleedAttack, for: source.combatant) == true {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: 2)
         }
-        if state.damageKeyword == .physical || sharedKeyword == .physical, state.targetStatus.isStunned,
+        if keywords.contains(.physical), state.targetStatus.isStunned,
            triggers.physicalDamageVsStunnedMultiplier > 1 {
             state.remaining = CombatRounding.scaled(
                 state.remaining, multiplier: triggers.physicalDamageVsStunnedMultiplier,
@@ -197,7 +197,7 @@ package extension DamagePipeline {
                 state.remaining, multiplier: triggers.poisonDamageVsStunnedMultiplier,
             )
         }
-        if state.damageKeyword == .bleed || sharedKeyword == .bleed,
+        if keywords.contains(.bleed),
            context.roster.isBelowHalfHealth(for: state.combatant),
            triggers.bleedDamageBelowHalfMultiplier > 1 {
             state.remaining = CombatRounding.scaled(

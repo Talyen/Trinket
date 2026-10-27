@@ -245,10 +245,8 @@ package extension DamagePipeline {
         isAttackHit: Bool,
     ) -> Int {
         let remainingBlock = max(0, buffer - consumedBlock)
-        let sharedKeyword = damageKeyword.flatMap {
-            UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: sourceTriggers ?? CombatTraitTriggers())
-        }
-        let isPhysical = damageKeyword == .physical || sharedKeyword == .physical
+        let keywords = DamageKeywords(damageKeyword, triggers: sourceTriggers ?? CombatTraitTriggers())
+        let isPhysical = keywords.contains(.physical)
         let canSunder = isPhysical || damageKeyword == .stun
         var extraRemoved = canSunder
             ? CombatRounding.scaled(consumedBlock, multiplier: sourceTriggers?.sunderingBlockMultiplier ?? 0)
@@ -278,14 +276,14 @@ package extension DamagePipeline {
                 multiplier: sourceTriggers.poisonDamageVsBlockMultiplier - 1,
             ))
         }
-        if isAttackHit, damageKeyword == .burn || sharedKeyword == .burn, let sourceTriggers,
+        if isAttackHit, keywords.contains(.burn), let sourceTriggers,
            sourceTriggers.burnAttackBlockBreakMultiplier > 1 {
             extraRemoved = SaturatedArithmetic.saturatingAdd(extraRemoved, CombatRounding.scaled(
                 consumedBlock,
                 multiplier: sourceTriggers.burnAttackBlockBreakMultiplier - 1,
             ))
         }
-        if isAttackHit, damageKeyword == .bleed || sharedKeyword == .bleed, let sourceTriggers,
+        if isAttackHit, keywords.contains(.bleed), let sourceTriggers,
            sourceTriggers.bleedAttackBlockBreakMultiplier > 1 {
             extraRemoved = SaturatedArithmetic.saturatingAdd(extraRemoved, CombatRounding.scaled(
                 consumedBlock,

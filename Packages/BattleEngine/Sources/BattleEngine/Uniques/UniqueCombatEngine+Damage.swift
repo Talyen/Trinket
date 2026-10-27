@@ -1,6 +1,26 @@
 import TrinketContent
 import TrinketCore
 
+/// The original damage type and any equipment-shared type qualify independently.
+struct DamageKeywords {
+    let primary: Keyword?
+    let shared: Keyword?
+
+    init(_ primary: Keyword?, triggers: CombatTraitTriggers) {
+        self.primary = primary
+        shared = switch primary {
+        case .holy where triggers.physicalBonusesApplyToHoly: .physical
+        case .burn where triggers.burnAndBleedShareDamageBonuses: .bleed
+        case .bleed where triggers.burnAndBleedShareDamageBonuses: .burn
+        default: nil
+        }
+    }
+
+    func contains(_ keyword: Keyword) -> Bool {
+        primary == keyword || shared == keyword
+    }
+}
+
 extension UniqueCombatEngine {
     static func prepareDamage(_ request: DamageRequest, in context: inout BattleState) -> DamageRequest {
         guard !request.options.isHealthCost, let sourceID = request.sourceActorID,
@@ -42,15 +62,6 @@ extension UniqueCombatEngine {
             options: options,
         )
         context.uniques.card?.damageRequests.append(.init(request: request, stackPotency: damage.amount))
-    }
-
-    static func sharedDamageKeyword(for keyword: Keyword, triggers: CombatTraitTriggers) -> Keyword? {
-        switch keyword {
-        case .holy where triggers.physicalBonusesApplyToHoly: .physical
-        case .burn where triggers.burnAndBleedShareDamageBonuses: .bleed
-        case .bleed where triggers.burnAndBleedShareDamageBonuses: .burn
-        default: nil
-        }
     }
 
     static func captureEnemyBlock(for damage: inout DamageResolutionState, in context: BattleState) {

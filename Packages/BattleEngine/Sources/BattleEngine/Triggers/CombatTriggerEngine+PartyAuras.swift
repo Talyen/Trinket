@@ -18,10 +18,7 @@ package extension CombatTriggerEngine {
         let companionFullHealth = source.role != .enemy && context.roster.companion.isAlive
             && context.roster.maxHealth(for: companion) > 0
             && context.roster.health(for: companion) == context.roster.maxHealth(for: companion)
-        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(
-            for: damageKeyword,
-            triggers: context.modifiers(for: source.id).triggers,
-        )
+        let keywords = DamageKeywords(damageKeyword, triggers: context.modifiers(for: source.id).triggers)
         forEachLivingAllyModifier(in: context) { profile in
             let triggers = profile.triggers
             if source.role == .companion {
@@ -32,7 +29,7 @@ package extension CombatTriggerEngine {
                     bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.companionDamageVsBurningBonus)
                 }
             }
-            if source.role != .enemy, damageKeyword == .physical || sharedKeyword == .physical,
+            if source.role != .enemy, keywords.contains(.physical),
                triggers.partyPhysicalDamageBonusFirstTurns > 0,
                context.turnCount < triggers.partyPhysicalDamageBonusFirstTurnCount {
                 bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.partyPhysicalDamageBonusFirstTurns)

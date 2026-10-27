@@ -44,8 +44,8 @@ package extension DamagePipeline {
                 applyDoubledOrCeilHalved(to: &state, doubled: true)
             }
         }
-        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
-        guard triggers.standardDeviation, keyword == .physical || sharedKeyword == .physical else { return }
+        let keywords = DamageKeywords(keyword, triggers: triggers)
+        guard triggers.standardDeviation, keywords.contains(.physical) else { return }
         let doubled: Bool
         if context.hasHeroCard(for: sourceActorID) {
             if let stored = context.resolution.cardTalents?.standardDeviationDouble {
@@ -73,8 +73,8 @@ package extension DamagePipeline {
         guard state.remaining > 0,
               let sourceActorID = state.sourceActorID else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
-        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
-        guard state.damageKeyword == .burn || sharedKeyword == .burn else { return }
+        let keywords = DamageKeywords(state.damageKeyword, triggers: triggers)
+        guard keywords.contains(.burn) else { return }
         if state.options.isAttackHit, state.targetStatus.isBleeding {
             state.remaining = CombatRounding.scaled(state.remaining, multiplier: triggers.burnAttackDamageVsBleedingMultiplier)
         }
@@ -144,7 +144,7 @@ package extension DamagePipeline {
         else { return }
         let profile = context.modifiers(for: sourceActorID)
         var percent = profile.damageDealtPercent(for: damageKeyword)
-        if let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: damageKeyword, triggers: profile.triggers) {
+        if let sharedKeyword = DamageKeywords(damageKeyword, triggers: profile.triggers).shared {
             percent += profile.damageDealtPercents[sharedKeyword, default: 0]
         }
         percent = max(0, percent)
@@ -233,7 +233,7 @@ package extension DamagePipeline {
               state.combatant.role == .enemy
         else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
-        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
+        let keywords = DamageKeywords(keyword, triggers: triggers)
         if keyword == .stun, state.options.isAttackHit, triggers.stolenThunder {
             let block = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant))
             if block > 0, context.claimActionGuard(.stolenThunder, actorID: source.id) {
@@ -241,7 +241,7 @@ package extension DamagePipeline {
                 state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, block)
             }
         }
-        guard keyword == .physical || sharedKeyword == .physical, state.options.isPrimaryAttack else { return }
+        guard keywords.contains(.physical), state.options.isPrimaryAttack else { return }
         var stored = 0
         if CombatTriggerEngine.hasLivingPartyTrigger(\.storedImpact, in: context) {
             for owner in BattleParticipant.party {
@@ -362,18 +362,18 @@ package extension DamagePipeline {
     ) -> Int {
         let profile = context.modifiers(for: sourceActorID)
         var bonus = profile.damageDealtBonus(for: keyword)
-        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: profile.triggers)
-        if let sharedKeyword {
+        let keywords = DamageKeywords(keyword, triggers: profile.triggers)
+        if let sharedKeyword = keywords.shared {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, profile.damageDealtBonus(for: sharedKeyword))
         }
         if sourceActorID == context.roster.companion.id {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, context.heroModifiers.companionDamageDealtBonus)
             bonus = SaturatedArithmetic.saturatingAdd(bonus, profile.companionDamageDealtBonus)
-            if keyword == .physical || sharedKeyword == .physical {
+            if keywords.contains(.physical) {
                 bonus = SaturatedArithmetic.saturatingAdd(bonus, context.heroModifiers.companionPhysicalDamageDealtBonus)
                 bonus = SaturatedArithmetic.saturatingAdd(bonus, profile.companionPhysicalDamageDealtBonus)
             }
-            if keyword == .bleed || sharedKeyword == .bleed {
+            if keywords.contains(.bleed) {
                 bonus = SaturatedArithmetic.saturatingAdd(bonus, context.heroModifiers.companionBleedDamageDealtBonus)
                 bonus = SaturatedArithmetic.saturatingAdd(bonus, profile.companionBleedDamageDealtBonus)
             }
@@ -383,7 +383,7 @@ package extension DamagePipeline {
                 bonus,
                 source.talents.battle.keywordDamageRamp[keyword, default: 0],
             )
-            if let sharedKeyword {
+            if let sharedKeyword = keywords.shared {
                 bonus = SaturatedArithmetic.saturatingAdd(
                     bonus,
                     source.talents.battle.keywordDamageRamp[sharedKeyword, default: 0],
@@ -409,8 +409,8 @@ package extension DamagePipeline {
         state.remaining = CombatRounding.scaled(criticalDamage, multiplier: 1 + percent)
         if state.options.isAttackHit, let keyword = state.damageKeyword, let sourceActorID = state.sourceActorID {
             let triggers = context.modifiers(for: sourceActorID).triggers
-            let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: keyword, triggers: triggers)
-            if keyword == .burn || sharedKeyword == .burn {
+            let keywords = DamageKeywords(keyword, triggers: triggers)
+            if keywords.contains(.burn) {
                 state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, triggers.burnCriticalDamageBonus)
             }
             if keyword == .poison {
@@ -434,7 +434,7 @@ package extension DamagePipeline {
               let source = context.roster.combatant(for: sourceActorID), source.role != .enemy
         else { return }
         let triggers = context.modifiers(for: sourceActorID).triggers
-        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
+        let keywords = DamageKeywords(state.damageKeyword, triggers: triggers)
         var bonus = 0
         if state.damageKeyword == .poison, state.targetStatus.isBleeding {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.poisonDamageVsBleedingFlat)
@@ -442,23 +442,23 @@ package extension DamagePipeline {
         if state.options.isThornsDamage, state.targetStatus.isPoisoned {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.thornsDamageVsPoisonedFlat)
         }
-        if state.damageKeyword == .burn || sharedKeyword == .burn, state.targetStatus.isBleeding {
+        if keywords.contains(.burn), state.targetStatus.isBleeding {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.burnDamageVsBleedingFlat)
         }
-        if state.damageKeyword == .burn || sharedKeyword == .burn, state.targetStatus.isPoisoned {
+        if keywords.contains(.burn), state.targetStatus.isPoisoned {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.burnDamageVsPoisonedFlat)
         }
-        if state.damageKeyword == .bleed || sharedKeyword == .bleed, state.targetStatus.isBurning {
+        if keywords.contains(.bleed), state.targetStatus.isBurning {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.bleedDamageVsBurningFlat)
         }
-        if state.damageKeyword == .bleed || sharedKeyword == .bleed, state.targetStatus.isPoisoned {
+        if keywords.contains(.bleed), state.targetStatus.isPoisoned {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.bleedDamageVsPoisonedFlat)
         }
         if state.options.isAttackHit {
             if state.damageKeyword == .holy, state.targetStatus.isPoisoned {
                 bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.holyAttackDamageVsPoisonedFlat)
             }
-            if state.damageKeyword == .physical || sharedKeyword == .physical,
+            if keywords.contains(.physical),
                state.targetStatus.isBurning || state.targetStatus.isFrozen {
                 bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.physicalAttackDamageVsBurningOrFrozenFlat)
             }

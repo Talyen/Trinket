@@ -45,7 +45,7 @@ package extension CombatTriggerEngine {
 
         let profile = context.modifiers(for: sourceActorID)
         let triggers = profile.triggers
-        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: damageKeyword, triggers: triggers)
+        let keywords = DamageKeywords(damageKeyword, triggers: triggers)
         let target = state.combatant
         let status = state.targetStatus
         let sourceHasBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: source.combatant)) > 0
@@ -63,7 +63,7 @@ package extension CombatTriggerEngine {
 
         if state.options.isAttackHit, triggers.damageBelowHealthPercentBonus > 0,
            triggers.damageBelowHealthPercentKeyword == nil || triggers.damageBelowHealthPercentKeyword == damageKeyword
-           || triggers.damageBelowHealthPercentKeyword == sharedKeyword,
+           || triggers.damageBelowHealthPercentKeyword == keywords.shared,
            triggers.damageBelowHealthPercentThreshold > 0,
            context.roster.maxHealth(for: target) > 0 {
             let percent = Double(context.roster.health(for: target)) /
@@ -76,7 +76,7 @@ package extension CombatTriggerEngine {
         if status.isBleeding, source.role != .enemy || state.options.isAttackHit {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.damageVsBleedingBonus)
         }
-        if damageKeyword == .physical || sharedKeyword == .physical,
+        if keywords.contains(.physical),
            DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: target)) > 0 {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.physicalDamageVsBlockedBonus)
         }
@@ -101,7 +101,7 @@ package extension CombatTriggerEngine {
         if damageKeyword == .holy, status.isStunned {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.holyDamageVsStunnedBonus)
         }
-        if damageKeyword == .burn || sharedKeyword == .burn, status.isFrozen {
+        if keywords.contains(.burn), status.isFrozen {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.burnDamageVsFrozenBonusPhysical)
         }
         if damageKeyword == .freeze, status.isFrozen {
@@ -143,7 +143,7 @@ package extension CombatTriggerEngine {
         let target = state.combatant
         let status = state.targetStatus
         let targetHasBlock = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: target)) > 0
-        let sharedKeyword = UniqueCombatEngine.sharedDamageKeyword(for: damageKeyword, triggers: triggers)
+        let keywords = DamageKeywords(damageKeyword, triggers: triggers)
         let targetBelowPoisonThreshold = triggers.poisonDamageBelowHealthThreshold > 0
             && context.roster.maxHealth(for: target) > 0
             && Double(context.roster.health(for: target)) / Double(context.roster.maxHealth(for: target))
@@ -181,10 +181,10 @@ package extension CombatTriggerEngine {
                 multiplier *= triggers.holyDamageVsUndeadOrCorruptedMultiplier
             }
         }
-        if damageKeyword == .burn || sharedKeyword == .burn, !targetHasBlock {
+        if keywords.contains(.burn), !targetHasBlock {
             multiplier *= triggers.burnDamageVsNoBlockMultiplier
         }
-        if damageKeyword == .physical || sharedKeyword == .physical, status.isBleeding {
+        if keywords.contains(.physical), status.isBleeding {
             multiplier *= triggers.physicalDamageVsBleedingMultiplier
         }
         if source.role == .hero, status.isStunned {

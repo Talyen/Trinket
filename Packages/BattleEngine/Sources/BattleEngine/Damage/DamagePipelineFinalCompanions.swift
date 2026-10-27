@@ -58,7 +58,7 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) {
         guard state.options.isAttackHit else { return }
-        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
+        let keywords = DamageKeywords(state.damageKeyword, triggers: triggers)
         if let bonus = context.consumeTalentPreparation(\.nextManaSpendAttackBonus, for: source) {
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, bonus)
         }
@@ -66,13 +66,13 @@ package extension DamagePipeline {
            context.claimHeroTalent(.sunlightSpark, actorID: source.id) {
             state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, triggers.firstHolyAttackBonusPerTurn)
         }
-        if state.damageKeyword == .physical || sharedKeyword == .physical, triggers.firstPhysicalAttackBattleMultiplier > 1,
+        if keywords.contains(.physical), triggers.firstPhysicalAttackBattleMultiplier > 1,
            context.claimHeroTalent(.alphaStrike, actorID: source.id, battle: true) {
             state.remaining = CombatRounding.scaled(
                 state.remaining, multiplier: triggers.firstPhysicalAttackBattleMultiplier,
             )
         }
-        if state.damageKeyword == .physical || sharedKeyword == .physical, triggers.physicalAttackBurstChancePercent > 0,
+        if keywords.contains(.physical), triggers.physicalAttackBurstChancePercent > 0,
            context.claimTalentAbility(.feralFrenzy, actorID: source.id),
            BattleChance.succeeds(probability: triggers.physicalAttackBurstChancePercent, using: &context.rng) {
             state.remaining = CombatRounding.scaled(
@@ -88,8 +88,8 @@ package extension DamagePipeline {
         in context: BattleState,
     ) -> Double {
         var multiplier = 1.0
-        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
-        if state.damageKeyword == .bleed || sharedKeyword == .bleed, state.targetStatus.isPoisoned {
+        let keywords = DamageKeywords(state.damageKeyword, triggers: triggers)
+        if keywords.contains(.bleed), state.targetStatus.isPoisoned {
             multiplier *= triggers.bleedDamageVsPoisonedMultiplier
         }
         if state.damageKeyword == .holy, state.targetStatus.isStunned {
@@ -114,7 +114,7 @@ package extension DamagePipeline {
             multiplier *= triggers.leechAttackDamageVsBleedingMultiplier
         }
         if state.options.isAttackHit, state.isCritical,
-           state.damageKeyword == .physical || sharedKeyword == .physical {
+           keywords.contains(.physical) {
             if state.targetStatus.isBleeding {
                 multiplier *= triggers.physicalCriticalDamageVsBleedingMultiplier
             }
@@ -132,12 +132,12 @@ package extension DamagePipeline {
         in context: inout BattleState,
     ) -> Double {
         var multiplier = 1.0
-        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
+        let keywords = DamageKeywords(state.damageKeyword, triggers: triggers)
         if state.options.isAttackHit, state.isCritical {
             if state.damageKeyword == .freeze {
                 multiplier *= triggers.freezeCriticalDamageMultiplier
             }
-            if state.damageKeyword == .burn || sharedKeyword == .burn {
+            if keywords.contains(.burn) {
                 multiplier *= triggers.burnCriticalDamageMultiplier
             }
         }
@@ -154,7 +154,7 @@ package extension DamagePipeline {
             if context.resolution.actionTalents(for: source.id)?.arcaneBurst == true {
                 multiplier *= triggers.manaEmpowerDamageMultiplier
             }
-            if state.damageKeyword == .burn || sharedKeyword == .burn || state.damageKeyword == .freeze {
+            if keywords.contains(.burn) || state.damageKeyword == .freeze {
                 multiplier *= triggers.manaEmpowerBurnFreezeDamageMultiplier
             }
         }
@@ -168,7 +168,7 @@ package extension DamagePipeline {
     ) -> Double {
         var multiplier = 1.0
         let triggers = context.modifiers(for: source.id).triggers
-        let sharedKeyword = state.damageKeyword.flatMap { UniqueCombatEngine.sharedDamageKeyword(for: $0, triggers: triggers) }
+        let keywords = DamageKeywords(state.damageKeyword, triggers: triggers)
         if state.damageKeyword == .holy,
            context.consumeTalentPreparation(\.nextHolyHitDouble, for: source) == true {
             multiplier *= 2
@@ -177,11 +177,11 @@ package extension DamagePipeline {
            context.consumeTalentPreparation(\.nextStunAttackDouble, for: source) == true {
             multiplier *= 2
         }
-        if state.options.isAttackHit, state.damageKeyword == .bleed || sharedKeyword == .bleed,
+        if state.options.isAttackHit, keywords.contains(.bleed),
            let prepared = context.consumeTalentPreparation(\.nextBleedAttackMultiplier, for: source) {
             multiplier *= prepared
         }
-        if state.options.isAttackHit, state.damageKeyword == .physical || sharedKeyword == .physical,
+        if state.options.isAttackHit, keywords.contains(.physical),
            let prepared = context.consumeTalentPreparation(\.nextPhysicalAttackMultiplier, for: source) {
             multiplier *= prepared
         }
