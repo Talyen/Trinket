@@ -24,22 +24,18 @@ removing mechanisms. Do not push or publish as part of this plan without authori
 
 ## Evidence and priorities
 
-1. **Resolve conflicting diagnostic instructions.** The shared-machine guidance
-   in the root agent instructions and `/Users/ryanmcintire/Developer/.coordination/README.md`
-   calls for retrying timed-out focused checks, while
+1. **Diagnostic policy reconciled.**
    [Verification](../Platform/Verification.md#single-focused-local-diagnostic)
-   says not to retry automatically. It also gives a 30-second lane wait while the
-   shared-machine instructions specify 900 seconds for essential heavy work; the
-   intended treatment of focused diagnostics needs an explicit reconciliation.
-   These are different from the common 30-second execution budget. Conflicts
-   create uncertainty precisely when a test times out or the machine is busy.
+   and automatic admission now match the supplied shared-machine instructions:
+   up to 900 seconds for admission, a 30-second focused execution limit, and
+   retrying a timeout under the same limits. Admission wait is not execution time.
 2. **Make the ordinary path easier to follow end to end.** A task uses worktree
    creation, path briefing, handoff, review, commit, protected integration and
    cleanup, with details split among the root guide, Development, Verification,
    and script help. The existing briefing already prints the normal next steps;
    the answer is to improve that entry point, not add another guide or wrapper by
-   default. An intentionally retained plan needs `--keep-plan` at landing, but
-   the sample plan briefing did not mention it.
+   default. The briefing now explains `--keep-plan` when an active plan is in scope;
+   representative end-to-end timing is still outstanding.
 3. **Repair cancellation ownership.** The
    [friction log](../../.agents/FRICTION_LOG.md) records surviving descendants
    after task-owned runners were terminated. `Scripts/lib/lock.sh` attempts to
@@ -70,13 +66,11 @@ removing mechanisms. Do not push or publish as part of this plan without authori
   weaken those rules in Trinket. Add a short decision table and ensure command
   examples and failure messages match the resulting policy.
 - [ ] **P1 — Streamline the common workflow.** Exercise briefing, handoff and
-  landing for representative documentation, Swift logic, UI and localization
-  changes. Record steps, repeated lookups, confusing output and actual elapsed
-  time where safe. Make the existing briefing surface the relevant next command,
-  exceptions and evidence state, including retained-plan landing when applicable.
-  Remove duplicated or stale guidance from its current owner; preserve the CLI
-  and its existing consumers. Keep detailed recovery information available on
-  demand rather than forcing it into every task.
+  landing on naturally occurring documentation, Swift logic, UI and localization
+  tasks. Record actual elapsed time, repeated lookups and confusing output where
+  practical; distinguish task work and waiting from workflow overhead. Compare
+  equivalent evidence before claiming improvement. Make changes only for observed
+  friction; preserve the CLI, its consumers and on-demand recovery details.
 - [x] **P1 — Investigate cancellation with owned fixtures.** Reproduce the
   surviving-child report using isolated, task-owned processes and private locks.
   Trace the runner and host-lane ownership boundaries before changing them. If
@@ -103,6 +97,18 @@ removing mechanisms. Do not push or publish as part of this plan without authori
   and delete this plan when its accepted work is complete. Record unresolved
   external prerequisites and distinguish local evidence from hosted CI.
 
+## Measurement approach
+
+Use existing task handoffs and naturally occurring work; do not create synthetic
+product changes or a new telemetry service to fill a sample. Retained task and
+verification reports identify scope, checks and outcomes, but do not record
+end-to-end elapsed time or all manual lookups. Missing timing is unknown, not zero.
+For future samples, capture brief elapsed timings and concrete detours in the
+task's existing deliverables when readily available. For a timed-out focused
+diagnostic, record its selector, per-attempt outcome and whether a retry answered
+the original question, separately from queue wait. Preserve the 30-second limit
+and current retry policy; do not infer a failure rate from one historical case.
+
 ## Status and blockers
 
 The supplied shared-machine rules now agree with the focused diagnostic example
@@ -120,7 +126,8 @@ point to the automated localization coordinator.
 
 A managed iPhone simulator built and launched Trinket and produced a readable Play
 screen capture. Native interaction was blocked by an existing uncertain per-device
-reservation; Computer Use reported that the Mac is locked. No input or Duo display
-qualification was performed. Keep the reservation intact and use the existing
-native recovery procedure after the prerequisite is resolved; do not infer that
-the old session has ended. The capture is retained with task evidence.
+reservation; Computer Use again reported the Mac locked on follow-through, and the
+user is away. No input or Duo display qualification was performed. Keep the
+reservation intact and use the existing native recovery procedure when the Mac
+is available; do not infer that the old session has ended. The capture is retained
+with task evidence.
