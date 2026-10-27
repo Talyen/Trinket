@@ -176,18 +176,20 @@ public extension DetailHeroHeader where Footer == EmptyView {
         eyebrowScale: CGFloat = 1,
         @ViewBuilder art: @escaping () -> Art,
     ) {
-        self.eyebrow = eyebrow
-        self.eyebrowIndicators = eyebrowIndicators
-        self.title = title
-        self.titleShine = titleShine
-        self.titleAccessibilityIdentifier = titleAccessibilityIdentifier
-        self.baseHeight = baseHeight
-        self.horizontalPadding = horizontalPadding
-        self.bottomPadding = bottomPadding
-        self.singleLineTitle = singleLineTitle
-        self.titleScale = titleScale
-        self.eyebrowScale = eyebrowScale
-        self.art = art
-        footer = { EmptyView() }
+        self.init(
+            eyebrow: eyebrow,
+            eyebrowIndicators: eyebrowIndicators,
+            title: title,
+            titleShine: titleShine,
+            titleAccessibilityIdentifier: titleAccessibilityIdentifier,
+            baseHeight: baseHeight,
+            horizontalPadding: horizontalPadding,
+            bottomPadding: bottomPadding,
+            singleLineTitle: singleLineTitle,
+            titleScale: titleScale,
+            eyebrowScale: eyebrowScale,
+            art: art,
+            footer: { EmptyView() },
+        )
     }
 }

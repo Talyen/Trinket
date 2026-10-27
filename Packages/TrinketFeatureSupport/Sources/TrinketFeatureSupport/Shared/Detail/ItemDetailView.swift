@@ -216,15 +216,11 @@ public struct ItemDetailView: View {
 
     private func confirmSalvage() {
         guard let salvage else { return }
-        switch salvage.onSalvage() {
-        case let .success(yields):
-            salvage.onSalvageFinished?(.success(yields: yields))
-            dismiss()
-        case .itemNotFound:
-            salvage.onSalvageFinished?(.itemNotFound)
-            dismiss()
-        case .persistenceFailure:
-            salvage.onSalvageFinished?(.persistenceFailure)
+        let result = salvage.onSalvage()
+        salvage.onSalvageFinished?(result)
+        switch result {
+        case .success, .itemNotFound: dismiss()
+        case .persistenceFailure: break
         }
     }
 }
