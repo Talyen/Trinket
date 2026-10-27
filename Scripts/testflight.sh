@@ -32,6 +32,12 @@ PY
 }
 shared_state="$(testflight_state_root)"
 export TRINKET_TESTFLIGHT_STATE_ROOT="$shared_state"
+# Retire only independently verified older working copies before taking the
+# deployment lock. A busy or ambiguous owner simply defers maintenance.
+if [[ -d "$shared_state" ]]; then
+  python3 Scripts/cleanup-outputs.py --apply --primary --release-duplicates-only --all-release-duplicates || \
+    echo "Release-copy maintenance deferred; remaining artifacts are preserved." >&2
+fi
 trinket_dir_lock_acquire "$TRINKET_TESTFLIGHT_STATE_ROOT/.deploy.lock" 1
 # Recheck after acquiring the shared lock: a legacy deployment may have started
 # while this invocation was waiting. Never release another checkout's lock.

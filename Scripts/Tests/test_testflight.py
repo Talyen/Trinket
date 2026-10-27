@@ -26,6 +26,7 @@ class TestFlightTests(unittest.TestCase):
             root.mkdir()
             for relative in ('Scripts/testflight.sh', 'Scripts/internal/cli.py', 'Scripts/lib/lock.sh',
                              'Scripts/lib/output-retention.sh', 'Scripts/internal/output_retention.py',
+                             'Scripts/internal/release_retention.py', 'Scripts/internal/build_symbols.py',
                              'Scripts/cleanup-outputs.py'):
                 target = root / relative
                 target.parent.mkdir(parents=True, exist_ok=True)
@@ -54,6 +55,7 @@ class TestFlightTests(unittest.TestCase):
                 other = run_captured(['bash', 'Scripts/testflight.sh'], cwd=root, env=environment, input='release\n', timeout=15)
                 self.assertNotEqual(other.returncode, 0, other.stdout + other.stderr)
                 self.assertNotIn('started', other.stdout)
+                self.assertIn('Release-copy maintenance deferred', other.stderr)
             finally:
                 stdout, stderr = owner.communicate('release\n', timeout=15)
                 self.assertEqual(owner.returncode, 0, stdout + stderr)

@@ -293,7 +293,7 @@ producing hosted workflows. Age alone never proves that an artifact is disposabl
 | Successful test/gate invocation bundles, reports and raw logs | Until consumers finish | Producer cleanup removes successful output after staging; explicit keeps remain protected |
 | Historical failure, orphan and comparison evidence, including agent evaluations | Review after 24 hours (`TRINKET_OUTPUT_MAX_AGE_HOURS`) | Automatic producer cleanup writes `.retention-review.json`; permanent deletion of unique evidence requires exact-batch approval |
 | Local timing entries and temporary guidance receipts | 24 hours per timing entry; one day of inactivity for checkout-scoped guidance receipts | Existing expiry removes eligible entries/receipts individually |
-| Idle task tenants under `.DerivedData/runs/` and legacy `Packages/*/.build/` | Three days without writes (`TRINKET_RUN_MAX_AGE_DAYS`) | Explicit cleanup checks ownership, leases, keeps and open files under the simulator allocation lock; includes rebuildable products |
+| Idle task compiler scratch under `.DerivedData/runs/` and legacy `Packages/*/.build/` | One day without writes (`TRINKET_RUN_MAX_AGE_DAYS`) | Cleanup checks ownership, leases, keeps and open files under the simulator allocation lock; preserves tenant products and evidence |
 | Compiler scratch retired at task creation | Same idle-cache window | Only `Build/Intermediates.noindex`, `Index.noindex` and `ModuleCache.noindex`; preserves products, package checkouts, diagnostics and shared compilation caches |
 | Successful IPA inspection / thinned-export scratch | Until inspection consumers finish | Scoped temporary cleanup retains compact validation/size proof; failed inspection output and explicit keeps remain available |
 | Ready TestFlight duplicate working copies | 24 hours after verified preservation and completion | Deployment-locked hash/UUID/receipt validation; unfinished, unknown, mismatched, active or kept copies remain protected |
@@ -322,7 +322,10 @@ still apply rather than trusting directory timestamps.
 For compiler scratch only, use `--dry-run --primary --intermediates-only
 --receipt PATH`; the compact receipt records `.DerivedData/Retention/` decisions.
 `--release-duplicates-only` verifies at most one ready backed-up deployment per
-call. `--resources` includes the more expensive release duplicate inventory;
+call; add `--all-release-duplicates` for all ready candidates. Before a local
+TestFlight deployment takes its lock, it automatically runs that full verified
+duplicate pass against the primary checkout; a busy or ambiguous owner defers it.
+`--resources` includes the more expensive release duplicate inventory;
 review its dry run before applying. Normal opportunistic cleanup does not hash
 all release archives. [Release](../Docs/Platform/Release.md#options-and-recovery)
 owns exact validation and recovery mechanics.

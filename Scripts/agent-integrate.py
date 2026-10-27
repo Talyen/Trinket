@@ -14,6 +14,7 @@ import json
 import tempfile
 import shutil
 import hashlib
+import ctypes
 from datetime import datetime, timezone
 
 
@@ -50,6 +51,21 @@ def evidence_directory(source: Path) -> Path:
         raise RuntimeError('Evidence directory cannot follow symlinks.')
     destination.mkdir(parents=True, exist_ok=True)
     return destination
+
+
+def copy_evidence(source: Path, target: Path) -> None:
+    """Use independent copy-on-write files where supported, then fall back to copying."""
+    if sys.platform == 'darwin':
+        clone = getattr(ctypes.CDLL(None, use_errno=True), 'clonefile', None)
+        if clone is not None:
+            clone.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_uint32]
+            clone.restype = ctypes.c_int
+            if clone(os.fsencode(source), os.fsencode(target), 1) == 0:
+                shutil.copystat(source, target, follow_symlinks=False)
+                return
+            if target.exists() or target.is_symlink():
+                raise RuntimeError(f'Failed evidence clone left a destination: {target}')
+    shutil.copy2(source, target, follow_symlinks=False)
 
 
 def preserve_evidence(source: Path, names: list[str]) -> Path:
@@ -115,7 +131,7 @@ def preserve_evidence(source: Path, names: list[str]) -> Path:
     for path in sorted(set(paths)):
         target = saved / 'files' / path.relative_to(source)
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(path, target, follow_symlinks=False)
+        copy_evidence(path, target)
         with target.open('rb') as stream:
             value = hashlib.sha256()
             for block in iter(lambda: stream.read(1024 * 1024), b''):

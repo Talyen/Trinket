@@ -99,8 +99,10 @@ Snapshots have preservation commit/branch/path metadata and never follow
 symlinks. Repeated preservation at the same commit reuses an identical snapshot
 only after comparing actual source and retained bytes. A separate
 `preservations.jsonl` records each preservation event; changed or damaged snapshots
-are preserved separately. No mutable hard links or age-based evidence deletion are
-used. Failed preservation stops landing or cleanup; raw build logs expire
+are preserved separately. New evidence files use independent copy-on-write clones
+when supported, falling back to ordinary copies; both are verified against the
+source. No mutable hard links or age-based evidence deletion are used. Failed
+preservation stops landing or cleanup; raw build logs expire
 separately. Save visual artifacts in Deliverables. For other task-local evidence,
 use `node Scripts/agent-worktree.mjs evidence <paths...>`; without paths it prints
 the durable directory. Evidence provenance still comes from the capture/build record.

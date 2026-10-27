@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Expire disposable output after 24 hours and idle run caches after three days; preserve active and release state."""
+"""Expire disposable output and idle compiler caches; preserve active and release state."""
 
 import argparse
 import os
@@ -25,10 +25,13 @@ def main() -> None:
     parser.add_argument('--experiments', action='store_true', help='also remove the three known abandoned experiment builds')
     parser.add_argument('--resources', action='store_true', help='also verify and expire completed release duplicates (may hash large artifacts)')
     parser.add_argument('--release-duplicates-only', action='store_true', help='verify at most one backed-up ready release; preserve receipts and authoritative artifacts')
+    parser.add_argument('--all-release-duplicates', action='store_true', help='verify all ready release copies with --release-duplicates-only')
     parser.add_argument('--intermediates-only', action='store_true', help='expire only idle compiler scratch, preserving all evidence and products')
     parser.add_argument('--receipt', type=Path, help='write a compact cleanup/dry-run receipt')
     parser.add_argument('--primary', action='store_true', help='inspect/clean the primary checkout rather than this task checkout')
     args = parser.parse_args()
+    if args.all_release_duplicates and not args.release_duplicates_only:
+        parser.error('--all-release-duplicates requires --release-duplicates-only')
     try:
         root = primary_worktree_root(ROOT) if args.primary else ROOT
         path = args.keep or args.release or args.begin or args.finish
@@ -61,7 +64,8 @@ def main() -> None:
                 decisions = []
                 if args.receipt:
                     retention.prepare_cleanup_receipt(args.receipt, root)
-                release_retention.cleanup(root, apply=args.apply, max_verify=1, decisions=decisions)
+                release_retention.cleanup(root, apply=args.apply,
+                                          max_verify=None if args.all_release_duplicates else 1, decisions=decisions)
                 if args.receipt:
                     from internal.cli import write_json_atomic
                     write_json_atomic(args.receipt, {'schema': 1, 'dry_run': not args.apply,

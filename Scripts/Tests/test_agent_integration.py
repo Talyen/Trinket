@@ -7,11 +7,21 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+from unittest import mock
 
-from script_test_support import ROOT, ScriptRegressionTestCase, run_captured, write_executable
+from script_test_support import ROOT, ScriptRegressionTestCase, load_script, run_captured, write_executable
 
 
 class AgentIntegrationTests(ScriptRegressionTestCase):
+    def test_evidence_copy_fallback_keeps_independent_bytes(self):
+        module = load_script('agent_integrate_copy_test', 'agent-integrate.py')
+        source, target = self.root / 'source', self.root / 'copy'
+        source.write_bytes(b'original')
+        with mock.patch.object(module.sys, 'platform', 'other'):
+            module.copy_evidence(source, target)
+        source.write_bytes(b'changed')
+        self.assertEqual(target.read_bytes(), b'original')
+
     def test_repeated_preservation_reuses_verified_bytes_and_records_each_event(self):
         task = self.task('reuse-evidence')
         captures = task / '.DerivedData/Deliverables'

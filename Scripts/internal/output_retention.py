@@ -48,24 +48,22 @@ def run_cache_roots(root: Path, *, intermediates_only: bool = False) -> list[Pat
     parent = root / '.DerivedData/runs'
     paths = []
     if safe_path(parent, root) and parent.is_dir():
-        paths.extend(p for p in parent.iterdir() if p.is_dir() and not p.is_symlink())
+        # A tenant can also contain unique test results and investigation files.
+        # Only these compiler-owned directories are disposable by construction.
+        paths.extend(base / relative for base in parent.iterdir() if base.is_dir() and not base.is_symlink()
+                     for relative in ('Build/Intermediates.noindex', 'Index.noindex', 'ModuleCache.noindex')
+                     if safe_path(base / relative, root) and (base / relative).is_dir())
     # Current native checks use explicit host scratch paths. Legacy SwiftPM
     # outputs remain rebuildable (including BalanceSweepCLI); never expire sources.
     packages = root / 'Packages'
-    if safe_path(packages, root) and packages.is_dir():
+    if not intermediates_only and safe_path(packages, root) and packages.is_dir():
         paths.extend(p for p in packages.glob('*/.build')
                      if safe_path(p, root) and p.is_dir())
-    if intermediates_only:
-        # Exact compiler scratch roots only. Preserve products, result bundles,
-        # package checkouts, diagnostic logs and the warm shared compilation cache.
-        paths = [base / relative for base in paths if base.parent == root / '.DerivedData/runs'
-                 for relative in ('Build/Intermediates.noindex', 'Index.noindex', 'ModuleCache.noindex')
-                 if safe_path(base / relative, root) and (base / relative).is_dir()]
     return paths
 
 
 def run_cache_seconds() -> float:
-    days = float(os.environ.get('TRINKET_RUN_MAX_AGE_DAYS', '3'))
+    days = float(os.environ.get('TRINKET_RUN_MAX_AGE_DAYS', '1'))
     if not 0 < days < float('inf'):
         raise ValueError('TRINKET_RUN_MAX_AGE_DAYS must be finite and positive')
     return days * 86400
@@ -88,6 +86,10 @@ def managed_path(path: Path, root: Path) -> bool:
     if not safe_path(path, root):
         return False
     path, root = path.resolve(), root.resolve()
+    # Keep controls still apply to a whole tenant even though cleanup only
+    # retires its known compiler scratch, never the tenant itself.
+    if path.parent == root / '.DerivedData/runs' and path.is_dir():
+        return True
     if any(path == base for base in run_cache_roots(root)):
         return True
     release_log = path.suffix == '.log' and path.parent.parent == root / '.DerivedData/testflight'

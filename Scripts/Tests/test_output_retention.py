@@ -44,10 +44,10 @@ class OutputRetentionTests(ScriptRegressionTestCase):
                               now=self.now, verbose=False)
         self.assertEqual(receipt.read_text(), 'unique investigation')
 
-    def test_legacy_swiftpm_cache_expires_after_three_days_without_touching_sources(self):
-        old = self.output('Packages/TrinketCore/.build/debug/product', age=4 * 86400)
+    def test_legacy_swiftpm_cache_expires_after_one_day_without_touching_sources(self):
+        old = self.output('Packages/TrinketCore/.build/debug/product', age=2 * 86400)
         source = self.output('Packages/TrinketCore/Sources/source.swift', age=4 * 86400)
-        recent = self.output('Packages/BattleEngine/.build/debug/BalanceSweepCLI', age=2 * 86400)
+        recent = self.output('Packages/BattleEngine/.build/debug/BalanceSweepCLI', age=86399)
         for path in (old, recent):
             for parent in (path.parent, path.parents[1]):
                 os.utime(parent, (0, 0))
@@ -319,10 +319,12 @@ exit "$2"
             self.assertEqual(path.with_name(path.name + '.original-status').read_text().strip(), str(status))
 
     def test_expired_run_cache_preserves_active_recent_kept_and_shared_state(self):
-        old = self.output('.DerivedData/runs/old/Build/product', age=4 * 86400)
-        recent = self.output('.DerivedData/runs/recent/Build/product', age=2 * 86400)
-        kept = self.output('.DerivedData/runs/kept/Build/product', age=4 * 86400)
-        (kept.parents[1] / retention.KEEP).touch()
+        old = self.output('.DerivedData/runs/old/Build/Intermediates.noindex/product', age=2 * 86400)
+        recent = self.output('.DerivedData/runs/recent/Build/Intermediates.noindex/product', age=86399)
+        kept = self.output('.DerivedData/runs/kept/Build/Intermediates.noindex/product', age=2 * 86400)
+        evidence = self.output('.DerivedData/runs/old/investigation/unique.trace', age=2 * 86400)
+        product = self.output('.DerivedData/runs/old/Build/Products/app', age=2 * 86400)
+        (kept.parents[2] / retention.KEEP).touch()
         for path in (old, recent, kept):
             for parent in path.parents:
                 if parent == self.root / '.DerivedData/runs':
@@ -336,10 +338,12 @@ exit "$2"
         self.assertFalse(old.exists())
         self.assertTrue(recent.exists())
         self.assertTrue(kept.exists())
+        self.assertTrue(evidence.exists())
+        self.assertTrue(product.exists())
 
     def test_old_run_cache_rejects_live_lease_and_unknown_open_file_inventory(self):
-        old = self.output('.DerivedData/runs/old/Build/product', age=4 * 86400)
-        for parent in (old.parent, old.parents[1]):
+        old = self.output('.DerivedData/runs/old/Build/Intermediates.noindex/product', age=4 * 86400)
+        for parent in (old.parent, old.parents[1], old.parents[2]):
             os.utime(parent, (0, 0))
         slot = self.root / '.DerivedData/.active-sim/agent-1.slot'
         slot.parent.mkdir()
