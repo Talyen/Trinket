@@ -47,4 +47,23 @@ struct PoisonedEnemyStunAuraTests {
         let meter = battle.activeEffects(of: battle.enemy).first { $0.keyword == .stun }?.effect.controlMeterValues
         #expect(meter?.amount == 5)
     }
+
+    @Test func `Stun buildup rounds each eligible multiplier in order`() {
+        let modifiers = CombatModifierProfile.withTriggers {
+            $0.poisonedEnemyStunBuildupMultiplier = 1.5
+            $0.stunBuildupBelowHalfMultiplier = 1.5
+            $0.stunBuildupMultiplier = 1.5
+        }
+        var battle = BattleTestFixtures.makePipelineContext(
+            targetMaxHealth: 100, heroModifiers: modifiers, appliesFightPacing: false,
+        )
+        battle.roster.hero.currentHealth = 20
+        battle.insertEffect(.poison(1), to: battle.enemy, sourceID: battle.hero.id, remainingTurns: 0)
+
+        battle.chargeTestControl(3, keyword: .stun, to: battle.enemy, sourceActorID: battle.hero.id, applyFightPacing: false)
+
+        let meter = battle.activeEffects(of: battle.enemy).first { $0.keyword == .stun }?.effect.controlMeterValues
+        #expect(meter?.amount == 12) // 3 → 5 → 8 → 12
+        #expect(meter?.threshold == 20)
+    }
 }

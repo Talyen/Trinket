@@ -62,11 +62,10 @@ package enum ControlMeterEngine {
             on: combatant, sourceActorID: sourceActorID, in: &context,
         )
         if triggered {
-            await thresholdReached(
+            await triggerControl(
                 keyword, on: combatant, sourceActorID: sourceActorID,
                 triggeredAmount: effectiveThreshold, setupHealthDamage: setupHealthDamage, in: &context,
             )
-            await ElementalReactionEngine.finishControl(in: &context)
         }
         return ControlMeterOutcome(didApply: true, didTrigger: triggered)
     }
@@ -74,6 +73,18 @@ package enum ControlMeterEngine {
     package static func threshold(for combatant: Combatant, in context: BattleState) -> Int {
         let maxHealth = context.roster.maxHealth(for: combatant)
         return max(1, CombatRounding.rounded(Double(maxHealth) * 0.20))
+    }
+
+    private static func triggerControl(
+        _ keyword: Keyword, on combatant: Combatant, sourceActorID: String?,
+        triggeredAmount: Int, setupHealthDamage: Int = 0, in context: inout BattleState,
+    ) async {
+        await thresholdReached(
+            keyword, on: combatant, sourceActorID: sourceActorID,
+            triggeredAmount: triggeredAmount, setupHealthDamage: setupHealthDamage, in: &context,
+        )
+        // Settle after thresholdReached has left its control-depth scope.
+        await ElementalReactionEngine.finishControl(in: &context)
     }
 
     // swiftlint:disable:next function_body_length - control rewards follow the committed status in their existing order
@@ -252,41 +263,29 @@ extension ControlMeterEngine {
         in context: BattleState,
     ) -> Int {
         var adjustedAmount = amount
-        if keyword == .freeze, combatant.role == .enemy, let sourceActorID {
-            let multiplier = context.modifiers(for: sourceActorID).triggers.freezeBuildupMultiplier
-            if multiplier > 1 {
-                adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: multiplier)
+        if combatant.role == .enemy, let sourceActorID {
+            let triggers = context.modifiers(for: sourceActorID).triggers
+            if keyword == .freeze {
+                if triggers.freezeBuildupMultiplier > 1 {
+                    adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: triggers.freezeBuildupMultiplier)
+                }
+                if context.resolution.actionTalents(for: sourceActorID)?.empoweredByMana == true {
+                    adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: triggers.manaEmpowerFreezeBuildupMultiplier)
+                }
+            } else if keyword == .stun {
+                if context.roster.hasAffliction(.poison, on: combatant) {
+                    let heroMultiplier = context.roster.hero.isAlive
+                        ? context.heroModifiers.triggers.poisonedEnemyStunBuildupMultiplier : 1
+                    let multiplier = max(triggers.poisonedEnemyStunBuildupMultiplier, heroMultiplier)
+                    if multiplier > 1 {
+                        adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: multiplier)
+                    }
+                }
+                if let source = context.roster.combatant(for: sourceActorID), source.isBelowHalfHealth {
+                    adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: triggers.stunBuildupBelowHalfMultiplier)
+                }
+                adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: triggers.stunBuildupMultiplier)
             }
-        }
-        if keyword == .stun, combatant.role == .enemy, let sourceActorID,
-           context.roster.hasAffliction(.poison, on: combatant) {
-            let sourceMultiplier = context.modifiers(for: sourceActorID).triggers.poisonedEnemyStunBuildupMultiplier
-            let heroMultiplier = context.roster.hero.isAlive
-                ? context.heroModifiers.triggers.poisonedEnemyStunBuildupMultiplier : 1
-            let multiplier = max(sourceMultiplier, heroMultiplier)
-            if multiplier > 1 {
-                adjustedAmount = CombatRounding.scaled(adjustedAmount, multiplier: multiplier)
-            }
-        }
-        if keyword == .stun, combatant.role == .enemy, let sourceActorID,
-           let source = context.roster.combatant(for: sourceActorID),
-           source.isBelowHalfHealth {
-            adjustedAmount = CombatRounding.scaled(
-                adjustedAmount,
-                multiplier: context.modifiers(for: sourceActorID).triggers.stunBuildupBelowHalfMultiplier,
-            )
-        }
-        if keyword == .stun, combatant.role == .enemy, let sourceActorID {
-            adjustedAmount = CombatRounding.scaled(
-                adjustedAmount, multiplier: context.modifiers(for: sourceActorID).triggers.stunBuildupMultiplier,
-            )
-        }
-        if keyword == .freeze, combatant.role == .enemy, let sourceActorID,
-           context.resolution.actionTalents(for: sourceActorID)?.empoweredByMana == true {
-            adjustedAmount = CombatRounding.scaled(
-                adjustedAmount,
-                multiplier: context.modifiers(for: sourceActorID).triggers.manaEmpowerFreezeBuildupMultiplier,
-            )
         }
         if keyword == .stun || keyword == .freeze {
             let targetTriggers = context.modifiers(for: combatant.id).triggers
@@ -345,8 +344,7 @@ extension ControlMeterEngine {
 
         storeMeter(keyword, amount: newAmount, threshold: threshold, on: combatant, sourceActorID: sourceActorID, in: &context)
         if newAmount >= threshold {
-            await thresholdReached(keyword, on: combatant, sourceActorID: sourceActorID, triggeredAmount: newAmount, in: &context)
-            await ElementalReactionEngine.finishControl(in: &context)
+            await triggerControl(keyword, on: combatant, sourceActorID: sourceActorID, triggeredAmount: newAmount, in: &context)
         }
         return true
     }
