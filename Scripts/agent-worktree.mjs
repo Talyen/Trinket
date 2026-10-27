@@ -73,7 +73,7 @@ try {
         git(["rev-parse", "--verify", `${options["--base"] ?? "main"}^{commit}`], primary);
         const retention = path.join(source, "Scripts/cleanup-outputs.py");
         if (fs.existsSync(retention)) {
-          const maintenance = spawnSync("python3", [retention, "--apply", "--primary", "--intermediates-only", "--receipt", path.join(primary, ".DerivedData/Retention/latest-intermediates.json")], { cwd: source, encoding: "utf8", timeout: 20_000 });
+          const maintenance = spawnSync("python3", [retention, "--apply", "--primary", "--intermediates-only", "--products", "--receipt", path.join(primary, ".DerivedData/Retention/latest-intermediates.json")], { cwd: source, encoding: "utf8", timeout: 20_000 });
           if (maintenance.status !== 0) console.log("Idle compiler cleanup deferred; active or unavailable ownership is preserved.");
           else if (maintenance.stdout.trim()) console.log(maintenance.stdout.trim());
         }
@@ -81,6 +81,12 @@ try {
         if (fs.existsSync(evidence)) {
           const maintenance = spawnSync("python3", [evidence, "--expire-routine-evidence"], { cwd: source, encoding: "utf8", timeout: 20_000 });
           if (maintenance.status !== 0) console.log("Routine evidence expiry deferred; retained evidence is preserved.");
+          else if (maintenance.stdout.trim()) console.log(maintenance.stdout.trim());
+        }
+        const compaction = path.join(source, "Scripts/compact-evidence.py");
+        if (fs.existsSync(compaction)) {
+          const maintenance = spawnSync("python3", [compaction], { cwd: source, encoding: "utf8", timeout: 20_000 });
+          if (maintenance.status !== 0) console.log("Evidence compaction deferred; original paths remain available.");
           else if (maintenance.stdout.trim()) console.log(maintenance.stdout.trim());
         }
         fs.mkdirSync(path.dirname(destination), { recursive: true });

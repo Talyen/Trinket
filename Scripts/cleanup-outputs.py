@@ -3,7 +3,9 @@
 
 import argparse
 import os
+import signal
 import subprocess
+import sys
 from pathlib import Path
 
 from internal.cli import ROOT, primary_worktree_root
@@ -24,14 +26,17 @@ def main() -> None:
     parser.add_argument('--comparison', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--experiments', action='store_true', help='also remove the three known abandoned experiment builds')
     parser.add_argument('--resources', action='store_true', help='also verify and expire completed release duplicates (may hash large artifacts)')
-    parser.add_argument('--release-duplicates-only', action='store_true', help='verify at most one backed-up ready release; preserve receipts and authoritative artifacts')
-    parser.add_argument('--all-release-duplicates', action='store_true', help='verify all ready release copies with --release-duplicates-only')
+    parser.add_argument('--release-duplicates-only', action='store_true', help='verify at most one backed-up ready or exported release; preserve receipts and authoritative artifacts')
+    parser.add_argument('--all-release-duplicates', action='store_true', help='verify all ready or exported copies with --release-duplicates-only')
     parser.add_argument('--intermediates-only', action='store_true', help='expire only idle compiler scratch, preserving all evidence and products')
+    parser.add_argument('--products', action='store_true', help='also expire idle agent build products with --intermediates-only')
     parser.add_argument('--receipt', type=Path, help='write a compact cleanup/dry-run receipt')
     parser.add_argument('--primary', action='store_true', help='inspect/clean the primary checkout rather than this task checkout')
     args = parser.parse_args()
     if args.all_release_duplicates and not args.release_duplicates_only:
         parser.error('--all-release-duplicates requires --release-duplicates-only')
+    if args.products and not args.intermediates_only:
+        parser.error('--products requires --intermediates-only')
     try:
         root = primary_worktree_root(ROOT) if args.primary else ROOT
         path = args.keep or args.release or args.begin or args.finish
@@ -72,7 +77,7 @@ def main() -> None:
                                       'policy': 'one-verified-release-duplicate', 'decisions': decisions})
                 return
             retention.cleanup(root, apply=args.apply, experiments=args.experiments,
-                              intermediates_only=args.intermediates_only, receipt=args.receipt)
+                              intermediates_only=args.intermediates_only, products=args.products, receipt=args.receipt)
             if args.resources and not args.intermediates_only:
                 from internal import release_retention
                 release_retention.cleanup(root, apply=args.apply)
@@ -81,4 +86,7 @@ def main() -> None:
 
 
 if __name__ == '__main__':
+    # Let the slot-allocation lock's finally block run when bounded maintenance
+    # is stopped by its caller. A detached product remains safely retired.
+    signal.signal(signal.SIGTERM, lambda _signum, _frame: sys.exit(143))
     main()

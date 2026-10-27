@@ -133,8 +133,12 @@ begin
     FileUtils.mkdir_p(retained)
     FileUtils.mv(deploy.receipt.fetch('ipa'), File.join(retained, 'Trinket.ipa'))
     deploy.receipt['symbol_artifacts'] = { 'path' => retained }
+    original_archive = File.join(deploy.run_dir, 'Trinket.xcarchive')
+    deploy.receipt['archive'] = original_archive
+    FileUtils.mkdir_p(File.join(retained, 'Trinket.xcarchive'))
     deploy.validate_ipa_hash
     assert(deploy.artifact_path('ipa', 'Trinket.ipa') == File.join(retained, 'Trinket.ipa'))
+    assert(deploy.artifact_path('archive', 'Trinket.xcarchive') == File.join(retained, 'Trinket.xcarchive'))
     File.write(File.join(retained, 'Trinket.ipa'), 'changed')
     rejects('missing or changed') { deploy.validate_ipa_hash }
   end

@@ -15,6 +15,58 @@ from internal import output_retention as retention
 
 
 class OutputRetentionTests(ScriptRegressionTestCase):
+    def test_nested_package_and_host_scratch_expire_without_touching_products_or_evidence(self):
+        old = [self.output(name, age=2 * 86400) for name in (
+            '.DerivedData/runs/agent-1/packages/BattleEngine/Build/Intermediates.noindex/object',
+            '.DerivedData/runs/agent-1/host/BattleEngine/out/Intermediates.noindex/object')]
+        products = self.output('.DerivedData/runs/agent-1/packages/BattleEngine/Build/Products/compiled', age=2 * 86400)
+        evidence = self.output('.DerivedData/runs/agent-1/TestResults/unique.trace', age=2 * 86400)
+        for file in old:
+            for parent in file.parents:
+                if parent == self.root / '.DerivedData/runs': break
+                os.utime(parent, (0, 0))
+        with patch.object(retention, 'process_snapshot', return_value=self.processes), \
+             patch.object(retention.subprocess, 'run', return_value=subprocess.CompletedProcess('lsof', 1, '', '')):
+            self.assertEqual(retention.cleanup(self.root, apply=True, intermediates_only=True,
+                                               now=self.now, verbose=False)[0], 2)
+        self.assertTrue(all(not file.exists() for file in old))
+        self.assertTrue(products.exists())
+        self.assertTrue(evidence.exists())
+
+    def test_opt_in_agent_products_expire_without_touching_evidence(self):
+        native = self.output('.DerivedData/runs/agent-1/host/BattleEngine/out/Products/native', age=2 * 86400)
+        ios = self.output('.DerivedData/runs/agent-1/packages/BattleEngine/Build/Products/ios', age=2 * 86400)
+        evidence = self.output('.DerivedData/runs/agent-1/TestResults/failure.trace', age=2 * 86400)
+        for file in (native, ios):
+            for parent in file.parents:
+                if parent == self.root / '.DerivedData/runs': break
+                os.utime(parent, (0, 0))
+        with patch.object(retention, 'process_snapshot', return_value=self.processes), \
+             patch.object(retention.subprocess, 'run', return_value=subprocess.CompletedProcess('lsof', 1, '', '')):
+            self.assertEqual(retention.cleanup(self.root, apply=True, intermediates_only=True,
+                                               products=True, now=self.now, verbose=False)[0], 2)
+        self.assertFalse(native.exists())
+        self.assertFalse(ios.exists())
+        self.assertTrue(evidence.exists())
+
+    def test_interrupted_product_retirement_leaves_no_reusable_partial_tree(self):
+        product = self.output('.DerivedData/runs/agent-1/packages/BattleEngine/Build/Products/ios', age=2 * 86400)
+        original = product.parent
+        with patch.object(retention.shutil, 'rmtree', side_effect=SystemExit(143)):
+            with self.assertRaises(SystemExit):
+                retention.remove_products(original, self.root)
+        self.assertFalse(original.exists())
+        retired = retention.retired_product_paths(self.root)
+        self.assertEqual(len(retired), 1)
+        self.assertTrue((retired[0] / 'Products/ios').exists())
+        for path in [retired[0], *retired[0].rglob('*')]:
+            os.utime(path, (self.now - 2 * 86400,) * 2)
+        with patch.object(retention, 'process_snapshot', return_value=self.processes), \
+             patch.object(retention.subprocess, 'run', return_value=subprocess.CompletedProcess('lsof', 1, '', '')):
+            self.assertEqual(retention.cleanup(self.root, apply=True, intermediates_only=True,
+                                               products=True, now=self.now, verbose=False)[0], 1)
+        self.assertFalse(retired[0].exists())
+
     def test_intermediate_only_cleanup_preserves_products_and_unique_evidence(self):
         old = self.output('.DerivedData/runs/old/Build/Intermediates.noindex/object.o', age=4 * 86400)
         kept = self.output('.DerivedData/runs/pinned/Build/Intermediates.noindex/object.o', age=4 * 86400)

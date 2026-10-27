@@ -294,9 +294,9 @@ producing hosted workflows. Age alone never proves that an artifact is disposabl
 | Historical failure, orphan and comparison evidence, including agent evaluations | Review after 24 hours (`TRINKET_OUTPUT_MAX_AGE_HOURS`) | Automatic producer cleanup writes `.retention-review.json`; permanent deletion of unique evidence requires exact-batch approval |
 | Local timing entries and temporary guidance receipts | 24 hours per timing entry; one day of inactivity for checkout-scoped guidance receipts | Existing expiry removes eligible entries/receipts individually |
 | Idle task compiler scratch under `.DerivedData/runs/` and legacy `Packages/*/.build/` | One day without writes (`TRINKET_RUN_MAX_AGE_DAYS`) | Cleanup checks ownership, leases, keeps and open files under the simulator allocation lock; preserves tenant products and evidence |
-| Compiler scratch retired at task creation | Same idle-cache window | Only `Build/Intermediates.noindex`, `Index.noindex` and `ModuleCache.noindex`; preserves products, package checkouts, diagnostics and shared compilation caches |
+| Compiler scratch and agent products retired at task creation | Same idle-cache window | Known agent app/package/host intermediates and product directories; preserves package checkouts, diagnostics and shared compilation caches; no-build requests reject missing products |
 | Successful IPA inspection / thinned-export scratch | Until inspection consumers finish | Scoped temporary cleanup retains compact validation/size proof; failed inspection output and explicit keeps remain available |
-| Ready TestFlight duplicate working copies | 24 hours after verified preservation and completion | Deployment-locked hash/UUID/receipt validation; unfinished, unknown, mismatched, active or kept copies remain protected |
+| Ready or exported TestFlight duplicate working copies | 24 hours after verified preservation and last receipt write | Deployment-locked hash/UUID/receipt validation; exported runs remain resumable from the verified backup; unbacked, unknown, mismatched, active or kept copies remain protected |
 | Authoritative uploaded archive, IPA, matching symbols and provenance; deployment receipts and failed build-number reservations | Indefinite | Release working-copy cleanup never removes these records |
 | Task deliverables and preserved evidence snapshots | Retained; newly classified routine successful static reports expire seven days after completed worktree cleanup | Later task creation expires only hash-verified classified reports, journals their original snapshot and respects keep markers; explicit evidence, failures, active tasks and older unclassified snapshots remain protected |
 | Raw device traces, matching symbols and explicitly retained derived exports | Caller-owned / explicitly kept | No general profile sweep; preserve raw evidence and verify any proposed derivative deletion separately |
@@ -321,14 +321,26 @@ still apply rather than trusting directory timestamps.
 
 For compiler scratch only, use `--dry-run --primary --intermediates-only
 --receipt PATH`; the compact receipt records `.DerivedData/Retention/` decisions.
-`--release-duplicates-only` verifies at most one ready backed-up deployment per
-call; add `--all-release-duplicates` for all ready candidates. Before a local
+Add `--products` to include known agent app, package and host products. Task
+creation performs that bounded maintenance automatically.
+`--release-duplicates-only` verifies at most one backed-up ready or exported run per
+call; add `--all-release-duplicates` for all candidates. Before a local
 TestFlight deployment takes its lock, it automatically runs that full verified
 duplicate pass against the primary checkout; a busy or ambiguous owner defers it.
 `--resources` includes the more expensive release duplicate inventory;
 review its dry run before applying. Normal opportunistic cleanup does not hash
 all release archives. [Release](../Docs/Platform/Release.md#options-and-recovery)
 owns exact validation and recovery mechanics.
+
+Task creation also runs a bounded, incremental pass over inactive task snapshots.
+On macOS it losslessly compresses eligible old text and clones exact duplicate
+files at matching paths within a branch when filesystem support and byte/metadata
+checks permit. Candidates are 1–128 MiB files last modified at least seven days ago;
+each pass attempts at most four. Verification reports and native result, archive,
+symbol and trace bundles stay outside this compaction path.
+Paths remain unchanged; active, open, kept, recently modified, ACL-bearing and
+unknown evidence is skipped. Per-file allocated-byte estimates can overstate real
+free-space gains on APFS. Existing unclassified routine evidence remains retained.
 
 ```sh
 python3 Scripts/cleanup-outputs.py --keep BalanceSweepReports/investigation

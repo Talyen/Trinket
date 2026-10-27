@@ -135,6 +135,7 @@ class PackageDiagnosticsTests(ScriptRegressionTestCase):
                 '  XCODE_RUNNER_LOG_PATH="$PWD/results/$1.log"\n'
                 '  XCODE_RUNNER_REPORT_PREFIX="$PWD/results/$1-current"\n'
                 '}\n'
+                'xcode_runner_write_manifest() { printf "{}" >"$2.json"; }\n'
                 'xcode_runner_run() {\n'
                 '  printf "%s\\n" "$@" >"$XCODE_RUNNER_REPORT_PREFIX.args"\n'
                 '  printf \'{"issues":[{"file":"Shared.swift","line":1,"message":"shared compiler failure"}]}\' >"$XCODE_RUNNER_REPORT_PREFIX.json"\n'
@@ -143,6 +144,10 @@ class PackageDiagnosticsTests(ScriptRegressionTestCase):
                 '  return "${FIXTURE_STATUS:-65}"\n'
                 '}\n'
             )
+            for package in ('TrinketCore', 'BattleEngine'):
+                products = root / 'dd' / package / 'Build/Products'
+                products.mkdir(parents=True)
+                (products / 'fixture.xctestrun').touch()
             cases = (
                 (["--build-for-testing"], [], "65"),
                 (["--build-for-testing"], ["--verbose"], "65"),
@@ -181,6 +186,17 @@ class PackageDiagnosticsTests(ScriptRegressionTestCase):
                         for args in (core_args, battle_args):
                             self.assertEqual(args[args.index("-test-iterations") + 1], "3")
                             self.assertIn("-run-tests-until-failure", args)
+
+            import shutil
+            shutil.rmtree(root / 'dd/TrinketCore/Build/Products')
+            (root / 'results/TrinketCore-current.args').unlink(missing_ok=True)
+            missing = run_captured(
+                ['bash', str(scripts / 'test-package.sh'), '--no-build', '--destination', 'id=fixture', 'TrinketCore'],
+                env={**os.environ, 'FIXTURE_STATUS': '0', 'GITHUB_ACTIONS': 'true'},
+            )
+            self.assertNotEqual(missing.returncode, 0)
+            self.assertIn('Built products for TrinketCore are missing', missing.stderr)
+            self.assertFalse((root / 'results/TrinketCore-current.args').exists())
 
             for mode in ("only-suite", "skip-suite"):
                 with self.subTest(mode=mode):

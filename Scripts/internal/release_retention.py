@@ -8,7 +8,9 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
+import tempfile
 import time
 import zipfile
 
@@ -82,6 +84,88 @@ def working_copies(run: Path, receipt: dict) -> list[tuple[Path, str]]:
     return result
 
 
+def receipt_digest(receipt: dict) -> str:
+    return hashlib.sha256(json.dumps(receipt, sort_keys=True).encode()).hexdigest()
+
+
+def finish_retired_copy(retired: Path) -> None:
+    contents = retired / 'contents'
+    if contents.exists() or contents.is_symlink():
+        retention.remove(contents)
+    (retired / 'retired.json').unlink()
+    retired.rmdir()
+
+
+def retire_working_copy(path: Path, run: Path, kind: str, receipt: dict, root: Path) -> None:
+    """Detach a verified duplicate so an interrupted deletion remains resumable."""
+    parent = run / '.retired-copies'
+    if not retention.safe_path(parent, root):
+        raise ValueError('Unsafe retired release directory')
+    parent.mkdir(exist_ok=True)
+    retired = Path(tempfile.mkdtemp(prefix='copy-', dir=parent))
+    try:
+        from internal.cli import write_json_atomic
+        write_json_atomic(retired / 'retired.json', {'schema': 1, 'original': str(path.relative_to(run)),
+                                                     'kind': kind, 'receipt_sha256': receipt_digest(receipt)})
+        path.rename(retired / 'contents')
+    except BaseException:
+        if not (retired / 'contents').exists():
+            shutil.rmtree(retired)
+        raise
+    finish_retired_copy(retired)
+
+
+def retire_interrupted(run: Path, receipt_path: Path, receipt: dict, preserved: Path, manifest: dict,
+                       root: Path, now: float, apply: bool, processes: dict, emit) -> tuple[int, int]:
+    """Finish interrupted removals only while every surviving byte matches the backup."""
+    parent = run / '.retired-copies'
+    if not retention.safe_path(parent, root) or not parent.is_dir():
+        return 0, 0
+    count = total = 0
+    for retired in parent.glob('copy-*'):
+        marker = retired / 'retired.json'
+        try:
+            if not retention.safe_path(retired, root) or marker.is_symlink():
+                continue
+            record = json.loads(marker.read_text())
+            original = Path(record['original'])
+            kind = record['kind']
+            if (record['schema'] != 1 or record['receipt_sha256'] != receipt_digest(receipt)
+                    or kind not in ('archive', 'ipa', 'extraction') or original.is_absolute() or '..' in original.parts
+                    or {p.name for p in retired.iterdir()} - {'retired.json', 'contents'}):
+                continue
+            newest, size = retention.metadata(retired)
+            if newest > now - MAX_AGE or retention.protection(retired, root, processes):
+                continue
+            opened = subprocess.run(['lsof', '-n', '-P', '+D', str(retired)], capture_output=True, text=True, timeout=30)
+            if opened.returncode != 1 or opened.stdout.strip() or opened.stderr.strip():
+                continue
+            contents = retired / 'contents'
+            if contents.is_symlink():
+                continue
+            if contents.exists():
+                if kind == 'ipa':
+                    if not contents.is_file() or symbols.digest(contents) != manifest['ipaSHA256']:
+                        continue
+                else:
+                    expected = manifest['archiveFiles'] if kind == 'archive' else extracted_hashes(preserved / 'Trinket.ipa')
+                    if not contents.is_dir() or any(expected.get(k) != v for k, v in symbols.tree_hashes(contents).items()):
+                        continue
+            if apply:
+                symbols.verified_release(receipt)
+                if (json.loads(receipt_path.read_text()) != receipt
+                        or retention.protection(retired, root, retention.process_snapshot())
+                        or retention.metadata(retired)[0] > now - MAX_AGE):
+                    continue
+                finish_retired_copy(retired)
+            count += 1
+            total += size
+            emit(f'{"REMOVE" if apply else "WOULD REMOVE"} interrupted release duplicate {retired}')
+        except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError, zipfile.BadZipFile):
+            continue
+    return count, total
+
+
 def cleanup(root: Path, *, apply: bool, now: float | None = None, verbose: bool = True,
             max_verify: int | None = None, decisions: list | None = None) -> tuple[int, int]:
     now = time.time() if now is None else now
@@ -99,12 +183,13 @@ def cleanup(root: Path, *, apply: bool, now: float | None = None, verbose: bool 
                 if not retention.safe_path(receipt_path, root):
                     raise ValueError('Unsafe receipt')
                 receipt = json.loads(receipt_path.read_text())
-                if receipt.get('schema') != 1 or receipt.get('stage') != 'ready':
+                if receipt.get('schema') != 1 or receipt.get('stage') not in ('ready', 'exported'):
                     raise ValueError('Deployment is unfinished or has unknown state')
                 reason = retention.protection(run, root, processes)
                 if reason:
                     raise ValueError(reason)
-                if not working_copies(run, receipt):
+                pending = run / '.retired-copies'
+                if not working_copies(run, receipt) and not (pending.is_dir() and not pending.is_symlink()):
                     emit(f'RETAIN receipt {receipt_path}: no duplicate working copies remain')
                     continue
                 if max_verify is not None and verified >= max_verify:
@@ -115,10 +200,14 @@ def cleanup(root: Path, *, apply: bool, now: float | None = None, verbose: bool 
                 preserved, manifest = symbols.verified_release(receipt)
                 preserved_at = (preserved / 'symbol-manifest.json').stat().st_mtime
                 eligible_at = max(completed_time(receipt, receipt_path), preserved_at) + MAX_AGE
-                emit(f'RETAIN uploaded-release {preserved}: verified archive, IPA and symbols; '
+                emit(f'RETAIN release-backup {preserved}: verified archive, IPA and symbols; '
                      f'allocatedBytes={retention.metadata(preserved)[1]}; no expiry')
                 if now < eligible_at:
                     raise ValueError(f'Duplicate grace period ends at {eligible_at:.0f}')
+                count, size = retire_interrupted(run, receipt_path, receipt, preserved, manifest,
+                                                 root, now, apply, processes, emit)
+                removed += count
+                allocated += size
                 expanded = None
                 for path, kind in working_copies(run, receipt):
                     if not retention.safe_path(path, root):
@@ -157,7 +246,7 @@ def cleanup(root: Path, *, apply: bool, now: float | None = None, verbose: bool 
                                 or retention.metadata(path)[0] > now - MAX_AGE):
                             emit(f'SKIP {path}: receipt or owner changed')
                             continue
-                        retention.remove(path)
+                        retire_working_copy(path, run, kind, receipt, root)
                     if decisions is not None:
                         decisions.append({'path': str(path), 'allocated_bytes': size,
                                           'action': 'removed' if apply else 'eligible',

@@ -281,6 +281,11 @@ run_one_package() {
   fi
 
   if [[ "$ACTION" == "test-without-building" ]]; then
+    if [[ ! -d "$package_dd/Build/Products" ]] || ! compgen -G "$package_dd/Build/Products/*.xctestrun" >/dev/null; then
+      echo "Built products for $package are missing; run without --no-build first." >&2
+      xcode_runner_write_manifest "$result_bundle" "$package_report_prefix" 1 "$package"
+      return 1
+    fi
     if assert_no_build_inputs_are_fresh \
       "$(build_stamp_path "$RESULTS_DIR" "package_$package")" \
       "package_$package"; then

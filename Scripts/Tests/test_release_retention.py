@@ -77,6 +77,58 @@ class ReleaseRetentionTests(unittest.TestCase):
         self.assertTrue((preserved / 'Trinket.ipa').is_file())
         self.assertEqual(self.clean()[0], 0)
 
+    def test_exported_working_copies_expire_only_with_verified_resume_backup(self):
+        self.receipt['stage'] = 'exported'
+        backup = self.receipt.pop('symbol_artifacts')
+        self.save()
+        os.utime(self.receipt_path, (self.now - 2 * releases.MAX_AGE,) * 2)
+        self.assertEqual(self.clean()[0], 0)
+        self.assertTrue(self.archive.exists())
+        self.receipt['symbol_artifacts'] = backup
+        self.save()
+        os.utime(self.receipt_path, (self.now - 2 * releases.MAX_AGE,) * 2)
+        self.assertEqual(self.clean()[0], 3)
+        self.assertFalse(self.archive.exists())
+        self.assertFalse(self.ipa.exists())
+        retained, _ = symbols.verified_release(self.receipt)
+        self.assertTrue((retained / 'Trinket.xcarchive').is_dir())
+        self.assertTrue((retained / 'Trinket.ipa').is_file())
+        self.assertEqual(json.loads(self.receipt_path.read_text())['stage'], 'exported')
+
+    def test_interrupted_release_copy_remains_resumable_and_can_be_retired(self):
+        self.receipt['stage'] = 'exported'
+        self.save()
+        os.utime(self.receipt_path, (self.now - 2 * releases.MAX_AGE,) * 2)
+        with mock.patch.object(releases.shutil, 'rmtree', side_effect=SystemExit(143)):
+            with self.assertRaises(SystemExit):
+                releases.retire_working_copy(self.archive, self.run, 'archive', self.receipt, self.root)
+        self.assertFalse(self.archive.exists())
+        retained, _ = symbols.verified_release(self.receipt)
+        self.assertTrue((retained / 'Trinket.xcarchive').is_dir())
+        retired = next((self.run / '.retired-copies').iterdir())
+        self.assertTrue((retired / 'contents').exists())
+        for path in [retired, *retired.rglob('*')]:
+            if not path.is_symlink():
+                os.utime(path, (self.now - 2 * releases.MAX_AGE,) * 2)
+        self.assertEqual(self.clean()[0], 3)
+        self.assertFalse(retired.exists())
+
+    def test_interrupted_release_copy_with_unexpected_evidence_is_preserved(self):
+        self.receipt['stage'] = 'exported'
+        self.save()
+        os.utime(self.receipt_path, (self.now - 2 * releases.MAX_AGE,) * 2)
+        with mock.patch.object(releases.shutil, 'rmtree', side_effect=SystemExit(143)):
+            with self.assertRaises(SystemExit):
+                releases.retire_working_copy(self.archive, self.run, 'archive', self.receipt, self.root)
+        retired = next((self.run / '.retired-copies').iterdir())
+        extra = retired / 'contents/unique-evidence'
+        extra.write_text('preserve')
+        for path in [retired, *retired.rglob('*')]:
+            if not path.is_symlink():
+                os.utime(path, (self.now - 2 * releases.MAX_AGE,) * 2)
+        self.assertEqual(self.clean()[0], 2)
+        self.assertEqual(extra.read_text(), 'preserve')
+
     def test_completion_grace_unknown_state_keep_and_busy_lock_protect_everything(self):
         for change in ('fresh', 'unfinished', 'keep', 'lock'):
             with self.subTest(change=change):

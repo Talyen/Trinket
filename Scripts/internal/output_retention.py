@@ -7,6 +7,7 @@ import fcntl
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -44,7 +45,7 @@ def safe_path(path: Path, boundary: Path) -> bool:
                    if parent.resolve().is_relative_to(resolved_boundary))
 
 
-def run_cache_roots(root: Path, *, intermediates_only: bool = False) -> list[Path]:
+def run_cache_roots(root: Path, *, intermediates_only: bool = False, products: bool = False) -> list[Path]:
     parent = root / '.DerivedData/runs'
     paths = []
     if safe_path(parent, root) and parent.is_dir():
@@ -53,6 +54,17 @@ def run_cache_roots(root: Path, *, intermediates_only: bool = False) -> list[Pat
         paths.extend(base / relative for base in parent.iterdir() if base.is_dir() and not base.is_symlink()
                      for relative in ('Build/Intermediates.noindex', 'Index.noindex', 'ModuleCache.noindex')
                      if safe_path(base / relative, root) and (base / relative).is_dir())
+        # Package/host tenants share the agent slot and its allocation lock.
+        for base in parent.iterdir():
+            if base.is_symlink() or not base.is_dir() or not re.fullmatch(r'agent-[1-9][0-9]*', base.name):
+                continue
+            for pattern in ('packages/*/Build/Intermediates.noindex', 'host/*/out/Intermediates.noindex'):
+                paths.extend(path for path in base.glob(pattern)
+                             if safe_path(path, root) and path.is_dir())
+            if products:
+                for pattern in ('Build/Products', 'packages/*/Build/Products', 'host/*/out/Products'):
+                    paths.extend(path for path in base.glob(pattern)
+                                 if safe_path(path, root) and path.is_dir())
     # Current native checks use explicit host scratch paths. Legacy SwiftPM
     # outputs remain rebuildable (including BalanceSweepCLI); never expire sources.
     packages = root / 'Packages'
@@ -90,7 +102,7 @@ def managed_path(path: Path, root: Path) -> bool:
     # retires its known compiler scratch, never the tenant itself.
     if path.parent == root / '.DerivedData/runs' and path.is_dir():
         return True
-    if any(path == base for base in run_cache_roots(root)):
+    if any(path == base for base in run_cache_roots(root, products=True)):
         return True
     release_log = path.suffix == '.log' and path.parent.parent == root / '.DerivedData/testflight'
     return release_log or any(path == base or path.is_relative_to(base) for base in output_roots(root))
@@ -230,6 +242,52 @@ def remove(path: Path) -> None:
         path.with_name(path.name + name).unlink(missing_ok=True)
 
 
+def finish_retired_products(retired: Path) -> None:
+    products = retired / 'Products'
+    if products.exists() or products.is_symlink():
+        remove(products)
+    (retired / 'retired.json').unlink()
+    retired.rmdir()
+
+
+def remove_products(path: Path, root: Path) -> None:
+    """Detach products before slow deletion so interrupted cleanup cannot look reusable."""
+    parent = root / '.DerivedData/Retention/retired-products'
+    if not safe_path(parent, root):
+        raise ValueError('Unsafe retired-products directory')
+    parent.mkdir(parents=True, exist_ok=True)
+    retired = Path(tempfile.mkdtemp(prefix='product-', dir=parent))
+    try:
+        write_json_atomic(retired / 'retired.json', {'schema': 1, 'original': str(path.relative_to(root))})
+        path.rename(retired / 'Products')
+    except BaseException:
+        if not (retired / 'Products').exists():
+            shutil.rmtree(retired)
+        raise
+    finish_retired_products(retired)
+
+
+def retired_product_paths(root: Path) -> list[Path]:
+    parent = root / '.DerivedData/Retention/retired-products'
+    if not safe_path(parent, root) or not parent.is_dir():
+        return []
+    paths = []
+    for path in parent.glob('product-*'):
+        marker = path / 'retired.json'
+        try:
+            if not safe_path(path, root) or marker.is_symlink():
+                continue
+            record = json.loads(marker.read_text())
+            original = Path(record['original'])
+            if (record['schema'] == 1
+                    and not original.is_absolute() and '..' not in original.parts
+                    and original.parts[:2] == ('.DerivedData', 'runs') and original.name == 'Products'):
+                paths.append(path)
+        except (OSError, ValueError, KeyError, TypeError):
+            continue
+    return paths
+
+
 def timestamp(value: object, fallback: float) -> float:
     try:
         when = datetime.fromisoformat(value) if isinstance(value, str) else None
@@ -335,8 +393,11 @@ def finish(path: Path, root: Path, pid: int, status: int, *, comparison: bool = 
 
 def expire_run_caches(root: Path, *, apply: bool, now: float, processes: dict,
                       verbose: bool, max_age: float, intermediates_only: bool = False,
+                      products: bool = False,
                       decisions: list | None = None) -> tuple[int, int]:
-    paths = run_cache_roots(root, intermediates_only=intermediates_only)
+    paths = run_cache_roots(root, intermediates_only=intermediates_only, products=products)
+    if products:
+        paths.extend(retired_product_paths(root))
     if not paths:
         return 0, 0
     def expire():
@@ -375,14 +436,14 @@ def prepare_cleanup_receipt(path: Path, root: Path) -> None:
     if path.exists():
         previous = json.loads(path.read_text())
         if not isinstance(previous, dict) or previous.get('schema') != 1 or previous.get('policy') not in {
-                'idle-compiler-intermediates-only', 'one-verified-release-duplicate'}:
+                'idle-compiler-intermediates-only', 'idle-compiler-and-products', 'one-verified-release-duplicate'}:
             raise ValueError('Unknown cleanup receipt destination; existing data preserved')
     path.parent.mkdir(parents=True, exist_ok=True)
 
 
 def cleanup(root: Path, *, apply: bool, experiments: bool = False,
             now: float | None = None, receipts_dir: Path | None = None, verbose: bool = True,
-            intermediates_only: bool = False, receipt: Path | None = None) -> tuple[int, int]:
+            intermediates_only: bool = False, products: bool = False, receipt: Path | None = None) -> tuple[int, int]:
     now = time.time() if now is None else now
     emit = print if verbose else lambda *args: None
     if receipt:
@@ -393,14 +454,14 @@ def cleanup(root: Path, *, apply: bool, experiments: bool = False,
     # Shared Xcode/host caches, arbitrary legacy folders and TestFlight are excluded.
     e, f = expire_run_caches(root, apply=apply, now=now, processes=processes,
                              verbose=verbose, max_age=cache_age,
-                             intermediates_only=intermediates_only, decisions=decisions)
+                             intermediates_only=intermediates_only, products=products, decisions=decisions)
     if intermediates_only:
         if receipt:
             write_json_atomic(receipt, {'schema': 1, 'root': str(root), 'dry_run': not apply,
-                              'policy': 'idle-compiler-intermediates-only', 'decisions': decisions,
+                              'policy': 'idle-compiler-and-products' if products else 'idle-compiler-intermediates-only', 'decisions': decisions,
                               'removed_or_eligible_allocated_bytes': f,
-                              'note': 'Reported allocation may share APFS extents; unique evidence/products preserved.'})
-        emit(f'{"Removed" if apply else "Eligible"}: {e} compiler scratch roots, {f} allocated bytes.')
+                              'note': 'Reported allocation may share APFS extents; unique evidence preserved.'})
+        emit(f'{"Removed" if apply else "Eligible"}: {e} compiler or product roots, {f} allocated bytes.')
         return e, f
     paths = []
     for base in output_roots(root):
@@ -478,12 +539,19 @@ def expire_paths(paths: list[Path], boundary: Path, *, apply: bool, now: float |
         if apply:
             if not path.exists() or (path not in immediate and metadata(path)[0] > now - max_age):
                 continue
-            remove(path)
+            if path.name == 'Products' and path.is_relative_to(boundary / '.DerivedData/runs'):
+                remove_products(path, boundary)
+            elif path.parent == boundary / '.DerivedData/Retention/retired-products':
+                finish_retired_products(path)
+            else:
+                remove(path)
         if decisions is not None:
+            purpose = ('Rebuildable agent products' if path.name == 'Products'
+                       else 'Compiler intermediates; products, logs, releases and package sources excluded')
             decisions.append({'path': str(path), 'allocated_bytes': size, 'newest_write': modified,
                               'action': 'removed' if apply else 'eligible',
                               'recovery': 'Regenerate with repository build/test entrypoints and retained Git inputs',
-                              'purpose': 'Compiler intermediates; products, logs, releases and package sources excluded'})
+                              'purpose': purpose})
         count += 1
         total += size
         emit(f'{"REMOVE" if apply else "WOULD REMOVE"} {path}: {size} allocated bytes')

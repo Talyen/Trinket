@@ -74,6 +74,7 @@ Scripts/deploy-verification.py	test_deploy_verification.py
 Scripts/ci-run-budget.py	test_ci_gate_scripts.py,test_ci_improvements.py
 Scripts/ci_ui_retry.py	test_ci_effort.py,test_deploy_verification.py
 Scripts/cleanup-outputs.py	test_output_retention.py,test_release_retention.py
+Scripts/compact-evidence.py	test_evidence_compaction.py
 Scripts/collect-performance-results.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py
 Scripts/compare-performance.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py
 Scripts/config/agent-tasks.json	test_agent_context.py,test_agent_investigate.py,test_agent_search.py
