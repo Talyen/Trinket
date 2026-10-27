@@ -89,7 +89,7 @@ public struct PlayerLabyrinthState: Codable, Equatable, Sendable {
     }
 
     public var currentFloorNumber: Int {
-        clusters.map(\.depthBand).max() ?? 0
+        clusters.lazy.map(\.depthBand).max() ?? 0
     }
 
     public mutating func ensureMap(

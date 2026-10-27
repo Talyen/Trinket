@@ -6,7 +6,7 @@ enum QuietAffixRules {
     static func prepareAttack(ability: Ability, actor: Combatant, in context: inout BattleState) -> Int {
         guard actor.role != .enemy, context.modifiers(for: actor.id).triggers.alternatingAttackDamageBonus > 0,
               let facts = context.resolution.actionOutcome,
-              let component = ability.operations.compactMap(\.damageComponent).first(where: {
+              let component = ability.operations.lazy.compactMap(\.damageComponent).first(where: {
                   $0.target != .actor && $0.hasPotentialDamage
                       && BattleDamageRules.isEnabled($0, action: facts.action, in: context)
               }) else { return 0 }
@@ -58,7 +58,7 @@ enum QuietAffixRules {
             bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.attackDamageVsBurningPoisonedBonus)
         }
         if triggers.attackDamagePerEnemyBuff > 0 {
-            let buffs = Set(context.roster.activeEffects(for: state.combatant)
+            let buffs = Set(context.roster.activeEffects(for: state.combatant).lazy
                 .filter(\.effect.isRemovableBuff).map(\.effect.kind)).count
             bonus = SaturatedArithmetic.saturatingAdd(bonus, SaturatedArithmetic.saturatingMul(buffs, triggers.attackDamagePerEnemyBuff))
         }

@@ -67,9 +67,12 @@ public struct TalentTree: Identifiable, Hashable, Codable, Sendable {
     }
 
     public func isRowComplete(_ row: Int, unlockedNodeIDs: Set<String>) -> Bool {
-        let rowNodes = nodes(forRow: row)
-        guard !rowNodes.isEmpty else { return false }
-        return rowNodes.allSatisfy { unlockedNodeIDs.contains($0.id) }
+        var found = false
+        for node in nodes where node.row == row {
+            found = true
+            guard unlockedNodeIDs.contains(node.id) else { return false }
+        }
+        return found
     }
 
     public func node(matching id: String) -> TalentNode? {

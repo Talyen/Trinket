@@ -323,8 +323,8 @@ enum CloudSaveMerge {
             ? branches.existing.voyage : branches.incoming.voyage
         merged.voyage = selectedVoyage
         var mergeVoyage = alternateVoyage
-        let currentVoyageCleared = merged.voyage.activeRun?.nodes.filter(\.isCleared).count ?? 0
-        let otherVoyageCleared = alternateVoyage.activeRun?.nodes.filter(\.isCleared).count ?? 0
+        let currentVoyageCleared = merged.voyage.activeRun?.nodes.count(where: \.isCleared) ?? 0
+        let otherVoyageCleared = alternateVoyage.activeRun?.nodes.count(where: \.isCleared) ?? 0
         if merged.voyage.activeRun?.id == alternateVoyage.activeRun?.id,
            otherVoyageCleared > currentVoyageCleared {
             merged.voyage = alternateVoyage
@@ -362,8 +362,8 @@ enum CloudSaveMerge {
 
     private static func mergeLabyrinth(into merged: inout PlayerSave, from other: PlayerSave) {
         guard merged.labyrinth.worldSeed == other.labyrinth.worldSeed else {
-            let currentRank = (merged.labyrinth.currentFloorNumber, merged.labyrinth.nodes.values.filter(\.isCleared).count)
-            let otherRank = (other.labyrinth.currentFloorNumber, other.labyrinth.nodes.values.filter(\.isCleared).count)
+            let currentRank = (merged.labyrinth.currentFloorNumber, merged.labyrinth.nodes.values.count(where: \.isCleared))
+            let otherRank = (other.labyrinth.currentFloorNumber, other.labyrinth.nodes.values.count(where: \.isCleared))
             if otherRank.0 > currentRank.0 || (otherRank.0 == currentRank.0 && otherRank.1 > currentRank.1) {
                 merged.labyrinth = other.labyrinth
             }

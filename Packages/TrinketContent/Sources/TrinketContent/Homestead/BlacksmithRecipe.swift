@@ -44,7 +44,10 @@ public struct EquipmentRecipe: Identifiable, Hashable, Sendable {
     ]
 
     public static func matching(_ id: String) -> Self? {
-        (all + archery + outfitter + focusedBlacksmith).first { $0.id == id }
+        all.first { $0.id == id }
+            ?? archery.first { $0.id == id }
+            ?? outfitter.first { $0.id == id }
+            ?? focusedBlacksmith.first { $0.id == id }
     }
 }
 

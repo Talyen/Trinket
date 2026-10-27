@@ -3,6 +3,12 @@ import Foundation
 public struct ResearchProject: Identifiable, Hashable, Sendable {
     public enum Objective: Hashable, Sendable {
         case defeat(String)
+
+        fileprivate func isSatisfied(in history: LibraryProgress) -> Bool {
+            switch self {
+            case let .defeat(id): history.defeatedEnemyIDs.contains(id)
+            }
+        }
     }
 
     public let id: String
@@ -70,11 +76,7 @@ public struct ResearchProject: Identifiable, Hashable, Sendable {
     }
 
     public func progress(in history: LibraryProgress) -> [Bool] {
-        objectives.map {
-            switch $0 {
-            case let .defeat(id): history.defeatedEnemyIDs.contains(id)
-            }
-        }
+        objectives.map { $0.isSatisfied(in: history) }
     }
 }
 
@@ -103,7 +105,7 @@ public struct LibraryProgress: Codable, Equatable, Sendable {
 
     public mutating func defeat(_ id: String) {
         guard GameContent.enemy(matching: id) != nil else { return }
-        encounter(id)
+        encounteredEnemyIDs.insert(id)
         defeatedEnemyIDs.insert(id)
     }
 
@@ -121,7 +123,7 @@ public struct LibraryProgress: Codable, Equatable, Sendable {
         var completed: [String] = []
         for project in ResearchProject.all where !completedResearchIDs.contains(project.id) {
             guard libraryTier >= project.minimumLibraryTier,
-                  project.progress(in: self).allSatisfy(\.self)
+                  project.objectives.allSatisfy({ $0.isSatisfied(in: self) })
             else { continue }
             completedResearchIDs.insert(project.id)
             if let recipeID = project.recipeID {
