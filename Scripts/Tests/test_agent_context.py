@@ -11,6 +11,7 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
+from unittest.mock import patch
 
 from script_test_support import ROOT, ScriptRegressionTestCase, load_script, run_captured
 
@@ -44,6 +45,13 @@ class AgentContextTests(ScriptRegressionTestCase):
             (root / 'untracked.py').write_text('new\n')
             expected = [api, 'committed name.py', 'dirty.py', 'old name.py', 'removed.py', 'staged name.py', 'untracked.py']
             self.assertEqual(collect_paths(None, root, base='main'), expected)
+            output = StringIO()
+            with redirect_stdout(output), patch.object(BRIEF, 'guidance_command', return_value=None), \
+                    patch.object(BRIEF, 'verification_plan', return_value=[]):
+                self.assertEqual(BRIEF.main(['--base', 'main', '--full'], root=root), 0)
+            self.assertIn('./Scripts/handoff.sh --quiet --base main', output.getvalue())
+            for path in expected:
+                self.assertIn('  ' + path + '\n', output.getvalue())
             self.assertIn('.agents/skills/architect/SKILL.md', classify(expected, root, base='main').skills)
             self.assertIn('public-api', classify(expected, root, base='main').features)
             # Public enum membership changes must also compile external consumers.
@@ -252,6 +260,37 @@ class AgentContextTests(ScriptRegressionTestCase):
         result = run_captured([str(ROOT / "Scripts" / "agent-context.sh"), "--agent"], cwd=ROOT)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("requires --paths", result.stderr)
+
+    def test_local_command_previews_preserve_scope_and_resource_limits(self) -> None:
+        scope = ['--paths', 'Scripts/agent-brief.py']
+        diagnostic = self.brief(*scope, '--diagnostic-package', 'TrinketCore',
+                                '--diagnostic-suite', 'Target/ExampleTests', '--owner', 'thread 1')
+        line = next(line.strip() for line in diagnostic.splitlines() if 'heavy_lane.py' in line)
+        command = shlex.split(line)
+        self.assertEqual(command[2:9], ['--owner', 'thread 1', '--wait', '900', '--timeout', '30', '--'])
+        self.assertEqual(command[-3:], ['--only-suite', 'Target/ExampleTests', 'TrinketCore'])
+        self.assertIn('TRINKET_PACKAGE_TEST_JOBS=1', command)
+        self.assertIn('preview is not verification evidence', diagnostic)
+        visual = self.brief(*scope, '--visual-command', '--owner', 'thread-1')
+        line = next(line.strip() for line in visual.splitlines() if 'heavy_lane.py' in line)
+        command = shlex.split(line)
+        self.assertEqual(command[6:9], ['--timeout', '300', '--'])
+        self.assertEqual(command[-5:], ['./Scripts/handoff.sh', '--route', 'visual', '--paths', 'Scripts/agent-brief.py'])
+        missing = self.brief(*scope, '--visual-command')
+        self.assertIn('Supply --owner <thread-id>', missing)
+        self.assertNotIn('heavy_lane.py', missing)
+
+    def test_local_command_previews_reject_incomplete_or_broad_selectors(self) -> None:
+        for args in (['--diagnostic-package', 'TrinketCore'],
+                     ['--diagnostic-suite', 'ExampleTests'],
+                     ['--diagnostic-package', 'TrinketCore', '--diagnostic-suite', '*'],
+                     ['--diagnostic-package', 'Unknown', '--diagnostic-suite', 'ExampleTests'],
+                     ['--owner', 'thread-1'],
+                     ['--visual-command', '--read-command']):
+            with self.subTest(args=args):
+                result = run_captured(['python3', 'Scripts/agent-brief.py', '--paths', 'Scripts/agent-brief.py', *args], cwd=ROOT)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertNotIn('heavy_lane.py', result.stdout)
 
     def test_file_scoped_commands_reject_directories(self) -> None:
         for script, flags in (("agent-context.sh", []), ("handoff.sh", ["--dry-run", "--isolate"])):

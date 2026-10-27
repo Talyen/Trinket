@@ -25,10 +25,15 @@ wrappers are for diagnostics/tooling, subject to [execution limits](../Docs/Plat
 | `./Scripts/promote.sh` | Build once in isolation and install on Trinket Run; no launch by default |
 | `./Scripts/install-device.sh --device <name-or-id>` | Build/install/launch on selected physical hardware; `--release` selects optimized testing |
 
-Briefing and handoff default to the complete task against `main`: commits plus
-dirty files, deletions and both rename endpoints. `--base <ref>` selects another
-comparison base, `--paths` selects an iteration, and `--working-tree` selects dirty
+Handoff defaults to the complete task against `main`: commits plus dirty files,
+deletions and both rename endpoints. Briefing requires an explicit scope; use
+`python3 Scripts/agent-brief.py --base main` for that same complete task.
+`--base <ref>` selects another comparison base, `--paths` selects an iteration, and `--working-tree` selects dirty
 files only. Worktree creation accepts `--base` only for a user-specified alternative.
+For a concrete local diagnostic, add `--diagnostic-package <package>`,
+`--diagnostic-suite <suite>`, and `--owner <thread-id>` to a scoped briefing.
+For a visual inspection, add `--visual-command --owner <thread-id>`. These print the
+bounded outer command without running it or granting broader authorization.
 Never omit task paths from final verification. Integration's `--reviewed-main <commit>`
 records combined-main review; `--keep-plan` retains intentionally unfinished plans.
 

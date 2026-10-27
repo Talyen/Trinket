@@ -78,7 +78,7 @@ removing mechanisms. Do not push or publish as part of this plan without authori
   the owner of cross-repository rules and coordinate changes there; do not silently
   weaken those rules in Trinket. Add a short decision table and ensure command
   examples and failure messages match the resulting policy.
-- [ ] **P1 — Correct the briefing scope mismatch.** Choose and document the
+- [x] **P1 — Correct the briefing scope mismatch.** Choose and document the
   intended behavior after checking current callers: either provide the promised
   complete-task default or state the required selector and give the exact
   complete-task invocation. Test the no-argument behavior and scope of committed,
@@ -96,7 +96,7 @@ removing mechanisms. Do not push or publish as part of this plan without authori
   reproducible, fix the responsible owner and add a targeted regression that checks
   descendants and lock release without signaling foreign work. If not, retain the
   evidence and a precise unresolved limitation instead of claiming a fix.
-- [ ] **P1 — Route verification without manual flag assembly.** Use the existing
+- [x] **P1 — Route verification without manual flag assembly.** Use the existing
   briefing or handoff preview to present the exact next command for an ordinary
   task, one explicitly selected focused diagnostic, and a visual inspection. Show
   local versus hosted obligations, admission versus execution limits, and the
@@ -142,10 +142,21 @@ and current retry policy; do not infer a failure rate from one historical case.
 
 ## Status and blockers
 
-A fresh source review confirmed that the command reference promises a briefing
-scope default that the executable rejects, and identified manual assembly of the
-focused and visual verification routes as an opportunity to investigate. Neither
-finding establishes measured frequency or authorizes changes to resource limits.
+The command reference now identifies briefing's required scope and `--base main`
+for a complete task; existing callers keep their explicit-scope behavior. Scoped
+briefing can print a host-admitted focused package-suite or visual command when
+provided the selector and owner, with the deadlines and evidence limits visible.
+Focused fixtures cover scope endpoints, incomplete selectors and generated command
+arguments. These are source and fixture results, not measured end-to-end gains.
+
+This documentation/tooling task supplies one natural workflow sample; equivalent
+logic, UI and localization tasks and timings remain outstanding. A fresh managed
+iPhone inspection built and launched the app, but native discovery hit the same
+existing per-device reservation, whose recorded start was uncertain
+and returned no session key. Computer Use reported the Mac locked. The inspection
+released its own lease and preserved the reservation; no input or Duo interaction
+was exercised. Resume visual recovery after the Mac is unlocked and the reservation's
+ownership can be resolved using the existing recovery guidance.
 
 The supplied shared-machine rules now agree with the focused diagnostic example
 and automatic host admission. The briefing explains active-plan retention; sample

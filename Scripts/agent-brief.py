@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 import shlex
 import subprocess
@@ -11,7 +12,7 @@ from internal.agent_arguments import AgentArgumentParser
 from internal.agent_status import briefing
 from internal.agent_tasks import guidance_command, select_task
 from internal.change_routing import BEHAVIOR_CARDS, classify, collect_paths, verification_plan
-from internal.cli import ROOT, load_sibling
+from internal.cli import ROOT, load_sibling, read_env_arrays
 
 
 def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
@@ -21,11 +22,30 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     scope.add_argument('--working-tree', action='store_true')
     scope.add_argument('--base', help='include task commits since the shared ancestor of REF and HEAD, plus dirty files')
     parser.add_argument('--task')
+    parser.add_argument('--owner', help='thread ID for an explicitly requested local command')
+    local = parser.add_mutually_exclusive_group()
+    local.add_argument('--diagnostic-package', help='package for one exact local diagnostic suite')
+    local.add_argument('--visual-command', action='store_true', help='show the managed visual inspection command')
+    parser.add_argument('--diagnostic-suite', help='exact suite or target/suite for --diagnostic-package')
     for flag in ('agent', 'full', 'status', 'smoke', 'allow-broad-scope', 'read-command'):
         parser.add_argument('--' + flag, action='store_true')
     parser.add_argument('--read', action='store_true', help='read safeguards and concise ownership; add --full to expand behavior contracts')
     args = parser.parse_args(argv)
     try:
+        if args.read_command and (args.diagnostic_package or args.visual_command or args.owner):
+            parser.error('--read-command cannot combine with local command previews')
+        if args.diagnostic_suite and not args.diagnostic_package:
+            parser.error('--diagnostic-suite requires --diagnostic-package')
+        if args.diagnostic_package and not args.diagnostic_suite:
+            parser.error('--diagnostic-package requires one exact --diagnostic-suite')
+        if args.owner and not (args.diagnostic_package or args.visual_command):
+            parser.error('--owner requires --diagnostic-package or --visual-command')
+        if args.diagnostic_package:
+            known = read_env_arrays(root / 'Scripts/build-inputs.env', ['TRINKET_TEST_PACKAGES'])['TRINKET_TEST_PACKAGES']
+            if args.diagnostic_package not in known:
+                parser.error('--diagnostic-package requires a registered package')
+            if not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*(?:/[A-Za-z_][A-Za-z0-9_]*)?', args.diagnostic_suite):
+                parser.error('--diagnostic-suite requires one suite or target/suite')
         task = select_task(root, args.task) if args.task else None
         if task and args.working_tree: parser.error('--task cannot combine with --working-tree; use --paths for the actual task scope')
         if args.paths == []: parser.error('--paths requires at least one repository-relative path')
@@ -73,6 +93,23 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
         emit('Generated-output warnings', route.generated_warnings)
         handoff = ['./Scripts/handoff.sh', '--quiet', *(['--base', args.base] if args.base else ['--working-tree'] if args.working_tree else ['--paths', *paths])]
         emit('Iteration check (only the supplied scope)', [shlex.join(handoff)])
+        if args.diagnostic_package or args.visual_command:
+            if not args.owner:
+                emit('Local command needs an owner', ['Supply --owner <thread-id>; no local command has been printed or run.'])
+            else:
+                lane = ['python3', '/Users/ryanmcintire/Developer/.coordination/heavy_lane.py',
+                        '--owner', args.owner, '--wait', '900', '--timeout', '30' if args.diagnostic_package else '300', '--']
+                if args.diagnostic_package:
+                    command = [*lane, 'env', 'TRINKET_ALLOW_HEAVY_LOCAL=1', 'TRINKET_ISOLATE=1',
+                               'TRINKET_PACKAGE_TEST_JOBS=1', 'TRINKET_SERIAL_TESTS=1',
+                               './Scripts/test-package.sh', '--only-suite', args.diagnostic_suite, args.diagnostic_package]
+                    label = 'Focused diagnostic (one concrete unresolved question; 30 seconds per attempt, retry timeout)'
+                else:
+                    command = [*lane, './Scripts/handoff.sh', '--route', 'visual',
+                               *(['--base', args.base] if args.base else ['--working-tree'] if args.working_tree else ['--paths', *paths])]
+                    label = 'Visual inspection (when the visual gate applies; use a persistent terminal and review the result)'
+                emit(label, [shlex.join(command), 'Admission wait is up to 900 seconds; preview is not verification evidence.',
+                             'Run final static handoff separately; hosted qualification remains pending.'])
         emit('Final task verification (all task changes; --dry-run previews)',
              [shlex.join(['./Scripts/handoff.sh', '--quiet', *(['--base', args.base] if args.base else [])])])
         emit('Landing (from the task worktree after review/commit; includes final static handoff)',
