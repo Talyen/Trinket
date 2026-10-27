@@ -98,7 +98,7 @@ private extension BattleState {
     ) -> [BattleCardAssessment.Target] {
         let actor = action.actor
         let hasDamage = branch.operations.contains { $0.damageComponent != nil }
-        var targets = assessmentDamageTargets(branch, action: action, keywordOverride: keywordOverride)
+        var targets = hasDamage ? assessmentDamageTargets(branch, action: action, keywordOverride: keywordOverride) : []
         for (index, operation) in branch.operations.enumerated() {
             guard case let .effect(targeted) = operation else { continue }
             guard targeted.chance >= 1 else { continue }

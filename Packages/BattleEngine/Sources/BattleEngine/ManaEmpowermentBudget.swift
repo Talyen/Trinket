@@ -34,15 +34,22 @@ struct ManaEmpowermentBudget {
     ) {
         let runtime = context.roster.runtime(for: actor)
         let triggers = context.modifiers(for: actor.id).triggers
-        let patron = keywords.contains(.freeze) && actor.role != .enemy
-            ? [context.roster.hero, context.roster.companion].first {
-                $0.id != actor.id && $0.isAlive && context.modifiers(for: $0.id).triggers.dragonPatronage
-            } : nil
+        let hasFreeze = keywords.contains(.freeze)
+        func isPatron(_ candidate: CombatantRuntime) -> Bool {
+            candidate.id != actor.id && candidate.isAlive && context.modifiers(for: candidate.id).triggers.dragonPatronage
+        }
+        let patron: CombatantRuntime? = if hasFreeze, actor.role != .enemy, isPatron(context.roster.hero) {
+            context.roster.hero
+        } else if hasFreeze, actor.role != .enemy, isPatron(context.roster.companion) {
+            context.roster.companion
+        } else {
+            nil
+        }
         partner = patron?.combatant
         ownMana = runtime?.currentMana ?? 0
         partnerMana = patron?.currentMana ?? 0
-        block = blockOverride ?? (runtime.map { DefensePoolEngine.blockPoints(in: $0.activeEffects) } ?? 0)
-        blockRate = keywords.contains(.freeze) ? triggers.freezeEmpowermentBlockPerMana : 0
+        blockRate = hasFreeze ? triggers.freezeEmpowermentBlockPerMana : 0
+        block = blockRate > 0 ? (blockOverride ?? (runtime.map { DefensePoolEngine.blockPoints(in: $0.activeEffects) } ?? 0)) : 0
         hasEmpowered = runtime?.talents.battle.hasEmpoweredWithMana ?? false
         firstDiscount = triggers.firstEmpowermentCostReduction
         let reduction = keywords.contains(.health) && triggers.healingEmpowermentCostReduction > 0

@@ -28,12 +28,18 @@ enum BattleAbilityRules {
         guard let branches = selected.outcomeBranches else {
             return Outcomes(ability: selected, branches: [AbilityOutcomeBranch(operations: selected.operations)])
         }
-        let eligible = branches.filter { branch in
-            branch.condition.map { BattleConditionEvaluator.isMet($0, action: action, in: context) } ?? true
+        var eligible: [AbilityOutcomeBranch]?
+        for (index, branch) in branches.enumerated() {
+            let matches = branch.condition.map { BattleConditionEvaluator.isMet($0, action: action, in: context) } ?? true
+            if matches {
+                eligible?.append(branch)
+            } else if eligible == nil {
+                eligible = Array(branches.prefix(index))
+            }
         }
         // Execution's fallback is part of the possible outcome set. Quotes and
         // affordability must include it too, without consuming a random value.
-        return Outcomes(ability: selected, branches: eligible.isEmpty ? branches : eligible)
+        return Outcomes(ability: selected, branches: eligible.flatMap { $0.isEmpty ? nil : $0 } ?? branches)
     }
 
     static func resolveOutcome(_ ability: Ability, actor: Combatant, in context: inout BattleState) -> Ability {

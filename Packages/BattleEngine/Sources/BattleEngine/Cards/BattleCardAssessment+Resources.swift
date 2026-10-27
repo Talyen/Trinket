@@ -10,12 +10,23 @@ extension BattleState {
         if original.blockCost > 0 {
             resources.append(resourceUse(.block, amount: original.blockCost, actor: actor))
         }
-        let hasDamage = branch.operations.contains { $0.damageComponent != nil }
+        var hasDamage = false
+        var hasManaEmpowerable = false
+        for operation in branch.operations {
+            if !hasDamage, operation.damageComponent != nil {
+                hasDamage = true
+            }
+            if !hasManaEmpowerable, operation.isManaEmpowerable {
+                hasManaEmpowerable = true
+            }
+            if hasDamage, hasManaEmpowerable {
+                break
+            }
+        }
         let healthCost = BattleAbilityRules.healthCost(branch.operations, action: action, in: self)
         if healthCost > 0 {
             resources.append(resourceUse(.health, amount: healthCost, actor: actor))
         }
-        let hasManaEmpowerable = branch.operations.contains(where: \.isManaEmpowerable)
         for use in empowermentResourceUses(
             branch.operations, repeatsManaEmpowerment: original.repeatsManaEmpowerment,
             actor: actor, randomKeywords: branch.randomizeDamageKeywords,

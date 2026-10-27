@@ -53,7 +53,15 @@ public struct PlayerLabyrinthState: Codable, Equatable, Sendable {
     public func isNodeReachable(_ nodeID: String) -> Bool {
         guard let node = nodes[nodeID], node.isRevealed, !node.isCleared,
               node.id != LabyrinthGenerator.entranceNodeID else { return false }
-        return isNodeReachable(node, using: reachabilityIndex())
+        if nodes.values.contains(where: { $0.isCleared && $0.outgoingIDs.contains(node.id) }) {
+            return true
+        }
+        guard let position = node.gridPosition else { return false }
+        let neighbors = position.neighbors
+        return nodes.values.contains {
+            $0.isCleared && $0.clusterID == node.clusterID
+                && $0.gridPosition.map(neighbors.contains) == true
+        }
     }
 
     public func reachableNodeIDSet() -> Set<String> {

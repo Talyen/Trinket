@@ -148,12 +148,13 @@ package extension DamagePipeline {
     ) -> Double {
         let defenderTriggers = context.modifiers(for: owner.id).triggers
         let doublesPhysical = defenderTriggers.doublePhysicalBlockAbsorption && state.damageKeyword == .physical
-        let belowHalfHealth = context.roster.isBelowHalfHealth(for: owner)
-        let oathMultiplier = belowHalfHealth ? defenderTriggers.blockAbsorptionMultiplierBelowHalfHealth : 1
-        let manaMultiplier = (context.roster.runtime(for: owner)?.currentMana ?? 0) > 0
-            ? defenderTriggers.blockAbsorptionMultiplierWhileMana : 1
-        let attackerIsBurning = state.sourceActorID.flatMap { context.roster.combatant(for: $0)?.combatant }
-            .map { context.roster.hasAffliction(.burn, on: $0) } ?? false
+        let oathMultiplier = max(1, defenderTriggers.blockAbsorptionMultiplierBelowHalfHealth) != 1
+            && context.roster.isBelowHalfHealth(for: owner) ? defenderTriggers.blockAbsorptionMultiplierBelowHalfHealth : 1
+        let manaMultiplier = max(1, defenderTriggers.blockAbsorptionMultiplierWhileMana) != 1
+            && (context.roster.runtime(for: owner)?.currentMana ?? 0) > 0 ? defenderTriggers.blockAbsorptionMultiplierWhileMana : 1
+        let attackerIsBurning = max(1, defenderTriggers.blockAbsorptionVsBurningMultiplier) != 1
+            && (state.sourceActorID.flatMap { context.roster.combatant(for: $0)?.combatant }
+                .map { context.roster.hasAffliction(.burn, on: $0) } ?? false)
         let burningMultiplier = attackerIsBurning ? defenderTriggers.blockAbsorptionVsBurningMultiplier : 1
         return (doublesPhysical ? 2.0 : 1.0) * max(1, oathMultiplier)
             * max(1, defenderTriggers.blockAbsorptionMultiplier)

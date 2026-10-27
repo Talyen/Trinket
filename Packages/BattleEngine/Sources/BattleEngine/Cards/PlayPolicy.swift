@@ -61,7 +61,10 @@ private enum HeuristicCardScoring {
             ))
         }
         let hasLeechHit = outcomes.ability.hasLeech || branches.contains { branch in
-            branch.damageComponents.contains { $0.hasLeech && $0.target != .actor }
+            branch.operations.contains { operation in
+                guard let component = operation.damageComponent else { return false }
+                return component.hasLeech && component.target != .actor
+            }
         }
         return SaturatedArithmetic.saturatingAdd(total / max(1, branches.count), hasLeechHit ? 5 : 0)
     }

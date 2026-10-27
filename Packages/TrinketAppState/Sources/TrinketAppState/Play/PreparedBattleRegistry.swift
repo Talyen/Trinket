@@ -62,10 +62,12 @@ final class PreparedBattleRegistry {
     }
 
     var preview: BattlePreparedPreview {
-        let runs = entries.sorted { $0.key.rawValue < $1.key.rawValue }.map(\.value)
-        let selected = selectedKey.flatMap { entries[$0]?.handle }
-            ?? (runs.count == 1 ? runs.first?.handle : nil)
-        return BattlePreparedPreview(configurations: runs.map(\.registration.launch.configuration), selected: selected)
+        let selected = selectedKey.flatMap { entriesStorage[$0]?.handle }
+            ?? (entriesStorage.count == 1 ? entriesStorage.values.first?.handle : nil)
+        let configurations = entriesStorage.count <= 1
+            ? entriesStorage.values.map(\.registration.launch.configuration)
+            : entriesStorage.sorted { $0.key.rawValue < $1.key.rawValue }.map(\.value.registration.launch.configuration)
+        return BattlePreparedPreview(configurations: configurations, selected: selected)
     }
 }
 

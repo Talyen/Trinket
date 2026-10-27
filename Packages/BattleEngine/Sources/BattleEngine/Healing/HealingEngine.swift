@@ -44,7 +44,7 @@ package enum HealingEngine {
         let overflow = allocation.overflow
         await applyPreLogTalentReactions(
             request: request, restored: restored, preHealth: preHealth,
-            maxHealth: maxHealth, allocation: &allocation, in: &context,
+            maxHealth: maxHealth, sourceTriggers: sourceTriggers, allocation: &allocation, in: &context,
         )
 
         appendHealLog(request: request, restored: restored, isCritical: isCritical, in: &context)
@@ -76,11 +76,11 @@ package enum HealingEngine {
         restored: Int,
         preHealth: Int,
         maxHealth: Int,
+        sourceTriggers: CombatTraitTriggers?,
         allocation: inout HealingAllocation,
         in context: inout BattleState,
     ) async {
         guard !request.suppressTalentReactions else { return }
-        let sourceTriggers = request.sourceActorID.map { context.modifiers(for: $0).triggers }
         let targetTriggers = context.modifiers(for: request.target.id).triggers
         applyFullHealthBonus(
             preHealth: preHealth, maxHealth: maxHealth,
