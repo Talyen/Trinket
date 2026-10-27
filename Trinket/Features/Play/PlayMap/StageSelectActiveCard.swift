@@ -14,6 +14,7 @@ struct StageSelectActiveCard<
     @Environment(OptionsStore.self) private var options
     @Environment(\.isBattleActive) private var isBattleActive
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
 
     let presentation: StageSelectRowPresentation<Item>
     let hapticsEnabledOverride: Bool?
@@ -162,11 +163,11 @@ struct StageSelectActiveCard<
                     .modifier(StageTitleFit())
             }
 
-            GameLabel(presentation.title, balanced: true)
+            GameLabel(presentation.title, resource: presentation.titleResource, balanced: true)
                 .trinketTypography(.sectionDisplay)
                 .foregroundStyle(.primary)
                 .modifier(StageTitleFit())
-                .gameAccessibilityLabel(presentation.title)
+                .accessibilityLabel(label(presentation.title, resource: presentation.titleResource))
         }
     }
 
@@ -190,7 +191,7 @@ struct StageSelectActiveCard<
                 if dynamicTypeSize.isAccessibilitySize {
                     ViewThatFits(in: .horizontal) {
                         primaryActionLabel.fixedSize(horizontal: true, vertical: false)
-                        GameLabel(primaryActionTitle)
+                        GameLabel(primaryActionTitle, resource: primaryActionResource)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 } else {
@@ -207,7 +208,7 @@ struct StageSelectActiveCard<
             labelColor: primaryActionLabelColor,
             accessibilityIdentifier: presentation.actionAccessibilityID,
         )
-        .gameAccessibilityLabel(primaryActionTitle)
+        .accessibilityLabel(label(primaryActionTitle, resource: primaryActionResource))
         .disabled(isPrimaryActionDisabled)
         .trinketSensoryFeedback(
             .selection,
@@ -220,9 +221,21 @@ struct StageSelectActiveCard<
         isLockedContent ? String(localized: L10n.ui_stageselectactivecard_unlock_4ac70) : presentation.primaryActionTitle
     }
 
+    private var primaryActionResource: LocalizedStringResource? {
+        isLockedContent ? nil : presentation.primaryActionResource
+    }
+
+    private func label(_ english: String, resource: LocalizedStringResource?) -> Text {
+        if var resource {
+            resource.locale = locale
+            return Text(verbatim: String(localized: resource))
+        }
+        return Text(verbatim: ContentCopy.localized(english, locale: locale))
+    }
+
     private var primaryActionLabel: some View {
         Label {
-            GameLabel(primaryActionTitle)
+            GameLabel(primaryActionTitle, resource: primaryActionResource)
         } icon: {
             if isLockedContent {
                 Image(systemName: "lock.fill").scaleEffect(1.15)
@@ -309,7 +322,7 @@ struct StageSelectMetaLine<Item: Identifiable>: View {
                 GameLabel(presentation.mapLabel)
                 Text("·")
             }
-            GameLabel(presentation.encounterTypeTitle)
+            GameLabel(presentation.encounterTypeTitle, resource: presentation.encounterTypeResource)
                 .foregroundStyle(presentation.tint)
             GameIconImage(presentation.icon)
                 .foregroundStyle(presentation.tint)
@@ -319,7 +332,7 @@ struct StageSelectMetaLine<Item: Identifiable>: View {
 
     private var encounterKind: some View {
         HStack(spacing: TrinketDesign.Spacing.extraSmall) {
-            GameLabel(presentation.encounterTypeTitle)
+            GameLabel(presentation.encounterTypeTitle, resource: presentation.encounterTypeResource)
                 .fixedSize(horizontal: false, vertical: true)
             GameIconImage(presentation.icon)
                 .accessibilityHidden(true)

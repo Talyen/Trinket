@@ -83,6 +83,8 @@ saved equipment after catalog wording changes. These localize the saved rule and
 rolled quantities without adding newly authored bonuses to old powers.
 Upgrade colors require matching keyword and quantity identities, independent of
 word order, so expanded rules cannot compare unrelated saved stats.
+Trait and talent names resolve by identity through their `nameResource` properties.
+Stage presentations retain contextual resources when encounter labels and actions share English wording.
 Item names resolve by base identity through `InventoryItem.localizedDisplayName(locale:)`;
 shared English words such as the weapon and attack “Maul” can require different translations.
 Pass the app rendering locale into StoreKit product styles so storefront locale does

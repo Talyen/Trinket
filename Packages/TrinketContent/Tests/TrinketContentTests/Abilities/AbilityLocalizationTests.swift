@@ -41,6 +41,33 @@ struct AbilityLocalizationTests {
         #expect(item.baseType.id == "maul")
     }
 
+    @Test func `trait and talent names use their own catalog identities`() throws {
+        let locale = Locale(identifier: "ja")
+        let trait = try #require(GameContent.traits.first { $0.id == "bloodletting" })
+        let talent = TalentNode(id: "golden_retriever_block_t3_2", name: "Steadfast", keyword: .block, description: "")
+        #expect(LocalizedGameText(trait.nameResource, locale: locale).text == LocalizedGameText(
+            L10n.traits_bloodletting_name,
+            locale: locale,
+        ).text)
+        #expect(LocalizedGameText(talent.nameResource, locale: locale).text == LocalizedGameText(
+            L10n.talents_golden_retriever_block_t3_2_name,
+            locale: locale,
+        ).text)
+        #expect(LocalizedGameText(trait.nameResource, locale: locale).text != ContentCopy.localized(trait.name, locale: locale))
+        #expect(LocalizedGameText(talent.nameResource, locale: locale).text != ContentCopy.localized(talent.name, locale: locale))
+    }
+
+    @Test func `encounter labels distinguish destinations from actions`() throws {
+        let locale = Locale(identifier: "ja")
+        let recruit = StageEncounter.recruit(eventID: "recruit-knight")
+        let destination = try #require(recruit.contextualTitleResource)
+        let labyrinth = try #require(LabyrinthNodeType.recruit.contextualTitleResource)
+        let battle = try #require(StageEncounter.randomBattle.contextualActionResource)
+        #expect(LocalizedGameText(destination, locale: locale).text != ContentCopy.localized(recruit.title, locale: locale))
+        #expect(LocalizedGameText(labyrinth, locale: locale).text == LocalizedGameText(destination, locale: locale).text)
+        #expect(LocalizedGameText(battle, locale: locale).text != ContentCopy.localized("Battle", locale: locale))
+    }
+
     @Test func `translated ability rules preserve typed quantities and canonical battle inputs`() throws {
         let ability = try #require(AbilityCatalog.ability(id: "bloodthorn"))
         let original = ability.summary

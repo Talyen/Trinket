@@ -38,7 +38,8 @@ class LocalizationTests(unittest.TestCase):
             {'id': item['id'], 'locale': item['locale'], 'source_hash': item['source_hash'],
              'translation': {'value': text[item['locale']]},
              'review': {'verdict': 'pass', 'checks': queue['required_review_checks'],
-                        'rationale': 'Second pass checked the damage amount, enemy target, and Burn meaning.'}}
+                        'rationale': 'Second pass checked the damage amount, enemy target, and Burn meaning.',
+                        'translation_hash': digest({'value': text[item['locale']]})}}
             for item in queue['requests']]}
 
     def worker(self):
@@ -175,6 +176,8 @@ output.write_text(json.dumps({'translations': results}))
     def test_prepare_resumes_only_matching_sources_and_hash_bound_reviews(self):
         first = prepare(self.root)
         response = self.response()
+        for item in response['translations']:
+            item['review'] = {'verdict': 'pending'}
         path = first / 'response.json'
         path.write_bytes(encoded(response))
         record_review(self.root, path, 'Separate review checked all required dimensions.')
@@ -278,6 +281,9 @@ output.write_text(json.dumps({'translations': results}))
         reviewed = json.loads(path.read_text())
         changed = deepcopy(reviewed)
         changed['translations'][1]['translation']['value'] += '.'
+        with self.assertRaisesRegex(ValueError, 'changed after review'):
+            apply(self.root, changed)
+        del changed['translations'][1]['review']['translation_hash']
         with self.assertRaisesRegex(ValueError, 'changed after review'):
             apply(self.root, changed)
         apply(self.root, reviewed)

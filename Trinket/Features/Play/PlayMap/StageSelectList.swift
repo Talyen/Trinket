@@ -86,7 +86,7 @@ private struct StageSelectRow<Item: Identifiable, Artwork: View, PartyPickerShee
                 .clipShape(TrinketDesign.cardShape)
 
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.tight) {
-                GameLabel(presentation.title)
+                GameLabel(presentation.title, resource: presentation.titleResource)
                     .trinketTypography(.rowDisplay)
                     .foregroundStyle(.primary)
                     .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)

@@ -6,16 +6,36 @@ import TrinketDesignSystem
 public struct GameLabel: View {
     @Environment(\.locale) private var locale
     private let english: String
+    private let resource: LocalizedStringResource?
     private let balanced: Bool
 
     public init(_ english: String, balanced: Bool = false) {
         self.english = english
+        resource = nil
+        self.balanced = balanced
+    }
+
+    public init(_ english: String, resource: LocalizedStringResource?, balanced: Bool = false) {
+        self.english = english
+        self.resource = resource
+        self.balanced = balanced
+    }
+
+    public init(_ resource: LocalizedStringResource, balanced: Bool = false) {
+        english = ""
+        self.resource = resource
         self.balanced = balanced
     }
 
     public var body: some View {
-        let text = ContentCopy.localized(english, locale: locale)
+        let text = resource.map(localized) ?? ContentCopy.localized(english, locale: locale)
         Text(verbatim: balanced ? text.trinketBalanced() : text)
+    }
+
+    private func localized(_ value: LocalizedStringResource) -> String {
+        var value = value
+        value.locale = locale
+        return String(localized: value)
     }
 }
 

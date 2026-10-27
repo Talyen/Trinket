@@ -19,6 +19,7 @@ struct CombatantTraitsSection: View, Equatable {
                 title: trait.name,
                 description: trimmed(trait.description),
                 descriptionAccessibilityID: "\(descriptionID).\(trait.id)",
+                localizedTitle: trait.nameResource,
             )
         }
     }

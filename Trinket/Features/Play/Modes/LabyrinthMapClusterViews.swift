@@ -205,7 +205,7 @@ private struct LabyrinthMapNodeSeal: View {
     }
 
     private var nodeAccessibilityLabel: LocalizedStringResource {
-        var title = ContentCopy.resource(type.title)
+        var title = type.contextualTitleResource ?? ContentCopy.resource(type.title)
         title.locale = locale
         return switch visualState {
         case .cleared: L10n.ui_labyrinthmapclusterviews_1_cleared_b0008(title)

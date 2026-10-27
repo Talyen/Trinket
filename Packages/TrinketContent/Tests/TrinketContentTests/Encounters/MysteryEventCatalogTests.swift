@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 import TrinketContentTestSupport
 import TrinketCore
@@ -154,6 +155,19 @@ struct MysteryEventCatalogTests {
         #expect(first == stage.resolvedBattleEnemyID(worldSeed: 8))
         let picks = try (UInt64(8) ... 23).map { try #require(stage.resolvedBattleEnemyID(worldSeed: $0)) }
         #expect(Set(picks).count > 1)
+    }
+
+    @Test func `mystery narratives retain item identity and English articles`() throws {
+        let event = try #require(GameContent.mysteryEvents.first { $0.id == "meteorite-crash" })
+        let base = try #require(GameContent.itemBaseType(matching: "maul"))
+        let item = InventoryItem(id: "localization-maul", baseType: base, rarity: .basic, displayName: base.name, affixes: [])
+        let offer = MysteryOffer(choiceID: "search-the-crater", item: item, bonus: .experience(0))
+        let korean = Locale(identifier: "ko")
+        #expect(event.localizedNarrative(for: [offer], locale: korean).contains(item.localizedDisplayName(locale: korean)))
+        #expect(event.localizedNarrative(for: [], locale: korean).contains(base.localizedName(locale: korean)))
+        let english = event.localizedNarrative(for: [offer], locale: Locale(identifier: "en-US"))
+        #expect(english == event.narrative(for: [offer]))
+        #expect(english.contains("a Maul"))
     }
 
     @Test func `item pools cover known special items and use gear fallbacks`() throws {

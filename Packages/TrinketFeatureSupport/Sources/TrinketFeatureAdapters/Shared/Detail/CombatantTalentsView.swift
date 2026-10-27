@@ -219,7 +219,7 @@ public struct CombatantTalentsView: View {
         let isSelected = selectedNodeID == node.id
         let outlineOpacity = canUnlock(node) ? 0.6 : (isUnlocked ? 0.4 : 0)
         let style = node.keyword.visualStyle
-        var name = ContentCopy.resource(node.name)
+        var name = node.nameResource
         name.locale = locale
         return Button {
             guard selectedNodeID != node.id else { return }
@@ -229,7 +229,7 @@ public struct CombatantTalentsView: View {
             VStack(spacing: TrinketDesign.Spacing.small) {
                 TalentNodeIcon(node: node, isUnlocked: isUnlocked, isRowLocked: isRowLocked)
 
-                GameLabel(node.name, balanced: true)
+                GameLabel(name, balanced: true)
                     .trinketTypography(.cardLabel)
                     .foregroundStyle(isUnlocked ? .primary : (isRowLocked ? .tertiary : .secondary))
                     .multilineTextAlignment(.center)
@@ -263,7 +263,7 @@ public struct CombatantTalentsView: View {
         .accessibilityIdentifier(nodeAccessibilityIdentifier(node.id))
         .accessibilityLabel(isRowLocked
             ? Text(L10n.ui_combatanttalentsview_1_locked_1871c(name))
-            : Text(verbatim: ContentCopy.localized(node.name, locale: locale)))
+            : Text(name))
     }
 
     private func unlockAccent(for node: TalentNode) -> some View {
@@ -382,7 +382,7 @@ private extension CombatantTalentsView {
                         .foregroundStyle(style.color)
                         .accessibilityHidden(true)
 
-                    GameLabel(selectedNode.name, balanced: true)
+                    GameLabel(selectedNode.nameResource, balanced: true)
                         .trinketTypography(.cardTitle)
                         .foregroundStyle(style.color)
                         .trinketFittedText()

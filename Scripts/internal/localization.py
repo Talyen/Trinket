@@ -387,7 +387,7 @@ def apply(root: Path, response: dict) -> None:
             review = result['review']
             if review.get('verdict') != 'pass' or not REVIEW_CHECKS <= set(review.get('checks', [])) or not review.get('rationale', '').strip():
                 raise ValueError(f'{identifier}/{locale}: a completed second-pass AI review is required')
-            if 'translation_hash' in review and review['translation_hash'] != digest(value):
+            if review.get('translation_hash') != digest(value):
                 raise ValueError(f'{identifier}/{locale}: translation changed after review; review it again')
             enforce_glossary(entry, value, locale, identifier)
             catalogs[entry['catalog']]['strings'][entry['key']].setdefault('localizations', {})[locale] = localized(value)

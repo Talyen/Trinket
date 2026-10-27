@@ -7,6 +7,7 @@ public struct DetailTraitRow: View {
     let description: String
     var comparisonDescription: String?
     private var localizedDescription: LocalizedGameText?
+    private var localizedTitle: LocalizedStringResource?
     var descriptionAccessibilityID: String?
     var leadingIconKeyword: Keyword?
     var leadingIcon: GameIcon?
@@ -29,6 +30,7 @@ public struct DetailTraitRow: View {
         titlePrefix: String? = nil,
         titlePrefixShine: Shine = .none,
         localizedDescription: LocalizedGameText? = nil,
+        localizedTitle: LocalizedStringResource? = nil,
     ) {
         self.title = title
         self.description = description
@@ -42,6 +44,7 @@ public struct DetailTraitRow: View {
         self.titlePrefix = titlePrefix
         self.titlePrefixShine = titlePrefixShine
         self.localizedDescription = localizedDescription
+        self.localizedTitle = localizedTitle
     }
 
     public var body: some View {
@@ -88,11 +91,17 @@ public struct DetailTraitRow: View {
                     .trinketFittedText()
             }
             if let title, !title.isEmpty {
-                GameLabel(title, balanced: true)
-                    .trinketTypography(.cardTitle)
-                    .shineText(titleShine)
-                    .foregroundStyle(titleColor ?? .primary)
-                    .trinketFittedText()
+                Group {
+                    if let localizedTitle {
+                        GameLabel(localizedTitle, balanced: true)
+                    } else {
+                        GameLabel(title, balanced: true)
+                    }
+                }
+                .trinketTypography(.cardTitle)
+                .shineText(titleShine)
+                .foregroundStyle(titleColor ?? .primary)
+                .trinketFittedText()
             }
         }
     }

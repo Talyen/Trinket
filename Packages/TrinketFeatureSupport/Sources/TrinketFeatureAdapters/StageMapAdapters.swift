@@ -63,6 +63,8 @@ public extension StageSelectRowPresentation where Item == Stage {
                 ),
                 activeDetailAccessibilityID: AccessibilityID.Play.activeStageDetail,
                 partyControlAccessibilityID: AccessibilityID.Play.stagePartyControl,
+                encounterTypeResource: stage.isBossEncounter ? nil : stage.encounter.contextualTitleResource,
+                primaryActionResource: stage.encounter.contextualActionResource,
             )
         }
     }
@@ -237,6 +239,8 @@ public extension StageSelectRowPresentation where Item == LabyrinthNode {
             actionAccessibilityID: AccessibilityID.Play.labyrinthInspectorAction(node.id),
             activeDetailAccessibilityID: AccessibilityID.Play.labyrinthNodeInspector,
             partyControlAccessibilityID: AccessibilityID.Play.labyrinthPartyControl(nodeID: node.id),
+            titleResource: title == type.title ? type.contextualTitleResource : nil,
+            encounterTypeResource: type.contextualTitleResource,
         )
     }
 }

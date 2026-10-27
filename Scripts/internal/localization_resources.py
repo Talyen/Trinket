@@ -95,8 +95,14 @@ def generated_resources(root: Path, catalogs: dict) -> dict[Path, bytes]:
         for key in sorted(sources):
             if key.startswith('item_bases.') and key.endswith('.name'):
                 lines.append(f'        case {swift_string(key.split(".")[1])}: L10n.{key.replace(".", "_")}')
-        lines.extend(['        default: nil', '        }', '    }', '',
-                 '    public static func localized(_ english: String, locale: Locale = .current) -> String {',
+        lines.extend(['        default: nil', '        }', '    }', ''])
+        for group, method in [('traits', 'traitNameResource'), ('talents', 'talentNameResource')]:
+            lines.extend([f'    static func {method}(_ id: String) -> LocalizedStringResource? {{', '        switch id {'])
+            for key in sorted(sources):
+                if key.startswith(group + '.') and key.endswith('.name'):
+                    lines.append(f'        case {swift_string(key.split(".")[1])}: L10n.{key.replace(".", "_")}')
+            lines.extend(['        default: nil', '        }', '    }', ''])
+        lines.extend(['    public static func localized(_ english: String, locale: Locale = .current) -> String {',
                  '        description(english, locale: locale).text', '    }', '',
                  '    public static func description(_ english: String, locale: Locale = .current) -> LocalizedGameText {',
                  '        guard let match = match(english) else { return CoreCopy.description(english, locale: locale) }',

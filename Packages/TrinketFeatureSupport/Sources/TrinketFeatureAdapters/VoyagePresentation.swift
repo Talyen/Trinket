@@ -54,6 +54,8 @@ public extension StageSelectRowPresentation where Item == VoyageNode {
                     .map(ModifierCaptionPresentation.init)
                     : [],
                 allowsCompactInspection: node.type.isCombat,
+                titleResource: node.enemyID == nil ? node.type.contextualTitleResource : nil,
+                encounterTypeResource: node.type.contextualTitleResource,
             )
         }
     }

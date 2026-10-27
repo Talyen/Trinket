@@ -12,6 +12,9 @@ public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
     public let mapLabel: String
     public let title: String
     public let encounterTypeTitle: String
+    public let titleResource: LocalizedStringResource?
+    public let encounterTypeResource: LocalizedStringResource?
+    public let primaryActionResource: LocalizedStringResource?
     public let icon: GameIcon
     public let tint: Color
     public let primaryActionTitle: String
@@ -46,6 +49,9 @@ public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
         partyControlAccessibilityID: String,
         modifiers: [ModifierCaptionPresentation] = [],
         allowsCompactInspection: Bool = false,
+        titleResource: LocalizedStringResource? = nil,
+        encounterTypeResource: LocalizedStringResource? = nil,
+        primaryActionResource: LocalizedStringResource? = nil,
     ) {
         self.modifiers = modifiers
         self.allowsCompactInspection = allowsCompactInspection
@@ -55,6 +61,9 @@ public struct StageSelectRowPresentation<Item: Identifiable>: Identifiable {
         self.mapLabel = mapLabel
         self.title = title
         self.encounterTypeTitle = encounterTypeTitle
+        self.titleResource = titleResource
+        self.encounterTypeResource = encounterTypeResource
+        self.primaryActionResource = primaryActionResource
         self.icon = icon
         self.tint = tint
         self.primaryActionTitle = primaryActionTitle
