@@ -106,11 +106,12 @@ struct CloudStarterSelectionMergeTests {
             revision: CloudSaveRevision(id: "stale-reset", clock: ["second-device": 1], snapshot: CloudSaveSnapshot(.fresh)),
         )
 
+        let existingRoster = try server.head.revision.snapshot.restored().roster
         let resolution = try CloudSaveReconciler.resolve(request, against: server)
         #expect(resolution.receipt.outcome == .progressChanged)
         #expect(resolution.head.epoch == "new-epoch")
         #expect(resolution.head.resetCount == 2)
-        #expect(try resolution.head.revision.snapshot.restored().roster == cloud.roster)
+        #expect(try resolution.head.revision.snapshot.restored().roster == existingRoster)
     }
 
     @Test(arguments: [false, true])
