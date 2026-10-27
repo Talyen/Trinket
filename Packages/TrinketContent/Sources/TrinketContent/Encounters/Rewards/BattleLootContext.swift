@@ -32,11 +32,15 @@ public struct BattleLootContext: Equatable, Sendable {
         enemyIsBoss: Bool? = nil,
         in chapters: [Chapter] = GameContent.chapters,
     ) -> BattleLootResult {
-        let openingBoss = chapters.lazy.flatMap(\.stages).first {
-            Self.bossEnemyIDs.contains($0.encounter.battleEnemyID ?? "")
-        }
         var request = LootRequest.journey(stage: stage)
-        request.guaranteesTrinket = stage.id == openingBoss?.id && !claimedJourneyRewardStageIDs.contains(stage.id)
+        if !claimedJourneyRewardStageIDs.contains(stage.id) {
+            let openingBoss = chapters.lazy.flatMap(\.stages).first {
+                Self.bossEnemyIDs.contains($0.encounter.battleEnemyID ?? "")
+            }
+            request.guaranteesTrinket = stage.id == openingBoss?.id
+        } else {
+            request.guaranteesTrinket = false
+        }
         return resolve(
             request,
             encounterLevel: encounterLevel ?? EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapters),

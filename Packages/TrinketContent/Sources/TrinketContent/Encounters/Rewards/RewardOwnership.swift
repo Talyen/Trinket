@@ -9,7 +9,8 @@ public struct RewardOwnership: Equatable, Sendable {
     }
 
     public func modifiers(ids: [NodeModifierID], enemyIsBoss: Bool = false) -> [NodeModifierDefinition] {
-        NodeModifierCatalog.modifiers(ids: ids, eligibleRewards: eligibleModifiers, enemyIsBoss: enemyIsBoss)
+        guard !ids.isEmpty else { return [] }
+        return NodeModifierCatalog.modifiers(ids: ids, eligibleRewards: eligibleModifiers, enemyIsBoss: enemyIsBoss)
     }
 
     public var ownedTrinketIDs: Set<String>

@@ -67,7 +67,7 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
     public func adjustedMaterials(
         _ amounts: [ResourceAmount], remainders: inout HomesteadRewardRemainders,
     ) -> [ResourceAmount] {
-        let gems = amounts.filter { $0.resource == .gems && $0.quantity > 0 }
+        let gems = amounts.lazy.filter { $0.resource == .gems && $0.quantity > 0 }
             .reduce(0) { SaturatedArithmetic.saturatingAdd($0, $1.quantity) }
         let bonus = SaturatedArithmetic.saturatingAdd(
             gemsFindBonus, remainders.bonus(for: .gems, amount: gems, percent: gemsFindPercent),

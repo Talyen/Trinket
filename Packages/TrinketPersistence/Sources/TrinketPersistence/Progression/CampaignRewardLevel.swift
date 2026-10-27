@@ -2,7 +2,7 @@ import TrinketContent
 
 enum CampaignRewardLevel {
     static func resolve(in save: PlayerSave, chapters: [Chapter] = GameContent.chapters) -> Int {
-        let completedCampaign = chapters.lazy.flatMap(\.stages)
+        let completedCampaign = save.journey.completedStageIDs.isEmpty ? 0 : chapters.lazy.flatMap(\.stages)
             .filter { save.journey.completedStageIDs.contains($0.id) && $0.encounter.isCombat }
             .map { EncounterLevelResolver.journeyEnemyLevel(for: $0, in: chapters) }.max() ?? 0
         let clearedSpires = save.spires.highestClearedFloorOverall * 2

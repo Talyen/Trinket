@@ -4,12 +4,14 @@ import TrinketCore
 public extension GameContent {
     static let chapters: [Chapter] = GameContentChaptersGenerated.chapters
 
+    private static let chaptersByID = Dictionary(chapters.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+
     static func chapter(containing stage: Stage) -> Chapter {
-        chapters.first { $0.id == stage.chapterID } ?? chapters[0]
+        chaptersByID[stage.chapterID] ?? chapters[0]
     }
 
     static func chapter(id: String) -> Chapter? {
-        chapters.first { $0.id == id }
+        chaptersByID[id]
     }
 
     static let stages: [Stage] = chapters.flatMap(\.stages)

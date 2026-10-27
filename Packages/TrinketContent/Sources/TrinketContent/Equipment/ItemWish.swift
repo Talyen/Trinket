@@ -1,8 +1,10 @@
 public enum ItemWish {
+    private static let collectibleTemplateIDs = Set(GameContent.uniqueItems.lazy.map(\.templateID))
+        .union(GameContent.trinketItems.lazy.map(\.templateID))
+
     public static func validTarget(_ id: String?, inventory: [InventoryItem]) -> String? {
-        guard let id, GameContent.uniqueItems.contains(where: { $0.templateID == id })
-            || GameContent.trinketItems.contains(where: { $0.templateID == id }),
-            !inventory.contains(where: { $0.templateID == id }) else { return nil }
+        guard let id, collectibleTemplateIDs.contains(id),
+              !inventory.contains(where: { $0.templateID == id }) else { return nil }
         return id
     }
 

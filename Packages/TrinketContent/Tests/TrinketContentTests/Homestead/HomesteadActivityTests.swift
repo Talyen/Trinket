@@ -187,6 +187,10 @@ struct HomesteadActivityTests {
         #expect(ItemWish.select(from: [wish], wishedTemplateID: wish.templateID, using: &random) == wish)
         #expect(ItemWish.validTarget(wish.templateID, inventory: [wish]) == nil)
         #expect(ItemWish.validTarget("unknown", inventory: []) == nil)
+        for collectible in GameContent.uniqueItems + GameContent.trinketItems {
+            #expect(ItemWish.validTarget(collectible.templateID, inventory: []) == collectible.templateID)
+            #expect(ItemWish.validTarget(collectible.templateID, inventory: [collectible]) == nil)
+        }
         let trinket = try #require(GameContent.trinketItems.first)
         #expect(ItemWish.select(from: [trinket], wishedTemplateID: wish.templateID, using: &random) == trinket)
     }

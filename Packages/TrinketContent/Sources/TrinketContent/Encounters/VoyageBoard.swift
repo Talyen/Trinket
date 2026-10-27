@@ -4,7 +4,8 @@ import Foundation
 /// and completion/abandonment receipts remain owned by Persistence.
 public enum VoyageBoard {
     public static func chapterIDs(access: ContentAccessPolicy) -> [String] {
-        GameContent.chapters.filter { access.allowsChapter($0.number) && VoyageCatalog.bossID(chapterID: $0.id) != nil }.map(\.id)
+        Array(GameContent.chapters.lazy.filter { access.allowsChapter($0.number) && VoyageCatalog.bossID(chapterID: $0.id) != nil }
+            .map(\.id))
     }
 
     public static func preparedOffers(

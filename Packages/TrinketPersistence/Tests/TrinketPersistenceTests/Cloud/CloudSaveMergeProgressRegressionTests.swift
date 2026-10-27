@@ -6,6 +6,18 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct CloudSaveMergeProgressRegressionTests {
+    @Test func `campaign rank follows the furthest known completed stage`() {
+        var save = PlayerSave.fresh
+        save.journey.completedStageIDs = ["unknown-stage"]
+        #expect(CloudSaveSnapshot(save).campaignRank == 0)
+        for (index, stage) in GameContent.stages.enumerated() {
+            save.journey.completedStageIDs = [stage.id, "unknown-stage"]
+            #expect(CloudSaveSnapshot(save).campaignRank == index + 1)
+        }
+        save.journey.completedStageIDs = Set(GameContent.stages.map(\.id))
+        #expect(CloudSaveSnapshot(save).campaignRank == GameContent.stages.count)
+    }
+
     @Test @MainActor func `different choices at one Mystery count as one cooldown completion through reload`() throws {
         var base = PlayerSave.testSeed
         base.corruptionAltarCooldownRemaining = 6
