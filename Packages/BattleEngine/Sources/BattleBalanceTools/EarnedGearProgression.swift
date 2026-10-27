@@ -53,17 +53,10 @@ final class EarnedGearProgression {
                 worn.equip(item, in: upgrade.slot, inventory: inventory)
             }
             equipment[owner.id] = worn
-            var unlocked = talents[owner.id] ?? []
-            let budget = CombatantProgression.at(level: level).totalTalentPoints
-            let config = CombatantTalentCatalog.config(for: owner.id)
-            while unlocked.count < budget {
-                let candidates = config.trees.flatMap { tree in
-                    tree.nodes.filter { tree.canUnlock(node: $0, unlockedNodeIDs: unlocked, availablePoints: 1) }
-                }
-                guard let node = candidates.randomElement(using: &random) else { break }
-                unlocked.insert(node.id)
-            }
-            talents[owner.id] = unlocked
+            talents[owner.id] = SimulationMatchupBuilder.investTalents(
+                for: owner.id, unlocked: talents[owner.id] ?? [],
+                budget: CombatantProgression.at(level: level).totalTalentPoints, using: &random,
+            )
         }
     }
 

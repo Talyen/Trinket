@@ -232,9 +232,18 @@ public enum SimulationMatchupBuilder {
             return nodes
         }
 
+        return investTalents(for: combatantID, unlocked: [], budget: points, using: &randomNumberGenerator)
+    }
+
+    static func investTalents(
+        for combatantID: String,
+        unlocked: Set<String>,
+        budget: Int,
+        using randomNumberGenerator: inout some RandomNumberGenerator,
+    ) -> Set<String> {
         let config = CombatantTalentCatalog.config(for: combatantID)
-        var unlocked = Set<String>()
-        for _ in 0 ..< points {
+        var unlocked = unlocked
+        while unlocked.count < budget {
             let candidates = config.trees.flatMap { tree in
                 tree.nodes.filter {
                     tree.canUnlock(node: $0, unlockedNodeIDs: unlocked, availablePoints: 1)

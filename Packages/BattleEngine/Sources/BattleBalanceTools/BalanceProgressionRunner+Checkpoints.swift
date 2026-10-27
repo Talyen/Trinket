@@ -85,18 +85,9 @@ public extension BalanceProgressionRunner {
                 }
                 let step = controller.selectNextStep() ?? controller.selectRecoveryStep()
                 let battleSeed = seed &+ UInt64(records.count + 1) &* 97
-                let matchup = controller.makeMatchup(for: step, seed: battleSeed)
-                var battle = BattleSimulator.makeBattle(matchup: matchup, appliesFightPacing: config.appliesFightPacing)
-                let result = BattleSimulator.run(
-                    battle: &battle, policy: policy, maxRounds: config.maxRounds, maxActions: config.maxActions,
-                )
-                records.append(ProgressionBattleRecord(
-                    step: step, playerLevel: Int(controller.state.averageLevel.rounded()),
-                    enemyLevel: controller.encounterLevel(for: step), seed: battleSeed, result: result,
+                records.append(simulateBattle(
+                    controller: controller, step: step, seed: battleSeed, config: config, policy: policy,
                 ))
-                controller.recordOutcome(
-                    step: step, won: result.isVictory, defeatProgress: result.timedOut ? nil : battle.defeatProgress,
-                )
             }
             return EarnedCareerCheckpointRun(
                 seed: seed, checkpoints: snapshots, trainingRecords: records, endState: controller.state,

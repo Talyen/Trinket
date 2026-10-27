@@ -5,6 +5,45 @@ import TrinketCore
 @testable import BattleBalanceTools
 
 struct ModeProgressionToolingTests {
+    @Test func `progression records capped battles before advancing without awarding XP`() {
+        let step = BalanceTestFixtures.step(enemyID: "slime", enemyLevel: 1)
+        let controller = InterleavingPlayerController(
+            campaignTracker: .init(steps: [step]), spireTracker: .init(steps: []), labyrinthTracker: .init(steps: []),
+        )
+        let record = BalanceProgressionRunner.simulateBattle(
+            controller: controller, step: step, seed: 43,
+            config: BalanceSweepConfig(mode: .modeProgression, maxRounds: 0), policy: .greedy,
+        )
+        #expect(record.step == step)
+        #expect(record.playerLevel == 1)
+        #expect(record.enemyLevel == 1)
+        #expect(record.seed == 43)
+        #expect(record.result.timedOut)
+        #expect(controller.state.totalBattles == 1)
+        #expect(controller.state.heroXP == 0)
+        #expect(controller.state.companionXP == 0)
+        #expect(!controller.isComplete)
+    }
+
+    @Test func `incremental talent investment preserves the seeded selection order`() {
+        for owner in GameContent.heroes + GameContent.companions {
+            var wholeRNG = SeededRandomNumberGenerator(seed: 43)
+            var incrementalRNG = SeededRandomNumberGenerator(seed: 43)
+            let whole = SimulationMatchupBuilder.investTalents(
+                for: owner.id, unlocked: [], budget: 6, using: &wholeRNG,
+            )
+            let first = SimulationMatchupBuilder.investTalents(
+                for: owner.id, unlocked: [], budget: 3, using: &incrementalRNG,
+            )
+            let incremental = SimulationMatchupBuilder.investTalents(
+                for: owner.id, unlocked: first, budget: 6, using: &incrementalRNG,
+            )
+            #expect(first.isSubset(of: incremental))
+            #expect(incremental == whole)
+            #expect(incrementalRNG.next() == wholeRNG.next())
+        }
+    }
+
     @Test func `random encounters cannot attribute one enemy's losses to another enemy`() throws {
         let records = ["goblin", "skeleton"].flatMap { enemyID in
             (0 ..< 8).map { sample in
