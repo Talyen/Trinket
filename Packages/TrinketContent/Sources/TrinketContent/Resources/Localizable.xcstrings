@@ -334,7 +334,7 @@
         "ja": {"stringUnit": {"state": "translated", "value": "火の矢"}},
         "ko": {"stringUnit": {"state": "translated", "value": "불화살"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Flecha de Fogo"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "火箭"}}
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "火焰箭"}}
       }
     },
     "ability.fireball.name": {
@@ -719,7 +719,7 @@
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+Basic.swift: slash name",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Schlitzer"}},
+        "de": {"stringUnit": {"state": "translated", "value": "Hieb"}},
         "en": {"stringUnit": {"state": "translated", "value": "Slash"}},
         "es": {"stringUnit": {"state": "translated", "value": "Tajo"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Entaille"}},
@@ -960,7 +960,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>, wenn du <keyword id=\"mana\">Mana</keyword> ausgibst"}},
         "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> when you spend <keyword id=\"mana\">Mana</keyword>"}},
         "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> cuando gastas <keyword id=\"mana\">Maná</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword> lorsque vous dépensez du <keyword id=\"mana\">Mana</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword> lorsque vous dépensez du <keyword id=\"mana\">Mana</keyword>"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">マナ</keyword>を消費すると<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
         "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">마나</keyword> 소모 시 <keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> ao gastar <keyword id=\"mana\">Mana</keyword>"}},
@@ -974,7 +974,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>, wenn du <keyword id=\"mana\">Mana</keyword> ausgibst"}},
         "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> when you spend <keyword id=\"mana\">Mana</keyword>"}},
         "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> cuando gastas <keyword id=\"mana\">Maná</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword> lorsque vous dépensez du <keyword id=\"mana\">Mana</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword> lorsque vous dépensez du <keyword id=\"mana\">Mana</keyword>"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">マナ</keyword>を消費すると<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
         "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">마나</keyword> 소모 시 <keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> ao gastar <keyword id=\"mana\">Mana</keyword>"}},
@@ -1254,7 +1254,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Dein erster <keyword id=\"holy\">heiliger</keyword> Angriff pro Zug, der <keyword id=\"health\">Gesundheit</keyword>sschaden verursacht, stellt beim Verbündeten mit der niedrigsten <keyword id=\"health\">Gesundheit</keyword> <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her"}},
         "en": {"stringUnit": {"state": "translated", "value": "Your first <keyword id=\"holy\">Holy</keyword> attack that deals <keyword id=\"health\">Health</keyword> damage each turn restores <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> to the lowest-<keyword id=\"health\">Health</keyword> ally"}},
         "es": {"stringUnit": {"state": "translated", "value": "Tu primer ataque <keyword id=\"holy\">sagrado</keyword> de cada turno que inflige daño a la <keyword id=\"health\">Salud</keyword> restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> al aliado con menos <keyword id=\"health\">Salud</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "À chaque tour, votre première attaque <keyword id=\"holy\">sacrée</keyword> qui inflige des dégâts de <keyword id=\"health\">Santé</keyword> rend <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> à l’allié ayant le moins de <keyword id=\"health\">Santé</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "À chaque tour, votre première attaque <keyword id=\"holy\">sacrée</keyword> qui inflige des dégâts à la <keyword id=\"health\">Santé</keyword> rend <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> à l’allié ayant le moins de <keyword id=\"health\">Santé</keyword>"}},
         "ja": {"stringUnit": {"state": "translated", "value": "各ターン、<keyword id=\"health\">体力</keyword>にダメージを与えた最初の<keyword id=\"holy\">聖</keyword>攻撃で、<keyword id=\"health\">体力</keyword>が最も低い味方の<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復する"}},
         "ko": {"stringUnit": {"state": "translated", "value": "매 턴 <keyword id=\"health\">체력</keyword> 피해를 주는 첫 <keyword id=\"holy\">신성</keyword> 공격이 <keyword id=\"health\">체력</keyword>이 가장 낮은 아군의 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 회복합니다"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Seu primeiro ataque <keyword id=\"holy\">Sagrado</keyword> de cada turno que causar dano à <keyword id=\"health\">Vida</keyword> restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> do aliado com menos <keyword id=\"health\">Vida</keyword>"}},
@@ -1268,7 +1268,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Dein erster <keyword id=\"holy\">heiliger</keyword> Angriff pro Zug, der <keyword id=\"health\">Gesundheit</keyword>sschaden verursacht, stellt beim Verbündeten mit der niedrigsten <keyword id=\"health\">Gesundheit</keyword> <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her"}},
         "en": {"stringUnit": {"state": "translated", "value": "Your first <keyword id=\"holy\">Holy</keyword> attack that deals <keyword id=\"health\">Health</keyword> damage each turn restores <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> to the lowest-<keyword id=\"health\">Health</keyword> ally"}},
         "es": {"stringUnit": {"state": "translated", "value": "Tu primer ataque <keyword id=\"holy\">sagrado</keyword> de cada turno que inflige daño a la <keyword id=\"health\">Salud</keyword> restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> al aliado con menos <keyword id=\"health\">Salud</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "À chaque tour, votre première attaque <keyword id=\"holy\">sacrée</keyword> qui inflige des dégâts de <keyword id=\"health\">Santé</keyword> rend <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> à l’allié ayant le moins de <keyword id=\"health\">Santé</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "À chaque tour, votre première attaque <keyword id=\"holy\">sacrée</keyword> qui inflige des dégâts à la <keyword id=\"health\">Santé</keyword> rend <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> à l’allié ayant le moins de <keyword id=\"health\">Santé</keyword>"}},
         "ja": {"stringUnit": {"state": "translated", "value": "各ターン、<keyword id=\"health\">体力</keyword>にダメージを与えた最初の<keyword id=\"holy\">聖</keyword>攻撃で、<keyword id=\"health\">体力</keyword>が最も低い味方の<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復する"}},
         "ko": {"stringUnit": {"state": "translated", "value": "매 턴 <keyword id=\"health\">체력</keyword> 피해를 주는 첫 <keyword id=\"holy\">신성</keyword> 공격이 <keyword id=\"health\">체력</keyword>이 가장 낮은 아군의 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value> 회복합니다"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Seu primeiro ataque <keyword id=\"holy\">Sagrado</keyword> de cada turno que causar dano à <keyword id=\"health\">Vida</keyword> restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> do aliado com menos <keyword id=\"health\">Vida</keyword>"}},
@@ -2514,7 +2514,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>, solange du an der <keyword id=\"deathsdoor\">Todesschwelle</keyword> stehst"}},
         "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> when on <keyword id=\"deathsdoor\">Death's Door</keyword>"}},
         "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> cuando estás a las <keyword id=\"deathsdoor\">Puertas de la Muerte</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword> au <keyword id=\"deathsdoor\">Seuil de la mort</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword> au <keyword id=\"deathsdoor\">Seuil de la mort</keyword>"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"deathsdoor\">死の淵</keyword>の間、<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
         "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"deathsdoor\">죽음의 문턱</keyword> 상태이면 <keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> quando estiver <keyword id=\"deathsdoor\">À Beira da Morte</keyword>"}},
@@ -2528,7 +2528,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>, solange du an der <keyword id=\"deathsdoor\">Todesschwelle</keyword> stehst"}},
         "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> when on <keyword id=\"deathsdoor\">Death's Door</keyword>"}},
         "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> cuando estás a las <keyword id=\"deathsdoor\">Puertas de la Muerte</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword> au <keyword id=\"deathsdoor\">Seuil de la mort</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword> au <keyword id=\"deathsdoor\">Seuil de la mort</keyword>"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"deathsdoor\">死の淵</keyword>の間、<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
         "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"deathsdoor\">죽음의 문턱</keyword> 상태이면 <keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> quando estiver <keyword id=\"deathsdoor\">À Beira da Morte</keyword>"}},
@@ -2556,7 +2556,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"block\">Block</keyword>"}},
         "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"block\">Block</keyword>"}},
         "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> adicional"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword> de plus"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword> de plus"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">ブロック</keyword>の獲得量が<value id=\"quantity_1\">%1$lld</value>増加"}},
         "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 추가 획득"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> adicional"}},
@@ -2570,7 +2570,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"block\">Block</keyword>"}},
         "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"block\">Block</keyword>"}},
         "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> adicional"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword> de plus"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword> de plus"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">ブロック</keyword>の獲得量が<value id=\"quantity_1\">%1$lld</value>増加"}},
         "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 추가 획득"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> adicional"}},
@@ -2934,7 +2934,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"block\">Block</keyword>"}},
         "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"block\">Block</keyword>"}},
         "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> adicional"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword> de plus"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword> de plus"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">ブロック</keyword>の獲得量が<value id=\"quantity_1\">%1$lld</value>増加"}},
         "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 추가 획득"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> adicional"}},
@@ -2948,7 +2948,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"block\">Block</keyword>"}},
         "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"block\">Block</keyword>"}},
         "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> adicional"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword> de plus"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword> de plus"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">ブロック</keyword>の獲得量が<value id=\"quantity_1\">%1$lld</value>増加"}},
         "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 추가 획득"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> adicional"}},
@@ -3144,7 +3144,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Stelle jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her"}},
         "en": {"stringUnit": {"state": "translated", "value": "Restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> every other turn"}},
         "es": {"stringUnit": {"state": "translated", "value": "Restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> cada dos turnos"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Restaurez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> un tour sur deux"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Restaurez <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> un tour sur deux"}},
         "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復"}},
         "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 <keyword id=\"health\">체력</keyword> <value id=\"quantity_1\">%1$lld</value> 회복"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> a cada dois turnos"}},
@@ -3158,7 +3158,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Stelle jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her"}},
         "en": {"stringUnit": {"state": "translated", "value": "Restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> every other turn"}},
         "es": {"stringUnit": {"state": "translated", "value": "Restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> cada dos turnos"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Restaurez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> un tour sur deux"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Restaurez <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> un tour sur deux"}},
         "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復"}},
         "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 <keyword id=\"health\">체력</keyword> <value id=\"quantity_1\">%1$lld</value> 회복"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> a cada dois turnos"}},
@@ -3776,7 +3776,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Absorción</keyword> restaura un <value id=\"quantity_1\">%1$lld</value>%% adicional del daño infligido"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Le <keyword id=\"leech\">Vol de vie</keyword> restaure en plus <value id=\"quantity_1\">%1$lld</value>%% des dégâts infligés"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸収</keyword>による回復量が与えたダメージの<value id=\"quantity_1\">%1$lld</value>%%分増加"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">흡혈</keyword>로 준 피해의 <value id=\"quantity_1\">%1$lld</value>%%만큼 추가 회복"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">흡혈</keyword>로 회복하는 양이 준 피해의 <value id=\"quantity_1\">%1$lld</value>%%만큼 추가 증가"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Drenagem</keyword> restaura <value id=\"quantity_1\">%1$lld</value>%% adicional do dano causado"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸血</keyword>額外恢復相當於所造成傷害<value id=\"quantity_1\">%1$lld</value>%%的生命值"}}
       }
@@ -3790,7 +3790,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Absorción</keyword> restaura un <value id=\"quantity_1\">%1$lld</value>%% adicional del daño infligido"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Le <keyword id=\"leech\">Vol de vie</keyword> restaure en plus <value id=\"quantity_1\">%1$lld</value>%% des dégâts infligés"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸収</keyword>による回復量が与えたダメージの<value id=\"quantity_1\">%1$lld</value>%%分増加"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">흡혈</keyword>로 준 피해의 <value id=\"quantity_1\">%1$lld</value>%%만큼 추가 회복"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">흡혈</keyword>로 회복하는 양이 준 피해의 <value id=\"quantity_1\">%1$lld</value>%%만큼 추가 증가"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Drenagem</keyword> restaura <value id=\"quantity_1\">%1$lld</value>%% adicional do dano causado"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸血</keyword>額外恢復相當於所造成傷害<value id=\"quantity_1\">%1$lld</value>%%的生命值"}}
       }
@@ -4152,7 +4152,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Stelle <value id=\"quantity_1\">%1$lld</value> zusätzliche <keyword id=\"health\">Gesundheit</keyword> wieder her, solange der Gegner <keyword id=\"stun\">betäubt</keyword> oder <keyword id=\"freeze\">eingefroren</keyword> ist"}},
         "en": {"stringUnit": {"state": "translated", "value": "Restore <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"health\">Health</keyword> while the enemy is <keyword id=\"stun\">Stunned</keyword> or <keyword id=\"freeze\">Frozen</keyword>"}},
         "es": {"stringUnit": {"state": "translated", "value": "Restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> adicional mientras el enemigo esté <keyword id=\"stun\">aturdido</keyword> o <keyword id=\"freeze\">congelado</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Restaurez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> supplémentaires si l’ennemi est <keyword id=\"stun\">étourdi</keyword> ou <keyword id=\"freeze\">gelé</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Restaurez <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> supplémentaire tant que l’ennemi est <keyword id=\"stun\">étourdi</keyword> ou <keyword id=\"freeze\">gelé</keyword>"}},
         "ja": {"stringUnit": {"state": "translated", "value": "敵が<keyword id=\"stun\">スタン</keyword>または<keyword id=\"freeze\">凍結</keyword>している間、<keyword id=\"health\">体力</keyword>の回復量が<value id=\"quantity_1\">%1$lld</value>増加"}},
         "ko": {"stringUnit": {"state": "translated", "value": "적이 <keyword id=\"stun\">기절</keyword> 또는 <keyword id=\"freeze\">빙결</keyword> 상태이면 <keyword id=\"health\">체력</keyword> 회복량이 <value id=\"quantity_1\">%1$lld</value> 증가"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> adicional enquanto o inimigo estiver <keyword id=\"stun\">atordoado</keyword> ou <keyword id=\"freeze\">congelado</keyword>"}},
@@ -4166,7 +4166,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Stelle <value id=\"quantity_1\">%1$lld</value> zusätzliche <keyword id=\"health\">Gesundheit</keyword> wieder her, solange der Gegner <keyword id=\"stun\">betäubt</keyword> oder <keyword id=\"freeze\">eingefroren</keyword> ist"}},
         "en": {"stringUnit": {"state": "translated", "value": "Restore <value id=\"quantity_1\">%1$lld</value> additional <keyword id=\"health\">Health</keyword> while the enemy is <keyword id=\"stun\">Stunned</keyword> or <keyword id=\"freeze\">Frozen</keyword>"}},
         "es": {"stringUnit": {"state": "translated", "value": "Restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> adicional mientras el enemigo esté <keyword id=\"stun\">aturdido</keyword> o <keyword id=\"freeze\">congelado</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Restaurez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> supplémentaires si l’ennemi est <keyword id=\"stun\">étourdi</keyword> ou <keyword id=\"freeze\">gelé</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Restaurez <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> supplémentaire tant que l’ennemi est <keyword id=\"stun\">étourdi</keyword> ou <keyword id=\"freeze\">gelé</keyword>"}},
         "ja": {"stringUnit": {"state": "translated", "value": "敵が<keyword id=\"stun\">スタン</keyword>または<keyword id=\"freeze\">凍結</keyword>している間、<keyword id=\"health\">体力</keyword>の回復量が<value id=\"quantity_1\">%1$lld</value>増加"}},
         "ko": {"stringUnit": {"state": "translated", "value": "적이 <keyword id=\"stun\">기절</keyword> 또는 <keyword id=\"freeze\">빙결</keyword> 상태이면 <keyword id=\"health\">체력</keyword> 회복량이 <value id=\"quantity_1\">%1$lld</value> 증가"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> adicional enquanto o inimigo estiver <keyword id=\"stun\">atordoado</keyword> ou <keyword id=\"freeze\">congelado</keyword>"}},
@@ -4445,11 +4445,11 @@
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword>, wenn du <keyword id=\"dodge\">ausweichst</keyword>"}},
         "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword> when you <keyword id=\"dodge\">Dodge</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Oro</keyword> cuando activas <keyword id=\"dodge\">Evasión</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Oro</keyword> cuando <keyword id=\"dodge\">evades</keyword> un ataque"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Or</keyword> lors d’une <keyword id=\"dodge\">Esquive</keyword>"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">回避</keyword>すると<keyword id=\"gold\">ゴールド</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
         "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">회피</keyword> 시 <keyword id=\"gold\">골드</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Ouro</keyword> ao usar <keyword id=\"dodge\">Esquiva</keyword>"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Ouro</keyword> ao se <keyword id=\"dodge\">esquivar</keyword> de um ataque"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">閃避</keyword>時獲得<value id=\"quantity_1\">%1$lld</value><keyword id=\"gold\">金幣</keyword>"}}
       }
     },
@@ -4459,11 +4459,11 @@
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword>, wenn du <keyword id=\"dodge\">ausweichst</keyword>"}},
         "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Gold</keyword> when you <keyword id=\"dodge\">Dodge</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Oro</keyword> cuando activas <keyword id=\"dodge\">Evasión</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Oro</keyword> cuando <keyword id=\"dodge\">evades</keyword> un ataque"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"gold\">Or</keyword> lors d’une <keyword id=\"dodge\">Esquive</keyword>"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">回避</keyword>すると<keyword id=\"gold\">ゴールド</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
         "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">회피</keyword> 시 <keyword id=\"gold\">골드</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Ouro</keyword> ao usar <keyword id=\"dodge\">Esquiva</keyword>"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"gold\">Ouro</keyword> ao se <keyword id=\"dodge\">esquivar</keyword> de um ataque"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">閃避</keyword>時獲得<value id=\"quantity_1\">%1$lld</value><keyword id=\"gold\">金幣</keyword>"}}
       }
     },
@@ -4992,7 +4992,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Verursache mit deinem nächsten Angriff nach dem Ausweichen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"}},
         "en": {"stringUnit": {"state": "translated", "value": "Deal <value id=\"quantity_1\">%1$lld</value> additional damage on your next attack after Dodging"}},
         "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño adicional en tu siguiente ataque después de esquivar"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Infligez <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires à votre prochaine attaque après une esquive"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Infligez <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires lors de votre prochaine attaque après une esquive"}},
         "ja": {"stringUnit": {"state": "translated", "value": "回避後の次の攻撃で与えるダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
         "ko": {"stringUnit": {"state": "translated", "value": "회피 후 다음 공격에 추가 피해 <value id=\"quantity_1\">%1$lld</value>"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Cause <value id=\"quantity_1\">%1$lld</value> de dano adicional no próximo ataque após esquivar"}},
@@ -5006,7 +5006,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Verursache mit deinem nächsten Angriff nach dem Ausweichen <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"}},
         "en": {"stringUnit": {"state": "translated", "value": "Deal <value id=\"quantity_1\">%1$lld</value> additional damage on your next attack after Dodging"}},
         "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño adicional en tu siguiente ataque después de esquivar"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Infligez <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires à votre prochaine attaque après une esquive"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Infligez <value id=\"quantity_1\">%1$lld</value> dégâts supplémentaires lors de votre prochaine attaque après une esquive"}},
         "ja": {"stringUnit": {"state": "translated", "value": "回避後の次の攻撃で与えるダメージが<value id=\"quantity_1\">%1$lld</value>増加"}},
         "ko": {"stringUnit": {"state": "translated", "value": "회피 후 다음 공격에 추가 피해 <value id=\"quantity_1\">%1$lld</value>"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Cause <value id=\"quantity_1\">%1$lld</value> de dano adicional no próximo ataque após esquivar"}},
@@ -5437,7 +5437,7 @@
       "comment": "ContentManifest/affixes.tsv: sidestep, title",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Ausfallschritt"}},
+        "de": {"stringUnit": {"state": "translated", "value": "Seitenschritt"}},
         "en": {"stringUnit": {"state": "translated", "value": "Sidestep"}},
         "es": {"stringUnit": {"state": "translated", "value": "Paso lateral"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Pas de côté"}},
@@ -5747,11 +5747,11 @@
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Stelle <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her, wenn <keyword id=\"thorns\">Dornen</keyword> in einem Zug erstmals Schaden verursachen"}},
         "en": {"stringUnit": {"state": "translated", "value": "Restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> the first time <keyword id=\"thorns\">Thorns</keyword> deals damage each turn"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> la primera vez que <keyword id=\"thorns\">Espinas</keyword> inflige daño cada turno"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> la primera vez que <keyword id=\"thorns\">Espinas</keyword> infligen daño cada turno"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Restaurez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> la première fois que les <keyword id=\"thorns\">Épines</keyword> infligent des dégâts à chaque tour"}},
         "ja": {"stringUnit": {"state": "translated", "value": "各ターンに初めて<keyword id=\"thorns\">棘</keyword>がダメージを与えると<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復"}},
         "ko": {"stringUnit": {"state": "translated", "value": "매 턴 처음으로 <keyword id=\"thorns\">가시</keyword>가 피해를 주면 <keyword id=\"health\">체력</keyword> <value id=\"quantity_1\">%1$lld</value> 회복"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> na primeira vez que <keyword id=\"thorns\">Espinhos</keyword> causar dano a cada turno"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> na primeira vez que <keyword id=\"thorns\">Espinhos</keyword> causarem dano a cada turno"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "每回合<keyword id=\"thorns\">荊棘</keyword>首次造成傷害時，恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"}}
       }
     },
@@ -5761,11 +5761,11 @@
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Stelle <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> wieder her, wenn <keyword id=\"thorns\">Dornen</keyword> in einem Zug erstmals Schaden verursachen"}},
         "en": {"stringUnit": {"state": "translated", "value": "Restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> the first time <keyword id=\"thorns\">Thorns</keyword> deals damage each turn"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> la primera vez que <keyword id=\"thorns\">Espinas</keyword> inflige daño cada turno"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Restaura <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> la primera vez que <keyword id=\"thorns\">Espinas</keyword> infligen daño cada turno"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Restaurez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> la première fois que les <keyword id=\"thorns\">Épines</keyword> infligent des dégâts à chaque tour"}},
         "ja": {"stringUnit": {"state": "translated", "value": "各ターンに初めて<keyword id=\"thorns\">棘</keyword>がダメージを与えると<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復"}},
         "ko": {"stringUnit": {"state": "translated", "value": "매 턴 처음으로 <keyword id=\"thorns\">가시</keyword>가 피해를 주면 <keyword id=\"health\">체력</keyword> <value id=\"quantity_1\">%1$lld</value> 회복"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> na primeira vez que <keyword id=\"thorns\">Espinhos</keyword> causar dano a cada turno"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Restaure <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> na primeira vez que <keyword id=\"thorns\">Espinhos</keyword> causarem dano a cada turno"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "每回合<keyword id=\"thorns\">荊棘</keyword>首次造成傷害時，恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"}}
       }
     },
@@ -6335,11 +6335,11 @@
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>, wenn du <keyword id=\"dodge\">ausweichst</keyword>"}},
         "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> when you <keyword id=\"dodge\">Dodge</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> cuando activas <keyword id=\"dodge\">Evasión</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> cuando <keyword id=\"dodge\">evades</keyword> un ataque"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword> lors d’une <keyword id=\"dodge\">Esquive</keyword>"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">回避</keyword>すると<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
         "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">회피</keyword> 시 <keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> ao usar <keyword id=\"dodge\">Esquiva</keyword>"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> ao se <keyword id=\"dodge\">esquivar</keyword> de um ataque"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">閃避</keyword>時獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
       }
     },
@@ -6349,11 +6349,11 @@
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>, wenn du <keyword id=\"dodge\">ausweichst</keyword>"}},
         "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> when you <keyword id=\"dodge\">Dodge</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> cuando activas <keyword id=\"dodge\">Evasión</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> cuando <keyword id=\"dodge\">evades</keyword> un ataque"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword> lors d’une <keyword id=\"dodge\">Esquive</keyword>"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">回避</keyword>すると<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
         "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">회피</keyword> 시 <keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> ao usar <keyword id=\"dodge\">Esquiva</keyword>"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> ao se <keyword id=\"dodge\">esquivar</keyword> de um ataque"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">閃避</keyword>時獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
       }
     },
@@ -6380,7 +6380,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Absorción</keyword> restaura un <value id=\"quantity_1\">%1$lld</value>%% adicional del daño infligido"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Le <keyword id=\"leech\">Vol de vie</keyword> restaure en plus <value id=\"quantity_1\">%1$lld</value>%% des dégâts infligés"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸収</keyword>による回復量が与えたダメージの<value id=\"quantity_1\">%1$lld</value>%%分増加"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">흡혈</keyword>로 준 피해의 <value id=\"quantity_1\">%1$lld</value>%%만큼 추가 회복"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">흡혈</keyword>로 회복하는 양이 준 피해의 <value id=\"quantity_1\">%1$lld</value>%%만큼 추가 증가"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Drenagem</keyword> restaura <value id=\"quantity_1\">%1$lld</value>%% adicional do dano causado"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸血</keyword>額外恢復相當於所造成傷害<value id=\"quantity_1\">%1$lld</value>%%的生命值"}}
       }
@@ -6394,7 +6394,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Absorción</keyword> restaura un <value id=\"quantity_1\">%1$lld</value>%% adicional del daño infligido"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Le <keyword id=\"leech\">Vol de vie</keyword> restaure en plus <value id=\"quantity_1\">%1$lld</value>%% des dégâts infligés"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸収</keyword>による回復量が与えたダメージの<value id=\"quantity_1\">%1$lld</value>%%分増加"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">흡혈</keyword>로 준 피해의 <value id=\"quantity_1\">%1$lld</value>%%만큼 추가 회복"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">흡혈</keyword>로 회복하는 양이 준 피해의 <value id=\"quantity_1\">%1$lld</value>%%만큼 추가 증가"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">Drenagem</keyword> restaura <value id=\"quantity_1\">%1$lld</value>%% adicional do dano causado"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸血</keyword>額外恢復相當於所造成傷害<value id=\"quantity_1\">%1$lld</value>%%的生命值"}}
       }
@@ -7012,7 +7012,7 @@
         "ja": {"stringUnit": {"state": "translated", "value": "イベントを利用できません"}},
         "ko": {"stringUnit": {"state": "translated", "value": "이벤트 이용 불가"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Evento indisponível"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "事件無法使用"}}
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "事件無法進行"}}
       }
     },
     "authored.0c0a3c941491af03": {
@@ -8017,7 +8017,7 @@
         "en": {"stringUnit": {"state": "translated", "value": "Deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"burn\">Burn</keyword> damage\nDoubled if enemy was not <keyword id=\"burn\">Burning</keyword>"}},
         "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño de <keyword id=\"burn\">Quemadura</keyword>\nSe duplica si el enemigo no tenía <keyword id=\"burn\">Quemadura</keyword>"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Infligez <value id=\"quantity_1\">%1$lld</value> dégâts de <keyword id=\"burn\">Brûlure</keyword>\nDoublés si l’ennemi n’était pas sous <keyword id=\"burn\">Brûlure</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">炎上</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える\n敵が<keyword id=\"burn\">炎上</keyword>状態でなければ2倍"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">炎上</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える\n攻撃前に敵が<keyword id=\"burn\">炎上</keyword>状態でなければ2倍"}},
         "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">화상</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>\n적이 <keyword id=\"burn\">화상</keyword> 상태가 아니었다면 두 배"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Cause <value id=\"quantity_1\">%1$lld</value> de dano de <keyword id=\"burn\">Queimadura</keyword>\nDobrado se o inimigo não estava <keyword id=\"burn\">Em Chamas</keyword>"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"burn\">燃燒</keyword>傷害\n若敵人原本未<keyword id=\"burn\">燃燒</keyword>，傷害加倍"}}
@@ -8468,7 +8468,7 @@
         "ja": {"stringUnit": {"state": "translated", "value": "火の矢"}},
         "ko": {"stringUnit": {"state": "translated", "value": "불화살"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Flecha de Fogo"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "火箭"}}
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "火焰箭"}}
       }
     },
     "authored.3aad050182c10aed": {
@@ -8759,10 +8759,10 @@
         "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"gold\">Gold</keyword> gained in combat adds equal damage to your next <keyword id=\"holy\">Holy</keyword> hit from a manually played card"}},
         "es": {"stringUnit": {"state": "translated", "value": "El <keyword id=\"gold\">Oro</keyword> obtenido en combate añade una cantidad igual de daño a tu siguiente impacto <keyword id=\"holy\">sagrado</keyword> de una carta jugada manualmente"}},
         "fr": {"stringUnit": {"state": "translated", "value": "L’<keyword id=\"gold\">Or</keyword> gagné en combat ajoute autant de dégâts au prochain coup de type <keyword id=\"holy\">Sacré</keyword> d’une carte jouée manuellement"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "戦闘中に獲得した<keyword id=\"gold\">ゴールド</keyword>と同量のダメージを、次に手動で使うカードの<keyword id=\"holy\">聖</keyword>ヒットに追加"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘中に獲得した<keyword id=\"gold\">ゴールド</keyword>と同量のダメージを、手動で使ったカードによる次の<keyword id=\"holy\">聖</keyword>ヒットに追加"}},
         "ko": {"stringUnit": {"state": "translated", "value": "전투에서 획득한 <keyword id=\"gold\">골드</keyword>만큼, 직접 사용한 카드의 다음 <keyword id=\"holy\">신성</keyword> 적중 피해 증가"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "O <keyword id=\"gold\">Ouro</keyword> obtido em combate adiciona a mesma quantidade de dano ao seu próximo acerto <keyword id=\"holy\">Sagrado</keyword> com uma carta jogada manualmente"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "戰鬥中獲得的<keyword id=\"gold\">金幣</keyword>，會為下次手動出牌造成的<keyword id=\"holy\">神聖</keyword>命中增加等量傷害"}}
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "戰鬥中獲得的<keyword id=\"gold\">金幣</keyword>，會為手動打出的牌所造成的下一次<keyword id=\"holy\">神聖</keyword>命中增加等量傷害"}}
       }
     },
     "authored.4495480a0e690e5a": {
@@ -8860,7 +8860,7 @@
         "ja": {"stringUnit": {"state": "translated", "value": "このイベントはもう利用できません。"}},
         "ko": {"stringUnit": {"state": "translated", "value": "이 이벤트는 더 이상 이용할 수 없습니다."}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Este evento não está mais disponível."}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "此事件已無法使用。"}}
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "此事件已無法參與。"}}
       }
     },
     "authored.4700f6b7d994e351": {
@@ -9193,10 +9193,10 @@
         "en": {"stringUnit": {"state": "translated", "value": "Battle Unavailable"}},
         "es": {"stringUnit": {"state": "translated", "value": "Batalla no disponible"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Combat indisponible"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "戦闘を利用できません"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘を開始できません"}},
         "ko": {"stringUnit": {"state": "translated", "value": "전투 이용 불가"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Batalha indisponível"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "戰鬥無法使用"}}
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "無法開始戰鬥"}}
       }
     },
     "authored.52687b205b7055b8": {
@@ -9245,7 +9245,7 @@
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+Basic.swift: name",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Schlitzer"}},
+        "de": {"stringUnit": {"state": "translated", "value": "Hieb"}},
         "en": {"stringUnit": {"state": "translated", "value": "Slash"}},
         "es": {"stringUnit": {"state": "translated", "value": "Tajo"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Entaille"}},
@@ -10046,7 +10046,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Verliere jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> und ziehe eine Karte"}},
         "en": {"stringUnit": {"state": "translated", "value": "Every other turn, lose <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> and draw a card"}},
         "es": {"stringUnit": {"state": "translated", "value": "Cada dos turnos, pierde <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> y roba una carta"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Un tour sur deux, perd <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> et pioche une carte"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Un tour sur deux, perdez <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> et piochez une carte"}},
         "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>失い、カードを1枚引く"}},
         "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 <keyword id=\"health\">체력</keyword> <value id=\"quantity_1\">%1$lld</value> 소모 후 카드 한 장 뽑기"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "A cada dois turnos, perca <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> e compre uma carta"}},
@@ -10524,9 +10524,9 @@
         "es": {"stringUnit": {"state": "translated", "value": "Una vez por turno, esquivar devuelve a tu mano la última carta que jugaste"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Une fois par tour, une esquive renvoie dans votre main la dernière carte que vous avez jouée"}},
         "ja": {"stringUnit": {"state": "translated", "value": "1ターンに1回、回避すると最後に使ったカードが手札に戻る"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "턴마다 한 번, 회피 시 마지막으로 사용한 카드를 손으로 반환"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "턴마다 한 번, 회피 시 마지막으로 사용한 카드를 손패로 반환"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Uma vez por turno, esquivar devolve à sua mão a última carta que você jogou"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每回合一次，閃避時將上張打出的牌返回手牌"}}
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每回合一次，閃避時將最後打出的牌返回手牌"}}
       }
     },
     "authored.84aa5a2803ca4647": {
@@ -11238,7 +11238,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "Tu primera carta <keyword id=\"physical\">física</keyword> de cada turno vuelve a tu mano"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Votre première carte de type <keyword id=\"physical\">Physique</keyword> de chaque tour revient dans votre main"}},
         "ja": {"stringUnit": {"state": "translated", "value": "各ターンで最初の<keyword id=\"physical\">物理</keyword>カードが手札に戻る"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "매 턴 첫 <keyword id=\"physical\">물리</keyword> 카드가 손으로 돌아옴"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "매 턴 첫 <keyword id=\"physical\">물리</keyword> 카드가 손패로 돌아옴"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Sua primeira carta <keyword id=\"physical\">Física</keyword> de cada turno retorna à sua mão"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "每回合首張<keyword id=\"physical\">物理</keyword>牌會返回手牌"}}
       }
@@ -12680,7 +12680,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "Una vez por turno, esquivar devuelve a tu mano la última carta que jugaste"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Une fois par tour, une Esquive renvoie dans votre main la dernière carte que vous avez jouée"}},
         "ja": {"stringUnit": {"state": "translated", "value": "1ターンに1回、回避すると最後に使ったカードが手札に戻る"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "턴마다 한 번, 회피 시 마지막으로 사용한 카드를 손으로 반환"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "턴마다 한 번, 회피 시 마지막으로 사용한 카드를 손패로 반환"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Uma vez por turno, esquivar devolve à sua mão a última carta que você jogou"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "每回合一次，閃避時將最後打出的卡牌返回手牌"}}
       }
@@ -13391,11 +13391,11 @@
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Melodie lernen"}},
         "en": {"stringUnit": {"state": "translated", "value": "Learn Melody"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Aprender melodía"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Aprender la melodía"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Apprendre la mélodie"}},
         "ja": {"stringUnit": {"state": "translated", "value": "旋律を学ぶ"}},
         "ko": {"stringUnit": {"state": "translated", "value": "선율 배우기"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Aprender melodia"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Aprender a melodia"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "學習旋律"}}
       }
     },
@@ -13461,11 +13461,11 @@
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Kruste brechen"}},
         "en": {"stringUnit": {"state": "translated", "value": "Break Crust"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Romper corteza"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Romper la corteza"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Briser la croûte"}},
         "ja": {"stringUnit": {"state": "translated", "value": "表面を砕く"}},
         "ko": {"stringUnit": {"state": "translated", "value": "겉껍질 깨기"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Quebrar crosta"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Quebrar a crosta"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "打破硬殼"}}
       }
     },

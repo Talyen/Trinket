@@ -446,7 +446,7 @@
         "ja": {"stringUnit": {"state": "translated", "value": "%1$@が装備中"}},
         "ko": {"stringUnit": {"state": "translated", "value": "장착자: %1$@"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Equipado por %1$@"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "由%1$@裝備中"}}
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "%1$@裝備中"}}
       }
     },
     "ui.itemslotpickerview.equipped_by_this_combatant_6179d": {
