@@ -5,13 +5,16 @@ import TrinketCore
 
 struct CombatBuildResolverTests {
     @Test(arguments: [
-        (1, EnemyPowerCurve.Profile.standard, 0.25),
+        (1, EnemyPowerCurve.Profile.standard, 0.05),
+        (4, .standard, 0.19387665840501532),
         (20, .standard, 2.2),
         (30, .standard, 3.7),
         (40, .standard, 5.2),
         (60, .standard, 6.55),
         (40, .spire, 3.25),
         (40, .recovery, 3.25),
+        (1, .spire, 0.35),
+        (1, .recovery, 0.35),
     ])
     func `Countess stat tuning preserves shared abilities and mode boundaries`(
         level: Int, profile: EnemyPowerCurve.Profile, expectedDamageBonus: Double,

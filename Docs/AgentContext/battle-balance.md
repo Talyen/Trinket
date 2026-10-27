@@ -38,8 +38,10 @@ role-specific roster catch-up XP unchanged. Product direction:
 The standard profile serves Journey, Labyrinth, Voyage, and non-Easy Contracts.
 Its level-40 Health multipliers are 30.4 for regular enemies and 60 for bosses;
 raw damage bonuses are +880% and +585%. Level-1/20 anchors retain their values.
-Countess's standard-profile raw damage bonus reaches +520% at level 40 through
-the same smoothstep from level 20, then retains the common post-40 damage slope.
+Countess's standard-profile raw damage bonus is reduced by 20 percentage points
+at level 1, easing to the common boss value at level 20. It then reaches +520%
+at level 40 through the same smoothstep from level 20 and retains the common
+post-40 damage slope.
 This adjustment belongs to `CombatBuildResolver`; power ratings reuse that build.
 Enemy and player ability definitions remain shared and unchanged by stat tuning.
 Mud Elemental has 13 base Health and Pyromancer has 11. Enemy traits declare

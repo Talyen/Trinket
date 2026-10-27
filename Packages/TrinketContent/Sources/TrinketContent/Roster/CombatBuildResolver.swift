@@ -50,11 +50,17 @@ public enum CombatBuildResolver {
     ) -> CombatBuild {
         var profile = traitProfile(for: enemy)
         profile.outgoingDamagePercent += EnemyPowerCurve.rawDamagePercent(level: level, isBoss: enemy.isBoss, profile: powerProfile)
-        if powerProfile == .standard, enemy.id == "the_blood_countess", level > 20 {
-            // Reach the verified 5.2 bonus at forty without changing shared cards
-            // or the common post-forty damage slope.
-            let progress = Double(min(level, 40) - 20) / 20
-            profile.outgoingDamagePercent -= 0.65 * progress * progress * (3 - 2 * progress)
+        if powerProfile == .standard, enemy.id == "the_blood_countess" {
+            if level < 20 {
+                // Ease early pressure without changing her shared Bleed cards.
+                let progress = Double(max(level, 1) - 1) / 19
+                let eased = progress * progress * (3 - 2 * progress)
+                profile.outgoingDamagePercent -= 0.20 * (1 - eased)
+            } else if level > 20 {
+                // Preserve the level-forty adjustment and common post-forty slope.
+                let progress = Double(min(level, 40) - 20) / 20
+                profile.outgoingDamagePercent -= 0.65 * progress * progress * (3 - 2 * progress)
+            }
         }
 
         let scaledCombatant = CombatantLevelScaler.scale(enemy: enemy, level: level, profile: powerProfile)
