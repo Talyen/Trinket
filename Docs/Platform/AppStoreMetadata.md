@@ -81,8 +81,8 @@ same iCloud account. Play on one device, then reopen Trinket on the other. Check
 Campaign progress, your party, equipment, and Homestead. Adventures, Homestead
 collection, and upgrades remain available offline; reconnect to sync your progress.
 Check that progress earned separately on both devices merges automatically.
-Reset Game Progress applies across your synced devices, including a device that
-reconnects later. This is a development beta; use test progress.
+Reset Game Progress propagates to synced devices, but progress from an offline
+device can return when it reconnects. This is a development beta; use test progress.
 
 **Replacement account paragraph:** No Trinket account is required. With iCloud
 signed in, progress syncs automatically across your devices. Play adventures,
@@ -92,9 +92,9 @@ sync your progress.
 **Replacement for the opening review-note paragraph:** Trinket uses the device's iCloud account for automatic
 progress sync and has no in-app login. Without iCloud, progress remains local.
 Independent earned progress merges automatically, with conflicting saves retained
-as recovery backups. Reset Game Progress propagates to synced
-devices and does not remove Full Game ownership. Keep the Full Game review-note
-paragraph above for either build.
+as recovery backups. Reset Game Progress propagates to synced devices, but progress
+from an offline device can return when it reconnects. Reset does not remove Full
+Game ownership. Keep the Full Game review-note paragraph above for either build.
 
 ## Prepared cloud-enabled website copy
 
@@ -111,11 +111,11 @@ your private iCloud storage across devices using the same Apple Account. You can
 keep playing offline; changes sync after you reconnect. No Trinket account is
 required, and the developer does not operate a game-save server.
 
-You can reset gameplay progress in Options. When linked to iCloud, the reset also
-clears synced progress on your other devices when they reconnect. Resetting does
-not remove Full Game ownership. Deleting the app removes local data but may leave
-saved progress in iCloud; you can manage the app's iCloud data in your device's
-settings.
+You can reset gameplay progress in Options. When linked to iCloud, the reset
+propagates to synced devices, but progress from an offline device can return when
+it reconnects. Resetting does not remove Full Game ownership. Deleting the app
+removes local data but may leave saved progress in iCloud; you can manage the app's
+iCloud data in your device's settings.
 
 **Support page — Saved progress:** Progress is stored on your device. When iCloud
 progress sync is enabled in your build and you are signed in to iCloud, it syncs
@@ -123,6 +123,7 @@ automatically across devices using the same Apple Account. You can play offline;
 changes sync after you reconnect. If progress has not appeared on another device,
 check that both devices use the same iCloud account and have a connection, then
 reopen the app. Options → Reset Game Progress clears progress on this device and,
-when linked to iCloud, on synced devices when they reconnect. It does not remove
-Full Game ownership. Deleting the app can remove local progress, so do not
-reinstall as a first troubleshooting step.
+when linked to iCloud, propagates to synced devices. Progress from an offline
+device can return when it reconnects. Reset does not remove Full Game ownership.
+Deleting the app can remove local progress, so do not reinstall as a first
+troubleshooting step.

@@ -25,7 +25,7 @@ Recheck these identities against the candidate's signing and provisioning:
 |---|---|
 | Bundle / app ID | `com.ryanmcintire.Trinket`, with iCloud and Push Notifications |
 | Private CloudKit container | `iCloud.com.ryanmcintire.Trinket` |
-| App Store Connect | `6811284921`, currently **Trinket!** |
+| App Store Connect | `6811284921`, named **Trinket!** in the [October 12 portal baseline](AppStoreMetadata.md#candidate-evidence) |
 
 Banking/tax and [Full Game purchases](Purchases.md) are separate StoreKit work;
 they do not block CloudKit development. Provisioning alone completes no readiness gate.

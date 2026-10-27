@@ -207,9 +207,9 @@ not proof of installation or a successful device test.
    and installs the locked Fastlane dependencies from `Gemfile.lock`. It does not
    use system Ruby, `sudo`, or change shell profiles. Homebrew is the prerequisite
    if the Mac does not already have it; see [Homebrew](https://brew.sh).
-2. In App Store Connect, use app record `6811284921` (currently **Trinket!**;
-   `com.ryanmcintire.Trinket`) and select an existing internal group with its
-   intended testers. Obtain a team API key through **Users and Access →
+2. In App Store Connect, use app record `6811284921` (`com.ryanmcintire.Trinket`;
+   named **Trinket!** in the [October 12 portal baseline](AppStoreMetadata.md#candidate-evidence))
+   and select an existing internal group with its intended testers. Obtain a team API key through **Users and Access →
    Integrations → App Store Connect API**, with an App Manager or Admin role
    for upload and beta distribution. Signing additionally requires permission
    to access the team's certificates and profiles; the key is not itself a
