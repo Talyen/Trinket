@@ -162,6 +162,10 @@ public final class PreparedArtworkCache {
     }
 
     func releasePins(names: [String]) {
+        if names.count == 1, let name = names.first {
+            decrementPinDemand(named: name, dropResident: true)
+            return
+        }
         for name in Set(names) {
             decrementPinDemand(named: name, dropResident: true)
         }
@@ -186,6 +190,7 @@ public final class PreparedArtworkCache {
     }
 
     private static func deduped(_ names: [String]) -> [String] {
+        guard names.count > 1 else { return names }
         var seen = Set<String>()
         seen.reserveCapacity(names.count)
         return names.filter { seen.insert($0).inserted }

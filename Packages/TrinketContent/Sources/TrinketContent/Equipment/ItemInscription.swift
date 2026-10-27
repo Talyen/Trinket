@@ -17,6 +17,9 @@ public struct ItemInscriptionPlan: Sendable {
 
     public static func choices(for item: InventoryItem, index: Int) -> [ItemAffixDefinition] {
         guard canSelectAffix(for: item, index: index) else { return [] }
+        if item.affixes.count == 1 {
+            return GameContent.itemAffixDefinitions.filter { $0.isEligible(for: item.baseType) }
+        }
         let occupied = Set(item.affixes.enumerated().lazy.filter { $0.offset != index }.map(\.element.id))
         return GameContent.itemAffixDefinitions.filter { $0.isEligible(for: item.baseType) && !occupied.contains($0.id) }
     }

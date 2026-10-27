@@ -237,24 +237,19 @@ public enum NodeModifierCatalog {
         affinityKeywords: Set<Keyword> = [],
     ) -> [NodeModifierID] {
         if !existingModifierIDs.isEmpty {
-            if existingModifierIDs.count == 1, let existing = existingModifierIDs.first {
-                if let definition = modifiersByID[existing], definition.applies(to: type) {
-                    switch type {
-                    case .battle, .boss:
-                        if let enemyID, definition.relevantKeyword.map({ enemyDamageKeywords(for: enemyID).contains($0) }) ?? true {
-                            return [existing]
-                        }
-                    case .shop, .mystery:
-                        return [existing]
-                    case .recruit, .entrance:
-                        break
-                    }
+            if let existing = existingModifierIDs.first(where: { id in
+                guard let definition = modifiersByID[id], definition.applies(to: type) else { return false }
+                switch type {
+                case .battle, .boss:
+                    guard let enemyID else { return false }
+                    return definition.relevantKeyword.map { enemyDamageKeywords(for: enemyID).contains($0) } ?? true
+                case .shop, .mystery:
+                    return true
+                case .recruit, .entrance:
+                    return false
                 }
-            } else {
-                let applicableIDs = Set(applicableModifiers(for: type, enemyID: enemyID).lazy.map(\.id))
-                if let existing = existingModifierIDs.first(where: applicableIDs.contains) {
-                    return [existing]
-                }
+            }) {
+                return [existing]
             }
         }
         return modifierIDs(

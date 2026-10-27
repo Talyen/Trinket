@@ -14,6 +14,7 @@ enum EffectRemoval {
             $0.effect.isRemovableDebuff && keywords.contains($0.keyword)
         }
         // Stable sorting preserves stack order within each reflected keyword.
+        guard removed.count > 1 else { return removed }
         return removed.sorted { $0.keyword.rawValue < $1.keyword.rawValue }
     }
 
@@ -102,6 +103,7 @@ enum EffectRemoval {
     /// Distinct keywords in stable order for per-keyword removal events.
     /// Shared by Cleanse/Purge so the two operations cannot drift apart again.
     static func distinctSortedKeywords(from removed: [ActiveEffect]) -> [Keyword] {
+        guard removed.count > 1 else { return removed.map(\.keyword) }
         let distinct = Set(removed.lazy.map(\.keyword))
         return distinct.sorted { $0.rawValue < $1.rawValue }
     }

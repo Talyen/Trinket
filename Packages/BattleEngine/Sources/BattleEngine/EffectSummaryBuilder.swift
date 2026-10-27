@@ -26,7 +26,10 @@ public enum EffectSummaryBuilder {
     }
 
     public static func build(for effects: [ActiveEffect]) -> [EffectSummary] {
-        guard !effects.isEmpty else { return [] }
+        guard let first = effects.first else { return [] }
+        if effects.count == 1 {
+            return EffectHandlers.summary(for: effects, keyword: first.keyword).map { [$0] } ?? []
+        }
         let grouped = Dictionary(grouping: effects) { Group(kind: $0.effect.kind, keyword: $0.keyword) }
         return grouped.sorted { lhs, rhs in
             if lhs.key.kind != rhs.key.kind {

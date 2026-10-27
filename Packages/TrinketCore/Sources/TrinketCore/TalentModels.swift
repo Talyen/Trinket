@@ -135,7 +135,7 @@ public struct CombatantTalentConfig: Identifiable, Hashable, Codable, Sendable {
     public func cappedUnlocks(_ nodeIDs: Set<String>, budget: Int) -> Set<String> {
         guard budget > 0, !nodeIDs.isEmpty else { return [] }
         var kept: Set<String> = []
-        let rows = Set(trees.lazy.flatMap { $0.nodes.lazy.map(\.row) }).sorted()
+        let rows = Set(trees.lazy.flatMap { $0.nodes.lazy.filter { nodeIDs.contains($0.id) }.map(\.row) }).sorted()
         for row in rows {
             for tree in trees {
                 for node in tree.nodes where node.row == row && nodeIDs.contains(node.id) {

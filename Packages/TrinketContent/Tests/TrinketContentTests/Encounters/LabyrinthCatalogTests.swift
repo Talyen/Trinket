@@ -103,6 +103,31 @@ struct LabyrinthCatalogTests {
         }
     }
 
+    @Test func `saved modifiers retain the first applicable entry`() {
+        let ids = NodeModifierCatalog.modifiers.map(\.id)
+        let enemies: [String?] = [nil, "unknown"] + GameContent.enemies.map { Optional($0.id) }
+        for type in LabyrinthNodeType.allCases {
+            for enemyID in enemies {
+                let applicable: [NodeModifierDefinition] = switch type {
+                case .battle, .boss:
+                    enemyID.map { NodeModifierCatalog.combatModifiers(for: $0, nodeType: type) } ?? []
+                case .shop, .mystery:
+                    NodeModifierCatalog.modifiers.filter { $0.applies(to: type) }
+                case .recruit, .entrance:
+                    []
+                }
+                let eligibleIDs = Set(applicable.map(\.id))
+                for selection in [ids, Array(ids.reversed()), [NodeModifierID("unknown")] + ids] {
+                    let expected = selection.first(where: eligibleIDs.contains).map { [$0] }
+                        ?? NodeModifierCatalog.modifierIDs(for: type, enemyID: enemyID, worldSeed: 7, nodeID: "n")
+                    #expect(NodeModifierCatalog.resolvedModifierIDs(
+                        for: type, enemyID: enemyID, existingModifierIDs: selection, worldSeed: 7, nodeID: "n",
+                    ) == expected)
+                }
+            }
+        }
+    }
+
     @Test func `shop nodes resolve one shop modifier`() {
         let shopPool = NodeModifierCatalog.modifiers.filter { $0.applies(to: .shop) }
         #expect(!shopPool.isEmpty)

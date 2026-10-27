@@ -66,7 +66,7 @@ public extension ItemAffixPower {
         }
         return Self(
             description: text.rendered, modifiers: modifiers, triggers: triggers,
-            triggerRollRanges: triggerRollRanges.mapValues {
+            triggerRollRanges: rangeMultiplier == 1 ? triggerRollRanges : triggerRollRanges.mapValues {
                 ($0.lowerBound * Double(rangeMultiplier)) ... ($0.upperBound * Double(rangeMultiplier))
             },
         )
@@ -338,6 +338,7 @@ private struct AffixMagnitudeText {
     }
 
     var rendered: String {
+        guard bindings.contains(where: { $0.replacement != nil }) else { return original }
         var result = original
         for (range, replacement) in bindings.sorted(by: { $0.range.lowerBound > $1.range.lowerBound }) {
             guard let replacement else { continue }

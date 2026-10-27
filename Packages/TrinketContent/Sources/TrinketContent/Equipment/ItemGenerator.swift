@@ -118,7 +118,7 @@ public struct ItemGenerator: Sendable {
         partyBias: PartyLootBias = PartyLootBias(),
         using randomNumberGenerator: inout some RandomNumberGenerator,
     ) -> [ItemAffixDefinition] {
-        guard count > 0 else { return [] }
+        guard count > 0, !definitions.isEmpty else { return [] }
         var totalWeight = 0
         let hasPartyBias = !partyBias.isEmpty
         var pool = definitions.map { definition in

@@ -84,10 +84,10 @@ private extension BattleState {
     }
 
     var hasPredictableRepeatedPayments: Bool {
-        [roster.hero, roster.companion].allSatisfy { runtime in
+        func isPredictable(_ actorID: String) -> Bool {
             // Only these passive empowerment settings are modeled by the budget.
             // Other reactions can restore Mana, add Block, or interrupt later purchases.
-            var triggers = modifiers(for: runtime.id).triggers
+            var triggers = modifiers(for: actorID).triggers
             triggers.repeatManaEmpowerment = false
             triggers.empowermentCostReduction = 0
             triggers.empowerBurnCostReduction = 0
@@ -100,6 +100,7 @@ private extension BattleState {
             triggers.flashFreeze = false
             return triggers == CombatTraitTriggers()
         }
+        return isPredictable(roster.hero.id) && isPredictable(roster.companion.id)
     }
 
     func resourceUse(_ keyword: Keyword, amount: Int?, actor: Combatant) -> BattleCardAssessment.ResourceUse {

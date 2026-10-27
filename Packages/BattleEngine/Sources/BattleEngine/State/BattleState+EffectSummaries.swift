@@ -42,10 +42,16 @@ package extension BattleState {
         if talents.turn.blockGainPrevented {
             summaries.append(EffectSummary(keyword: .holy, resource: L10n.summary_battlestate_effectsummaries_28ffa132d413))
         }
-        let canonicalLocale = Locale(identifier: "en")
-        let purgedBuffs = talents.turn.purgedEffectProtection.compactMap { kind in
-            purgedBuffName(kind).map { (resource: $0, sortKey: LocalizedGameText($0, locale: canonicalLocale).text) }
-        }.sorted { $0.sortKey < $1.sortKey }.map(\.resource)
+        let protectedEffects = talents.turn.purgedEffectProtection
+        let purgedBuffs: [LocalizedStringResource]
+        if protectedEffects.count <= 1 {
+            purgedBuffs = protectedEffects.first.flatMap(purgedBuffName).map { [$0] } ?? []
+        } else {
+            let canonicalLocale = Locale(identifier: "en")
+            purgedBuffs = protectedEffects.compactMap { kind in
+                purgedBuffName(kind).map { (resource: $0, sortKey: LocalizedGameText($0, locale: canonicalLocale).text) }
+            }.sorted { $0.sortKey < $1.sortKey }.map(\.resource)
+        }
         if !purgedBuffs.isEmpty {
             summaries.append(EffectSummary(
                 keyword: .purge,

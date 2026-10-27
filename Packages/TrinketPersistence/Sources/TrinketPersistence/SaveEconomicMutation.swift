@@ -114,6 +114,7 @@ final class SaveEconomicMutation {
         else {
             throw ValidationFailure.incompleteEffects
         }
+        guard replayed.roster.progressions != after.roster.progressions else { return }
         let ids = Set(replayed.roster.progressions.keys).union(after.roster.progressions.keys)
         guard ids.allSatisfy({
             (replayed.roster.progressions[$0] ?? .initial) == (after.roster.progressions[$0] ?? .initial)

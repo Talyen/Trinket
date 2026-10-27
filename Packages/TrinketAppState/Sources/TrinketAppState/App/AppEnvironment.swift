@@ -96,8 +96,8 @@ public struct AppEnvironment: Sendable {
             skipStarterSelection: arguments.contains("-skip-starter-selection"),
             disableCloudSync: disableCloudSync,
             disableAudio: arguments.contains("-disable-audio"),
-            completedStageIDs: (value(after: "-completed-stages") ?? "").split(separator: ",")
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty },
+            completedStageIDs: Array((value(after: "-completed-stages") ?? "").split(separator: ",").lazy
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }),
             mysteryRecruitEventID: value(after: "-mystery-recruit-event"),
             storeName: developmentUnlocked ? "development-unlocked" : value(after: "-store-name"),
             battleTickInterval: value(after: "-battle-tick-interval")

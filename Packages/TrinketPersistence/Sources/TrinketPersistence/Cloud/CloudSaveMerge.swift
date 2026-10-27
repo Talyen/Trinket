@@ -111,11 +111,15 @@ enum CloudSaveMerge {
     private static func mergeCorruptionAltarCooldown(into merged: inout PlayerSave, branches: Branches) {
         let incoming = branches.incoming.corruptionAltarCooldownRemaining
         let existing = branches.existing.corruptionAltarCooldownRemaining
-        if let reset = [branches.recent, branches.other].first(where: {
-            hasNewCorruptionAltarCompletion(in: $0, base: branches.base)
-        }) {
-            merged.corruptionAltarCooldownRemaining = reset.corruptionAltarCooldownRemaining
-            return
+        if let base = branches.base {
+            if hasNewCorruptionAltarCompletion(in: branches.recent, base: base) {
+                merged.corruptionAltarCooldownRemaining = branches.recent.corruptionAltarCooldownRemaining
+                return
+            }
+            if hasNewCorruptionAltarCompletion(in: branches.other, base: base) {
+                merged.corruptionAltarCooldownRemaining = branches.other.corruptionAltarCooldownRemaining
+                return
+            }
         }
         if let base = branches.base?.corruptionAltarCooldownRemaining,
            incoming < base, existing < base {

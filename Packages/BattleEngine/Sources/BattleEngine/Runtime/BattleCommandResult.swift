@@ -35,7 +35,11 @@ final class BattleCommandOutput {
 
     func recordCombatants(in state: borrowing BattleState, afterEventID: Int? = nil) {
         guard recordsActions else { return }
-        let current = [state.roster.hero, state.roster.companion, state.roster.enemy].map(BattleCombatantSnapshot.init)
+        let current = [
+            BattleCombatantSnapshot(state.roster.hero),
+            BattleCombatantSnapshot(state.roster.companion),
+            BattleCombatantSnapshot(state.roster.enemy),
+        ]
         if let afterEventID {
             for (before, after) in zip(lastCombatants, current) where before != after {
                 combatantChanges.append(BattleCombatantChange(eventID: afterEventID, before: before, after: after))
