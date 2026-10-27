@@ -425,7 +425,7 @@
         "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de %1$@ sont réduits de %2$lld (%3$@)."}},
         "ja": {"stringUnit": {"state": "translated", "value": "%1$@のダメージが%2$lld減少した（%3$@）。"}},
         "ko": {"stringUnit": {"state": "translated", "value": "%1$@: 주는 피해 %2$lld 감소(%3$@)."}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "O dano do tipo %1$@ é reduzido em %2$lld (%3$@)."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "O dano de %1$@ é reduzido em %2$lld (%3$@)."}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "%1$@的傷害降低%2$lld點（%3$@）。"}}
       }
     },
@@ -620,9 +620,9 @@
         "es": {"stringUnit": {"state": "translated", "value": "Cortesía de la víbora: el siguiente impacto de una carta que juegues manualmente que reduzca Salud inflige daño adicional de Veneno y Sangrado, cada uno equivalente a la mitad de la Salud perdida"}},
         "fr": {"stringUnit": {"state": "translated", "value": "La courtoisie de la vipère : le prochain impact d’une carte jouée manuellement qui fait perdre de la Santé inflige des dégâts supplémentaires de Poison et de Saignement, chaque type infligeant la moitié de la Santé perdue"}},
         "ja": {"stringUnit": {"state": "translated", "value": "毒蛇の礼儀：手動で使ったカードの攻撃で次に体力を減らしたとき、失われた体力の半分に等しい毒ダメージと出血ダメージをそれぞれ追加で与える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "독사의 예의: 다음에 직접 사용하는 카드의 적중이 체력을 깎으면, 잃은 체력의 절반만큼 독 및 출혈 추가 피해를 각각 줌"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "독사의 예의: 직접 사용한 카드로 체력을 깎는 다음 적중 시, 잃은 체력의 절반만큼 독 및 출혈 추가 피해를 각각 줌"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Cortesia da Víbora: O próximo acerto de uma carta jogada manualmente que remover Vida causa dano adicional de Veneno e de Sangramento, cada um equivalente à metade da Vida perdida"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "毒蛇禮遇：下次手動出牌的命中使敵人失去生命值時，額外造成中毒與流血傷害，各等於失去的生命值的一半"}}
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "毒蛇禮遇：下次以手動打出的卡牌命中並使目標失去生命值時，額外造成中毒與流血傷害，各等於失去的生命值的一半"}}
       }
     },
     "summary.battlestate_effectsummaries.0cd41331d925": {
@@ -660,7 +660,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Vergoldete Klauen: Deine nächste schadensverursachende Karte verursacht %1$lld zusätzlichen Schaden"}},
         "en": {"stringUnit": {"state": "translated", "value": "Gilded Claws: Your next damaging card deals %1$lld additional damage"}},
         "es": {"stringUnit": {"state": "translated", "value": "Garras doradas: tu siguiente carta de daño inflige %1$lld de daño adicional"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Griffes dorées : la prochaine carte offensive inflige %1$lld dégâts supplémentaires"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Griffes dorées : la prochaine carte qui inflige des dégâts inflige %1$lld dégâts supplémentaires"}},
         "ja": {"stringUnit": {"state": "translated", "value": "金箔の爪：次のダメージカードのダメージが%1$lld増加"}},
         "ko": {"stringUnit": {"state": "translated", "value": "금빛 발톱: 다음 피해 카드의 추가 피해 %1$lld"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Garras Douradas: Sua próxima carta de dano causa %1$lld de dano adicional"}},
@@ -856,7 +856,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Aufspüren: Deine nächste schadensverursachende Karte verursacht %1$lld zusätzlichen Schaden"}},
         "en": {"stringUnit": {"state": "translated", "value": "Sniff Out: Your next damaging card deals %1$lld additional damage"}},
         "es": {"stringUnit": {"state": "translated", "value": "Olfatear: tu siguiente carta de daño inflige %1$lld de daño adicional"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Flair : la prochaine carte offensive inflige %1$lld dégâts supplémentaires"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Flair : la prochaine carte qui inflige des dégâts inflige %1$lld dégâts supplémentaires"}},
         "ja": {"stringUnit": {"state": "translated", "value": "嗅ぎ出し：次のダメージカードのダメージが%1$lld増加"}},
         "ko": {"stringUnit": {"state": "translated", "value": "냄새 추적: 다음 피해 카드의 추가 피해 %1$lld"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Farejar: Sua próxima carta de dano causa %1$lld de dano adicional"}},
@@ -1010,7 +1010,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Nachwirkender Segen: Stelle für %2$lld Runden jede Runde %1$lld Gesundheit wieder her"}},
         "en": {"stringUnit": {"state": "translated", "value": "Lingering Blessing: Restore %1$lld Health each round for %2$lld rounds"}},
         "es": {"stringUnit": {"state": "translated", "value": "Bendición persistente: restaura %1$lld de Salud cada ronda durante %2$lld rondas"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Bénédiction persistante : Santé par manche : %1$lld — durée en manches : %2$lld"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Bénédiction persistante : Santé restaurée par manche : %1$lld — nombre de manches : %2$lld"}},
         "ja": {"stringUnit": {"state": "translated", "value": "残る祝福：%2$lldラウンドの間、毎ラウンド体力を%1$lld回復"}},
         "ko": {"stringUnit": {"state": "translated", "value": "지속되는 축복: %2$lld라운드 동안 매 라운드 체력 %1$lld 회복"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Bênção Persistente: Restaure %1$lld de Vida a cada rodada por %2$lld rodadas"}},
@@ -1222,7 +1222,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "Línea roja: tu siguiente ataque de Sangrado inflige el doble de daño"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Seuil rouge : la prochaine attaque de Saignement inflige le double de dégâts"}},
         "ja": {"stringUnit": {"state": "translated", "value": "危険域：次の出血攻撃はダメージ2倍"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "한계선: 다음 출혈 공격이 두 배의 피해"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "한계선: 다음 출혈 공격이 두 배의 피해를 줌"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Limite Vermelho: Seu próximo ataque de Sangramento causa o dobro de dano"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "危險界線：下次流血攻擊造成雙倍傷害"}}
       }
@@ -1334,7 +1334,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "Transfusión tóxica: tu siguiente ataque de Veneno inflige el doble de daño"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Transfusion toxique : la prochaine attaque de Poison inflige le double de dégâts"}},
         "ja": {"stringUnit": {"state": "translated", "value": "毒の輸血：次の毒攻撃はダメージ2倍"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "맹독 수혈: 다음 독 공격이 두 배의 피해"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "맹독 수혈: 다음 독 공격이 두 배의 피해를 줌"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Transfusão Tóxica: Seu próximo ataque de Veneno causa o dobro de dano"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "劇毒輸注：下次中毒攻擊造成雙倍傷害"}}
       }
@@ -1432,7 +1432,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "Vigor de fénix: tu siguiente ataque inflige el doble de daño"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Vigueur du phénix : la prochaine attaque inflige le double de dégâts"}},
         "ja": {"stringUnit": {"state": "translated", "value": "不死鳥の活力：次の攻撃はダメージ2倍"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "불사조의 활력: 다음 공격이 두 배의 피해"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "불사조의 활력: 다음 공격이 두 배의 피해를 줌"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Vigor da Fênix: Seu próximo ataque causa o dobro de dano"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "鳳凰活力：下次攻擊造成雙倍傷害"}}
       }
@@ -1473,7 +1473,7 @@
         "en": {"stringUnit": {"state": "translated", "value": "The Patient Edge: Your next manually played attack hit Critically Hits"}},
         "es": {"stringUnit": {"state": "translated", "value": "El filo paciente: el siguiente impacto de un ataque que juegues manualmente asesta un golpe crítico"}},
         "fr": {"stringUnit": {"state": "translated", "value": "La lame patiente : le prochain impact d’une attaque jouée manuellement est un coup Critique garanti"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "忍耐の刃：次に手動で使う攻撃が命中するとクリティカルになる"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "忍耐の刃：手動で使った攻撃が次に命中した際、その命中はクリティカルになる"}},
         "ko": {"stringUnit": {"state": "translated", "value": "인내의 칼날: 다음에 직접 사용하는 공격의 적중이 반드시 치명타"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "O Fio Paciente: Seu próximo acerto de ataque jogado manualmente é crítico"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "耐心之刃：下次手動打出的攻擊命中必定暴擊"}}
@@ -1488,7 +1488,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "Cultivo inestable: tu siguiente ataque de Veneno inflige el doble de daño"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Culture instable : la prochaine attaque de Poison inflige le double de dégâts"}},
         "ja": {"stringUnit": {"state": "translated", "value": "不安定な培養：次の毒攻撃はダメージ2倍"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "불안정한 배양: 다음 독 공격이 두 배의 피해"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "불안정한 배양: 다음 독 공격이 두 배의 피해를 줌"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Cultura Instável: Seu próximo ataque de Veneno causa o dobro de dano"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "不穩定培養物：下次中毒攻擊造成雙倍傷害"}}
       }
@@ -1572,7 +1572,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "Caparazón sísmico: tu siguiente ataque de Aturdimiento inflige el doble de daño"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Carapace sismique : la prochaine attaque d’Étourdissement inflige le double de dégâts"}},
         "ja": {"stringUnit": {"state": "translated", "value": "震える甲殻：次のスタン攻撃はダメージ2倍"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "진동하는 갑각: 다음 기절 공격이 두 배의 피해"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "진동하는 갑각: 다음 기절 공격이 두 배의 피해를 줌"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Carapaça Sísmica: Seu próximo ataque de Atordoamento causa o dobro de dano"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "震地甲殼：下次暈眩攻擊造成雙倍傷害"}}
       }
@@ -1586,7 +1586,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "Sangrado preparado: tu siguiente ataque inflige %1$lld de daño adicional de Sangrado"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Saignement préparé : la prochaine attaque inflige %1$lld dégâts de Saignement supplémentaires"}},
         "ja": {"stringUnit": {"state": "translated", "value": "出血準備：次の攻撃が出血ダメージを追加で%1$lld与える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "준비된 출혈: 다음 공격이 출혈 추가 피해 %1$lld"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "준비된 출혈: 다음 공격이 출혈 피해를 %1$lld 추가로 줌"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Sangramento Preparado: Seu próximo ataque causa %1$lld de dano de Sangramento adicional"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "預備流血：下次攻擊額外造成%1$lld點流血傷害"}}
       }
@@ -1602,7 +1602,7 @@
         "ja": {"stringUnit": {"state": "translated", "value": "黄金のるつぼ：手動で使ったカードの聖攻撃が次に命中すると、ダメージが%1$lld増加"}},
         "ko": {"stringUnit": {"state": "translated", "value": "황금 도가니: 직접 사용한 카드의 다음 신성 적중에 추가 피해 %1$lld"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "O Cadinho Dourado: Seu próximo acerto Sagrado com uma carta jogada manualmente causa %1$lld de dano adicional"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "黃金熔爐：下次手動出牌的神聖命中額外造成%1$lld點傷害"}}
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "黃金熔爐：下次由手動打出的卡牌造成神聖命中時，額外造成%1$lld點傷害"}}
       }
     },
     "summary.battlestate_effectsummaries.e410a469f407": {
@@ -1669,7 +1669,7 @@
         "en": {"stringUnit": {"state": "translated", "value": "Double Strike"}},
         "es": {"stringUnit": {"state": "translated", "value": "Golpe doble"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Double frappe"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "連撃"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "二連撃"}},
         "ko": {"stringUnit": {"state": "translated", "value": "이중 일격"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Golpe Duplo"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "雙重打擊"}}
@@ -1936,7 +1936,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "%1$@: %2$lld puntos listos para absorber daño entrante"}},
         "fr": {"stringUnit": {"state": "translated", "value": "%1$@ : capacité d’absorption des dégâts : %2$lld"}},
         "ja": {"stringUnit": {"state": "translated", "value": "%1$@：受けるダメージを%2$lldポイントまで吸収"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "%1$@: 다음에 받는 피해를 흡수할 수 있는 수치 %2$lld"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "%1$@: 받는 피해를 흡수할 수 있는 수치 %2$lld"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "%1$@: %2$lld pontos prontos para absorver dano recebido"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "%1$@：有%2$lld點可吸收所受傷害"}}
       }

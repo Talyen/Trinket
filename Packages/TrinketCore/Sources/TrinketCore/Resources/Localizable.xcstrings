@@ -38,7 +38,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "a un aliado vivo le falta <keyword id=\"health\">Salud</keyword>"}},
         "fr": {"stringUnit": {"state": "translated", "value": "un allié vivant n’est pas à pleine <keyword id=\"health\">Santé</keyword>"}},
         "ja": {"stringUnit": {"state": "translated", "value": "生存中の味方の<keyword id=\"health\">体力</keyword>が満タンでない"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "살아 있는 아군의 <keyword id=\"health\">체력</keyword>이 부족함"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "살아 있는 아군의 <keyword id=\"health\">체력</keyword>이 가득 차지 않음"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "um aliado vivo está com <keyword id=\"health\">Vida</keyword> incompleta"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "有存活且<keyword id=\"health\">生命值</keyword>未滿的友方"}}
       }
@@ -344,7 +344,7 @@
         "de": {"stringUnit": {"state": "translated", "value": "Erhalte <keyword id=\"block\">Block</keyword> in Höhe deines <keyword id=\"mana\">Manas</keyword>"}},
         "en": {"stringUnit": {"state": "translated", "value": "Gain <keyword id=\"block\">Block</keyword> equal to your <keyword id=\"mana\">Mana</keyword>"}},
         "es": {"stringUnit": {"state": "translated", "value": "Obtén <keyword id=\"block\">Bloqueo</keyword> equivalente a tu <keyword id=\"mana\">Maná</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez autant de <keyword id=\"block\">Blocage</keyword> que votre <keyword id=\"mana\">Mana</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez autant de <keyword id=\"block\">Blocage</keyword> que vous avez de <keyword id=\"mana\">Mana</keyword>"}},
         "ja": {"stringUnit": {"state": "translated", "value": "自分の<keyword id=\"mana\">マナ</keyword>に等しい<keyword id=\"block\">ブロック</keyword>を得る"}},
         "ko": {"stringUnit": {"state": "translated", "value": "내 <keyword id=\"mana\">마나</keyword>만큼 <keyword id=\"block\">방어도</keyword> 획득"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <keyword id=\"block\">Bloqueio</keyword> equivalente à sua <keyword id=\"mana\">Mana</keyword>"}},
@@ -655,7 +655,7 @@
         "fr": {"stringUnit": {"state": "translated", "value": "Réduit de <value id=\"percent\">%1$lld</value>%% la <keyword id=\"health\">Santé</keyword> restaurée aux ennemis pendant <value id=\"turns\">%2$lld</value> tours"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<value id=\"turns\">%2$lld</value>ターンの間、敵が回復する<keyword id=\"health\">体力</keyword>が<value id=\"percent\">%1$lld</value>%%減少"}},
         "ko": {"stringUnit": {"state": "translated", "value": "<value id=\"turns\">%2$lld</value>턴 동안 적의 <keyword id=\"health\">체력</keyword> 회복량 <value id=\"percent\">%1$lld</value>%% 감소"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Reduz a <keyword id=\"health\">Vida</keyword> restaurada dos inimigos em <value id=\"percent\">%1$lld</value>%% por <value id=\"turns\">%2$lld</value> turnos"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Reduz a <keyword id=\"health\">Vida</keyword> restaurada aos inimigos em <value id=\"percent\">%1$lld</value>%% por <value id=\"turns\">%2$lld</value> turnos"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "使敵人恢復的<keyword id=\"health\">生命值</keyword>降低<value id=\"percent\">%1$lld</value>%%，持續<value id=\"turns\">%2$lld</value>回合"}}
       }
     },
@@ -669,7 +669,7 @@
         "fr": {"stringUnit": {"state": "translated", "value": "Réduit la <keyword id=\"health\">Santé</keyword> rendue aux ennemis de <value id=\"percent\">%1$lld</value>%% pendant <value id=\"turn\">%2$lld</value> tour"}},
         "ja": {"stringUnit": {"state": "translated", "value": "<value id=\"turn\">%2$lld</value>ターンの間、敵が回復する<keyword id=\"health\">体力</keyword>が<value id=\"percent\">%1$lld</value>%%減少"}},
         "ko": {"stringUnit": {"state": "translated", "value": "<value id=\"turn\">%2$lld</value>턴 동안 적의 <keyword id=\"health\">체력</keyword> 회복량 <value id=\"percent\">%1$lld</value>%% 감소"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Reduz a <keyword id=\"health\">Vida</keyword> restaurada dos inimigos em <value id=\"percent\">%1$lld</value>%% por <value id=\"turn\">%2$lld</value> turno"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Reduz a <keyword id=\"health\">Vida</keyword> restaurada aos inimigos em <value id=\"percent\">%1$lld</value>%% por <value id=\"turn\">%2$lld</value> turno"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "使敵人恢復的<keyword id=\"health\">生命值</keyword>降低<value id=\"percent\">%1$lld</value>%%，持續<value id=\"turn\">%2$lld</value>回合"}}
       }
     },
@@ -737,7 +737,7 @@
         "en": {"stringUnit": {"state": "translated", "value": "Mark the enemy"}},
         "es": {"stringUnit": {"state": "translated", "value": "Marca al enemigo"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Marquez l’ennemi"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "敵を標的にする"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "敵に印を付ける"}},
         "ko": {"stringUnit": {"state": "translated", "value": "적에게 표식 부여"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Marque o inimigo"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "標記敵人"}}
@@ -878,7 +878,7 @@
         "es": {"stringUnit": {"state": "translated", "value": "Tu siguiente carta se juega dos veces"}},
         "fr": {"stringUnit": {"state": "translated", "value": "Votre prochaine carte est jouée deux fois"}},
         "ja": {"stringUnit": {"state": "translated", "value": "次のカードを2回使用"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "다음 카드 효과가 두 번 발동"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "다음 카드가 두 번 사용됨"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Sua próxima carta é jogada duas vezes"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "下張牌打出兩次"}}
       }
@@ -1699,7 +1699,7 @@
       "comment": "Game category or role label; basic",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Grund"}},
+        "de": {"stringUnit": {"state": "translated", "value": "Grundlegend"}},
         "en": {"stringUnit": {"state": "translated", "value": "Basic"}},
         "es": {"stringUnit": {"state": "translated", "value": "Básica"}},
         "fr": {"stringUnit": {"state": "translated", "value": "De base"}},
