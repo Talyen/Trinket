@@ -24,6 +24,22 @@ struct RewardSettlementTests {
         #expect(adjusted.companionExperience == plan.companionExperience)
     }
 
+    @Test func `rejected rewards do not reserve other collectible identities`() throws {
+        let first = try #require(GameContent.uniqueItems.first)
+        let second = try #require(GameContent.uniqueItems.first { $0.templateID != first.templateID })
+        let conflicting = InventoryItem(
+            id: first.id, templateID: second.templateID, baseType: second.baseType,
+            rarity: second.rarity, displayName: second.displayName, affixes: second.affixes,
+        )
+        let plan = BattleRewardPlan(
+            stageGold: 0, goldFindPercent: 0, heroExperience: 0, companionExperience: 0,
+            materials: [], items: [conflicting, second, second],
+        )
+        let adjusted = plan.resolvingOwnedItems(in: [first], encounterLevel: 1)
+        #expect(adjusted.items == [second])
+        #expect(adjusted.stageGold == 2 * BattleLoot.duplicateItemConsolationGold(forLevel: 1))
+    }
+
     private func inputs(
         gold: Int = 0,
         goldLimit: Int = 100,

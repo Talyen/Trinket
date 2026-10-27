@@ -309,7 +309,7 @@ package extension DamagePipeline {
               let source = context.roster.combatant(for: sourceID)?.combatant else { return }
         let sourceEffects = context.roster.activeEffects(for: source)
         let sourceStatus = DamageTargetStatus(for: source, in: context)
-        let sourceBleedStacks = sourceEffects.count(where: \.effect.isBleed)
+        var sourceBleedStacks: Int?
         var reductionFlat = 0
         var reductionMultiplier = state.options.isPrimaryAttack
             ? context.resolution.actionTalents(for: source.id)?.concussionMultiplier ?? 1 : 1
@@ -329,9 +329,12 @@ package extension DamagePipeline {
             if sourceStatus.isPoisoned {
                 reductionMultiplier *= (1 - min(1, t.poisonedEnemyAccuracyPenaltyPercent))
             }
-            if sourceStatus.isBleeding, t.enemyBleedStacksDamageReductionStacks > 0,
-               sourceBleedStacks >= t.enemyBleedStacksDamageReductionStacks {
-                reductionMultiplier *= (1 - min(1, t.enemyBleedStacksDamageReductionPercent))
+            if sourceStatus.isBleeding, t.enemyBleedStacksDamageReductionStacks > 0 {
+                let count = sourceBleedStacks ?? sourceEffects.count(where: \.effect.isBleed)
+                sourceBleedStacks = count
+                if count >= t.enemyBleedStacksDamageReductionStacks {
+                    reductionMultiplier *= (1 - min(1, t.enemyBleedStacksDamageReductionPercent))
+                }
             }
         }
         for active in sourceEffects {

@@ -16,7 +16,7 @@ public extension Combatant.Role {
 
 public extension EquipmentLoadout {
     func sanitized(for combatant: Combatant, inventory: [InventoryItem]) -> EquipmentLoadout {
-        guard !itemIDsBySlot.isEmpty else { return EquipmentLoadout() }
+        guard !itemIDsBySlot.isEmpty, !inventory.isEmpty, combatant.role != .enemy else { return EquipmentLoadout() }
         let equippedIDs = Set(itemIDsBySlot.values)
         let itemsByID = Dictionary(
             inventory.lazy.filter { equippedIDs.contains($0.id) }.map { ($0.id, $0) },

@@ -5,7 +5,7 @@ public enum CoreCopy {
     /// Canonical English is locale-independent; render only the matched rule
     /// in the caller's locale rather than rendering every rule for each lookup.
     private static let keywordByRulesText = Dictionary(
-        Keyword.allCases.map { ($0.rulesText, $0) },
+        Keyword.allCases.lazy.map { ($0.rulesText, $0) },
         uniquingKeysWith: { first, _ in first },
     )
 

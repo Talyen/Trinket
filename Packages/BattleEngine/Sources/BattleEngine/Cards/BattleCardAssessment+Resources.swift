@@ -15,12 +15,11 @@ extension BattleState {
         if healthCost > 0 {
             resources.append(resourceUse(.health, amount: healthCost, actor: actor))
         }
-        let blockOverride = original.blockCost > 0
-            ? max(0, DefensePoolEngine.blockPoints(in: roster.activeEffects(for: actor)) - original.blockCost)
-            : nil
+        let hasManaEmpowerable = branch.operations.contains(where: \.isManaEmpowerable)
         for use in empowermentResourceUses(
             branch.operations, repeatsManaEmpowerment: original.repeatsManaEmpowerment,
-            actor: actor, randomKeywords: branch.randomizeDamageKeywords, blockOverride: blockOverride,
+            actor: actor, randomKeywords: branch.randomizeDamageKeywords,
+            hasManaEmpowerable: hasManaEmpowerable, blockCost: original.blockCost,
         ) {
             mergeResource(use, into: &resources)
         }
@@ -33,7 +32,7 @@ extension BattleState {
             for (targetIndex, target) in action.targets(targeted.target, in: self).enumerated() where health(of: target) > 0 {
                 // Earlier operations and another recipient's spending reactions can change this balance.
                 let isCertain = targeted.chance >= 1 && !hasDamage && effectIndex == 0 && targetIndex == 0
-                    && !branch.operations.contains(where: \.isManaEmpowerable)
+                    && !hasManaEmpowerable
                 let mana = mana(of: target)
                 guard mana > 0 || !isCertain else { continue }
                 mergeResource(resourceUse(.mana, amount: isCertain ? mana : nil, actor: target), into: &resources)
@@ -46,9 +45,12 @@ extension BattleState {
 private extension BattleState {
     func empowermentResourceUses(
         _ operations: [AbilityOperation], repeatsManaEmpowerment: Bool,
-        actor: Combatant, randomKeywords: Bool, blockOverride: Int? = nil,
+        actor: Combatant, randomKeywords: Bool, hasManaEmpowerable: Bool, blockCost: Int,
     ) -> [BattleCardAssessment.ResourceUse] {
-        guard operations.contains(where: \.isManaEmpowerable) || randomKeywords else { return [] }
+        guard hasManaEmpowerable || randomKeywords else { return [] }
+        let blockOverride = blockCost > 0
+            ? max(0, DefensePoolEngine.blockPoints(in: roster.activeEffects(for: actor)) - blockCost)
+            : nil
         var budget = ManaEmpowermentBudget(
             keywords: randomKeywords ? [.freeze] : operations.flatMap(\.keywords),
             hasBurnDamage: !randomKeywords && operations.contains { $0.keyword == .burn && $0.isManaEmpowerable },

@@ -176,7 +176,8 @@ struct CloudReceiptReplay {
     }
 
     func retireItems(in save: inout PlayerSave) {
-        guard !retiredItems.isEmpty else { return }
+        guard !retiredItems.isEmpty,
+              save.inventory.items.contains(where: { retiredItems.contains($0.id) }) else { return }
         for item in save.inventory.items where retiredItems.contains(item.id) {
             save.roster.unequip(itemID: item.id)
         }

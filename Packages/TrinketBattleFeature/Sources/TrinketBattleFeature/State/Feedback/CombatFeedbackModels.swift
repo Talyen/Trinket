@@ -133,6 +133,7 @@ enum CombatFeedbackOrdering {
     /// index within a group. The raster host keeps its own layer-local sorts
     /// for incremental CALayer management; this is the policy for item order.
     static func orderedChips(from visible: [CombatFeedbackItem]) -> [CombatFeedbackItem] {
+        guard visible.count > 1 else { return visible }
         var order: [Int] = []
         var grouped: [Int: [CombatFeedbackItem]] = [:]
         for item in visible {

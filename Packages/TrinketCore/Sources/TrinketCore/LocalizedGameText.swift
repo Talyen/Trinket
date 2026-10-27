@@ -35,7 +35,7 @@ public struct LocalizedGameText: Sendable {
 
     public init(markedText: String, values: [String: Int] = [:]) {
         self.markedText = markedText
-        guard let expression = Self.expression else {
+        guard markedText.contains("<"), let expression = Self.expression else {
             text = markedText
             spans = []
             return

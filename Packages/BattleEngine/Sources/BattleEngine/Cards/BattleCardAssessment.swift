@@ -71,15 +71,24 @@ public extension BattleState {
             }
             targets.removeLast(targets.count - retained)
         }
-        var uniqueTargets: [BattleCardAssessment.Target] = []
-        for target in targets where !uniqueTargets.contains(target) {
-            uniqueTargets.append(target)
+        let uniqueTargets: [BattleCardAssessment.Target]
+        if targets.count <= 1 {
+            uniqueTargets = targets
+        } else {
+            var unique: [BattleCardAssessment.Target] = []
+            for target in targets where !unique.contains(target) {
+                unique.append(target)
+            }
+            uniqueTargets = unique
         }
-        let payments = outcomes.map { assessmentResources($0, original: selected, action: action) }
-        return BattleCardAssessment(
-            actorID: actor.id, denial: nil, targets: uniqueTargets,
-            resources: BattleCardAssessment.commonResources(payments),
-        )
+        let resources: [BattleCardAssessment.ResourceUse]
+        if outcomes.count == 1 {
+            resources = assessmentResources(outcomes[0], original: selected, action: action)
+        } else {
+            let payments = outcomes.map { assessmentResources($0, original: selected, action: action) }
+            resources = BattleCardAssessment.commonResources(payments)
+        }
+        return BattleCardAssessment(actorID: actor.id, denial: nil, targets: uniqueTargets, resources: resources)
     }
 }
 

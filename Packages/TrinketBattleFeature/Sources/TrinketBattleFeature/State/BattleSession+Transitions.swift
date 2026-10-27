@@ -18,16 +18,24 @@ extension BattleSession {
             if let playedCardID {
                 consumedIDs.insert(playedCardID)
             }
-            let remaining = presentation.hand.filter { !consumedIDs.contains($0.id) }
-            let remainingIDs = Set(remaining.lazy.map(\.id))
-            snapshot.hand = Array((remaining + snapshot.hand.filter { !remainingIDs.contains($0.id) })
-                .prefix(BattleHand.maxSize))
+            let remaining = consumedIDs.isEmpty ? presentation.hand : presentation.hand.filter { !consumedIDs.contains($0.id) }
+            if remaining.count >= BattleHand.maxSize {
+                snapshot.hand = Array(remaining.prefix(BattleHand.maxSize))
+            } else {
+                let remainingIDs = Set(remaining.lazy.map(\.id))
+                snapshot.hand = Array((remaining + snapshot.hand.filter { !remainingIDs.contains($0.id) })
+                    .prefix(BattleHand.maxSize))
+            }
         }
-        let actionEventIDs = Set(playback.actions.lazy.flatMap(\.eventIDs))
-        let standaloneDraws = playback.events.filter {
-            $0.effectKind == .cardsDrawn && !actionEventIDs.contains($0.id)
+        let draws = playback.events.filter { $0.effectKind == .cardsDrawn }
+        let standaloneDraws: [ActionEvent]
+        if draws.isEmpty || playback.actions.isEmpty {
+            standaloneDraws = draws
+        } else {
+            let actionEventIDs = Set(playback.actions.lazy.flatMap(\.eventIDs))
+            standaloneDraws = draws.filter { !actionEventIDs.contains($0.id) }
         }
-        let hasImplicitDeal = !playback.events.contains { $0.effectKind == .cardsDrawn } && {
+        let hasImplicitDeal = draws.isEmpty && {
             let previousIDs = Set(presentation.hand.lazy.map(\.id))
             return playback.snapshot.hand.contains { !previousIDs.contains($0.id) }
         }()
@@ -46,7 +54,9 @@ extension BattleSession {
         ) { [weak self] events, damage, impactAt, groupID in
             guard let self, activeBattle?.id == configurationID else { return }
             let enemyWasAlive = (presentation.enemy?.health ?? 0) > 0
-            presentation.apply(events.sorted { $0.id < $1.id }.flatMap { changesByEventID[$0.id] ?? [] })
+            let changes = changesByEventID.isEmpty ? [] : events.sorted { $0.id < $1.id }
+                .flatMap { changesByEventID[$0.id] ?? [] }
+            presentation.apply(changes)
             feedback.record(
                 events.filter { $0.milestone == nil },
                 at: impactAt,

@@ -1,12 +1,16 @@
 public enum InventoryDuplicatePolicy {
     public static func containsDuplicate(of candidate: InventoryItem, in items: [InventoryItem]) -> Bool {
-        items.contains {
+        guard candidate.isTrinket || candidate.rarity == .unique else {
+            return items.contains { $0.id == candidate.id }
+        }
+        return items.contains {
             $0.id == candidate.id || ($0.templateID == candidate.templateID
                 && (($0.isTrinket && candidate.isTrinket) || ($0.rarity == .unique && candidate.rarity == .unique)))
         }
     }
 
     public static func deduplicated(_ items: [InventoryItem]) -> [InventoryItem] {
+        guard items.count > 1 else { return items }
         var result: [InventoryItem] = []
         result.reserveCapacity(items.count)
         appendUniqueItems(items, to: &result)

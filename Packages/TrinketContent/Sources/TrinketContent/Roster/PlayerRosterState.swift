@@ -279,15 +279,11 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public var heroes: [Combatant] {
-        configuredCombatants(
-            GameContent.heroes.filter { isUnlocked($0) },
-        )
+        GameContent.heroes.compactMap { isUnlocked($0) ? configuredCombatant($0) : nil }
     }
 
     public var companions: [Combatant] {
-        configuredCombatants(
-            GameContent.companions.filter { isUnlocked($0) },
-        )
+        GameContent.companions.compactMap { isUnlocked($0) ? configuredCombatant($0) : nil }
     }
 
     public var collectionHeroes: [Combatant] {
@@ -322,31 +318,27 @@ public struct PlayerRosterState: Equatable, Sendable {
     private func orderedCollectionCombatants(_ combatants: [Combatant]) -> [Combatant] {
         configuredCombatants(combatants)
             .enumerated()
+            .map { offset, combatant in
+                let unlocked = isUnlocked(combatant)
+                return (
+                    offset: offset, combatant: combatant, unlocked: unlocked,
+                    free: ContentAccessPolicy.isFreeCombatant(combatant.id),
+                    level: unlocked ? progression(for: combatant).level : 0,
+                )
+            }
             .sorted { left, right in
-                let leftUnlocked = isUnlocked(left.element)
-                let rightUnlocked = isUnlocked(right.element)
-
-                if leftUnlocked != rightUnlocked {
-                    return leftUnlocked
+                if left.unlocked != right.unlocked {
+                    return left.unlocked
                 }
-
-                let leftFree = ContentAccessPolicy.isFreeCombatant(left.element.id)
-                let rightFree = ContentAccessPolicy.isFreeCombatant(right.element.id)
-                if leftFree != rightFree {
-                    return leftFree
+                if left.free != right.free {
+                    return left.free
                 }
-
-                if leftUnlocked {
-                    let leftLevel = progression(for: left.element).level
-                    let rightLevel = progression(for: right.element).level
-                    if leftLevel != rightLevel {
-                        return leftLevel > rightLevel
-                    }
+                if left.unlocked, left.level != right.level {
+                    return left.level > right.level
                 }
-
                 return left.offset < right.offset
             }
-            .map(\.element)
+            .map(\.combatant)
     }
 }
 

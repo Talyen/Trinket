@@ -238,8 +238,17 @@ public enum NodeModifierCatalog {
     ) -> [NodeModifierID] {
         if !existingModifierIDs.isEmpty {
             if existingModifierIDs.count == 1, let existing = existingModifierIDs.first {
-                if applicableModifiers(for: type, enemyID: enemyID).contains(where: { $0.id == existing }) {
-                    return [existing]
+                if let definition = modifiersByID[existing], definition.applies(to: type) {
+                    switch type {
+                    case .battle, .boss:
+                        if let enemyID, definition.relevantKeyword.map({ enemyDamageKeywords(for: enemyID).contains($0) }) ?? true {
+                            return [existing]
+                        }
+                    case .shop, .mystery:
+                        return [existing]
+                    case .recruit, .entrance:
+                        break
+                    }
                 }
             } else {
                 let applicableIDs = Set(applicableModifiers(for: type, enemyID: enemyID).lazy.map(\.id))

@@ -55,7 +55,7 @@ public extension PlayerSaveStore {
             if let type = labyrinthNodeType {
                 save.labyrinth = .freshStart
                 save.labyrinth.ensureMap(seed: labyrinthFixtureSeed)
-                guard let target = save.labyrinth.nodes.values.sorted(by: { $0.id < $1.id }).first(where: { $0.type == type })
+                guard let target = save.labyrinth.nodes.values.lazy.filter({ $0.type == type }).min(by: { $0.id < $1.id })
                 else { return }
                 // Reveal everything except the target so the map scrolls fully.
                 for id in save.labyrinth.nodes.keys {

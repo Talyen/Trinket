@@ -10,6 +10,14 @@ public struct RewardOwnership: Equatable, Sendable {
 
     public func modifiers(ids: [NodeModifierID], enemyIsBoss: Bool = false) -> [NodeModifierDefinition] {
         guard !ids.isEmpty else { return [] }
+        let hasReward = ids.contains { id in
+            guard let definition = NodeModifierCatalog.modifier(id: id) else { return false }
+            if case .reward = definition.effect {
+                return true
+            }
+            return false
+        }
+        guard hasReward else { return ids.compactMap(NodeModifierCatalog.modifier(id:)) }
         return NodeModifierCatalog.modifiers(ids: ids, eligibleRewards: eligibleModifiers, enemyIsBoss: enemyIsBoss)
     }
 

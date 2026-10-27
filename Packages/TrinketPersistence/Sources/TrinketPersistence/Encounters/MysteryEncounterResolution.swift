@@ -41,7 +41,8 @@ public enum MysteryEncounterResolution {
               .flatMap({ id in event.choices.first { $0.id == id } }) ?? (choiceID == nil ? event.choices.first : nil)
         else { return .failure(.unavailable) }
         if choice.effects.contains(.corruptItem) {
-            return ItemCorruption.eligibleTargets(in: save.inventory.items).isEmpty ? .failure(.unavailable) : .success(.selectCorruptItem)
+            return !save.inventory.items
+                .contains(where: ItemCorruption.isEligibleTarget) ? .failure(.unavailable) : .success(.selectCorruptItem)
         }
         if choice.effects.contains(.leave) {
             guard complete(request, event: event, save: &save) else { return .failure(.unavailable) }
@@ -62,20 +63,15 @@ public enum MysteryEncounterResolution {
             goldFoundPercent: bonuses.goldFoundPercent, experienceEarnedPercent: bonuses.experienceEarnedPercent,
             materialsFoundPercent: bonuses.materialsFoundPercent, at: date,
         )
-        let requiredItems = choice.effects.count(where: {
-            if case .gainItem = $0 {
-                true
-            } else {
-                false
+        var requiredItems = 0
+        var requiredUnlocks = 0
+        for effect in choice.effects {
+            switch effect {
+            case .gainItem: requiredItems += 1
+            case .unlockCombatant: requiredUnlocks += 1
+            default: break
             }
-        })
-        let requiredUnlocks = choice.effects.count(where: {
-            if case .unlockCombatant = $0 {
-                true
-            } else {
-                false
-            }
-        })
+        }
         guard result.grantedItems.count == requiredItems, result.unlockedCombatantIDs.count == requiredUnlocks,
               !result.isEmpty else { return .failure(.unavailable) }
         guard complete(request, event: event, save: &candidate) else { return .failure(.unavailable) }
@@ -162,7 +158,7 @@ public extension MysteryEventPickContext {
     ) -> Self {
         Self(
             allowsCorruptionAltar: chapterNumber >= 2,
-            hasEligibleCorruptTarget: !ItemCorruption.eligibleTargets(in: inventory.items).isEmpty,
+            hasEligibleCorruptTarget: inventory.items.contains(where: ItemCorruption.isEligibleTarget),
             corruptionAltarCooldownRemaining: corruptionAltarCooldownRemaining,
         )
     }
@@ -173,7 +169,7 @@ public extension MysteryEventPickContext {
     ) -> Self {
         Self(
             allowsCorruptionAltar: true,
-            hasEligibleCorruptTarget: !ItemCorruption.eligibleTargets(in: inventory.items).isEmpty,
+            hasEligibleCorruptTarget: inventory.items.contains(where: ItemCorruption.isEligibleTarget),
             corruptionAltarCooldownRemaining: corruptionAltarCooldownRemaining,
         )
     }

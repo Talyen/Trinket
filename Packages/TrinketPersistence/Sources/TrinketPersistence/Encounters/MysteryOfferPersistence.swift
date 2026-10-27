@@ -15,7 +15,8 @@ public enum MysteryOfferPersistence {
     private static func hasReadableOffers(_ data: Data) -> Bool {
         do {
             let snapshot = try JSONDecoder().decode(MysteryOfferSnapshot.self, from: data)
-            return try snapshot.resolvedOffers().count == snapshot.offers.count
+            guard snapshot.version == 2 else { return false }
+            return try snapshot.offers.allSatisfy { try $0.resolve() != nil }
         } catch {
             return false
         }
