@@ -178,7 +178,7 @@ struct OptionsView: View {
 
         #if DEBUG
         Section {
-            Button { showsFeedbackComparison = true } label: { Text(verbatim: "Feedback A/B") }
+            Button { showsFeedbackComparison = true } label: { Text(verbatim: "Feedback Replay") }
             NavigationLink(String(localized: L10n.ui_optionsview_game_feel_65589)) {
                 GameFeelPreviewView(
                     stage: GameContent.chapters[0].stages.first { $0.encounter.isCombat } ?? GameContent.chapters[0].stages[0],

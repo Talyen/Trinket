@@ -128,19 +128,17 @@ battle-chrome invalidation. This is an intentional performance exception to the 
 
 Do not rewrite the host for purity unless Instruments shows SwiftUI can match hitch budgets.
 
-## Debug feedback comparison
+## Debug feedback replay
 
-Debug builds expose **Options → Feedback A/B**. Baseline uses the shipping
-feedback lane, raster host, layout, motion, semantic merging and corner caps.
-Balanced is the default in ordinary battles. The comparison retains the previous
-Baseline on the same battlefield, portraits, glyphs and hit reactions. Both modes use fixed presentation
-fixtures and never issue gameplay or save commands.
+Debug builds expose **Options → Feedback Replay**. The replay uses the same
+feedback lane, raster host, layout and motion as ordinary battles. Fixed
+presentation fixtures never issue gameplay or save commands.
 
 Select Single, Rapid (six differently typed hits at 140 ms), Mixed (damage,
 healing and Block on one recipient), Corners, or Reactions. Replay repeats the
-sample. A/B Tour runs the same five sequences first in Baseline, then Balanced;
-Stop cancels playback and clears all feedback. Backgrounding cancels playback.
-Use `-launch-screen options -feedback-comparison` for direct managed inspection.
+sample; Run All plays all five sequences. Stop cancels playback and clears all
+feedback. Backgrounding cancels playback. The existing
+`-launch-screen options -feedback-comparison` launch flag remains supported.
 
 Balanced retains native font/icon assets and portrait-capped 52-point travel.
 Central motion peaks at 1.85× after 85 ms, settles to 1.55× by 170 ms, starts

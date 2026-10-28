@@ -25,7 +25,6 @@ struct CombatFeedbackRasterSlot: View {
 }
 
 private struct CombatFeedbackRasterHost: UIViewRepresentable {
-    @Environment(\.balancedCombatFeedback) private var balancedCombatFeedback
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let bridge: CombatFeedbackChipBridge
     let combatantID: String
@@ -48,7 +47,6 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
 
     func makeUIView(context _: Context) -> CombatFeedbackRasterUIView {
         let view = CombatFeedbackRasterUIView()
-        view.usesBalancedFeedback = balancedCombatFeedback
         view.reduceMotion = reduceMotion
         view.bottomInset = bottomInset
         bridge.register(
@@ -65,7 +63,6 @@ private struct CombatFeedbackRasterHost: UIViewRepresentable {
             context.coordinator.bridge.unregister(uiView)
             context.coordinator.bridge = bridge
         }
-        uiView.usesBalancedFeedback = balancedCombatFeedback
         uiView.reduceMotion = reduceMotion
         uiView.bottomInset = bottomInset
         bridge.register(
@@ -88,9 +85,7 @@ final class CombatFeedbackRasterUIView: UIView {
         var motionTrack: CombatFeedbackMotionTrack
         var raster: CombatFeedbackRaster
         var reservationSize: CGSize = .zero
-        var lanePush = StationaryFeedbackPush()
-        var slot: StationaryFeedbackLayout.Slot?
-        var basePosition: CGPoint = .zero
+        var placement: CombatFeedbackPlacement?
 
         init(
             layer: CALayer,
@@ -114,17 +109,13 @@ final class CombatFeedbackRasterUIView: UIView {
         }
     }
 
-    var onEvict: ((Set<Int>) -> Void)?
-    private var stationaryLayout = StationaryFeedbackLayout()
     private var stationaryLayoutNeedsUpdate = true
     private var lastLayoutBounds: CGRect?
     private var lastLayoutBottomInset: CGFloat?
-    private var riseDistance: CGFloat = 0
     private var shineLayers: [ObjectIdentifier: CALayer] = [:]
     private var layersByID: [Int: ChipLayer] = [:]
     private var orderedLayers: [ChipLayer] = []
     private var reusableLayers: [CALayer] = []
-    var usesBalancedFeedback = false
     var reduceMotion = false {
         didSet {
             if reduceMotion != oldValue {
@@ -367,29 +358,6 @@ final class CombatFeedbackRasterUIView: UIView {
 }
 
 private extension CombatFeedbackRasterUIView {
-    private func layoutBalancedFeedback() {
-        for chip in orderedLayers {
-            var isolated = StationaryFeedbackLayout()
-            isolated.retain(ids: [chip.item.id], in: bounds)
-            let sizeScale = StationaryFeedbackLayout.sizeScale
-                *
-                (chip.item.region == .impact ? 1 : chip.item.region == .announcement ? 1 / StationaryFeedbackLayout
-                    .sizeScale : CombatFeedbackMotionSampler.statusSizeScale)
-            if chip.item.region == .announcement {
-                isolated.placeAnnouncementGroup([(id: chip.item.id, size: chip.reservationSize)], groupIndex: 0)
-            } else {
-                _ = isolated.place(id: chip.item.id, size: CGSize(
-                    width: chip.reservationSize.width * sizeScale,
-                    height: chip.reservationSize.height * sizeScale,
-                ), region: chip.item.region, bottomInset: bottomInset)
-            }
-            chip.slot = isolated.slots.first
-            if let slot = chip.slot {
-                chip.basePosition = isolated.position(for: slot, push: 0, rise: 0, bottomInset: bottomInset)
-            }
-        }
-    }
-
     private func configureRaster(_ raster: CombatFeedbackRaster, on chipLayer: CALayer) {
         chipLayer.contents = raster.image
         chipLayer.contentsScale = raster.displayScale
@@ -439,102 +407,43 @@ private extension CombatFeedbackRasterUIView {
         #if DEBUG
         debugLayoutCount += 1
         #endif
-        riseDistance = min(CombatFeedbackMotionSampler.riseDistance, max(0, bounds.height / 2 - 12))
-        if usesBalancedFeedback {
-            layoutBalancedFeedback()
-            return
-        }
-        stationaryLayout.retain(ids: Set(orderedLayers.lazy.map(\.item.id)), in: bounds)
-        for chip in orderedLayers where chip.item.region != .announcement {
-            let sizeScale = StationaryFeedbackLayout.sizeScale
-                * (chip.item.region == .impact ? 1 : CombatFeedbackMotionSampler.statusSizeScale)
-            _ = stationaryLayout.place(id: chip.item.id, size: CGSize(
-                width: chip.reservationSize.width * sizeScale,
-                height: chip.reservationSize.height * sizeScale,
-            ), region: chip.item.region, bottomInset: bottomInset)
-        }
-        var announcementsByGroup: [Int: [(id: Int, size: CGSize)]] = [:]
-        var groupOrder: [Int] = []
-        for chip in orderedLayers where chip.item.region == .announcement {
-            if announcementsByGroup[chip.item.actionGroupID] == nil {
-                groupOrder.append(chip.item.actionGroupID)
-            }
-            announcementsByGroup[chip.item.actionGroupID, default: []].append(
-                (id: chip.item.id, size: chip.reservationSize),
-            )
-        }
-        for (index, groupID) in groupOrder.sorted(by: >).enumerated() {
-            stationaryLayout.placeAnnouncementGroup(announcementsByGroup[groupID] ?? [], groupIndex: index)
-        }
-        let date = Date.now
-        // Resolve after all placements, since new arrivals can push earlier slots.
         for chip in orderedLayers {
-            chip.slot = stationaryLayout.slots.first(where: { $0.id == chip.item.id })
-            guard let slot = chip.slot else { continue }
-            // Fitting geometry stays fixed between layout updates; only push and rise vary per frame.
-            chip.basePosition = stationaryLayout.position(for: slot, push: 0, rise: 0, bottomInset: bottomInset)
-            let elapsed = (chip.item.pausedAt ?? date).timeIntervalSince(chip.item.firstScheduledAt)
-            chip.lanePush.retarget(to: slot.initialCenterY - slot.rect.midY, at: elapsed)
+            chip.placement = CombatFeedbackPlacement.resolve(
+                size: chip.reservationSize, region: chip.item.region, bounds: bounds, bottomInset: bottomInset,
+            )
         }
     }
 
     private func tickStationary(at date: Date) {
-        var evicted: Set<Int>?
         for (index, chip) in orderedLayers.enumerated() {
-            guard let slot = chip.slot else { continue }
+            guard let placement = chip.placement else { continue }
             let sample = chip.motionTrack.sample(for: chip.item, at: date)
             var state = sample.animation
-            if usesBalancedFeedback {
-                state = BalancedFeedbackMotion.state(for: chip.item, at: date)
-            }
             if reduceMotion {
                 state = CombatFeedbackAnimationState(
                     opacity: 1, scale: chip.item.region == .announcement ? 1.25 : chip.item.region == .impact ? 1.2 : 0.96,
                     riseProgress: 0, shineProgress: 1,
                 )
             }
-            let elapsed = sample.elapsed
-            let scale = slot.fitScale * state.scale
-            var position = CGPoint(
-                x: chip.basePosition.x,
-                y: chip.basePosition.y - chip.lanePush.offset(at: reduceMotion ? 1000 : elapsed) - riseDistance * state.riseProgress,
+            let scale = placement.fitScale * state.scale
+            let position = BalancedFeedbackMotion.position(
+                for: chip.item,
+                base: placement.center,
+                size: CGSize(
+                    width: chip.reservationSize.width * placement.fitScale,
+                    height: chip.reservationSize.height * placement.fitScale,
+                ),
+                state: state,
+                elapsed: reduceMotion ? 0.4 : sample.elapsed,
+                bounds: bounds,
             )
-            var edgeOpacity = StationaryFeedbackLayout.edgeOpacity(centerY: position.y, in: bounds)
-            if usesBalancedFeedback {
-                position = BalancedFeedbackMotion.position(
-                    for: chip.item,
-                    base: chip.basePosition,
-                    size: CGSize(
-                        width: chip.reservationSize.width * slot.fitScale,
-                        height: chip.reservationSize.height * slot.fitScale,
-                    ),
-                    state: state,
-                    elapsed: reduceMotion ? 0.4 : elapsed,
-                    bounds: bounds,
-                )
-                edgeOpacity = 1
-            }
-            if edgeOpacity == 0 {
-                if evicted == nil {
-                    evicted = []
-                }
-                evicted?.insert(chip.item.id)
-            }
-            updateLayer(chip.layer, position: position, scale: scale, opacity: Float(state.opacity * edgeOpacity), index: index)
+            updateLayer(chip.layer, position: position, scale: scale, opacity: Float(state.opacity), index: index)
             let shadowOpacity: Float = reduceMotion ? (chip.item.isCritical ? 1 : 0) : sample.shadowOpacity
             if chip.layer.shadowOpacity != shadowOpacity {
                 chip.layer.shadowOpacity = shadowOpacity
             }
             updateShine(for: chip, state: state, flashOpacity: reduceMotion ? 0 : sample.flashOpacity)
         }
-        guard let evicted, !evicted.isEmpty else { return }
-        for id in evicted {
-            recycleLayer(id: id)
-        }
-        orderedLayers.removeAll { evicted.contains($0.item.id) }
-        lastLayoutBounds = nil
-        updateMotionClock()
-        onEvict?(evicted)
     }
 
     private func updateLayer(_ layer: CALayer, position: CGPoint, scale: CGFloat, opacity: Float, index: Int) {

@@ -34,7 +34,6 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     var expiresAt: Date
     let reactionKind: CombatantHitReactionKind
     var firstScheduledAt: Date
-    var lastUpdatedAt: Date?
     var isCritical: Bool
     let isPrimaryCardResult: Bool
     let isCardHealthCost: Bool
@@ -139,7 +138,7 @@ struct CombatFeedbackItem: Identifiable, Equatable {
 enum CombatFeedbackUpdate {
     case remove(Set<Int>)
     case replace([CombatFeedbackItem])
-    case patch(items: [CombatFeedbackItem], removing: Set<Int>)
+    case patch([CombatFeedbackItem])
     case reset
 }
 

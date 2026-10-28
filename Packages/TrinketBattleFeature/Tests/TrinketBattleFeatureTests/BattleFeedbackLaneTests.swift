@@ -136,7 +136,7 @@ struct BattleFeedbackLaneTests {
         #expect(lane.activeItems.first?.label == .amount(-4))
         lane.hitReactionsByTargetID["hero"] = CombatantHitReaction(id: -1, kind: .celebrate)
         lane.celebrateReactionExpiresAt["hero"] = start.addingTimeInterval(1.4)
-        lane.pruneExpired(at: start.addingTimeInterval(1))
+        lane.pruneExpired(at: start.addingTimeInterval(1.1))
         #expect(lane.hitReactionsByTargetID["enemy"] == nil)
         #expect(lane.hitReactionsByTargetID["hero"]?.kind == .celebrate)
         lane.record([event], at: start.addingTimeInterval(1.2), environment: environment)

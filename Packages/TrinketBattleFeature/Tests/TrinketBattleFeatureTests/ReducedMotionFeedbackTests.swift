@@ -9,7 +9,6 @@ struct ReducedMotionFeedbackTests {
     @Test @MainActor func `impact feedback stays fixed during its lifetime under Reduce Motion`() throws {
         let start = Date.now
         let view = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 180, height: 250))
-        view.usesBalancedFeedback = true
         view.reduceMotion = true
         defer { view.apply(chips: []) }
         let item = CombatFeedbackItem(

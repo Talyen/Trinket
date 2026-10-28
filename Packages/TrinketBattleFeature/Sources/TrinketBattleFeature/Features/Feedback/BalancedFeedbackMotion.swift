@@ -1,19 +1,14 @@
 import CoreGraphics
 import Foundation
-import SwiftUI
 import TrinketDesignSystem
 
-extension EnvironmentValues {
-    @Entry var balancedCombatFeedback = true
-}
-
-/// Bounded independent feedback. The debug comparison can still select the legacy renderer.
+/// Bounded independent feedback shared by battles and debug replays.
 enum BalancedFeedbackMotion {
     static let maximumQueueDelay: TimeInterval = 0.18
     static let nearbyWindow: TimeInterval = 0.36
     static func state(for item: CombatFeedbackItem, at date: Date) -> CombatFeedbackAnimationState {
         if item.region != .impact {
-            return CombatFeedbackMotionSampler.state(for: item, at: date)
+            return CombatFeedbackMotionSampler.secondaryState(for: item, at: date)
         }
         let elapsed = max(0, (item.pausedAt ?? date).timeIntervalSince(item.firstScheduledAt))
         let pop = 0.9 + (1.85 - 0.9) * (1 - pow(1 - min(1, elapsed / 0.085), 3))
@@ -164,27 +159,16 @@ enum BalancedFeedbackMotion {
         bounds: CGRect,
         bottomInset: CGFloat,
     ) -> Geometry {
-        var layout = StationaryFeedbackLayout()
-        layout.retain(ids: [item.id], in: bounds)
         let reservation = CGSize(
             width: raster.pointSize.width + max(0, CGFloat(item.reservedDigitCount) * raster.maximumDigitWidth - raster.textWidth),
             height: raster.pointSize.height,
         )
-        if item.region == .announcement {
-            layout.placeAnnouncementGroup([(item.id, reservation)], groupIndex: 0)
-        } else {
-            let multiplier = 1.2 * (item.region == .impact ? 1 : 0.8)
-            _ = layout.place(
-                id: item.id,
-                size: CGSize(width: reservation.width * multiplier, height: reservation.height * multiplier),
-                region: item.region,
-                bottomInset: bottomInset,
-            )
-        }
-        guard let slot = layout.slots.first else { return Geometry(center: .zero, size: .zero) }
+        guard let placement = CombatFeedbackPlacement.resolve(
+            size: reservation, region: item.region, bounds: bounds, bottomInset: bottomInset,
+        ) else { return Geometry(center: .zero, size: .zero) }
         return Geometry(
-            center: layout.position(for: slot, push: 0, rise: 0, bottomInset: bottomInset),
-            size: CGSize(width: reservation.width * slot.fitScale, height: reservation.height * slot.fitScale),
+            center: placement.center,
+            size: CGSize(width: reservation.width * placement.fitScale, height: reservation.height * placement.fitScale),
         )
     }
 

@@ -8,11 +8,9 @@ import TrinketFeatureSupport
 #if DEBUG
 /// Replays fixed committed-result fixtures through the real feedback lane and battlefield.
 public struct CombatFeedbackComparisonView: View {
-    private enum Mode: String, CaseIterable { case baseline = "Baseline", balanced = "Balanced" }
     private enum Sample: String,
         CaseIterable { case single = "Single", rapid = "Rapid", mixed = "Mixed", corners = "Corners", reactions = "Reactions" }
     @State private var fixture: BattleTransitionLabFixture
-    @State private var mode = Mode.baseline
     @State private var sample = Sample.single
     @State private var ready = false
     @State private var replayID = UUID()
@@ -28,13 +26,8 @@ public struct CombatFeedbackComparisonView: View {
 
     public var body: some View {
         VStack(spacing: TrinketDesign.Spacing.small) {
-            Picker(selection: $mode) {
-                ForEach(Mode.allCases, id: \.self) { Text(verbatim: $0.rawValue).tag($0) }
-            } label: { Text(verbatim: "Mode") }.pickerStyle(.segmented).padding(.horizontal).disabled(tour)
             if ready {
                 BattleTransitionLabCanvas(fixture: fixture)
-                    .environment(\.balancedCombatFeedback, mode == .balanced)
-                    .id(mode)
             } else {
                 ProgressView().frame(maxHeight: .infinity)
             }
@@ -43,7 +36,7 @@ public struct CombatFeedbackComparisonView: View {
             } label: { Text(verbatim: "Sample") }.pickerStyle(.segmented).padding(.horizontal).disabled(tour)
             HStack {
                 Button { running = true; tour = false; replayID = UUID() } label: { Text(verbatim: "Replay") }
-                Button { running = true; tour = true; replayID = UUID() } label: { Text(verbatim: "A/B Tour") }
+                Button { running = true; tour = true; replayID = UUID() } label: { Text(verbatim: "Run All") }
                 Button { tour = false; running = false; replayID = UUID(); fixture.session.feedback.clear() } label: {
                     Text(verbatim: "Stop")
                 }
@@ -52,7 +45,7 @@ public struct CombatFeedbackComparisonView: View {
         .environment(fixture.session)
         .environment(fixture.session.spectacle)
         .trinketScreenBackground()
-        .navigationTitle(Text(verbatim: "Feedback A/B"))
+        .navigationTitle(Text(verbatim: "Feedback Replay"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
         .task(id: displayScale) {
@@ -66,23 +59,15 @@ public struct CombatFeedbackComparisonView: View {
             guard ready, running, scenePhase == .active else { return }
             fixture.session.feedback.clear()
             if tour {
-                for variant in Mode.allCases {
-                    mode = variant
-                    for sequence in Sample.allCases {
-                        sample = sequence
-                        await play(sequence)
-                        guard !Task.isCancelled else { return }
-                    }
+                for sequence in Sample.allCases {
+                    sample = sequence
+                    await play(sequence)
+                    guard !Task.isCancelled else { return }
                 }
                 tour = false
             } else {
                 await play(sample)
             }
-        }
-        .onChange(of: mode) { _, _ in
-            guard !tour else { return }
-            running = true
-            replayID = UUID()
         }
         .onChange(of: sample) { _, _ in
             guard !tour else { return }
@@ -100,9 +85,8 @@ public struct CombatFeedbackComparisonView: View {
     private func play(_ sample: Sample) async {
         let feedback = fixture.session.feedback
         feedback.clear()
-        feedback.usesBalancedFeedback = mode == .balanced
         feedback.setSuspended(false)
-        // Fixed pre-roll makes mode switches and video alignment visible.
+        // Fixed pre-roll keeps replays aligned for inspection.
         try? await Task.sleep(for: .milliseconds(700))
         guard !Task.isCancelled else { return }
         let count = sample == .single ? 1 : sample == .reactions ? 2 : 6

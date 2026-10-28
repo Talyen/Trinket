@@ -6,9 +6,6 @@ import TrinketFeatureSupport
 @MainActor
 final class CombatFeedbackChipBridge {
     private var hosts: [ObjectIdentifier: WeakHost] = [:]
-    private var evictedIDs: Set<Int> = []
-    private var suppressedTargets: Set<String> = []
-    private let onEvict: ((Set<Int>) -> Void)?
     private var itemsByTarget: [String: [Int: CombatFeedbackItem]] = [:]
     private var targetsByItemID: [Int: String] = [:]
     private var motionTracks: [Int: CombatFeedbackMotionTrack] = [:]
@@ -18,9 +15,8 @@ final class CombatFeedbackChipBridge {
         self?.availabilityTimerDidFire()
     }
 
-    init(rasterPool: CombatFeedbackRasterPool = .shared, onEvict: ((Set<Int>) -> Void)? = nil) {
+    init(rasterPool: CombatFeedbackRasterPool = .shared) {
         self.rasterPool = rasterPool
-        self.onEvict = onEvict
     }
 
     private var nextAvailabilityDate: Date?
@@ -76,7 +72,6 @@ final class CombatFeedbackChipBridge {
            previous.displayScale == displayScale {
             return
         }
-        view.onEvict = { [weak self] ids in self?.suppress(ids) }
         hosts[key] = WeakHost(
             view: view,
             combatantID: combatantID,
@@ -93,7 +88,6 @@ final class CombatFeedbackChipBridge {
 
     func unregister(_ view: CombatFeedbackRasterUIView) {
         view.stopMotion()
-        view.onEvict = nil
         hosts.removeValue(forKey: ObjectIdentifier(view))
     }
 
@@ -109,18 +103,16 @@ final class CombatFeedbackChipBridge {
         }
 
         let now = Date.now
-        var affectedTargets = suppressedTargets
-        suppressedTargets.removeAll(keepingCapacity: true)
+        var affectedTargets: Set<String> = []
         switch update {
         case let .remove(ids):
             removeItems(ids, affectedTargets: &affectedTargets)
-        case let .patch(items, removing):
-            patchItems(items, removing: removing, affectedTargets: &affectedTargets)
+        case let .patch(items):
+            patchItems(items, affectedTargets: &affectedTargets)
         case let .replace(items):
             let liveIDs = Set(items.lazy.map(\.id))
             let retiredIDs = Set(motionTracks.keys.lazy.filter { !liveIDs.contains($0) })
             releaseRasters(ids: retiredIDs)
-            evictedIDs.formIntersection(liveIDs)
             for id in retiredIDs {
                 motionTracks.removeValue(forKey: id)
             }
@@ -141,7 +133,6 @@ final class CombatFeedbackChipBridge {
             }
             itemsByTarget = replacement
         case .reset:
-            evictedIDs.removeAll()
             affectedTargets = Set(itemsByTarget.keys)
             itemsByTarget.removeAll(keepingCapacity: true)
             targetsByItemID.removeAll(keepingCapacity: true)
@@ -159,9 +150,8 @@ final class CombatFeedbackChipBridge {
         updateAvailabilityWakeTime(considering: affectedTargets, at: now)
     }
 
-    private func patchItems(_ items: [CombatFeedbackItem], removing: Set<Int>, affectedTargets: inout Set<String>) {
-        removeItems(removing, affectedTargets: &affectedTargets)
-        for item in items where !removing.contains(item.id) {
+    private func patchItems(_ items: [CombatFeedbackItem], affectedTargets: inout Set<String>) {
+        for item in items {
             if let previousTarget = targetsByItemID[item.id], previousTarget != item.targetID {
                 itemsByTarget[previousTarget]?.removeValue(forKey: item.id)
                 if itemsByTarget[previousTarget]?.isEmpty == true {
@@ -182,7 +172,6 @@ final class CombatFeedbackChipBridge {
 
     private func removeItems(_ ids: Set<Int>, affectedTargets: inout Set<String>) {
         releaseRasters(ids: ids)
-        evictedIDs.subtract(ids)
         for id in ids {
             motionTracks.removeValue(forKey: id)
             guard let targetID = targetsByItemID.removeValue(forKey: id) else { continue }
@@ -267,12 +256,7 @@ final class CombatFeedbackChipBridge {
                 chips = resolveChips(for: entry, at: now)
                 resolved[resolutionKey] = chips
             }
-            // Applying another fragment can synchronously evict chips from this lane.
-            if evictedIDs.isEmpty {
-                view.apply(chips: chips, motionTracks: motionTracks)
-            } else {
-                view.apply(chips: chips.filter { !evictedIDs.contains($0.item.id) }, motionTracks: motionTracks)
-            }
+            view.apply(chips: chips, motionTracks: motionTracks)
         }
     }
 
@@ -282,7 +266,7 @@ final class CombatFeedbackChipBridge {
     ) -> [ResolvedChip] {
         let targetItems = itemsByTarget[entry.combatantID] ?? [:]
         let visible = targetItems.values.lazy.filter { item in
-            !self.evictedIDs.contains(item.id) && now >= item.availableAt && (item.pausedAt ?? now) < item.expiresAt
+            now >= item.availableAt && (item.pausedAt ?? now) < item.expiresAt
         }
         let chipsToDraw = CombatFeedbackOrdering.orderedChips(from: visible.sorted {
             if $0.availableAt == $1.availableAt {
@@ -307,15 +291,6 @@ final class CombatFeedbackChipBridge {
             chips.append((item: item, raster: raster))
         }
         return chips
-    }
-
-    private func suppress(_ ids: Set<Int>) {
-        releaseRasters(ids: ids)
-        evictedIDs.formUnion(ids)
-        // The reverse index answers target membership directly instead of
-        // scanning every target's item dictionary.
-        suppressedTargets.formUnion(ids.lazy.compactMap { self.targetsByItemID[$0] })
-        onEvict?(ids)
     }
 
     private func releaseRasters(ids: Set<Int>) {
@@ -346,7 +321,7 @@ final class CombatFeedbackChipBridge {
     }
 
     var debugItemIDs: Set<Int> {
-        Set(itemsByTarget.values.lazy.flatMap(\.keys)).subtracting(evictedIDs)
+        Set(itemsByTarget.values.lazy.flatMap(\.keys))
     }
 
     var debugNextAvailabilityDate: Date? {

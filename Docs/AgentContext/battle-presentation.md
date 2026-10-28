@@ -187,8 +187,7 @@ and overflow into one number, including at full Health.
 Central chips use Balanced: an 85 ms pop to 1.85×, settle to 1.55× by 170 ms,
 then shrink toward 1.2×. A portrait-bounded 52-point cubic ease-out rise starts at
 240 ms. Numeric lifetime is 1.05 seconds, including a final 280 ms fade.
-There is no player animation picker; Debug Options retains the previous Baseline
-for the native feedback comparison.
+Debug Options replays this same shipping feedback with fixed fixtures.
 
 Each portrait has three independent regions. Damage, DoT ticks, healing, Block
 absorption, and Dodge use the center region and have no count cap. New flights
@@ -238,11 +237,10 @@ path, and expiry, without a renewed pop or lifetime extension. Critical
 contributions retain their accent halo and flash.
 
 Every admitted chip completes its full animation; there are no pending-count or
-corner-count evictions in Balanced. Reaction names retain 1.6 seconds. Apply
+corner-count evictions. Reaction names retain 1.6 seconds. Apply
 sound and hit reactions from committed results immediately, independently of the
 bounded stagger for non-impact text. Card inputs remain immediate; damage
-presentation follows its impact cue. The Debug Baseline alone retains the earlier
-pushes, merge extensions, spatial culling and two-chip corner cap for comparison.
+presentation follows its impact cue.
 
 ### Host composition
 
@@ -255,29 +253,27 @@ replay the bridge's live items using original timestamps and cached rasters.
 
 ### Lane and rendering invariants
 
-- **Lifetime:** Each lane owns its bridge, live items, eviction callback and
+- **Lifetime:** Each lane owns its bridge, live items and
   availability timer. Hosts bind through their session and unregister from their
   original bridge. Independent
   battles/previews may reuse IDs; publication follows lane lifetime, not mount order.
 - **Retention:** Prewarm the production raster vocabulary, including glint masks;
   numeric churn cannot evict it within existing capacity. Live rasters survive cache
-  eviction/remount, update when appearance changes and release on retirement,
-  eviction or reset. Retain raster wrappers and source images during identity
+  eviction/remount, update when appearance changes and release on retirement or reset. Retain raster wrappers and source images during identity
   comparisons so recycled addresses cannot hide changes. Workers retain separate
   immutable contexts and publish only for their current preparation generation.
 - **Updates and bounds:** Refresh only changed recipients and frame properties.
   Matching fragment hosts share raster resolution and animation samples while
-  fitting/pushes remain independent. Invalidate fitting when membership, order,
+  fitting remains independent. Invalidate fitting when membership, order,
   region, reserved geometry, portrait bounds or bottom inset changes. Availability
   deadlines still reveal queued results. Glyph/geometry caches remain bounded and
   pool-owned; clearing the pool releases them. New hosts drop obsolete contexts.
 - **Paint fidelity:** Color and mask passes share a resolved draw plan. Preserve
   source-over outline order, sampling and masks; bitmap flattening changes alpha
   blending. Keep rendering/feedback clocks and the prepared death-fragment behavior.
-- **Clocks and publication:** Unregister display hosts on teardown or when eviction
-  leaves no unpaused chips; new/resumed feedback restarts them. Expiration participates
+- **Clocks and publication:** Unregister display hosts on teardown or when no unpaused chips remain; new/resumed feedback restarts them. Expiration participates
   in outcome timing. Suspension freezes all regions; resume shifts original clocks.
-  Publish changed chips and permanent removals together. Full replacement is for
+  Publish changed chips incrementally and remove expired chips. Full replacement is for
   whole-lane suspension/visibility reconciliation. Batch merging preserves reverse
   arrival order and the semantic, width and lifetime rules above.
 
@@ -345,10 +341,9 @@ number. Their 1.6-second lifetime is independent of numeric consolidation: pop f
 90% to 108% by 140 ms, settle by 240 ms, sweep one glint from 100 to 1,100 ms, and
 fade from 1,250 to 1,600 ms. Use the normal upward trajectory, holding its final
 position until expiry. Fit at 1.25 times the numeric base size, without wrapping or
-truncating. One or two simultaneous names use one column; three or more use two.
+truncating. Each name is fitted independently and receives a bounded trajectory.
 
-Retain at most three announcement groups per recipient. New groups evict old groups;
-numeric merges never renew a name. Suspension, teardown, death-fragment remounts,
+Retain every announcement for its full lifetime; numeric merges never renew a name. Suspension, teardown, death-fragment remounts,
 and portrait clipping follow the existing lane ownership and original timestamps.
 Names do not delay card input. Numerical presentation sums ordinary and bonus damage
 by keyword within the action, retaining distinct engine packets. Existing focal

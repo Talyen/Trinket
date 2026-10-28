@@ -8,7 +8,6 @@ import TrinketCore
 struct BalancedFeedbackMotionTests {
     @Test @MainActor func `mixed rapid hits finish within two seconds and keep active paths`() throws {
         let lane = BattleFeedbackLane()
-        lane.usesBalancedFeedback = true
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
         for index in 0 ..< 6 {
@@ -42,13 +41,11 @@ struct BalancedFeedbackMotionTests {
             }
         }
         #expect(lane.activeItems.contains { $0.feedbackClass == .block })
-        #expect(lane.evictedItemIDs.isEmpty)
         #expect(try #require(lane.activeItems.map(\.expiresAt).max()).timeIntervalSince(start) < 2)
     }
 
     @Test @MainActor func `dense announcements retain every full animation instead of evicting older entries`() {
         let lane = BattleFeedbackLane()
-        lane.usesBalancedFeedback = true
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
         for id in 1 ... 40 {
@@ -58,14 +55,12 @@ struct BalancedFeedbackMotionTests {
             )
         }
         #expect(lane.activeItems.count == 40)
-        #expect(lane.evictedItemIDs.isEmpty)
         #expect(lane.activeItems.allSatisfy { $0.availableAt.timeIntervalSince(start) <= 0.180001 })
         #expect(lane.activeItems.allSatisfy { abs($0.expiresAt.timeIntervalSince($0.availableAt) - 1.6) < 0.000001 })
     }
 
     @Test @MainActor func `dense close impacts receive distinct routes without moving the first`() throws {
         let lane = BattleFeedbackLane()
-        lane.usesBalancedFeedback = true
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
         let keywords: [Keyword] = [.physical, .burn, .freeze, .poison]
@@ -82,7 +77,7 @@ struct BalancedFeedbackMotionTests {
     }
 
     @Test @MainActor func `reaction damage types cannot share an identical simultaneous path`() {
-        let lane = BattleFeedbackLane(balanced: true)
+        let lane = BattleFeedbackLane()
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
         lane.record([
@@ -97,7 +92,7 @@ struct BalancedFeedbackMotionTests {
     }
 
     @Test @MainActor func `reaction payoffs and health costs appear at impact`() {
-        let lane = BattleFeedbackLane(balanced: true)
+        let lane = BattleFeedbackLane()
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
         lane.record([
@@ -134,7 +129,7 @@ struct BalancedFeedbackMotionTests {
     }
 
     @Test @MainActor func `six close corner gains keep distinct stationary rows`() {
-        let lane = BattleFeedbackLane(balanced: true)
+        let lane = BattleFeedbackLane()
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
         let kinds: [ActionEvent.EffectOutcome] = [.shieldApplied, .thornsApplied, .leechApplied]
@@ -146,6 +141,5 @@ struct BalancedFeedbackMotionTests {
         }
         #expect(lane.activeItems.count == 6)
         #expect(Set(lane.activeItems.map(\.feedbackSpread)).count == 6)
-        #expect(lane.evictedItemIDs.isEmpty)
     }
 }

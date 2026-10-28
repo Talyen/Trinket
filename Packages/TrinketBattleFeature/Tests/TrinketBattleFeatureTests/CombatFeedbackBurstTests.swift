@@ -45,7 +45,7 @@ struct CombatFeedbackBurstTests {
         #expect(lane.activeItems.last?.chipPresentation.text == nil)
     }
 
-    @Test @MainActor func `preparation refresh replaces its amount and numeric corner gains update quietly`() throws {
+    @Test @MainActor func `preparation refresh replaces its amount and numeric corner gains update quietly`() {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
@@ -64,20 +64,19 @@ struct CombatFeedbackBurstTests {
         #expect(lane.activeItems.map(\.sourceEventIDs) == [[1, 3], [2, 4]])
         for (original, updated) in zip(before, lane.activeItems) {
             #expect(original.expiresAt == updated.expiresAt)
-            #expect(CombatFeedbackMotionSampler.state(for: original, at: updateAt) == CombatFeedbackMotionSampler.state(
+            #expect(BalancedFeedbackMotion.state(for: original, at: updateAt) == BalancedFeedbackMotion.state(
                 for: updated,
                 at: updateAt,
             ))
         }
         lane.record([event(5, .partyDamagePreparationApplied, amount: 100, keyword: .physical)], at: start.addingTimeInterval(0.3))
         let preparations = visible(lane).filter { $0.effectKind == .partyDamagePreparationApplied }
-        #expect(preparations.count == 1)
-        #expect(try #require(preparations.first).label == .amount(100, additive: false))
+        #expect(preparations.map(\.label) == [.amount(7, additive: false), .amount(100, additive: false)])
     }
 
-    @Test(arguments: [false, true])
-    @MainActor func `batch merge index retains refreshed preparations and separates effect outcomes`(balanced: Bool) throws {
-        let lane = BattleFeedbackLane(balanced: balanced)
+    @Test
+    @MainActor func `batch merge index retains refreshed preparations and separates effect outcomes`() throws {
+        let lane = BattleFeedbackLane()
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
         lane.record([
@@ -103,7 +102,7 @@ struct CombatFeedbackBurstTests {
         #expect(lane.activeItems.map(\.label) == [.amount(3), .amount(4)])
     }
 
-    @Test @MainActor func `batch limits protect transitions and keep each corner and target independent`() {
+    @Test @MainActor func `bursts retain every corner and keep targets independent`() {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
@@ -120,7 +119,7 @@ struct CombatFeedbackBurstTests {
             event(10, .shieldAbsorbed, amount: 5, keyword: .block),
         ], at: start)
         let visibleIDs = Set(visible(lane).map(\.id))
-        #expect(visibleIDs == [2, 4, 6, 7, 8, 9, 10])
+        #expect(visibleIDs == Set(2 ... 10))
         #expect(lane.chipBridge.debugItemIDs == visibleIDs)
         lane.noteItemsChanged()
         #expect(lane.chipBridge.debugItemIDs == visibleIDs)
@@ -128,7 +127,7 @@ struct CombatFeedbackBurstTests {
         lane.setSuspended(false, at: start.addingTimeInterval(10.1))
         #expect(Set(visible(lane).map(\.id)) == visibleIDs)
         lane.pruneExpired(at: start.addingTimeInterval(12))
-        #expect(lane.activeItems.isEmpty && lane.evictedItemIDs.isEmpty)
+        #expect(lane.activeItems.isEmpty)
     }
 
     @Test @MainActor func `central damage remains uncapped and still combines compatible hits`() {
@@ -145,11 +144,10 @@ struct CombatFeedbackBurstTests {
         )
         #expect(visible(lane).count == 4)
         #expect(lane.activeItems.first?.label == .amount(-7))
-        #expect(lane.activeItems.first?.lastUpdatedAt != nil)
     }
 
     @MainActor private func visible(_ lane: BattleFeedbackLane) -> [CombatFeedbackItem] {
-        lane.activeItems.filter { !lane.evictedItemIDs.contains($0.id) }
+        lane.activeItems
     }
 
     private func event(

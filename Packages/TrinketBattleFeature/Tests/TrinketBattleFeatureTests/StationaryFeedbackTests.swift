@@ -22,7 +22,7 @@ struct StationaryFeedbackTests {
         #expect(lane.activeItems.count == 2)
     }
 
-    @Test @MainActor func `reserved digit overflow and visual eviction emit a new amount`() {
+    @Test @MainActor func `reserved digit overflow emits a new amount`() {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
@@ -31,70 +31,6 @@ struct StationaryFeedbackTests {
         #expect(lane.activeItems.map(\.label) == [.amount(-99)])
         lane.record([event(3, amount: 1)], at: start.addingTimeInterval(0.1))
         #expect(lane.activeItems.map(\.label) == [.amount(-99), .amount(-1)])
-        lane.evictedItemIDs = [1, 3]
-        lane.record([event(4, amount: 2)], at: start.addingTimeInterval(0.15))
-        #expect(lane.activeItems.map(\.label) == [.amount(-99), .amount(-1), .amount(-2)])
-        #expect(lane.activeItems.flatMap(\.sourceEventIDs) == [1, 2, 3, 4])
-        #expect(lane.chipBridge.debugItemIDs == [4])
-    }
-
-    @Test func `new arrivals push preceding labels upward while merges do not push`() throws {
-        var layout = StationaryFeedbackLayout()
-        let bounds = CGRect(x: 0, y: 0, width: 200, height: 240)
-        let size = CGSize(width: 60, height: 30)
-        layout.retain(ids: [], in: bounds)
-        for id in 1 ... 6 {
-            let placement = layout.place(id: id, size: size)
-            #expect(try #require(placement).rect.midX == bounds.midX)
-            #expect(try #require(placement).rect.midY == bounds.midY)
-        }
-        #expect(layout.slots.count == 6)
-        let original = layout.slots
-        #expect(original.map(\.rect.midY) == [-22.5, 6, 34.5, 63, 91.5, 120])
-        _ = layout.place(id: 6, size: size)
-        #expect(layout.slots == original)
-        layout.retain(ids: [2, 3, 4, 5, 6], in: bounds)
-        #expect(layout.slots == Array(original.dropFirst()))
-        let resizedBounds = CGRect(x: 0, y: 0, width: 160, height: 200)
-        layout.retain(ids: [2, 3, 4, 5, 6], in: resizedBounds)
-        #expect(layout.slots.isEmpty)
-        let resized = layout.place(id: 6, size: size)
-        #expect(try #require(resized).rect.midY == resizedBounds.midY)
-    }
-
-    @Test func `lane pushes retarget continuously and top edge fades before removal`() {
-        var push = StationaryFeedbackPush()
-        push.retarget(to: 30, at: 0.2)
-        #expect(push.offset(at: 0.2) == 0)
-        let halfway = push.offset(at: 0.29)
-        #expect(halfway > 0 && halfway < 30)
-        push.retarget(to: 60, at: 0.29)
-        #expect(push.offset(at: 0.29) == halfway)
-        #expect(push.offset(at: 0.38) > halfway && push.offset(at: 0.38) < 60)
-        #expect(push.offset(at: 0.6) == 60)
-        let bounds = CGRect(x: 0, y: 0, width: 200, height: 240)
-        #expect(StationaryFeedbackLayout.edgeOpacity(centerY: 120, in: bounds) == 1)
-        #expect(StationaryFeedbackLayout.edgeOpacity(centerY: 28, in: bounds) == 0.5)
-        #expect(StationaryFeedbackLayout.edgeOpacity(centerY: 8, in: bounds) == 0)
-    }
-
-    @Test func `oversized lane results fit without evicting or affecting other portraits`() throws {
-        var layout = StationaryFeedbackLayout()
-        let bounds = CGRect(x: 0, y: 0, width: 100, height: 100)
-        layout.retain(ids: [], in: bounds)
-        _ = layout.place(id: 1, size: CGSize(width: 30, height: 20))
-        let placement = layout.place(id: 2, size: CGSize(width: 200, height: 200))
-        let fitted = try #require(placement)
-        #expect(layout.slots.map(\.id) == [1, 2])
-        let peak = StationaryFeedbackLayout.peakScale * StationaryFeedbackLayout.mergePulseScale
-        #expect(abs(fitted.rect.width * peak - 84) < 0.000001)
-        #expect(abs(fitted.rect.height * peak - 84) < 0.000001)
-        #expect(fitted.rect.midX == bounds.midX && fitted.rect.midY == bounds.midY)
-        var otherPortrait = StationaryFeedbackLayout()
-        otherPortrait.retain(ids: [], in: bounds)
-        #expect(otherPortrait.slots.isEmpty)
-        layout.retain(ids: [], in: bounds)
-        #expect(layout.slots.isEmpty)
     }
 
     @Test @MainActor func `production rasters cache glyph masks and account for their storage`() throws {
@@ -110,87 +46,6 @@ struct StationaryFeedbackTests {
         #expect(pool.snapshot().estimatedByteCount == raster.image.bytesPerRow * raster.image.height + mask.bytesPerRow * mask.height)
         #expect(pool.prepare(for: item, displayScale: 1) === raster)
         #expect(pool.snapshot().buildCount == 1)
-    }
-
-    @Test
-    @MainActor func `feedback retains merge fade boundaries and suspension clocks`() throws {
-        let lane = BattleFeedbackLane()
-        defer { lane.release() }
-        let start = Date.now.addingTimeInterval(10)
-        lane.record([event(1, amount: 4)], at: start)
-        lane.record(
-            [event(2, amount: 5)],
-            at: start.addingTimeInterval((CombatFeedbackMotionSampler.lifetime - CombatFeedbackMotionSampler.fadeDuration) - 0.01),
-        )
-        let merged = try #require(lane.activeItems.first)
-        #expect(merged.label == .amount(-9))
-        #expect(merged.firstScheduledAt == start)
-        let extensionDuration = 0.12
-        #expect(abs(merged.expiresAt.timeIntervalSince(start) - CombatFeedbackMotionSampler.lifetime - extensionDuration) < 0.000001)
-        #expect(lane.feedbackLifetime == CombatFeedbackMotionSampler.lifetime)
-        let fadeAt = merged.expiresAt.addingTimeInterval(-CombatFeedbackMotionSampler.fadeDuration)
-        lane.record([event(3, amount: 6)], at: fadeAt)
-        #expect(lane.activeItems.count == 2)
-        let pausedAt = fadeAt.addingTimeInterval(0.05)
-        let before = CombatFeedbackMotionSampler.state(for: merged, at: pausedAt)
-        lane.setSuspended(true, at: pausedAt)
-        lane.setSuspended(false, at: pausedAt.addingTimeInterval(20))
-        let resumed = try #require(lane.activeItems.first)
-        #expect(CombatFeedbackMotionSampler.state(for: resumed, at: pausedAt.addingTimeInterval(20)) == before)
-        let gone = CombatFeedbackMotionSampler.state(for: resumed, at: resumed.expiresAt)
-        #expect(abs(gone.opacity) < 0.000001)
-    }
-
-    @Test @MainActor func `merged values extend visibility without restarting travel and cannot live indefinitely`() throws {
-        let lane = BattleFeedbackLane()
-        defer { lane.release() }
-        let start = Date.now.addingTimeInterval(10)
-        lane.record([event(1, amount: 4)], at: start)
-        let original = try #require(lane.activeItems.first)
-        let mergeAt = start.addingTimeInterval(0.25)
-        lane.record([event(2, amount: 5)], at: mergeAt)
-        let merged = try #require(lane.activeItems.first)
-        let before = CombatFeedbackMotionSampler.state(for: original, at: mergeAt)
-        let after = CombatFeedbackMotionSampler.state(for: merged, at: mergeAt)
-        #expect(after.riseProgress == before.riseProgress)
-        #expect(abs(after.scale - before.scale * 1.10) < 0.000001)
-        #expect(after.shineProgress == 0)
-        for id in 3 ... 8 {
-            lane.record([event(id, amount: 1)], at: start.addingTimeInterval(0.25 + Double(id) * 0.03))
-        }
-        let extended = try #require(lane.activeItems.first)
-        #expect(lane.activeItems.count == 1)
-        #expect(abs(extended.expiresAt.timeIntervalSince(original.expiresAt) - 0.30) < 0.000001)
-        let originalEnd = CombatFeedbackMotionSampler.state(for: original, at: original.expiresAt)
-        let extendedEnd = CombatFeedbackMotionSampler.state(for: extended, at: original.expiresAt)
-        #expect(extendedEnd.opacity > originalEnd.opacity)
-        lane.pruneExpired(at: extended.expiresAt)
-        #expect(lane.activeItems.isEmpty)
-    }
-
-    @Test func `status lanes fit their corners and never push the damage lane or each other`() throws {
-        var layout = StationaryFeedbackLayout()
-        let bounds = CGRect(x: 0, y: 0, width: 160, height: 220)
-        layout.retain(ids: [], in: bounds)
-        let hitPlacement = layout.place(id: 1, size: CGSize(width: 60, height: 30))
-        let hit = try #require(hitPlacement)
-        let benefitPlacement = layout.place(id: 2, size: CGSize(width: 40, height: 24), region: .benefit)
-        let benefit = try #require(benefitPlacement)
-        let setbackPlacement = layout.place(id: 3, size: CGSize(width: 40, height: 24), region: .setback)
-        let setback = try #require(setbackPlacement)
-        for id in 4 ... 10 {
-            _ = layout.place(id: id, size: CGSize(width: 30, height: 24), region: .setback)
-        }
-        #expect(layout.slots.first { $0.id == 1 } == hit)
-        #expect(layout.slots.first { $0.id == 2 } == benefit)
-        #expect(benefit.rect.midX < bounds.midX && setback.rect.midX > bounds.midX)
-        #expect(benefit.rect.midY > bounds.midY && setback.rect.midY > bounds.midY)
-        #expect(!benefit.rect.intersects(setback.rect))
-        #expect(benefit.fitScale == 1 && setback.fitScale == 1)
-        let wider = layout.place(id: 11, size: CGSize(width: 90, height: 24), region: .benefit)
-        let wideSlot = try #require(wider)
-        #expect(wideSlot.fitScale > 0.5)
-        #expect(wideSlot.rect.width * StationaryFeedbackLayout.maximumScale(for: .benefit) <= (bounds.width - 24) / 2)
     }
 
     @Test @MainActor func `corner rasters keep their centers through pop fade and numeric growth`() throws {
@@ -233,7 +88,6 @@ struct StationaryFeedbackTests {
                 if case .amount = label {
                     let layoutCount = view.debugLayoutCount
                     item.label = .amount(99)
-                    item.lastUpdatedAt = start.addingTimeInterval(0.05)
                     let merged = try #require(pool.prepare(for: item, displayScale: 1))
                     view.apply(chips: [(item, merged)])
                     view.debugTickMotion(at: start.addingTimeInterval(0.05))
@@ -278,18 +132,18 @@ struct StationaryFeedbackTests {
         )
         lane.record([first], at: start)
         let original = try #require(lane.activeItems.first)
-        let date = start.addingTimeInterval(0.3)
+        let date = start.addingTimeInterval(0.2)
         lane.record([second], at: date)
         #expect(lane.activeItems.count == 1)
         let merged = try #require(lane.activeItems.first)
-        let before = CombatFeedbackMotionSampler.state(for: original, at: date)
-        let after = CombatFeedbackMotionSampler.state(for: merged, at: date)
+        let before = BalancedFeedbackMotion.state(for: original, at: date)
+        let after = BalancedFeedbackMotion.state(for: merged, at: date)
         #expect(after == before)
         #expect(merged.sourceEventIDs == [1, 2])
         #expect(merged.expiresAt == original.expiresAt && merged.firstScheduledAt == original.firstScheduledAt)
     }
 
-    @Test @MainActor func `feedback clocks stop on teardown and when only paused chips survive eviction`() throws {
+    @Test @MainActor func `feedback clocks stop when all chips pause and on teardown`() throws {
         let view = CombatFeedbackRasterUIView(frame: CGRect(x: 0, y: 0, width: 160, height: 220))
         defer { view.apply(chips: []) }
         let start = Date.now.addingTimeInterval(10)
@@ -309,11 +163,12 @@ struct StationaryFeedbackTests {
         let raster = try #require(pool.prepare(for: items[0], displayScale: 1))
         view.apply(chips: items.map { ($0, raster) })
         #expect(view.debugIsMotionRegistered)
-        view.debugTickMotion(at: start.addingTimeInterval(0.3))
-        #expect(!view.debugVisibleChipIDs.contains(1))
-        #expect(!view.debugVisibleChipIDs.isEmpty)
+        items[0].pausedAt = start
+        view.apply(chips: items.map { ($0, raster) })
+        #expect(view.debugVisibleChipIDs == Set(1 ... 12))
         #expect(!view.debugIsMotionRegistered)
 
+        items[0].pausedAt = nil
         view.apply(chips: [(items[0], raster)])
         #expect(view.debugIsMotionRegistered)
         view.stopMotion()
@@ -323,7 +178,7 @@ struct StationaryFeedbackTests {
         #expect(view.debugIsMotionRegistered)
     }
 
-    @Test @MainActor func `finished glints replay on merges and maskless replacements release old masks`() throws {
+    @Test @MainActor func `critical merges flash without restarting glints and maskless replacements release old masks`() throws {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
@@ -337,11 +192,11 @@ struct StationaryFeedbackTests {
         let chip = try #require(view.layer.sublayers?.first { $0.contents != nil })
         let shine = try #require(chip.sublayers?.first)
         #expect(shine.mask?.contents != nil)
-        view.debugTickMotion(at: start.addingTimeInterval(0.5))
-        #expect(shine.isHidden)
-
-        let mergeAt = start.addingTimeInterval(0.51)
-        lane.record([event(2, amount: 5)], at: mergeAt)
+        let mergeAt = start.addingTimeInterval(0.2)
+        lane.record(
+            [BattleSessionTestSupport.makeActionEvent(id: 2, kind: .abilityDamage, amount: 5, keyword: .physical, isCritical: true)],
+            at: mergeAt,
+        )
         let merged = try #require(lane.activeItems.first)
         let mergedRaster = try #require(pool.prepare(for: merged, displayScale: 1))
         view.apply(chips: [(merged, mergedRaster)])
@@ -360,6 +215,43 @@ struct StationaryFeedbackTests {
         view.debugTickMotion(at: mergeAt)
         #expect(!shine.isHidden)
         #expect(shine.mask?.contents != nil)
+        view.debugTickMotion(at: start.addingTimeInterval(0.46))
+        #expect(shine.isHidden)
+        #expect(merged.firstScheduledAt == item.firstScheduledAt)
+    }
+
+    @Test @MainActor func `arrival gap gates merges while suspension preserves the shipping clock`() throws {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        let start = Date.now.addingTimeInterval(10)
+        lane.record([event(1, amount: 4)], at: start)
+        let original = try #require(lane.activeItems.first)
+        lane.record([event(2, amount: 5)], at: start.addingTimeInterval(0.25))
+        #expect(lane.activeItems.first?.label == .amount(-9))
+        #expect(lane.activeItems.first?.expiresAt == original.expiresAt)
+        lane.record([event(3, amount: 1)], at: start.addingTimeInterval(0.501))
+        #expect(lane.activeItems.count == 2)
+        let pausedAt = start.addingTimeInterval(0.6)
+        let before = BalancedFeedbackMotion.state(for: original, at: pausedAt)
+        lane.setSuspended(true, at: pausedAt)
+        lane.setSuspended(false, at: pausedAt.addingTimeInterval(20))
+        let resumed = try #require(lane.activeItems.first)
+        #expect(BalancedFeedbackMotion.state(for: resumed, at: pausedAt.addingTimeInterval(20)) == before)
+        #expect(abs(BalancedFeedbackMotion.state(for: resumed, at: resumed.expiresAt).opacity) < 0.000001)
+    }
+
+    @Test @MainActor func `frequent arrivals cannot merge after the original fade boundary`() throws {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        let start = Date.now.addingTimeInterval(10)
+        for id in 1 ... 4 {
+            lane.record([event(id, amount: 1)], at: start.addingTimeInterval(Double(id - 1) * 0.2))
+        }
+        let first = try #require(lane.activeItems.first)
+        #expect(lane.activeItems.count == 1)
+        lane.record([event(5, amount: 1)], at: first.expiresAt.addingTimeInterval(-CombatFeedbackMotionSampler.fadeDuration))
+        #expect(lane.activeItems.count == 2)
+        #expect(lane.activeItems.first == first)
     }
 
     private func event(_ id: Int, amount: Int) -> BattleEngine.ActionEvent {
@@ -380,7 +272,7 @@ struct FeedbackGeometryCacheTests {
         let date = start.addingTimeInterval(0.4)
         func check(_ item: CombatFeedbackItem, at date: Date) {
             let sample = track.sample(for: item, at: date)
-            #expect(sample.animation == CombatFeedbackMotionSampler.state(for: item, at: date))
+            #expect(sample.animation == BalancedFeedbackMotion.state(for: item, at: date))
             let now = item.pausedAt ?? date
             #expect(sample.elapsed == now.timeIntervalSince(item.firstScheduledAt))
             #expect(sample.criticalElapsed == (item.criticalAt.map { max(0, now.timeIntervalSince($0)) } ?? 1))
@@ -389,7 +281,6 @@ struct FeedbackGeometryCacheTests {
         }
         check(item, at: date)
         check(item, at: date)
-        item.lastUpdatedAt = date
         item.criticalAt = date
         item.expiresAt = item.expiresAt.addingTimeInterval(0.12)
         check(item, at: date)

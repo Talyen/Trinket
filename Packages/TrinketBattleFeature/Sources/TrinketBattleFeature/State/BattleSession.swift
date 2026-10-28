@@ -69,7 +69,7 @@ final class ActiveBattleSimulation {
 @MainActor
 @Observable
 public final class BattleSession: BattleRuntime {
-    let feedback = BattleFeedbackLane(balanced: true)
+    let feedback = BattleFeedbackLane()
     let cardCues = BattleCardCueState()
     var cardPlayback: BattleCardPlaybackState {
         presentation.cardPlayback

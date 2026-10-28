@@ -7,20 +7,10 @@ import TrinketFeatureSupport
 
 @MainActor
 final class BattleFeedbackLane {
-    private(set) lazy var chipBridge = CombatFeedbackChipBridge { [weak self] ids in
-        self?.evictedItemIDs.formUnion(ids)
-    }
-
-    var usesBalancedFeedback: Bool
-
-    init(balanced: Bool = false) {
-        usesBalancedFeedback = balanced
-    }
-
-    var evictedItemIDs: Set<Int> = []
+    let chipBridge = CombatFeedbackChipBridge()
 
     var feedbackLifetime: TimeInterval {
-        usesBalancedFeedback ? 1.05 + BalancedFeedbackMotion.maximumQueueDelay : CombatFeedbackMotionSampler.lifetime
+        1.05 + BalancedFeedbackMotion.maximumQueueDelay
     }
 
     var activeItems: [CombatFeedbackItem] = []
@@ -91,7 +81,7 @@ final class BattleFeedbackLane {
     }
 
     func noteItemsChanged() {
-        publish(.replace(evictedItemIDs.isEmpty ? activeItems : activeItems.filter { !evictedItemIDs.contains($0.id) }))
+        publish(.replace(activeItems))
     }
 
     func noteHitReactionsChanged(for combatantIDs: Set<String>) {
@@ -140,13 +130,7 @@ final class BattleFeedbackLane {
         for item in prepared {
             changedIndices.insert(recordStationary(item, at: date, candidates: &candidates))
         }
-        limitCornerItems()
-        publish(.patch(
-            items: changedIndices.sorted().compactMap {
-                evictedItemIDs.contains(activeItems[$0].id) ? nil : activeItems[$0]
-            },
-            removing: evictedItemIDs,
-        ))
+        publish(.patch(changedIndices.sorted().map { activeItems[$0] }))
         applyHitReactions(for: prepared, damage: damage, at: date)
         updatePruneDate()
     }
@@ -171,7 +155,6 @@ final class BattleFeedbackLane {
             }
             return true
         }
-        evictedItemIDs.subtract(removedItemIDs)
         for (targetID, expiry) in recordedHitExpirations where date >= expiry.date {
             recordedHitExpirations.removeValue(forKey: targetID)
             if hitReactionsByTargetID[targetID]?.id == expiry.id {
@@ -214,7 +197,6 @@ final class BattleFeedbackLane {
         celebrateReactionExpiresAt.removeAll(keepingCapacity: true)
         scheduler?.cancel()
         activeItems = []
-        evictedItemIDs.removeAll()
         hitReactionsByTargetID = [:]
         attackReactionsByCombatantID = [:]
         if hadPublishedPresentation {
