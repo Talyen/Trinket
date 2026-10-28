@@ -1,7 +1,7 @@
 name: Build and test
 
 # Pushes build and smoke-test on one runner. Manual exhaustive runs reuse
-# exact-commit standard checks; exhaustive UI uses one transfer and simulator.
+# exact-commit standard checks; exhaustive UI separates purchase recovery onto its qualified runtime.
 # Build orchestration changes exercise the product jobs; lint-only changes use the gate.
 # Nightly/dispatch also run exhaustive UI outside the push path.
 # The warm cache preserves incremental state; build uploads test products
@@ -169,7 +169,8 @@ jobs:
           set -euo pipefail
           smoke_targets="$(python3 Scripts/check-testplan-sync.py --classes Smoke)"
           echo "smoke-targets=$smoke_targets" >> "$GITHUB_OUTPUT"
-          echo "full-targets=$(python3 Scripts/check-testplan-sync.py --classes FullUI)" >> "$GITHUB_OUTPUT"
+          full_targets="$(python3 Scripts/check-testplan-sync.py --classes FullUI --exclude-class FullGamePurchaseUITests)"
+          echo "full-targets=$full_targets" >> "$GITHUB_OUTPUT"
       - name: Restore warm cache and build
         id: restore-and-build
         uses: ./.github/actions/restore-and-build
@@ -567,7 +568,6 @@ jobs:
       always() && !cancelled() && inputs.include-exhaustive && needs.reuse.result == 'success' &&
       (needs.build.outputs.products-outcome == 'success' || needs.reuse.outputs.standard == 'true') &&
       (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || needs.changes.outputs.code == 'true')
-    continue-on-error: true
     runs-on: ${{ needs.reuse.outputs.standard == 'true' && 'xcode-27' || 'ubuntu-latest' }}
     timeout-minutes: 40
     env:
@@ -621,7 +621,10 @@ jobs:
         if: needs.reuse.outputs.standard == 'true'
         id: ui-targets
         shell: bash
-        run: echo "targets=$(python3 Scripts/check-testplan-sync.py --classes FullUI)" >> "$GITHUB_OUTPUT"
+        run: |
+          set -euo pipefail
+          targets="$(python3 Scripts/check-testplan-sync.py --classes FullUI --exclude-class FullGamePurchaseUITests)"
+          echo "targets=$targets" >> "$GITHUB_OUTPUT"
       - uses: ./.github/actions/test-job
         if: needs.reuse.outputs.standard == 'true'
         with:
@@ -631,6 +634,58 @@ jobs:
           artifact-prefix: ${{ inputs.artifact-prefix }}
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
           command: ./Scripts/test.sh ui --no-build ${{ steps.ui-targets.outputs.targets }}
+
+
+  exhaustive-purchases:
+    name: Exhaustive UI (Purchases 26.2)
+    needs: [changes, reuse, build]
+    if: >-
+      always() && !cancelled() && inputs.include-exhaustive && needs.reuse.result == 'success' &&
+      (needs.build.outputs.products-outcome == 'success' || needs.reuse.outputs.standard == 'true') &&
+      (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || needs.changes.outputs.code == 'true')
+    runs-on: xcode-27
+    timeout-minutes: 75
+    env:
+      CI: true
+      TRINKET_SIM_DEVICE_TYPE: com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro
+      TRINKET_SIM_OS_VERSION: '26.2'
+      TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS: '720'
+      TRINKET_XCODE_WALL_TIMEOUT_SECONDS: '1800'
+    steps:
+      - name: Reserve diagnostic time
+        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 75 * 60 - 180 ))" >> "$GITHUB_ENV"
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: ./.github/actions/setup-trinket
+        with:
+          metal: 'true'
+          xcode-channel: ${{ inputs.xcode-channel }}
+          xcode-build: ${{ inputs.xcode-build }}
+      # iOS 27 StoreKitTest can return a declined transaction as a verified entitlement.
+      # Preserve all purchase assertions on the independently qualified runtime.
+      - name: Install and validate qualified StoreKit runtime
+        timeout-minutes: 35
+        run: |
+          python3 - <<'PYTHON'
+          import json
+          import platform
+          import subprocess
+          runtimes = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'runtimes', 'available', '-j']))['runtimes']
+          if not any(item.get('isAvailable') and item.get('platform') == 'iOS'
+                     and item.get('version') in ('26.2', '26.2.0')
+                     and item.get('buildversion') == '23C54' for item in runtimes):
+              subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '23C54',
+                              '-architectureVariant', 'arm64' if platform.machine() == 'arm64' else 'universal'],
+                             check=True, timeout=1800)
+          PYTHON
+          python3 Scripts/deploy-verification.py --mode hosted-beta --preflight
+      - uses: ./.github/actions/test-job
+        with:
+          build-artifact: ${{ needs.reuse.outputs.build-artifact || needs.build.outputs.build-artifact }}
+          build-run-id: ${{ needs.reuse.outputs.run-id || github.run_id }}
+          artifact-name: exhaustive-ui-purchases-262
+          artifact-prefix: ${{ inputs.artifact-prefix }}
+          rebuild-command: ./Scripts/build-for-testing.sh --app-only
+          command: python3 Scripts/verify-purchase-ui.py
 
 
   diff-review:
@@ -706,7 +761,7 @@ jobs:
   # dashboards; always succeeds on push so it never blocks ci-ok.
   exhaustive-ok:
     name: Exhaustive OK (advisory)
-    needs: [changes, exhaustive-ui]
+    needs: [changes, exhaustive-ui, exhaustive-purchases]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -734,7 +789,7 @@ jobs:
           jobs="$RUNNER_TEMP/exhaustive-jobs.json"
           if gh api --paginate --slurp \
             "repos/$REPO/actions/runs/$RUN_ID/attempts/$RUN_ATTEMPT/jobs?per_page=100" > "$jobs"; then
-            python3 Scripts/report-exhaustive-ci.py "$jobs" --require-execution
+            python3 Scripts/report-exhaustive-ci.py "$jobs" --require-execution --required-shard "Exhaustive UI (All)" --required-shard "Exhaustive UI (Purchases 26.2)"
           else
             echo "::warning::Could not retrieve exhaustive shard results; advisory status is unknown."
             echo "### Exhaustive UI: status unknown (job results unavailable)" >> "$GITHUB_STEP_SUMMARY"

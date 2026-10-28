@@ -259,8 +259,11 @@ def main() -> int:
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--generate', action='store_true', help='update only UI test-plan selections')
     mode.add_argument('--classes', choices=SUITES, help='emit class filters for a serial suite')
+    parser.add_argument('--exclude-class', help='omit one registered class from the emitted suite')
     parser.add_argument('--root', type=Path, default=ROOT, help='project root for generation')
     args = parser.parse_args()
+    if args.exclude_class and not args.classes:
+        parser.error('--exclude-class requires --classes')
     try:
         if args.generate or args.classes:
             rows = registrations(args.root)
@@ -270,7 +273,12 @@ def main() -> int:
                 failures = registration_failures(args.root, rows)
                 if failures:
                     raise ValueError('; '.join(failures))
-                print(' '.join(row['name'] for row in rows if row['suite'] == args.classes))
+                names = [row['name'] for row in rows if row['suite'] == args.classes]
+                if args.exclude_class:
+                    if names.count(args.exclude_class) != 1 or len(names) < 2:
+                        raise ValueError('Excluded class must occur once in a nonempty remaining suite')
+                    names.remove(args.exclude_class)
+                print(' '.join(names))
             return 0
         failures = testplan_failures()
         if failures:
