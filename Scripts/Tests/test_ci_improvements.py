@@ -189,7 +189,11 @@ class CIImprovementsTests(unittest.TestCase):
                        if row['payload']['kind'] not in ('testCaseStarted', 'testCaseEnded')]
             started = next(row for row in nonparameterized if row['payload']['kind'] == 'testCaseStarted')
             ended = next(row for row in nonparameterized if row['payload']['kind'] == 'testCaseEnded')
-            for altered in (missing, nonparameterized + [started, ended]):
+            write(missing)
+            self.assertTrue(NATIVE.valid(NATIVE.execution('TrinketCore', events, catalog)))
+            incomplete = [row for row in missing if row['payload']['kind'] != 'testEnded']
+            mismatched = [row for row in nonparameterized if row['payload']['kind'] != 'testCaseEnded']
+            for altered in (incomplete, mismatched, nonparameterized + [started, ended]):
                 with self.subTest(records=len(altered)):
                     write(altered)
                     with self.assertRaises(ValueError):

@@ -62,7 +62,7 @@ def execution(package: str, events: Path, catalog: Path) -> dict:
             or set(cases) - set(functions) or len(expected) != len(set(expected))):
         raise ValueError('Native execution has incomplete or empty discovery/run evidence')
     if any(started[key] != 1 or ended[key] != 1
-           or (cases[key] < 1 if parameterized else cases[key] != 1)
+           or (cases[key] < 1 if parameterized else cases[key] > 1)
            for key, parameterized in functions.items()):
         raise ValueError('A native function did not execute and complete exactly once')
     actual = sorted(canonical(key, package) for key in functions)
