@@ -6,7 +6,6 @@ import TrinketDesignSystem
 public struct HomesteadResourceWallet: View {
     let homestead: PlayerHomesteadState
     let gold: Int
-    let walletAnimationNamespace: Namespace.ID?
     let displayedBalances: [HomesteadResource: Int]
     let increaseAnimationDelays: [HomesteadResource: TimeInterval]
     let keepsArtworkStationary: Bool
@@ -14,14 +13,12 @@ public struct HomesteadResourceWallet: View {
     public init(
         homestead: PlayerHomesteadState,
         gold: Int,
-        walletAnimationNamespace: Namespace.ID? = nil,
         displayedBalances: [HomesteadResource: Int] = [:],
         increaseAnimationDelays: [HomesteadResource: TimeInterval] = [:],
         keepsArtworkStationary: Bool = false,
     ) {
         self.homestead = homestead
         self.gold = gold
-        self.walletAnimationNamespace = walletAnimationNamespace
         self.displayedBalances = displayedBalances
         self.increaseAnimationDelays = increaseAnimationDelays
         self.keepsArtworkStationary = keepsArtworkStationary
@@ -47,7 +44,7 @@ public struct HomesteadResourceWallet: View {
             ),
             keepsArtworkStationary: keepsArtworkStationary,
         ) {
-            walletArtwork(for: resource)
+            HomesteadResourceArtwork(resource: resource)
                 .anchorPreference(key: HomesteadWalletArtworkAnchors.self, value: .bounds) {
                     [resource: $0]
                 }
@@ -56,20 +53,6 @@ public struct HomesteadResourceWallet: View {
         .gameAccessibilityLabel(resource.displayName)
         .accessibilityValue((displayedBalances[resource] ?? homestead.balance(for: resource, gold: gold)).formatted())
         .accessibilityIdentifier(AccessibilityID.Homestead.resourceBalance(resource))
-    }
-
-    @ViewBuilder
-    private func walletArtwork(for resource: HomesteadResource) -> some View {
-        let artwork = HomesteadResourceArtwork(resource: resource)
-        if let walletAnimationNamespace {
-            artwork.matchedGeometryEffect(
-                id: resource.walletAnimationID,
-                in: walletAnimationNamespace,
-                isSource: false,
-            )
-        } else {
-            artwork
-        }
     }
 }
 

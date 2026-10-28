@@ -11,7 +11,6 @@ public struct CombatantTalentsView: View {
     let progression: CombatantProgression
     let unlockedTalents: Set<String>
     let allowsEditing: Bool
-    let visibleNodeIDs: Set<String>?
     let showsReset: Bool
     let nodeAccessibilityIdentifier: (String) -> String
     let unlockAccessibilityIdentifier: String
@@ -30,7 +29,6 @@ public struct CombatantTalentsView: View {
         unlockedTalents: Set<String>,
         allowsEditing: Bool = true,
         initialSelectedNodeID: String? = nil,
-        visibleNodeIDs: Set<String>? = nil,
         showsReset: Bool = true,
         nodeAccessibilityIdentifier: @escaping (String) -> String = AccessibilityID.CombatantDetail.talentsNode,
         unlockAccessibilityIdentifier: String = AccessibilityID.CombatantDetail.talentsUnlockButton,
@@ -42,7 +40,6 @@ public struct CombatantTalentsView: View {
         self.progression = progression
         self.unlockedTalents = unlockedTalents
         self.allowsEditing = allowsEditing
-        self.visibleNodeIDs = visibleNodeIDs
         self.showsReset = showsReset
         self.nodeAccessibilityIdentifier = nodeAccessibilityIdentifier
         self.unlockAccessibilityIdentifier = unlockAccessibilityIdentifier
@@ -50,14 +47,7 @@ public struct CombatantTalentsView: View {
         self.onUnlockTalent = onUnlockTalent
         self.onResetTalents = onResetTalents
 
-        let defaultInitialID = tree.nodes.first(where: { visibleNodeIDs?.contains($0.id) ?? true })?.id
-        let initialID = initialSelectedNodeID.flatMap { id in
-            (visibleNodeIDs?.contains(id) ?? true) ? id : nil
-        } ?? defaultInitialID
-
-        _selectedNodeID = State(
-            initialValue: initialID,
-        )
+        _selectedNodeID = State(initialValue: initialSelectedNodeID ?? tree.nodes.first?.id)
     }
 
     private var availablePoints: Int {
@@ -65,15 +55,10 @@ public struct CombatantTalentsView: View {
     }
 
     private var selectedNode: TalentNode? {
-        if let selectedNodeID, let node = displayedNodes.first(where: { $0.id == selectedNodeID }) {
+        if let selectedNodeID, let node = tree.nodes.first(where: { $0.id == selectedNodeID }) {
             return node
         }
-        return displayedNodes.first
-    }
-
-    private var displayedNodes: [TalentNode] {
-        guard let visibleNodeIDs else { return tree.nodes }
-        return tree.nodes.filter { visibleNodeIDs.contains($0.id) }
+        return tree.nodes.first
     }
 
     public var body: some View {
@@ -97,12 +82,7 @@ public struct CombatantTalentsView: View {
             }
         }
         .onChange(of: tree.id) { _, _ in
-            selectedNodeID = displayedNodes.first?.id
-        }
-        .onChange(of: visibleNodeIDs) { _, _ in
-            if !displayedNodes.contains(where: { $0.id == selectedNodeID }) {
-                selectedNodeID = displayedNodes.first?.id
-            }
+            selectedNodeID = tree.nodes.first?.id
         }
         .animation(TrinketMotion.Interaction.selection, value: selectedNodeID)
         .animation(TrinketMotion.Interaction.selection, value: unlockedTalents)
@@ -171,7 +151,7 @@ public struct CombatantTalentsView: View {
     private var talentGrid: some View {
         VStack(spacing: TrinketDesign.Spacing.medium) {
             ForEach(tree.rows, id: \.self) { row in
-                let rowNodes = displayedNodes.filter { $0.row == row }
+                let rowNodes = tree.nodes.filter { $0.row == row }
                 if !rowNodes.isEmpty {
                     let isRowLocked = row > 1
                         && !tree.isRowComplete(row - 1, unlockedNodeIDs: unlockedTalents)
@@ -196,19 +176,19 @@ public struct CombatantTalentsView: View {
 
     private func nextUnlockableNodeID(after nodeID: String) -> String? {
         guard allowsEditing else { return nil }
-        guard let currentIndex = displayedNodes.firstIndex(where: { $0.id == nodeID }) else { return nil }
+        guard let currentIndex = tree.nodes.firstIndex(where: { $0.id == nodeID }) else { return nil }
         // The parent-driven unlockedTalents is still stale at tap time, so assume
         // the just-unlocked node when scoring later candidates and row gates.
         let updatedUnlocks = unlockedTalents.union([nodeID])
         let remainingPoints = progression.availableTalentPoints(unlockedCount: updatedUnlocks.count)
         guard remainingPoints > 0 else { return nil }
-        let downstream = displayedNodes.dropFirst(currentIndex + 1)
+        let downstream = tree.nodes.dropFirst(currentIndex + 1)
         if let next = downstream.first(where: {
             tree.canUnlock(node: $0, unlockedNodeIDs: updatedUnlocks, availablePoints: remainingPoints)
         }) {
             return next.id
         }
-        let upstream = displayedNodes.prefix(currentIndex)
+        let upstream = tree.nodes.prefix(currentIndex)
         return upstream.first(where: {
             tree.canUnlock(node: $0, unlockedNodeIDs: updatedUnlocks, availablePoints: remainingPoints)
         })?.id

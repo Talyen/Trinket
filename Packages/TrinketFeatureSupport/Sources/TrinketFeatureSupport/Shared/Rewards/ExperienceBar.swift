@@ -26,14 +26,9 @@ public struct ExperienceBar: View {
     nonisolated static let animationBudget: TimeInterval = 0.70
     nonisolated static let settleDuration: TimeInterval = 0.12
 
-    private let artworkFocalX: Double
-    private let artworkFocalY: Double
-
     public init(
         combatantName: String,
         artworkName: String? = nil,
-        artworkFocalX: Double = 0.50,
-        artworkFocalY: Double = 0.30,
         pre: CombatantProgression,
         post: CombatantProgression,
         fillColor: Color,
@@ -42,8 +37,6 @@ public struct ExperienceBar: View {
     ) {
         self.combatantName = combatantName
         self.artworkName = artworkName
-        self.artworkFocalX = artworkFocalX
-        self.artworkFocalY = artworkFocalY
         self.pre = pre
         self.post = post
         self.fillColor = fillColor
@@ -128,12 +121,9 @@ public struct ExperienceBar: View {
         return GeometryReader { geometry in
             let container = geometry.size
             let scale = max(container.width / sourceAspectRatio, container.height)
-            let renderedWidth = sourceAspectRatio * scale
             let renderedHeight = scale
-            let overflowX = max(renderedWidth - container.width, 0)
             let overflowY = max(renderedHeight - container.height, 0)
-            let offsetX = (0.5 - artworkFocalX) * overflowX
-            let offsetY = (0.5 - artworkFocalY) * overflowY
+            let offsetY = (0.5 - 0.30) * overflowY
 
             Image.preparedAsset(named: artworkName)
                 .resizable()
@@ -141,7 +131,7 @@ public struct ExperienceBar: View {
                 .scaledToFill()
                 .accessibilityHidden(true)
                 .frame(width: container.width, height: container.height)
-                .offset(x: offsetX, y: offsetY)
+                .offset(y: offsetY)
         }
         .frame(width: size, height: size)
         .clipShape(Circle())

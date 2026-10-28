@@ -7,7 +7,6 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
     var linkAccessibilityIdentifier: String?
     var sectionAccessibilityIdentifier: String?
     var totalCount: Int?
-    let previewLimit: Int
     private let artworkNamesProvider: () -> [String]
     @State private var requestID: UUID?
     @State private var artworkLease: PreparedArtworkLease?
@@ -22,7 +21,6 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
         linkAccessibilityIdentifier: String? = nil,
         sectionAccessibilityIdentifier: String? = nil,
         totalCount: Int? = nil,
-        previewLimit: Int = TrinketDesign.Layout.collectionShelfPreviewLimit,
         artworkNames: @autoclosure @escaping () -> [String] = [],
         @ViewBuilder destination: @escaping () -> Destination,
         @ViewBuilder content: @escaping () -> Content,
@@ -31,7 +29,6 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
         self.linkAccessibilityIdentifier = linkAccessibilityIdentifier
         self.sectionAccessibilityIdentifier = sectionAccessibilityIdentifier
         self.totalCount = totalCount
-        self.previewLimit = previewLimit
         artworkNamesProvider = artworkNames
         self.destination = destination
         self.content = content
@@ -106,12 +103,12 @@ public struct CategoryBrowseShelf<Destination: View, Content: View>: View {
             LazyHStack(spacing: TrinketDesign.Layout.collectionShelfCardSpacing) {
                 content()
 
-                if let totalCount, totalCount > previewLimit {
+                if let totalCount, totalCount > TrinketDesign.Layout.collectionShelfPreviewLimit {
                     Button {
                         requestID = UUID()
                     } label: {
                         ViewAllShelfCard(
-                            remainingCount: totalCount - previewLimit,
+                            remainingCount: totalCount - TrinketDesign.Layout.collectionShelfPreviewLimit,
                             accessibilityIdentifier: AccessibilityID.Collection.viewAllCard(category: title),
                         )
                     }

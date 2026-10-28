@@ -42,7 +42,6 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
     let titleAccessibilityIdentifier: String
     let experienceAwards: [Award]
     let experienceAccessibilityIdentifier: String?
-    let experienceSpacing: CGFloat
     let emptyExperience: () -> EmptyExperience
     let loot: Loot
     let primaryActionTitle: String
@@ -67,7 +66,6 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
         titleAccessibilityIdentifier: String,
         experienceAwards: [Award] = [],
         experienceAccessibilityIdentifier: String? = nil,
-        experienceSpacing: CGFloat = TrinketDesign.Spacing.medium,
         loot: Loot,
         primaryActionTitle: String,
         primaryActionAccessibilityIdentifier: String,
@@ -83,7 +81,6 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
         self.titleAccessibilityIdentifier = titleAccessibilityIdentifier
         self.experienceAwards = experienceAwards
         self.experienceAccessibilityIdentifier = experienceAccessibilityIdentifier
-        self.experienceSpacing = experienceSpacing
         self.emptyExperience = emptyExperience
         self.loot = loot
         self.primaryActionTitle = primaryActionTitle
@@ -200,7 +197,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
         if !experienceAwards.isEmpty {
             RewardRevealExperienceSection(
                 awards: experienceAwards,
-                spacing: experienceSpacing,
+                spacing: TrinketDesign.Spacing.medium,
             )
             .accessibilityIdentifier(experienceAccessibilityIdentifier ?? "")
         } else if EmptyExperience.self != EmptyView.self {

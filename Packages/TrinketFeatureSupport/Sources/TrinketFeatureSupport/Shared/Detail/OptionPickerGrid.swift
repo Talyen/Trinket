@@ -11,8 +11,6 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
     let accessibilityIdentifier: (Item) -> String
     var zoomNamespace: Namespace.ID?
     let artworkNameProvider: ((Item) -> String?)?
-    let viewportPrefetchRows: Int
-    let viewportEstimatedColumns: Int
     @ViewBuilder let card: (Item, Bool) -> CardView
     @State private var viewport = ArtworkViewportTracker<Item.ID>()
 
@@ -25,8 +23,6 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
         accessibilityIdentifier: @escaping (Item) -> String,
         zoomNamespace: Namespace.ID? = nil,
         artworkNameProvider: ((Item) -> String?)? = nil,
-        viewportPrefetchRows: Int = ArtworkViewportPrewarm.defaultPrefetchRows,
-        viewportEstimatedColumns: Int = ArtworkViewportPrewarm.partyPickerEstimatedColumns,
         @ViewBuilder card: @escaping (Item, Bool) -> CardView,
     ) {
         self.items = items
@@ -37,8 +33,6 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
         self.accessibilityIdentifier = accessibilityIdentifier
         self.zoomNamespace = zoomNamespace
         self.artworkNameProvider = artworkNameProvider
-        self.viewportPrefetchRows = viewportPrefetchRows
-        self.viewportEstimatedColumns = viewportEstimatedColumns
         self.card = card
     }
 
@@ -89,8 +83,8 @@ public struct OptionPickerGrid<Item: Identifiable, CardView: View>: View {
                 ArtworkViewportPrewarmObserver(
                     entries: items.map { ArtworkViewportEntry(id: $0.id, name: provider($0)) },
                     viewport: viewport,
-                    prefetchRows: viewportPrefetchRows,
-                    estimatedColumns: viewportEstimatedColumns,
+                    prefetchRows: ArtworkViewportPrewarm.defaultPrefetchRows,
+                    estimatedColumns: ArtworkViewportPrewarm.partyPickerEstimatedColumns,
                 )
             }
         }

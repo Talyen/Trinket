@@ -29,10 +29,6 @@ public extension HomesteadResource {
         case .gold: Keyword.gold.visualStyle.icon
         }
     }
-
-    var walletAnimationID: String {
-        "Homestead Wallet Resource \(rawValue)"
-    }
 }
 
 public extension HomesteadNodeCategory {
