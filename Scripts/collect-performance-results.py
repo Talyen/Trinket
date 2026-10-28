@@ -20,22 +20,25 @@ def main() -> int:
     records: list[dict[str, object]] = []
     malformed: list[str] = []
     for path in sorted(args.results_dir.rglob("*.log")):
-        with path.open(errors="replace") as source:
-            for line in source:
-                marker_index = line.find(MARKER)
-                if marker_index < 0:
-                    continue
-                payload = line[marker_index + len(MARKER) :].strip()
-                try:
-                    record = json.loads(payload)
-                except json.JSONDecodeError:
-                    malformed.append(f"{path}: invalid JSON after performance marker")
-                    continue
-                if not isinstance(record, dict):
-                    malformed.append(f"{path}: performance payload is not an object")
-                    continue
-                record["sourceLog"] = str(path.relative_to(args.results_dir))
-                records.append(record)
+        try:
+            with path.open(errors="replace") as source:
+                for line in source:
+                    marker_index = line.find(MARKER)
+                    if marker_index < 0:
+                        continue
+                    payload = line[marker_index + len(MARKER) :].strip()
+                    try:
+                        record = json.loads(payload)
+                    except json.JSONDecodeError:
+                        malformed.append(f"{path}: invalid JSON after performance marker")
+                        continue
+                    if not isinstance(record, dict):
+                        malformed.append(f"{path}: performance payload is not an object")
+                        continue
+                    record["sourceLog"] = str(path.relative_to(args.results_dir))
+                    records.append(record)
+        except OSError as error:
+            malformed.append(f"{path}: cannot read performance log: {error}")
 
     # Keep malformed iterations in the evidence; the schema validator owns
     # their rejection. Sorting must not prevent reports.json from being saved.
@@ -53,7 +56,7 @@ def main() -> int:
     for record in records:
         record["environment"] = environment
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    write_json_atomic(args.output, {"reports": records})
+    write_json_atomic(args.output, {"reports": records, "collectionFailures": malformed})
     print(f"Collected {len(records)} app performance reports into {args.output}")
     for error in malformed:
         print(error)

@@ -70,12 +70,11 @@ class BoundedLog:
     marker = b"\n[profiling log clipped; final diagnostics follow]\n"
 
     def __init__(self, path: Path, maximum: int = 4 * 1024 ** 2):
-        self.stream = path.open("wb")
         self.tail_limit = min(65536, maximum // 4)
         self.head_left = maximum - self.tail_limit - len(self.marker)
         if self.head_left < 1:
-            self.stream.close()
             raise ValueError("Profiling log budget is too small")
+        self.stream = path.open("wb")
         self.tail = b""
         self.clipped = False
 

@@ -33,6 +33,14 @@ def main() -> None:
         repetitions = int(sys.argv[2])
     except ValueError:
         raise SystemExit("repetitions must be an integer") from None
+    if repetitions < 1:
+        raise SystemExit("repetitions must be positive")
+    try:
+        wall_timeout = int(os.environ.get("TRINKET_XCODE_WALL_TIMEOUT_SECONDS", "1200"))
+        if wall_timeout < 1:
+            raise ValueError
+    except ValueError:
+        raise SystemExit("TRINKET_XCODE_WALL_TIMEOUT_SECONDS must be a positive integer") from None
     output = Path(sys.argv[1])
     # --porcelain is the stable spelling of --short: one status run feeds both.
     git_status = command("git", "status", "--porcelain", required=True)
@@ -48,12 +56,13 @@ def main() -> None:
         "trackedDiffSHA256": hashlib.sha256(command("git", "diff", "--binary", "HEAD", raw=True, required=True)).hexdigest(),
         "untrackedSourceSHA256": {
             str(path): hashlib.sha256(path.read_bytes()).hexdigest()
-            for path in untracked if path.is_file() and path.suffix in {".swift", ".py", ".sh", ".json", ".xctestplan"}
+            for path in untracked if path.is_file() and path.suffix in {".swift", ".py", ".sh", ".json", ".xctestplan",
+                                                              ".yml", ".yaml", ".plist", ".xcconfig", ".mjs", ".rb"}
         },
         "configuration": "Debug with SWIFT_OPTIMIZATION_LEVEL=-O",
         "quickSamplerPreparation": os.environ.get("TRINKET_PERFORMANCE_QUICK") == "1",
         "repetitionsPerScenario": repetitions,
-        "suiteWallTimeoutSeconds": int(os.environ.get("TRINKET_XCODE_WALL_TIMEOUT_SECONDS", "1200")),
+        "suiteWallTimeoutSeconds": wall_timeout,
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     write_json_atomic(output, payload)

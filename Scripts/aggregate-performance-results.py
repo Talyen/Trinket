@@ -47,12 +47,14 @@ def main() -> int:
     scenarios: dict[str, Any] = {}
     for scenario in scenarios_value:
         records = grouped[scenario]
+        # Incomplete or duplicate repetitions cannot establish an aggregate.
+        complete = [record["iteration"] for record in records] == list(range(1, args.expected_repetitions + 1))
         suite = str(records[0].get("suite", "unknown")) if records else "unknown"
         for record in records:
             findings.extend(goal_findings(record, baseline))
         metrics: dict[str, Any] = {}
         for metric in METRICS:
-            values = [float(record[metric]) for record in records]
+            values = [float(record[metric]) for record in records] if complete else []
             if values:
                 metrics[metric] = aggregate(values)
         scenarios[scenario] = {
@@ -87,6 +89,9 @@ def main() -> int:
         low = metrics.get("onePercentLowFPS", {})
         maximum = metrics.get("maxFrameMs", {})
         missed = metrics.get("missedDeadlineCount", {})
+        if not metrics:
+            lines.append(f"| {scenario} | {data['repetitionCount']} | N/A | N/A | N/A | N/A |")
+            continue
         lines.append(
             f"| {scenario} | {data['repetitionCount']} | {low.get('median', 0):.2f} | "
             f"{low.get('mad', 0):.2f} | {maximum.get('median', 0):.2f} | "

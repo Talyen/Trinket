@@ -64,6 +64,7 @@ def process(root, action):
             continue
         previous = saved.get(name)
         if (isinstance(previous, dict) and type(previous.get('mtime_ns')) is int and previous['mtime_ns'] > 0
+                and previous['mtime_ns'] != current['mtime_ns']
                 and all(previous.get(key) == current[key] for key in ('sha256', 'size', 'mode'))):
             # Only timestamps change, after byte comparison; changed inputs remain fresh.
             os.utime(path, ns=(path.stat().st_atime_ns, previous['mtime_ns']))

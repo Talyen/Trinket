@@ -106,6 +106,11 @@ def load_results_reports(payload: dict[str, Any]) -> list[dict[str, Any]]:
     reports = payload.get("reports") if isinstance(payload, dict) else None
     if not isinstance(reports, list):
         raise SystemExit("results payload must contain a reports array")
+    failures = payload.get("collectionFailures", [])
+    if not isinstance(failures, list) or any(not isinstance(item, str) for item in failures):
+        raise SystemExit("results collectionFailures must be an array of strings")
+    if failures:
+        raise SystemExit("performance collection failed: " + "; ".join(failures))
     return reports
 
 

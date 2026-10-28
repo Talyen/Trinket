@@ -32,7 +32,7 @@ Scripts/simulator-idle-cleanup.py	test_simulator_idle_cleanup.py
 Scripts/agent-watch-ci.sh	test_policy_scripts.py
 Scripts/agent-worktree.mjs	test_agent_integration.py,test_git_safety.py,test_worktree_storage.py
 Scripts/lib/worktree-storage.mjs	test_worktree_storage.py
-Scripts/aggregate-performance-results.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py
+Scripts/aggregate-performance-results.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py,test_tooling_evidence.py
 Scripts/apply-scheme-storekit.py	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py
 Scripts/assert-generated-output.sh	test_build_process.py,test_ci_build_scripts.py,test_ci_gate_scripts.py,test_project_generation.py
 Scripts/asset-library.py	test_asset_library.py
@@ -40,7 +40,7 @@ Scripts/balance-sweep.sh	test_balance_report_retention.py
 Scripts/bin/git	test_git_safety.py
 Scripts/build-for-testing.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_metadata.py,test_build_process.py,test_ci_build_scripts.py,test_verification_policy.py
 Scripts/build-freshness.sh	test-lib-args.sh,test-lib-tempdir.sh,test_asset_library.py,test_build_artifacts.py,test_build_metadata.py,test_build_process.py,test_ci_build_scripts.py
-Scripts/build-source-times.py	test_build_source_times.py
+Scripts/build-source-times.py	test_build_source_times.py,test_tooling_evidence.py
 Scripts/build-inputs.env	test_asset_library.py,test_build_metadata.py,test_build_process.py,test_ci_build_scripts.py,test_ci_gate_scripts.py,test_internal_cli.py,test_project_generation.py
 Scripts/build-metadata.py	test_build_artifacts.py,test_build_metadata.py,test_build_process.py
 Scripts/build-symbols.py	test_build_symbols.py
@@ -75,7 +75,7 @@ Scripts/ci-run-budget.py	test_ci_gate_scripts.py,test_ci_improvements.py
 Scripts/ci_ui_retry.py	test_ci_effort.py,test_deploy_verification.py
 Scripts/cleanup-outputs.py	test_output_retention.py,test_release_retention.py
 Scripts/compact-evidence.py	test_evidence_compaction.py
-Scripts/collect-performance-results.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py
+Scripts/collect-performance-results.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py,test_tooling_evidence.py
 Scripts/compare-performance.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py
 Scripts/config/agent-tasks.json	test_agent_context.py,test_agent_investigate.py,test_agent_search.py
 Scripts/config/cheap-slices.txt	test-lib-args.sh,test_ci_gate_scripts.py,test_ci_handoff_routing.py,test_documentation.py
@@ -143,10 +143,10 @@ Scripts/internal/mechanical_policy.py	test_swift_invariants.py,test_ui_policy.py
 Scripts/internal/media_templates/*	test_asset_library.py,test_media_asset_scripts.py
 Scripts/internal/module_policy.py	test_policy_scripts.py
 Scripts/internal/output_retention.py	test_cache_footprint.py,test_agent_read.py,test_agent_sim_lifetime.py,test_balance_report_retention.py,test_build_process.py,test_ci_session_scripts.py,test_documentation.py,test_failure_diagnostics.py,test_output_retention.py,test_performance_scenarios.py,test_playthrough_sweep.py,test_test_timing.py,test_testflight.py,test_release_retention.py,test_build_size.py,test_shared_build_lease.py,test_device_product_retention.py
-Scripts/internal/performance/performance_model.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py
+Scripts/internal/performance/performance_model.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py,test_tooling_evidence.py
 Scripts/internal/playthrough_report.py	test_playthrough_sweep.py
 Scripts/internal/policy_scan.py	test_policy_scripts.py,test_swift_invariants.py,test_swift_style_policy.py,test_ui_policy.py,test_ci_build_scripts.py
-Scripts/internal/profile_exports.py	test_profile_exports.py
+Scripts/internal/profile_exports.py	test_profile_exports.py,test_tooling_evidence.py
 Scripts/internal/shared_build_lease.py	test_shared_build_lease.py,test_profile_device.py
 Scripts/internal/source_declarations.py	test_agent_callers.py,test_agent_investigate.py,test_agent_read.py,test_audit_tooling_regressions.py
 Scripts/internal/swift_policy.py	test_agent_callers.py,test_agent_investigate.py,test_agent_read.py,test_documentation.py,test_swift_invariants.py,test_swift_style_policy.py,test_audit_tooling_regressions.py
@@ -184,8 +184,8 @@ Scripts/new-plan.sh	test_documentation.py
 Scripts/package-diagnostics.py	test_package_diagnostics.py
 Scripts/performance-scenarios.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py
 Scripts/performance.sh	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py,test_verification_policy.py
-Scripts/performance_environment.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py
-Scripts/phase-timing.py	test_build_process.py,test_ci_build_scripts.py,test_output_retention.py,test_package_diagnostics.py
+Scripts/performance_environment.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py,test_tooling_evidence.py
+Scripts/phase-timing.py	test_build_process.py,test_ci_build_scripts.py,test_output_retention.py,test_package_diagnostics.py,test_tooling_evidence.py
 Scripts/profile-device.py	test_profile_device.py,test_profile_exports.py,test_shared_build_lease.py
 Scripts/player-coverage.sh	test_player_coverage.py
 Scripts/playthrough-sweep.sh	test_ci_session_scripts.py,test_playthrough_sweep.py,test_verification_policy.py
@@ -221,7 +221,7 @@ Scripts/test-deploy.sh	test_ci_build_scripts.py,test_ci_session_scripts.py,test_
 Scripts/test-package-host.sh	test_ci_improvements.py,test_verification_policy.py
 Scripts/test-package.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_metadata.py,test_build_process.py,test_ci_build_scripts.py,test_ci_improvements.py,test_package_diagnostics.py,test_test_timing.py,test_verification_policy.py
 Scripts/test-scripts.sh	test_output_retention.py,test_script_selection.py
-Scripts/test-timing.py	test_ci_build_scripts.py,test_ci_effort.py,test_ci_improvements.py,test_test_timing.py
+Scripts/test-timing.py	test_ci_build_scripts.py,test_ci_effort.py,test_ci_improvements.py,test_test_timing.py,test_tooling_evidence.py
 Scripts/test.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_metadata.py,test_build_process.py,test_ci_build_scripts.py,test_ci_effort.py,test_player_coverage.py,test_verification_policy.py
 Scripts/testflight.sh	test_output_retention.py,test_testflight.py
 Scripts/tool-versions.env	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py,test_swift_style_policy.py

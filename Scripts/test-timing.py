@@ -282,7 +282,7 @@ def format_seconds(seconds: object) -> str:
     value = float(seconds)
     if value < 60:
         return f"{value:.1f}s"
-    minutes, remainder = divmod(value, 60)
+    minutes, remainder = divmod(round(value), 60)
     return f"{int(minutes)}m {remainder:.0f}s"
 
 
