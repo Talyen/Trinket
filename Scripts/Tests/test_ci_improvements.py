@@ -169,6 +169,38 @@ class CIImprovementsTests(unittest.TestCase):
             self.assertNotIn('watchdog log proof', aggregate['detail'])
             self.assertTrue(AGGREGATE.normalise_report(None, None, manifest={**manifest, 'native_test': {}})['failed'])
 
+    def test_native_proof_requires_completed_cases_and_rejects_cancellation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            events, catalog, rows = self.native_fixture(Path(directory))
+            def write(records):
+                events.write_text('\n'.join(json.dumps(record) for record in records))
+
+            for kind in ('testCancelled', 'testCaseCancelled'):
+                with self.subTest(kind=kind):
+                    write(rows + [{'version': 0, 'kind': 'event', 'payload': {'kind': kind}}])
+                    with self.assertRaisesRegex(ValueError, kind):
+                        NATIVE.execution('TrinketCore', events, catalog)
+
+            nonparameterized = [{**row, 'payload': {**row['payload'], 'isParameterized': False}}
+                                if row['kind'] == 'test' else row for row in rows]
+            write(nonparameterized)
+            self.assertTrue(NATIVE.valid(NATIVE.execution('TrinketCore', events, catalog)))
+            missing = [row for row in nonparameterized
+                       if row['payload']['kind'] not in ('testCaseStarted', 'testCaseEnded')]
+            started = next(row for row in nonparameterized if row['payload']['kind'] == 'testCaseStarted')
+            ended = next(row for row in nonparameterized if row['payload']['kind'] == 'testCaseEnded')
+            for altered in (missing, nonparameterized + [started, ended]):
+                with self.subTest(records=len(altered)):
+                    write(altered)
+                    with self.assertRaises(ValueError):
+                        NATIVE.execution('TrinketCore', events, catalog)
+
+            unknown = [{**row, 'payload': {**row['payload'], 'testID': 'OtherTests.Hidden/test()/File.swift:1:1'}}
+                       for row in (started, ended)]
+            write(rows + unknown)
+            with self.assertRaises(ValueError):
+                NATIVE.execution('TrinketCore', events, catalog)
+
     def test_ios_duplicate_argument_names_count_each_execution_and_preserve_leaf_failures(self):
         node = {'children': [{'nodeType': 'Arguments', 'name': 'Ability(storage: AbilityStorage)',
                               'result': 'Passed', 'children': [

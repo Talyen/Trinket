@@ -34,7 +34,9 @@ and exhaustive-pilot runs bypass that reuse. The manual
 establish app, UI, Release, or other-package proof. Qualification mismatches fail
 the run. Structured proof uses the versioned
 [Swift Testing event stream](https://github.com/swiftlang/swift-testing/blob/main/Documentation/ABI/JSON.md),
-not console glyphs or an incidental terminal-summary format.
+not console glyphs or an incidental terminal-summary format. Cancellations,
+unregistered test cases, and missing or repeated non-parameterized cases cannot
+establish completed native execution.
 
 ## Execution deadlines
 

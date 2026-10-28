@@ -46,7 +46,7 @@ def execution(package: str, events: Path, catalog: Path) -> dict:
                 raise ValueError('Missing parameterized-test discovery metadata')
             functions[identifier] = payload['isParameterized']
         elif record['kind'] == 'event':
-            if kind in {'issueRecorded', 'testSkipped'}:
+            if kind in {'issueRecorded', 'testSkipped', 'testCancelled', 'testCaseCancelled'}:
                 raise ValueError(f'Native execution recorded {kind}')
             if kind == 'runStarted':
                 runs += 1
@@ -58,9 +58,11 @@ def execution(package: str, events: Path, catalog: Path) -> dict:
                 destination[payload['testID']] += 1
     expected = [line.split('.', 1)[1] for line in catalog.read_text().splitlines()
                 if line.startswith(package + 'Tests.')]
-    if not functions or not runs or runs != finishes or case_starts != cases or len(expected) != len(set(expected)):
+    if (not functions or not runs or runs != finishes or case_starts != cases
+            or set(cases) - set(functions) or len(expected) != len(set(expected))):
         raise ValueError('Native execution has incomplete or empty discovery/run evidence')
-    if any(started[key] != 1 or ended[key] != 1 or (parameterized and not cases[key])
+    if any(started[key] != 1 or ended[key] != 1
+           or (cases[key] < 1 if parameterized else cases[key] != 1)
            for key, parameterized in functions.items()):
         raise ValueError('A native function did not execute and complete exactly once')
     actual = sorted(canonical(key, package) for key in functions)
