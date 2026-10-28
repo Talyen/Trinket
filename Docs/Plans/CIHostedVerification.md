@@ -28,7 +28,7 @@ remain outside this work. Device/service acceptance stays in
 | Priority | Next action and closure evidence |
 |---|---|
 | Required CI | Verify the committed State suite-filter repair and separate Smoke runner startup failures from product assertions. Complete generation, every package suite, Smoke, FullUI and unsigned device Release compilation on the intended revision. Run `ci.yml` with `toolchain=verified, scope=exhaustive-pilot`, then `toolchain=latest, scope=exhaustive-pilot`; report actual Xcode builds separately. The original exact candidate `27A9275` is not qualified by fallback or mixed-build results. |
-| Ask to Buy denial/retry | Reproduce the transition described below against qualified retained products. Keep denial, ownership and retry assertions. Change shipping behavior only after establishing the cause. |
+| Ask to Buy denial/retry | Investigate the StoreKit test-service discrepancy below on a supported runtime and, when authorized, in sandbox. Keep denial, ownership and retry assertions; do not discard verified shipping entitlements based on test transaction IDs. |
 | Profiles and compatibility | Complete phone/iPad, compact, iOS 18 and Duo evidence after native Settings preparation succeeds. Preserve individual required/advisory failures and skips; inspect rendered captures and accessibility results. |
 | Extended play | Complete FullUI/profile/Soak and `player-coverage.yml` with `scope=all`. Preserve successful repeated-play/crash-recovery evidence without treating it as current-source or whole-portfolio qualification. Distinguish game duration from UI-query and scheduling delays before changing deadlines. |
 | Localization | Complete talent-reward/compact-phone display, Options/Play navigation and rendered acceptance for every currently configured language. Earlier five-language and double-English passes do not cover the current language set. Check complete text and reachable controls; hittability alone does not establish visual acceptance. |
@@ -44,14 +44,14 @@ remain outside this work. Device/service acceptance stays in
 - [Player 40619526988](https://github.com/Talyen/Trinket/actions/runs/40619526988)
   passed repeated play and crash recovery; profiles and iOS 18 failed. Subsequent
   committed navigation/Settings fixes still need completed hosted evidence.
-- [Purchase diagnostic 40622881312](https://github.com/Talyen/Trinket/actions/runs/40622881312)
-  on `6eed9042f` reproduced declined Ask to Buy. The raw sequence passed the immediate
-  post-decline locked assertion, navigated to Collection/Heroes, then failed the
-  next locked assertion before tapping Warlock or starting the retry. Diagnostics
-  reported `fullGameAccess=1`, ownership `purchased`, and transaction id 0 with
-  state 2, pending false, cancellation false. This narrows the transition, but does
-  not establish whether StoreKit test behavior or application handling caused it.
-  The assertion helper now preserves caller file/line for future failures.
+- [Purchase diagnostic 40628543053](https://github.com/Talyen/Trinket/actions/runs/40628543053)
+  used a temporary debug probe at `e1d704e66`. After decline, StoreKitTest reported
+  transaction 0 as failed, while `Transaction.currentEntitlements` returned the
+  same transaction as verified and unrevoked; the app consequently granted access.
+  The assertion failed before the retry. Apple's [Ask to Buy test guidance](https://developer.apple.com/documentation/storekit/testing-ask-to-buy-in-xcode)
+  says a declined request does not deliver a transaction. This establishes a test
+  environment discrepancy, not the cause of any production behavior; the probe is
+  not part of main. The assertion helper preserves caller file/line for future failures.
 - At review, [CI 40626255246](https://github.com/Talyen/Trinket/actions/runs/40626255246)
   and [Player 40626286291](https://github.com/Talyen/Trinket/actions/runs/40626286291)
   for `ff757539e` were queued. Check their actual state before scheduling redundant
