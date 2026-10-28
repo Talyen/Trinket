@@ -15,7 +15,7 @@ def job_outcome(job: dict) -> str:
     return job.get('conclusion') or 'unknown'
 
 
-def report(pages: list[dict]) -> tuple[str, list[str]]:
+def report(pages: list[dict], required_shards: tuple[str, ...] = ()) -> tuple[str, list[str]]:
     if not isinstance(pages, list) or any(not isinstance(page, dict) or not isinstance(page.get('jobs'), list)
                                           or any(not isinstance(job, dict) or not isinstance(job.get('name'), str)
                                                  for job in page['jobs']) for page in pages):
@@ -24,6 +24,10 @@ def report(pages: list[dict]) -> tuple[str, list[str]]:
     warnings = []
     if not jobs:
         warnings.append('No exhaustive UI shards found; advisory status is unknown.')
+    for name in required_shards:
+        matching = [job for job in jobs if job['name'] == name or job['name'].endswith(' / ' + name)]
+        if len(matching) != 1:
+            warnings.append(f'Required exhaustive shard missing or duplicated: {name}')
     for job in jobs:
         outcome = job_outcome(job)
         if outcome not in ('success', 'skipped'):
@@ -50,9 +54,10 @@ def main() -> int:
     parser.add_argument('jobs', type=Path, help='Paginated GitHub jobs from gh api --paginate --slurp')
     parser.add_argument('--require-execution', action='store_true',
                         help='fail the advisory aggregate when requested UI is failed, skipped, or unavailable')
+    parser.add_argument('--required-shard', action='append', default=[], help='exact required job name, without caller prefix')
     args = parser.parse_args()
     try:
-        summary, warnings = report(json.loads(args.jobs.read_text()))
+        summary, warnings = report(json.loads(args.jobs.read_text()), tuple(args.required_shard))
     except (OSError, ValueError, KeyError, TypeError) as error:
         summary = '### Exhaustive UI: status unknown (job results could not be read)\n'
         warnings = [f'Could not read exhaustive shard results: {error}']
