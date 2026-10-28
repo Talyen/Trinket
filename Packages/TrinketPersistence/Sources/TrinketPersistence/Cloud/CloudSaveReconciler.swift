@@ -247,23 +247,20 @@ enum CloudSaveReconciler {
                 }
                 // Only edits outside action boundaries use residual snapshot merge.
                 projected = try CloudSaveMerge.mergeChanges(from: previous, to: mutation.after, into: projected)
-                receiptReplay.retireItems(in: &projected)
             case let .receipts(receipts):
                 var merged = CloudSaveMerge.merge(
                     incoming: after, existing: projected, base: before, preferIncoming: true, economy: .receipts,
                 )
                 try receiptReplay.apply(receipts, mutation: mutation, before: before, after: after, existing: projected, merged: &merged)
-                receiptReplay.retireItems(in: &merged)
                 projected = merged
             case let .economicDelta(economy):
                 var merged = CloudSaveMerge.merge(incoming: after, existing: projected, base: before, preferIncoming: true)
                 try economy.replay(onto: &merged, existing: projected, before: before)
-                receiptReplay.retireItems(in: &merged)
                 projected = merged
             case .snapshot:
                 projected = CloudSaveMerge.merge(incoming: after, existing: projected, base: before, preferIncoming: true)
-                receiptReplay.retireItems(in: &projected)
             }
+            receiptReplay.retireItems(in: &projected)
         }
         return projected
     }

@@ -97,10 +97,8 @@ public enum ShopStockPersistence {
         if incoming == existing {
             return !first.stock.purchasedOfferIDs.isSubset(of: priorIDs)
         }
-        let offersByID = Dictionary(uniqueKeysWithValues: second.stock.offers.lazy.map { ($0.id, $0) })
-        return first.stock.offers.contains { offer in
-            first.stock.purchasedOfferIDs.contains(offer.id) && !priorIDs.contains(offer.id)
-                && second.stock.purchasedOfferIDs.contains(offer.id) && offersByID[offer.id] == offer
+        return first.matchingPurchases(in: second).contains {
+            first.stock.purchasedOfferIDs.contains($0) && !priorIDs.contains($0)
         }
     }
 

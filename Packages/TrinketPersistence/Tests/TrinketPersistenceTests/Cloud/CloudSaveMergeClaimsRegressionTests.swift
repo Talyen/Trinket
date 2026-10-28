@@ -26,6 +26,25 @@ struct CloudSaveMergeClaimsRegressionTests {
         #expect(!ShopStockPersistence.hasSharedNewPurchase(base: nil, incoming: purchased, existing: different))
     }
 
+    @Test func `shared Shop purchase ignores prior purchases and mismatched items`() throws {
+        let save = PlayerSave.testSeed
+        let encounter = EncounterIdentity(location: .journey(stageID: ShopOfferGenerator.starterShopStageID), save: save)
+        let firstItem = try #require(GameContent.trinketItems.first)
+        let secondItem = try #require(GameContent.trinketItems.first { $0.id != firstItem.id })
+        let old = ShopOffer(id: "old", item: firstItem, price: 20)
+        let new = ShopOffer(id: "new", item: firstItem, price: 30)
+        let changedItem = ShopOffer(id: new.id, item: secondItem, price: new.price)
+        func payload(_ offers: [ShopOffer], purchased: Set<String>) throws -> Data {
+            try ShopStockPersistence.encode(ShopStock(offers: offers, purchasedOfferIDs: purchased), encounter: encounter)
+        }
+        let base = try payload([old, new], purchased: [old.id])
+        let incoming = try payload([old, new], purchased: [old.id, new.id])
+        let same = try payload([old, new], purchased: [new.id])
+        let different = try payload([old, changedItem], purchased: [old.id, new.id])
+        #expect(ShopStockPersistence.hasSharedNewPurchase(base: base, incoming: incoming, existing: same))
+        #expect(!ShopStockPersistence.hasSharedNewPurchase(base: base, incoming: incoming, existing: different))
+    }
+
     @Test(arguments: [true, false])
     func `offline purchases sharing an offer ID retain each pinned purchase charge`(differentItem: Bool) throws {
         var base = PlayerSave.testSeed
