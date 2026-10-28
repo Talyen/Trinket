@@ -1,5 +1,6 @@
 import SwiftUI
 import TrinketContent
+import TrinketCore
 import TrinketDesignSystem
 
 /// Localizes canonical content labels in the rendering environment, preserving their data identities.
@@ -33,9 +34,7 @@ public struct GameLabel: View {
     }
 
     private func localized(_ value: LocalizedStringResource) -> String {
-        var value = value
-        value.locale = locale
-        return String(localized: value)
+        LocalizedGameText(value, locale: locale).text
     }
 }
 

@@ -221,6 +221,9 @@ public struct CombatantTalentsView: View {
         let style = node.keyword.visualStyle
         var name = node.nameResource
         name.locale = locale
+        let accessibilityName = isRowLocked
+            ? LocalizedGameText(L10n.ui_combatanttalentsview_1_locked_1871c(name), locale: locale).text
+            : LocalizedGameText(name, locale: locale).text
         return Button {
             guard selectedNodeID != node.id else { return }
             selectedNodeID = node.id
@@ -261,9 +264,7 @@ public struct CombatantTalentsView: View {
         }
         .trinketArtworkCardButtonStyle(pressedScale: TrinketMotion.Interaction.choiceCardPressedScale)
         .accessibilityIdentifier(nodeAccessibilityIdentifier(node.id))
-        .accessibilityLabel(isRowLocked
-            ? Text(L10n.ui_combatanttalentsview_1_locked_1871c(name))
-            : Text(name))
+        .accessibilityLabel(Text(verbatim: accessibilityName))
     }
 
     private func unlockAccent(for node: TalentNode) -> some View {

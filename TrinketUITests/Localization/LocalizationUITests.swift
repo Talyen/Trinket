@@ -99,6 +99,10 @@ final class LocalizationUITests: FullGameStoreKitUITestCase {
             )
             capture(locale, screen: "talent-\(combatantID)-trees")
             tapButton(AccessibilityID.TalentChoice.tree(id: tree.id))
+            for visibleNode in tree.nodes.prefix(2) {
+                let label = button(AccessibilityID.TalentChoice.node(id: visibleNode.id)).label
+                XCTAssertFalse(label.contains("<keyword"), "Talent names must not expose markup in \(locale)")
+            }
             tapButton(AccessibilityID.TalentChoice.node(id: node.id))
             reveal(button(AccessibilityID.TalentChoice.unlockButton))
             capture(locale, screen: "talent-\(combatantID)-confirm")
