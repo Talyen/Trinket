@@ -9,8 +9,16 @@ For interactive inspection, run this in a persistent terminal (`exec_command`
 with `tty=true`), and retain the returned session ID:
 
 ```bash
-./Scripts/run-simulator.sh --isolate --inspect
+python3 /Users/ryanmcintire/Developer/.coordination/heavy_lane.py \
+  --owner '<thread-id>' --wait 900 --timeout 300 -- \
+  ./Scripts/run-simulator.sh --isolate --inspect
 ```
+
+Replace `<thread-id>` with this chat's identifier. The outer wrapper covers the
+whole inspection, including build/setup and interactive input; stop within its
+deadline. Launch-option examples below use this same wrapper.
+[Verification](../../../Docs/Platform/Verification.md#confidence-ladder) owns
+authorization and admission limits.
 
 Wait for `Inspection ready`. The same terminal owns the leased device, captures,
 and optional native Xcode session. Keep it alive and send these commands through

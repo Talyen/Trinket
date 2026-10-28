@@ -23,7 +23,7 @@ owned native sessions.
 
 ## Session ownership
 
-- Hold a managed simulator lease under
+- For a simulator, hold a managed lease under
   [Simulator operations](../../../Docs/Platform/SimulatorOperations.md#inspection-lease-and-capture)
   throughout the native session. The
   [ios-simulator skill](../ios-simulator/SKILL.md) owns launch and lease technique.
@@ -35,8 +35,10 @@ owned native sessions.
   [ios-device](../ios-device/SKILL.md) for build/install and profiling commands.
 - Read current tool metadata. Start `DeviceInteractionStartSession` for an
   already-installed app; use `DeviceInteractionStartWorkspaceSession` only when
-  the task needs a workspace build/install. Native session creation supplements
-  the repository lease; it does not replace it.
+  the task needs an authorized workspace build/install. Native session creation
+  supplements a simulator lease; it does not replace it. Physical devices use
+  explicit target selection, not a simulator lease. Build/install and profiling
+  follow the host-admission workflow in [ios-device](../ios-device/SKILL.md).
 - One agent operates each native session. Direct use is sufficient; delegation is
   optional when useful and authorized. If delegated, pass this skill, the session
   key, exact leased device and bounded task; the parent retains lease ownership.

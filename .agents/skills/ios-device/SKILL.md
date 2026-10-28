@@ -5,6 +5,12 @@ description: Build, install, debug, or profile Trinket on a physical iOS device.
 
 # Physical device deployment and profiling
 
+The [verification policy](../../../Docs/Platform/Verification.md#confidence-ladder)
+owns local authorization and host admission. Wrap the entire build/install or
+profiling command once; nested builds reuse that admission. Replace `<thread-id>`
+with this chat's identifier. Use the policy's bounded device exception only when
+the investigation needs it.
+
 ## Build and install
 
 Select the intended physical device under the
@@ -12,7 +18,9 @@ Select the intended physical device under the
 For a build and install on that device, run:
 
 ```bash
-./Scripts/install-device.sh --device '<name|id>'
+python3 /Users/ryanmcintire/Developer/.coordination/heavy_lane.py \
+  --owner '<thread-id>' --wait 900 --timeout 300 -- \
+  ./Scripts/install-device.sh --device '<name|id>'
 ```
 
 The script builds with code signing, installs via `xcrun devicectl`, and launches
@@ -32,7 +40,9 @@ For requested physical-device CPU and hitch measurements, default to the
 repository's validated recording command:
 
 ```bash
-python3 Scripts/profile-device.py --device '<physical UDID>' --build --duration 30
+python3 /Users/ryanmcintire/Developer/.coordination/heavy_lane.py \
+  --owner '<thread-id>' --wait 900 --timeout 300 -- \
+  python3 Scripts/profile-device.py --device '<physical UDID>' --build --duration 30
 ```
 
 Read the [physical-device profiling workflow](../../../Docs/Platform/PerformanceInvestigationPlaybook.md#physical-device-profiling-over-wi-fi)

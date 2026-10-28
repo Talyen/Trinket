@@ -1,30 +1,30 @@
-# String Catalogs
+# Trinket localization ownership
 
-Most projects localize through String Catalogs (`.xcstrings`). Each build syncs new strings from code into the catalog, but the catalog file must already exist — Xcode does not create one automatically. If a project already uses `.strings` or `.stringsdict` files, add new strings to the existing files rather than asking the user to migrate.
+Read [Localization](../../../../Docs/Platform/Localization.md#agent-workflow)
+for authored inputs, generated accessors, translation and independent review.
+Trinket manually owns its source catalogs; compiler extraction is a read-only
+coverage check. Edit canonical English catalogs or content, then run the repository
+workflow. Do not rely on a build to author keys or edit generated `L10n` and
+`ContentCopy` Swift. Preserve serialized identifiers and existing catalog keys.
 
-A project can use multiple String Catalogs and route strings to a specific one with the `tableName` parameter — useful when it makes sense to keep groups of strings separate (e.g., per feature or module).
-
-```swift
-Text("Explore", tableName: "Navigation",
-     comment: "Tab bar item title for the Explore screen.")
-```
+Use existing typed resources and the owning presentation APIs at Trinket call
+sites. The framework examples below explain lookup and formatting; they do not
+replace that pipeline or require converting already-localized `String` values.
+Resolve nested content names and sentence resources in the same rendering locale
+under the owner's resource-argument rules.
 
 # Bundle for Swift Packages and Frameworks
 
-Apps, app extensions, and XPC services are their own main bundle, so the `bundle` parameter can be omitted. Frameworks and Swift packages need an explicit `bundle`; without one, SwiftUI looks up strings from `Bundle.main` and the lookup fails silently — the string appears unlocalized at runtime.
+A lookup must target the bundle that actually owns its catalog. Preserve bundle
+context carried by generated accessors and `LocalizedStringResource`. For a raw
+lookup into package-owned resources, pass the package's resource bundle explicitly;
+omitting it normally searches the main bundle. A package deliberately consuming
+app-owned strings is a different case, so package location alone does not establish
+a lookup bug.
 
-```swift
-// AVOID: Inside a framework or Swift package, this searches the app's catalog.
-Text("Save to Favorites")
-```
-
-```swift
-// PREFER: #bundle resolves to the current target's bundle.
-Text("Save to Favorites", bundle: #bundle,
-     comment: "Button to bookmark a recipe.")
-```
-
-`#bundle` is the preferred form; `Bundle.module` and `Bundle(for: MyClass.self)` work but are older patterns.
+Use the repository's existing bundle access pattern. Before adopting `#bundle`,
+check the selected toolchain's support; do not replace working `Bundle.module`
+accessors solely because a framework example uses a newer spelling.
 
 # SwiftUI Views Localize String Literals Automatically
 
@@ -175,13 +175,8 @@ When `DateFormatter` is genuinely unavoidable, use `setLocalizedDateFormatFromTe
 
 # Layout for Localization
 
-Use `.leading` and `.trailing` instead of `.left` and `.right` — they flip for right-to-left locales; `.left` and `.right` don't.
-
-```swift
-// AVOID: .left does not flip for RTL languages.
-Text(recipe.title)
-    .frame(maxWidth: .infinity, alignment: .left)
-```
+Use semantic `.leading` and `.trailing` alignment for reading-direction layout.
+Preserve deliberately spatial game relationships rather than mirroring them blindly.
 
 ```swift
 // PREFER: .leading flips to the trailing edge in RTL locales.
@@ -199,15 +194,9 @@ ViewThatFits {
 }
 ```
 
-Use SwiftUI's text styles instead of fixed point sizes. Text styles let line height adapt per script; fixed point sizes can clip glyphs in tall scripts.
-
-```swift
-// AVOID: fixed point size locks line height.
-Text("Welcome").font(.system(size: 17))
-
-// PREFER: text styles let line height adapt per script.
-Text("Welcome").font(.body)
-```
+Use Trinket's existing [typography roles](../../apple-design/typography.md).
+Check translated text for clipping and fit before changing shared metrics; do not
+replace the design system with ad hoc `.font(.body)` styling as a localization fix.
 
 # Reading the Current Locale
 
