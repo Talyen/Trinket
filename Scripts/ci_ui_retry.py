@@ -11,6 +11,7 @@ import sys
 import uuid
 
 from internal.cli import load_sibling
+from internal.diagnostics.xcresult_diagnostics import bundle_identity
 
 parse_xcresult = load_sibling("test_timing", "test-timing.py").parse_xcresult
 
@@ -123,14 +124,15 @@ def test_results(evidence: dict) -> dict[str, str] | None:
     summary = evidence.get("summary")
     counts = {"passed": sum(value == "Passed" for value in results.values()),
               "failed": sum(value == "Failed" for value in results.values()), "skipped": 0}
-    if not isinstance(summary, dict) or any(type(summary.get(key)) is not int or summary[key] != count
-                                           for key, count in counts.items()):
+    if (not isinstance(summary, dict) or summary.get('result') != ('Failed' if counts['failed'] else 'Passed')
+            or any(type(summary.get(key)) is not int or summary[key] != count for key, count in counts.items())):
         return None
     return results
 
 
 def failed_cases(manifest: dict, report: dict, evidence: dict, targets: list[str]) -> list[str]:
-    if (manifest.get("status") != "failed" or manifest.get("action") not in {"test", "test-without-building"}
+    if (manifest.get("status") != "failed" or type(manifest.get("exit_code")) is not int or manifest['exit_code'] == 0
+            or manifest.get("action") not in {"test", "test-without-building"}
             or manifest.get("result_bundle_complete") is not True or report.get("classification") != "simulator-infrastructure"):
         return []
     results = test_results(evidence)
@@ -163,19 +165,26 @@ def recovery_valid(manifest: dict, report: dict) -> bool:
         return False
     try:
         retry = read(recovery["retry_manifest"])
+        original_identity = bundle_identity(Path(manifest['result_bundle']))
+        retry_identity = bundle_identity(Path(retry['result_bundle']))
         original = recovery["original_evidence"]
         targets = recovery["targets"]
         failed = failed_cases(manifest, report, original, targets)
         retry_results = test_results(recovery["retry_evidence"])
         return bool(failed) and (
-            Path(manifest["result_bundle"], "Info.plist").is_file()
+            original_identity is not None and retry_identity is not None
+            and Path(manifest['result_bundle'], 'Info.plist').is_file()
+            and Path(retry['result_bundle'], 'Info.plist').is_file()
+            and recovery.get('original_bundle_identity') == original_identity
+            and recovery.get('retry_bundle_identity') == retry_identity
             and Path(manifest["result_bundle"]).resolve() != Path(retry["result_bundle"]).resolve()
             and bool(manifest.get("session_id"))
             and retry.get("status") == "passed" and type(retry.get("exit_code")) is int and retry["exit_code"] == 0
             and retry.get("session_id") == manifest.get("session_id")
             and retry.get("action") == "test-without-building"
             and retry.get("result_bundle_complete") is True
-            and Path(retry["result_bundle"], "Info.plist").is_file()
+            and bundle_identity(Path(manifest['result_bundle'])) == original_identity
+            and bundle_identity(Path(retry['result_bundle'])) == retry_identity
             and retry_results is not None and set(retry_results) == set(failed)
             and all(result == "Passed" for result in retry_results.values())
         )
@@ -220,7 +229,13 @@ def run(command: list[str]) -> int:
         report = read(original["diagnostics_json"])
         if report.get("classification") != "simulator-infrastructure" or not original.get("result_bundle_complete"):
             return status
-        evidence = parse_xcresult(Path(original["result_bundle"]), original)
+        original_bundle = Path(original["result_bundle"])
+        original_identity = bundle_identity(original_bundle)
+        if original_identity is None or not (original_bundle / 'Info.plist').is_file():
+            return status
+        evidence = parse_xcresult(original_bundle, original)
+        if bundle_identity(original_bundle) != original_identity:
+            return status
         evidence["expected_tests"] = expected_cases(targets)
         cases = failed_cases(original, report, evidence, targets)
         if not cases:
@@ -236,10 +251,18 @@ def run(command: list[str]) -> int:
         if retry_path is None:
             return status
         retry = read(retry_path)
+        retry_bundle = Path(retry["result_bundle"])
+        retry_identity = bundle_identity(retry_bundle)
+        if retry_identity is None or not (retry_bundle / 'Info.plist').is_file():
+            return status
+        retry_evidence = parse_xcresult(retry_bundle, retry)
+        if bundle_identity(retry_bundle) != retry_identity:
+            return status
         original["infrastructure_recovery"] = {
             "retry_manifest": str(retry_path), "targets": targets,
+            "original_bundle_identity": original_identity, "retry_bundle_identity": retry_identity,
             "original_evidence": evidence,
-            "retry_evidence": parse_xcresult(Path(retry["result_bundle"]), retry),
+            "retry_evidence": retry_evidence,
         }
         if not recovery_valid(original, report):
             return status

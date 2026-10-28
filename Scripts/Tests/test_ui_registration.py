@@ -55,6 +55,19 @@ class UIRegistrationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'unterminated Swift extended regex'):
                 REGISTRY.registration_failures(root, [])
 
+    def test_discovery_rejects_ambiguous_bare_regex_but_accepts_division(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'TrinketUITests' / 'Cases.swift'
+            source.parent.mkdir()
+            for expression in (r'let pattern = /\}\}\{\{/', r'let pattern = /*comment*/ /\}\}\{\{/',
+                               r'if /\}\}\{\{/ { }'):
+                source.write_text(f'class RealTests: XCTestCase {{ func testOne() {{ {expression} }} }}')
+                with self.subTest(expression=expression), self.assertRaisesRegex(ValueError, 'bare regex cannot be scanned safely'):
+                    REGISTRY.registration_failures(root, [{'suite': 'FullUI', 'name': 'RealTests'}])
+            source.write_text('class RealTests: XCTestCase { func testOne() { let half = count / 2 } }')
+            self.assertEqual(REGISTRY.registration_failures(root, [{'suite': 'FullUI', 'name': 'RealTests'}]), [])
+
     def test_discovery_handles_swift_declarations_and_ignores_non_classes(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import codecs
 from datetime import datetime, timezone
 import json
 import os
@@ -146,8 +147,9 @@ def run(command: list[str], environment: dict[str, str], phase: str = 'command-p
         preparation_report(command, results, env, 127, time.monotonic() - started, str(error), phase)
         return 127
     offset = 0
+    decoder = codecs.getincrementaldecoder('utf-8')(errors='replace')
 
-    def forward_output() -> None:
+    def forward_output(*, final: bool = False) -> None:
         nonlocal offset
         # pread leaves the child's shared write position intact.
         end = os.fstat(transcript.fileno()).st_size
@@ -156,7 +158,9 @@ def run(command: list[str], environment: dict[str, str], phase: str = 'command-p
             if not data:
                 break
             offset += len(data)
-            sys.stdout.write(data.decode('utf-8', errors='replace'))
+            sys.stdout.write(decoder.decode(data))
+        if final:
+            sys.stdout.write(decoder.decode(b'', final=True))
         sys.stdout.flush()
 
     def output_tail() -> str:
@@ -196,10 +200,10 @@ def run(command: list[str], environment: dict[str, str], phase: str = 'command-p
             except subprocess.TimeoutExpired:
                 if available is not None and remaining(environment, time.time()) <= 0:
                     terminate()
-                    forward_output()
+                    forward_output(final=True)
                     timeout_report(command, results, environment, time.monotonic() - started, output_tail(), phase)
                     return 124
-        forward_output()
+        forward_output(final=True)
         if status and not has_failure_receipt(results, env, before):
             preparation_report(command, results, env, status, time.monotonic() - started, output_tail(), phase)
         return status

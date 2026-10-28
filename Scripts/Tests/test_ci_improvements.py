@@ -24,6 +24,15 @@ TIMING = load_script('expanded_timing_test', 'test-timing.py')
 
 
 class CIImprovementsTests(unittest.TestCase):
+    def test_budget_forwards_unicode_across_output_chunk_boundaries(self):
+        with tempfile.TemporaryDirectory() as directory:
+            env = {**os.environ, 'RESULTS_DIR': directory}
+            env.pop('TRINKET_CI_DEADLINE_EPOCH', None)
+            child = "import os; os.write(1, b'a' * 65535 + '✔'.encode())"
+            result = run_captured([sys.executable, str(ROOT / 'Scripts/ci-run-budget.py'), '--',
+                                   sys.executable, '-c', child], cwd=ROOT, env=env, expected=0)
+            self.assertEqual(result.stdout, 'a' * 65535 + '✔')
+
     def test_retained_diagnostic_driver_runs_without_the_source_checkout_dependencies(self):
         workflow = (ROOT / '.github/workflows/diagnostic-ui.yml').read_text()
         retained = workflow.split('name: Retain diagnostic driver independently of the source revision\n', 1)[1]

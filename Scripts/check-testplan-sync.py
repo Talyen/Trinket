@@ -31,6 +31,13 @@ def swift_code(source: str) -> str:
         match = regex_pattern.match(source, index)
         return match[0][:-1] if match else None
 
+    def bare_regex_start(index: int) -> bool:
+        if source[index] != '/':
+            return False
+        prefix = ''.join(masked[:index]).rstrip()
+        return bool(prefix and (prefix[-1] in '=([{,:;!?~&|<>+-*%^'
+                                or re.search(r'\b(?:return|case|throw|if|guard|while|switch|in|where)\s*$', prefix)))
+
     def regex_end(index: int, hashes: str) -> int:
         index += len(hashes) + 1
         closing = '/' + hashes
@@ -69,6 +76,8 @@ def swift_code(source: str) -> str:
                 index = comment_end(index)
             elif hashes := regex_start(index):
                 index = regex_end(index, hashes)
+            elif bare_regex_start(index):
+                raise ValueError('Swift bare regex cannot be scanned safely; use an extended regex literal')
             elif string_start(index):
                 index = string_end(index)
             elif source[index] == '(':
@@ -108,6 +117,8 @@ def swift_code(source: str) -> str:
             index = comment_end(index)
         elif hashes := regex_start(index):
             index = regex_end(index, hashes)
+        elif bare_regex_start(index):
+            raise ValueError('Swift bare regex cannot be scanned safely; use an extended regex literal')
         elif string_start(index):
             index = string_end(index)
         else:

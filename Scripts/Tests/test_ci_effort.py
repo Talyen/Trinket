@@ -62,6 +62,7 @@ class CIEffortTests(unittest.TestCase):
                 'class FlowTests: XCTestCase {\n#if DEBUG\n func testCase() {}\n#endif\n}',
                 '#if DEBUG\nclass FlowTests: XCTestCase { func testCase() {} }\n#endif',
                 'class FlowTests: XCTestCase { @objc(testDynamic) func renamed() {} func testCase() {} }',
+                r'class FlowTests: XCTestCase { func testOne() { let pattern = /\}\}\{\{/ } func testTwo() {} }',
             ):
                 source.write_text(content)
                 with self.subTest(content=content):
@@ -207,7 +208,7 @@ class CIEffortTests(unittest.TestCase):
                         session_id='session', result_bundle_complete=True, result_bundle=str(bundle))
         report = dict(classification='simulator-infrastructure', issues=[dict(kind='simulator-infrastructure', test='BattleTests/testLaunch()')])
         evidence = dict(expected_tests=['BattleTests/testLaunch', 'OtherTests/testInteraction'],
-                        summary=dict(passed=1, failed=1, skipped=0), tests=[
+                        summary=dict(result='Failed', passed=1, failed=1, skipped=0), tests=[
             dict(id='BattleTests/testLaunch()', result='Failed'), dict(id='OtherTests/testInteraction()', result='Passed'),
         ])
         return original, report, evidence
@@ -222,6 +223,12 @@ class CIEffortTests(unittest.TestCase):
                 self.assertEqual(RETRY.failed_cases(original, mixed, evidence, ['BattleTests']), [])
             self.assertEqual(RETRY.failed_cases(original, report, evidence, ['AbsentTests']), [])
             self.assertEqual(RETRY.failed_cases({**original, 'result_bundle_complete': False}, report, evidence, ['BattleTests']), [])
+            for code in (0, False, None):
+                self.assertEqual(RETRY.failed_cases({**original, 'exit_code': code}, report, evidence,
+                                                    ['BattleTests', 'OtherTests']), [])
+            contradictory_summary = copy.deepcopy(evidence)
+            contradictory_summary['summary']['result'] = 'Passed'
+            self.assertEqual(RETRY.failed_cases(original, report, contradictory_summary, ['BattleTests', 'OtherTests']), [])
             omitted = copy.deepcopy(evidence)
             omitted['expected_tests'].append('BattleTests/testNeverExecuted')
             self.assertEqual(RETRY.failed_cases(original, report, omitted, ['BattleTests']), [])
@@ -250,8 +257,17 @@ class CIEffortTests(unittest.TestCase):
             retry_path = root / 'retry-invocation.json'
             write_json(retry_path, retry)
             original['infrastructure_recovery'] = dict(retry_manifest=str(retry_path), targets=['BattleTests', 'OtherTests'],
-                original_evidence=evidence, retry_evidence=dict(summary=dict(passed=1, failed=0, skipped=0),
+                original_bundle_identity=RETRY.bundle_identity(Path(original['result_bundle'])),
+                retry_bundle_identity=RETRY.bundle_identity(retry_bundle),
+                original_evidence=evidence, retry_evidence=dict(summary=dict(result='Passed', passed=1, failed=0, skipped=0),
                     tests=[dict(id='BattleTests/testLaunch()', result='Passed')]))
+            self.assertTrue(RETRY.recovery_valid(original, report))
+            recovery = original['infrastructure_recovery']
+            for bundle, key in ((Path(original['result_bundle']), 'original_bundle_identity'),
+                                (retry_bundle, 'retry_bundle_identity')):
+                (bundle / 'Info.plist').write_text('replacement')
+                self.assertFalse(RETRY.recovery_valid(original, report))
+                recovery[key] = RETRY.bundle_identity(bundle)
             self.assertTrue(RETRY.recovery_valid(original, report))
             original['infrastructure_recovery']['retry_evidence']['tests'][0]['arguments'] = ['Failed']
             self.assertFalse(RETRY.recovery_valid(original, report))
@@ -301,7 +317,7 @@ class CIEffortTests(unittest.TestCase):
                              action='test-without-building', result_bundle_complete=True, result_bundle=str(bundle))
                 write_json(results / 'retry-invocation.json', retry)
                 return 0
-            retried = dict(summary=dict(passed=1, failed=0, skipped=0), tests=[dict(id='BattleTests/testLaunch()', result='Passed')])
+            retried = dict(summary=dict(result='Passed', passed=1, failed=0, skipped=0), tests=[dict(id='BattleTests/testLaunch()', result='Passed')])
             with patch.dict(os.environ, RESULTS_DIR=str(results)), patch.object(RETRY.subprocess, 'call', side_effect=execute), \
                     patch.object(RETRY, 'parse_xcresult', side_effect=[evidence, retried]), \
                     patch.object(RETRY, 'expected_cases', return_value=evidence['expected_tests']):

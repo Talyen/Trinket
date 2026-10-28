@@ -171,7 +171,7 @@ class DeployVerificationTests(unittest.TestCase):
                         action='test-without-building', result_bundle_complete=complete, result_bundle='batch.xcresult')))
                     raise subprocess.CalledProcessError(65, command)
                 verification = DEPLOY.Verification(Path(directory) / 'state.json', identity, True, execute, cache)
-                evidence = dict(summary=dict(passed=1, failed=1, skipped=0), tests=[
+                evidence = dict(summary=dict(result='Failed', passed=1, failed=1, skipped=0), tests=[
                     dict(id='AudioTests/testMusic()', result='Passed'), dict(id='ShopTests/testBuy()', result='Failed')])
                 with patch.dict(DEPLOY.os.environ, RESULTS_DIR=str(results)), \
                         patch.object(DEPLOY.UI_RESULTS, 'parse_xcresult', return_value=evidence), \
