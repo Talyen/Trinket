@@ -40,6 +40,14 @@ record is in Git at `297a4b884^:Docs/Plans/CloudKitLaunchPreparation.md`;
 its separately retained JSON was not present at its recorded path during the
 October 26 review. These results are historical, not current-candidate proof.
 
+Those checks were completed, even though the repeatable release-gate boxes below
+stay unchecked. The live reset result reflected the old policy: offline progress
+did not return. Commit `ba81da0dc` changed that policy so offline progress can
+merge back after reset; the prior reset observation cannot verify the new behavior.
+Reassess other completed scenarios against the candidate's actual changes rather
+than assuming all past evidence is absent. Record any reused evidence and its
+environment alongside the candidate's remaining checks.
+
 Resume when test accounts, controllable devices, and a named cloud-enabled build
 are available, or before changing the distributed default or submitting with sync.
 The validation scenarios below include the outstanding account, failure, upgrade,

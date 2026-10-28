@@ -61,6 +61,15 @@ An interrupted event stream does not discard earlier assertions. Successful nati
 execution still requires the independent catalog and complete execution/parity
 proof; diagnostic extraction cannot turn an incomplete run into success.
 
+Native parity downloads the iOS comparator artifact from the same run attempt.
+When GitHub reruns only failed jobs, previously successful iOS producer jobs may
+not rerun, leaving no comparator artifact for the new attempt. Rerun all jobs or
+dispatch a fresh run so the producers and consumers execute together; do not treat
+the earlier attempt's artifact as proof for the later one. For example, run
+`40583609493` attempt 2 had successful Core and Content unit jobs from attempt 1,
+but their attempt-2 parity consumers could not find attempt-2 artifacts. This
+identifies the missing-proof failure, not the cause of other failures in that run.
+
 Test wrappers own simulator preparation and recovery. CI actions must not run a
 background boot alongside that owner: competing recovery can erase a device
 while another process is booting or testing it.

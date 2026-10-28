@@ -43,6 +43,14 @@ attachment and device-wide capture remain unreliable. Launch, scrolling, Campaig
 transitions and card play have recorded hitches. Their remaining causes and
 shipping-device improvements need controlled attribution and matched measurements.
 
+The October 19 iPhone 14 Pro captures include completed, symbol-matched CPU and
+frame recordings, including the retained `iphone-wifi-survey-20261019/homestead-after`
+and `homestead-normal-after` results. Their `result.json` files report passed capture
+and matching app symbols; they identify the installed build as 0.1.0 (6), but do not
+verify its optimization configuration. These are completed physical-device captures,
+not proof of the separate TestFlight baseline, current-source memory attribution,
+or a performance improvement.
+
 Existing optimizations reduce recurring Stun rendering and compositor work, and
 spread hidden-root layout. Their evidence does not establish hitch elimination, a global
 FPS floor, lower total launch CPU, or faster readiness. Retain native navigation,
