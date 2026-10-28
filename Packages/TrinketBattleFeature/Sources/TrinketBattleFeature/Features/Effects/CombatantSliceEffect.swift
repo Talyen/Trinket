@@ -1,36 +1,22 @@
 import SwiftUI
 import TrinketDesignSystem
 
-struct CombatantSliceEffectConfig: Equatable {
-    var intensity: CGFloat = 0.5
-    var particleCount: Int = 48
-    var tintStrength: CGFloat = 0.85
-    var speed: CGFloat = 1
-    var splitGap: CGFloat = 0.22
-    var crackGap: CGFloat = 0.035
-    var crackDrawDuration: CGFloat = 0.08
-    var crackOpenStart: CGFloat = 0.08
-    var splitDelay: CGFloat = 0.30
+enum CombatantSliceStyle {
+    static let intensity: CGFloat = 0.5
+    static let tintStrength: CGFloat = 0.85
+    static let splitGap: CGFloat = 0.22
+    static let crackGap: CGFloat = 0.035
+    static let crackDrawDuration: CGFloat = 0.08
+    static let crackOpenStart: CGFloat = 0.08
+    static let splitDelay: CGFloat = 0.30
 
-    static let production = Self()
-
-    static let productionLeftParticles = SliceBorderParticle.make(
-        count: max(production.particleCount / 2, 16),
-        isPrimary: true,
-    )
-    static let productionRightParticles = SliceBorderParticle.make(
-        count: max(production.particleCount / 2, 16),
-        salt: 40,
-        isPrimary: false,
-    )
-    static let productionCutParticles = SliceCutParticle.make(
-        count: max(production.particleCount, 32),
-    )
+    static let left = SliceBorderParticle.make(count: 24, isPrimary: true)
+    static let right = SliceBorderParticle.make(count: 24, salt: 40, isPrimary: false)
+    static let cut = SliceCutParticle.make(count: 48)
 }
 
 struct CombatantSliceEffect<Content: View>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    let config: CombatantSliceEffectConfig
     let progress: CGFloat
     @ViewBuilder let content: () -> Content
 
@@ -48,44 +34,30 @@ struct CombatantSliceEffect<Content: View>: View {
     }
 
     private var effectiveProgress: CGFloat {
-        min(max(progress * config.speed, 0), 1)
+        min(max(progress, 0), 1)
     }
 
     private func slice(size: CGSize) -> some View {
-        let delay = min(max(config.splitDelay, 0), 0.6)
+        let delay = CombatantSliceStyle.splitDelay
         let p = effectiveProgress
-        let crackT = min(max((p - config.crackOpenStart) / 0.06, 0), 1)
-        let crackGapAmount = size.width * config.crackGap * crackT * config.intensity
-        let rawSplitT = delay >= 1 ? 0 : min(max((p - delay) / (1 - delay), 0), 1)
+        let crackT = min(max((p - CombatantSliceStyle.crackOpenStart) / 0.06, 0), 1)
+        let crackGapAmount = size.width * CombatantSliceStyle.crackGap * crackT * CombatantSliceStyle.intensity
+        let rawSplitT = min(max((p - delay) / (1 - delay), 0), 1)
         let splitT = 1 - pow(1 - rawSplitT, 3)
         let gap = crackGapAmount
-            + size.width * max(config.splitGap - config.crackGap, 0) * splitT * config.intensity
-        let lift = size.height * 0.08 * splitT * config.intensity
-        let twist = 7.0 * Double(splitT * config.intensity)
-        let dissolveStart = delay
-        let dissolveLinear = dissolveStart >= 1
-            ? 0
-            : min(max((p - dissolveStart) / (1 - dissolveStart), 0), 1)
-        let dissolveEased = pow(dissolveLinear, 2.6)
-        let halfParticles = max(config.particleCount / 2, 16)
+            + size.width * max(CombatantSliceStyle.splitGap - CombatantSliceStyle.crackGap, 0) * splitT * CombatantSliceStyle.intensity
+        let lift = size.height * 0.08 * splitT * CombatantSliceStyle.intensity
+        let twist = 7.0 * Double(splitT * CombatantSliceStyle.intensity)
+        let dissolveEased = pow(rawSplitT, 2.6)
         let radians = CombatantSliceGeometry.angleRadians
         let normal = CGVector(dx: cos(radians), dy: -sin(radians))
-        let leftParticles = halfParticles == CombatantSliceEffectConfig.productionLeftParticles.count
-            ? CombatantSliceEffectConfig.productionLeftParticles
-            : SliceBorderParticle.make(count: halfParticles, isPrimary: true)
-        let rightParticles = halfParticles == CombatantSliceEffectConfig.productionRightParticles.count
-            ? CombatantSliceEffectConfig.productionRightParticles
-            : SliceBorderParticle.make(count: halfParticles, salt: 40, isPrimary: false)
-        let cutParticles = max(config.particleCount, 32) == CombatantSliceEffectConfig.productionCutParticles.count
-            ? CombatantSliceEffectConfig.productionCutParticles
-            : SliceCutParticle.make(count: max(config.particleCount, 32))
 
         return ZStack {
             slicedHalf(
                 size: size,
                 isPrimary: true,
                 dissolveProgress: dissolveEased,
-                particles: leftParticles,
+                particles: CombatantSliceStyle.left,
             )
             .offset(
                 x: -normal.dx * gap / 2,
@@ -97,7 +69,7 @@ struct CombatantSliceEffect<Content: View>: View {
                 size: size,
                 isPrimary: false,
                 dissolveProgress: dissolveEased,
-                particles: rightParticles,
+                particles: CombatantSliceStyle.right,
             )
             .offset(
                 x: normal.dx * gap / 2,
@@ -110,7 +82,7 @@ struct CombatantSliceEffect<Content: View>: View {
             SliceCutParticles(
                 crackProgress: crackT,
                 cardSize: size,
-                particles: cutParticles,
+                particles: CombatantSliceStyle.cut,
             )
         }
         .frame(width: size.width, height: size.height)
@@ -122,11 +94,11 @@ struct CombatantSliceEffect<Content: View>: View {
         progress p: CGFloat,
         delay: CGFloat,
     ) -> some View {
-        let drawDuration = min(max(config.crackDrawDuration, 0.001), max(delay, 0.001))
+        let drawDuration = min(max(CombatantSliceStyle.crackDrawDuration, 0.001), max(delay, 0.001))
         let draw = min(max(p / drawDuration, 0), 1)
         let fade = 1 - min(max((p - delay) / 0.18, 0), 1)
-        let lineOpacity = Double(fade) * Double(max(config.intensity, 0.35))
-            * (0.55 + Double(config.tintStrength) * 0.7)
+        let lineOpacity = Double(fade) * Double(max(CombatantSliceStyle.intensity, 0.35))
+            * (0.55 + Double(CombatantSliceStyle.tintStrength) * 0.7)
         if lineOpacity > 0.02, draw > 0 {
             Canvas { context, canvasSize in
                 drawSliceLine(
@@ -198,16 +170,13 @@ struct CombatantSliceEffect<Content: View>: View {
 
 struct BattleSliceArtwork<Content: View>: View {
     let content: Content
-    private let config: CombatantSliceEffectConfig
 
     @State private var startDate: Date? = CardDissolveTexture.isPrepared(cutAngleDegrees: CombatantSliceGeometry.angleDegrees) ? .now : nil
     @State private var isComplete = false
 
     init(
-        config: CombatantSliceEffectConfig = .production,
         @ViewBuilder content: () -> Content,
     ) {
-        self.config = config
         self.content = content()
     }
 
@@ -226,7 +195,6 @@ struct BattleSliceArtwork<Content: View>: View {
                         1,
                     )
                     CombatantSliceEffect(
-                        config: config,
                         progress: CGFloat(progress),
                     ) {
                         content

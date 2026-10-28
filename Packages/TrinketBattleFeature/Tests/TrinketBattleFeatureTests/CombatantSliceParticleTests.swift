@@ -5,7 +5,7 @@ import Testing
 
 struct CombatantSliceParticleTests {
     @Test func `cut particles animate within the card and fade over their lifetime`() {
-        let particles = CombatantSliceEffectConfig.productionCutParticles
+        let particles = CombatantSliceStyle.cut
         #expect(!particles.isEmpty)
         let cardSize = CGSize(width: 192, height: 256)
         let margin: CGFloat = 120

@@ -9,7 +9,7 @@ struct SliceBorderParticle: Identifiable, Equatable {
     let motionNoise: DissolveParticleNoise
 
     static func make(count: Int, salt: Int = 0, isPrimary: Bool) -> [Self] {
-        let geometry = HalfEdgeGeometry(isPrimary: isPrimary)
+        let halfSign: CGFloat = isPrimary ? -1 : 1
         var particles: [Self] = []
         particles.reserveCapacity(max(0, count))
         var index = 0
@@ -22,7 +22,7 @@ struct SliceBorderParticle: Identifiable, Equatable {
             guard let sample = edgeSample(
                 edge: (index + salt) % 5,
                 along: CombatantCardEffectNoise.value(index + salt, salt: 13),
-                geometry: geometry,
+                halfSign: halfSign,
             ) else { continue }
             particles.append(
                 makeParticle(
@@ -36,14 +36,6 @@ struct SliceBorderParticle: Identifiable, Equatable {
         return particles
     }
 
-    private struct HalfEdgeGeometry {
-        let halfSign: CGFloat
-
-        init(isPrimary: Bool) {
-            halfSign = isPrimary ? -1 : 1
-        }
-    }
-
     private struct EdgeSample {
         let origin: CGPoint
         let outward: CGVector
@@ -52,7 +44,7 @@ struct SliceBorderParticle: Identifiable, Equatable {
     private static func edgeSample(
         edge: Int,
         along: CGFloat,
-        geometry: HalfEdgeGeometry,
+        halfSign: CGFloat,
     ) -> EdgeSample? {
         if edge == 4 {
             let origin = CombatantSliceCrack.point(atFraction: along)
@@ -63,8 +55,8 @@ struct SliceBorderParticle: Identifiable, Equatable {
             return EdgeSample(
                 origin: origin,
                 outward: CGVector(
-                    dx: tangent.dy * geometry.halfSign,
-                    dy: -tangent.dx * geometry.halfSign,
+                    dx: tangent.dy * halfSign,
+                    dy: -tangent.dx * halfSign,
                 ),
             )
         }
@@ -85,7 +77,7 @@ struct SliceBorderParticle: Identifiable, Equatable {
             origin = CGPoint(x: 0.02, y: along)
             outward = CGVector(dx: -1, dy: 0)
         }
-        guard CombatantSliceCrack.side(of: origin) * geometry.halfSign >= 0 else { return nil }
+        guard CombatantSliceCrack.side(of: origin) * halfSign >= 0 else { return nil }
         return EdgeSample(origin: origin, outward: outward)
     }
 

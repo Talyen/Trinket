@@ -28,62 +28,20 @@ enum CombatantStatusEffectKind: String, CaseIterable, Identifiable {
     }
 }
 
-struct CombatantStatusEffectConfig: Equatable {
-    var intensity: CGFloat = 1
-    var particleCount: Int = 24
-    var tintStrength: CGFloat = 0.35
-    var speed: CGFloat = 1
-
-    var orbitRadius: CGFloat = 0.54
-    var starCount: Int = 8
-    var wobbleDegrees: CGFloat = 2.4
-    var frostOpacity: CGFloat = 0.45
-    var crackDensity: CGFloat = 0.65
-
-    static func defaults(for kind: CombatantStatusEffectKind) -> Self {
-        var config = Self()
-        switch kind {
-        case .swirlingStars:
-            config.particleCount = 8
-            config.starCount = 8
-            config.orbitRadius = 0.54
-            config.wobbleDegrees = 2.2
-            config.tintStrength = 0
-        case .iceCrystals:
-            config.intensity = 1.18
-            config.particleCount = 16
-            config.frostOpacity = 0.9
-            config.crackDensity = 0.76
-            config.tintStrength = 0
-        }
-        return config
-    }
+private enum FreezeStyle {
+    static let intensity: CGFloat = 1.18
+    static let frostOpacity: CGFloat = 0.9
+    static let crackDensity: CGFloat = 0.76
 }
 
 struct CombatantStatusEffectOverlay: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let kind: CombatantStatusEffectKind
-    let config: CombatantStatusEffectConfig
     let progress: CGFloat
 
-    private static let productionStarNoise = starNoise(
-        count: CombatantStatusEffectConfig.defaults(for: .swirlingStars).starCount,
-    )
-    private static let productionSnowflakeNoise = snowflakeNoise(
-        count: CombatantStatusEffectConfig.defaults(for: .iceCrystals).particleCount,
-    )
-
-    private static func starNoise(count: Int) -> [CGFloat] {
-        (0 ..< count).map { CombatantCardEffectNoise.value($0, salt: 17) }
-    }
-
-    private static func snowflakeNoise(count: Int) -> [(along: CGFloat, inset: CGFloat)] {
-        (0 ..< count).map {
-            (
-                along: CombatantCardEffectNoise.value($0, salt: 41),
-                inset: CombatantCardEffectNoise.value($0, salt: 47),
-            )
-        }
+    private static let starNoise = (0 ..< 8).map { CombatantCardEffectNoise.value($0, salt: 17) }
+    private static let snowflakeNoise = (0 ..< 16).map {
+        (along: CombatantCardEffectNoise.value($0, salt: 41), inset: CombatantCardEffectNoise.value($0, salt: 47))
     }
 
     var body: some View {
@@ -92,7 +50,7 @@ struct CombatantStatusEffectOverlay: View {
         case .iceCrystals: .freeze
         }
         let style = keyword.visualStyle
-        let phase = reduceMotion ? 1 : progress * config.speed
+        let phase = reduceMotion ? 1 : progress
 
         GeometryReader { geometry in
             let size = geometry.size
@@ -110,11 +68,9 @@ struct CombatantStatusEffectOverlay: View {
     }
 
     private func swirlingStars(size: CGSize, style: Keyword.VisualStyle, phase: CGFloat) -> some View {
-        let count = max(config.starCount, 1)
-        let noiseValues = count == Self.productionStarNoise.count
-            ? Self.productionStarNoise
-            : Self.starNoise(count: count)
-        let radius = min(size.width, size.height) * config.orbitRadius * 0.5
+        let noiseValues = Self.starNoise
+        let count = noiseValues.count
+        let radius = min(size.width, size.height) * 0.54 * 0.5
         let appear = min(max(phase / 0.12, 0), 1)
 
         let center = CGPoint(x: size.width * 0.5, y: size.height * 0.23)
@@ -131,7 +87,7 @@ struct CombatantStatusEffectOverlay: View {
             let depth = (sinAngle + 1) * 0.5
             let depthScale = 0.75 + 0.35 * depth
             let depthOpacity = 0.75 + 0.25 * depth
-            let baseSize = (7.2 + noise * 6) * config.intensity
+            let baseSize = (7.2 + noise * 6)
             let twinkle = 0.45 + 0.55 * abs(sin(phase * .pi * 4 + noise * .pi * 2))
             stars.append((
                 point: CGPoint(
@@ -168,7 +124,7 @@ struct CombatantStatusEffectOverlay: View {
     }
 
     private func iceCrystals(size: CGSize, style: Keyword.VisualStyle, phase: CGFloat) -> some View {
-        let flakes = max(config.particleCount, 1)
+        let flakes = Self.snowflakeNoise.count
         let encroach = min(
             max(phase / CGFloat(BattleMotion.combatantFreezeEncroachProgress), 0),
             1,
@@ -179,12 +135,12 @@ struct CombatantStatusEffectOverlay: View {
         )
         let onsetGlow = sin(onset * .pi)
         let minDim = min(size.width, size.height)
-        let clearRadius = minDim * 0.55 * (1 - encroach * (0.55 + config.crackDensity * 0.3))
+        let clearRadius = minDim * 0.55 * (1 - encroach * (0.55 + FreezeStyle.crackDensity * 0.3))
         let edgeRadius = minDim * 0.78
         let pulse = encroach >= 1
             ? 0.88 + 0.12 * (0.5 + 0.5 * sin(phase * .pi * 2))
             : 1
-        let veilOpacity = Double(encroach * config.frostOpacity * config.intensity * pulse)
+        let veilOpacity = Double(encroach * FreezeStyle.frostOpacity * FreezeStyle.intensity * pulse)
 
         return ZStack {
             RadialGradient(
@@ -232,11 +188,9 @@ struct CombatantStatusEffectOverlay: View {
         flakes: Int,
         encroach: CGFloat,
     ) -> some View {
-        let noiseValues = flakes == Self.productionSnowflakeNoise.count
-            ? Self.productionSnowflakeNoise
-            : Self.snowflakeNoise(count: flakes)
+        let noiseValues = Self.snowflakeNoise
         let radiusFraction: CGFloat = min(size.width, size.height)
-            * (0.01 + config.crackDensity * 0.018)
+            * (0.01 + FreezeStyle.crackDensity * 0.018)
         return Canvas { context, _ in
             for index in 0 ..< flakes {
                 let along = noiseValues[index].along
@@ -246,7 +200,7 @@ struct CombatantStatusEffectOverlay: View {
                 guard appear > 0.02 else { continue }
 
                 let insetNoise = noiseValues[index].inset
-                let inset = 4 + insetNoise * (6 + config.crackDensity * 10)
+                let inset = 4 + insetNoise * (6 + FreezeStyle.crackDensity * 10)
                 let center = switch edge {
                 case 0: CGPoint(x: along * size.width, y: inset)
                 case 1: CGPoint(x: size.width - inset, y: along * size.height)
@@ -257,8 +211,8 @@ struct CombatantStatusEffectOverlay: View {
                 let twinkle: CGFloat = 0.72 + 0.28 * abs(sin(phase * .pi * 2.4 + insetNoise * .pi * 2))
                 let breathe: CGFloat = 0.88 + 0.12 * twinkle
                 let radiusVariance: CGFloat = 0.7 + insetNoise * 0.5
-                let radius: CGFloat = radiusFraction * radiusVariance * appear * breathe * config.intensity
-                let opacityBase: CGFloat = 0.3 + 0.55 * appear * config.frostOpacity
+                let radius: CGFloat = radiusFraction * radiusVariance * appear * breathe * FreezeStyle.intensity
+                let opacityBase: CGFloat = 0.3 + 0.55 * appear * FreezeStyle.frostOpacity
                 let opacity = Double(opacityBase * twinkle)
                 drawSnowflake(
                     in: &context,
@@ -320,16 +274,14 @@ private enum StatusParticleGeometry {
 struct CombatantStatusCardTransform: ViewModifier {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let kind: CombatantStatusEffectKind
-    let config: CombatantStatusEffectConfig
     let progress: CGFloat
 
     func body(content: Content) -> some View {
-        let phase = progress * config.speed
         let appear = kind == .swirlingStars
-            ? min(max(phase / 0.12, 0), 1)
+            ? min(max(progress / 0.12, 0), 1)
             : 0
         let wobble = !reduceMotion && appear > 0.01
-            ? sin(phase * .pi * 2) * config.wobbleDegrees * config.intensity * appear
+            ? sin(progress * .pi * 2) * 2.2 * appear
             : 0
         content.rotationEffect(.degrees(Double(wobble)))
     }
@@ -354,8 +306,7 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
     var body: some View {
         if let keyword,
            let kind = CombatantStatusEffectKind(statusKeyword: keyword) {
-            let config = CombatantStatusEffectConfig.defaults(for: kind)
-            animatedOverlay(kind: kind, config: config)
+            animatedOverlay(kind: kind)
         } else {
             content
         }
@@ -363,7 +314,6 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
 
     private func animatedOverlay(
         kind: CombatantStatusEffectKind,
-        config: CombatantStatusEffectConfig,
     ) -> some View {
         TimelineView(
             .animation(
@@ -379,14 +329,12 @@ struct CombatantStatusEffectPresentation<Content: View>: View {
                 .modifier(
                     CombatantStatusCardTransform(
                         kind: kind,
-                        config: config,
                         progress: progress,
                     ),
                 )
                 .overlay {
                     CombatantStatusEffectOverlay(
                         kind: kind,
-                        config: config,
                         progress: progress,
                     )
                 }

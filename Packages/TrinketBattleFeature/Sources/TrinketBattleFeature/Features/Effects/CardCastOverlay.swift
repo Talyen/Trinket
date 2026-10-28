@@ -319,7 +319,6 @@ public struct CardCastEffectsPrewarmView: View {
                     .overlay {
                         CombatantStatusEffectOverlay(
                             kind: .swirlingStars,
-                            config: .defaults(for: .swirlingStars),
                             progress: 0.5,
                         )
                     }
