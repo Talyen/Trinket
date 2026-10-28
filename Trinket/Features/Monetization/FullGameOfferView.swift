@@ -122,9 +122,8 @@ struct FullGameOfferView: View {
     private var purchaseSupport: some View {
         VStack(spacing: TrinketDesign.Spacing.small) {
             ViewThatFits(in: .horizontal) {
-                HStack(spacing: TrinketDesign.Spacing.small) {
+                HStack(spacing: TrinketDesign.Spacing.medium) {
                     restoreButton
-                    Text("·").accessibilityHidden(true)
                     privacyLink
                 }
                 .fixedSize(horizontal: true, vertical: false)
