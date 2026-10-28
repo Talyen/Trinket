@@ -5,7 +5,7 @@ rogue	Rogue	hero	14	0	stab,blackjack,fangs,rendingSlash	poisonDagger,serratedEdg
 wizard	Wizard	hero	14	10	manaBerries,rayOfFrost,kindling,stargaze	fireball,glacialWard,frostbolt,manaShield	meteor,blizzard,luckPotion,combustion
 druid	Druid	hero	16	9	manaBerries,maul,pixieDust,stargaze	cinderbloom,briarShield,heal,cleanse	bloodthorn,earthquake,thornMail,packTactics
 warlock	Warlock	hero	16	9	kindling,fangs,manaBerries,rendingSlash	bloodOffering,darkPact,venomFangs,cinderbloom	combustion,faustianBargain,bloodthorn,meteor
-alchemist	Alchemist	hero	14	8	causticJab,kindling,apple,manaBerries	acidPotion,poisonDagger,stoneskinPotion,manaPotion	luckPotion,panaceaPotion,bloodthorn,combustion
+alchemist	Alchemist	hero	14	8	causticJab,kindling,apple,manaBerries	acidPotion,poisonDagger,stoneskinPotion,cinderbloom	luckPotion,panaceaPotion,bloodthorn,combustion
 wildcard	Wildcard	hero	14	0	blackjack,slash,maul,stab	bountyShot,cinderbloom,fireball,tithe	astralArrow,luckPotion,goldenPlate,shadowstep
 wolf	Wolf	companion	14	0	fangs,rendingSlash,stab,sniffOut	pounce,predatorsFocus,venomFangs,serratedEdge	packTactics,hemorrhage,shadowstep,bloodthorn
 bear	Bear	companion	17	0	maul,fangs,bash,slash	briarShield,sunder,stoneskinPotion,serratedEdge	earthquake,thornMail,moltenBulwark,bloodthorn

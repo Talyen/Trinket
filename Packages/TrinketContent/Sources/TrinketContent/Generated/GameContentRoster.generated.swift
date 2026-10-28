@@ -83,7 +83,7 @@ enum GameContentRosterGenerated {
             maxMana: 8,
             abilityChoices: AbilityChoices(
                 basics: [.causticJab, .kindling, .apple, .manaBerries],
-                skills: [.acidPotion, .poisonDagger, .stoneskinPotion, .manaPotion],
+                skills: [.acidPotion, .poisonDagger, .stoneskinPotion, .cinderbloom],
                 ultimates: [.luckPotion, .panaceaPotion, .bloodthorn, .combustion]
             )
         ))

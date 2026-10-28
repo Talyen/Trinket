@@ -57,6 +57,23 @@ struct SlicesReloadTests {
         #expect(reloaded.roster.abilityLoadouts["knight"]?.basic == .block)
     }
 
+    @Test @MainActor func `Alchemist Mana Potion migrates to Cinderbloom through cloud and disk reload`() throws {
+        let context = try PersistenceTestContext()
+        var save = PlayerSave.testSeed
+        save.roster.abilityLoadouts["alchemist"] = AbilityLoadout(basic: .kindling, skill: .manaPotion, ultimate: .combustion)
+        save.roster.abilityLoadouts["pixie"] = AbilityLoadout(basic: .pixieDust, skill: .manaPotion, ultimate: .sunburst)
+        let expected = AbilityLoadout(basic: .kindling, skill: .cinderbloom, ultimate: .combustion)
+        let cloud = StoredRosterSnapshot(save.roster).restored()
+        #expect(cloud.abilityLoadouts["alchemist"] == expected)
+        #expect(cloud.abilityLoadouts["pixie"]?.skill == .manaPotion)
+        let store = try context.seedAndReload(save)
+        #expect(store.roster.abilityLoadouts["alchemist"] == expected)
+        #expect(store.roster.abilityLoadouts["pixie"]?.skill == .manaPotion)
+        let reloaded = try context.makeReloadedStore()
+        #expect(reloaded.roster.abilityLoadouts["alchemist"] == expected)
+        #expect(reloaded.roster.abilityLoadouts["pixie"]?.skill == .manaPotion)
+    }
+
     @Test @MainActor func `sanitize clamps survive reload`() throws {
         let context = try PersistenceTestContext()
         let firstStore = try context.makeSaveStore()

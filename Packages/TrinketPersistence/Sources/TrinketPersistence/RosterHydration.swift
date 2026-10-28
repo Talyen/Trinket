@@ -56,6 +56,8 @@ enum RosterHydration {
                 // Migrate replaced loadout selections before current-choice validation.
                 let canonicalID: String = if combatantID == "rogue", tier == .skill, id == "venom-fangs" {
                     "feint"
+                } else if combatantID == "alchemist", tier == .skill, id == "mana-potion" {
+                    "cinderbloom"
                 } else if combatantID == "risen_skeleton", tier == .basic, id == "block" {
                     "shield-bash"
                 } else {
