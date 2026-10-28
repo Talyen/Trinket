@@ -146,7 +146,7 @@ Homestead/Play interaction contract follows
 Stable identifiers must be applied at the modifier that remains visible to
 XCUITest (for example, the shared glass CTA modifier).
 
-## UI keep / drop rubric
+## UI keep-drop rubric
 
 UI tests selectively prove critical journeys and interaction wiring once; battle
 rules belong in package tests, and cross-module contracts use the cheapest tier that

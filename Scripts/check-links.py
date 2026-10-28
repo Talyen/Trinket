@@ -13,7 +13,6 @@ from internal.markdown import heading_slugs, unfenced_lines
 from internal.cli import ROOT
 from internal.doc_diagnostics import report_failures
 SKIP_PARTS = {".git", ".DerivedData", ".tools", ".build", "Generated", "BalanceSweepReports"}
-LINK_START = re.compile(r"\[[^\]]*\]\(\s*")
 
 
 def link_targets(lines: list[str]):
@@ -39,8 +38,28 @@ def link_targets(lines: list[str]):
                     masked[offset] = ' '
             index = closing + 1
     text = ''.join(masked)
-    for match in LINK_START.finditer(text):
-        start = end = match.end()
+    brackets: list[int] = []
+    cursor = 0
+    while cursor < len(text):
+        if text[cursor] == '\\':
+            cursor += 2
+            continue
+        if text[cursor] == '[':
+            brackets.append(cursor)
+            cursor += 1
+            continue
+        if text[cursor] != ']' or not brackets:
+            cursor += 1
+            continue
+        opening = brackets.pop()
+        if cursor + 1 >= len(text) or text[cursor + 1] != '(':
+            cursor += 1
+            continue
+        start = end = cursor + 2
+        while start < len(text) and text[start].isspace():
+            start += 1
+        end = start
+        cursor += 1
         if start < len(text) and text[start] == '<':
             end = text.find('>', start + 1)
             if end < 0:
@@ -68,7 +87,8 @@ def link_targets(lines: list[str]):
             target = text[start:end]
         if not re.match(r'(?:\s+(?:"[^"\n]*"|\'[^\'\n]*\'|\([^\n]*?\)))?\s*\)', text[end:]):
             continue
-        yield text.count('\n', 0, match.start()) + 1, re.sub(r'\\([\\()<>])', r'\1', target)
+        yield text.count('\n', 0, opening) + 1, re.sub(r'\\([!"#$%&\'()*+,\-./:;<=>?@\[\]\\^_`{|}~])', r'\1', target)
+        cursor = end + 1
 
 
 def markdown_files() -> list[Path]:
@@ -101,6 +121,7 @@ def broken_links(files: list[Path]) -> list[str]:
             if not target or re.match(r"[A-Za-z][A-Za-z0-9+.-]*:", target):
                 continue
             path_text, _, fragment = target.partition("#")
+            path_text = path_text.partition("?")[0]
             path_text, fragment = unquote(path_text), unquote(fragment)
             if path_text:
                 resolved = (source.parent / path_text).resolve()
@@ -137,7 +158,7 @@ def affected_documents(files: list[Path], paths: set[Path]) -> list[Path]:
             selected.append(source)
             continue
         for _, target in link_targets(source.read_text(encoding='utf-8').splitlines()):
-            target = target.partition('#')[0]
+            target = target.partition('#')[0].partition('?')[0]
             if target and not re.match(r'[A-Za-z][A-Za-z0-9+.-]*:', target):
                 resolved = (source.parent / unquote(target)).resolve()
                 if (resolved / 'README.md' if resolved.is_dir() else resolved) not in affected:

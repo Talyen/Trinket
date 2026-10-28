@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from html import unescape
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -25,8 +26,13 @@ def unfenced_lines(lines: list[str]):
 
 
 def github_slug(heading: str) -> str:
-    text = re.sub(r"[^\w\s-]", "", heading.strip().lower(), flags=re.UNICODE)
-    return re.sub(r"[-\s]+", "-", text).strip("-")
+    # Slugs are based on the rendered heading text, not link destinations or
+    # formatting markup. Preserve literal underscores inside identifiers.
+    text = re.sub(r'!?\[([^\]]+)\]\([^)]*\)', r'\1', heading)
+    text = re.sub(r'<[^>]*>', '', text)
+    text = re.sub(r'(?<!\w)(_+)(\S(?:.*?\S)?)\1(?!\w)', r'\2', text)
+    text = unescape(text).strip().lower()
+    return re.sub(r'[^\w -]', '', text, flags=re.UNICODE).replace(' ', '-')
 
 
 @dataclass

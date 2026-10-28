@@ -8,6 +8,48 @@ from script_test_support import load_script
 
 
 class AuditToolingRegressions(unittest.TestCase):
+    def test_link_labels_accept_nested_and_escaped_brackets_but_not_escaped_openers(self):
+        links = load_script('audit_link_labels', 'check-links.py')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'source.md'
+            source.write_text('[nested [label]](missing-one.md)\n'
+                              '[escaped \\] label](missing-two.md)\n'
+                              '\\[example](not-a-link.md)\n')
+            with patch.object(links, 'ROOT', root):
+                self.assertEqual(links.broken_links([source]), [
+                    'source.md:1: missing link target missing-one.md',
+                    'source.md:2: missing link target missing-two.md',
+                ])
+
+    def test_link_queries_do_not_change_the_file_or_heading_dependency(self):
+        links = load_script('audit_link_queries', 'check-links.py')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / 'guide.md'
+            target.write_text('# Guide\n')
+            source = root / 'source.md'
+            source.write_text('[guide](guide.md?view=plain#guide)\n'
+                              '[missing](guide.md?view=plain#absent)\n')
+            with patch.object(links, 'ROOT', root):
+                self.assertEqual(links.broken_links([source]), ['source.md:2: missing heading guide.md#absent'])
+                self.assertEqual(links.affected_documents([source], {target.resolve()}), [source])
+
+    def test_heading_anchors_follow_rendered_markup_and_preserve_hyphens(self):
+        links = load_script('audit_heading_anchors', 'check-links.py')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / 'guide.md'
+            target.write_text('# [Read the guide](other.md)\n## _Quick_ start\n'
+                              '## Two  spaces -- and-hyphens\n## <em>Rendered</em> &amp; ready\n'
+                              '## source_identifier\n')
+            source = root / 'source.md'
+            source.write_text('[one](guide.md#read-the-guide)\n[two](guide.md#quick-start)\n'
+                              '[three](guide.md#two--spaces----and-hyphens)\n'
+                              '[four](guide.md#rendered--ready)\n[five](guide.md#source_identifier)\n')
+            with patch.object(links, 'ROOT', root):
+                self.assertEqual(links.broken_links([source]), [])
+
     def test_documentation_code_spans_are_examples_not_link_dependencies(self):
         links = load_script('audit_links_code', 'check-links.py')
         with tempfile.TemporaryDirectory() as directory:
