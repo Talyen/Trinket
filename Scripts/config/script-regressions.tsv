@@ -11,7 +11,7 @@
 .github/workflows/gate.yml	test_ci_improvements.py,test_ci_xcode.py
 .github/workflows/player-coverage.yml	test_player_coverage.py
 .github/workflows/release.yml	test_ci_gate_scripts.py
-.github/workflows/tests.yml	test_ci_effort.py,test_ci_improvements.py,test_ci_xcode.py
+.github/workflows/tests.yml	test_ci_effort.py,test_ci_improvements.py,test_ci_xcode.py,test_purchase_ui_routing.py
 .gitignore	test_pre_push.py
 .swiftformat	test_swift_style_policy.py
 Gemfile	test_testflight.py
@@ -59,7 +59,7 @@ Scripts/check-module-boundaries.sh	test_policy_scripts.py,test_swift_style_polic
 Scripts/check-plans.py	test_documentation.py,test_agent_integration.py
 Scripts/check-staged-project.sh	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py
 Scripts/check-swift-policy.py	test_policy_scripts.py,test_swift_invariants.py,test_swift_style_policy.py,test_ui_policy.py
-Scripts/check-testplan-sync.py	test_ci_effort.py,test_documentation.py,test_project_generation.py,test_ui_registration.py
+Scripts/check-testplan-sync.py	test_ci_effort.py,test_documentation.py,test_project_generation.py,test_ui_registration.py,test_purchase_ui_routing.py
 Scripts/check-ui-style.py	test_swift_style_policy.py,test_ui_policy.py
 Scripts/check-unused-assets.py	test_check_unused_assets.py
 Scripts/ci-assets-gate.sh	test_ci_build_scripts.py,test_media_asset_scripts.py
@@ -70,9 +70,9 @@ Scripts/ci-gate.sh	test-lib-args.sh,test_ci_gate_scripts.py,test_ci_handoff_rout
 Scripts/ci-infra-rerun.sh	test_policy_scripts.py
 Scripts/ci-path-filter.py	test_ci_effort.py,test_ci_path_filter.py,test_audit_tooling_regressions.py
 Scripts/ci-reuse.py	test_ci_effort.py
-Scripts/deploy-verification.py	test_deploy_verification.py
+Scripts/deploy-verification.py	test_deploy_verification.py,test_purchase_ui_routing.py
 Scripts/ci-run-budget.py	test_ci_gate_scripts.py,test_ci_improvements.py
-Scripts/ci_ui_retry.py	test_ci_effort.py,test_deploy_verification.py
+Scripts/ci_ui_retry.py	test_ci_effort.py,test_deploy_verification.py,test_purchase_ui_routing.py
 Scripts/cleanup-outputs.py	test_output_retention.py,test_release_retention.py,test_worktree_retention.py
 Scripts/compact-evidence.py	test_evidence_compaction.py
 Scripts/collect-performance-results.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py,test_tooling_evidence.py
@@ -207,7 +207,7 @@ Scripts/release-notes-user.py	test_release_notes_user.py
 Scripts/release-notes.sh	test_policy_scripts.py,test_swift_style_policy.py
 Scripts/release.sh	test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py
 Scripts/report-art-memory.sh	test_ci_build_scripts.py,test_media_asset_scripts.py
-Scripts/report-exhaustive-ci.py	test_ci_gate_scripts.py,test_exhaustive_report_regressions.py
+Scripts/report-exhaustive-ci.py	test_ci_gate_scripts.py,test_exhaustive_report_regressions.py,test_purchase_ui_routing.py
 Scripts/resolve-built-app.py	test_ci_session_scripts.py
 Scripts/restore-ci-test-products.sh	test_build_metadata.py
 Scripts/run-env.sh	test-run-env.sh,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py,test_shared_build_lease.py
@@ -257,3 +257,4 @@ Scripts/internal/source_ownership.py	test_agent_context.py,test_ci_effort.py,tes
 Scripts/ci-balance-sweep.sh	test_ci_balance_sweep.py
 Scripts/internal/device_selection.py	test_profile_device.py
 Scripts/internal/worktree_retention.py	test_worktree_retention.py
+Scripts/verify-purchase-ui.py	test_purchase_ui_routing.py
