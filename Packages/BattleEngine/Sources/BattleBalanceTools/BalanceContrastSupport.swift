@@ -36,25 +36,23 @@ struct ContrastMatchupBase {
     mutating func prepareSharedGear() {
         let sharedBias = owner.keywordProfile.union(partner.keywordProfile)
         var gearRNG = SeededRandomNumberGenerator(seed: seed &+ 17)
-        ownerGear = SimulationMatchupBuilder.generateAlignedGear(
-            for: owner.withAbilityLoadout(ownerLoadout, fillsMissingSelections: false),
+        ownerGear = sharedGear(for: owner, loadout: ownerLoadout, bias: sharedBias, prefix: "contrast-owner", using: &gearRNG)
+        partnerGear = sharedGear(for: partner, loadout: partnerLoadout, bias: sharedBias, prefix: "contrast-partner", using: &gearRNG)
+    }
+
+    private func sharedGear(
+        for combatant: Combatant, loadout: AbilityLoadout, bias: Set<Keyword>, prefix: String,
+        using rng: inout some RandomNumberGenerator,
+    ) -> SimulationMatchupBuilder.GearOverride? {
+        SimulationMatchupBuilder.generateAlignedGear(
+            for: combatant.withAbilityLoadout(loadout, fillsMissingSelections: false),
             tier: tier,
-            keywordBias: sharedBias,
-            idPrefix: "contrast-owner",
-            using: &gearRNG,
+            keywordBias: bias,
+            idPrefix: prefix,
+            using: &rng,
         ) ?? SimulationMatchupBuilder.generateStarterGearIfNeeded(
-            for: owner, loadout: ownerLoadout, tier: tier,
-            idPrefix: "contrast-owner", gearKeywordBias: sharedBias, using: &gearRNG,
-        )
-        partnerGear = SimulationMatchupBuilder.generateAlignedGear(
-            for: partner.withAbilityLoadout(partnerLoadout, fillsMissingSelections: false),
-            tier: tier,
-            keywordBias: sharedBias,
-            idPrefix: "contrast-partner",
-            using: &gearRNG,
-        ) ?? SimulationMatchupBuilder.generateStarterGearIfNeeded(
-            for: partner, loadout: partnerLoadout, tier: tier,
-            idPrefix: "contrast-partner", gearKeywordBias: sharedBias, using: &gearRNG,
+            for: combatant, loadout: loadout, tier: tier,
+            idPrefix: prefix, gearKeywordBias: bias, using: &rng,
         )
     }
 

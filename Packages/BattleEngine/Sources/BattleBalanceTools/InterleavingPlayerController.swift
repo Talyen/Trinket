@@ -69,15 +69,11 @@ final class InterleavingPlayerController {
         self.companion = companion
         self.worldSeed = worldSeed
         earnedParty = equipmentModel == .earned ? EarnedGearProgression(hero: hero, companion: companion, worldSeed: worldSeed) : nil
-        modes = [SimulationGameMode.campaign, .spire, .labyrinth].map { mode in
-            let tracker = switch mode {
-            case .campaign: campaignTracker
-            case .spire: spireTracker
-            case .labyrinth: labyrinthTracker
-            case .contract: preconditionFailure("Contracts are recovery jobs, not advancing content")
-            }
-            return ModeProgress(mode: mode, steps: tracker.steps)
-        }
+        modes = [
+            ModeProgress(mode: .campaign, steps: campaignTracker.steps),
+            ModeProgress(mode: .spire, steps: spireTracker.steps),
+            ModeProgress(mode: .labyrinth, steps: labyrinthTracker.steps),
+        ]
         state = initialState
         earnedParty?.invest(state: state)
     }
@@ -129,30 +125,12 @@ final class InterleavingPlayerController {
         if won {
             earnedParty?.awardVictory(step: step, encounterLevel: enemyLevel)
         }
-        let heroNormal = RewardExperiencePolicy.battleExperienceAward(
-            playerLevel: state.heroLevel,
-            enemyLevel: enemyLevel,
-            highestLevel: state.heroLevel,
+        let heroProg = progressionAfterBattle(
+            level: state.heroLevel, xp: state.heroXP, enemyLevel: enemyLevel, won: won, defeatProgress: defeatProgress,
         )
-        let companionNormal = RewardExperiencePolicy.battleExperienceAward(
-            playerLevel: state.companionLevel,
-            enemyLevel: enemyLevel,
-            highestLevel: state.companionLevel,
+        let companionProg = progressionAfterBattle(
+            level: state.companionLevel, xp: state.companionXP, enemyLevel: enemyLevel, won: won, defeatProgress: defeatProgress,
         )
-        let heroAward = won ? heroNormal : defeatProgress?.experienceAward(from: heroNormal) ?? 0
-        let companionAward = won ? companionNormal : defeatProgress?.experienceAward(from: companionNormal) ?? 0
-        let heroProg = CombatantProgression(
-            level: state.heroLevel,
-            currentXP: state.heroXP,
-            requiredXP: CombatantProgression.requiredXP(forLevel: state.heroLevel),
-        )
-        .addingExperience(heroAward)
-        let companionProg = CombatantProgression(
-            level: state.companionLevel,
-            currentXP: state.companionXP,
-            requiredXP: CombatantProgression.requiredXP(forLevel: state.companionLevel),
-        )
-        .addingExperience(companionAward)
         state.heroLevel = heroProg.level
         state.heroXP = heroProg.currentXP
         state.companionLevel = companionProg.level
@@ -176,6 +154,18 @@ final class InterleavingPlayerController {
         if step.mode == .contract, won {
             pendingContract = nil
         }
+    }
+
+    private func progressionAfterBattle(
+        level: Int, xp: Int, enemyLevel: Int, won: Bool, defeatProgress: BattleDefeatProgress?,
+    ) -> CombatantProgression {
+        let normalAward = RewardExperiencePolicy.battleExperienceAward(
+            playerLevel: level, enemyLevel: enemyLevel, highestLevel: level,
+        )
+        let award = won ? normalAward : defeatProgress?.experienceAward(from: normalAward) ?? 0
+        return CombatantProgression(
+            level: level, currentXP: xp, requiredXP: CombatantProgression.requiredXP(forLevel: level),
+        ).addingExperience(award)
     }
 
     func makeMatchup(
