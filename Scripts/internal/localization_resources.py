@@ -112,6 +112,8 @@ def generated_resources(root: Path, catalogs: dict) -> dict[Path, bytes]:
                  '    /// Exact text and saved numeric variants resolve once; rendering owns the locale and value spans.',
                  '    private static func match(_ english: String) -> Match? {',
                  '        switch english {'])
+        # Explicit returns keep each branch independently type-checked; a single
+        # inferred switch expression couples thousands of localized tuple results.
         seen = set()
         for key, entry in sorted(sources.items()):
             if entry['text'] in seen:
@@ -125,8 +127,8 @@ def generated_resources(root: Path, catalogs: dict) -> dict[Path, bytes]:
                 aliases.append(swift_string(entry['original']))
                 seen.add(entry['original'])
             lines.extend([f'        case {", ".join(aliases)}:',
-                          f'            (L10n.{key.replace(".", "_")}{args}, {quantities})'])
-        lines.extend(['        default: numericMatch(english)', '        }', '    }', '',
+                          f'            return (L10n.{key.replace(".", "_")}{args}, {quantities})'])
+        lines.extend(['        default: return numericMatch(english)', '        }', '    }', '',
                       '    private struct NumericTemplate: Sendable {',
                       '        let prefix: String',
                       '        let regex: NSRegularExpression?',

@@ -592,4376 +592,4376 @@ public enum ContentCopy {
     private static func match(_ english: String) -> Match? {
         switch english {
         case "Acid Potion":
-            (L10n.ability_acid_potion_name, [])
+            return (L10n.ability_acid_potion_name, [])
         case "Apple":
-            (L10n.ability_apple_name, [])
+            return (L10n.ability_apple_name, [])
         case "Astral Arrow":
-            (L10n.ability_astral_arrow_name, [])
+            return (L10n.ability_astral_arrow_name, [])
         case "Avatar":
-            (L10n.ability_avatar_of_justice_name, [])
+            return (L10n.ability_avatar_of_justice_name, [])
         case "Bash":
-            (L10n.ability_bash_name, [])
+            return (L10n.ability_bash_name, [])
         case "Blackjack":
-            (L10n.ability_blackjack_name, [])
+            return (L10n.ability_blackjack_name, [])
         case "Blessed Aegis":
-            (L10n.ability_blessed_aegis_name, [])
+            return (L10n.ability_blessed_aegis_name, [])
         case "Blizzard":
-            (L10n.ability_blizzard_name, [])
+            return (L10n.ability_blizzard_name, [])
         case "Block":
-            (L10n.ability_block_name, [])
+            return (L10n.ability_block_name, [])
         case "Blood Offering":
-            (L10n.ability_blood_offering_name, [])
+            return (L10n.ability_blood_offering_name, [])
         case "Bloodthorn":
-            (L10n.ability_bloodthorn_name, [])
+            return (L10n.ability_bloodthorn_name, [])
         case "Bounty Shot":
-            (L10n.ability_bounty_shot_name, [])
+            return (L10n.ability_bounty_shot_name, [])
         case "Briar Shield":
-            (L10n.ability_briar_shield_name, [])
+            return (L10n.ability_briar_shield_name, [])
         case "Caustic Jab":
-            (L10n.ability_caustic_jab_name, [])
+            return (L10n.ability_caustic_jab_name, [])
         case "Cinderbloom":
-            (L10n.ability_cinderbloom_name, [])
+            return (L10n.ability_cinderbloom_name, [])
         case "Cleanse":
-            (L10n.ability_cleanse_name, [])
+            return (L10n.ability_cleanse_name, [])
         case "Cold Snap":
-            (L10n.ability_cold_snap_name, [])
+            return (L10n.ability_cold_snap_name, [])
         case "Combustion":
-            (L10n.ability_combustion_name, [])
+            return (L10n.ability_combustion_name, [])
         case "Dark Pact":
-            (L10n.ability_dark_pact_name, [])
+            return (L10n.ability_dark_pact_name, [])
         case "Earthquake":
-            (L10n.ability_earthquake_name, [])
+            return (L10n.ability_earthquake_name, [])
         case "Fangs":
-            (L10n.ability_fangs_name, [])
+            return (L10n.ability_fangs_name, [])
         case "Faustian Bargain":
-            (L10n.ability_faustian_bargain_name, [])
+            return (L10n.ability_faustian_bargain_name, [])
         case "Feint":
-            (L10n.ability_feint_name, [])
+            return (L10n.ability_feint_name, [])
         case "Fire Arrow":
-            (L10n.ability_fire_arrow_name, [])
+            return (L10n.ability_fire_arrow_name, [])
         case "Fireball":
-            (L10n.ability_fireball_name, [])
+            return (L10n.ability_fireball_name, [])
         case "Frostbolt":
-            (L10n.ability_frostbolt_name, [])
+            return (L10n.ability_frostbolt_name, [])
         case "Glacial Ward":
-            (L10n.ability_glacial_ward_name, [])
+            return (L10n.ability_glacial_ward_name, [])
         case "Golden Plate":
-            (L10n.ability_golden_plate_name, [])
+            return (L10n.ability_golden_plate_name, [])
         case "Heal":
-            (L10n.ability_heal_name, [])
+            return (L10n.ability_heal_name, [])
         case "Hemorrhage":
-            (L10n.ability_hemorrhage_name, [])
+            return (L10n.ability_hemorrhage_name, [])
         case "Ice Shot":
-            (L10n.ability_ice_shot_name, [])
+            return (L10n.ability_ice_shot_name, [])
         case "Kindling":
-            (L10n.ability_kindling_name, [])
+            return (L10n.ability_kindling_name, [])
         case "Luck Potion":
-            (L10n.ability_luck_potion_name, [])
+            return (L10n.ability_luck_potion_name, [])
         case "Mana Berries":
-            (L10n.ability_mana_berries_name, [])
+            return (L10n.ability_mana_berries_name, [])
         case "Mana Potion":
-            (L10n.ability_mana_potion_name, [])
+            return (L10n.ability_mana_potion_name, [])
         case "Mana Shield":
-            (L10n.ability_mana_shield_name, [])
+            return (L10n.ability_mana_shield_name, [])
         case "Maul":
-            (L10n.ability_maul_name, [])
+            return (L10n.ability_maul_name, [])
         case "Meteor":
-            (L10n.ability_meteor_name, [])
+            return (L10n.ability_meteor_name, [])
         case "Molten Bulwark":
-            (L10n.ability_molten_bulwark_name, [])
+            return (L10n.ability_molten_bulwark_name, [])
         case "Pack Tactics":
-            (L10n.ability_pack_tactics_name, [])
+            return (L10n.ability_pack_tactics_name, [])
         case "Panacea Potion":
-            (L10n.ability_panacea_potion_name, [])
+            return (L10n.ability_panacea_potion_name, [])
         case "Phoenix Feather":
-            (L10n.ability_phoenix_feather_name, [])
+            return (L10n.ability_phoenix_feather_name, [])
         case "Pixie Dust":
-            (L10n.ability_pixie_dust_name, [])
+            return (L10n.ability_pixie_dust_name, [])
         case "Poison Dagger":
-            (L10n.ability_poison_dagger_name, [])
+            return (L10n.ability_poison_dagger_name, [])
         case "Pounce":
-            (L10n.ability_pounce_name, [])
+            return (L10n.ability_pounce_name, [])
         case "Predator's Focus":
-            (L10n.ability_predators_focus_name, [])
+            return (L10n.ability_predators_focus_name, [])
         case "Ray of Frost":
-            (L10n.ability_ray_of_frost_name, [])
+            return (L10n.ability_ray_of_frost_name, [])
         case "Rend":
-            (L10n.ability_rending_slash_name, [])
+            return (L10n.ability_rending_slash_name, [])
         case "Serrated Edge":
-            (L10n.ability_serrated_edge_name, [])
+            return (L10n.ability_serrated_edge_name, [])
         case "Shadowstep":
-            (L10n.ability_shadowstep_name, [])
+            return (L10n.ability_shadowstep_name, [])
         case "Shield Bash":
-            (L10n.ability_shield_bash_name, [])
+            return (L10n.ability_shield_bash_name, [])
         case "Slash":
-            (L10n.ability_slash_name, [])
+            return (L10n.ability_slash_name, [])
         case "Smite":
-            (L10n.ability_smite_name, [])
+            return (L10n.ability_smite_name, [])
         case "Sniff Out":
-            (L10n.ability_sniff_out_name, [])
+            return (L10n.ability_sniff_out_name, [])
         case "Spiked Shield":
-            (L10n.ability_spiked_shield_name, [])
+            return (L10n.ability_spiked_shield_name, [])
         case "Stab":
-            (L10n.ability_stab_name, [])
+            return (L10n.ability_stab_name, [])
         case "Stargaze":
-            (L10n.ability_stargaze_name, [])
+            return (L10n.ability_stargaze_name, [])
         case "Steal":
-            (L10n.ability_steal_name, [])
+            return (L10n.ability_steal_name, [])
         case "Stoneskin Potion":
-            (L10n.ability_stoneskin_potion_name, [])
+            return (L10n.ability_stoneskin_potion_name, [])
         case "Sunburst":
-            (L10n.ability_sunburst_name, [])
+            return (L10n.ability_sunburst_name, [])
         case "Sunder":
-            (L10n.ability_sunder_name, [])
+            return (L10n.ability_sunder_name, [])
         case "Thorn Mail":
-            (L10n.ability_thorn_mail_name, [])
+            return (L10n.ability_thorn_mail_name, [])
         case "Tithe":
-            (L10n.ability_tithe_name, [])
+            return (L10n.ability_tithe_name, [])
         case "Venom Arrow":
-            (L10n.ability_venom_arrow_name, [])
+            return (L10n.ability_venom_arrow_name, [])
         case "Venom Fangs":
-            (L10n.ability_venom_fangs_name, [])
+            return (L10n.ability_venom_fangs_name, [])
         case "Cleanse a debuff when you deal Holy damage":
-            (L10n.affixes_absolving_astral_description(1), [1])
+            return (L10n.affixes_absolving_astral_description(1), [1])
         case "Absolving":
-            (L10n.affixes_absolving_title, [])
+            return (L10n.affixes_absolving_title, [])
         case "Gain 2 Block when you spend Mana":
-            (L10n.affixes_aetherward_astral_description(2), [2])
+            return (L10n.affixes_aetherward_astral_description(2), [2])
         case "Gain 1 Block when you spend Mana":
-            (L10n.affixes_aetherward_basic_description(1), [1])
+            return (L10n.affixes_aetherward_basic_description(1), [1])
         case "Aetherward":
-            (L10n.affixes_aetherward_title, [])
+            return (L10n.affixes_aetherward_title, [])
         case "Take 30% less Poison damage":
-            (L10n.affixes_antidotal_astral_description(30), [30])
+            return (L10n.affixes_antidotal_astral_description(30), [30])
         case "Take 20% less Poison damage":
-            (L10n.affixes_antidotal_basic_description(20), [20])
+            return (L10n.affixes_antidotal_basic_description(20), [20])
         case "Antidotal":
-            (L10n.affixes_antidotal_title, [])
+            return (L10n.affixes_antidotal_title, [])
         case "When you Stun with no Mana, restore 2 Mana":
-            (L10n.affixes_arcane_astral_description(2), [2])
+            return (L10n.affixes_arcane_astral_description(2), [2])
         case "When you Stun with no Mana, restore 1 Mana":
-            (L10n.affixes_arcane_basic_description(1), [1])
+            return (L10n.affixes_arcane_basic_description(1), [1])
         case "Arcane":
-            (L10n.affixes_arcane_title, [])
+            return (L10n.affixes_arcane_title, [])
         case "Gain 2 Block when you gain Mana":
-            (L10n.affixes_arcane_ward_astral_description(2), [2])
+            return (L10n.affixes_arcane_ward_astral_description(2), [2])
         case "Gain 1 Block when you gain Mana":
-            (L10n.affixes_arcane_ward_basic_description(1), [1])
+            return (L10n.affixes_arcane_ward_basic_description(1), [1])
         case "Arcane Ward":
-            (L10n.affixes_arcane_ward_title, [])
+            return (L10n.affixes_arcane_ward_title, [])
         case "Your Burn deals 2 additional damage to Poisoned enemies":
-            (L10n.affixes_ashen_wake_astral_description(2), [2])
+            return (L10n.affixes_ashen_wake_astral_description(2), [2])
         case "Your Burn deals 1 additional damage to Poisoned enemies":
-            (L10n.affixes_ashen_wake_basic_description(1), [1])
+            return (L10n.affixes_ashen_wake_basic_description(1), [1])
         case "Ashen Wake":
-            (L10n.affixes_ashen_wake_title, [])
+            return (L10n.affixes_ashen_wake_title, [])
         case "Increase Thorns damage by 3":
-            (L10n.affixes_barbed_astral_description(3), [3])
+            return (L10n.affixes_barbed_astral_description(3), [3])
         case "Increase Thorns damage by 1":
-            (L10n.affixes_barbed_basic_description(1), [1])
+            return (L10n.affixes_barbed_basic_description(1), [1])
         case "Barbed":
-            (L10n.affixes_barbed_title, [])
+            return (L10n.affixes_barbed_title, [])
         case "Start combat with 8 Block":
-            (L10n.affixes_bastioned_astral_description(8), [8])
+            return (L10n.affixes_bastioned_astral_description(8), [8])
         case "Start combat with 4 Block":
-            (L10n.affixes_bastioned_basic_description(4), [4])
+            return (L10n.affixes_bastioned_basic_description(4), [4])
         case "Bastioned":
-            (L10n.affixes_bastioned_title, [])
+            return (L10n.affixes_bastioned_title, [])
         case "Your first Holy attack that deals Health damage each turn restores 6 Health to the lowest-Health ally":
-            (L10n.affixes_beacon_astral_description(6), [6])
+            return (L10n.affixes_beacon_astral_description(6), [6])
         case "Your first Holy attack that deals Health damage each turn restores 2 Health to the lowest-Health ally":
-            (L10n.affixes_beacon_basic_description(2), [2])
+            return (L10n.affixes_beacon_basic_description(2), [2])
         case "Beacon":
-            (L10n.affixes_beacon_title, [])
+            return (L10n.affixes_beacon_title, [])
         case "Increase your Companion's Physical damage by 2":
-            (L10n.affixes_beastbond_astral_description(2), [2])
+            return (L10n.affixes_beastbond_astral_description(2), [2])
         case "Increase your Companion's Physical damage by 1":
-            (L10n.affixes_beastbond_basic_description(1), [1])
+            return (L10n.affixes_beastbond_basic_description(1), [1])
         case "Beastbond":
-            (L10n.affixes_beastbond_title, [])
+            return (L10n.affixes_beastbond_title, [])
         case "Bleed lasts 2 additional turns":
-            (L10n.affixes_biting_astral_description(2), [2])
+            return (L10n.affixes_biting_astral_description(2), [2])
         case "Bleed lasts 1 additional turn":
-            (L10n.affixes_biting_basic_description(1), [1])
+            return (L10n.affixes_biting_basic_description(1), [1])
         case "Biting":
-            (L10n.affixes_biting_title, [])
+            return (L10n.affixes_biting_title, [])
         case "Leech has a 10% chance to grant 2 Gold":
-            (L10n.affixes_blood_price_astral_description(10, 2), [10, 2])
+            return (L10n.affixes_blood_price_astral_description(10, 2), [10, 2])
         case "Leech has a 10% chance to grant 1 Gold":
-            (L10n.affixes_blood_price_basic_description(10, 1), [10, 1])
+            return (L10n.affixes_blood_price_basic_description(10, 1), [10, 1])
         case "Blood Price":
-            (L10n.affixes_blood_price_title, [])
+            return (L10n.affixes_blood_price_title, [])
         case "Restore 2 additional Health when you Leech":
-            (L10n.affixes_bloodbound_astral_description(2), [2])
+            return (L10n.affixes_bloodbound_astral_description(2), [2])
         case "Restore 1 additional Health when you Leech":
-            (L10n.affixes_bloodbound_basic_description(1), [1])
+            return (L10n.affixes_bloodbound_basic_description(1), [1])
         case "Bloodbound":
-            (L10n.affixes_bloodbound_title, [])
+            return (L10n.affixes_bloodbound_title, [])
         case "Physical attacks that damage Health have a 30% chance to deal 1 Bleed damage":
-            (L10n.affixes_bloodletting_astral_description(30, 1), [30, 1])
+            return (L10n.affixes_bloodletting_astral_description(30, 1), [30, 1])
         case "Physical attacks that damage Health have a 15% chance to deal 1 Bleed damage":
-            (L10n.affixes_bloodletting_basic_description(15, 1), [15, 1])
+            return (L10n.affixes_bloodletting_basic_description(15, 1), [15, 1])
         case "Bloodletting":
-            (L10n.affixes_bloodletting_title, [])
+            return (L10n.affixes_bloodletting_title, [])
         case "When Leech restores Health while you have no Thorns, gain 3 Thorns":
-            (L10n.affixes_bloodroot_astral_description(3), [3])
+            return (L10n.affixes_bloodroot_astral_description(3), [3])
         case "When Leech restores Health while you have no Thorns, gain 1 Thorns":
-            (L10n.affixes_bloodroot_basic_description(1), [1])
+            return (L10n.affixes_bloodroot_basic_description(1), [1])
         case "Bloodroot":
-            (L10n.affixes_bloodroot_title, [])
+            return (L10n.affixes_bloodroot_title, [])
         case "Leech restores 2 additional Health":
-            (L10n.affixes_bloodstone_astral_description(2), [2])
+            return (L10n.affixes_bloodstone_astral_description(2), [2])
         case "Leech restores 1 additional Health":
-            (L10n.affixes_bloodstone_basic_description(1), [1])
+            return (L10n.affixes_bloodstone_basic_description(1), [1])
         case "Bloodstone":
-            (L10n.affixes_bloodstone_title, [])
+            return (L10n.affixes_bloodstone_title, [])
         case "Leech has a 30% chance to also grant an equal amount of Block":
-            (L10n.affixes_bloodward_astral_description(30), [30])
+            return (L10n.affixes_bloodward_astral_description(30), [30])
         case "Leech has a 10% chance to also grant an equal amount of Block":
-            (L10n.affixes_bloodward_basic_description(10), [10])
+            return (L10n.affixes_bloodward_basic_description(10), [10])
         case "Bloodward":
-            (L10n.affixes_bloodward_title, [])
+            return (L10n.affixes_bloodward_title, [])
         case "Gain 20% Dodge chance while below 50% Health":
-            (L10n.affixes_blur_astral_description(20, 50), [20, 50])
+            return (L10n.affixes_blur_astral_description(20, 50), [20, 50])
         case "Gain 15% Dodge chance while below 50% Health":
-            (L10n.affixes_blur_basic_description(15, 50), [15, 50])
+            return (L10n.affixes_blur_basic_description(15, 50), [15, 50])
         case "Blur":
-            (L10n.affixes_blur_title, [])
+            return (L10n.affixes_blur_title, [])
         case "Draw a card the first time you lose Health each turn":
-            (L10n.affixes_bone_charm_astral_description, [])
+            return (L10n.affixes_bone_charm_astral_description, [])
         case "Blood Omen":
-            (L10n.affixes_bone_charm_title, [])
+            return (L10n.affixes_bone_charm_title, [])
         case "Gain 8 Gold when you defeat an enemy":
-            (L10n.affixes_bounty_astral_description(8), [8])
+            return (L10n.affixes_bounty_astral_description(8), [8])
         case "Gain 4 Gold when you defeat an enemy":
-            (L10n.affixes_bounty_basic_description(4), [4])
+            return (L10n.affixes_bounty_basic_description(4), [4])
         case "Bounty":
-            (L10n.affixes_bounty_title, [])
+            return (L10n.affixes_bounty_title, [])
         case "Mark the enemy when they are Stunned":
-            (L10n.affixes_branding_astral_description, [])
+            return (L10n.affixes_branding_astral_description, [])
         case "Branding":
-            (L10n.affixes_branding_title, [])
+            return (L10n.affixes_branding_title, [])
         case "Your Holy attacks deal 1 additional damage to Poisoned enemies":
-            (L10n.affixes_brass_censer_astral_description(1), [1])
+            return (L10n.affixes_brass_censer_astral_description(1), [1])
         case "Toxic Incense":
-            (L10n.affixes_brass_censer_title, [])
+            return (L10n.affixes_brass_censer_title, [])
         case "Attacks that break enemy Block deal 30% more damage to Health":
-            (L10n.affixes_breakthrough_astral_description(30), [30])
+            return (L10n.affixes_breakthrough_astral_description(30), [30])
         case "Attacks that break enemy Block deal 15% more damage to Health":
-            (L10n.affixes_breakthrough_basic_description(15), [15])
+            return (L10n.affixes_breakthrough_basic_description(15), [15])
         case "Breakthrough":
-            (L10n.affixes_breakthrough_title, [])
+            return (L10n.affixes_breakthrough_title, [])
         case "When your Block is broken, gain 3 Thorns":
-            (L10n.affixes_briarward_astral_description(3), [3])
+            return (L10n.affixes_briarward_astral_description(3), [3])
         case "When your Block is broken, gain 2 Thorns":
-            (L10n.affixes_briarward_basic_description(2), [2])
+            return (L10n.affixes_briarward_basic_description(2), [2])
         case "Briarward":
-            (L10n.affixes_briarward_title, [])
+            return (L10n.affixes_briarward_title, [])
         case "Increase Thorns damage by 4 while you have Block":
-            (L10n.affixes_bristling_astral_description(4), [4])
+            return (L10n.affixes_bristling_astral_description(4), [4])
         case "Increase Thorns damage by 2 while you have Block":
-            (L10n.affixes_bristling_basic_description(2), [2])
+            return (L10n.affixes_bristling_basic_description(2), [2])
         case "Bristling":
-            (L10n.affixes_bristling_title, [])
+            return (L10n.affixes_bristling_title, [])
         case "Gain 4 additional Block":
-            (L10n.affixes_bulwark_astral_description(4), [4])
+            return (L10n.affixes_bulwark_astral_description(4), [4])
         case "Gain 2 additional Block":
-            (L10n.affixes_bulwark_basic_description(2), [2])
+            return (L10n.affixes_bulwark_basic_description(2), [2])
         case "Bulwark":
-            (L10n.affixes_bulwark_title, [])
+            return (L10n.affixes_bulwark_title, [])
         case "Gain 2 Block when your Block is broken":
-            (L10n.affixes_cascading_astral_description(2), [2])
+            return (L10n.affixes_cascading_astral_description(2), [2])
         case "Gain 1 Block when your Block is broken":
-            (L10n.affixes_cascading_basic_description(1), [1])
+            return (L10n.affixes_cascading_basic_description(1), [1])
         case "Cascading":
-            (L10n.affixes_cascading_title, [])
+            return (L10n.affixes_cascading_title, [])
         case "Attacks gain 5 damage against enemies with both Burn and Poison":
-            (L10n.affixes_catalytic_astral_description(5), [5])
+            return (L10n.affixes_catalytic_astral_description(5), [5])
         case "Attacks gain 3 damage against enemies with both Burn and Poison":
-            (L10n.affixes_catalytic_basic_description(3), [3])
+            return (L10n.affixes_catalytic_basic_description(3), [3])
         case "Catalytic":
-            (L10n.affixes_catalytic_title, [])
+            return (L10n.affixes_catalytic_title, [])
         case "Your Bleed deals 2 additional damage to Burning enemies":
-            (L10n.affixes_cauterize_astral_description(2), [2])
+            return (L10n.affixes_cauterize_astral_description(2), [2])
         case "Your Bleed deals 1 additional damage to Burning enemies":
-            (L10n.affixes_cauterize_basic_description(1), [1])
+            return (L10n.affixes_cauterize_basic_description(1), [1])
         case "Cauterize":
-            (L10n.affixes_cauterize_title, [])
+            return (L10n.affixes_cauterize_title, [])
         case "Increase Maximum Mana by 8":
-            (L10n.affixes_channeled_astral_description(8), [8])
+            return (L10n.affixes_channeled_astral_description(8), [8])
         case "Increase Maximum Mana by 4":
-            (L10n.affixes_channeled_basic_description(4), [4])
+            return (L10n.affixes_channeled_basic_description(4), [4])
         case "Channeled":
-            (L10n.affixes_channeled_title, [])
+            return (L10n.affixes_channeled_title, [])
         case "Burn deals 2 more damage to Bleeding enemies":
-            (L10n.affixes_cinderbound_astral_description(2), [2])
+            return (L10n.affixes_cinderbound_astral_description(2), [2])
         case "Burn deals 1 more damage to Bleeding enemies":
-            (L10n.affixes_cinderbound_basic_description(1), [1])
+            return (L10n.affixes_cinderbound_basic_description(1), [1])
         case "Cinderbound":
-            (L10n.affixes_cinderbound_title, [])
+            return (L10n.affixes_cinderbound_title, [])
         case "Gain 4 Block when you Cleanse a debuff":
-            (L10n.affixes_clearheaded_astral_description(4, 1), [4, 1])
+            return (L10n.affixes_clearheaded_astral_description(4, 1), [4, 1])
         case "Gain 2 Block when you Cleanse a debuff":
-            (L10n.affixes_clearheaded_basic_description(2, 1), [2, 1])
+            return (L10n.affixes_clearheaded_basic_description(2, 1), [2, 1])
         case "Clearheaded":
-            (L10n.affixes_clearheaded_title, [])
+            return (L10n.affixes_clearheaded_title, [])
         case "Once per turn, healing your Companion draws a Companion card":
-            (L10n.affixes_companions_collar_astral_description, [])
+            return (L10n.affixes_companions_collar_astral_description, [])
         case "Loyal Companion":
-            (L10n.affixes_companions_collar_title, [])
+            return (L10n.affixes_companions_collar_title, [])
         case "Increase Stun damage by 2":
-            (L10n.affixes_concussive_astral_description(2), [2])
+            return (L10n.affixes_concussive_astral_description(2), [2])
         case "Increase Stun damage by 1":
-            (L10n.affixes_concussive_basic_description(1), [1])
+            return (L10n.affixes_concussive_basic_description(1), [1])
         case "Concussive":
-            (L10n.affixes_concussive_title, [])
+            return (L10n.affixes_concussive_title, [])
         case "Increase Holy damage by 3":
-            (L10n.affixes_consecrated_astral_description(3), [3])
+            return (L10n.affixes_consecrated_astral_description(3), [3])
         case "Increase Holy damage by 1":
-            (L10n.affixes_consecrated_basic_description(1), [1])
+            return (L10n.affixes_consecrated_basic_description(1), [1])
         case "Consecrated":
-            (L10n.affixes_consecrated_title, [])
+            return (L10n.affixes_consecrated_title, [])
         case "Poison has a 20% chance to increase instead of decreasing":
-            (L10n.affixes_contagion_astral_description(20), [20])
+            return (L10n.affixes_contagion_astral_description(20), [20])
         case "Poison has a 10% chance to increase instead of decreasing":
-            (L10n.affixes_contagion_basic_description(10), [10])
+            return (L10n.affixes_contagion_basic_description(10), [10])
         case "Contagion":
-            (L10n.affixes_contagion_title, [])
+            return (L10n.affixes_contagion_title, [])
         case "Bleed damage has a 10% chance to also steal Gold":
-            (L10n.affixes_cutpurse_knife_astral_description(10), [10])
+            return (L10n.affixes_cutpurse_knife_astral_description(10), [10])
         case "Blood Money":
-            (L10n.affixes_cutpurse_knife_title, [])
+            return (L10n.affixes_cutpurse_knife_title, [])
         case "Deal 4 additional damage while the enemy is Stunned":
-            (L10n.affixes_dazed_astral_description(4), [4])
+            return (L10n.affixes_dazed_astral_description(4), [4])
         case "Deal 2 additional damage while the enemy is Stunned":
-            (L10n.affixes_dazed_basic_description(2), [2])
+            return (L10n.affixes_dazed_basic_description(2), [2])
         case "Dazed":
-            (L10n.affixes_dazed_title, [])
+            return (L10n.affixes_dazed_title, [])
         case "Gain 16 Block when on Death's Door":
-            (L10n.affixes_deathgrip_astral_description(16), [16])
+            return (L10n.affixes_deathgrip_astral_description(16), [16])
         case "Gain 8 Block when on Death's Door":
-            (L10n.affixes_deathgrip_basic_description(8), [8])
+            return (L10n.affixes_deathgrip_basic_description(8), [8])
         case "Deathgrip":
-            (L10n.affixes_deathgrip_title, [])
+            return (L10n.affixes_deathgrip_title, [])
         case "Gain 3 additional Block":
-            (L10n.affixes_defenders_astral_description(3), [3])
+            return (L10n.affixes_defenders_astral_description(3), [3])
         case "Defender's":
-            (L10n.affixes_defenders_title, [])
+            return (L10n.affixes_defenders_title, [])
         case "Purging an enemy adds 4 damage to your next Holy attack":
-            (L10n.affixes_denouncing_astral_description(4), [4])
+            return (L10n.affixes_denouncing_astral_description(4), [4])
         case "Purging an enemy adds 2 damage to your next Holy attack":
-            (L10n.affixes_denouncing_basic_description(2), [2])
+            return (L10n.affixes_denouncing_basic_description(2), [2])
         case "Denouncing":
-            (L10n.affixes_denouncing_title, [])
+            return (L10n.affixes_denouncing_title, [])
         case "Attacks gain 3 damage per enemy buff":
-            (L10n.affixes_discerning_astral_description(3), [3])
+            return (L10n.affixes_discerning_astral_description(3), [3])
         case "Attacks gain 2 damage per enemy buff":
-            (L10n.affixes_discerning_basic_description(2), [2])
+            return (L10n.affixes_discerning_basic_description(2), [2])
         case "Discerning":
-            (L10n.affixes_discerning_title, [])
+            return (L10n.affixes_discerning_title, [])
         case "Purge all buffs when you Stun the enemy":
-            (L10n.affixes_disrupting_astral_description, [])
+            return (L10n.affixes_disrupting_astral_description, [])
         case "Purge a buff when you Stun the enemy":
-            (L10n.affixes_disrupting_basic_description(1), [1])
+            return (L10n.affixes_disrupting_basic_description(1), [1])
         case "Disrupting":
-            (L10n.affixes_disrupting_title, [])
+            return (L10n.affixes_disrupting_title, [])
         case "Gain 12% Dodge chance":
-            (L10n.affixes_elusive_astral_description(12), [12])
+            return (L10n.affixes_elusive_astral_description(12), [12])
         case "Gain 5% Dodge chance":
-            (L10n.affixes_elusive_basic_description(5), [5])
+            return (L10n.affixes_elusive_basic_description(5), [5])
         case "Elusive":
-            (L10n.affixes_elusive_title, [])
+            return (L10n.affixes_elusive_title, [])
         case "Take 25% less Burn damage":
-            (L10n.affixes_emberguard_astral_description(25), [25])
+            return (L10n.affixes_emberguard_astral_description(25), [25])
         case "Take 10% less Burn damage":
-            (L10n.affixes_emberguard_basic_description(10), [10])
+            return (L10n.affixes_emberguard_basic_description(10), [10])
         case "Emberguard":
-            (L10n.affixes_emberguard_title, [])
+            return (L10n.affixes_emberguard_title, [])
         case "Deal 6 Burn damage when you enter Death's Door":
-            (L10n.affixes_emberwake_astral_description(6), [6])
+            return (L10n.affixes_emberwake_astral_description(6), [6])
         case "Deal 3 Burn damage when you enter Death's Door":
-            (L10n.affixes_emberwake_basic_description(3), [3])
+            return (L10n.affixes_emberwake_basic_description(3), [3])
         case "Emberwake":
-            (L10n.affixes_emberwake_title, [])
+            return (L10n.affixes_emberwake_title, [])
         case "Increase Poison damage by 2":
-            (L10n.affixes_envenomed_astral_description(2), [2])
+            return (L10n.affixes_envenomed_astral_description(2), [2])
         case "Increase Poison damage by 1":
-            (L10n.affixes_envenomed_basic_description(1), [1])
+            return (L10n.affixes_envenomed_basic_description(1), [1])
         case "Envenomed":
-            (L10n.affixes_envenomed_title, [])
+            return (L10n.affixes_envenomed_title, [])
         case "Deal 3 additional damage if the enemy is below 30% Health":
-            (L10n.affixes_executioners_astral_description(3, 30), [3, 30])
+            return (L10n.affixes_executioners_astral_description(3, 30), [3, 30])
         case "Deal 2 additional damage if the enemy is below 30% Health":
-            (L10n.affixes_executioners_basic_description(2, 30), [2, 30])
+            return (L10n.affixes_executioners_basic_description(2, 30), [2, 30])
         case "Executioner's":
-            (L10n.affixes_executioners_title, [])
+            return (L10n.affixes_executioners_title, [])
         case "Gain 1 additional Block":
-            (L10n.affixes_fortified_basic_description(1), [1])
+            return (L10n.affixes_fortified_basic_description(1), [1])
         case "Fortified":
-            (L10n.affixes_fortified_title, [])
+            return (L10n.affixes_fortified_title, [])
         case "Increase Freeze damage by 4 against Burning enemies":
-            (L10n.affixes_frostburn_astral_description(4), [4])
+            return (L10n.affixes_frostburn_astral_description(4), [4])
         case "Increase Freeze damage by 2 against Burning enemies":
-            (L10n.affixes_frostburn_basic_description(2), [2])
+            return (L10n.affixes_frostburn_basic_description(2), [2])
         case "Frostburn":
-            (L10n.affixes_frostburn_title, [])
+            return (L10n.affixes_frostburn_title, [])
         case "Freeze has a 30% chance to last an additional turn":
-            (L10n.affixes_frozen_pocketwatch_astral_description(30), [30])
+            return (L10n.affixes_frozen_pocketwatch_astral_description(30), [30])
         case "Deep Freeze":
-            (L10n.affixes_frozen_pocketwatch_title, [])
+            return (L10n.affixes_frozen_pocketwatch_title, [])
         case "Increase Gold gained by 20%":
-            (L10n.affixes_gilded_astral_description(20), [20])
+            return (L10n.affixes_gilded_astral_description(20), [20])
         case "Increase Gold gained by 10%":
-            (L10n.affixes_gilded_basic_description(10), [10])
+            return (L10n.affixes_gilded_basic_description(10), [10])
         case "Gilded":
-            (L10n.affixes_gilded_title, [])
+            return (L10n.affixes_gilded_title, [])
         case "Increase Freeze damage by 2":
-            (L10n.affixes_glacial_astral_description(2), [2])
+            return (L10n.affixes_glacial_astral_description(2), [2])
         case "Increase Freeze damage by 1":
-            (L10n.affixes_glacial_basic_description(1), [1])
+            return (L10n.affixes_glacial_basic_description(1), [1])
         case "Glacial":
-            (L10n.affixes_glacial_title, [])
+            return (L10n.affixes_glacial_title, [])
         case "Restore 2 Health every other turn":
-            (L10n.affixes_groves_favor_astral_description(2), [2])
+            return (L10n.affixes_groves_favor_astral_description(2), [2])
         case "Verdant Renewal":
-            (L10n.affixes_groves_favor_title, [])
+            return (L10n.affixes_groves_favor_title, [])
         case "Increase Maximum Health by 12":
-            (L10n.affixes_hale_astral_description(12), [12])
+            return (L10n.affixes_hale_astral_description(12), [12])
         case "Increase Maximum Health by 6":
-            (L10n.affixes_hale_basic_description(6), [6])
+            return (L10n.affixes_hale_basic_description(6), [6])
         case "Hale":
-            (L10n.affixes_hale_title, [])
+            return (L10n.affixes_hale_title, [])
         case "Stunned enemies take 35% more Holy damage":
-            (L10n.affixes_hallowbreak_astral_description(35), [35])
+            return (L10n.affixes_hallowbreak_astral_description(35), [35])
         case "Stunned enemies take 25% more Holy damage":
-            (L10n.affixes_hallowbreak_basic_description(25), [25])
+            return (L10n.affixes_hallowbreak_basic_description(25), [25])
         case "Hallowbreak":
-            (L10n.affixes_hallowbreak_title, [])
+            return (L10n.affixes_hallowbreak_title, [])
         case "When a Holy attack damages an enemy while you have no Block, gain 5 Block":
-            (L10n.affixes_hallowguard_astral_description(5), [5])
+            return (L10n.affixes_hallowguard_astral_description(5), [5])
         case "When a Holy attack damages an enemy while you have no Block, gain 3 Block":
-            (L10n.affixes_hallowguard_basic_description(3), [3])
+            return (L10n.affixes_hallowguard_basic_description(3), [3])
         case "Hallowguard":
-            (L10n.affixes_hallowguard_title, [])
+            return (L10n.affixes_hallowguard_title, [])
         case "Take 25% less Physical damage":
-            (L10n.affixes_hardened_astral_description(25), [25])
+            return (L10n.affixes_hardened_astral_description(25), [25])
         case "Take 10% less Physical damage":
-            (L10n.affixes_hardened_basic_description(10), [10])
+            return (L10n.affixes_hardened_basic_description(10), [10])
         case "Hardened":
-            (L10n.affixes_hardened_title, [])
+            return (L10n.affixes_hardened_title, [])
         case "Below half Health, Leech restores 3 additional Health against Stunned enemies":
-            (L10n.affixes_heartshock_astral_description(3), [3])
+            return (L10n.affixes_heartshock_astral_description(3), [3])
         case "Below half Health, Leech restores 1 additional Health against Stunned enemies":
-            (L10n.affixes_heartshock_basic_description(1), [1])
+            return (L10n.affixes_heartshock_basic_description(1), [1])
         case "Heartshock":
-            (L10n.affixes_heartshock_title, [])
+            return (L10n.affixes_heartshock_title, [])
         case "Your Freeze damage has a 50% chance to Leech":
-            (L10n.affixes_icy_heart_astral_description(50), [50])
+            return (L10n.affixes_icy_heart_astral_description(50), [50])
         case "Cold Hunger":
-            (L10n.affixes_icy_heart_title, [])
+            return (L10n.affixes_icy_heart_title, [])
         case "Your Bleed deals 2 additional damage to Poisoned enemies":
-            (L10n.affixes_infected_astral_description(2), [2])
+            return (L10n.affixes_infected_astral_description(2), [2])
         case "Your Bleed deals 1 additional damage to Poisoned enemies":
-            (L10n.affixes_infected_basic_description(1), [1])
+            return (L10n.affixes_infected_basic_description(1), [1])
         case "Infected":
-            (L10n.affixes_infected_title, [])
+            return (L10n.affixes_infected_title, [])
         case "Take 25% less Stun damage":
-            (L10n.affixes_insulated_astral_description(25), [25])
+            return (L10n.affixes_insulated_astral_description(25), [25])
         case "Take 10% less Stun damage":
-            (L10n.affixes_insulated_basic_description(10), [10])
+            return (L10n.affixes_insulated_basic_description(10), [10])
         case "Insulated":
-            (L10n.affixes_insulated_title, [])
+            return (L10n.affixes_insulated_title, [])
         case "Gain 4 Thorns each turn you retain Block":
-            (L10n.affixes_ironbriar_astral_description(4), [4])
+            return (L10n.affixes_ironbriar_astral_description(4), [4])
         case "Gain 1 Thorns each turn you retain Block":
-            (L10n.affixes_ironbriar_basic_description(1), [1])
+            return (L10n.affixes_ironbriar_basic_description(1), [1])
         case "Ironbriar":
-            (L10n.affixes_ironbriar_title, [])
+            return (L10n.affixes_ironbriar_title, [])
         case "Gain Thorns equal to half the Block you gain":
-            (L10n.affixes_ironwood_buckler_astral_description, [])
+            return (L10n.affixes_ironwood_buckler_astral_description, [])
         case "Living Bulwark":
-            (L10n.affixes_ironwood_buckler_title, [])
+            return (L10n.affixes_ironwood_buckler_title, [])
         case "Increase Physical damage by 3":
-            (L10n.affixes_keen_astral_description(3), [3])
+            return (L10n.affixes_keen_astral_description(3), [3])
         case "Increase Physical damage by 1":
-            (L10n.affixes_keen_basic_description(1), [1])
+            return (L10n.affixes_keen_basic_description(1), [1])
         case "Keen":
-            (L10n.affixes_keen_title, [])
+            return (L10n.affixes_keen_title, [])
         case "Below half Health, restore Health equal to 20% of your ally's attack damage":
-            (L10n.affixes_kinbound_astral_description(20), [20])
+            return (L10n.affixes_kinbound_astral_description(20), [20])
         case "Below half Health, restore Health equal to 10% of your ally's attack damage":
-            (L10n.affixes_kinbound_basic_description(10), [10])
+            return (L10n.affixes_kinbound_basic_description(10), [10])
         case "Kinbound":
-            (L10n.affixes_kinbound_title, [])
+            return (L10n.affixes_kinbound_title, [])
         case "Deal 5 Physical damage when you Stun the enemy":
-            (L10n.affixes_knockout_astral_description(5), [5])
+            return (L10n.affixes_knockout_astral_description(5), [5])
         case "Deal 3 Physical damage when you Stun the enemy":
-            (L10n.affixes_knockout_basic_description(3), [3])
+            return (L10n.affixes_knockout_basic_description(3), [3])
         case "Knockout":
-            (L10n.affixes_knockout_title, [])
+            return (L10n.affixes_knockout_title, [])
         case "Gain 20% Critical chance while on Death's Door":
-            (L10n.affixes_lastlight_astral_description(20), [20])
+            return (L10n.affixes_lastlight_astral_description(20), [20])
         case "Gain 10% Critical chance while on Death's Door":
-            (L10n.affixes_lastlight_basic_description(10), [10])
+            return (L10n.affixes_lastlight_basic_description(10), [10])
         case "Lastlight":
-            (L10n.affixes_lastlight_title, [])
+            return (L10n.affixes_lastlight_title, [])
         case "Leech restores an additional 10% of damage dealt":
-            (L10n.affixes_leeching_astral_description(10), [10])
+            return (L10n.affixes_leeching_astral_description(10), [10])
         case "Leech restores an additional 5% of damage dealt":
-            (L10n.affixes_leeching_basic_description(5), [5])
+            return (L10n.affixes_leeching_basic_description(5), [5])
         case "Leeching":
-            (L10n.affixes_leeching_title, [])
+            return (L10n.affixes_leeching_title, [])
         case "Restore 3 additional Health when you Leech":
-            (L10n.affixes_lifeweave_astral_description(3), [3])
+            return (L10n.affixes_lifeweave_astral_description(3), [3])
         case "Lifeweave":
-            (L10n.affixes_lifeweave_title, [])
+            return (L10n.affixes_lifeweave_title, [])
         case "Lingering":
-            (L10n.affixes_lingering_title, [])
+            return (L10n.affixes_lingering_title, [])
         case "Gain 2 additional Gold":
-            (L10n.affixes_lucky_astral_description(2), [2])
+            return (L10n.affixes_lucky_astral_description(2), [2])
         case "Gain 1 additional Gold":
-            (L10n.affixes_lucky_basic_description(1), [1])
+            return (L10n.affixes_lucky_basic_description(1), [1])
         case "Lucky":
-            (L10n.affixes_lucky_title, [])
+            return (L10n.affixes_lucky_title, [])
         case "Gain 8% Critical chance\nGain 1 Gold on Critical Hit":
-            (L10n.affixes_lucky_clover_astral_description(8, 1), [8, 1])
+            return (L10n.affixes_lucky_clover_astral_description(8, 1), [8, 1])
         case "Fortunate Strike":
-            (L10n.affixes_lucky_clover_title, [])
+            return (L10n.affixes_lucky_clover_title, [])
         case "Increase Maximum Mana by 10":
-            (L10n.affixes_manabound_astral_description(10), [10])
+            return (L10n.affixes_manabound_astral_description(10), [10])
         case "Manabound":
-            (L10n.affixes_manabound_title, [])
+            return (L10n.affixes_manabound_title, [])
         case "Deal 2 bonus Holy damage\nTake 25% less Holy damage", "Deal 2 bonus Holy damage. Take 25% less Holy damage":
-            (L10n.affixes_martyrs_astral_description(2, 25), [2, 25])
+            return (L10n.affixes_martyrs_astral_description(2, 25), [2, 25])
         case "Deal 1 bonus Holy damage\nTake 10% less Holy damage", "Deal 1 bonus Holy damage. Take 10% less Holy damage":
-            (L10n.affixes_martyrs_basic_description(1, 10), [1, 10])
+            return (L10n.affixes_martyrs_basic_description(1, 10), [1, 10])
         case "Martyr's":
-            (L10n.affixes_martyrs_title, [])
+            return (L10n.affixes_martyrs_title, [])
         case "Attacks gain 4 damage while the enemy has more Block than you":
-            (L10n.affixes_measured_astral_description(4), [4])
+            return (L10n.affixes_measured_astral_description(4), [4])
         case "Attacks gain 2 damage while the enemy has more Block than you":
-            (L10n.affixes_measured_basic_description(2), [2])
+            return (L10n.affixes_measured_basic_description(2), [2])
         case "Measured":
-            (L10n.affixes_measured_title, [])
+            return (L10n.affixes_measured_title, [])
         case "On victory, gain 1 Gold for each different card you played, up to 7":
-            (L10n.affixes_merchants_favor_astral_description(1, 7), [1, 7])
+            return (L10n.affixes_merchants_favor_astral_description(1, 7), [1, 7])
         case "Passive Income":
-            (L10n.affixes_merchants_favor_title, [])
+            return (L10n.affixes_merchants_favor_title, [])
         case "Restore 4 additional Health while the enemy is Stunned or Frozen":
-            (L10n.affixes_merciful_astral_description(4), [4])
+            return (L10n.affixes_merciful_astral_description(4), [4])
         case "Restore 2 additional Health while the enemy is Stunned or Frozen":
-            (L10n.affixes_merciful_basic_description(2), [2])
+            return (L10n.affixes_merciful_basic_description(2), [2])
         case "Merciful":
-            (L10n.affixes_merciful_title, [])
+            return (L10n.affixes_merciful_title, [])
         case "Burn cards can spend additional Mana to deal more damage":
-            (L10n.affixes_meteorite_astral_description, [])
+            return (L10n.affixes_meteorite_astral_description, [])
         case "Falling Star":
-            (L10n.affixes_meteorite_title, [])
+            return (L10n.affixes_meteorite_title, [])
         case "Your next Poison attack gains bonus damage equal to half your latest healing received":
-            (L10n.affixes_mortar_and_pestle_astral_description, [])
+            return (L10n.affixes_mortar_and_pestle_astral_description, [])
         case "Toxic Remedy":
-            (L10n.affixes_mortar_and_pestle_title, [])
+            return (L10n.affixes_mortar_and_pestle_title, [])
         case "Gain 25% more Block while your ally has Block":
-            (L10n.affixes_mutual_astral_description(25), [25])
+            return (L10n.affixes_mutual_astral_description(25), [25])
         case "Gain 15% more Block while your ally has Block":
-            (L10n.affixes_mutual_basic_description(15), [15])
+            return (L10n.affixes_mutual_basic_description(15), [15])
         case "Mutual":
-            (L10n.affixes_mutual_title, [])
+            return (L10n.affixes_mutual_title, [])
         case "Purge a buff when you deal Holy damage":
-            (L10n.affixes_nullifying_astral_description(1), [1])
+            return (L10n.affixes_nullifying_astral_description(1), [1])
         case "Nullifying":
-            (L10n.affixes_nullifying_title, [])
+            return (L10n.affixes_nullifying_title, [])
         case "Physical damage builds an equal amount of Stun":
-            (L10n.affixes_obsidian_hammer_astral_description, [])
+            return (L10n.affixes_obsidian_hammer_astral_description, [])
         case "Concussive Force":
-            (L10n.affixes_obsidian_hammer_title, [])
+            return (L10n.affixes_obsidian_hammer_title, [])
         case "Poison attacks gain Leech":
-            (L10n.affixes_parasitic_bloom_astral_description, [])
+            return (L10n.affixes_parasitic_bloom_astral_description, [])
         case "Symbiotic Venom":
-            (L10n.affixes_parasitic_bloom_title, [])
+            return (L10n.affixes_parasitic_bloom_title, [])
         case "Gain 2 Gold when you Dodge":
-            (L10n.affixes_payday_astral_description(2), [2])
+            return (L10n.affixes_payday_astral_description(2), [2])
         case "Gain 1 Gold when you Dodge":
-            (L10n.affixes_payday_basic_description(1), [1])
+            return (L10n.affixes_payday_basic_description(1), [1])
         case "Payday":
-            (L10n.affixes_payday_title, [])
+            return (L10n.affixes_payday_title, [])
         case "Take 50% less Poison damage":
-            (L10n.affixes_plague_doctors_mask_astral_description(50), [50])
+            return (L10n.affixes_plague_doctors_mask_astral_description(50), [50])
         case "Plagueward":
-            (L10n.affixes_plague_doctors_mask_title, [])
+            return (L10n.affixes_plague_doctors_mask_title, [])
         case "Attacks gain 4 damage when their type differs from your previous attack":
-            (L10n.affixes_prismatic_astral_description(4), [4])
+            return (L10n.affixes_prismatic_astral_description(4), [4])
         case "Attacks gain 2 damage when their type differs from your previous attack":
-            (L10n.affixes_prismatic_basic_description(2), [2])
+            return (L10n.affixes_prismatic_basic_description(2), [2])
         case "Prismatic":
-            (L10n.affixes_prismatic_title, [])
+            return (L10n.affixes_prismatic_title, [])
         case "When your Block breaks, deal 2 Stun damage to the attacker":
-            (L10n.affixes_reactive_astral_description(2), [2])
+            return (L10n.affixes_reactive_astral_description(2), [2])
         case "When your Block breaks, deal 1 Stun damage to the attacker":
-            (L10n.affixes_reactive_basic_description(1), [1])
+            return (L10n.affixes_reactive_basic_description(1), [1])
         case "Reactive":
-            (L10n.affixes_reactive_title, [])
+            return (L10n.affixes_reactive_title, [])
         case "Restore 6 Health when you survive Death's Door":
-            (L10n.affixes_rekindled_astral_description(6), [6])
+            return (L10n.affixes_rekindled_astral_description(6), [6])
         case "Restore 3 Health when you survive Death's Door":
-            (L10n.affixes_rekindled_basic_description(3), [3])
+            return (L10n.affixes_rekindled_basic_description(3), [3])
         case "Rekindled":
-            (L10n.affixes_rekindled_title, [])
+            return (L10n.affixes_rekindled_title, [])
         case "Playing an attack adds 4 damage to your ally's next attack":
-            (L10n.affixes_relay_astral_description(4), [4])
+            return (L10n.affixes_relay_astral_description(4), [4])
         case "Playing an attack adds 2 damage to your ally's next attack":
-            (L10n.affixes_relay_basic_description(2), [2])
+            return (L10n.affixes_relay_basic_description(2), [2])
         case "Relay":
-            (L10n.affixes_relay_title, [])
+            return (L10n.affixes_relay_title, [])
         case "Restore 2 Health when your Block breaks":
-            (L10n.affixes_resolute_astral_description(2), [2])
+            return (L10n.affixes_resolute_astral_description(2), [2])
         case "Restore 1 Health when your Block breaks":
-            (L10n.affixes_resolute_basic_description(1), [1])
+            return (L10n.affixes_resolute_basic_description(1), [1])
         case "Resolute":
-            (L10n.affixes_resolute_title, [])
+            return (L10n.affixes_resolute_title, [])
         case "Gain 1 Mana when you play your second card each turn":
-            (L10n.affixes_resonant_chimes_astral_description(1), [1])
+            return (L10n.affixes_resonant_chimes_astral_description(1), [1])
         case "Resonance":
-            (L10n.affixes_resonant_chimes_title, [])
+            return (L10n.affixes_resonant_chimes_title, [])
         case "Draw a card when your Block breaks\nwhile below half Health":
-            (L10n.affixes_resourceful_astral_description, [])
+            return (L10n.affixes_resourceful_astral_description, [])
         case "Resourceful":
-            (L10n.affixes_resourceful_title, [])
+            return (L10n.affixes_resourceful_title, [])
         case "Restoring Health has a 20% chance to Cleanse a debuff from the target":
-            (L10n.affixes_restorative_astral_description(20, 1), [20, 1])
+            return (L10n.affixes_restorative_astral_description(20, 1), [20, 1])
         case "Restoring Health has a 15% chance to Cleanse a debuff from the target":
-            (L10n.affixes_restorative_basic_description(15, 1), [15, 1])
+            return (L10n.affixes_restorative_basic_description(15, 1), [15, 1])
         case "Restorative":
-            (L10n.affixes_restorative_title, [])
+            return (L10n.affixes_restorative_title, [])
         case "Reflect 25% of Health lost as Physical damage":
-            (L10n.affixes_retaliatory_astral_description(25), [25])
+            return (L10n.affixes_retaliatory_astral_description(25), [25])
         case "Reflect 10% of Health lost as Physical damage":
-            (L10n.affixes_retaliatory_basic_description(10), [10])
+            return (L10n.affixes_retaliatory_basic_description(10), [10])
         case "Retaliatory":
-            (L10n.affixes_retaliatory_title, [])
+            return (L10n.affixes_retaliatory_title, [])
         case "Rime":
-            (L10n.affixes_rime_title, [])
+            return (L10n.affixes_rime_title, [])
         case "Take 25% less Freeze damage":
-            (L10n.affixes_rimed_astral_description(25), [25])
+            return (L10n.affixes_rimed_astral_description(25), [25])
         case "Take 10% less Freeze damage":
-            (L10n.affixes_rimed_basic_description(10), [10])
+            return (L10n.affixes_rimed_basic_description(10), [10])
         case "Rimed":
-            (L10n.affixes_rimed_title, [])
+            return (L10n.affixes_rimed_title, [])
         case "Deal 8 additional damage on your next attack after Dodging":
-            (L10n.affixes_riposte_astral_description(8), [8])
+            return (L10n.affixes_riposte_astral_description(8), [8])
         case "Deal 3 additional damage on your next attack after Dodging":
-            (L10n.affixes_riposte_basic_description(3), [3])
+            return (L10n.affixes_riposte_basic_description(3), [3])
         case "Riposte":
-            (L10n.affixes_riposte_title, [])
+            return (L10n.affixes_riposte_title, [])
         case "Draw a card the first time you spend Mana each turn":
-            (L10n.affixes_runic_quill_astral_description, [])
+            return (L10n.affixes_runic_quill_astral_description, [])
         case "Arcane Script":
-            (L10n.affixes_runic_quill_title, [])
+            return (L10n.affixes_runic_quill_title, [])
         case "Gain 2 Block when you deal Holy damage":
-            (L10n.affixes_sanctum_astral_description(2), [2])
+            return (L10n.affixes_sanctum_astral_description(2), [2])
         case "Gain 1 Block when you deal Holy damage":
-            (L10n.affixes_sanctum_basic_description(1), [1])
+            return (L10n.affixes_sanctum_basic_description(1), [1])
         case "Sanctum":
-            (L10n.affixes_sanctum_title, [])
+            return (L10n.affixes_sanctum_title, [])
         case "Physical attacks gain Leech while you're below half Health":
-            (L10n.affixes_scarfeast_astral_description, [])
+            return (L10n.affixes_scarfeast_astral_description, [])
         case "Scarfeast":
-            (L10n.affixes_scarfeast_title, [])
+            return (L10n.affixes_scarfeast_title, [])
         case "Restore 16 Health the first time you fall below 25% Health":
-            (L10n.affixes_second_wind_astral_description(16, 25), [16, 25])
+            return (L10n.affixes_second_wind_astral_description(16, 25), [16, 25])
         case "Restore 8 Health the first time you fall below 25% Health":
-            (L10n.affixes_second_wind_basic_description(8, 25), [8, 25])
+            return (L10n.affixes_second_wind_basic_description(8, 25), [8, 25])
         case "Second Wind":
-            (L10n.affixes_second_wind_title, [])
+            return (L10n.affixes_second_wind_title, [])
         case "Sentinel":
-            (L10n.affixes_sentinel_title, [])
+            return (L10n.affixes_sentinel_title, [])
         case "Increase Bleed damage by 2":
-            (L10n.affixes_serrated_astral_description(2), [2])
+            return (L10n.affixes_serrated_astral_description(2), [2])
         case "Increase Bleed damage by 1":
-            (L10n.affixes_serrated_basic_description(1), [1])
+            return (L10n.affixes_serrated_basic_description(1), [1])
         case "Serrated":
-            (L10n.affixes_serrated_title, [])
+            return (L10n.affixes_serrated_title, [])
         case "Deal 4 additional damage while the enemy is Frozen":
-            (L10n.affixes_shatter_astral_description(4), [4])
+            return (L10n.affixes_shatter_astral_description(4), [4])
         case "Deal 2 additional damage while the enemy is Frozen":
-            (L10n.affixes_shatter_basic_description(2), [2])
+            return (L10n.affixes_shatter_basic_description(2), [2])
         case "Brittle":
-            (L10n.affixes_shatter_title, [])
+            return (L10n.affixes_shatter_title, [])
         case "Freezing an enemy deals 5 Physical damage":
-            (L10n.affixes_shattering_astral_description(5), [5])
+            return (L10n.affixes_shattering_astral_description(5), [5])
         case "Freezing an enemy deals 3 Physical damage":
-            (L10n.affixes_shattering_basic_description(3), [3])
+            return (L10n.affixes_shattering_basic_description(3), [3])
         case "Shattering":
-            (L10n.affixes_shattering_title, [])
+            return (L10n.affixes_shattering_title, [])
         case "Your Physical damage ignores 25% of enemy damage reduction":
-            (L10n.affixes_shredding_astral_description(25), [25])
+            return (L10n.affixes_shredding_astral_description(25), [25])
         case "Your Physical damage ignores 10% of enemy damage reduction":
-            (L10n.affixes_shredding_basic_description(10), [10])
+            return (L10n.affixes_shredding_basic_description(10), [10])
         case "Shredding":
-            (L10n.affixes_shredding_title, [])
+            return (L10n.affixes_shredding_title, [])
         case "Restore 3 Health when you Dodge":
-            (L10n.affixes_sidestep_astral_description(3), [3])
+            return (L10n.affixes_sidestep_astral_description(3), [3])
         case "Restore 1 Health when you Dodge":
-            (L10n.affixes_sidestep_basic_description(1), [1])
+            return (L10n.affixes_sidestep_basic_description(1), [1])
         case "Sidestep":
-            (L10n.affixes_sidestep_title, [])
+            return (L10n.affixes_sidestep_title, [])
         case "Restore 3 Health when you remove a debuff":
-            (L10n.affixes_sin_eaters_lantern_astral_description(3, 1), [3, 1])
+            return (L10n.affixes_sin_eaters_lantern_astral_description(3, 1), [3, 1])
         case "Absolution":
-            (L10n.affixes_sin_eaters_lantern_title, [])
+            return (L10n.affixes_sin_eaters_lantern_title, [])
         case "Restore 2 Mana when you Leech":
-            (L10n.affixes_siphoning_astral_description(2), [2])
+            return (L10n.affixes_siphoning_astral_description(2), [2])
         case "Restore 1 Mana when you Leech":
-            (L10n.affixes_siphoning_basic_description(1), [1])
+            return (L10n.affixes_siphoning_basic_description(1), [1])
         case "Siphoning":
-            (L10n.affixes_siphoning_title, [])
+            return (L10n.affixes_siphoning_title, [])
         case "Increase Burn damage by 2":
-            (L10n.affixes_smoldering_astral_description(2), [2])
+            return (L10n.affixes_smoldering_astral_description(2), [2])
         case "Increase Burn damage by 1":
-            (L10n.affixes_smoldering_basic_description(1), [1])
+            return (L10n.affixes_smoldering_basic_description(1), [1])
         case "Smoldering":
-            (L10n.affixes_smoldering_title, [])
+            return (L10n.affixes_smoldering_title, [])
         case "Stealing Gold has a 20% chance\nto draw a card":
-            (L10n.affixes_smugglers_map_astral_description(20), [20])
+            return (L10n.affixes_smugglers_map_astral_description(20), [20])
         case "Hidden Cache":
-            (L10n.affixes_smugglers_map_title, [])
+            return (L10n.affixes_smugglers_map_title, [])
         case "Gain 2 Mana when you Cleanse a debuff":
-            (L10n.affixes_solace_astral_description(2, 1), [2, 1])
+            return (L10n.affixes_solace_astral_description(2, 1), [2, 1])
         case "Gain 1 Mana when you Cleanse a debuff":
-            (L10n.affixes_solace_basic_description(1, 1), [1, 1])
+            return (L10n.affixes_solace_basic_description(1, 1), [1, 1])
         case "Solace":
-            (L10n.affixes_solace_title, [])
+            return (L10n.affixes_solace_title, [])
         case "Purge 2 buffs from the enemy when you empower a card with Mana":
-            (L10n.affixes_spellrending_astral_description(2), [2])
+            return (L10n.affixes_spellrending_astral_description(2), [2])
         case "Purge a buff from the enemy when you empower a card with Mana":
-            (L10n.affixes_spellrending_basic_description(1), [1])
+            return (L10n.affixes_spellrending_basic_description(1), [1])
         case "Spellrending":
-            (L10n.affixes_spellrending_title, [])
+            return (L10n.affixes_spellrending_title, [])
         case "Your Thorns deal 3 additional damage to Poisoned enemies":
-            (L10n.affixes_spitebloom_astral_description(3), [3])
+            return (L10n.affixes_spitebloom_astral_description(3), [3])
         case "Your Thorns deal 1 additional damage to Poisoned enemies":
-            (L10n.affixes_spitebloom_basic_description(1), [1])
+            return (L10n.affixes_spitebloom_basic_description(1), [1])
         case "Spitebloom":
-            (L10n.affixes_spitebloom_title, [])
+            return (L10n.affixes_spitebloom_title, [])
         case "Restore 4 Health the first time Thorns deals damage each turn":
-            (L10n.affixes_spiteful_astral_description(4), [4])
+            return (L10n.affixes_spiteful_astral_description(4), [4])
         case "Restore 2 Health the first time Thorns deals damage each turn":
-            (L10n.affixes_spiteful_basic_description(2), [2])
+            return (L10n.affixes_spiteful_basic_description(2), [2])
         case "Spiteful":
-            (L10n.affixes_spiteful_title, [])
+            return (L10n.affixes_spiteful_title, [])
         case "When you Stun with no Block, gain 5 Block":
-            (L10n.affixes_steadfast_astral_description(5), [5])
+            return (L10n.affixes_steadfast_astral_description(5), [5])
         case "When you Stun with no Block, gain 3 Block":
-            (L10n.affixes_steadfast_basic_description(3), [3])
+            return (L10n.affixes_steadfast_basic_description(3), [3])
         case "Steadfast":
-            (L10n.affixes_steadfast_title, [])
+            return (L10n.affixes_steadfast_title, [])
         case "Playing an attack adds 4 to your next Block gain":
-            (L10n.affixes_steelsong_astral_description(4), [4])
+            return (L10n.affixes_steelsong_astral_description(4), [4])
         case "Playing an attack adds 2 to your next Block gain":
-            (L10n.affixes_steelsong_basic_description(2), [2])
+            return (L10n.affixes_steelsong_basic_description(2), [2])
         case "Steelsong":
-            (L10n.affixes_steelsong_title, [])
+            return (L10n.affixes_steelsong_title, [])
         case "Stun has a 20% chance to last an additional turn":
-            (L10n.affixes_stunned_pocketwatch_astral_description(20), [20])
+            return (L10n.affixes_stunned_pocketwatch_astral_description(20), [20])
         case "Concussive Pocketwatch":
-            (L10n.affixes_stunned_pocketwatch_title, [])
+            return (L10n.affixes_stunned_pocketwatch_title, [])
         case "Stunning":
-            (L10n.affixes_stunning_title, [])
+            return (L10n.affixes_stunning_title, [])
         case "Increase Physical damage by 1\nPhysical and Stun damage remove twice as much Block", "Increase Physical damage by 1. Physical and Stun damage remove twice as much Block":
-            (L10n.affixes_sundering_charm_astral_description(1), [1])
+            return (L10n.affixes_sundering_charm_astral_description(1), [1])
         case "Shatterguard":
-            (L10n.affixes_sundering_charm_title, [])
+            return (L10n.affixes_sundering_charm_title, [])
         case "Your ally receives 100% of the Health you restore with Leech":
-            (L10n.affixes_symbiosis_astral_description(100), [100])
+            return (L10n.affixes_symbiosis_astral_description(100), [100])
         case "Your ally receives 50% of the Health you restore with Leech":
-            (L10n.affixes_symbiosis_basic_description(50), [50])
+            return (L10n.affixes_symbiosis_basic_description(50), [50])
         case "Symbiosis":
-            (L10n.affixes_symbiosis_title, [])
+            return (L10n.affixes_symbiosis_title, [])
         case "Every other turn, lose 1 Health and draw a card":
-            (L10n.affixes_tattered_pages_astral_description(1), [1])
+            return (L10n.affixes_tattered_pages_astral_description(1), [1])
         case "Forbidden Knowledge":
-            (L10n.affixes_tattered_pages_title, [])
+            return (L10n.affixes_tattered_pages_title, [])
         case "Take 25% less Bleed damage":
-            (L10n.affixes_thick_skinned_astral_description(25), [25])
+            return (L10n.affixes_thick_skinned_astral_description(25), [25])
         case "Take 10% less Bleed damage":
-            (L10n.affixes_thick_skinned_basic_description(10), [10])
+            return (L10n.affixes_thick_skinned_basic_description(10), [10])
         case "Thick-Skinned":
-            (L10n.affixes_thick_skinned_title, [])
+            return (L10n.affixes_thick_skinned_title, [])
         case "Gain 3 Thorns at the start of combat":
-            (L10n.affixes_thornwrought_astral_description(3), [3])
+            return (L10n.affixes_thornwrought_astral_description(3), [3])
         case "Gain 1 Thorns at the start of combat":
-            (L10n.affixes_thornwrought_basic_description(1), [1])
+            return (L10n.affixes_thornwrought_basic_description(1), [1])
         case "Thornwrought":
-            (L10n.affixes_thornwrought_title, [])
+            return (L10n.affixes_thornwrought_title, [])
         case "Deal double damage to Stunned enemies":
-            (L10n.affixes_thunderstone_astral_description, [])
+            return (L10n.affixes_thunderstone_astral_description, [])
         case "Stormbreak":
-            (L10n.affixes_thunderstone_title, [])
+            return (L10n.affixes_thunderstone_title, [])
         case "Attacks deal 15% more damage while you have no debuffs":
-            (L10n.affixes_unburdened_astral_description(15), [15])
+            return (L10n.affixes_unburdened_astral_description(15), [15])
         case "Attacks deal 8% more damage while you have no debuffs":
-            (L10n.affixes_unburdened_basic_description(8), [8])
+            return (L10n.affixes_unburdened_basic_description(8), [8])
         case "Unburdened":
-            (L10n.affixes_unburdened_title, [])
+            return (L10n.affixes_unburdened_title, [])
         case "Deal 2 bonus Physical damage\nPurge all buffs from the enemy when you Critically Hit", "Deal 2 bonus Physical damage. Purge all buffs from the enemy when you Critically Hit":
-            (L10n.affixes_unmaking_astral_description(2), [2])
+            return (L10n.affixes_unmaking_astral_description(2), [2])
         case "Deal 1 bonus Physical damage\nPurge a buff from the enemy when you Critically Hit", "Deal 1 bonus Physical damage. Purge a buff from the enemy when you Critically Hit":
-            (L10n.affixes_unmaking_basic_description(1, 1), [1, 1])
+            return (L10n.affixes_unmaking_basic_description(1, 1), [1, 1])
         case "Unmaking":
-            (L10n.affixes_unmaking_title, [])
+            return (L10n.affixes_unmaking_title, [])
         case "Gain 6 Block when you Purge an enemy":
-            (L10n.affixes_unraveling_astral_description(6), [6])
+            return (L10n.affixes_unraveling_astral_description(6), [6])
         case "Gain 2 Block when you Purge an enemy":
-            (L10n.affixes_unraveling_basic_description(2), [2])
+            return (L10n.affixes_unraveling_basic_description(2), [2])
         case "Unraveling":
-            (L10n.affixes_unraveling_title, [])
+            return (L10n.affixes_unraveling_title, [])
         case "Gain 4 Block when you Dodge":
-            (L10n.affixes_untouchable_astral_description(4), [4])
+            return (L10n.affixes_untouchable_astral_description(4), [4])
         case "Gain 2 Block when you Dodge":
-            (L10n.affixes_untouchable_basic_description(2), [2])
+            return (L10n.affixes_untouchable_basic_description(2), [2])
         case "Untouchable":
-            (L10n.affixes_untouchable_title, [])
+            return (L10n.affixes_untouchable_title, [])
         case "Leech restores an additional 20% of damage dealt":
-            (L10n.affixes_vampiric_astral_description(20), [20])
+            return (L10n.affixes_vampiric_astral_description(20), [20])
         case "Vampiric":
-            (L10n.affixes_vampiric_title, [])
+            return (L10n.affixes_vampiric_title, [])
         case "Gain Block equal to half your Physical damage":
-            (L10n.affixes_vanguards_crest_astral_description, [])
+            return (L10n.affixes_vanguards_crest_astral_description, [])
         case "Martial Guard":
-            (L10n.affixes_vanguards_crest_title, [])
+            return (L10n.affixes_vanguards_crest_title, [])
         case "Poison deals 3 additional damage against Bleeding enemies":
-            (L10n.affixes_venomtrail_astral_description(3), [3])
+            return (L10n.affixes_venomtrail_astral_description(3), [3])
         case "Poison deals 1 additional damage against Bleeding enemies":
-            (L10n.affixes_venomtrail_basic_description(1), [1])
+            return (L10n.affixes_venomtrail_basic_description(1), [1])
         case "Venomtrail":
-            (L10n.affixes_venomtrail_title, [])
+            return (L10n.affixes_venomtrail_title, [])
         case "Restore 3 additional Health":
-            (L10n.affixes_vital_astral_description(3), [3])
+            return (L10n.affixes_vital_astral_description(3), [3])
         case "Restore 1 additional Health":
-            (L10n.affixes_vital_basic_description(1), [1])
+            return (L10n.affixes_vital_basic_description(1), [1])
         case "Vital":
-            (L10n.affixes_vital_title, [])
+            return (L10n.affixes_vital_title, [])
         case "Dodging adds 5 damage to your next Stun attack":
-            (L10n.affixes_whiplash_astral_description(5), [5])
+            return (L10n.affixes_whiplash_astral_description(5), [5])
         case "Dodging adds 3 damage to your next Stun attack":
-            (L10n.affixes_whiplash_basic_description(3), [3])
+            return (L10n.affixes_whiplash_basic_description(3), [3])
         case "Whiplash":
-            (L10n.affixes_whiplash_title, [])
+            return (L10n.affixes_whiplash_title, [])
         case "Restore 2 Health when you gain Gold":
-            (L10n.affixes_windfall_astral_description(2), [2])
+            return (L10n.affixes_windfall_astral_description(2), [2])
         case "Restore 1 Health when you gain Gold":
-            (L10n.affixes_windfall_basic_description(1), [1])
+            return (L10n.affixes_windfall_basic_description(1), [1])
         case "Windfall":
-            (L10n.affixes_windfall_title, [])
+            return (L10n.affixes_windfall_title, [])
         case "On victory, gain 7 Gold or gain 3 Gold":
-            (L10n.affixes_wishing_well_coin_astral_description(7, 3), [7, 3])
+            return (L10n.affixes_wishing_well_coin_astral_description(7, 3), [7, 3])
         case "Fickle Fortune":
-            (L10n.affixes_wishing_well_coin_title, [])
+            return (L10n.affixes_wishing_well_coin_title, [])
         case "This floor is already complete", "This floor is already complete.":
-            (L10n.authored_002921bc1be38570, [])
+            return (L10n.authored_002921bc1be38570, [])
         case "Mystery":
-            (L10n.authored_0053cb38fb72eb99, [])
+            return (L10n.authored_0053cb38fb72eb99, [])
         case "Astral inventory":
-            (L10n.authored_0194e8d6eef346e0, [])
+            return (L10n.authored_0194e8d6eef346e0, [])
         case "Increased Gold Damage":
-            (L10n.authored_019df9cb0c850a4e, [])
+            return (L10n.authored_019df9cb0c850a4e, [])
         case "Red Harvest":
-            (L10n.authored_01d0b6924d1a34b3, [])
+            return (L10n.authored_01d0b6924d1a34b3, [])
         case "Gold gained in combat adds equal damage to your next Holy hit from a manually played card":
-            (L10n.authored_0208e3efa131750d, [])
+            return (L10n.authored_0208e3efa131750d, [])
         case "Drops Holy items":
-            (L10n.authored_02dfcb911322b7e1, [])
+            return (L10n.authored_02dfcb911322b7e1, [])
         case "Overgrown Temple":
-            (L10n.authored_02f3dec16314d8f1, [])
+            return (L10n.authored_02f3dec16314d8f1, [])
         case "Unique Hoard":
-            (L10n.authored_031c642b0ca2a82d, [])
+            return (L10n.authored_031c642b0ca2a82d, [])
         case "Arcana":
-            (L10n.authored_04ea228ec8761274, [])
+            return (L10n.authored_04ea228ec8761274, [])
         case "Once per turn, spending your last Mana to empower a Burn or Freeze card repeats its damage":
-            (L10n.authored_0580f476b6077cea, [])
+            return (L10n.authored_0580f476b6077cea, [])
         case "Your ally receives 1% of the Health you restore with Leech":
-            (L10n.authored_0690d4cc7132d673(1), [1])
+            return (L10n.authored_0690d4cc7132d673(1), [1])
         case "Venomflash":
-            (L10n.authored_087bd02c9216a209, [])
+            return (L10n.authored_087bd02c9216a209, [])
         case "Shop":
-            (L10n.authored_089013043262ce51, [])
+            return (L10n.authored_089013043262ce51, [])
         case "Drops Dodge items":
-            (L10n.authored_090301f751942b72, [])
+            return (L10n.authored_090301f751942b72, [])
         case "Saintfall Plate":
-            (L10n.authored_091e9b979929164b, [])
+            return (L10n.authored_091e9b979929164b, [])
         case "Drops Bleed items":
-            (L10n.authored_0a45614b0da91d0c, [])
+            return (L10n.authored_0a45614b0da91d0c, [])
         case "Open the Cache":
-            (L10n.authored_0b382955ec24559b, [])
+            return (L10n.authored_0b382955ec24559b, [])
         case "Event Unavailable":
-            (L10n.authored_0b56b6f180a9efc4, [])
+            return (L10n.authored_0b56b6f180a9efc4, [])
         case "Thunder Writ":
-            (L10n.authored_0c0a3c941491af03, [])
+            return (L10n.authored_0c0a3c941491af03, [])
         case "Gain 8 Block\nGain 1 Gold":
-            (L10n.authored_0c6b172c72634036(8, 1), [8, 1])
+            return (L10n.authored_0c6b172c72634036(8, 1), [8, 1])
         case "That choice isn't available anymore", "That choice isn't available anymore.":
-            (L10n.authored_0ca0cc5d15f73c74, [])
+            return (L10n.authored_0ca0cc5d15f73c74, [])
         case "Blackfletch":
-            (L10n.authored_0d16469579955737, [])
+            return (L10n.authored_0d16469579955737, [])
         case "Laceration":
-            (L10n.authored_0d589e62e9c1efb6, [])
+            return (L10n.authored_0d589e62e9c1efb6, [])
         case "Burn, Freeze, or Holy damage has a 10% chance to restore 1 Mana to the wearer":
-            (L10n.authored_0dcca8be276ca533(10, 1), [10, 1])
+            return (L10n.authored_0dcca8be276ca533(10, 1), [10, 1])
         case "Ferocity":
-            (L10n.authored_0dff654b2e7ba5f4, [])
+            return (L10n.authored_0dff654b2e7ba5f4, [])
         case "Purification":
-            (L10n.authored_0e010347395e56db, [])
+            return (L10n.authored_0e010347395e56db, [])
         case "Wardbreaker":
-            (L10n.authored_0e5b440e0f3af0f2, [])
+            return (L10n.authored_0e5b440e0f3af0f2, [])
         case "Starts with Block":
-            (L10n.authored_0e97d5db936bbb90, [])
+            return (L10n.authored_0e97d5db936bbb90, [])
         case "Serpent Writ":
-            (L10n.authored_0ee7c0e2404f0bad, [])
+            return (L10n.authored_0ee7c0e2404f0bad, [])
         case "This Spire is not ready yet", "This Spire is not ready yet.":
-            (L10n.authored_0f7d3f163db26abe, [])
+            return (L10n.authored_0f7d3f163db26abe, [])
         case "Drops Death's Door items":
-            (L10n.authored_10aa10678d29bbeb, [])
+            return (L10n.authored_10aa10678d29bbeb, [])
         case "Deal 4 Holy damage\nPurge a buff from the enemy":
-            (L10n.authored_128a299334d9ba34(4, 1), [4, 1])
+            return (L10n.authored_128a299334d9ba34(4, 1), [4, 1])
         case "Health Resistance":
-            (L10n.authored_12b59055e98c1f87, [])
+            return (L10n.authored_12b59055e98c1f87, [])
         case "Playing your second card each turn draws a card and grants 10% Dodge until your next turn":
-            (L10n.authored_12fdafc7a89108bc(10), [10])
+            return (L10n.authored_12fdafc7a89108bc(10), [10])
         case "Agility":
-            (L10n.authored_1316167f1592cab9, [])
+            return (L10n.authored_1316167f1592cab9, [])
         case "Take Tribute":
-            (L10n.authored_1362c35ad5699b06, [])
+            return (L10n.authored_1362c35ad5699b06, [])
         case "Increased Holy Damage":
-            (L10n.authored_13c133b6af8e99fa, [])
+            return (L10n.authored_13c133b6af8e99fa, [])
         case "Floor Locked":
-            (L10n.authored_13c7a3534e2dfafc, [])
+            return (L10n.authored_13c7a3534e2dfafc, [])
         case "Read the Rings":
-            (L10n.authored_152515b5f374eac1, [])
+            return (L10n.authored_152515b5f374eac1, [])
         case "Fortune":
-            (L10n.authored_165ed83b54fc74be, [])
+            return (L10n.authored_165ed83b54fc74be, [])
         case "Deal 1 Freeze damage, twice":
-            (L10n.authored_168295b2ac4c0f17(1), [1])
+            return (L10n.authored_168295b2ac4c0f17(1), [1])
         case "Predation":
-            (L10n.authored_1773dc680a9dddb1, [])
+            return (L10n.authored_1773dc680a9dddb1, [])
         case "The Necromancer's Offer":
-            (L10n.authored_17ddbd9a2690bcbf, [])
+            return (L10n.authored_17ddbd9a2690bcbf, [])
         case "Recruit":
-            (L10n.authored_18bcf4c278e097cf, [])
+            return (L10n.authored_18bcf4c278e097cf, [])
         case "Gather Boughs":
-            (L10n.authored_199b171d36c4671f, [])
+            return (L10n.authored_199b171d36c4671f, [])
         case "Herbalist's Request":
-            (L10n.authored_19dea6fa4a1a8201, [])
+            return (L10n.authored_19dea6fa4a1a8201, [])
         case "Wrenflight":
-            (L10n.authored_1a2e98b8e26c968a, [])
+            return (L10n.authored_1a2e98b8e26c968a, [])
         case "The Phoenix":
-            (L10n.authored_1b6deb23c7e92925, [])
+            return (L10n.authored_1b6deb23c7e92925, [])
         case "Haul the Net":
-            (L10n.authored_1bc26868ebf45b54, [])
+            return (L10n.authored_1bc26868ebf45b54, [])
         case "Bonus Materials":
-            (L10n.authored_1bfcbd270a59408f, [])
+            return (L10n.authored_1bfcbd270a59408f, [])
         case "Bonus Hide":
-            (L10n.authored_1c1f74db68bc8c04, [])
+            return (L10n.authored_1c1f74db68bc8c04, [])
         case "Increased Bleed Damage":
-            (L10n.authored_1c4a2bb82e3f780e, [])
+            return (L10n.authored_1c4a2bb82e3f780e, [])
         case "Increased Poison Damage":
-            (L10n.authored_1d3738bc59a6f56d, [])
+            return (L10n.authored_1d3738bc59a6f56d, [])
         case "Drops Purge items":
-            (L10n.authored_1d7e16e5cdc686be, [])
+            return (L10n.authored_1d7e16e5cdc686be, [])
         case "Deal 2 Freeze damage\nDoubled against Frozen enemies":
-            (L10n.authored_1d9a045f72b4811e(2), [2])
+            return (L10n.authored_1d9a045f72b4811e(2), [2])
         case "Blessing":
-            (L10n.authored_1dd6d3e8d1367bd1, [])
+            return (L10n.authored_1dd6d3e8d1367bd1, [])
         case "Drops Gold items":
-            (L10n.authored_1f08777d6c84c1ce, [])
+            return (L10n.authored_1f08777d6c84c1ce, [])
         case "Encounter Missing":
-            (L10n.authored_1f52c2e71da2d303, [])
+            return (L10n.authored_1f52c2e71da2d303, [])
         case "Wildgrowth":
-            (L10n.authored_1fc3b585bb8f57ec, [])
+            return (L10n.authored_1fc3b585bb8f57ec, [])
         case "Sacred Grove":
-            (L10n.authored_20dca174bd45c58c, [])
+            return (L10n.authored_20dca174bd45c58c, [])
         case "Clear another path to reach this node", "Clear another path to reach this node.":
-            (L10n.authored_213743323f51ef50, [])
+            return (L10n.authored_213743323f51ef50, [])
         case "Drops Health items":
-            (L10n.authored_2147cedab7fd29db, [])
+            return (L10n.authored_2147cedab7fd29db, [])
         case "Dodging adds 1 damage to your next Stun attack":
-            (L10n.authored_21496dd3271e6194(1), [1])
+            return (L10n.authored_21496dd3271e6194(1), [1])
         case "Abandoned Study":
-            (L10n.authored_21f8367bd55ff925, [])
+            return (L10n.authored_21f8367bd55ff925, [])
         case "Meteorite Crash":
-            (L10n.authored_223114e19b0873c6, [])
+            return (L10n.authored_223114e19b0873c6, [])
         case "Your first Holy attack that deals Health damage each turn restores 1 Health to the lowest-Health ally":
-            (L10n.authored_2258458bab0b6bf0(1), [1])
+            return (L10n.authored_2258458bab0b6bf0(1), [1])
         case "Your next Poison attack gains bonus damage equal to 1% of your latest healing received":
-            (L10n.authored_2342c42e3288a7fd(1), [1])
+            return (L10n.authored_2342c42e3288a7fd(1), [1])
         case "Bulwark Writ":
-            (L10n.authored_234433547bcd2b20, [])
+            return (L10n.authored_234433547bcd2b20, [])
         case "Search Stones":
-            (L10n.authored_236327be98d09af6, [])
+            return (L10n.authored_236327be98d09af6, [])
         case "Scavenge":
-            (L10n.authored_24ad15e3eb260ad0, [])
+            return (L10n.authored_24ad15e3eb260ad0, [])
         case "Clear earlier floors first", "Clear earlier floors first.":
-            (L10n.authored_24b9c98ebafed9de, [])
+            return (L10n.authored_24b9c98ebafed9de, [])
         case "Read Ripples":
-            (L10n.authored_24bda43b2e64be78, [])
+            return (L10n.authored_24bda43b2e64be78, [])
         case "Battle":
-            (L10n.authored_25f4e2555fe60fd4, [])
+            return (L10n.authored_25f4e2555fe60fd4, [])
         case "Hunter's Lodge":
-            (L10n.authored_26523a0f0b831215, [])
+            return (L10n.authored_26523a0f0b831215, [])
         case "Search Ruins":
-            (L10n.authored_27169b88a8cb27b2, [])
+            return (L10n.authored_27169b88a8cb27b2, [])
         case "This path is not ready yet", "This path is not ready yet.":
-            (L10n.authored_27ba1713a97d4f4e, [])
+            return (L10n.authored_27ba1713a97d4f4e, [])
         case "Forgotten Hoard":
-            (L10n.authored_28be9b1b441ee6f0, [])
+            return (L10n.authored_28be9b1b441ee6f0, [])
         case "Deal 2 Burn damage\nDoubled if enemy was not Burning":
-            (L10n.authored_28d1d781324c2c4f(2), [2])
+            return (L10n.authored_28d1d781324c2c4f(2), [2])
         case "Study Spell":
-            (L10n.authored_2905f26b3ac7b9b1, [])
+            return (L10n.authored_2905f26b3ac7b9b1, [])
         case "Take Weapon":
-            (L10n.authored_29df271ef4ebb34e, [])
+            return (L10n.authored_29df271ef4ebb34e, [])
         case "Leech Resistance":
-            (L10n.authored_2af5a44565e37f96, [])
+            return (L10n.authored_2af5a44565e37f96, [])
         case "Devotion":
-            (L10n.authored_2b679c47a1ad4a41, [])
+            return (L10n.authored_2b679c47a1ad4a41, [])
         case "Iron Commission":
-            (L10n.authored_2bf854987d453399, [])
+            return (L10n.authored_2bf854987d453399, [])
         case "Twin Casting":
-            (L10n.authored_2d29fbf68dc55edd, [])
+            return (L10n.authored_2d29fbf68dc55edd, [])
         case "Crimson Writ":
-            (L10n.authored_2d2b232443289796, [])
+            return (L10n.authored_2d2b232443289796, [])
         case "Your Stun damage ignores enemy Block and gains damage equal to that Block":
-            (L10n.authored_2d432e5eac18f64c, [])
+            return (L10n.authored_2d432e5eac18f64c, [])
         case "Bloodboil":
-            (L10n.authored_2f8579fa0d7c9662, [])
+            return (L10n.authored_2f8579fa0d7c9662, [])
         case "The Unclosing Wound":
-            (L10n.authored_2fa567236bcc63e8, [])
+            return (L10n.authored_2fa567236bcc63e8, [])
         case "Search Crypt":
-            (L10n.authored_3194d33a508ae24d, [])
+            return (L10n.authored_3194d33a508ae24d, [])
         case "Stunning an enemy preserves a quarter of the Stun buildup that triggered it":
-            (L10n.authored_31f730a52db51c68, [])
+            return (L10n.authored_31f730a52db51c68, [])
         case "Leave":
-            (L10n.authored_3271d589dd662bf2, [])
+            return (L10n.authored_3271d589dd662bf2, [])
         case "Roll a 12-sided die\nGain that much Block, Thorns, or Health\nAt full party Health, roll Block or Thorns\nDraw 1 card":
-            (L10n.authored_33ae3045806f0c59(12, 1), [12, 1])
+            return (L10n.authored_33ae3045806f0c59(12, 1), [12, 1])
         case "Increased Burn Damage":
-            (L10n.authored_346df12519cf9ef7, [])
+            return (L10n.authored_346df12519cf9ef7, [])
         case "Drops Block items":
-            (L10n.authored_348c1a5e9ab28ec0, [])
+            return (L10n.authored_348c1a5e9ab28ec0, [])
         case "Drops Cleanse items":
-            (L10n.authored_34d51e747d5210bf, [])
+            return (L10n.authored_34d51e747d5210bf, [])
         case "Cleanse Resistance":
-            (L10n.authored_359a56fc37238a1e, [])
+            return (L10n.authored_359a56fc37238a1e, [])
         case "Scavenger's Luck":
-            (L10n.authored_35bb6c792f60b660, [])
+            return (L10n.authored_35bb6c792f60b660, [])
         case "Vital Pact":
-            (L10n.authored_374513f9145b481a, [])
+            return (L10n.authored_374513f9145b481a, [])
         case "Deal 3 Burn or Poison damage at random":
-            (L10n.authored_396d8d761b8ce3b3(3), [3])
+            return (L10n.authored_396d8d761b8ce3b3(3), [3])
         case "Increased Health Damage":
-            (L10n.authored_39b738efd34ee69a, [])
+            return (L10n.authored_39b738efd34ee69a, [])
         case "Rime Writ":
-            (L10n.authored_39d32e2a7bc8c050, [])
+            return (L10n.authored_39d32e2a7bc8c050, [])
         case "Shadow Writ":
-            (L10n.authored_39e080c65ff85c67, [])
+            return (L10n.authored_39e080c65ff85c67, [])
         case "Endurance":
-            (L10n.authored_3aad050182c10aed, [])
+            return (L10n.authored_3aad050182c10aed, [])
         case "Flight":
-            (L10n.authored_3ad063c9db3d37c6, [])
+            return (L10n.authored_3ad063c9db3d37c6, [])
         case "Could not start this battle\nTry again", "Could not start this battle. Try again.":
-            (L10n.authored_3b9e40dc91d2cf36, [])
+            return (L10n.authored_3b9e40dc91d2cf36, [])
         case "Drops Physical items":
-            (L10n.authored_3e0267db12c644e3, [])
+            return (L10n.authored_3e0267db12c644e3, [])
         case "Deathrattle":
-            (L10n.authored_3f950c117798fabf, [])
+            return (L10n.authored_3f950c117798fabf, [])
         case "Increased Stun Damage":
-            (L10n.authored_3fbb930ef9174dc4, [])
+            return (L10n.authored_3fbb930ef9174dc4, [])
         case "Firecraft":
-            (L10n.authored_412c355abf38d4b8, [])
+            return (L10n.authored_412c355abf38d4b8, [])
         case "Your Voyage could not be read\nYour progress is preserved", "Your Voyage could not be read. Your progress is preserved.":
-            (L10n.authored_41efb0420ac47732, [])
+            return (L10n.authored_41efb0420ac47732, [])
         case "Bonus Gold":
-            (L10n.authored_420256ca1eaa136f, [])
+            return (L10n.authored_420256ca1eaa136f, [])
         case "Search Seam":
-            (L10n.authored_421f39e24cd02be3, [])
+            return (L10n.authored_421f39e24cd02be3, [])
         case "Tremor":
-            (L10n.authored_422b4759fc69753b, [])
+            return (L10n.authored_422b4759fc69753b, [])
         case "Rebirth":
-            (L10n.authored_42be5d23c0eb5e43, [])
+            return (L10n.authored_42be5d23c0eb5e43, [])
         case "Deal 2 Physical damage\nCritically Hit enemies at full Health":
-            (L10n.authored_42ebbca84976791e(2), [2])
+            return (L10n.authored_42ebbca84976791e(2), [2])
         case "Recover Hoard":
-            (L10n.authored_43550835305cc1dc, [])
+            return (L10n.authored_43550835305cc1dc, [])
         case "Boss":
-            (L10n.authored_43ae5ceeca545d97, [])
+            return (L10n.authored_43ae5ceeca545d97, [])
         case "This battle is not ready yet", "This battle is not ready yet.":
-            (L10n.authored_4449bb838ee32271, [])
+            return (L10n.authored_4449bb838ee32271, [])
         case "Deal 6 Holy or Burn damage\nRestore 3 Health to each ally":
-            (L10n.authored_449ef1fc60522bc9(6, 3), [6, 3])
+            return (L10n.authored_449ef1fc60522bc9(6, 3), [6, 3])
         case "Take Offering":
-            (L10n.authored_45c7365af4740253, [])
+            return (L10n.authored_45c7365af4740253, [])
         case "Increased Block Damage":
-            (L10n.authored_4600c366b31a0b93, [])
+            return (L10n.authored_4600c366b31a0b93, [])
         case "Distillation":
-            (L10n.authored_46211febae481f02, [])
+            return (L10n.authored_46211febae481f02, [])
         case "This event is no longer available", "This event is no longer available.":
-            (L10n.authored_46e4c5eba8601dcd, [])
+            return (L10n.authored_46e4c5eba8601dcd, [])
         case "Search Bones":
-            (L10n.authored_4700f6b7d994e351, [])
+            return (L10n.authored_4700f6b7d994e351, [])
         case "Briar Writ":
-            (L10n.authored_4745c64ab649a44b, [])
+            return (L10n.authored_4745c64ab649a44b, [])
         case "The Knight’s Answer":
-            (L10n.authored_4837c395f3d91287, [])
+            return (L10n.authored_4837c395f3d91287, [])
         case "Bonus Iron":
-            (L10n.authored_48420f5781337677, [])
+            return (L10n.authored_48420f5781337677, [])
         case "Thorns Resistance":
-            (L10n.authored_4874d6417cd94ebe, [])
+            return (L10n.authored_4874d6417cd94ebe, [])
         case "Crystal Garden":
-            (L10n.authored_4a0e5d6d89069776, [])
+            return (L10n.authored_4a0e5d6d89069776, [])
         case "Purge Resistance":
-            (L10n.authored_4a9f705d96bd13d1, [])
+            return (L10n.authored_4a9f705d96bd13d1, [])
         case "Rimeheart Locket":
-            (L10n.authored_4acb6ff87e722721, [])
+            return (L10n.authored_4acb6ff87e722721, [])
         case "Deal 6 Burn damage\nDetonate all enemy Burn":
-            (L10n.authored_4d63b3ccc30f5966(6), [6])
+            return (L10n.authored_4d63b3ccc30f5966(6), [6])
         case "Deal 3 Burn damage\nGain 4 Block and Thorns":
-            (L10n.authored_4ed2da52b01bbd9f(3, 4), [3, 4])
+            return (L10n.authored_4ed2da52b01bbd9f(3, 4), [3, 4])
         case "Increased Freeze Damage":
-            (L10n.authored_4f2b3e59a19f0c77, [])
+            return (L10n.authored_4f2b3e59a19f0c77, [])
         case "The Patient Edge":
-            (L10n.authored_4fa717959be7046f, [])
+            return (L10n.authored_4fa717959be7046f, [])
         case "Drops Leech items":
-            (L10n.authored_4faa4d9408be78a9, [])
+            return (L10n.authored_4faa4d9408be78a9, [])
         case "Savagery":
-            (L10n.authored_4ff894ce2ef39a03, [])
+            return (L10n.authored_4ff894ce2ef39a03, [])
         case "Hunter's Due":
-            (L10n.authored_5047055e2ebe241c, [])
+            return (L10n.authored_5047055e2ebe241c, [])
         case "Death's Door Resistance":
-            (L10n.authored_513740fe27462062, [])
+            return (L10n.authored_513740fe27462062, [])
         case "Battle Unavailable":
-            (L10n.authored_52678d75c9f2aadb, [])
+            return (L10n.authored_52678d75c9f2aadb, [])
         case "Threefold Grace":
-            (L10n.authored_52687b205b7055b8, [])
+            return (L10n.authored_52687b205b7055b8, [])
         case "Bleed Resistance":
-            (L10n.authored_54365f3bf3e1e4f1, [])
+            return (L10n.authored_54365f3bf3e1e4f1, [])
         case "Mysterious Tome":
-            (L10n.authored_54abfe4e5b3559f0, [])
+            return (L10n.authored_54abfe4e5b3559f0, [])
         case "Better Trinket Odds":
-            (L10n.authored_560f49b7943c75be, [])
+            return (L10n.authored_560f49b7943c75be, [])
         case "Amulet Hoard":
-            (L10n.authored_561a0475321b94f1, [])
+            return (L10n.authored_561a0475321b94f1, [])
         case "Laughing Guard":
-            (L10n.authored_5646324f99d34b53, [])
+            return (L10n.authored_5646324f99d34b53, [])
         case "Deal 1 Freeze damage\nDraw a card if the enemy is Frozen":
-            (L10n.authored_571d6a1b2c939913(1), [1])
+            return (L10n.authored_571d6a1b2c939913(1), [1])
         case "Take the Gift":
-            (L10n.authored_574093754384bac1, [])
+            return (L10n.authored_574093754384bac1, [])
         case "Gilded Writ":
-            (L10n.authored_58ad4572d1405d13, [])
+            return (L10n.authored_58ad4572d1405d13, [])
         case "Frostfire":
-            (L10n.authored_59a61eb576cfe758, [])
+            return (L10n.authored_59a61eb576cfe758, [])
         case "Corruption Altar":
-            (L10n.authored_5a78911bb276ef7d, [])
+            return (L10n.authored_5a78911bb276ef7d, [])
         case "Rupture":
-            (L10n.authored_5acf0fb9971c829a, [])
+            return (L10n.authored_5acf0fb9971c829a, [])
         case "After you spend Mana to empower a Burn card, draw a Freeze card, and vice versa":
-            (L10n.authored_5c7a38e94657a628, [])
+            return (L10n.authored_5c7a38e94657a628, [])
         case "Drops Thorns items":
-            (L10n.authored_5cb7d4a2fa94dcf5, [])
+            return (L10n.authored_5cb7d4a2fa94dcf5, [])
         case "Enter":
-            (L10n.authored_5d10a3d56aca45ed, [])
+            return (L10n.authored_5d10a3d56aca45ed, [])
         case "Better Astral Odds":
-            (L10n.authored_5d4584f13cf33e31, [])
+            return (L10n.authored_5d4584f13cf33e31, [])
         case "Drops a Trinket":
-            (L10n.authored_5db6029ad80ede1e, [])
+            return (L10n.authored_5db6029ad80ede1e, [])
         case "This Voyage is no longer available", "This Voyage is no longer available.":
-            (L10n.authored_5dde6bb9698e762e, [])
+            return (L10n.authored_5dde6bb9698e762e, [])
         case "Labyrinth Error":
-            (L10n.authored_5e5246a6a4461eee, [])
+            return (L10n.authored_5e5246a6a4461eee, [])
         case "The Final Spark":
-            (L10n.authored_5e57c00e0fa8eb56, [])
+            return (L10n.authored_5e57c00e0fa8eb56, [])
         case "Crusade":
-            (L10n.authored_5fab147f51d5e12d, [])
+            return (L10n.authored_5fab147f51d5e12d, [])
         case "Increased Death's Door Damage":
-            (L10n.authored_5ffef5bcf6e36607, [])
+            return (L10n.authored_5ffef5bcf6e36607, [])
         case "Leech restores an additional 1% of damage dealt":
-            (L10n.authored_600fe69d5d270601(1), [1])
+            return (L10n.authored_600fe69d5d270601(1), [1])
         case "Your Bleed continues after its normal duration, halving in potency each additional turn":
-            (L10n.authored_6023edf63b08d7e8, [])
+            return (L10n.authored_6023edf63b08d7e8, [])
         case "Reduced Gold Prices":
-            (L10n.authored_613da3d74c304ccc, [])
+            return (L10n.authored_613da3d74c304ccc, [])
         case "Cryomancy":
-            (L10n.authored_6145b98ecf0757a2, [])
+            return (L10n.authored_6145b98ecf0757a2, [])
         case "Timber Writ":
-            (L10n.authored_62803d1ff5d9172c, [])
+            return (L10n.authored_62803d1ff5d9172c, [])
         case "Keep Block between turns\nDodging spends half your Block to deal that much Physical damage":
-            (L10n.authored_62f91beb09391622, [])
+            return (L10n.authored_62f91beb09391622, [])
         case "Burn Resistance":
-            (L10n.authored_67107dcc9642ed0a, [])
+            return (L10n.authored_67107dcc9642ed0a, [])
         case "Poison Resistance":
-            (L10n.authored_67116b71a403b895, [])
+            return (L10n.authored_67116b71a403b895, [])
         case "When you Dodge, immediately draw and play a card\nIf it's a Critical Hit, repeat this effect":
-            (L10n.authored_675d5c34d8158e0e, [])
+            return (L10n.authored_675d5c34d8158e0e, [])
         case "Your attacks against Poisoned enemies ignore Block":
-            (L10n.authored_680eb778440a9065, [])
+            return (L10n.authored_680eb778440a9065, [])
         case "Contract Unavailable":
-            (L10n.authored_691c064c3e43bbe4, [])
+            return (L10n.authored_691c064c3e43bbe4, [])
         case "Harvest Pact":
-            (L10n.authored_6a177ba3f04a910d, [])
+            return (L10n.authored_6a177ba3f04a910d, [])
         case "Purge all buffs when you Stun an enemy\nDeal 2 Holy damage per buff removed":
-            (L10n.authored_6ad421ff35f8ad4b(2), [2])
+            return (L10n.authored_6ad421ff35f8ad4b(2), [2])
         case "Shop Unavailable":
-            (L10n.authored_6afeaa2ce55ab0b8, [])
+            return (L10n.authored_6afeaa2ce55ab0b8, [])
         case "Bonus Herbs":
-            (L10n.authored_6c91d94b5f84ff5d, [])
+            return (L10n.authored_6c91d94b5f84ff5d, [])
         case "Gather Herbs":
-            (L10n.authored_6c99e8289931e539, [])
+            return (L10n.authored_6c99e8289931e539, [])
         case "Medicinal Herb Garden":
-            (L10n.authored_6de043df1bea32b6, [])
+            return (L10n.authored_6de043df1bea32b6, [])
         case "Bonus Wood":
-            (L10n.authored_6ea398d9f45b0877, [])
+            return (L10n.authored_6ea398d9f45b0877, [])
         case "Your Physical damage bonuses also strengthen Holy damage":
-            (L10n.authored_6ed460d0356d5e78, [])
+            return (L10n.authored_6ed460d0356d5e78, [])
         case "Deal 3 Bleed damage\nReduces Health restored by enemies by 25% for 3 turns":
-            (L10n.authored_6ee786aa7f7a23c9(3, 25, 3), [3, 25, 3])
+            return (L10n.authored_6ee786aa7f7a23c9(3, 25, 3), [3, 25, 3])
         case "Drops a Weapon":
-            (L10n.authored_713ceb2c7a465edb, [])
+            return (L10n.authored_713ceb2c7a465edb, [])
         case "Drops a Unique item":
-            (L10n.authored_71edf5d3ebc42e34, [])
+            return (L10n.authored_71edf5d3ebc42e34, [])
         case "Drops a Ring":
-            (L10n.authored_72547da0933f5538, [])
+            return (L10n.authored_72547da0933f5538, [])
         case "Mana Resistance":
-            (L10n.authored_73d96c90389a4d5d, [])
+            return (L10n.authored_73d96c90389a4d5d, [])
         case "Illumination":
-            (L10n.authored_7565061d992d5184, [])
+            return (L10n.authored_7565061d992d5184, [])
         case "Block Resistance":
-            (L10n.authored_75ea284fd44615b1, [])
+            return (L10n.authored_75ea284fd44615b1, [])
         case "Increased Block":
-            (L10n.authored_77226c9177087703, [])
+            return (L10n.authored_77226c9177087703, [])
         case "Huntsmaster’s Call":
-            (L10n.authored_774b883b5ab386e1, [])
+            return (L10n.authored_774b883b5ab386e1, [])
         case "The Lingering Bell":
-            (L10n.authored_77541a180d9a6e8b, [])
+            return (L10n.authored_77541a180d9a6e8b, [])
         case "The Golden Crucible":
-            (L10n.authored_77b523f24a7fcefb, [])
+            return (L10n.authored_77b523f24a7fcefb, [])
         case "Everkeen":
-            (L10n.authored_77ea128689477231, [])
+            return (L10n.authored_77ea128689477231, [])
         case "Increased Purge Damage":
-            (L10n.authored_780393cf038bb7e6, [])
+            return (L10n.authored_780393cf038bb7e6, [])
         case "Cutpurse":
-            (L10n.authored_78f15b045cebef44, [])
+            return (L10n.authored_78f15b045cebef44, [])
         case "Deal 3 Bleed or Poison damage\nLeech":
-            (L10n.authored_792968de8ef3ff99(3), [3])
+            return (L10n.authored_792968de8ef3ff99(3), [3])
         case "The Wolf":
-            (L10n.authored_79f86ba0255acd8d, [])
+            return (L10n.authored_79f86ba0255acd8d, [])
         case "Cinder":
-            (L10n.authored_7a1903f91f40e926, [])
+            return (L10n.authored_7a1903f91f40e926, [])
         case "Enchanted Spring":
-            (L10n.authored_7ab5fa70c7469c41, [])
+            return (L10n.authored_7ab5fa70c7469c41, [])
         case "Drops an Astral item":
-            (L10n.authored_7ba176e486e94443, [])
+            return (L10n.authored_7ba176e486e94443, [])
         case "Drops an Amulet":
-            (L10n.authored_7bfc343ca5b6afd4, [])
+            return (L10n.authored_7bfc343ca5b6afd4, [])
         case "Path Closed":
-            (L10n.authored_7cfc8e8c9338f2af, [])
+            return (L10n.authored_7cfc8e8c9338f2af, [])
         case "Sanctuary":
-            (L10n.authored_7dba23b81be9767b, [])
+            return (L10n.authored_7dba23b81be9767b, [])
         case "Iron Writ":
-            (L10n.authored_7dc9187030ef74f0, [])
+            return (L10n.authored_7dc9187030ef74f0, [])
         case "Floor Cleared":
-            (L10n.authored_7f4507333e6956f3, [])
+            return (L10n.authored_7f4507333e6956f3, [])
         case "Crystal Geode":
-            (L10n.authored_810f54d91bb0f8fd, [])
+            return (L10n.authored_810f54d91bb0f8fd, [])
         case "Venom":
-            (L10n.authored_8165682b17ec28a8, [])
+            return (L10n.authored_8165682b17ec28a8, [])
         case "Corrupt an Item":
-            (L10n.authored_817e8cf7b1109f92, [])
+            return (L10n.authored_817e8cf7b1109f92, [])
         case "Quarry Writ":
-            (L10n.authored_8181d2cc99975702, [])
+            return (L10n.authored_8181d2cc99975702, [])
         case "Once per turn, Dodging returns the last card you played to your hand":
-            (L10n.authored_83333795ca476074, [])
+            return (L10n.authored_83333795ca476074, [])
         case "Arms Hoard":
-            (L10n.authored_84aa5a2803ca4647, [])
+            return (L10n.authored_84aa5a2803ca4647, [])
         case "When empowering a Freeze card, spend 3 Block per missing Mana":
-            (L10n.authored_84db54a03c7a660e(3), [3])
+            return (L10n.authored_84db54a03c7a660e(3), [3])
         case "Study Spores":
-            (L10n.authored_85aa5b8a423af161, [])
+            return (L10n.authored_85aa5b8a423af161, [])
         case "Take the Salts":
-            (L10n.authored_8773896289988b23, [])
+            return (L10n.authored_8773896289988b23, [])
         case "Harvest Caps":
-            (L10n.authored_8827054c3ac261de, [])
+            return (L10n.authored_8827054c3ac261de, [])
         case "Ring Hoard":
-            (L10n.authored_88717baca9fcb852, [])
+            return (L10n.authored_88717baca9fcb852, [])
         case "Drops Mana items":
-            (L10n.authored_887ed0f755279275, [])
+            return (L10n.authored_887ed0f755279275, [])
         case "Morale":
-            (L10n.authored_8b50f1f1cc9e38f3, [])
+            return (L10n.authored_8b50f1f1cc9e38f3, [])
         case "Serpent’s Eye":
-            (L10n.authored_8c4885178195d122, [])
+            return (L10n.authored_8c4885178195d122, [])
         case "This path is unavailable", "This path is unavailable.":
-            (L10n.authored_8c514e1d9889c98c, [])
+            return (L10n.authored_8c514e1d9889c98c, [])
         case "Take the Purse":
-            (L10n.authored_8cdd07a7243fe533, [])
+            return (L10n.authored_8cdd07a7243fe533, [])
         case "Gather Incense":
-            (L10n.authored_8d3b8dc87781ec1d, [])
+            return (L10n.authored_8d3b8dc87781ec1d, [])
         case "Astral Omen":
-            (L10n.authored_8dbf5b8fa6a4dbf0, [])
+            return (L10n.authored_8dbf5b8fa6a4dbf0, [])
         case "Bloodember Pendant":
-            (L10n.authored_8e3456a2a3dbb3fc, [])
+            return (L10n.authored_8e3456a2a3dbb3fc, [])
         case "Wisdom Tree":
-            (L10n.authored_8ef17f3c9f07adf7, [])
+            return (L10n.authored_8ef17f3c9f07adf7, [])
         case "The shop could not be opened\nYour progress is preserved", "The shop could not be opened. Your progress is preserved.":
-            (L10n.authored_8f90c8a17ad46655, [])
+            return (L10n.authored_8f90c8a17ad46655, [])
         case "Gold Resistance":
-            (L10n.authored_8fde50f61e1562ad, [])
+            return (L10n.authored_8fde50f61e1562ad, [])
         case "Attacks Leech":
-            (L10n.authored_9034c60aef0e9666, [])
+            return (L10n.authored_9034c60aef0e9666, [])
         case "Increased Physical Damage":
-            (L10n.authored_91c1973dd4fe47a4, [])
+            return (L10n.authored_91c1973dd4fe47a4, [])
         case "Grovekeeper":
-            (L10n.authored_91fe8f9608b74c64, [])
+            return (L10n.authored_91fe8f9608b74c64, [])
         case "Winter’s Credit":
-            (L10n.authored_924216af0c229ed7, [])
+            return (L10n.authored_924216af0c229ed7, [])
         case "Ancient Altar":
-            (L10n.authored_925164fa5e6a5e30, [])
+            return (L10n.authored_925164fa5e6a5e30, [])
         case "Increased Dodge Damage":
-            (L10n.authored_929e720608e8db94, [])
+            return (L10n.authored_929e720608e8db94, [])
         case "Kingbreaker":
-            (L10n.authored_93e5d5c5231b5866, [])
+            return (L10n.authored_93e5d5c5231b5866, [])
         case "Voyage Unavailable":
-            (L10n.authored_94fdec844ac9ed23, [])
+            return (L10n.authored_94fdec844ac9ed23, [])
         case "Drops Freeze items":
-            (L10n.authored_9508d92548bb9235, [])
+            return (L10n.authored_9508d92548bb9235, [])
         case "Critical Hits detonate and consume all remaining Bleed and Poison damage":
-            (L10n.authored_95448989a64f2d08, [])
+            return (L10n.authored_95448989a64f2d08, [])
         case "Trickery":
-            (L10n.authored_962596a25b5ec18f, [])
+            return (L10n.authored_962596a25b5ec18f, [])
         case "Couldn't read the Labyrinth map\nProgress is preserved\nTry again later", "Couldn't read the Labyrinth map. Progress is preserved. Try again later.":
-            (L10n.authored_966023551496008c, [])
+            return (L10n.authored_966023551496008c, [])
         case "Search Nest":
-            (L10n.authored_967cea321eae68e8, [])
+            return (L10n.authored_967cea321eae68e8, [])
         case "Nightshade":
-            (L10n.authored_974952c84bbccadf, [])
+            return (L10n.authored_974952c84bbccadf, [])
         case "Open Cabinet":
-            (L10n.authored_9778dc45dfe18cbb, [])
+            return (L10n.authored_9778dc45dfe18cbb, [])
         case "Free the Relic":
-            (L10n.authored_97929867a649e5d6, [])
+            return (L10n.authored_97929867a649e5d6, [])
         case "Blocking an attack makes your next manually played attack Critically Hit":
-            (L10n.authored_97fd8651019497f7, [])
+            return (L10n.authored_97fd8651019497f7, [])
         case "Collect Gems":
-            (L10n.authored_9831dc5403897fe1, [])
+            return (L10n.authored_9831dc5403897fe1, [])
         case "Increased Cleanse Damage":
-            (L10n.authored_991d9c05e7d050a5, [])
+            return (L10n.authored_991d9c05e7d050a5, [])
         case "Approach":
-            (L10n.authored_9a3183a85a0956f7, [])
+            return (L10n.authored_9a3183a85a0956f7, [])
         case "Drops Stun items":
-            (L10n.authored_9a82a56aa5acbeb2, [])
+            return (L10n.authored_9a82a56aa5acbeb2, [])
         case "Study Roots":
-            (L10n.authored_9b4a6687a8dd6d92, [])
+            return (L10n.authored_9b4a6687a8dd6d92, [])
         case "Freeze Resistance":
-            (L10n.authored_9c17e5fcc67aef4d, [])
+            return (L10n.authored_9c17e5fcc67aef4d, [])
         case "Path Missing":
-            (L10n.authored_9c92677db80f31a0, [])
+            return (L10n.authored_9c92677db80f31a0, [])
         case "The Returning Gale":
-            (L10n.authored_9d0149c7af5d4097, [])
+            return (L10n.authored_9d0149c7af5d4097, [])
         case "Your first Physical card each turn returns to your hand":
-            (L10n.authored_9de52f41684a9ea5, [])
+            return (L10n.authored_9de52f41684a9ea5, [])
         case "Gather Embers":
-            (L10n.authored_9e223b9c26527c69, [])
+            return (L10n.authored_9e223b9c26527c69, [])
         case "Mountain Pass":
-            (L10n.authored_9eee113b81bce069, [])
+            return (L10n.authored_9eee113b81bce069, [])
         case "This stage is unavailable", "This stage is unavailable.":
-            (L10n.authored_9f0da8e86a03f887, [])
+            return (L10n.authored_9f0da8e86a03f887, [])
         case "Better Unique Odds":
-            (L10n.authored_9f33981feb5ec94f, [])
+            return (L10n.authored_9f33981feb5ec94f, [])
         case "Quake":
-            (L10n.authored_9f792e9698220dde, [])
+            return (L10n.authored_9f792e9698220dde, [])
         case "Bonus Food":
-            (L10n.authored_a0b4ec6a405074eb, [])
+            return (L10n.authored_a0b4ec6a405074eb, [])
         case "Stun Resistance":
-            (L10n.authored_a0bdafd03a28b21b, [])
+            return (L10n.authored_a0bdafd03a28b21b, [])
         case "Ember Writ":
-            (L10n.authored_a125c511ec5455b7, [])
+            return (L10n.authored_a125c511ec5455b7, [])
         case "Murky Pond":
-            (L10n.authored_a1621f3b77cc2595, [])
+            return (L10n.authored_a1621f3b77cc2595, [])
         case "Your first Physical Critical Hit each turn strikes again":
-            (L10n.authored_a1801a712e02e897, [])
+            return (L10n.authored_a1801a712e02e897, [])
         case "Retrieval":
-            (L10n.authored_a1866e5256cba32d, [])
+            return (L10n.authored_a1866e5256cba32d, [])
         case "Arcane Writ":
-            (L10n.authored_a1f1a4a0a5b7c7ec, [])
+            return (L10n.authored_a1f1a4a0a5b7c7ec, [])
         case "Marksmanship":
-            (L10n.authored_a23f298c021589be, [])
+            return (L10n.authored_a23f298c021589be, [])
         case "Stage Missing":
-            (L10n.authored_a2b2f3c243bab0c4, [])
+            return (L10n.authored_a2b2f3c243bab0c4, [])
         case "Bloodfire Signet":
-            (L10n.authored_a47a2716b7c7f50a, [])
+            return (L10n.authored_a47a2716b7c7f50a, [])
         case "Last Rites":
-            (L10n.authored_a50f05914385567d, [])
+            return (L10n.authored_a50f05914385567d, [])
         case "Deal 2 to 6 Burn damage":
-            (L10n.authored_a54f62394e652e95(2, 6), [2, 6])
+            return (L10n.authored_a54f62394e652e95(2, 6), [2, 6])
         case "Roadside Censer":
-            (L10n.authored_a5a6b57f92ad68eb, [])
+            return (L10n.authored_a5a6b57f92ad68eb, [])
         case "The Returning Flight":
-            (L10n.authored_a5c66bb7054a3da8, [])
+            return (L10n.authored_a5c66bb7054a3da8, [])
         case "Fungal Grotto":
-            (L10n.authored_a6065baa32da45da, [])
+            return (L10n.authored_a6065baa32da45da, [])
         case "Break the Seal":
-            (L10n.authored_a89d82eff8aae489, [])
+            return (L10n.authored_a89d82eff8aae489, [])
         case "Could not open Labyrinth", "Could not open Labyrinth.":
-            (L10n.authored_a98e7b5d25afcedf, [])
+            return (L10n.authored_a98e7b5d25afcedf, [])
         case "Destroys Block":
-            (L10n.authored_aa37e64b6233bace, [])
+            return (L10n.authored_aa37e64b6233bace, [])
         case "Increased Thorns Damage":
-            (L10n.authored_aab34303200847b5, [])
+            return (L10n.authored_aab34303200847b5, [])
         case "Lost Legacy":
-            (L10n.authored_ab03334a9ac8e4c6, [])
+            return (L10n.authored_ab03334a9ac8e4c6, [])
         case "Dodge Resistance":
-            (L10n.authored_ab758d5efa1c1ab7, [])
+            return (L10n.authored_ab758d5efa1c1ab7, [])
         case "Barbs":
-            (L10n.authored_abbddd55176931a7, [])
+            return (L10n.authored_abbddd55176931a7, [])
         case "Purging an enemy adds 1 damage to your next Holy attack":
-            (L10n.authored_ac407f97f61aff74(1), [1])
+            return (L10n.authored_ac407f97f61aff74(1), [1])
         case "Refresh the board and choose another contract", "Refresh the board and choose another contract.":
-            (L10n.authored_ac6e0bc76ccbb455, [])
+            return (L10n.authored_ac6e0bc76ccbb455, [])
         case "Drops Armor":
-            (L10n.authored_ad2cce5b85dde1ce, [])
+            return (L10n.authored_ad2cce5b85dde1ce, [])
         case "Toxic Shock":
-            (L10n.authored_ae66817c68e1e71f, [])
+            return (L10n.authored_ae66817c68e1e71f, [])
         case "Labyrinth Entrance":
-            (L10n.authored_aeaa46e0964aba81, [])
+            return (L10n.authored_aeaa46e0964aba81, [])
         case "Drops Poison items":
-            (L10n.authored_af67c17b45e433ac, [])
+            return (L10n.authored_af67c17b45e433ac, [])
         case "Learn Dance":
-            (L10n.authored_af9cc619d7ce8f50, [])
+            return (L10n.authored_af9cc619d7ce8f50, [])
         case "Deal 5 Physical damage\nDraw a card from your ally's deck\nIf unavailable, draw from your deck":
-            (L10n.authored_afae16a3cf881d1d(5), [5])
+            return (L10n.authored_afae16a3cf881d1d(5), [5])
         case "Bonus Stone":
-            (L10n.authored_b24c00a9c96c0939, [])
+            return (L10n.authored_b24c00a9c96c0939, [])
         case "Oathkeeper":
-            (L10n.authored_b2bb706ded7a2785, [])
+            return (L10n.authored_b2bb706ded7a2785, [])
         case "Ossuary":
-            (L10n.authored_b3f14aac09c6dd3f, [])
+            return (L10n.authored_b3f14aac09c6dd3f, [])
         case "Sacred Writ":
-            (L10n.authored_b3fd2c5092b7593f, [])
+            return (L10n.authored_b3fd2c5092b7593f, [])
         case "Kindle":
-            (L10n.authored_b40085e13e1af047, [])
+            return (L10n.authored_b40085e13e1af047, [])
         case "Learn the Rite":
-            (L10n.authored_b5390cc241fd6676, [])
+            return (L10n.authored_b5390cc241fd6676, [])
         case "Dealing Freeze damage grants that amount of Block\nGain Mana equal to your Block when you Freeze an enemy":
-            (L10n.authored_b5cf40958600ae29, [])
+            return (L10n.authored_b5cf40958600ae29, [])
         case "Renewal":
-            (L10n.authored_b6b9c422b2112770, [])
+            return (L10n.authored_b6b9c422b2112770, [])
         case "Wildheart’s Favor":
-            (L10n.authored_b6e544a1eed68bb1, [])
+            return (L10n.authored_b6e544a1eed68bb1, [])
         case "Enemy":
-            (L10n.authored_b701cc55ddc6a213, [])
+            return (L10n.authored_b701cc55ddc6a213, [])
         case "Jeweler's Favor":
-            (L10n.authored_b78ccb231ae7f9ae, [])
+            return (L10n.authored_b78ccb231ae7f9ae, [])
         case "Entropy":
-            (L10n.authored_b7964ab7378bddcb, [])
+            return (L10n.authored_b7964ab7378bddcb, [])
         case "Chivalry":
-            (L10n.authored_b84d4b14ce1d9cae, [])
+            return (L10n.authored_b84d4b14ce1d9cae, [])
         case "Increased Leech Damage":
-            (L10n.authored_b8d52bcc78a8351c, [])
+            return (L10n.authored_b8d52bcc78a8351c, [])
         case "Loyalty":
-            (L10n.authored_b9693912c88beef5, [])
+            return (L10n.authored_b9693912c88beef5, [])
         case "Erudition":
-            (L10n.authored_ba8d4ba977972dc6, [])
+            return (L10n.authored_ba8d4ba977972dc6, [])
         case "Carapace":
-            (L10n.authored_ba94ac71ff56711f, [])
+            return (L10n.authored_ba94ac71ff56711f, [])
         case "Merchant":
-            (L10n.authored_bcd03b1252299836, [])
+            return (L10n.authored_bcd03b1252299836, [])
         case "Bounty Mark":
-            (L10n.authored_bd09b680811ebf6e, [])
+            return (L10n.authored_bd09b680811ebf6e, [])
         case "Clear Trail":
-            (L10n.authored_bd63c5dea6945a5f, [])
+            return (L10n.authored_bd63c5dea6945a5f, [])
         case "Search the Kit":
-            (L10n.authored_be45351dfc6e4a56, [])
+            return (L10n.authored_be45351dfc6e4a56, [])
         case "Occult":
-            (L10n.authored_be772d8daa139cca, [])
+            return (L10n.authored_be772d8daa139cca, [])
         case "Physical Resistance":
-            (L10n.authored_bf617cddad3b47d1, [])
+            return (L10n.authored_bf617cddad3b47d1, [])
         case "Gather Tools":
-            (L10n.authored_bf6f3c7374c3a797, [])
+            return (L10n.authored_bf6f3c7374c3a797, [])
         case "Break Shell":
-            (L10n.authored_bf941ca144d16e86, [])
+            return (L10n.authored_bf941ca144d16e86, [])
         case "Halve enemy Block\nDeal 4 Physical damage":
-            (L10n.authored_c1c75f2574d8fb56(4), [4])
+            return (L10n.authored_c1c75f2574d8fb56(4), [4])
         case "Increased Leech":
-            (L10n.authored_c482f2e2bec24a58, [])
+            return (L10n.authored_c482f2e2bec24a58, [])
         case "Blood Pact":
-            (L10n.authored_c5e4b6080cacb46a, [])
+            return (L10n.authored_c5e4b6080cacb46a, [])
         case "Deal 1 Bleed damage\nYour next attack has Leech":
-            (L10n.authored_c5ec2efd91341d6c(1), [1])
+            return (L10n.authored_c5ec2efd91341d6c(1), [1])
         case "Befuddle":
-            (L10n.authored_c68176cb6c99520c, [])
+            return (L10n.authored_c68176cb6c99520c, [])
         case "Deal 3 Bleed damage\nDeal Stun instead against enemies with Block":
-            (L10n.authored_c73204111b3bec52(3), [3])
+            return (L10n.authored_c73204111b3bec52(3), [3])
         case "Relic Seeker":
-            (L10n.authored_ca0d24eb5f6bccf9, [])
+            return (L10n.authored_ca0d24eb5f6bccf9, [])
         case "Deal 1 Poison damage, twice":
-            (L10n.authored_cbcfca8a3e0a92b1(1), [1])
+            return (L10n.authored_cbcfca8a3e0a92b1(1), [1])
         case "Toxicology":
-            (L10n.authored_cc8c0da5e2515c26, [])
+            return (L10n.authored_cc8c0da5e2515c26, [])
         case "Viper’s Courtesy":
-            (L10n.authored_d0103d9dca339de3, [])
+            return (L10n.authored_d0103d9dca339de3, [])
         case "The merchant has nothing left to sell\nYou continue on":
-            (L10n.authored_d0463a96c348a68c, [])
+            return (L10n.authored_d0463a96c348a68c, [])
         case "Physical Critical Hits that remove Health detonate Bleed":
-            (L10n.authored_d05c226ac0e13004, [])
+            return (L10n.authored_d05c226ac0e13004, [])
         case "Gouge":
-            (L10n.authored_d0a18ab126232e69, [])
+            return (L10n.authored_d0a18ab126232e69, [])
         case "Golden Verdict":
-            (L10n.authored_d25a9051b9c4916d, [])
+            return (L10n.authored_d25a9051b9c4916d, [])
         case "Your Physical Critical Hits that remove Health draw from your Companion's deck":
-            (L10n.authored_d291ed3cae9b5488, [])
+            return (L10n.authored_d291ed3cae9b5488, [])
         case "Increased Mana Damage":
-            (L10n.authored_d41714793353c4d3, [])
+            return (L10n.authored_d41714793353c4d3, [])
         case "Unbinding Writ":
-            (L10n.authored_d4ec48f0ccf3b165, [])
+            return (L10n.authored_d4ec48f0ccf3b165, [])
         case "Attacks Purge":
-            (L10n.authored_d5b81540d53688ba, [])
+            return (L10n.authored_d5b81540d53688ba, [])
         case "Fairy Ring":
-            (L10n.authored_d6e03d5a1d3f8397, [])
+            return (L10n.authored_d6e03d5a1d3f8397, [])
         case "The first time each turn your Block absorbs attack damage, immediately use your Basic ability":
-            (L10n.authored_d7fcd6019bb54548, [])
+            return (L10n.authored_d7fcd6019bb54548, [])
         case "Toxin":
-            (L10n.authored_d7fe3c3e2cf4d495, [])
+            return (L10n.authored_d7fe3c3e2cf4d495, [])
         case "Lose 2 Health\nDeal 1 Bleed damage\nDraw a card":
-            (L10n.authored_d81ccd40d340713a(2, 1), [2, 1])
+            return (L10n.authored_d81ccd40d340713a(2, 1), [2, 1])
         case "Cleanse the ally with the most debuffs\nRestore 6 Health\nDraw 1 card":
-            (L10n.authored_d81e4149c4b3b5dd(6, 1), [6, 1])
+            return (L10n.authored_d81e4149c4b3b5dd(6, 1), [6, 1])
         case "Hellfire":
-            (L10n.authored_d8cae3f600fb6a9c, [])
+            return (L10n.authored_d8cae3f600fb6a9c, [])
         case "Holy damage causes Stun build-up and steals 1 Gold when it Stuns an enemy":
-            (L10n.authored_d8dc8b523964f2d6(1), [1])
+            return (L10n.authored_d8dc8b523964f2d6(1), [1])
         case "Spire Missing":
-            (L10n.authored_d9cffbda49267e68, [])
+            return (L10n.authored_d9cffbda49267e68, [])
         case "Dealing Burn damage has a 20% chance to deal 1 Bleed damage, and vice versa\nBurn and Bleed damage gain Leech":
-            (L10n.authored_da79c9f484e5e210(20, 1), [20, 1])
+            return (L10n.authored_da79c9f484e5e210(20, 1), [20, 1])
         case "Aether":
-            (L10n.authored_dad41a1b7165073a, [])
+            return (L10n.authored_dad41a1b7165073a, [])
         case "Dodging draws a Poison card and guarantees your next Poison card’s damage Critically Hits":
-            (L10n.authored_dd9400808bae9c2b, [])
+            return (L10n.authored_dd9400808bae9c2b, [])
         case "Study Pages":
-            (L10n.authored_dd9ce499fcc9fdbe, [])
+            return (L10n.authored_dd9ce499fcc9fdbe, [])
         case "Luminescence":
-            (L10n.authored_de891b421513a746, [])
+            return (L10n.authored_de891b421513a746, [])
         case "Holy Resistance":
-            (L10n.authored_de89fa33c9dab2a2, [])
+            return (L10n.authored_de89fa33c9dab2a2, [])
         case "Deal 3 Stun damage, doubled on the first combat turn":
-            (L10n.authored_df85700321f0bc10(3), [3])
+            return (L10n.authored_df85700321f0bc10(3), [3])
         case "The first time each round your Block is broken, deal 6 Holy and 6 Stun damage to the attacker, then restore 6 Health":
-            (L10n.authored_e027aff0c3f42240(6, 6, 6), [6, 6, 6])
+            return (L10n.authored_e027aff0c3f42240(6, 6, 6), [6, 6, 6])
         case "Gather Blooms":
-            (L10n.authored_e0e59172b8c7aff8, [])
+            return (L10n.authored_e0e59172b8c7aff8, [])
         case "Dance of Blades":
-            (L10n.authored_e173022c8e43d822, [])
+            return (L10n.authored_e173022c8e43d822, [])
         case "Fight":
-            (L10n.authored_e1848aeb08aa125f, [])
+            return (L10n.authored_e1848aeb08aa125f, [])
         case "Read the Notes":
-            (L10n.authored_e1890123b84952fa, [])
+            return (L10n.authored_e1890123b84952fa, [])
         case "Gain 5 Block\nRestore 5 Health to the lowest-Health ally\nDeal 5 Holy damage":
-            (L10n.authored_e490f38a43edadca(5, 5, 5), [5, 5, 5])
+            return (L10n.authored_e490f38a43edadca(5, 5, 5), [5, 5, 5])
         case "Bonus XP":
-            (L10n.authored_e597157f439209e2, [])
+            return (L10n.authored_e597157f439209e2, [])
         case "Anima":
-            (L10n.authored_e5aa59ddaab05e99, [])
+            return (L10n.authored_e5aa59ddaab05e99, [])
         case "Deal 2 Physical damage\nGain 3 Block or Thorns at random":
-            (L10n.authored_e68f3b8807de2555(2, 3), [2, 3])
+            return (L10n.authored_e68f3b8807de2555(2, 3), [2, 3])
         case "Sunstone":
-            (L10n.authored_e6da383eb0bbcffa, [])
+            return (L10n.authored_e6da383eb0bbcffa, [])
         case "Pick Berries":
-            (L10n.authored_e77b0a0657694cde, [])
+            return (L10n.authored_e77b0a0657694cde, [])
         case "Search Pack":
-            (L10n.authored_e7e95e590728de39, [])
+            return (L10n.authored_e7e95e590728de39, [])
         case "Bonus Gems":
-            (L10n.authored_e84bd4f89da7c740, [])
+            return (L10n.authored_e84bd4f89da7c740, [])
         case "After Dodging, your next manually played card hit that removes Health deals additional Poison and Bleed damage, each equal to half the Health lost":
-            (L10n.authored_e933707d1971c6aa, [])
+            return (L10n.authored_e933707d1971c6aa, [])
         case "Deal 7 Burn, Freeze, or Bleed damage":
-            (L10n.authored_e98d4de60587bae6(7), [7])
+            return (L10n.authored_e98d4de60587bae6(7), [7])
         case "Your Physical damage ignores 1% of enemy damage reduction":
-            (L10n.authored_ed3d3375c0b3d283(1), [1])
+            return (L10n.authored_ed3d3375c0b3d283(1), [1])
         case "Learn Melody":
-            (L10n.authored_edcdd353607a7598, [])
+            return (L10n.authored_edcdd353607a7598, [])
         case "Shop Closed":
-            (L10n.authored_eefc52a99136ee0b, [])
+            return (L10n.authored_eefc52a99136ee0b, [])
         case "Consecration":
-            (L10n.authored_ef9302e39f3bd3ae, [])
+            return (L10n.authored_ef9302e39f3bd3ae, [])
         case "Trinket Hoard":
-            (L10n.authored_ef956b310f7bebe7, [])
+            return (L10n.authored_ef956b310f7bebe7, [])
         case "Wild Strikes":
-            (L10n.authored_f07531511a019d4e, [])
+            return (L10n.authored_f07531511a019d4e, [])
         case "Break Crust":
-            (L10n.authored_f0f02bc5904e95bb, [])
+            return (L10n.authored_f0f02bc5904e95bb, [])
         case "Pyromancy":
-            (L10n.authored_f1b00ff683214895, [])
+            return (L10n.authored_f1b00ff683214895, [])
         case "Shatter":
-            (L10n.authored_f21fe49642ba27cd, [])
+            return (L10n.authored_f21fe49642ba27cd, [])
         case "Astral Hoard":
-            (L10n.authored_f388dbe23eace2e6, [])
+            return (L10n.authored_f388dbe23eace2e6, [])
         case "Harvest Shards":
-            (L10n.authored_f4143fb73016de0a, [])
+            return (L10n.authored_f4143fb73016de0a, [])
         case "Scholar's Toll":
-            (L10n.authored_f53556e9290596cc, [])
+            return (L10n.authored_f53556e9290596cc, [])
         case "Drops Burn items":
-            (L10n.authored_f60cb0eba27b5239, [])
+            return (L10n.authored_f60cb0eba27b5239, [])
         case "Siphon":
-            (L10n.authored_f74d743a8ee62ab6, [])
+            return (L10n.authored_f74d743a8ee62ab6, [])
         case "Remedies":
-            (L10n.authored_f75123fef0e7cd8c, [])
+            return (L10n.authored_f75123fef0e7cd8c, [])
         case "Thievery":
-            (L10n.authored_f793fc5e6dbec212, [])
+            return (L10n.authored_f793fc5e6dbec212, [])
         case "Armor Hoard":
-            (L10n.authored_f9214e4c983403b5, [])
+            return (L10n.authored_f9214e4c983403b5, [])
         case "Prowl":
-            (L10n.authored_f92bb9a069746467, [])
+            return (L10n.authored_f92bb9a069746467, [])
         case "Deal 6 Bleed damage\nDetonate all Bleed":
-            (L10n.authored_f9e0a4a01fcefe3a(6), [6])
+            return (L10n.authored_f9e0a4a01fcefe3a(6), [6])
         case "Open the Core":
-            (L10n.authored_fa56c02957cc8d0c, [])
+            return (L10n.authored_fa56c02957cc8d0c, [])
         case "Frostveil":
-            (L10n.authored_fb002f743b0987da, [])
+            return (L10n.authored_fb002f743b0987da, [])
         case "Clear Rubble":
-            (L10n.authored_fb6238e1221476ee, [])
+            return (L10n.authored_fb6238e1221476ee, [])
         case "Burn and Bleed share their damage bonuses":
-            (L10n.authored_fceb6fdb9529a2ea, [])
+            return (L10n.authored_fceb6fdb9529a2ea, [])
         case "Alchemist":
-            (L10n.combatants_alchemist_name, [])
+            return (L10n.combatants_alchemist_name, [])
         case "Bear":
-            (L10n.combatants_bear_name, [])
+            return (L10n.combatants_bear_name, [])
         case "Druid":
-            (L10n.combatants_druid_name, [])
+            return (L10n.combatants_druid_name, [])
         case "Fox":
-            (L10n.combatants_fox_name, [])
+            return (L10n.combatants_fox_name, [])
         case "Frost Whelp":
-            (L10n.combatants_frost_whelp_name, [])
+            return (L10n.combatants_frost_whelp_name, [])
         case "Golden Retriever":
-            (L10n.combatants_golden_retriever_name, [])
+            return (L10n.combatants_golden_retriever_name, [])
         case "Knight":
-            (L10n.combatants_knight_name, [])
+            return (L10n.combatants_knight_name, [])
         case "Library Owl":
-            (L10n.combatants_library_owl_name, [])
+            return (L10n.combatants_library_owl_name, [])
         case "Lizard Scout":
-            (L10n.combatants_lizard_scout_name, [])
+            return (L10n.combatants_lizard_scout_name, [])
         case "Mana Moth":
-            (L10n.combatants_mana_moth_name, [])
+            return (L10n.combatants_mana_moth_name, [])
         case "Panther":
-            (L10n.combatants_panther_name, [])
+            return (L10n.combatants_panther_name, [])
         case "Phoenix":
-            (L10n.combatants_phoenix_name, [])
+            return (L10n.combatants_phoenix_name, [])
         case "Pixie":
-            (L10n.combatants_pixie_name, [])
+            return (L10n.combatants_pixie_name, [])
         case "Ranger":
-            (L10n.combatants_ranger_name, [])
+            return (L10n.combatants_ranger_name, [])
         case "Risen Skeleton":
-            (L10n.combatants_risen_skeleton_name, [])
+            return (L10n.combatants_risen_skeleton_name, [])
         case "Rogue":
-            (L10n.combatants_rogue_name, [])
+            return (L10n.combatants_rogue_name, [])
         case "Shield Scarab":
-            (L10n.combatants_shield_scarab_name, [])
+            return (L10n.combatants_shield_scarab_name, [])
         case "Warlock":
-            (L10n.combatants_warlock_name, [])
+            return (L10n.combatants_warlock_name, [])
         case "Wildcard":
-            (L10n.combatants_wildcard_name, [])
+            return (L10n.combatants_wildcard_name, [])
         case "Wizard":
-            (L10n.combatants_wizard_name, [])
+            return (L10n.combatants_wizard_name, [])
         case "Wolf":
-            (L10n.combatants_wolf_name, [])
+            return (L10n.combatants_wolf_name, [])
         case "Easy":
-            (L10n.difficulty_contract_easy_title, [])
+            return (L10n.difficulty_contract_easy_title, [])
         case "Hard":
-            (L10n.difficulty_contract_hard_title, [])
+            return (L10n.difficulty_contract_hard_title, [])
         case "Standard":
-            (L10n.difficulty_contract_standard_title, [])
+            return (L10n.difficulty_contract_standard_title, [])
         case "Medium":
-            (L10n.difficulty_voyage_medium_title, [])
+            return (L10n.difficulty_voyage_medium_title, [])
         case "Bandit":
-            (L10n.enemies_bandit_name, [])
+            return (L10n.enemies_bandit_name, [])
         case "Banshee":
-            (L10n.enemies_banshee_name, [])
+            return (L10n.enemies_banshee_name, [])
         case "Blood Cultist":
-            (L10n.enemies_blood_cultist_name, [])
+            return (L10n.enemies_blood_cultist_name, [])
         case "Brawler":
-            (L10n.enemies_brawler_name, [])
+            return (L10n.enemies_brawler_name, [])
         case "Cleric":
-            (L10n.enemies_cleric_name, [])
+            return (L10n.enemies_cleric_name, [])
         case "Dire Wolf":
-            (L10n.enemies_dire_wolf_name, [])
+            return (L10n.enemies_dire_wolf_name, [])
         case "Earth Elemental":
-            (L10n.enemies_earth_elemental_name, [])
+            return (L10n.enemies_earth_elemental_name, [])
         case "Fire Elemental":
-            (L10n.enemies_fire_elemental_name, [])
+            return (L10n.enemies_fire_elemental_name, [])
         case "Fire Imp":
-            (L10n.enemies_fire_imp_name, [])
+            return (L10n.enemies_fire_imp_name, [])
         case "Frost Elemental":
-            (L10n.enemies_frost_elemental_name, [])
+            return (L10n.enemies_frost_elemental_name, [])
         case "Giant Snake":
-            (L10n.enemies_giant_snake_name, [])
+            return (L10n.enemies_giant_snake_name, [])
         case "Giant Spider":
-            (L10n.enemies_giant_spider_name, [])
+            return (L10n.enemies_giant_spider_name, [])
         case "Goblin":
-            (L10n.enemies_goblin_name, [])
+            return (L10n.enemies_goblin_name, [])
         case "Hellhound":
-            (L10n.enemies_hellhound_name, [])
+            return (L10n.enemies_hellhound_name, [])
         case "Ice Wraith":
-            (L10n.enemies_ice_wraith_name, [])
+            return (L10n.enemies_ice_wraith_name, [])
         case "Inquisitor":
-            (L10n.enemies_inquisitor_name, [])
+            return (L10n.enemies_inquisitor_name, [])
         case "Living Armor":
-            (L10n.enemies_living_armor_name, [])
+            return (L10n.enemies_living_armor_name, [])
         case "Mimic":
-            (L10n.enemies_mimic_name, [])
+            return (L10n.enemies_mimic_name, [])
         case "Mud Elemental":
-            (L10n.enemies_mud_elemental_name, [])
+            return (L10n.enemies_mud_elemental_name, [])
         case "Necromancer":
-            (L10n.enemies_necromancer_name, [])
+            return (L10n.enemies_necromancer_name, [])
         case "Ogre":
-            (L10n.enemies_ogre_name, [])
+            return (L10n.enemies_ogre_name, [])
         case "Paladin":
-            (L10n.enemies_paladin_name, [])
+            return (L10n.enemies_paladin_name, [])
         case "Plague Doctor":
-            (L10n.enemies_plague_doctor_name, [])
+            return (L10n.enemies_plague_doctor_name, [])
         case "Pyromancer":
-            (L10n.enemies_pyromancer_name, [])
+            return (L10n.enemies_pyromancer_name, [])
         case "Skeleton":
-            (L10n.enemies_skeleton_name, [])
+            return (L10n.enemies_skeleton_name, [])
         case "Slime":
-            (L10n.enemies_slime_name, [])
+            return (L10n.enemies_slime_name, [])
         case "Stone Golem":
-            (L10n.enemies_stone_golem_name, [])
+            return (L10n.enemies_stone_golem_name, [])
         case "The Blight Treant":
-            (L10n.enemies_the_blight_treant_name, [])
+            return (L10n.enemies_the_blight_treant_name, [])
         case "The Blood Countess":
-            (L10n.enemies_the_blood_countess_name, [])
+            return (L10n.enemies_the_blood_countess_name, [])
         case "The Forge Golem":
-            (L10n.enemies_the_forge_golem_name, [])
+            return (L10n.enemies_the_forge_golem_name, [])
         case "The Frostwarden":
-            (L10n.enemies_the_frostwarden_name, [])
+            return (L10n.enemies_the_frostwarden_name, [])
         case "The Iron Bear":
-            (L10n.enemies_the_iron_bear_name, [])
+            return (L10n.enemies_the_iron_bear_name, [])
         case "The Seraph":
-            (L10n.enemies_the_seraph_name, [])
+            return (L10n.enemies_the_seraph_name, [])
         case "The Stone Titan":
-            (L10n.enemies_the_stone_titan_name, [])
+            return (L10n.enemies_the_stone_titan_name, [])
         case "Vampire":
-            (L10n.enemies_vampire_name, [])
+            return (L10n.enemies_vampire_name, [])
         case "Will-o-Wisp":
-            (L10n.enemies_will_o_wisp_name, [])
+            return (L10n.enemies_will_o_wisp_name, [])
         case "Winter Wolf":
-            (L10n.enemies_winter_wolf_name, [])
+            return (L10n.enemies_winter_wolf_name, [])
         case "Yeti":
-            (L10n.enemies_yeti_name, [])
+            return (L10n.enemies_yeti_name, [])
         case "Zealot":
-            (L10n.enemies_zealot_name, [])
+            return (L10n.enemies_zealot_name, [])
         case "Companion Dodge chance +2%":
-            (L10n.homestead_nodes_agilitytraining_1_bonus_description(2), [2])
+            return (L10n.homestead_nodes_agilitytraining_1_bonus_description(2), [2])
         case "Practice Ground":
-            (L10n.homestead_nodes_agilitytraining_1_stage_name, [])
+            return (L10n.homestead_nodes_agilitytraining_1_stage_name, [])
         case "A practice yard that sharpens companion footwork and reflexes":
-            (L10n.homestead_nodes_agilitytraining_1_summary, [])
+            return (L10n.homestead_nodes_agilitytraining_1_summary, [])
         case "Agility Training":
-            (L10n.homestead_nodes_agilitytraining_1_title, [])
+            return (L10n.homestead_nodes_agilitytraining_1_title, [])
         case "Companion Dodge chance +4%":
-            (L10n.homestead_nodes_agilitytraining_2_bonus_description(4), [4])
+            return (L10n.homestead_nodes_agilitytraining_2_bonus_description(4), [4])
         case "Obstacle Course":
-            (L10n.homestead_nodes_agilitytraining_2_stage_name, [])
+            return (L10n.homestead_nodes_agilitytraining_2_stage_name, [])
         case "Companion Dodge chance +6%":
-            (L10n.homestead_nodes_agilitytraining_3_bonus_description(6), [6])
+            return (L10n.homestead_nodes_agilitytraining_3_bonus_description(6), [6])
         case "Training Yard":
-            (L10n.homestead_nodes_agilitytraining_3_stage_name, [])
+            return (L10n.homestead_nodes_agilitytraining_3_stage_name, [])
         case "Companion Dodge chance +8%":
-            (L10n.homestead_nodes_agilitytraining_4_bonus_description(8), [8])
+            return (L10n.homestead_nodes_agilitytraining_4_bonus_description(8), [8])
         case "Training Pavilion":
-            (L10n.homestead_nodes_agilitytraining_4_stage_name, [])
+            return (L10n.homestead_nodes_agilitytraining_4_stage_name, [])
         case "Increase Poison damage by 10%\nProduce 1 Herbs per Day":
-            (L10n.homestead_nodes_alchemylab_1_bonus_description(10, 1), [10, 1])
+            return (L10n.homestead_nodes_alchemylab_1_bonus_description(10, 1), [10, 1])
         case "Increase Poison damage by 10%":
-            (L10n.homestead_nodes_alchemylab_1_bonus_title(10), [10])
+            return (L10n.homestead_nodes_alchemylab_1_bonus_title(10), [10])
         case "Workbench":
-            (L10n.homestead_nodes_alchemylab_1_stage_name, [])
+            return (L10n.homestead_nodes_alchemylab_1_stage_name, [])
         case "A precise workspace for reagents, tonics, and restorative experiments":
-            (L10n.homestead_nodes_alchemylab_1_summary, [])
+            return (L10n.homestead_nodes_alchemylab_1_summary, [])
         case "Alchemy Lab":
-            (L10n.homestead_nodes_alchemylab_1_title, [])
+            return (L10n.homestead_nodes_alchemylab_1_title, [])
         case "Increase Poison damage by 15%\nProduce 2 Herbs per Day":
-            (L10n.homestead_nodes_alchemylab_2_bonus_description(15, 2), [15, 2])
+            return (L10n.homestead_nodes_alchemylab_2_bonus_description(15, 2), [15, 2])
         case "Increase Poison damage by 15%":
-            (L10n.homestead_nodes_alchemylab_2_bonus_title(15), [15])
+            return (L10n.homestead_nodes_alchemylab_2_bonus_title(15), [15])
         case "Laboratory Shelves":
-            (L10n.homestead_nodes_alchemylab_2_stage_name, [])
+            return (L10n.homestead_nodes_alchemylab_2_stage_name, [])
         case "Increase Poison damage by 20%\nProduce 3 Herbs per Day":
-            (L10n.homestead_nodes_alchemylab_3_bonus_description(20, 3), [20, 3])
+            return (L10n.homestead_nodes_alchemylab_3_bonus_description(20, 3), [20, 3])
         case "Increase Poison damage by 20%":
-            (L10n.homestead_nodes_alchemylab_3_bonus_title(20), [20])
+            return (L10n.homestead_nodes_alchemylab_3_bonus_title(20), [20])
         case "Distilling Station":
-            (L10n.homestead_nodes_alchemylab_3_stage_name, [])
+            return (L10n.homestead_nodes_alchemylab_3_stage_name, [])
         case "Increase Poison damage by 25%\nProduce 4 Herbs per Day":
-            (L10n.homestead_nodes_alchemylab_4_bonus_description(25, 4), [25, 4])
+            return (L10n.homestead_nodes_alchemylab_4_bonus_description(25, 4), [25, 4])
         case "Increase Poison damage by 25%":
-            (L10n.homestead_nodes_alchemylab_4_bonus_title(25), [25])
+            return (L10n.homestead_nodes_alchemylab_4_bonus_title(25), [25])
         case "Sealed Laboratory":
-            (L10n.homestead_nodes_alchemylab_4_stage_name, [])
+            return (L10n.homestead_nodes_alchemylab_4_stage_name, [])
         case "Bow and Crossbow damage +5%\nProduce 1 Wood per Day":
-            (L10n.homestead_nodes_archeryrange_1_bonus_description(5, 1), [5, 1])
+            return (L10n.homestead_nodes_archeryrange_1_bonus_description(5, 1), [5, 1])
         case "Bow and Crossbow damage +5%":
-            (L10n.homestead_nodes_archeryrange_1_bonus_title(5), [5])
+            return (L10n.homestead_nodes_archeryrange_1_bonus_title(5), [5])
         case "Target Bale":
-            (L10n.homestead_nodes_archeryrange_1_stage_name, [])
+            return (L10n.homestead_nodes_archeryrange_1_stage_name, [])
         case "Distance butts and fletching benches for long-range marksmanship":
-            (L10n.homestead_nodes_archeryrange_1_summary, [])
+            return (L10n.homestead_nodes_archeryrange_1_summary, [])
         case "Archery Range":
-            (L10n.homestead_nodes_archeryrange_1_title, [])
+            return (L10n.homestead_nodes_archeryrange_1_title, [])
         case "Bow and Crossbow damage +10%\nProduce 2 Wood per Day":
-            (L10n.homestead_nodes_archeryrange_2_bonus_description(10, 2), [10, 2])
+            return (L10n.homestead_nodes_archeryrange_2_bonus_description(10, 2), [10, 2])
         case "Bow and Crossbow damage +10%":
-            (L10n.homestead_nodes_archeryrange_2_bonus_title(10), [10])
+            return (L10n.homestead_nodes_archeryrange_2_bonus_title(10), [10])
         case "Shooting Line":
-            (L10n.homestead_nodes_archeryrange_2_stage_name, [])
+            return (L10n.homestead_nodes_archeryrange_2_stage_name, [])
         case "Bow and Crossbow damage +15%\nProduce 3 Wood per Day":
-            (L10n.homestead_nodes_archeryrange_3_bonus_description(15, 3), [15, 3])
+            return (L10n.homestead_nodes_archeryrange_3_bonus_description(15, 3), [15, 3])
         case "Bow and Crossbow damage +15%":
-            (L10n.homestead_nodes_archeryrange_3_bonus_title(15), [15])
+            return (L10n.homestead_nodes_archeryrange_3_bonus_title(15), [15])
         case "Wind-Flag Range":
-            (L10n.homestead_nodes_archeryrange_3_stage_name, [])
+            return (L10n.homestead_nodes_archeryrange_3_stage_name, [])
         case "Bow and Crossbow damage +20%\nProduce 4 Wood per Day":
-            (L10n.homestead_nodes_archeryrange_4_bonus_description(20, 4), [20, 4])
+            return (L10n.homestead_nodes_archeryrange_4_bonus_description(20, 4), [20, 4])
         case "Bow and Crossbow damage +20%":
-            (L10n.homestead_nodes_archeryrange_4_bonus_title(20), [20])
+            return (L10n.homestead_nodes_archeryrange_4_bonus_title(20), [20])
         case "Master Archery Butt":
-            (L10n.homestead_nodes_archeryrange_4_stage_name, [])
+            return (L10n.homestead_nodes_archeryrange_4_stage_name, [])
         case "Increase Physical damage by 10%\nProduce 1 Iron per Day":
-            (L10n.homestead_nodes_blacksmithforge_1_bonus_description(10, 1), [10, 1])
+            return (L10n.homestead_nodes_blacksmithforge_1_bonus_description(10, 1), [10, 1])
         case "Increase Physical damage by 10%":
-            (L10n.homestead_nodes_blacksmithforge_1_bonus_title(10), [10])
+            return (L10n.homestead_nodes_blacksmithforge_1_bonus_title(10), [10])
         case "Forge Foundation":
-            (L10n.homestead_nodes_blacksmithforge_1_stage_name, [])
+            return (L10n.homestead_nodes_blacksmithforge_1_stage_name, [])
         case "A working forge for hardware, weapons, and stronger construction":
-            (L10n.homestead_nodes_blacksmithforge_1_summary, [])
+            return (L10n.homestead_nodes_blacksmithforge_1_summary, [])
         case "Blacksmith":
-            (L10n.homestead_nodes_blacksmithforge_1_title, [])
+            return (L10n.homestead_nodes_blacksmithforge_1_title, [])
         case "Increase Physical damage by 15%\nAstral forge odds rise by 10%\nProduce 2 Iron per Day":
-            (L10n.homestead_nodes_blacksmithforge_2_bonus_description(15, 10, 2), [15, 10, 2])
+            return (L10n.homestead_nodes_blacksmithforge_2_bonus_description(15, 10, 2), [15, 10, 2])
         case "Increase Physical damage by 15%":
-            (L10n.homestead_nodes_blacksmithforge_2_bonus_title(15), [15])
+            return (L10n.homestead_nodes_blacksmithforge_2_bonus_title(15), [15])
         case "Hearth and Anvil":
-            (L10n.homestead_nodes_blacksmithforge_2_stage_name, [])
+            return (L10n.homestead_nodes_blacksmithforge_2_stage_name, [])
         case "Increase Physical damage by 20%\nAstral forge odds rise by 20%\nProduce 3 Iron per Day":
-            (L10n.homestead_nodes_blacksmithforge_3_bonus_description(20, 20, 3), [20, 20, 3])
+            return (L10n.homestead_nodes_blacksmithforge_3_bonus_description(20, 20, 3), [20, 20, 3])
         case "Increase Physical damage by 20%":
-            (L10n.homestead_nodes_blacksmithforge_3_bonus_title(20), [20])
+            return (L10n.homestead_nodes_blacksmithforge_3_bonus_title(20), [20])
         case "Covered Smithy":
-            (L10n.homestead_nodes_blacksmithforge_3_stage_name, [])
+            return (L10n.homestead_nodes_blacksmithforge_3_stage_name, [])
         case "Increase Physical damage by 25%\nAstral forge odds rise by 30%\nProduce 4 Iron per Day":
-            (L10n.homestead_nodes_blacksmithforge_4_bonus_description(25, 30, 4), [25, 30, 4])
+            return (L10n.homestead_nodes_blacksmithforge_4_bonus_description(25, 30, 4), [25, 30, 4])
         case "Increase Physical damage by 25%":
-            (L10n.homestead_nodes_blacksmithforge_4_bonus_title(25), [25])
+            return (L10n.homestead_nodes_blacksmithforge_4_bonus_title(25), [25])
         case "Reinforced Forge":
-            (L10n.homestead_nodes_blacksmithforge_4_stage_name, [])
+            return (L10n.homestead_nodes_blacksmithforge_4_stage_name, [])
         case "Companion Health rises by 10%\nProduce 1 Food per Day":
-            (L10n.homestead_nodes_chickencoop_1_bonus_description(10, 1), [10, 1])
+            return (L10n.homestead_nodes_chickencoop_1_bonus_description(10, 1), [10, 1])
         case "Companion Health rises by 10%":
-            (L10n.homestead_nodes_chickencoop_1_bonus_title(10), [10])
+            return (L10n.homestead_nodes_chickencoop_1_bonus_title(10), [10])
         case "Coop Frame":
-            (L10n.homestead_nodes_chickencoop_1_stage_name, [])
+            return (L10n.homestead_nodes_chickencoop_1_stage_name, [])
         case "A lively coop that keeps simple supplies moving between runs":
-            (L10n.homestead_nodes_chickencoop_1_summary, [])
+            return (L10n.homestead_nodes_chickencoop_1_summary, [])
         case "Chicken Coop":
-            (L10n.homestead_nodes_chickencoop_1_title, [])
+            return (L10n.homestead_nodes_chickencoop_1_title, [])
         case "Companion Health rises by 20%\nProduce 2 Food per Day":
-            (L10n.homestead_nodes_chickencoop_2_bonus_description(20, 2), [20, 2])
+            return (L10n.homestead_nodes_chickencoop_2_bonus_description(20, 2), [20, 2])
         case "Companion Health rises by 20%":
-            (L10n.homestead_nodes_chickencoop_2_bonus_title(20), [20])
+            return (L10n.homestead_nodes_chickencoop_2_bonus_title(20), [20])
         case "Enclosed Coop":
-            (L10n.homestead_nodes_chickencoop_2_stage_name, [])
+            return (L10n.homestead_nodes_chickencoop_2_stage_name, [])
         case "Companion Health rises by 30%\nProduce 3 Food per Day":
-            (L10n.homestead_nodes_chickencoop_3_bonus_description(30, 3), [30, 3])
+            return (L10n.homestead_nodes_chickencoop_3_bonus_description(30, 3), [30, 3])
         case "Companion Health rises by 30%":
-            (L10n.homestead_nodes_chickencoop_3_bonus_title(30), [30])
+            return (L10n.homestead_nodes_chickencoop_3_bonus_title(30), [30])
         case "Nesting Boxes":
-            (L10n.homestead_nodes_chickencoop_3_stage_name, [])
+            return (L10n.homestead_nodes_chickencoop_3_stage_name, [])
         case "Companion Health rises by 40%\nProduce 4 Food per Day":
-            (L10n.homestead_nodes_chickencoop_4_bonus_description(40, 4), [40, 4])
+            return (L10n.homestead_nodes_chickencoop_4_bonus_description(40, 4), [40, 4])
         case "Companion Health rises by 40%":
-            (L10n.homestead_nodes_chickencoop_4_bonus_title(40), [40])
+            return (L10n.homestead_nodes_chickencoop_4_bonus_title(40), [40])
         case "Expanded Roost":
-            (L10n.homestead_nodes_chickencoop_4_stage_name, [])
+            return (L10n.homestead_nodes_chickencoop_4_stage_name, [])
         case "Increase Critical damage by 10%\nProduce 1 Gems per Day\nProduce 1 Stone per Day":
-            (L10n.homestead_nodes_crystalgarden_1_bonus_description(10, 1, 1), [10, 1, 1])
+            return (L10n.homestead_nodes_crystalgarden_1_bonus_description(10, 1, 1), [10, 1, 1])
         case "Increase Critical damage by 10%":
-            (L10n.homestead_nodes_crystalgarden_1_bonus_title(10), [10])
+            return (L10n.homestead_nodes_crystalgarden_1_bonus_title(10), [10])
         case "Crystal Beds":
-            (L10n.homestead_nodes_crystalgarden_1_stage_name, [])
+            return (L10n.homestead_nodes_crystalgarden_1_stage_name, [])
         case "A luminous garden where rare formations grow around quiet magic":
-            (L10n.homestead_nodes_crystalgarden_1_summary, [])
+            return (L10n.homestead_nodes_crystalgarden_1_summary, [])
         case "Increase Critical damage by 20%\nProduce 2 Gems per Day\nProduce 2 Stone per Day":
-            (L10n.homestead_nodes_crystalgarden_2_bonus_description(20, 2, 2), [20, 2, 2])
+            return (L10n.homestead_nodes_crystalgarden_2_bonus_description(20, 2, 2), [20, 2, 2])
         case "Increase Critical damage by 20%":
-            (L10n.homestead_nodes_crystalgarden_2_bonus_title(20), [20])
+            return (L10n.homestead_nodes_crystalgarden_2_bonus_title(20), [20])
         case "Covered Beds":
-            (L10n.homestead_nodes_crystalgarden_2_stage_name, [])
+            return (L10n.homestead_nodes_crystalgarden_2_stage_name, [])
         case "Increase Critical damage by 30%\nProduce 3 Gems per Day\nProduce 3 Stone per Day":
-            (L10n.homestead_nodes_crystalgarden_3_bonus_description(30, 3, 3), [30, 3, 3])
+            return (L10n.homestead_nodes_crystalgarden_3_bonus_description(30, 3, 3), [30, 3, 3])
         case "Increase Critical damage by 30%":
-            (L10n.homestead_nodes_crystalgarden_3_bonus_title(30), [30])
+            return (L10n.homestead_nodes_crystalgarden_3_bonus_title(30), [30])
         case "Growth Chambers":
-            (L10n.homestead_nodes_crystalgarden_3_stage_name, [])
+            return (L10n.homestead_nodes_crystalgarden_3_stage_name, [])
         case "Increase Critical damage by 40%\nProduce 4 Gems per Day\nProduce 4 Stone per Day":
-            (L10n.homestead_nodes_crystalgarden_4_bonus_description(40, 4, 4), [40, 4, 4])
+            return (L10n.homestead_nodes_crystalgarden_4_bonus_description(40, 4, 4), [40, 4, 4])
         case "Increase Critical damage by 40%":
-            (L10n.homestead_nodes_crystalgarden_4_bonus_title(40), [40])
+            return (L10n.homestead_nodes_crystalgarden_4_bonus_title(40), [40])
         case "Crystal Conservatory":
-            (L10n.homestead_nodes_crystalgarden_4_stage_name, [])
+            return (L10n.homestead_nodes_crystalgarden_4_stage_name, [])
         case "Restore 10% more Health\nProduce 1 Food per Day":
-            (L10n.homestead_nodes_culinaryarts_1_bonus_description(10, 1), [10, 1])
+            return (L10n.homestead_nodes_culinaryarts_1_bonus_description(10, 1), [10, 1])
         case "Restore 10% more Health":
-            (L10n.homestead_nodes_culinaryarts_1_bonus_title(10), [10])
+            return (L10n.homestead_nodes_culinaryarts_1_bonus_title(10), [10])
         case "Cooking Hearth":
-            (L10n.homestead_nodes_culinaryarts_1_stage_name, [])
+            return (L10n.homestead_nodes_culinaryarts_1_stage_name, [])
         case "A warm kitchen that turns the harvest into lasting strength":
-            (L10n.homestead_nodes_culinaryarts_1_summary, [])
+            return (L10n.homestead_nodes_culinaryarts_1_summary, [])
         case "Culinary Arts":
-            (L10n.homestead_nodes_culinaryarts_1_title, [])
+            return (L10n.homestead_nodes_culinaryarts_1_title, [])
         case "Restore 20% more Health\nProduce 2 Food per Day":
-            (L10n.homestead_nodes_culinaryarts_2_bonus_description(20, 2), [20, 2])
+            return (L10n.homestead_nodes_culinaryarts_2_bonus_description(20, 2), [20, 2])
         case "Restore 20% more Health":
-            (L10n.homestead_nodes_culinaryarts_2_bonus_title(20), [20])
+            return (L10n.homestead_nodes_culinaryarts_2_bonus_title(20), [20])
         case "Work Kitchen":
-            (L10n.homestead_nodes_culinaryarts_2_stage_name, [])
+            return (L10n.homestead_nodes_culinaryarts_2_stage_name, [])
         case "Restore 30% more Health\nProduce 3 Food per Day":
-            (L10n.homestead_nodes_culinaryarts_3_bonus_description(30, 3), [30, 3])
+            return (L10n.homestead_nodes_culinaryarts_3_bonus_description(30, 3), [30, 3])
         case "Restore 30% more Health":
-            (L10n.homestead_nodes_culinaryarts_3_bonus_title(30), [30])
+            return (L10n.homestead_nodes_culinaryarts_3_bonus_title(30), [30])
         case "Stone Oven":
-            (L10n.homestead_nodes_culinaryarts_3_stage_name, [])
+            return (L10n.homestead_nodes_culinaryarts_3_stage_name, [])
         case "Restore 40% more Health\nProduce 4 Food per Day":
-            (L10n.homestead_nodes_culinaryarts_4_bonus_description(40, 4), [40, 4])
+            return (L10n.homestead_nodes_culinaryarts_4_bonus_description(40, 4), [40, 4])
         case "Restore 40% more Health":
-            (L10n.homestead_nodes_culinaryarts_4_bonus_title(40), [40])
+            return (L10n.homestead_nodes_culinaryarts_4_bonus_title(40), [40])
         case "Expanded Kitchen":
-            (L10n.homestead_nodes_culinaryarts_4_stage_name, [])
+            return (L10n.homestead_nodes_culinaryarts_4_stage_name, [])
         case "Take 5% less Poison damage\nProduce 1 Herbs per Day":
-            (L10n.homestead_nodes_herbgarden_1_bonus_description(5, 1), [5, 1])
+            return (L10n.homestead_nodes_herbgarden_1_bonus_description(5, 1), [5, 1])
         case "Take 5% less Poison damage":
-            (L10n.homestead_nodes_herbgarden_1_bonus_title(5), [5])
+            return (L10n.homestead_nodes_herbgarden_1_bonus_title(5), [5])
         case "Prepared Beds":
-            (L10n.homestead_nodes_herbgarden_1_stage_name, [])
+            return (L10n.homestead_nodes_herbgarden_1_stage_name, [])
         case "A small medicinal garden for tonics, reagents, and green magic":
-            (L10n.homestead_nodes_herbgarden_1_summary, [])
+            return (L10n.homestead_nodes_herbgarden_1_summary, [])
         case "Herb Garden":
-            (L10n.homestead_nodes_herbgarden_1_title, [])
+            return (L10n.homestead_nodes_herbgarden_1_title, [])
         case "Take 10% less Poison damage\nProduce 2 Herbs per Day":
-            (L10n.homestead_nodes_herbgarden_2_bonus_description(10, 2), [10, 2])
+            return (L10n.homestead_nodes_herbgarden_2_bonus_description(10, 2), [10, 2])
         case "Take 10% less Poison damage":
-            (L10n.homestead_nodes_herbgarden_2_bonus_title(10), [10])
+            return (L10n.homestead_nodes_herbgarden_2_bonus_title(10), [10])
         case "Planted Beds":
-            (L10n.homestead_nodes_herbgarden_2_stage_name, [])
+            return (L10n.homestead_nodes_herbgarden_2_stage_name, [])
         case "Take 15% less Poison damage\nProduce 3 Herbs per Day":
-            (L10n.homestead_nodes_herbgarden_3_bonus_description(15, 3), [15, 3])
+            return (L10n.homestead_nodes_herbgarden_3_bonus_description(15, 3), [15, 3])
         case "Take 15% less Poison damage":
-            (L10n.homestead_nodes_herbgarden_3_bonus_title(15), [15])
+            return (L10n.homestead_nodes_herbgarden_3_bonus_title(15), [15])
         case "Irrigated Beds":
-            (L10n.homestead_nodes_herbgarden_3_stage_name, [])
+            return (L10n.homestead_nodes_herbgarden_3_stage_name, [])
         case "Take 20% less Poison damage\nProduce 4 Herbs per Day":
-            (L10n.homestead_nodes_herbgarden_4_bonus_description(20, 4), [20, 4])
+            return (L10n.homestead_nodes_herbgarden_4_bonus_description(20, 4), [20, 4])
         case "Covered Garden":
-            (L10n.homestead_nodes_herbgarden_4_stage_name, [])
+            return (L10n.homestead_nodes_herbgarden_4_stage_name, [])
         case "Companion damage rises by 5%\nProduce 1 Hide per Day":
-            (L10n.homestead_nodes_hunterlodge_1_bonus_description(5, 1), [5, 1])
+            return (L10n.homestead_nodes_hunterlodge_1_bonus_description(5, 1), [5, 1])
         case "Companion damage rises by 5%":
-            (L10n.homestead_nodes_hunterlodge_1_bonus_title(5), [5])
+            return (L10n.homestead_nodes_hunterlodge_1_bonus_title(5), [5])
         case "Trail Shelter":
-            (L10n.homestead_nodes_hunterlodge_1_stage_name, [])
+            return (L10n.homestead_nodes_hunterlodge_1_stage_name, [])
         case "A trail lodge for companion drills and field craft":
-            (L10n.homestead_nodes_hunterlodge_1_summary, [])
+            return (L10n.homestead_nodes_hunterlodge_1_summary, [])
         case "Companion damage rises by 10%\nProduce 2 Hide per Day":
-            (L10n.homestead_nodes_hunterlodge_2_bonus_description(10, 2), [10, 2])
+            return (L10n.homestead_nodes_hunterlodge_2_bonus_description(10, 2), [10, 2])
         case "Companion damage rises by 10%":
-            (L10n.homestead_nodes_hunterlodge_2_bonus_title(10), [10])
+            return (L10n.homestead_nodes_hunterlodge_2_bonus_title(10), [10])
         case "Timber Lodge":
-            (L10n.homestead_nodes_hunterlodge_2_stage_name, [])
+            return (L10n.homestead_nodes_hunterlodge_2_stage_name, [])
         case "Companion damage rises by 15%\nProduce 3 Hide per Day":
-            (L10n.homestead_nodes_hunterlodge_3_bonus_description(15, 3), [15, 3])
+            return (L10n.homestead_nodes_hunterlodge_3_bonus_description(15, 3), [15, 3])
         case "Companion damage rises by 15%":
-            (L10n.homestead_nodes_hunterlodge_3_bonus_title(15), [15])
+            return (L10n.homestead_nodes_hunterlodge_3_bonus_title(15), [15])
         case "Gear Room":
-            (L10n.homestead_nodes_hunterlodge_3_stage_name, [])
+            return (L10n.homestead_nodes_hunterlodge_3_stage_name, [])
         case "Companion damage rises by 20%\nProduce 4 Hide per Day":
-            (L10n.homestead_nodes_hunterlodge_4_bonus_description(20, 4), [20, 4])
+            return (L10n.homestead_nodes_hunterlodge_4_bonus_description(20, 4), [20, 4])
         case "Companion damage rises by 20%":
-            (L10n.homestead_nodes_hunterlodge_4_bonus_title(20), [20])
+            return (L10n.homestead_nodes_hunterlodge_4_bonus_title(20), [20])
         case "Restore 10% more Mana\nProduce 1 Gems per Day":
-            (L10n.homestead_nodes_leylineenergy_1_bonus_description(10, 1), [10, 1])
+            return (L10n.homestead_nodes_leylineenergy_1_bonus_description(10, 1), [10, 1])
         case "Restore 10% more Mana":
-            (L10n.homestead_nodes_leylineenergy_1_bonus_title(10), [10])
+            return (L10n.homestead_nodes_leylineenergy_1_bonus_title(10), [10])
         case "Glowing Fissure":
-            (L10n.homestead_nodes_leylineenergy_1_stage_name, [])
+            return (L10n.homestead_nodes_leylineenergy_1_stage_name, [])
         case "Luminous subterranean fissures channeling raw planar magic up from deep leylines":
-            (L10n.homestead_nodes_leylineenergy_1_summary, [])
+            return (L10n.homestead_nodes_leylineenergy_1_summary, [])
         case "Leyline Energy":
-            (L10n.homestead_nodes_leylineenergy_1_title, [])
+            return (L10n.homestead_nodes_leylineenergy_1_title, [])
         case "Restore 20% more Mana\nProduce 2 Gems per Day":
-            (L10n.homestead_nodes_leylineenergy_2_bonus_description(20, 2), [20, 2])
+            return (L10n.homestead_nodes_leylineenergy_2_bonus_description(20, 2), [20, 2])
         case "Restore 20% more Mana":
-            (L10n.homestead_nodes_leylineenergy_2_bonus_title(20), [20])
+            return (L10n.homestead_nodes_leylineenergy_2_bonus_title(20), [20])
         case "Resonant Fault":
-            (L10n.homestead_nodes_leylineenergy_2_stage_name, [])
+            return (L10n.homestead_nodes_leylineenergy_2_stage_name, [])
         case "Restore 30% more Mana\nProduce 3 Gems per Day":
-            (L10n.homestead_nodes_leylineenergy_3_bonus_description(30, 3), [30, 3])
+            return (L10n.homestead_nodes_leylineenergy_3_bonus_description(30, 3), [30, 3])
         case "Restore 30% more Mana":
-            (L10n.homestead_nodes_leylineenergy_3_bonus_title(30), [30])
+            return (L10n.homestead_nodes_leylineenergy_3_bonus_title(30), [30])
         case "Surging Rift":
-            (L10n.homestead_nodes_leylineenergy_3_stage_name, [])
+            return (L10n.homestead_nodes_leylineenergy_3_stage_name, [])
         case "Restore 40% more Mana\nProduce 4 Gems per Day":
-            (L10n.homestead_nodes_leylineenergy_4_bonus_description(40, 4), [40, 4])
+            return (L10n.homestead_nodes_leylineenergy_4_bonus_description(40, 4), [40, 4])
         case "Restore 40% more Mana":
-            (L10n.homestead_nodes_leylineenergy_4_bonus_title(40), [40])
+            return (L10n.homestead_nodes_leylineenergy_4_bonus_title(40), [40])
         case "Planar Confluence":
-            (L10n.homestead_nodes_leylineenergy_4_stage_name, [])
+            return (L10n.homestead_nodes_leylineenergy_4_stage_name, [])
         case "Gain 5% more Experience":
-            (L10n.homestead_nodes_library_1_bonus_description(5), [5])
+            return (L10n.homestead_nodes_library_1_bonus_description(5), [5])
         case "Scribe Desk":
-            (L10n.homestead_nodes_library_1_stage_name, [])
+            return (L10n.homestead_nodes_library_1_stage_name, [])
         case "Ancient knowledge turns hard-won experience into lasting insight":
-            (L10n.homestead_nodes_library_1_summary, [])
+            return (L10n.homestead_nodes_library_1_summary, [])
         case "Library":
-            (L10n.homestead_nodes_library_1_title, [])
+            return (L10n.homestead_nodes_library_1_title, [])
         case "Gain 10% more Experience":
-            (L10n.homestead_nodes_library_2_bonus_description(10), [10])
+            return (L10n.homestead_nodes_library_2_bonus_description(10), [10])
         case "Scroll Archive":
-            (L10n.homestead_nodes_library_2_stage_name, [])
+            return (L10n.homestead_nodes_library_2_stage_name, [])
         case "Gain 15% more Experience":
-            (L10n.homestead_nodes_library_3_bonus_description(15), [15])
+            return (L10n.homestead_nodes_library_3_bonus_description(15), [15])
         case "Illuminated Study":
-            (L10n.homestead_nodes_library_3_stage_name, [])
+            return (L10n.homestead_nodes_library_3_stage_name, [])
         case "Gain 20% more Experience":
-            (L10n.homestead_nodes_library_4_bonus_description(20), [20])
+            return (L10n.homestead_nodes_library_4_bonus_description(20), [20])
         case "Grand Library":
-            (L10n.homestead_nodes_library_4_stage_name, [])
+            return (L10n.homestead_nodes_library_4_stage_name, [])
         case "Astral drop rates rise by 5%\nFind 5% more Gems":
-            (L10n.homestead_nodes_moonlitsanctum_1_bonus_description(5, 5), [5, 5])
+            return (L10n.homestead_nodes_moonlitsanctum_1_bonus_description(5, 5), [5, 5])
         case "Astral drop rates rise by 5%":
-            (L10n.homestead_nodes_moonlitsanctum_1_bonus_title(5), [5])
+            return (L10n.homestead_nodes_moonlitsanctum_1_bonus_title(5), [5])
         case "Shrine Foundation":
-            (L10n.homestead_nodes_moonlitsanctum_1_stage_name, [])
+            return (L10n.homestead_nodes_moonlitsanctum_1_stage_name, [])
         case "A quiet sanctum for sensing rare finds and unnatural threats":
-            (L10n.homestead_nodes_moonlitsanctum_1_summary, [])
+            return (L10n.homestead_nodes_moonlitsanctum_1_summary, [])
         case "Moonlit Sanctum":
-            (L10n.homestead_nodes_moonlitsanctum_1_title, [])
+            return (L10n.homestead_nodes_moonlitsanctum_1_title, [])
         case "Astral drop rates rise by 10%\nFind 10% more Gems":
-            (L10n.homestead_nodes_moonlitsanctum_2_bonus_description(10, 10), [10, 10])
+            return (L10n.homestead_nodes_moonlitsanctum_2_bonus_description(10, 10), [10, 10])
         case "Astral drop rates rise by 10%":
-            (L10n.homestead_nodes_moonlitsanctum_2_bonus_title(10), [10])
+            return (L10n.homestead_nodes_moonlitsanctum_2_bonus_title(10), [10])
         case "Enclosed Shrine":
-            (L10n.homestead_nodes_moonlitsanctum_2_stage_name, [])
+            return (L10n.homestead_nodes_moonlitsanctum_2_stage_name, [])
         case "Astral drop rates rise by 15%\nFind 15% more Gems":
-            (L10n.homestead_nodes_moonlitsanctum_3_bonus_description(15, 15), [15, 15])
+            return (L10n.homestead_nodes_moonlitsanctum_3_bonus_description(15, 15), [15, 15])
         case "Astral drop rates rise by 15%":
-            (L10n.homestead_nodes_moonlitsanctum_3_bonus_title(15), [15])
+            return (L10n.homestead_nodes_moonlitsanctum_3_bonus_title(15), [15])
         case "Observation Chamber":
-            (L10n.homestead_nodes_moonlitsanctum_3_stage_name, [])
+            return (L10n.homestead_nodes_moonlitsanctum_3_stage_name, [])
         case "Astral drop rates rise by 20%\nFind 20% more Gems":
-            (L10n.homestead_nodes_moonlitsanctum_4_bonus_description(20, 20), [20, 20])
+            return (L10n.homestead_nodes_moonlitsanctum_4_bonus_description(20, 20), [20, 20])
         case "Astral drop rates rise by 20%":
-            (L10n.homestead_nodes_moonlitsanctum_4_bonus_title(20), [20])
+            return (L10n.homestead_nodes_moonlitsanctum_4_bonus_title(20), [20])
         case "Observatory Tower":
-            (L10n.homestead_nodes_moonlitsanctum_4_stage_name, [])
+            return (L10n.homestead_nodes_moonlitsanctum_4_stage_name, [])
         case "Leech restores 5% more Health\nProduce 1 Herbs per Day":
-            (L10n.homestead_nodes_mycologycellar_1_bonus_description(5, 1), [5, 1])
+            return (L10n.homestead_nodes_mycologycellar_1_bonus_description(5, 1), [5, 1])
         case "Leech restores 5% more Health":
-            (L10n.homestead_nodes_mycologycellar_1_bonus_title(5), [5])
+            return (L10n.homestead_nodes_mycologycellar_1_bonus_title(5), [5])
         case "Spore Bed":
-            (L10n.homestead_nodes_mycologycellar_1_stage_name, [])
+            return (L10n.homestead_nodes_mycologycellar_1_stage_name, [])
         case "A shaded cellar cultivating parasitic fungi and potent reagents":
-            (L10n.homestead_nodes_mycologycellar_1_summary, [])
+            return (L10n.homestead_nodes_mycologycellar_1_summary, [])
         case "Mycology Cellar":
-            (L10n.homestead_nodes_mycologycellar_1_title, [])
+            return (L10n.homestead_nodes_mycologycellar_1_title, [])
         case "Leech restores 10% more Health\nProduce 2 Herbs per Day":
-            (L10n.homestead_nodes_mycologycellar_2_bonus_description(10, 2), [10, 2])
+            return (L10n.homestead_nodes_mycologycellar_2_bonus_description(10, 2), [10, 2])
         case "Leech restores 10% more Health":
-            (L10n.homestead_nodes_mycologycellar_2_bonus_title(10), [10])
+            return (L10n.homestead_nodes_mycologycellar_2_bonus_title(10), [10])
         case "Mushroom Rack":
-            (L10n.homestead_nodes_mycologycellar_2_stage_name, [])
+            return (L10n.homestead_nodes_mycologycellar_2_stage_name, [])
         case "Leech restores 15% more Health\nProduce 3 Herbs per Day":
-            (L10n.homestead_nodes_mycologycellar_3_bonus_description(15, 3), [15, 3])
+            return (L10n.homestead_nodes_mycologycellar_3_bonus_description(15, 3), [15, 3])
         case "Leech restores 15% more Health":
-            (L10n.homestead_nodes_mycologycellar_3_bonus_title(15), [15])
+            return (L10n.homestead_nodes_mycologycellar_3_bonus_title(15), [15])
         case "Spore Incubator":
-            (L10n.homestead_nodes_mycologycellar_3_stage_name, [])
+            return (L10n.homestead_nodes_mycologycellar_3_stage_name, [])
         case "Leech restores 20% more Health\nProduce 4 Herbs per Day":
-            (L10n.homestead_nodes_mycologycellar_4_bonus_description(20, 4), [20, 4])
+            return (L10n.homestead_nodes_mycologycellar_4_bonus_description(20, 4), [20, 4])
         case "Leech restores 20% more Health":
-            (L10n.homestead_nodes_mycologycellar_4_bonus_title(20), [20])
+            return (L10n.homestead_nodes_mycologycellar_4_bonus_title(20), [20])
         case "Fungal Sanctum":
-            (L10n.homestead_nodes_mycologycellar_4_stage_name, [])
+            return (L10n.homestead_nodes_mycologycellar_4_stage_name, [])
         case "Take 5% less Physical damage\nProduce 1 Hide per Day":
-            (L10n.homestead_nodes_pasture_1_bonus_description(5, 1), [5, 1])
+            return (L10n.homestead_nodes_pasture_1_bonus_description(5, 1), [5, 1])
         case "Take 5% less Physical damage":
-            (L10n.homestead_nodes_pasture_1_bonus_title(5), [5])
+            return (L10n.homestead_nodes_pasture_1_bonus_title(5), [5])
         case "Fenced Ground":
-            (L10n.homestead_nodes_pasture_1_stage_name, [])
+            return (L10n.homestead_nodes_pasture_1_stage_name, [])
         case "Open grazing land for larger stores and slower, stronger support":
-            (L10n.homestead_nodes_pasture_1_summary, [])
+            return (L10n.homestead_nodes_pasture_1_summary, [])
         case "Pasture":
-            (L10n.homestead_nodes_pasture_1_title, [])
+            return (L10n.homestead_nodes_pasture_1_title, [])
         case "Take 10% less Physical damage\nProduce 2 Hide per Day":
-            (L10n.homestead_nodes_pasture_2_bonus_description(10, 2), [10, 2])
+            return (L10n.homestead_nodes_pasture_2_bonus_description(10, 2), [10, 2])
         case "Seeded Pasture":
-            (L10n.homestead_nodes_pasture_2_stage_name, [])
+            return (L10n.homestead_nodes_pasture_2_stage_name, [])
         case "Take 15% less Physical damage\nProduce 3 Hide per Day":
-            (L10n.homestead_nodes_pasture_3_bonus_description(15, 3), [15, 3])
+            return (L10n.homestead_nodes_pasture_3_bonus_description(15, 3), [15, 3])
         case "Take 15% less Physical damage":
-            (L10n.homestead_nodes_pasture_3_bonus_title(15), [15])
+            return (L10n.homestead_nodes_pasture_3_bonus_title(15), [15])
         case "Watering Troughs":
-            (L10n.homestead_nodes_pasture_3_stage_name, [])
+            return (L10n.homestead_nodes_pasture_3_stage_name, [])
         case "Take 20% less Physical damage\nProduce 4 Hide per Day":
-            (L10n.homestead_nodes_pasture_4_bonus_description(20, 4), [20, 4])
+            return (L10n.homestead_nodes_pasture_4_bonus_description(20, 4), [20, 4])
         case "Take 20% less Physical damage":
-            (L10n.homestead_nodes_pasture_4_bonus_title(20), [20])
+            return (L10n.homestead_nodes_pasture_4_bonus_title(20), [20])
         case "Sheltered Range":
-            (L10n.homestead_nodes_pasture_4_stage_name, [])
+            return (L10n.homestead_nodes_pasture_4_stage_name, [])
         case "Increase Freeze damage by 10%\nIncrease Holy damage by 10%\nProduce 1 Gems per Day":
-            (L10n.homestead_nodes_runesmithworkshop_1_bonus_description(10, 10, 1), [10, 10, 1])
+            return (L10n.homestead_nodes_runesmithworkshop_1_bonus_description(10, 10, 1), [10, 10, 1])
         case "Increase Freeze damage by 10%":
-            (L10n.homestead_nodes_runesmithworkshop_1_bonus_title(10), [10])
+            return (L10n.homestead_nodes_runesmithworkshop_1_bonus_title(10), [10])
         case "Inscription Table":
-            (L10n.homestead_nodes_runesmithworkshop_1_stage_name, [])
+            return (L10n.homestead_nodes_runesmithworkshop_1_stage_name, [])
         case "A careful workshop where metalwork and crystal study meet":
-            (L10n.homestead_nodes_runesmithworkshop_1_summary, [])
+            return (L10n.homestead_nodes_runesmithworkshop_1_summary, [])
         case "Runesmith":
-            (L10n.homestead_nodes_runesmithworkshop_1_title, [])
+            return (L10n.homestead_nodes_runesmithworkshop_1_title, [])
         case "Increase Freeze damage by 15%\nIncrease Holy damage by 15%\nProduce 2 Gems per Day":
-            (L10n.homestead_nodes_runesmithworkshop_2_bonus_description(15, 15, 2), [15, 15, 2])
+            return (L10n.homestead_nodes_runesmithworkshop_2_bonus_description(15, 15, 2), [15, 15, 2])
         case "Increase Freeze damage by 15%":
-            (L10n.homestead_nodes_runesmithworkshop_2_bonus_title(15), [15])
+            return (L10n.homestead_nodes_runesmithworkshop_2_bonus_title(15), [15])
         case "Engraving Bench":
-            (L10n.homestead_nodes_runesmithworkshop_2_stage_name, [])
+            return (L10n.homestead_nodes_runesmithworkshop_2_stage_name, [])
         case "Increase Freeze damage by 20%\nIncrease Holy damage by 20%\nProduce 3 Gems per Day":
-            (L10n.homestead_nodes_runesmithworkshop_3_bonus_description(20, 20, 3), [20, 20, 3])
+            return (L10n.homestead_nodes_runesmithworkshop_3_bonus_description(20, 20, 3), [20, 20, 3])
         case "Increase Freeze damage by 20%":
-            (L10n.homestead_nodes_runesmithworkshop_3_bonus_title(20), [20])
+            return (L10n.homestead_nodes_runesmithworkshop_3_bonus_title(20), [20])
         case "Rune Forge":
-            (L10n.homestead_nodes_runesmithworkshop_3_stage_name, [])
+            return (L10n.homestead_nodes_runesmithworkshop_3_stage_name, [])
         case "Increase Freeze damage by 25%\nIncrease Holy damage by 25%\nProduce 4 Gems per Day":
-            (L10n.homestead_nodes_runesmithworkshop_4_bonus_description(25, 25, 4), [25, 25, 4])
+            return (L10n.homestead_nodes_runesmithworkshop_4_bonus_description(25, 25, 4), [25, 25, 4])
         case "Increase Freeze damage by 25%":
-            (L10n.homestead_nodes_runesmithworkshop_4_bonus_title(25), [25])
+            return (L10n.homestead_nodes_runesmithworkshop_4_bonus_title(25), [25])
         case "Expanded Workshop":
-            (L10n.homestead_nodes_runesmithworkshop_4_stage_name, [])
+            return (L10n.homestead_nodes_runesmithworkshop_4_stage_name, [])
         case "Gain 10% more Block\nProduce 1 Iron per Day":
-            (L10n.homestead_nodes_sparringgrounds_1_bonus_description(10, 1), [10, 1])
+            return (L10n.homestead_nodes_sparringgrounds_1_bonus_description(10, 1), [10, 1])
         case "Gain 10% more Block":
-            (L10n.homestead_nodes_sparringgrounds_1_bonus_title(10), [10])
+            return (L10n.homestead_nodes_sparringgrounds_1_bonus_title(10), [10])
         case "Chalk Circle":
-            (L10n.homestead_nodes_sparringgrounds_1_stage_name, [])
+            return (L10n.homestead_nodes_sparringgrounds_1_stage_name, [])
         case "A sandy martial yard for close-quarters parrying and shield drills":
-            (L10n.homestead_nodes_sparringgrounds_1_summary, [])
+            return (L10n.homestead_nodes_sparringgrounds_1_summary, [])
         case "Sparring Grounds":
-            (L10n.homestead_nodes_sparringgrounds_1_title, [])
+            return (L10n.homestead_nodes_sparringgrounds_1_title, [])
         case "Gain 20% more Block\nProduce 2 Iron per Day":
-            (L10n.homestead_nodes_sparringgrounds_2_bonus_description(20, 2), [20, 2])
+            return (L10n.homestead_nodes_sparringgrounds_2_bonus_description(20, 2), [20, 2])
         case "Gain 20% more Block":
-            (L10n.homestead_nodes_sparringgrounds_2_bonus_title(20), [20])
+            return (L10n.homestead_nodes_sparringgrounds_2_bonus_title(20), [20])
         case "Padded Stakes":
-            (L10n.homestead_nodes_sparringgrounds_2_stage_name, [])
+            return (L10n.homestead_nodes_sparringgrounds_2_stage_name, [])
         case "Gain 30% more Block\nProduce 3 Iron per Day":
-            (L10n.homestead_nodes_sparringgrounds_3_bonus_description(30, 3), [30, 3])
+            return (L10n.homestead_nodes_sparringgrounds_3_bonus_description(30, 3), [30, 3])
         case "Gain 30% more Block":
-            (L10n.homestead_nodes_sparringgrounds_3_bonus_title(30), [30])
+            return (L10n.homestead_nodes_sparringgrounds_3_bonus_title(30), [30])
         case "Timber Ring":
-            (L10n.homestead_nodes_sparringgrounds_3_stage_name, [])
+            return (L10n.homestead_nodes_sparringgrounds_3_stage_name, [])
         case "Gain 40% more Block\nProduce 4 Iron per Day":
-            (L10n.homestead_nodes_sparringgrounds_4_bonus_description(40, 4), [40, 4])
+            return (L10n.homestead_nodes_sparringgrounds_4_bonus_description(40, 4), [40, 4])
         case "Gain 40% more Block":
-            (L10n.homestead_nodes_sparringgrounds_4_bonus_title(40), [40])
+            return (L10n.homestead_nodes_sparringgrounds_4_bonus_title(40), [40])
         case "Champion's Circle":
-            (L10n.homestead_nodes_sparringgrounds_4_stage_name, [])
+            return (L10n.homestead_nodes_sparringgrounds_4_stage_name, [])
         case "Increase Burn damage by 10%\nProduce 1 Iron per Day":
-            (L10n.homestead_nodes_transmutationcrucible_1_bonus_description(10, 1), [10, 1])
+            return (L10n.homestead_nodes_transmutationcrucible_1_bonus_description(10, 1), [10, 1])
         case "Increase Burn damage by 10%":
-            (L10n.homestead_nodes_transmutationcrucible_1_bonus_title(10), [10])
+            return (L10n.homestead_nodes_transmutationcrucible_1_bonus_title(10), [10])
         case "Smelting Kiln":
-            (L10n.homestead_nodes_transmutationcrucible_1_stage_name, [])
+            return (L10n.homestead_nodes_transmutationcrucible_1_stage_name, [])
         case "An alchemical blast furnace catalyzing raw ore into refined metals":
-            (L10n.homestead_nodes_transmutationcrucible_1_summary, [])
+            return (L10n.homestead_nodes_transmutationcrucible_1_summary, [])
         case "Crucible":
-            (L10n.homestead_nodes_transmutationcrucible_1_title, [])
+            return (L10n.homestead_nodes_transmutationcrucible_1_title, [])
         case "Increase Burn damage by 15%\nProduce 2 Iron per Day":
-            (L10n.homestead_nodes_transmutationcrucible_2_bonus_description(15, 2), [15, 2])
+            return (L10n.homestead_nodes_transmutationcrucible_2_bonus_description(15, 2), [15, 2])
         case "Increase Burn damage by 15%":
-            (L10n.homestead_nodes_transmutationcrucible_2_bonus_title(15), [15])
+            return (L10n.homestead_nodes_transmutationcrucible_2_bonus_title(15), [15])
         case "Bellows Crucible":
-            (L10n.homestead_nodes_transmutationcrucible_2_stage_name, [])
+            return (L10n.homestead_nodes_transmutationcrucible_2_stage_name, [])
         case "Increase Burn damage by 20%\nProduce 3 Iron per Day":
-            (L10n.homestead_nodes_transmutationcrucible_3_bonus_description(20, 3), [20, 3])
+            return (L10n.homestead_nodes_transmutationcrucible_3_bonus_description(20, 3), [20, 3])
         case "Increase Burn damage by 20%":
-            (L10n.homestead_nodes_transmutationcrucible_3_bonus_title(20), [20])
+            return (L10n.homestead_nodes_transmutationcrucible_3_bonus_title(20), [20])
         case "Sealed Converter":
-            (L10n.homestead_nodes_transmutationcrucible_3_stage_name, [])
+            return (L10n.homestead_nodes_transmutationcrucible_3_stage_name, [])
         case "Increase Burn damage by 25%\nProduce 4 Iron per Day":
-            (L10n.homestead_nodes_transmutationcrucible_4_bonus_description(25, 4), [25, 4])
+            return (L10n.homestead_nodes_transmutationcrucible_4_bonus_description(25, 4), [25, 4])
         case "Increase Burn damage by 25%":
-            (L10n.homestead_nodes_transmutationcrucible_4_bonus_title(25), [25])
+            return (L10n.homestead_nodes_transmutationcrucible_4_bonus_title(25), [25])
         case "Transmutation Foundry":
-            (L10n.homestead_nodes_transmutationcrucible_4_stage_name, [])
+            return (L10n.homestead_nodes_transmutationcrucible_4_stage_name, [])
         case "Increase Hero Health by 10%\nProduce 1 Food per Day":
-            (L10n.homestead_nodes_wheatfield_1_bonus_description(10, 1), [10, 1])
+            return (L10n.homestead_nodes_wheatfield_1_bonus_description(10, 1), [10, 1])
         case "Increase Hero Health by 10%":
-            (L10n.homestead_nodes_wheatfield_1_bonus_title(10), [10])
+            return (L10n.homestead_nodes_wheatfield_1_bonus_title(10), [10])
         case "Cleared Plot":
-            (L10n.homestead_nodes_wheatfield_1_stage_name, [])
+            return (L10n.homestead_nodes_wheatfield_1_stage_name, [])
         case "A first field that turns quiet earth into dependable stores":
-            (L10n.homestead_nodes_wheatfield_1_summary, [])
+            return (L10n.homestead_nodes_wheatfield_1_summary, [])
         case "Wheat Field":
-            (L10n.homestead_nodes_wheatfield_1_title, [])
+            return (L10n.homestead_nodes_wheatfield_1_title, [])
         case "Increase Hero Health by 20%\nProduce 2 Food per Day":
-            (L10n.homestead_nodes_wheatfield_2_bonus_description(20, 2), [20, 2])
+            return (L10n.homestead_nodes_wheatfield_2_bonus_description(20, 2), [20, 2])
         case "Increase Hero Health by 20%":
-            (L10n.homestead_nodes_wheatfield_2_bonus_title(20), [20])
+            return (L10n.homestead_nodes_wheatfield_2_bonus_title(20), [20])
         case "Plowed Rows":
-            (L10n.homestead_nodes_wheatfield_2_stage_name, [])
+            return (L10n.homestead_nodes_wheatfield_2_stage_name, [])
         case "Increase Hero Health by 30%\nProduce 3 Food per Day":
-            (L10n.homestead_nodes_wheatfield_3_bonus_description(30, 3), [30, 3])
+            return (L10n.homestead_nodes_wheatfield_3_bonus_description(30, 3), [30, 3])
         case "Increase Hero Health by 30%":
-            (L10n.homestead_nodes_wheatfield_3_bonus_title(30), [30])
+            return (L10n.homestead_nodes_wheatfield_3_bonus_title(30), [30])
         case "Seeded Rows":
-            (L10n.homestead_nodes_wheatfield_3_stage_name, [])
+            return (L10n.homestead_nodes_wheatfield_3_stage_name, [])
         case "Increase Hero Health by 40%\nProduce 4 Food per Day":
-            (L10n.homestead_nodes_wheatfield_4_bonus_description(40, 4), [40, 4])
+            return (L10n.homestead_nodes_wheatfield_4_bonus_description(40, 4), [40, 4])
         case "Increase Hero Health by 40%":
-            (L10n.homestead_nodes_wheatfield_4_bonus_title(40), [40])
+            return (L10n.homestead_nodes_wheatfield_4_bonus_title(40), [40])
         case "Expanded Acres":
-            (L10n.homestead_nodes_wheatfield_4_stage_name, [])
+            return (L10n.homestead_nodes_wheatfield_4_stage_name, [])
         case "Find 5% more Gold\nProduce 1 Gold per Day":
-            (L10n.homestead_nodes_wishingwell_1_bonus_description(5, 1), [5, 1])
+            return (L10n.homestead_nodes_wishingwell_1_bonus_description(5, 1), [5, 1])
         case "Find 5% more Gold":
-            (L10n.homestead_nodes_wishingwell_1_bonus_title(5), [5])
+            return (L10n.homestead_nodes_wishingwell_1_bonus_title(5), [5])
         case "Dug Shaft":
-            (L10n.homestead_nodes_wishingwell_1_stage_name, [])
+            return (L10n.homestead_nodes_wishingwell_1_stage_name, [])
         case "A quiet landmark for late goals, rare finds, and lucky returns":
-            (L10n.homestead_nodes_wishingwell_1_summary, [])
+            return (L10n.homestead_nodes_wishingwell_1_summary, [])
         case "Wishing Well":
-            (L10n.homestead_nodes_wishingwell_1_title, [])
+            return (L10n.homestead_nodes_wishingwell_1_title, [])
         case "Find 10% more Gold\nProduce 2 Gold per Day":
-            (L10n.homestead_nodes_wishingwell_2_bonus_description(10, 2), [10, 2])
+            return (L10n.homestead_nodes_wishingwell_2_bonus_description(10, 2), [10, 2])
         case "Find 10% more Gold":
-            (L10n.homestead_nodes_wishingwell_2_bonus_title(10), [10])
+            return (L10n.homestead_nodes_wishingwell_2_bonus_title(10), [10])
         case "Stone Lining":
-            (L10n.homestead_nodes_wishingwell_2_stage_name, [])
+            return (L10n.homestead_nodes_wishingwell_2_stage_name, [])
         case "Find 15% more Gold\nProduce 3 Gold per Day":
-            (L10n.homestead_nodes_wishingwell_3_bonus_description(15, 3), [15, 3])
+            return (L10n.homestead_nodes_wishingwell_3_bonus_description(15, 3), [15, 3])
         case "Find 15% more Gold":
-            (L10n.homestead_nodes_wishingwell_3_bonus_title(15), [15])
+            return (L10n.homestead_nodes_wishingwell_3_bonus_title(15), [15])
         case "Covered Well":
-            (L10n.homestead_nodes_wishingwell_3_stage_name, [])
+            return (L10n.homestead_nodes_wishingwell_3_stage_name, [])
         case "Find 20% more Gold\nProduce 4 Gold per Day":
-            (L10n.homestead_nodes_wishingwell_4_bonus_description(20, 4), [20, 4])
+            return (L10n.homestead_nodes_wishingwell_4_bonus_description(20, 4), [20, 4])
         case "Find 20% more Gold":
-            (L10n.homestead_nodes_wishingwell_4_bonus_title(20), [20])
+            return (L10n.homestead_nodes_wishingwell_4_bonus_title(20), [20])
         case "Wellhouse":
-            (L10n.homestead_nodes_wishingwell_4_stage_name, [])
+            return (L10n.homestead_nodes_wishingwell_4_stage_name, [])
         case "Take 5% less Freeze damage\nTake 5% less Burn damage\nProduce 1 Gold per Day":
-            (L10n.homestead_nodes_wooltailoring_1_bonus_description(5, 5, 1), [5, 5, 1])
+            return (L10n.homestead_nodes_wooltailoring_1_bonus_description(5, 5, 1), [5, 5, 1])
         case "Take 5% less Freeze damage":
-            (L10n.homestead_nodes_wooltailoring_1_bonus_title(5), [5])
+            return (L10n.homestead_nodes_wooltailoring_1_bonus_title(5), [5])
         case "Loom Frame":
-            (L10n.homestead_nodes_wooltailoring_1_stage_name, [])
+            return (L10n.homestead_nodes_wooltailoring_1_stage_name, [])
         case "A working shop for leather armor and protective gear":
-            (L10n.homestead_nodes_wooltailoring_1_summary, [])
+            return (L10n.homestead_nodes_wooltailoring_1_summary, [])
         case "Outfitter":
-            (L10n.homestead_nodes_wooltailoring_1_title, [])
+            return (L10n.homestead_nodes_wooltailoring_1_title, [])
         case "Take 10% less Freeze damage\nTake 10% less Burn damage\nProduce 2 Gold per Day":
-            (L10n.homestead_nodes_wooltailoring_2_bonus_description(10, 10, 2), [10, 10, 2])
+            return (L10n.homestead_nodes_wooltailoring_2_bonus_description(10, 10, 2), [10, 10, 2])
         case "Working Loom":
-            (L10n.homestead_nodes_wooltailoring_2_stage_name, [])
+            return (L10n.homestead_nodes_wooltailoring_2_stage_name, [])
         case "Take 15% less Freeze damage\nTake 15% less Burn damage\nProduce 3 Gold per Day":
-            (L10n.homestead_nodes_wooltailoring_3_bonus_description(15, 15, 3), [15, 15, 3])
+            return (L10n.homestead_nodes_wooltailoring_3_bonus_description(15, 15, 3), [15, 15, 3])
         case "Take 15% less Freeze damage":
-            (L10n.homestead_nodes_wooltailoring_3_bonus_title(15), [15])
+            return (L10n.homestead_nodes_wooltailoring_3_bonus_title(15), [15])
         case "Tailor Shop":
-            (L10n.homestead_nodes_wooltailoring_3_stage_name, [])
+            return (L10n.homestead_nodes_wooltailoring_3_stage_name, [])
         case "Take 20% less Freeze damage\nTake 20% less Burn damage\nProduce 4 Gold per Day":
-            (L10n.homestead_nodes_wooltailoring_4_bonus_description(20, 20, 4), [20, 20, 4])
+            return (L10n.homestead_nodes_wooltailoring_4_bonus_description(20, 20, 4), [20, 20, 4])
         case "Take 20% less Freeze damage":
-            (L10n.homestead_nodes_wooltailoring_4_bonus_title(20), [20])
+            return (L10n.homestead_nodes_wooltailoring_4_bonus_title(20), [20])
         case "Insulated Workroom":
-            (L10n.homestead_nodes_wooltailoring_4_stage_name, [])
+            return (L10n.homestead_nodes_wooltailoring_4_stage_name, [])
         case "Bone Charm":
-            (L10n.item_bases_bone_charm_name, [])
+            return (L10n.item_bases_bone_charm_name, [])
         case "Brass Censer":
-            (L10n.item_bases_brass_censer_name, [])
+            return (L10n.item_bases_brass_censer_name, [])
         case "Companion's Collar":
-            (L10n.item_bases_companions_collar_name, [])
+            return (L10n.item_bases_companions_collar_name, [])
         case "Crossbow":
-            (L10n.item_bases_crossbow_name, [])
+            return (L10n.item_bases_crossbow_name, [])
         case "Cutpurse Knife":
-            (L10n.item_bases_cutpurse_knife_name, [])
+            return (L10n.item_bases_cutpurse_knife_name, [])
         case "Dagger":
-            (L10n.item_bases_dagger_name, [])
+            return (L10n.item_bases_dagger_name, [])
         case "Double Axe":
-            (L10n.item_bases_double_axe_name, [])
+            return (L10n.item_bases_double_axe_name, [])
         case "Emerald Amulet":
-            (L10n.item_bases_emerald_amulet_name, [])
+            return (L10n.item_bases_emerald_amulet_name, [])
         case "Emerald Ring":
-            (L10n.item_bases_emerald_ring_name, [])
+            return (L10n.item_bases_emerald_ring_name, [])
         case "Flail":
-            (L10n.item_bases_flail_name, [])
+            return (L10n.item_bases_flail_name, [])
         case "Frozen Pocketwatch":
-            (L10n.item_bases_frozen_pocketwatch_name, [])
+            return (L10n.item_bases_frozen_pocketwatch_name, [])
         case "Greatsword":
-            (L10n.item_bases_greatsword_name, [])
+            return (L10n.item_bases_greatsword_name, [])
         case "Grove's Favor":
-            (L10n.item_bases_groves_favor_name, [])
+            return (L10n.item_bases_groves_favor_name, [])
         case "Hatchet":
-            (L10n.item_bases_hatchet_name, [])
+            return (L10n.item_bases_hatchet_name, [])
         case "Icy Heart":
-            (L10n.item_bases_icy_heart_name, [])
+            return (L10n.item_bases_icy_heart_name, [])
         case "Ironwood Buckler":
-            (L10n.item_bases_ironwood_buckler_name, [])
+            return (L10n.item_bases_ironwood_buckler_name, [])
         case "Kite Shield":
-            (L10n.item_bases_kite_shield_name, [])
+            return (L10n.item_bases_kite_shield_name, [])
         case "Leather Armor":
-            (L10n.item_bases_leather_armor_name, [])
+            return (L10n.item_bases_leather_armor_name, [])
         case "Leather Buckler":
-            (L10n.item_bases_leather_buckler_name, [])
+            return (L10n.item_bases_leather_buckler_name, [])
         case "Longbow":
-            (L10n.item_bases_longbow_name, [])
+            return (L10n.item_bases_longbow_name, [])
         case "Longsword":
-            (L10n.item_bases_longsword_name, [])
+            return (L10n.item_bases_longsword_name, [])
         case "Lucky Clover":
-            (L10n.item_bases_lucky_clover_name, [])
+            return (L10n.item_bases_lucky_clover_name, [])
         case "Mace":
-            (L10n.item_bases_mace_name, [])
+            return (L10n.item_bases_mace_name, [])
         case "Merchant's Favor":
-            (L10n.item_bases_merchants_favor_name, [])
+            return (L10n.item_bases_merchants_favor_name, [])
         case "Meteorite":
-            (L10n.item_bases_meteorite_name, [])
+            return (L10n.item_bases_meteorite_name, [])
         case "Mortar and Pestle":
-            (L10n.item_bases_mortar_and_pestle_name, [])
+            return (L10n.item_bases_mortar_and_pestle_name, [])
         case "Obsidian Hammer":
-            (L10n.item_bases_obsidian_hammer_name, [])
+            return (L10n.item_bases_obsidian_hammer_name, [])
         case "Parasitic Bloom":
-            (L10n.item_bases_parasitic_bloom_name, [])
+            return (L10n.item_bases_parasitic_bloom_name, [])
         case "Plague Doctor's Mask":
-            (L10n.item_bases_plague_doctors_mask_name, [])
+            return (L10n.item_bases_plague_doctors_mask_name, [])
         case "Plate Armor":
-            (L10n.item_bases_plate_armor_name, [])
+            return (L10n.item_bases_plate_armor_name, [])
         case "Quiver":
-            (L10n.item_bases_quiver_name, [])
+            return (L10n.item_bases_quiver_name, [])
         case "Recurve Bow":
-            (L10n.item_bases_recurve_bow_name, [])
+            return (L10n.item_bases_recurve_bow_name, [])
         case "Resonant Chimes":
-            (L10n.item_bases_resonant_chimes_name, [])
+            return (L10n.item_bases_resonant_chimes_name, [])
         case "Ruby Amulet":
-            (L10n.item_bases_ruby_amulet_name, [])
+            return (L10n.item_bases_ruby_amulet_name, [])
         case "Ruby Ring":
-            (L10n.item_bases_ruby_ring_name, [])
+            return (L10n.item_bases_ruby_ring_name, [])
         case "Runic Quill":
-            (L10n.item_bases_runic_quill_name, [])
+            return (L10n.item_bases_runic_quill_name, [])
         case "Sapphire Amulet":
-            (L10n.item_bases_sapphire_amulet_name, [])
+            return (L10n.item_bases_sapphire_amulet_name, [])
         case "Sapphire Ring":
-            (L10n.item_bases_sapphire_ring_name, [])
+            return (L10n.item_bases_sapphire_ring_name, [])
         case "Shortbow":
-            (L10n.item_bases_shortbow_name, [])
+            return (L10n.item_bases_shortbow_name, [])
         case "Shortsword":
-            (L10n.item_bases_shortsword_name, [])
+            return (L10n.item_bases_shortsword_name, [])
         case "Sin-Eater's Lantern":
-            (L10n.item_bases_sin_eaters_lantern_name, [])
+            return (L10n.item_bases_sin_eaters_lantern_name, [])
         case "Smuggler's Map":
-            (L10n.item_bases_smugglers_map_name, [])
+            return (L10n.item_bases_smugglers_map_name, [])
         case "Spellbook":
-            (L10n.item_bases_spellbook_name, [])
+            return (L10n.item_bases_spellbook_name, [])
         case "Staff":
-            (L10n.item_bases_staff_name, [])
+            return (L10n.item_bases_staff_name, [])
         case "Sundering Charm":
-            (L10n.item_bases_sundering_charm_name, [])
+            return (L10n.item_bases_sundering_charm_name, [])
         case "Tattered Pages":
-            (L10n.item_bases_tattered_pages_name, [])
+            return (L10n.item_bases_tattered_pages_name, [])
         case "Thunderstone":
-            (L10n.item_bases_thunderstone_name, [])
+            return (L10n.item_bases_thunderstone_name, [])
         case "Topaz Amulet":
-            (L10n.item_bases_topaz_amulet_name, [])
+            return (L10n.item_bases_topaz_amulet_name, [])
         case "Topaz Ring":
-            (L10n.item_bases_topaz_ring_name, [])
+            return (L10n.item_bases_topaz_ring_name, [])
         case "Vanguard's Crest":
-            (L10n.item_bases_vanguards_crest_name, [])
+            return (L10n.item_bases_vanguards_crest_name, [])
         case "Wand":
-            (L10n.item_bases_wand_name, [])
+            return (L10n.item_bases_wand_name, [])
         case "Wishing Well Coin":
-            (L10n.item_bases_wishing_well_coin_name, [])
+            return (L10n.item_bases_wishing_well_coin_name, [])
         case "Take 10% less Holy damage":
-            (L10n.legacy_affixes_martyrs_description(10), [10])
+            return (L10n.legacy_affixes_martyrs_description(10), [10])
         case "Physical and Stun damage remove twice as much Block":
-            (L10n.legacy_affixes_sundering_charm_description, [])
+            return (L10n.legacy_affixes_sundering_charm_description, [])
         case "Purge all buffs from the enemy when you Critically Hit":
-            (L10n.legacy_affixes_unmaking_astral_description, [])
+            return (L10n.legacy_affixes_unmaking_astral_description, [])
         case "Purge a buff from the enemy when you Critically Hit":
-            (L10n.legacy_affixes_unmaking_basic_description(1), [1])
+            return (L10n.legacy_affixes_unmaking_basic_description(1), [1])
         case "Light that judges":
-            (L10n.spire_aureatechoir_epithet, [])
+            return (L10n.spire_aureatechoir_epithet, [])
         case "Aureate Choir":
-            (L10n.spire_aureatechoir_title, [])
+            return (L10n.spire_aureatechoir_title, [])
         case "Heat that refuses to die":
-            (L10n.spire_cinderspire_epithet, [])
+            return (L10n.spire_cinderspire_epithet, [])
         case "Cinder Spire":
-            (L10n.spire_cinderspire_title, [])
+            return (L10n.spire_cinderspire_title, [])
         case "Strike without ornament":
-            (L10n.spire_ironvein_epithet, [])
+            return (L10n.spire_ironvein_epithet, [])
         case "Iron Vein":
-            (L10n.spire_ironvein_title, [])
+            return (L10n.spire_ironvein_title, [])
         case "One blow that stops the world":
-            (L10n.spire_resonancehall_epithet, [])
+            return (L10n.spire_resonancehall_epithet, [])
         case "Resonance Hall":
-            (L10n.spire_resonancehall_title, [])
+            return (L10n.spire_resonancehall_title, [])
         case "Stillness that binds":
-            (L10n.spire_rimevault_epithet, [])
+            return (L10n.spire_rimevault_epithet, [])
         case "Rime Vault":
-            (L10n.spire_rimevault_title, [])
+            return (L10n.spire_rimevault_title, [])
         case "Every cut remembers":
-            (L10n.spire_sanguinecourt_epithet, [])
+            return (L10n.spire_sanguinecourt_epithet, [])
         case "Sanguine Court":
-            (L10n.spire_sanguinecourt_title, [])
+            return (L10n.spire_sanguinecourt_title, [])
         case "Slow certainty":
-            (L10n.spire_serpenthollow_epithet, [])
+            return (L10n.spire_serpenthollow_epithet, [])
         case "Serpent Hollow":
-            (L10n.spire_serpenthollow_title, [])
+            return (L10n.spire_serpenthollow_title, [])
         case "Forest":
-            (L10n.stages_chapter_1_chapter_title, [])
+            return (L10n.stages_chapter_1_chapter_title, [])
         case "Dungeon":
-            (L10n.stages_chapter_2_chapter_title, [])
+            return (L10n.stages_chapter_2_chapter_title, [])
         case "Desert":
-            (L10n.stages_chapter_3_chapter_title, [])
+            return (L10n.stages_chapter_3_chapter_title, [])
         case "Tundra":
-            (L10n.stages_chapter_4_chapter_title, [])
+            return (L10n.stages_chapter_4_chapter_title, [])
         case "Abilities that restore Health also Cleanse a debuff":
-            (L10n.talents_alchemist_cleanse_t1_1_description(1), [1])
+            return (L10n.talents_alchemist_cleanse_t1_1_description(1), [1])
         case "Clear Solution":
-            (L10n.talents_alchemist_cleanse_t1_1_name, [])
+            return (L10n.talents_alchemist_cleanse_t1_1_name, [])
         case "Cleansing a debuff restores 2 Health":
-            (L10n.talents_alchemist_cleanse_t1_2_description(1, 2), [1, 2])
+            return (L10n.talents_alchemist_cleanse_t1_2_description(1, 2), [1, 2])
         case "Fresh Batch":
-            (L10n.talents_alchemist_cleanse_t1_2_name, [])
+            return (L10n.talents_alchemist_cleanse_t1_2_name, [])
         case "Cleansing Burn adds 2 damage to your next Burn attack":
-            (L10n.talents_alchemist_cleanse_t2_1_description(2), [2])
+            return (L10n.talents_alchemist_cleanse_t2_1_description(2), [2])
         case "Heat Recovery":
-            (L10n.talents_alchemist_cleanse_t2_1_name, [])
+            return (L10n.talents_alchemist_cleanse_t2_1_name, [])
         case "Cleansing Poison prevents Poison for 1 turn":
-            (L10n.talents_alchemist_cleanse_t2_2_description(1), [1])
+            return (L10n.talents_alchemist_cleanse_t2_2_description(1), [1])
         case "Antitoxin Coating":
-            (L10n.talents_alchemist_cleanse_t2_2_name, [])
+            return (L10n.talents_alchemist_cleanse_t2_2_name, [])
         case "Draw a card when you Cleanse\nwhile out of Mana":
-            (L10n.talents_alchemist_cleanse_t3_1_description, [])
+            return (L10n.talents_alchemist_cleanse_t3_1_description, [])
         case "Clear Mind":
-            (L10n.talents_alchemist_cleanse_t3_1_name, [])
+            return (L10n.talents_alchemist_cleanse_t3_1_name, [])
         case "Cleansing an ally’s last debuff draws a card":
-            (L10n.talents_alchemist_cleanse_t3_2_description, [])
+            return (L10n.talents_alchemist_cleanse_t3_2_description, [])
         case "Clean Break":
-            (L10n.talents_alchemist_cleanse_t3_2_name, [])
+            return (L10n.talents_alchemist_cleanse_t3_2_name, [])
         case "Cleansing debuffs prevents new debuffs until your next turn":
-            (L10n.talents_alchemist_cleanse_t4_1_description, [])
+            return (L10n.talents_alchemist_cleanse_t4_1_description, [])
         case "Perfect Purity":
-            (L10n.talents_alchemist_cleanse_t4_1_name, [])
+            return (L10n.talents_alchemist_cleanse_t4_1_name, [])
         case "Allies below half Health restore 2 additional Health":
-            (L10n.talents_alchemist_health_t1_1_description(2), [2])
+            return (L10n.talents_alchemist_health_t1_1_description(2), [2])
         case "Fortifying Tonic":
-            (L10n.talents_alchemist_health_t1_1_name, [])
+            return (L10n.talents_alchemist_health_t1_1_name, [])
         case "Restoring Health has a 20% chance to draw a card":
-            (L10n.talents_alchemist_health_t1_2_description(20), [20])
+            return (L10n.talents_alchemist_health_t1_2_description(20), [20])
         case "Lifeline":
-            (L10n.talents_alchemist_health_t1_2_name, [])
+            return (L10n.talents_alchemist_health_t1_2_name, [])
         case "Restoring Health also Cleanses Burn":
-            (L10n.talents_alchemist_health_t2_1_description, [])
+            return (L10n.talents_alchemist_health_t2_1_description, [])
         case "Cooling Salve":
-            (L10n.talents_alchemist_health_t2_1_name, [])
+            return (L10n.talents_alchemist_health_t2_1_name, [])
         case "Half your excess healing becomes Block for its recipient":
-            (L10n.talents_alchemist_health_t2_2_description, [])
+            return (L10n.talents_alchemist_health_t2_2_description, [])
         case "Reclaimed Reagents":
-            (L10n.talents_alchemist_health_t2_2_name, [])
+            return (L10n.talents_alchemist_health_t2_2_name, [])
         case "Your excess healing restores Health to the recipient’s partner":
-            (L10n.talents_alchemist_health_t3_1_description, [])
+            return (L10n.talents_alchemist_health_t3_1_description, [])
         case "Shared Prescription":
-            (L10n.talents_alchemist_health_t3_1_name, [])
+            return (L10n.talents_alchemist_health_t3_1_name, [])
         case "Restoring Health adds 2 damage to your next Poison attack":
-            (L10n.talents_alchemist_health_t3_2_description(2), [2])
+            return (L10n.talents_alchemist_health_t3_2_description(2), [2])
         case "Volatile Remedy":
-            (L10n.talents_alchemist_health_t3_2_name, [])
+            return (L10n.talents_alchemist_health_t3_2_name, [])
         case "Restoring Health has a 10% chance to also restore Mana":
-            (L10n.talents_alchemist_health_t4_1_description(10), [10])
+            return (L10n.talents_alchemist_health_t4_1_description(10), [10])
         case "Masterwork Mixture":
-            (L10n.talents_alchemist_health_t4_1_name, [])
+            return (L10n.talents_alchemist_health_t4_1_name, [])
         case "Poison Critical Hits deal 2 additional damage":
-            (L10n.talents_alchemist_poison_t1_1_description(2), [2])
+            return (L10n.talents_alchemist_poison_t1_1_description(2), [2])
         case "Reactive Coating":
-            (L10n.talents_alchemist_poison_t1_1_name, [])
+            return (L10n.talents_alchemist_poison_t1_1_name, [])
         case "Poison attacks ignore enemy Thorns":
-            (L10n.talents_alchemist_poison_t1_2_description, [])
+            return (L10n.talents_alchemist_poison_t1_2_description, [])
         case "Safe Handling":
-            (L10n.talents_alchemist_poison_t1_2_name, [])
+            return (L10n.talents_alchemist_poison_t1_2_name, [])
         case "Burning enemies take 25% increased Poison damage":
-            (L10n.talents_alchemist_poison_t2_1_description(25), [25])
+            return (L10n.talents_alchemist_poison_t2_1_description(25), [25])
         case "Reactive Sediment":
-            (L10n.talents_alchemist_poison_t2_1_name, [])
+            return (L10n.talents_alchemist_poison_t2_1_name, [])
         case "Your Poison naturally expiring restores 2 Mana":
-            (L10n.talents_alchemist_poison_t2_2_description(2), [2])
+            return (L10n.talents_alchemist_poison_t2_2_description(2), [2])
         case "Spent Reagents":
-            (L10n.talents_alchemist_poison_t2_2_name, [])
+            return (L10n.talents_alchemist_poison_t2_2_name, [])
         case "Poison deals 50% more damage to enemy Block":
-            (L10n.talents_alchemist_poison_t3_1_description(50), [50])
+            return (L10n.talents_alchemist_poison_t3_1_description(50), [50])
         case "Dissolving Fumes":
-            (L10n.talents_alchemist_poison_t3_1_name, [])
+            return (L10n.talents_alchemist_poison_t3_1_name, [])
         case "Your Poison naturally expiring doubles your next Poison attack":
-            (L10n.talents_alchemist_poison_t3_2_description, [])
+            return (L10n.talents_alchemist_poison_t3_2_description, [])
         case "Unstable Culture":
-            (L10n.talents_alchemist_poison_t3_2_name, [])
+            return (L10n.talents_alchemist_poison_t3_2_name, [])
         case "Your first Poison attack each combat deals double damage":
-            (L10n.talents_alchemist_poison_t4_1_description, [])
+            return (L10n.talents_alchemist_poison_t4_1_description, [])
         case "Sealed Vial":
-            (L10n.talents_alchemist_poison_t4_1_name, [])
+            return (L10n.talents_alchemist_poison_t4_1_name, [])
         case "While you have Block, take 3 less Physical damage":
-            (L10n.talents_bear_block_t1_1_description(3), [3])
+            return (L10n.talents_bear_block_t1_1_description(3), [3])
         case "Thick Hide":
-            (L10n.talents_bear_block_t1_1_name, [])
+            return (L10n.talents_bear_block_t1_1_name, [])
         case "End your turn with Block to restore 2 Health":
-            (L10n.talents_bear_block_t1_2_description(2), [2])
+            return (L10n.talents_bear_block_t1_2_description(2), [2])
         case "Hibernation":
-            (L10n.talents_bear_block_t1_2_name, [])
+            return (L10n.talents_bear_block_t1_2_name, [])
         case "When your ally first falls below half Health, grant 6 Block":
-            (L10n.talents_bear_block_t2_1_description(6), [6])
+            return (L10n.talents_bear_block_t2_1_description(6), [6])
         case "Grizzly Guard":
-            (L10n.talents_bear_block_t2_1_name, [])
+            return (L10n.talents_bear_block_t2_1_name, [])
         case "While you have Block, Bleed damage is halved":
-            (L10n.talents_bear_block_t2_2_description, [])
+            return (L10n.talents_bear_block_t2_2_description, [])
         case "Tough Pelt":
-            (L10n.talents_bear_block_t2_2_name, [])
+            return (L10n.talents_bear_block_t2_2_name, [])
         case "Attacks that break your Block deal half their remaining damage":
-            (L10n.talents_bear_block_t3_1_description, [])
+            return (L10n.talents_bear_block_t3_1_description, [])
         case "Ironhide":
-            (L10n.talents_bear_block_t3_1_name, [])
+            return (L10n.talents_bear_block_t3_1_name, [])
         case "Below half Health, gain 50% more Block":
-            (L10n.talents_bear_block_t3_2_description(50), [50])
+            return (L10n.talents_bear_block_t3_2_description(50), [50])
         case "Vital Armor":
-            (L10n.talents_bear_block_t3_2_name, [])
+            return (L10n.talents_bear_block_t3_2_name, [])
         case "Stunning an enemy doubles your next Block gain":
-            (L10n.talents_bear_block_t4_1_description, [])
+            return (L10n.talents_bear_block_t4_1_description, [])
         case "Aftershock Guard":
-            (L10n.talents_bear_block_t4_1_name, [])
+            return (L10n.talents_bear_block_t4_1_name, [])
         case "Physical attacks deal double damage to enemy Block":
-            (L10n.talents_bear_physical_t1_1_description, [])
+            return (L10n.talents_bear_physical_t1_1_description, [])
         case "Shield Breaker":
-            (L10n.talents_bear_physical_t1_1_name, [])
+            return (L10n.talents_bear_physical_t1_1_name, [])
         case "When Block breaks, your next Physical attack gains 2 damage":
-            (L10n.talents_bear_physical_t1_2_description(2), [2])
+            return (L10n.talents_bear_physical_t1_2_description(2), [2])
         case "Primal Rage":
-            (L10n.talents_bear_physical_t1_2_name, [])
+            return (L10n.talents_bear_physical_t1_2_name, [])
         case "Bleeding enemies take 25% increased Physical damage":
-            (L10n.talents_bear_physical_t2_1_description(25), [25])
+            return (L10n.talents_bear_physical_t2_1_description(25), [25])
         case "Cleaving Claws":
-            (L10n.talents_bear_physical_t2_1_name, [])
+            return (L10n.talents_bear_physical_t2_1_name, [])
         case "Stunned enemies take 25% increased Physical damage":
-            (L10n.talents_bear_physical_t2_2_description(25), [25])
+            return (L10n.talents_bear_physical_t2_2_description(25), [25])
         case "Heavy Impact":
-            (L10n.talents_bear_physical_t2_2_name, [])
+            return (L10n.talents_bear_physical_t2_2_name, [])
         case "Below half Health, Physical attacks gain +25% Critical Hit chance":
-            (L10n.talents_bear_physical_t3_1_description(25), [25])
+            return (L10n.talents_bear_physical_t3_1_description(25), [25])
         case "Enrage":
-            (L10n.talents_bear_physical_t3_1_name, [])
+            return (L10n.talents_bear_physical_t3_1_name, [])
         case "Physical Critical Hits remove all enemy Block":
-            (L10n.talents_bear_physical_t3_2_description, [])
+            return (L10n.talents_bear_physical_t3_2_description, [])
         case "Pulverize":
-            (L10n.talents_bear_physical_t3_2_name, [])
+            return (L10n.talents_bear_physical_t3_2_name, [])
         case "Your first Physical attack each turn gains half your Block as damage":
-            (L10n.talents_bear_physical_t4_1_description, [])
+            return (L10n.talents_bear_physical_t4_1_description, [])
         case "Battering Ram":
-            (L10n.talents_bear_physical_t4_1_name, [])
+            return (L10n.talents_bear_physical_t4_1_name, [])
         case "Your first Stun attack each turn deals 3 additional damage":
-            (L10n.talents_bear_stun_t1_1_description(3), [3])
+            return (L10n.talents_bear_stun_t1_1_description(3), [3])
         case "Ground Slam":
-            (L10n.talents_bear_stun_t1_1_name, [])
+            return (L10n.talents_bear_stun_t1_1_name, [])
         case "Physical attacks have a 10% chance to apply 4 Stun build-up":
-            (L10n.talents_bear_stun_t1_2_description(10, 4), [10, 4])
+            return (L10n.talents_bear_stun_t1_2_description(10, 4), [10, 4])
         case "Dazing Swipe":
-            (L10n.talents_bear_stun_t1_2_name, [])
+            return (L10n.talents_bear_stun_t1_2_name, [])
         case "Stun attacks ignore half enemy Block":
-            (L10n.talents_bear_stun_t2_1_description, [])
+            return (L10n.talents_bear_stun_t2_1_description, [])
         case "Shockwave":
-            (L10n.talents_bear_stun_t2_1_name, [])
+            return (L10n.talents_bear_stun_t2_1_name, [])
         case "Stun has a 20% chance to last another turn":
-            (L10n.talents_bear_stun_t2_2_description(20), [20])
+            return (L10n.talents_bear_stun_t2_2_description(20), [20])
         case "Deep Stun":
-            (L10n.talents_bear_stun_t2_2_name, [])
+            return (L10n.talents_bear_stun_t2_2_name, [])
         case "Stunned enemies take 25% more damage from your ally":
-            (L10n.talents_bear_stun_t3_1_description(25), [25])
+            return (L10n.talents_bear_stun_t3_1_description(25), [25])
         case "Exposed Prey":
-            (L10n.talents_bear_stun_t3_1_name, [])
+            return (L10n.talents_bear_stun_t3_1_name, [])
         case "Below half Health, your Stun build-up increases by 50%":
-            (L10n.talents_bear_stun_t3_2_description(50), [50])
+            return (L10n.talents_bear_stun_t3_2_description(50), [50])
         case "Seismic Roar":
-            (L10n.talents_bear_stun_t3_2_name, [])
+            return (L10n.talents_bear_stun_t3_2_name, [])
         case "When your Block breaks, return absorbed damage as Stun":
-            (L10n.talents_bear_stun_t4_1_description, [])
+            return (L10n.talents_bear_stun_t4_1_description, [])
         case "Seismic Reversal":
-            (L10n.talents_bear_stun_t4_1_name, [])
+            return (L10n.talents_bear_stun_t4_1_name, [])
         case "Allies with Thorns restore 2 additional Health":
-            (L10n.talents_druid_health_t1_1_description(2), [2])
+            return (L10n.talents_druid_health_t1_1_description(2), [2])
         case "Spring Sap":
-            (L10n.talents_druid_health_t1_1_name, [])
+            return (L10n.talents_druid_health_t1_1_name, [])
         case "Restoring Health removes 2 enemy Thorns":
-            (L10n.talents_druid_health_t1_2_description(2), [2])
+            return (L10n.talents_druid_health_t1_2_description(2), [2])
         case "Pruning Touch":
-            (L10n.talents_druid_health_t1_2_name, [])
+            return (L10n.talents_druid_health_t1_2_name, [])
         case "Allies at full Health gain +10% Dodge":
-            (L10n.talents_druid_health_t2_1_description(10), [10])
+            return (L10n.talents_druid_health_t2_1_description(10), [10])
         case "Quiet Grove":
-            (L10n.talents_druid_health_t2_1_name, [])
+            return (L10n.talents_druid_health_t2_1_name, [])
         case "Restoring Health to allies below half Health grants 3 Block":
-            (L10n.talents_druid_health_t2_2_description(3), [3])
+            return (L10n.talents_druid_health_t2_2_description(3), [3])
         case "Shelter Seed":
-            (L10n.talents_druid_health_t2_2_name, [])
+            return (L10n.talents_druid_health_t2_2_name, [])
         case "Restoring Health also Cleanses Poison and Bleed":
-            (L10n.talents_druid_health_t3_1_description, [])
+            return (L10n.talents_druid_health_t3_1_description, [])
         case "Cleansing Dew":
-            (L10n.talents_druid_health_t3_1_name, [])
+            return (L10n.talents_druid_health_t3_1_name, [])
         case "Healing your Companion also restores half as much of your Health":
-            (L10n.talents_druid_health_t3_2_description, [])
+            return (L10n.talents_druid_health_t3_2_description, [])
         case "Shared Roots":
-            (L10n.talents_druid_health_t3_2_name, [])
+            return (L10n.talents_druid_health_t3_2_name, [])
         case "Allies with Thorns take 20% less damage above half Health":
-            (L10n.talents_druid_health_t4_1_description(20), [20])
+            return (L10n.talents_druid_health_t4_1_description(20), [20])
         case "Verdant Shelter":
-            (L10n.talents_druid_health_t4_1_name, [])
+            return (L10n.talents_druid_health_t4_1_name, [])
         case "Restoring Mana grants 2 Thorns":
-            (L10n.talents_druid_mana_t1_1_description(2), [2])
+            return (L10n.talents_druid_mana_t1_1_description(2), [2])
         case "Arcane Thorns":
-            (L10n.talents_druid_mana_t1_1_name, [])
+            return (L10n.talents_druid_mana_t1_1_name, [])
         case "Mana empowerment grants 2 Block":
-            (L10n.talents_druid_mana_t1_2_description(2), [2])
+            return (L10n.talents_druid_mana_t1_2_description(2), [2])
         case "Barkweave":
-            (L10n.talents_druid_mana_t1_2_name, [])
+            return (L10n.talents_druid_mana_t1_2_name, [])
         case "With unspent Mana, your Companion gains +10% Dodge":
-            (L10n.talents_druid_mana_t2_1_description(10), [10])
+            return (L10n.talents_druid_mana_t2_1_description(10), [10])
         case "Grove Reserve":
-            (L10n.talents_druid_mana_t2_1_name, [])
+            return (L10n.talents_druid_mana_t2_1_name, [])
         case "Excess Mana restored is converted into Thorns":
-            (L10n.talents_druid_mana_t2_2_description, [])
+            return (L10n.talents_druid_mana_t2_2_description, [])
         case "Living Conduit":
-            (L10n.talents_druid_mana_t2_2_name, [])
+            return (L10n.talents_druid_mana_t2_2_name, [])
         case "Mana empowerment adds 3 damage to your Companion’s next attack":
-            (L10n.talents_druid_mana_t3_1_description(3), [3])
+            return (L10n.talents_druid_mana_t3_1_description(3), [3])
         case "Shared Current":
-            (L10n.talents_druid_mana_t3_1_name, [])
+            return (L10n.talents_druid_mana_t3_1_name, [])
         case "Restore 1 additional Mana while you have Thorns":
-            (L10n.talents_druid_mana_t3_2_description(1), [1])
+            return (L10n.talents_druid_mana_t3_2_description(1), [1])
         case "Deep Roots":
-            (L10n.talents_druid_mana_t3_2_name, [])
+            return (L10n.talents_druid_mana_t3_2_name, [])
         case "Both allies spending Mana in the same turn grants each 1 Thorns":
-            (L10n.talents_druid_mana_t4_1_description(1), [1])
+            return (L10n.talents_druid_mana_t4_1_description(1), [1])
         case "Grove Accord":
-            (L10n.talents_druid_mana_t4_1_name, [])
+            return (L10n.talents_druid_mana_t4_1_name, [])
         case "Poisoned enemies take 25% increased Thorns damage":
-            (L10n.talents_druid_poison_t1_1_description(25), [25])
+            return (L10n.talents_druid_poison_t1_1_description(25), [25])
         case "Barbed Spores":
-            (L10n.talents_druid_poison_t1_1_name, [])
+            return (L10n.talents_druid_poison_t1_1_name, [])
         case "Take half Poison damage while you have Thorns":
-            (L10n.talents_druid_poison_t1_2_description, [])
+            return (L10n.talents_druid_poison_t1_2_description, [])
         case "Living Bark":
-            (L10n.talents_druid_poison_t1_2_name, [])
+            return (L10n.talents_druid_poison_t1_2_name, [])
         case "Poisoned enemies take 1 additional Freeze damage":
-            (L10n.talents_druid_poison_t2_1_description(1), [1])
+            return (L10n.talents_druid_poison_t2_1_description(1), [1])
         case "Cool Moss":
-            (L10n.talents_druid_poison_t2_1_name, [])
+            return (L10n.talents_druid_poison_t2_1_name, [])
         case "Your Poison naturally expiring heals the lowest-Health ally for 3":
-            (L10n.talents_druid_poison_t2_2_description(3), [3])
+            return (L10n.talents_druid_poison_t2_2_description(3), [3])
         case "Returning Bloom":
-            (L10n.talents_druid_poison_t2_2_name, [])
+            return (L10n.talents_druid_poison_t2_2_name, [])
         case "Poison attacks ignore enemy Block":
-            (L10n.talents_druid_poison_t3_1_description, [])
+            return (L10n.talents_druid_poison_t3_1_description, [])
         case "Root Passage":
-            (L10n.talents_druid_poison_t3_1_name, [])
+            return (L10n.talents_druid_poison_t3_1_name, [])
         case "Poisoned enemies take 25% more Stun build-up":
-            (L10n.talents_druid_poison_t3_2_description(25), [25])
+            return (L10n.talents_druid_poison_t3_2_description(25), [25])
         case "Entangling Growth":
-            (L10n.talents_druid_poison_t3_2_name, [])
+            return (L10n.talents_druid_poison_t3_2_name, [])
         case "Thorns deal 1 bonus Poison damage once per turn":
-            (L10n.talents_druid_poison_t4_1_description(1), [1])
+            return (L10n.talents_druid_poison_t4_1_description(1), [1])
         case "Thorn Shedding":
-            (L10n.talents_druid_poison_t4_1_name, [])
+            return (L10n.talents_druid_poison_t4_1_name, [])
         case "Your first Dodge each turn adds 3 damage to your next attack":
-            (L10n.talents_fox_dodge_t1_1_description(3), [3])
+            return (L10n.talents_fox_dodge_t1_1_description(3), [3])
         case "Feint Strike":
-            (L10n.talents_fox_dodge_t1_1_name, [])
+            return (L10n.talents_fox_dodge_t1_1_name, [])
         case "Dodging has a 20% chance to deal 2 Poison damage":
-            (L10n.talents_fox_dodge_t1_2_description(20, 2), [20, 2])
+            return (L10n.talents_fox_dodge_t1_2_description(20, 2), [20, 2])
         case "Poisonous Dash":
-            (L10n.talents_fox_dodge_t1_2_name, [])
+            return (L10n.talents_fox_dodge_t1_2_name, [])
         case "Dodge the first attack against you each combat":
-            (L10n.talents_fox_dodge_t2_1_description, [])
+            return (L10n.talents_fox_dodge_t2_1_description, [])
         case "Slip Away":
-            (L10n.talents_fox_dodge_t2_1_name, [])
+            return (L10n.talents_fox_dodge_t2_1_name, [])
         case "Dodging makes your next attack ignore enemy Block":
-            (L10n.talents_fox_dodge_t2_2_description, [])
+            return (L10n.talents_fox_dodge_t2_2_description, [])
         case "Misdirection":
-            (L10n.talents_fox_dodge_t2_2_name, [])
+            return (L10n.talents_fox_dodge_t2_2_name, [])
         case "10% chance to intercept and Dodge for an ally":
-            (L10n.talents_fox_dodge_t3_1_description(10), [10])
+            return (L10n.talents_fox_dodge_t3_1_description(10), [10])
         case "Decoy Swap":
-            (L10n.talents_fox_dodge_t3_1_name, [])
+            return (L10n.talents_fox_dodge_t3_1_name, [])
         case "Below half Health, your first Dodge each turn restores 3 Health":
-            (L10n.talents_fox_dodge_t3_2_description(3), [3])
+            return (L10n.talents_fox_dodge_t3_2_description(3), [3])
         case "Stolen Breath":
-            (L10n.talents_fox_dodge_t3_2_name, [])
+            return (L10n.talents_fox_dodge_t3_2_name, [])
         case "Dodging increases your next Critical Hit's damage by 50%":
-            (L10n.talents_fox_dodge_t4_1_description(50), [50])
+            return (L10n.talents_fox_dodge_t4_1_description(50), [50])
         case "Perfect Tempo":
-            (L10n.talents_fox_dodge_t4_1_name, [])
+            return (L10n.talents_fox_dodge_t4_1_name, [])
         case "Dodging has a 20% chance to steal 4 Gold":
-            (L10n.talents_fox_gold_t1_1_description(20, 4), [20, 4])
+            return (L10n.talents_fox_gold_t1_1_description(20, 4), [20, 4])
         case "Palmed Coin":
-            (L10n.talents_fox_gold_t1_1_name, [])
+            return (L10n.talents_fox_gold_t1_1_name, [])
         case "Your attacks have a 10% chance to steal 3 Gold":
-            (L10n.talents_fox_gold_t1_2_description(10, 3), [10, 3])
+            return (L10n.talents_fox_gold_t1_2_description(10, 3), [10, 3])
         case "Snatch":
-            (L10n.talents_fox_gold_t1_2_name, [])
+            return (L10n.talents_fox_gold_t1_2_name, [])
         case "Your first Gold steal each combat is doubled":
-            (L10n.talents_fox_gold_t2_1_description, [])
+            return (L10n.talents_fox_gold_t2_1_description, [])
         case "Golden Opportunity":
-            (L10n.talents_fox_gold_t2_1_name, [])
+            return (L10n.talents_fox_gold_t2_1_name, [])
         case "Critical Hits have a 10% chance to steal 5 Gold":
-            (L10n.talents_fox_gold_t2_2_description(10, 5), [10, 5])
+            return (L10n.talents_fox_gold_t2_2_description(10, 5), [10, 5])
         case "Lucky Strike":
-            (L10n.talents_fox_gold_t2_2_name, [])
+            return (L10n.talents_fox_gold_t2_2_name, [])
         case "Stealing Gold grants +20% Critical Hit chance on your next attack":
-            (L10n.talents_fox_gold_t3_1_description(20), [20])
+            return (L10n.talents_fox_gold_t3_1_description(20), [20])
         case "Master Thief":
-            (L10n.talents_fox_gold_t3_1_name, [])
+            return (L10n.talents_fox_gold_t3_1_name, [])
         case "Below half Health, your first Gold gain each turn restores 3 Health":
-            (L10n.talents_fox_gold_t3_2_description(3), [3])
+            return (L10n.talents_fox_gold_t3_2_description(3), [3])
         case "Golden Recovery":
-            (L10n.talents_fox_gold_t3_2_name, [])
+            return (L10n.talents_fox_gold_t3_2_name, [])
         case "Your first Gold steal each turn also steals half the enemy's Block":
-            (L10n.talents_fox_gold_t4_1_description, [])
+            return (L10n.talents_fox_gold_t4_1_description, [])
         case "Light-Fingered":
-            (L10n.talents_fox_gold_t4_1_name, [])
+            return (L10n.talents_fox_gold_t4_1_name, [])
         case "Dodging has a 20% chance to deal 4 Stun damage":
-            (L10n.talents_fox_stun_t1_1_description(20, 4), [20, 4])
+            return (L10n.talents_fox_stun_t1_1_description(20, 4), [20, 4])
         case "Dazzling Tail":
-            (L10n.talents_fox_stun_t1_1_name, [])
+            return (L10n.talents_fox_stun_t1_1_name, [])
         case "Stunned enemies take 25% increased damage from your attacks":
-            (L10n.talents_fox_stun_t1_2_description(25), [25])
+            return (L10n.talents_fox_stun_t1_2_description(25), [25])
         case "Confusing Feint":
-            (L10n.talents_fox_stun_t1_2_name, [])
+            return (L10n.talents_fox_stun_t1_2_name, [])
         case "Stun Critical Hits ignore enemy Block":
-            (L10n.talents_fox_stun_t2_1_description, [])
+            return (L10n.talents_fox_stun_t2_1_description, [])
         case "Disorienting Strike":
-            (L10n.talents_fox_stun_t2_1_name, [])
+            return (L10n.talents_fox_stun_t2_1_name, [])
         case "Stun attacks gain +20% Critical Hit chance":
-            (L10n.talents_fox_stun_t2_2_description(20), [20])
+            return (L10n.talents_fox_stun_t2_2_description(20), [20])
         case "Rigged Opening":
-            (L10n.talents_fox_stun_t2_2_name, [])
+            return (L10n.talents_fox_stun_t2_2_name, [])
         case "When Stun ends, deal 2 Poison damage":
-            (L10n.talents_fox_stun_t3_1_description(2), [2])
+            return (L10n.talents_fox_stun_t3_1_description(2), [2])
         case "Venom Trap":
-            (L10n.talents_fox_stun_t3_1_name, [])
+            return (L10n.talents_fox_stun_t3_1_name, [])
         case "Critical Hits against Stunned enemies steal 3 Gold":
-            (L10n.talents_fox_stun_t3_2_description(3), [3])
+            return (L10n.talents_fox_stun_t3_2_description(3), [3])
         case "Confounding Loot":
-            (L10n.talents_fox_stun_t3_2_name, [])
+            return (L10n.talents_fox_stun_t3_2_name, [])
         case "Stunning an enemy makes your next attack Critically Hit":
-            (L10n.talents_fox_stun_t4_1_description, [])
+            return (L10n.talents_fox_stun_t4_1_description, [])
         case "Stolen Thunder":
-            (L10n.talents_fox_stun_t4_1_name, [])
+            return (L10n.talents_fox_stun_t4_1_name, [])
         case "Above half Health, gain +15% Dodge chance":
-            (L10n.talents_frost_whelp_dodge_t1_1_description(15), [15])
+            return (L10n.talents_frost_whelp_dodge_t1_1_description(15), [15])
         case "High Altitude":
-            (L10n.talents_frost_whelp_dodge_t1_1_name, [])
+            return (L10n.talents_frost_whelp_dodge_t1_1_name, [])
         case "Your first Dodge each combat draws a card for your ally":
-            (L10n.talents_frost_whelp_dodge_t1_2_description, [])
+            return (L10n.talents_frost_whelp_dodge_t1_2_description, [])
         case "Tailwind":
-            (L10n.talents_frost_whelp_dodge_t1_2_name, [])
+            return (L10n.talents_frost_whelp_dodge_t1_2_name, [])
         case "Dodging makes your next attack Critically Hit":
-            (L10n.talents_frost_whelp_dodge_t2_1_description, [])
+            return (L10n.talents_frost_whelp_dodge_t2_1_description, [])
         case "Flyby Strike":
-            (L10n.talents_frost_whelp_dodge_t2_1_name, [])
+            return (L10n.talents_frost_whelp_dodge_t2_1_name, [])
         case "Dodging adds 2 damage to your next Freeze attack":
-            (L10n.talents_frost_whelp_dodge_t2_2_description(2), [2])
+            return (L10n.talents_frost_whelp_dodge_t2_2_description(2), [2])
         case "Wing Buffet":
-            (L10n.talents_frost_whelp_dodge_t2_2_name, [])
+            return (L10n.talents_frost_whelp_dodge_t2_2_name, [])
         case "Dodging an attack grants the Hero 3 Block":
-            (L10n.talents_frost_whelp_dodge_t3_1_description(3), [3])
+            return (L10n.talents_frost_whelp_dodge_t3_1_description(3), [3])
         case "Aerial Cover":
-            (L10n.talents_frost_whelp_dodge_t3_1_name, [])
+            return (L10n.talents_frost_whelp_dodge_t3_1_name, [])
         case "Dodging makes your next Mana empowerment free":
-            (L10n.talents_frost_whelp_dodge_t3_2_description, [])
+            return (L10n.talents_frost_whelp_dodge_t3_2_description, [])
         case "Tempest Wing":
-            (L10n.talents_frost_whelp_dodge_t3_2_name, [])
+            return (L10n.talents_frost_whelp_dodge_t3_2_name, [])
         case "Dodging makes your next Freeze attack ignore enemy Block":
-            (L10n.talents_frost_whelp_dodge_t4_1_description, [])
+            return (L10n.talents_frost_whelp_dodge_t4_1_description, [])
         case "Winter’s Wake":
-            (L10n.talents_frost_whelp_dodge_t4_1_name, [])
+            return (L10n.talents_frost_whelp_dodge_t4_1_name, [])
         case "Freeze card hits that remove Health have a 10% chance to draw a card":
-            (L10n.talents_frost_whelp_freeze_t1_1_description(10), [10])
+            return (L10n.talents_frost_whelp_freeze_t1_1_description(10), [10])
         case "Rimewind":
-            (L10n.talents_frost_whelp_freeze_t1_1_name, [])
+            return (L10n.talents_frost_whelp_freeze_t1_1_name, [])
         case "Taking damage has a 10% chance to return 4 Freeze damage":
-            (L10n.talents_frost_whelp_freeze_t1_2_description(10, 4), [10, 4])
+            return (L10n.talents_frost_whelp_freeze_t1_2_description(10, 4), [10, 4])
         case "Chilling Scales":
-            (L10n.talents_frost_whelp_freeze_t1_2_name, [])
+            return (L10n.talents_frost_whelp_freeze_t1_2_name, [])
         case "Increase Freeze build-up by 20%":
-            (L10n.talents_frost_whelp_freeze_t2_1_description(20), [20])
+            return (L10n.talents_frost_whelp_freeze_t2_1_description(20), [20])
         case "Glacial Grip":
-            (L10n.talents_frost_whelp_freeze_t2_1_name, [])
+            return (L10n.talents_frost_whelp_freeze_t2_1_name, [])
         case "Freezing an enemy restores 2 Mana":
-            (L10n.talents_frost_whelp_freeze_t2_2_description(2), [2])
+            return (L10n.talents_frost_whelp_freeze_t2_2_description(2), [2])
         case "Frost Siphon":
-            (L10n.talents_frost_whelp_freeze_t2_2_name, [])
+            return (L10n.talents_frost_whelp_freeze_t2_2_name, [])
         case "Frozen enemies take 25% increased damage":
-            (L10n.talents_frost_whelp_freeze_t3_1_description(25), [25])
+            return (L10n.talents_frost_whelp_freeze_t3_1_description(25), [25])
         case "Shatter Frost":
-            (L10n.talents_frost_whelp_freeze_t3_1_name, [])
+            return (L10n.talents_frost_whelp_freeze_t3_1_name, [])
         case "Freeze Critical Hits double Freeze build-up":
-            (L10n.talents_frost_whelp_freeze_t3_2_description, [])
+            return (L10n.talents_frost_whelp_freeze_t3_2_description, [])
         case "Freezing Gale":
-            (L10n.talents_frost_whelp_freeze_t3_2_name, [])
+            return (L10n.talents_frost_whelp_freeze_t3_2_name, [])
         case "Freezing an enemy draws a card":
-            (L10n.talents_frost_whelp_freeze_t4_1_description, [])
+            return (L10n.talents_frost_whelp_freeze_t4_1_description, [])
         case "Winter’s Dominion":
-            (L10n.talents_frost_whelp_freeze_t4_1_name, [])
+            return (L10n.talents_frost_whelp_freeze_t4_1_name, [])
         case "Spending Mana has a 15% chance to draw a card":
-            (L10n.talents_frost_whelp_mana_t1_1_description(15), [15])
+            return (L10n.talents_frost_whelp_mana_t1_1_description(15), [15])
         case "Dragon Spark":
-            (L10n.talents_frost_whelp_mana_t1_1_name, [])
+            return (L10n.talents_frost_whelp_mana_t1_1_name, [])
         case "Mana empowerment adds 1 damage to Freeze attacks":
-            (L10n.talents_frost_whelp_mana_t1_2_description(1), [1])
+            return (L10n.talents_frost_whelp_mana_t1_2_description(1), [1])
         case "Arcane Breath":
-            (L10n.talents_frost_whelp_mana_t1_2_name, [])
+            return (L10n.talents_frost_whelp_mana_t1_2_name, [])
         case "Gain 2 Block for each excess Mana restored":
-            (L10n.talents_frost_whelp_mana_t2_1_description(2), [2])
+            return (L10n.talents_frost_whelp_mana_t2_1_description(2), [2])
         case "Mana Absorption":
-            (L10n.talents_frost_whelp_mana_t2_1_name, [])
+            return (L10n.talents_frost_whelp_mana_t2_1_name, [])
         case "While you have Mana, take 25% less damage":
-            (L10n.talents_frost_whelp_mana_t2_2_description(25), [25])
+            return (L10n.talents_frost_whelp_mana_t2_2_description(25), [25])
         case "Aetherial Armor":
-            (L10n.talents_frost_whelp_mana_t2_2_name, [])
+            return (L10n.talents_frost_whelp_mana_t2_2_name, [])
         case "Spending Mana has a 25% chance to refund it":
-            (L10n.talents_frost_whelp_mana_t3_1_description(25), [25])
+            return (L10n.talents_frost_whelp_mana_t3_1_description(25), [25])
         case "Mana Flow":
-            (L10n.talents_frost_whelp_mana_t3_1_name, [])
+            return (L10n.talents_frost_whelp_mana_t3_1_name, [])
         case "Mana empowerment costs 1 less Mana":
-            (L10n.talents_frost_whelp_mana_t3_2_description(1), [1])
+            return (L10n.talents_frost_whelp_mana_t3_2_description(1), [1])
         case "Spell Channeling":
-            (L10n.talents_frost_whelp_mana_t3_2_name, [])
+            return (L10n.talents_frost_whelp_mana_t3_2_name, [])
         case "Mana empowerment grants your ally 2 Block":
-            (L10n.talents_frost_whelp_mana_t4_1_description(2), [2])
+            return (L10n.talents_frost_whelp_mana_t4_1_description(2), [2])
         case "Dragon’s Patronage":
-            (L10n.talents_frost_whelp_mana_t4_1_name, [])
+            return (L10n.talents_frost_whelp_mana_t4_1_name, [])
         case "Grant your ally 5 Block before their first incoming attack":
-            (L10n.talents_golden_retriever_block_t1_1_description(5), [5])
+            return (L10n.talents_golden_retriever_block_t1_1_description(5), [5])
         case "Guardian":
-            (L10n.talents_golden_retriever_block_t1_1_name, [])
+            return (L10n.talents_golden_retriever_block_t1_1_name, [])
         case "Start combat with 3 Block":
-            (L10n.talents_golden_retriever_block_t1_2_description(3), [3])
+            return (L10n.talents_golden_retriever_block_t1_2_description(3), [3])
         case "Watchful Eye":
-            (L10n.talents_golden_retriever_block_t1_2_name, [])
+            return (L10n.talents_golden_retriever_block_t1_2_name, [])
         case "Your first Block gain each turn is shared with your ally":
-            (L10n.talents_golden_retriever_block_t2_1_description, [])
+            return (L10n.talents_golden_retriever_block_t2_1_description, [])
         case "Shield Bond":
-            (L10n.talents_golden_retriever_block_t2_1_name, [])
+            return (L10n.talents_golden_retriever_block_t2_1_name, [])
         case "Dodge the first enemy attack each combat without spending Block":
-            (L10n.talents_golden_retriever_block_t2_2_description, [])
+            return (L10n.talents_golden_retriever_block_t2_2_description, [])
         case "Warning Bark":
-            (L10n.talents_golden_retriever_block_t2_2_name, [])
+            return (L10n.talents_golden_retriever_block_t2_2_name, [])
         case "Your Block also absorbs damage dealt to your ally":
-            (L10n.talents_golden_retriever_block_t3_1_description, [])
+            return (L10n.talents_golden_retriever_block_t3_1_description, [])
         case "Sacrificial Guard":
-            (L10n.talents_golden_retriever_block_t3_1_name, [])
+            return (L10n.talents_golden_retriever_block_t3_1_name, [])
         case "While you have Block, prevent Stun and Freeze build-up":
-            (L10n.talents_golden_retriever_block_t3_2_description, [])
+            return (L10n.talents_golden_retriever_block_t3_2_description, [])
         case "When your Block breaks, your ally gains 2 Block":
-            (L10n.talents_golden_retriever_block_t4_1_description(2), [2])
+            return (L10n.talents_golden_retriever_block_t4_1_description(2), [2])
         case "Shield Relay":
-            (L10n.talents_golden_retriever_block_t4_1_name, [])
+            return (L10n.talents_golden_retriever_block_t4_1_name, [])
         case "Defeating an enemy grants 3 Gold":
-            (L10n.talents_golden_retriever_gold_t1_1_description(3), [3])
+            return (L10n.talents_golden_retriever_gold_t1_1_description(3), [3])
         case "Gain 10% more Gold on victory":
-            (L10n.talents_golden_retriever_gold_t1_2_description(10), [10])
+            return (L10n.talents_golden_retriever_gold_t1_2_description(10), [10])
         case "Dig for Treasure":
-            (L10n.talents_golden_retriever_gold_t1_2_name, [])
+            return (L10n.talents_golden_retriever_gold_t1_2_name, [])
         case "Steal 1 additional Gold":
-            (L10n.talents_golden_retriever_gold_t2_1_description(1), [1])
+            return (L10n.talents_golden_retriever_gold_t2_1_description(1), [1])
         case "Haggler":
-            (L10n.talents_golden_retriever_gold_t2_1_name, [])
+            return (L10n.talents_golden_retriever_gold_t2_1_name, [])
         case "Stealing Gold increases your next Block gain by 50%":
-            (L10n.talents_golden_retriever_gold_t2_2_description(50), [50])
+            return (L10n.talents_golden_retriever_gold_t2_2_description(50), [50])
         case "Golden Guard":
-            (L10n.talents_golden_retriever_gold_t2_2_name, [])
+            return (L10n.talents_golden_retriever_gold_t2_2_name, [])
         case "Your first Gold steal each combat draws a card":
-            (L10n.talents_golden_retriever_gold_t3_1_description, [])
+            return (L10n.talents_golden_retriever_gold_t3_1_description, [])
         case "Fetch!":
-            (L10n.talents_golden_retriever_gold_t3_1_name, [])
+            return (L10n.talents_golden_retriever_gold_t3_1_name, [])
         case "Gaining Gold has a 10% chance to draw a card":
-            (L10n.talents_golden_retriever_gold_t3_2_description(10), [10])
+            return (L10n.talents_golden_retriever_gold_t3_2_description(10), [10])
         case "Treasure Hoard":
-            (L10n.talents_golden_retriever_gold_t3_2_name, [])
+            return (L10n.talents_golden_retriever_gold_t3_2_name, [])
         case "Gold stolen grants equal Block to your Hero":
-            (L10n.talents_golden_retriever_gold_t4_1_description, [])
+            return (L10n.talents_golden_retriever_gold_t4_1_description, [])
         case "War Chest":
-            (L10n.talents_golden_retriever_gold_t4_1_name, [])
+            return (L10n.talents_golden_retriever_gold_t4_1_name, [])
         case "Your first Health restoration each combat draws a card":
-            (L10n.talents_golden_retriever_health_t1_1_description, [])
+            return (L10n.talents_golden_retriever_health_t1_1_description, [])
         case "Cheer Up":
-            (L10n.talents_golden_retriever_health_t1_1_name, [])
+            return (L10n.talents_golden_retriever_health_t1_1_name, [])
         case "Restoring Health has a 10% chance to draw a card":
-            (L10n.talents_golden_retriever_health_t1_2_description(10), [10])
+            return (L10n.talents_golden_retriever_health_t1_2_description(10), [10])
         case "Playful Energy":
-            (L10n.talents_golden_retriever_health_t1_2_name, [])
+            return (L10n.talents_golden_retriever_health_t1_2_name, [])
         case "Every other turn, Restore 2 Health":
-            (L10n.talents_golden_retriever_health_t2_1_description(2), [2])
+            return (L10n.talents_golden_retriever_health_t2_1_description(2), [2])
         case "Campfire Comfort":
-            (L10n.talents_golden_retriever_health_t2_1_name, [])
+            return (L10n.talents_golden_retriever_health_t2_1_name, [])
         case "Intercept the first damage each combat that would reduce your ally's Health to zero":
-            (L10n.talents_golden_retriever_health_t2_2_description, [])
+            return (L10n.talents_golden_retriever_health_t2_2_description, [])
         case "Man's Best Friend":
-            (L10n.talents_golden_retriever_health_t2_2_name, [])
+            return (L10n.talents_golden_retriever_health_t2_2_name, [])
         case "Below half Health, both allies gain +15% Critical Hit chance":
-            (L10n.talents_golden_retriever_health_t3_1_description(15), [15])
+            return (L10n.talents_golden_retriever_health_t3_1_description(15), [15])
         case "Inspirational Vigor":
-            (L10n.talents_golden_retriever_health_t3_1_name, [])
+            return (L10n.talents_golden_retriever_health_t3_1_name, [])
         case "Restoring Health also Cleanses a debuff":
-            (L10n.talents_golden_retriever_health_t3_2_description(1), [1])
+            return (L10n.talents_golden_retriever_health_t3_2_description(1), [1])
         case "Protective Lick":
-            (L10n.talents_golden_retriever_health_t3_2_name, [])
+            return (L10n.talents_golden_retriever_health_t3_2_name, [])
         case "Excess healing you receive restores your Hero’s Health":
-            (L10n.talents_golden_retriever_health_t4_1_description, [])
+            return (L10n.talents_golden_retriever_health_t4_1_description, [])
         case "Contagious Joy":
-            (L10n.talents_golden_retriever_health_t4_1_name, [])
+            return (L10n.talents_golden_retriever_health_t4_1_name, [])
         case "Start combat with 6 Block":
-            (L10n.talents_knight_block_t1_1_description(6), [6])
+            return (L10n.talents_knight_block_t1_1_description(6), [6])
         case "Bastion Stance":
-            (L10n.talents_knight_block_t1_1_name, [])
+            return (L10n.talents_knight_block_t1_1_name, [])
         case "Thorns damage is doubled while you have Block":
-            (L10n.talents_knight_block_t1_2_description, [])
+            return (L10n.talents_knight_block_t1_2_description, [])
         case "Spiked Barricade":
-            (L10n.talents_knight_block_t1_2_name, [])
+            return (L10n.talents_knight_block_t1_2_name, [])
         case "Your Block also absorbs damage dealt to your Companion":
-            (L10n.talents_knight_block_t2_1_description, [])
+            return (L10n.talents_knight_block_t2_1_description, [])
         case "Intercede":
-            (L10n.talents_knight_block_t2_1_name, [])
+            return (L10n.talents_knight_block_t2_1_name, [])
         case "Physical damage is increased by 25% of your Block":
-            (L10n.talents_knight_block_t2_2_description(25), [25])
+            return (L10n.talents_knight_block_t2_2_description(25), [25])
         case "Guarded Impact":
-            (L10n.talents_knight_block_t2_2_name, [])
+            return (L10n.talents_knight_block_t2_2_name, [])
         case "With Block, take half Burn, Poison, and Bleed damage":
-            (L10n.talents_knight_block_t3_1_description, [])
+            return (L10n.talents_knight_block_t3_1_description, [])
         case "Hallowed Guard":
-            (L10n.talents_knight_block_t3_1_name, [])
+            return (L10n.talents_knight_block_t3_1_name, [])
         case "Keep 75% of your Block between turns":
-            (L10n.talents_knight_block_t3_2_description(75), [75])
+            return (L10n.talents_knight_block_t3_2_description(75), [75])
         case "Unbreakable":
-            (L10n.talents_knight_block_t3_2_name, [])
+            return (L10n.talents_knight_block_t3_2_name, [])
         case "Below half Health, Block absorbs 50% more damage":
-            (L10n.talents_knight_block_t4_1_description(50), [50])
+            return (L10n.talents_knight_block_t4_1_description(50), [50])
         case "Stalwart Oath":
-            (L10n.talents_knight_block_t4_1_name, [])
+            return (L10n.talents_knight_block_t4_1_name, [])
         case "Holy damage is increased by 25% while you have Block":
-            (L10n.talents_knight_holy_t1_1_description(25), [25])
+            return (L10n.talents_knight_holy_t1_1_description(25), [25])
         case "Oathbound":
-            (L10n.talents_knight_holy_t1_1_name, [])
+            return (L10n.talents_knight_holy_t1_1_name, [])
         case "Holy damage is increased by 50% against enemy Block":
-            (L10n.talents_knight_holy_t1_2_description(50), [50])
+            return (L10n.talents_knight_holy_t1_2_description(50), [50])
         case "Pure Radiance":
-            (L10n.talents_knight_holy_t1_2_name, [])
+            return (L10n.talents_knight_holy_t1_2_name, [])
         case "Your Thorns deal Holy instead of Physical damage":
-            (L10n.talents_knight_holy_t2_1_description, [])
+            return (L10n.talents_knight_holy_t2_1_description, [])
         case "Holy Infusion":
-            (L10n.talents_knight_holy_t2_1_name, [])
+            return (L10n.talents_knight_holy_t2_1_name, [])
         case "Holy attacks ignore half enemy Block":
-            (L10n.talents_knight_holy_t2_2_description, [])
+            return (L10n.talents_knight_holy_t2_2_description, [])
         case "Shield Shatter":
-            (L10n.talents_knight_holy_t2_2_name, [])
+            return (L10n.talents_knight_holy_t2_2_name, [])
         case "Purge draws a card while you're\nbelow half Health":
-            (L10n.talents_knight_holy_t3_1_description, [])
+            return (L10n.talents_knight_holy_t3_1_description, [])
         case "Smite the Wicked":
-            (L10n.talents_knight_holy_t3_1_name, [])
+            return (L10n.talents_knight_holy_t3_1_name, [])
         case "Holy damage has a 10% chance to revive your Companion":
-            (L10n.talents_knight_holy_t3_2_description(10), [10])
+            return (L10n.talents_knight_holy_t3_2_description(10), [10])
         case "Divine Blessing":
-            (L10n.talents_knight_holy_t3_2_name, [])
+            return (L10n.talents_knight_holy_t3_2_name, [])
         case "Holy damage has a 10% chance to grant equal Block to your Companion":
-            (L10n.talents_knight_holy_t4_1_description(10), [10])
+            return (L10n.talents_knight_holy_t4_1_description(10), [10])
         case "Sunwall":
-            (L10n.talents_knight_holy_t4_1_name, [])
+            return (L10n.talents_knight_holy_t4_1_name, [])
         case "Deal 3 additional damage to Stunned enemies":
-            (L10n.talents_knight_stun_t1_1_description(3), [3])
+            return (L10n.talents_knight_stun_t1_1_description(3), [3])
         case "Heavy Flail":
-            (L10n.talents_knight_stun_t1_1_name, [])
+            return (L10n.talents_knight_stun_t1_1_name, [])
         case "Stunned enemies deal half damage when they recover":
-            (L10n.talents_knight_stun_t1_2_description, [])
+            return (L10n.talents_knight_stun_t1_2_description, [])
         case "Concussive Blow":
-            (L10n.talents_knight_stun_t1_2_name, [])
+            return (L10n.talents_knight_stun_t1_2_name, [])
         case "Stun Critical Hits deal double damage":
-            (L10n.talents_knight_stun_t2_1_description, [])
+            return (L10n.talents_knight_stun_t2_1_description, [])
         case "Skullcracker":
-            (L10n.talents_knight_stun_t2_1_name, [])
+            return (L10n.talents_knight_stun_t2_1_name, [])
         case "When Stun ends, draw a card":
-            (L10n.talents_knight_stun_t2_2_description, [])
+            return (L10n.talents_knight_stun_t2_2_description, [])
         case "Stun lasts 1 extra turn on Burning enemies":
-            (L10n.talents_knight_stun_t3_1_description(1), [1])
+            return (L10n.talents_knight_stun_t3_1_description(1), [1])
         case "Searing Bind":
-            (L10n.talents_knight_stun_t3_1_name, [])
+            return (L10n.talents_knight_stun_t3_1_name, [])
         case "Holy damage is increased by 5 against Stunned enemies":
-            (L10n.talents_knight_stun_t3_2_description(5), [5])
+            return (L10n.talents_knight_stun_t3_2_description(5), [5])
         case "Crusader's Mark":
-            (L10n.talents_knight_stun_t3_2_name, [])
+            return (L10n.talents_knight_stun_t3_2_name, [])
         case "Stun damage is increased by half your Block":
-            (L10n.talents_knight_stun_t4_1_description, [])
+            return (L10n.talents_knight_stun_t4_1_description, [])
         case "Lightning Rod":
-            (L10n.talents_knight_stun_t4_1_name, [])
+            return (L10n.talents_knight_stun_t4_1_name, [])
         case "Your first successful Cleanse each combat draws a card":
-            (L10n.talents_library_owl_cleanse_t1_1_description, [])
+            return (L10n.talents_library_owl_cleanse_t1_1_description, [])
         case "Purifying Wisdom":
-            (L10n.talents_library_owl_cleanse_t1_1_name, [])
+            return (L10n.talents_library_owl_cleanse_t1_1_name, [])
         case "Cleansing an ally restores 2 Health":
-            (L10n.talents_library_owl_cleanse_t1_2_description(2), [2])
+            return (L10n.talents_library_owl_cleanse_t1_2_description(2), [2])
         case "Healing Hymn":
-            (L10n.talents_library_owl_cleanse_t1_2_name, [])
+            return (L10n.talents_library_owl_cleanse_t1_2_name, [])
         case "Cleansing a debuff grants 2 Block per effect removed":
-            (L10n.talents_library_owl_cleanse_t2_1_description(1, 2), [1, 2])
+            return (L10n.talents_library_owl_cleanse_t2_1_description(1, 2), [1, 2])
         case "Spellbreak Shield":
-            (L10n.talents_library_owl_cleanse_t2_1_name, [])
+            return (L10n.talents_library_owl_cleanse_t2_1_name, [])
         case "Your first successful Cleanse each turn also Cleanses your ally":
-            (L10n.talents_library_owl_cleanse_t2_2_description, [])
+            return (L10n.talents_library_owl_cleanse_t2_2_description, [])
         case "Mass Cleanse":
-            (L10n.talents_library_owl_cleanse_t2_2_name, [])
+            return (L10n.talents_library_owl_cleanse_t2_2_name, [])
         case "Cleansing debuffs deals 3 Holy damage":
-            (L10n.talents_library_owl_cleanse_t3_1_description(3), [3])
+            return (L10n.talents_library_owl_cleanse_t3_1_description(3), [3])
         case "Reproving Light":
-            (L10n.talents_library_owl_cleanse_t3_1_name, [])
+            return (L10n.talents_library_owl_cleanse_t3_1_name, [])
         case "Cleansing an ally grants +20% Critical Hit chance on their next attack":
-            (L10n.talents_library_owl_cleanse_t3_2_description(20), [20])
+            return (L10n.talents_library_owl_cleanse_t3_2_description(20), [20])
         case "Sanctified Scroll":
-            (L10n.talents_library_owl_cleanse_t3_2_name, [])
+            return (L10n.talents_library_owl_cleanse_t3_2_name, [])
         case "Cleansed effects cannot return until your next turn":
-            (L10n.talents_library_owl_cleanse_t4_1_description, [])
+            return (L10n.talents_library_owl_cleanse_t4_1_description, [])
         case "Lesson Learned":
-            (L10n.talents_library_owl_cleanse_t4_1_name, [])
+            return (L10n.talents_library_owl_cleanse_t4_1_name, [])
         case "Above half Health, gain +20% Dodge chance":
-            (L10n.talents_library_owl_health_t1_1_description(20), [20])
+            return (L10n.talents_library_owl_health_t1_1_description(20), [20])
         case "Safe Perch":
-            (L10n.talents_library_owl_health_t1_1_name, [])
+            return (L10n.talents_library_owl_health_t1_1_name, [])
         case "Restoring Health reduces that ally's next incoming damage by 20%":
-            (L10n.talents_library_owl_health_t1_2_description(20), [20])
+            return (L10n.talents_library_owl_health_t1_2_description(20), [20])
         case "Warded Roost":
-            (L10n.talents_library_owl_health_t1_2_name, [])
+            return (L10n.talents_library_owl_health_t1_2_name, [])
         case "Restore 25% more Health":
-            (L10n.talents_library_owl_health_t2_1_description(25), [25])
+            return (L10n.talents_library_owl_health_t2_1_description(25), [25])
         case "Efficient Care":
-            (L10n.talents_library_owl_health_t2_1_name, [])
+            return (L10n.talents_library_owl_health_t2_1_name, [])
         case "Restoring Health has a 20% chance to grant equal Block":
-            (L10n.talents_library_owl_health_t2_2_description(20), [20])
+            return (L10n.talents_library_owl_health_t2_2_description(20), [20])
         case "Aether Shield":
-            (L10n.talents_library_owl_health_t2_2_name, [])
+            return (L10n.talents_library_owl_health_t2_2_name, [])
         case "When either ally enters Death's Door, they restore 8 Health":
-            (L10n.talents_library_owl_health_t3_1_description(8), [8])
+            return (L10n.talents_library_owl_health_t3_1_description(8), [8])
         case "Guardian Archive":
-            (L10n.talents_library_owl_health_t3_1_name, [])
+            return (L10n.talents_library_owl_health_t3_1_name, [])
         case "Restoring Health or Mana has a 10% chance to draw a card":
-            (L10n.talents_library_owl_health_t3_2_description(10), [10])
+            return (L10n.talents_library_owl_health_t3_2_description(10), [10])
         case "Font of Magic":
-            (L10n.talents_library_owl_health_t3_2_name, [])
+            return (L10n.talents_library_owl_health_t3_2_name, [])
         case "Restoring Health has a 10% chance to grant 3 Thorns":
-            (L10n.talents_library_owl_health_t4_1_description(10, 3), [10, 3])
+            return (L10n.talents_library_owl_health_t4_1_description(10, 3), [10, 3])
         case "Living Archive":
-            (L10n.talents_library_owl_health_t4_1_name, [])
+            return (L10n.talents_library_owl_health_t4_1_name, [])
         case "Holy Critical Hits make your ally's next attack ignore enemy Block":
-            (L10n.talents_library_owl_holy_t1_1_description, [])
+            return (L10n.talents_library_owl_holy_t1_1_description, [])
         case "Revealed Flaw":
-            (L10n.talents_library_owl_holy_t1_1_name, [])
+            return (L10n.talents_library_owl_holy_t1_1_name, [])
         case "Holy attacks gain +15% Critical Hit chance":
-            (L10n.talents_library_owl_holy_t1_2_description(15), [15])
+            return (L10n.talents_library_owl_holy_t1_2_description(15), [15])
         case "Scholarly Smite":
-            (L10n.talents_library_owl_holy_t1_2_name, [])
+            return (L10n.talents_library_owl_holy_t1_2_name, [])
         case "Holy attacks reduce the enemy's next attack accuracy by 20%":
-            (L10n.talents_library_owl_holy_t2_1_description(20), [20])
+            return (L10n.talents_library_owl_holy_t2_1_description(20), [20])
         case "Blinding Light":
-            (L10n.talents_library_owl_holy_t2_1_name, [])
+            return (L10n.talents_library_owl_holy_t2_1_name, [])
         case "Holy attacks have a 10% chance to draw a card":
-            (L10n.talents_library_owl_holy_t2_2_description(10), [10])
+            return (L10n.talents_library_owl_holy_t2_2_description(10), [10])
         case "Radiant Wisdom":
-            (L10n.talents_library_owl_holy_t2_2_name, [])
+            return (L10n.talents_library_owl_holy_t2_2_name, [])
         case "Holy Critical Hits Purge a buff":
-            (L10n.talents_library_owl_holy_t3_1_description(1), [1])
+            return (L10n.talents_library_owl_holy_t3_1_description(1), [1])
         case "Bane of Evil":
-            (L10n.talents_library_owl_holy_t3_1_name, [])
+            return (L10n.talents_library_owl_holy_t3_1_name, [])
         case "Holy attacks have a 10% chance to Cleanse your ally":
-            (L10n.talents_library_owl_holy_t3_2_description(10), [10])
+            return (L10n.talents_library_owl_holy_t3_2_description(10), [10])
         case "Purifying Light":
-            (L10n.talents_library_owl_holy_t3_2_name, [])
+            return (L10n.talents_library_owl_holy_t3_2_name, [])
         case "Holy Critical Hits prevent enemy Block until your next turn":
-            (L10n.talents_library_owl_holy_t4_1_description, [])
+            return (L10n.talents_library_owl_holy_t4_1_description, [])
         case "Interdict":
-            (L10n.talents_library_owl_holy_t4_1_name, [])
+            return (L10n.talents_library_owl_holy_t4_1_name, [])
         case "Dodging has a 20% chance to deal 4 Bleed damage":
-            (L10n.talents_lizard_scout_bleed_t1_1_description(20, 4), [20, 4])
+            return (L10n.talents_lizard_scout_bleed_t1_1_description(20, 4), [20, 4])
         case "Barbed Tail":
-            (L10n.talents_lizard_scout_bleed_t1_1_name, [])
+            return (L10n.talents_lizard_scout_bleed_t1_1_name, [])
         case "Bleed Critical Hits grant 2 Thorns":
-            (L10n.talents_lizard_scout_bleed_t1_2_description(2), [2])
+            return (L10n.talents_lizard_scout_bleed_t1_2_description(2), [2])
         case "Spiny Carapace":
-            (L10n.talents_lizard_scout_bleed_t1_2_name, [])
+            return (L10n.talents_lizard_scout_bleed_t1_2_name, [])
         case "+10% Critical Hit chance against Bleeding enemies":
-            (L10n.talents_lizard_scout_bleed_t2_1_description(10), [10])
+            return (L10n.talents_lizard_scout_bleed_t2_1_description(10), [10])
         case "Ferocious Bite":
-            (L10n.talents_lizard_scout_bleed_t2_1_name, [])
+            return (L10n.talents_lizard_scout_bleed_t2_1_name, [])
         case "Gain +10% Dodge against Bleeding enemies":
-            (L10n.talents_lizard_scout_bleed_t2_2_description(10), [10])
+            return (L10n.talents_lizard_scout_bleed_t2_2_description(10), [10])
         case "Evasive Reflexes":
-            (L10n.talents_lizard_scout_bleed_t2_2_name, [])
+            return (L10n.talents_lizard_scout_bleed_t2_2_name, [])
         case "Bleed Critical Hits have a 20% chance to draw a card":
-            (L10n.talents_lizard_scout_bleed_t3_1_description(20), [20])
+            return (L10n.talents_lizard_scout_bleed_t3_1_description(20), [20])
         case "Frenzied Tail":
-            (L10n.talents_lizard_scout_bleed_t3_1_name, [])
+            return (L10n.talents_lizard_scout_bleed_t3_1_name, [])
         case "Bleed attacks deal 50% more damage to enemy Block":
-            (L10n.talents_lizard_scout_bleed_t3_2_description(50), [50])
+            return (L10n.talents_lizard_scout_bleed_t3_2_description(50), [50])
         case "Armor Shred":
-            (L10n.talents_lizard_scout_bleed_t3_2_name, [])
+            return (L10n.talents_lizard_scout_bleed_t3_2_name, [])
         case "Enemies below half Health take 30% increased Bleed damage":
-            (L10n.talents_lizard_scout_bleed_t4_1_description(30), [30])
+            return (L10n.talents_lizard_scout_bleed_t4_1_description(30), [30])
         case "Butcher’s Cut":
-            (L10n.talents_lizard_scout_bleed_t4_1_name, [])
+            return (L10n.talents_lizard_scout_bleed_t4_1_name, [])
         case "Steal 3 Gold when your Block is broken":
-            (L10n.talents_lizard_scout_gold_t1_1_description(3), [3])
+            return (L10n.talents_lizard_scout_gold_t1_1_description(3), [3])
         case "Trophy Scales":
-            (L10n.talents_lizard_scout_gold_t1_1_name, [])
+            return (L10n.talents_lizard_scout_gold_t1_1_name, [])
         case "Stealing Gold has a 10% chance to grant 4 Block":
-            (L10n.talents_lizard_scout_gold_t1_2_description(10, 4), [10, 4])
+            return (L10n.talents_lizard_scout_gold_t1_2_description(10, 4), [10, 4])
         case "Hoard Armor":
-            (L10n.talents_lizard_scout_gold_t1_2_name, [])
+            return (L10n.talents_lizard_scout_gold_t1_2_name, [])
         case "Critical Hits steal 3 Gold":
-            (L10n.talents_lizard_scout_gold_t2_1_description(3), [3])
+            return (L10n.talents_lizard_scout_gold_t2_1_description(3), [3])
         case "Pickpocket":
-            (L10n.talents_lizard_scout_gold_t2_1_name, [])
+            return (L10n.talents_lizard_scout_gold_t2_1_name, [])
         case "Stealing Gold has a 10% chance to draw a card":
-            (L10n.talents_lizard_scout_gold_t2_2_description(10), [10])
+            return (L10n.talents_lizard_scout_gold_t2_2_description(10), [10])
         case "Scavenger’s Cache":
-            (L10n.talents_lizard_scout_gold_t2_2_name, [])
+            return (L10n.talents_lizard_scout_gold_t2_2_name, [])
         case "Leech has a 10% chance to convert excess healing into Gold":
-            (L10n.talents_lizard_scout_gold_t3_1_description(10), [10])
+            return (L10n.talents_lizard_scout_gold_t3_1_description(10), [10])
         case "Flawless Bounty":
-            (L10n.talents_lizard_scout_gold_t3_1_name, [])
+            return (L10n.talents_lizard_scout_gold_t3_1_name, [])
         case "Gold stolen adds equal damage to your next attack":
-            (L10n.talents_lizard_scout_gold_t3_2_description, [])
+            return (L10n.talents_lizard_scout_gold_t3_2_description, [])
         case "Gilded Claws":
-            (L10n.talents_lizard_scout_gold_t3_2_name, [])
+            return (L10n.talents_lizard_scout_gold_t3_2_name, [])
         case "Stealing Gold restores 2 Health to your ally":
-            (L10n.talents_lizard_scout_gold_t4_1_description(2), [2])
+            return (L10n.talents_lizard_scout_gold_t4_1_description(2), [2])
         case "Shared Spoils":
-            (L10n.talents_lizard_scout_gold_t4_1_name, [])
+            return (L10n.talents_lizard_scout_gold_t4_1_name, [])
         case "Deal 2 Poison damage when you Dodge":
-            (L10n.talents_lizard_scout_poison_t1_1_description(2), [2])
+            return (L10n.talents_lizard_scout_poison_t1_1_description(2), [2])
         case "Cold Blood":
-            (L10n.talents_lizard_scout_poison_t1_1_name, [])
+            return (L10n.talents_lizard_scout_poison_t1_1_name, [])
         case "Deal 1 Poison damage to attackers when you take damage":
-            (L10n.talents_lizard_scout_poison_t1_2_description(1), [1])
+            return (L10n.talents_lizard_scout_poison_t1_2_description(1), [1])
         case "Venomous Skin":
-            (L10n.talents_lizard_scout_poison_t1_2_name, [])
+            return (L10n.talents_lizard_scout_poison_t1_2_name, [])
         case "Poison attacks deal 1 additional damage to Bleeding enemies":
-            (L10n.talents_lizard_scout_poison_t2_1_description(1), [1])
+            return (L10n.talents_lizard_scout_poison_t2_1_description(1), [1])
         case "Spit Poison":
-            (L10n.talents_lizard_scout_poison_t2_1_name, [])
+            return (L10n.talents_lizard_scout_poison_t2_1_name, [])
         case "Poison Critical Hits gain Leech":
-            (L10n.talents_lizard_scout_poison_t2_2_description, [])
+            return (L10n.talents_lizard_scout_poison_t2_2_description, [])
         case "Toxiphage":
-            (L10n.talents_lizard_scout_poison_t2_2_name, [])
+            return (L10n.talents_lizard_scout_poison_t2_2_name, [])
         case "Poison attacks have a 10% chance to Stun":
-            (L10n.talents_lizard_scout_poison_t3_1_description(10), [10])
+            return (L10n.talents_lizard_scout_poison_t3_1_description(10), [10])
         case "Paralysis":
-            (L10n.talents_lizard_scout_poison_t3_1_name, [])
+            return (L10n.talents_lizard_scout_poison_t3_1_name, [])
         case "Enemy Poison has a 20% chance to avoid fading":
-            (L10n.talents_lizard_scout_poison_t3_2_description(20), [20])
+            return (L10n.talents_lizard_scout_poison_t3_2_description(20), [20])
         case "Venom Spores":
-            (L10n.talents_lizard_scout_poison_t3_2_name, [])
+            return (L10n.talents_lizard_scout_poison_t3_2_name, [])
         case "Stunned enemies take 20% increased Poison damage":
-            (L10n.talents_lizard_scout_poison_t4_1_description(20), [20])
+            return (L10n.talents_lizard_scout_poison_t4_1_description(20), [20])
         case "Toxic Coma":
-            (L10n.talents_lizard_scout_poison_t4_1_name, [])
+            return (L10n.talents_lizard_scout_poison_t4_1_name, [])
         case "Bleed Critical Hits also deal 4 Poison damage":
-            (L10n.talents_lizard_scout_poison_t4_2_description(4), [4])
+            return (L10n.talents_lizard_scout_poison_t4_2_description(4), [4])
         case "Cross-Contamination":
-            (L10n.talents_lizard_scout_poison_t4_2_name, [])
+            return (L10n.talents_lizard_scout_poison_t4_2_name, [])
         case "Block absorbs 25% more damage against Burning enemies":
-            (L10n.talents_mana_moth_burn_t1_1_description(25), [25])
+            return (L10n.talents_mana_moth_burn_t1_1_description(25), [25])
         case "Ember Shield":
-            (L10n.talents_mana_moth_burn_t1_1_name, [])
+            return (L10n.talents_mana_moth_burn_t1_1_name, [])
         case "Burn Critical Hits restore 2 Mana":
-            (L10n.talents_mana_moth_burn_t1_2_description(2), [2])
+            return (L10n.talents_mana_moth_burn_t1_2_description(2), [2])
         case "Moth to Flame":
-            (L10n.talents_mana_moth_burn_t1_2_name, [])
+            return (L10n.talents_mana_moth_burn_t1_2_name, [])
         case "Burn Critical Hits ignore enemy Block":
-            (L10n.talents_mana_moth_burn_t2_1_description, [])
+            return (L10n.talents_mana_moth_burn_t2_1_description, [])
         case "Flashover":
-            (L10n.talents_mana_moth_burn_t2_1_name, [])
+            return (L10n.talents_mana_moth_burn_t2_1_name, [])
         case "Burn Critical Hits deal 25% more damage":
-            (L10n.talents_mana_moth_burn_t2_2_description(25), [25])
+            return (L10n.talents_mana_moth_burn_t2_2_description(25), [25])
         case "Cinderstrike":
-            (L10n.talents_mana_moth_burn_t2_2_name, [])
+            return (L10n.talents_mana_moth_burn_t2_2_name, [])
         case "Enemy Burn has a 20% chance to avoid fading":
-            (L10n.talents_mana_moth_burn_t3_1_description(20), [20])
+            return (L10n.talents_mana_moth_burn_t3_1_description(20), [20])
         case "Ember Persistence":
-            (L10n.talents_mana_moth_burn_t3_1_name, [])
+            return (L10n.talents_mana_moth_burn_t3_1_name, [])
         case "+10% Critical Hit chance against Burning enemies":
-            (L10n.talents_mana_moth_burn_t3_2_description(10), [10])
+            return (L10n.talents_mana_moth_burn_t3_2_description(10), [10])
         case "Scorching Dust":
-            (L10n.talents_mana_moth_burn_t3_2_name, [])
+            return (L10n.talents_mana_moth_burn_t3_2_name, [])
         case "Freezing a Burning enemy deals 5 Burn damage":
-            (L10n.talents_mana_moth_burn_t4_1_description(5), [5])
+            return (L10n.talents_mana_moth_burn_t4_1_description(5), [5])
         case "Steam Explosion":
-            (L10n.talents_mana_moth_burn_t4_1_name, [])
+            return (L10n.talents_mana_moth_burn_t4_1_name, [])
         case "Frozen enemies take 25% increased Burn damage":
-            (L10n.talents_mana_moth_burn_t4_2_description(25), [25])
+            return (L10n.talents_mana_moth_burn_t4_2_description(25), [25])
         case "Cold Flame":
-            (L10n.talents_mana_moth_burn_t4_2_name, [])
+            return (L10n.talents_mana_moth_burn_t4_2_name, [])
         case "Freeze attacks gain +10% Critical Hit chance":
-            (L10n.talents_mana_moth_freeze_t1_1_description(10), [10])
+            return (L10n.talents_mana_moth_freeze_t1_1_description(10), [10])
         case "Chilling Flutter":
-            (L10n.talents_mana_moth_freeze_t1_1_name, [])
+            return (L10n.talents_mana_moth_freeze_t1_1_name, [])
         case "Freezing an enemy grants 3 Block":
-            (L10n.talents_mana_moth_freeze_t1_2_description(3), [3])
+            return (L10n.talents_mana_moth_freeze_t1_2_description(3), [3])
         case "Frost Guard":
-            (L10n.talents_mana_moth_freeze_t1_2_name, [])
+            return (L10n.talents_mana_moth_freeze_t1_2_name, [])
         case "Freeze Critical Hits reduce the enemy's next attack accuracy by 20%":
-            (L10n.talents_mana_moth_freeze_t2_1_description(20), [20])
+            return (L10n.talents_mana_moth_freeze_t2_1_description(20), [20])
         case "Blinding Frost":
-            (L10n.talents_mana_moth_freeze_t2_1_name, [])
+            return (L10n.talents_mana_moth_freeze_t2_1_name, [])
         case "Freeze has a 30% chance to last an extra turn":
-            (L10n.talents_mana_moth_freeze_t2_2_description(30), [30])
+            return (L10n.talents_mana_moth_freeze_t2_2_description(30), [30])
         case "Subzero Mist":
-            (L10n.talents_mana_moth_freeze_t2_2_name, [])
+            return (L10n.talents_mana_moth_freeze_t2_2_name, [])
         case "Mana empowerment increases Freeze build-up by 25%":
-            (L10n.talents_mana_moth_freeze_t3_1_description(25), [25])
+            return (L10n.talents_mana_moth_freeze_t3_1_description(25), [25])
         case "Flash Freeze":
-            (L10n.talents_mana_moth_freeze_t3_1_name, [])
+            return (L10n.talents_mana_moth_freeze_t3_1_name, [])
         case "Freeze Critical Hits deal 50% more damage":
-            (L10n.talents_mana_moth_freeze_t3_2_description(50), [50])
+            return (L10n.talents_mana_moth_freeze_t3_2_description(50), [50])
         case "Frost Nova":
-            (L10n.talents_mana_moth_freeze_t3_2_name, [])
+            return (L10n.talents_mana_moth_freeze_t3_2_name, [])
         case "Freeze damage ignores enemy Block":
-            (L10n.talents_mana_moth_freeze_t4_1_description, [])
+            return (L10n.talents_mana_moth_freeze_t4_1_description, [])
         case "Ghostfrost":
-            (L10n.talents_mana_moth_freeze_t4_1_name, [])
+            return (L10n.talents_mana_moth_freeze_t4_1_name, [])
         case "Mana restoration has a 10% chance to double":
-            (L10n.talents_mana_moth_mana_t1_1_description(10), [10])
+            return (L10n.talents_mana_moth_mana_t1_1_description(10), [10])
         case "Arcane Reservoir":
-            (L10n.talents_mana_moth_mana_t1_1_name, [])
+            return (L10n.talents_mana_moth_mana_t1_1_name, [])
         case "Your first Mana spend each turn refunds 1 Mana":
-            (L10n.talents_mana_moth_mana_t1_2_description(1), [1])
+            return (L10n.talents_mana_moth_mana_t1_2_description(1), [1])
         case "Aetherial Surge":
-            (L10n.talents_mana_moth_mana_t1_2_name, [])
+            return (L10n.talents_mana_moth_mana_t1_2_name, [])
         case "Your Block absorbs 40% more damage while you have Mana":
-            (L10n.talents_mana_moth_mana_t2_1_description(40), [40])
+            return (L10n.talents_mana_moth_mana_t2_1_description(40), [40])
         case "Mana Cocoon":
-            (L10n.talents_mana_moth_mana_t2_1_name, [])
+            return (L10n.talents_mana_moth_mana_t2_1_name, [])
         case "Spending Mana adds 2 damage to your next attack":
-            (L10n.talents_mana_moth_mana_t2_2_description(2), [2])
+            return (L10n.talents_mana_moth_mana_t2_2_description(2), [2])
         case "Aetherial Flow":
-            (L10n.talents_mana_moth_mana_t2_2_name, [])
+            return (L10n.talents_mana_moth_mana_t2_2_name, [])
         case "Restoring Mana has a 10% chance to draw a card":
-            (L10n.talents_mana_moth_mana_t3_1_description(10), [10])
+            return (L10n.talents_mana_moth_mana_t3_1_description(10), [10])
         case "Prismatic Spark":
-            (L10n.talents_mana_moth_mana_t3_1_name, [])
+            return (L10n.talents_mana_moth_mana_t3_1_name, [])
         case "Mana empowerment has a 20% chance to deal 50% more damage":
-            (L10n.talents_mana_moth_mana_t3_2_description(20, 50), [20, 50])
+            return (L10n.talents_mana_moth_mana_t3_2_description(20, 50), [20, 50])
         case "Arcane Burst":
-            (L10n.talents_mana_moth_mana_t3_2_name, [])
+            return (L10n.talents_mana_moth_mana_t3_2_name, [])
         case "Mana empowerment increases Burn and Freeze damage by 25%":
-            (L10n.talents_mana_moth_mana_t4_1_description(25), [25])
+            return (L10n.talents_mana_moth_mana_t4_1_description(25), [25])
         case "Prismatic Scales":
-            (L10n.talents_mana_moth_mana_t4_1_name, [])
+            return (L10n.talents_mana_moth_mana_t4_1_name, [])
         case "Bleed attacks deal 1 additional damage":
-            (L10n.talents_panther_bleed_t1_1_description(1), [1])
+            return (L10n.talents_panther_bleed_t1_1_description(1), [1])
         case "Razor Claws":
-            (L10n.talents_panther_bleed_t1_1_name, [])
+            return (L10n.talents_panther_bleed_t1_1_name, [])
         case "Bleed attacks gain +10% Critical Hit chance":
-            (L10n.talents_panther_bleed_t1_2_description(10), [10])
+            return (L10n.talents_panther_bleed_t1_2_description(10), [10])
         case "Raking Swipes":
-            (L10n.talents_panther_bleed_t1_2_name, [])
+            return (L10n.talents_panther_bleed_t1_2_name, [])
         case "You deal 25% more damage to Bleeding enemies below half Health":
-            (L10n.talents_panther_bleed_t2_1_description(25), [25])
+            return (L10n.talents_panther_bleed_t2_1_description(25), [25])
         case "Stalk the Wound":
-            (L10n.talents_panther_bleed_t2_1_name, [])
+            return (L10n.talents_panther_bleed_t2_1_name, [])
         case "Bleed Critical Hits deal 25% more damage":
-            (L10n.talents_panther_bleed_t2_2_description(25), [25])
+            return (L10n.talents_panther_bleed_t2_2_description(25), [25])
         case "Rend Flesh":
-            (L10n.talents_panther_bleed_t2_2_name, [])
+            return (L10n.talents_panther_bleed_t2_2_name, [])
         case "Enemies with 3 or more Bleed stacks deal 30% less damage":
-            (L10n.talents_panther_bleed_t3_1_description(3, 30), [3, 30])
+            return (L10n.talents_panther_bleed_t3_1_description(3, 30), [3, 30])
         case "Crippling Laceration":
-            (L10n.talents_panther_bleed_t3_1_name, [])
+            return (L10n.talents_panther_bleed_t3_1_name, [])
         case "Bleeding enemies restore half as much Health":
-            (L10n.talents_panther_bleed_t3_2_description, [])
+            return (L10n.talents_panther_bleed_t3_2_description, [])
         case "Bloodprice":
-            (L10n.talents_panther_bleed_t3_2_name, [])
+            return (L10n.talents_panther_bleed_t3_2_name, [])
         case "Critical Hits detonate Bleed":
-            (L10n.talents_panther_bleed_t4_1_description, [])
+            return (L10n.talents_panther_bleed_t4_1_description, [])
         case "Arterial Cascade":
-            (L10n.talents_panther_bleed_t4_1_name, [])
+            return (L10n.talents_panther_bleed_t4_1_name, [])
         case "Dropping below half Health doubles your next Bleed attack":
-            (L10n.talents_panther_bleed_t4_2_description, [])
+            return (L10n.talents_panther_bleed_t4_2_description, [])
         case "Redline":
-            (L10n.talents_panther_bleed_t4_2_name, [])
+            return (L10n.talents_panther_bleed_t4_2_name, [])
         case "Your first Dodge each combat doubles your next attack":
-            (L10n.talents_panther_dodge_t1_1_description, [])
+            return (L10n.talents_panther_dodge_t1_1_description, [])
         case "Surprise Strike":
-            (L10n.talents_panther_dodge_t1_1_name, [])
+            return (L10n.talents_panther_dodge_t1_1_name, [])
         case "Dodging adds 2 damage to your next Bleed attack":
-            (L10n.talents_panther_dodge_t1_2_description(2), [2])
+            return (L10n.talents_panther_dodge_t1_2_description(2), [2])
         case "Counter Pounce":
-            (L10n.talents_panther_dodge_t1_2_name, [])
+            return (L10n.talents_panther_dodge_t1_2_name, [])
         case "Below half Health, gain +20% Dodge chance":
-            (L10n.talents_panther_dodge_t2_1_description(20), [20])
+            return (L10n.talents_panther_dodge_t2_1_description(20), [20])
         case "Survival Instinct":
-            (L10n.talents_panther_dodge_t2_1_name, [])
+            return (L10n.talents_panther_dodge_t2_1_name, [])
         case "Stalker’s Precision":
-            (L10n.talents_panther_dodge_t2_2_name, [])
+            return (L10n.talents_panther_dodge_t2_2_name, [])
         case "Dodging has a 10% chance to draw a card":
-            (L10n.talents_panther_dodge_t3_1_description(10), [10])
+            return (L10n.talents_panther_dodge_t3_1_description(10), [10])
         case "Regroup":
-            (L10n.talents_panther_dodge_t3_1_name, [])
+            return (L10n.talents_panther_dodge_t3_1_name, [])
         case "Vanish":
-            (L10n.talents_panther_dodge_t3_2_name, [])
+            return (L10n.talents_panther_dodge_t3_2_name, [])
         case "Gain Critical Hit chance equal to half your Dodge chance":
-            (L10n.talents_panther_dodge_t4_1_description, [])
+            return (L10n.talents_panther_dodge_t4_1_description, [])
         case "Killing Grace":
-            (L10n.talents_panther_dodge_t4_1_name, [])
+            return (L10n.talents_panther_dodge_t4_1_name, [])
         case "Bleed attacks gain Leech while below 50% Health":
-            (L10n.talents_panther_leech_t1_1_description(50), [50])
+            return (L10n.talents_panther_leech_t1_1_description(50), [50])
         case "Blood Hunger":
-            (L10n.talents_panther_leech_t1_1_name, [])
+            return (L10n.talents_panther_leech_t1_1_name, [])
         case "Excess Leech Health restoration is shared with your ally":
-            (L10n.talents_panther_leech_t1_2_description, [])
+            return (L10n.talents_panther_leech_t1_2_description, [])
         case "Shared Feast":
-            (L10n.talents_panther_leech_t1_2_name, [])
+            return (L10n.talents_panther_leech_t1_2_name, [])
         case "Leech Critical Hits grant your ally 4 Block":
-            (L10n.talents_panther_leech_t2_1_description(4), [4])
+            return (L10n.talents_panther_leech_t2_1_description(4), [4])
         case "Vitality Infusion":
-            (L10n.talents_panther_leech_t2_1_name, [])
+            return (L10n.talents_panther_leech_t2_1_name, [])
         case "Enemies cannot Leech from you":
-            (L10n.talents_panther_leech_t2_2_description, [])
+            return (L10n.talents_panther_leech_t2_2_description, [])
         case "Sanguine Resistance":
-            (L10n.talents_panther_leech_t2_2_name, [])
+            return (L10n.talents_panther_leech_t2_2_name, [])
         case "Leech restores 20% more Health against Bleeding enemies":
-            (L10n.talents_panther_leech_t3_1_description(20), [20])
+            return (L10n.talents_panther_leech_t3_1_description(20), [20])
         case "Frenzied Feeding":
-            (L10n.talents_panther_leech_t3_1_name, [])
+            return (L10n.talents_panther_leech_t3_1_name, [])
         case "Your ally's attacks have a 10% chance to Leech":
-            (L10n.talents_panther_leech_t3_2_description(10), [10])
+            return (L10n.talents_panther_leech_t3_2_description(10), [10])
         case "Pack Bloodlust":
-            (L10n.talents_panther_leech_t3_2_name, [])
+            return (L10n.talents_panther_leech_t3_2_name, [])
         case "Bleed Critical Hits gain Leech":
-            (L10n.talents_panther_leech_t4_1_description, [])
+            return (L10n.talents_panther_leech_t4_1_description, [])
         case "Blood Feast":
-            (L10n.talents_panther_leech_t4_1_name, [])
+            return (L10n.talents_panther_leech_t4_1_name, [])
         case "Taking damage has a 15% chance to return 4 Burn damage":
-            (L10n.talents_phoenix_burn_t1_1_description(15, 4), [15, 4])
+            return (L10n.talents_phoenix_burn_t1_1_description(15, 4), [15, 4])
         case "Blazing Feathers":
-            (L10n.talents_phoenix_burn_t1_1_name, [])
+            return (L10n.talents_phoenix_burn_t1_1_name, [])
         case "Ignition Spark":
-            (L10n.talents_phoenix_burn_t1_2_name, [])
+            return (L10n.talents_phoenix_burn_t1_2_name, [])
         case "Burn attacks have a 10% chance to grant 4 Block":
-            (L10n.talents_phoenix_burn_t2_1_description(10, 4), [10, 4])
+            return (L10n.talents_phoenix_burn_t2_1_description(10, 4), [10, 4])
         case "Flame Shield":
-            (L10n.talents_phoenix_burn_t2_1_name, [])
+            return (L10n.talents_phoenix_burn_t2_1_name, [])
         case "Burn Critical Hits deal 3 additional damage":
-            (L10n.talents_phoenix_burn_t2_2_description(3), [3])
+            return (L10n.talents_phoenix_burn_t2_2_description(3), [3])
         case "Explosive Embers":
-            (L10n.talents_phoenix_burn_t2_2_name, [])
+            return (L10n.talents_phoenix_burn_t2_2_name, [])
         case "Burn attacks deal 50% more damage to enemy Block":
-            (L10n.talents_phoenix_burn_t3_1_description(50), [50])
+            return (L10n.talents_phoenix_burn_t3_1_description(50), [50])
         case "Molten Heat":
-            (L10n.talents_phoenix_burn_t3_1_name, [])
+            return (L10n.talents_phoenix_burn_t3_1_name, [])
         case "Burning enemies take 25% increased damage from your Critical Hits":
-            (L10n.talents_phoenix_burn_t3_2_description(25), [25])
+            return (L10n.talents_phoenix_burn_t3_2_description(25), [25])
         case "Intense Heat":
-            (L10n.talents_phoenix_burn_t3_2_name, [])
+            return (L10n.talents_phoenix_burn_t3_2_name, [])
         case "Burn Critical Hits restore 3 Mana":
-            (L10n.talents_phoenix_burn_t4_1_description(3), [3])
+            return (L10n.talents_phoenix_burn_t4_1_description(3), [3])
         case "Furnace Rhythm":
-            (L10n.talents_phoenix_burn_t4_1_name, [])
+            return (L10n.talents_phoenix_burn_t4_1_name, [])
         case "Entering Death's Door restores 6 Health":
-            (L10n.talents_phoenix_deathsdoor_t1_1_description(6), [6])
+            return (L10n.talents_phoenix_deathsdoor_t1_1_description(6), [6])
         case "From the Ashes":
-            (L10n.talents_phoenix_deathsdoor_t1_1_name, [])
+            return (L10n.talents_phoenix_deathsdoor_t1_1_name, [])
         case "Death's Door lasts 1 additional turn":
-            (L10n.talents_phoenix_deathsdoor_t1_2_description(1), [1])
+            return (L10n.talents_phoenix_deathsdoor_t1_2_description(1), [1])
         case "Lingering Spirit":
-            (L10n.talents_phoenix_deathsdoor_t1_2_name, [])
+            return (L10n.talents_phoenix_deathsdoor_t1_2_name, [])
         case "Entering Death's Door deals 4 Burn damage to the enemy":
-            (L10n.talents_phoenix_deathsdoor_t2_1_description(4), [4])
+            return (L10n.talents_phoenix_deathsdoor_t2_1_description(4), [4])
         case "Blazing Rebirth":
-            (L10n.talents_phoenix_deathsdoor_t2_1_name, [])
+            return (L10n.talents_phoenix_deathsdoor_t2_1_name, [])
         case "Surviving Death's Door doubles your next attack":
-            (L10n.talents_phoenix_deathsdoor_t2_2_description, [])
+            return (L10n.talents_phoenix_deathsdoor_t2_2_description, [])
         case "Phoenix Vigor":
-            (L10n.talents_phoenix_deathsdoor_t2_2_name, [])
+            return (L10n.talents_phoenix_deathsdoor_t2_2_name, [])
         case "Death's Door halves damage you take":
-            (L10n.talents_phoenix_deathsdoor_t3_1_description, [])
+            return (L10n.talents_phoenix_deathsdoor_t3_1_description, [])
         case "Fortified Rebirth":
-            (L10n.talents_phoenix_deathsdoor_t3_1_name, [])
+            return (L10n.talents_phoenix_deathsdoor_t3_1_name, [])
         case "Death's Door prevents debuffs":
-            (L10n.talents_phoenix_deathsdoor_t3_2_description, [])
+            return (L10n.talents_phoenix_deathsdoor_t3_2_description, [])
         case "Ashen Ward":
-            (L10n.talents_phoenix_deathsdoor_t3_2_name, [])
+            return (L10n.talents_phoenix_deathsdoor_t3_2_name, [])
         case "Burn damage gains Leech while you're on Death's Door":
-            (L10n.talents_phoenix_deathsdoor_t4_1_description, [])
+            return (L10n.talents_phoenix_deathsdoor_t4_1_description, [])
         case "Undying Ember":
-            (L10n.talents_phoenix_deathsdoor_t4_1_name, [])
+            return (L10n.talents_phoenix_deathsdoor_t4_1_name, [])
         case "Below half Health, restore 50% more Health":
-            (L10n.talents_phoenix_health_t1_1_description(50), [50])
+            return (L10n.talents_phoenix_health_t1_1_description(50), [50])
         case "Restorative Ashes":
-            (L10n.talents_phoenix_health_t1_1_name, [])
+            return (L10n.talents_phoenix_health_t1_1_name, [])
         case "Burn attacks have a 10% chance to restore 4 Health to the lowest ally":
-            (L10n.talents_phoenix_health_t1_2_description(10, 4), [10, 4])
+            return (L10n.talents_phoenix_health_t1_2_description(10, 4), [10, 4])
         case "Healing Flames":
-            (L10n.talents_phoenix_health_t1_2_name, [])
+            return (L10n.talents_phoenix_health_t1_2_name, [])
         case "Surviving Death's Door restores 4 Health to both allies":
-            (L10n.talents_phoenix_health_t2_1_description(4), [4])
+            return (L10n.talents_phoenix_health_t2_1_description(4), [4])
         case "Afterglow":
-            (L10n.talents_phoenix_health_t2_1_name, [])
+            return (L10n.talents_phoenix_health_t2_1_name, [])
         case "At full Health, both allies gain +10% Critical Hit chance":
-            (L10n.talents_phoenix_health_t2_2_description(10), [10])
+            return (L10n.talents_phoenix_health_t2_2_description(10), [10])
         case "Radiant Health":
-            (L10n.talents_phoenix_health_t2_2_name, [])
+            return (L10n.talents_phoenix_health_t2_2_name, [])
         case "Your ally's first fatal hit each combat revives them with 5 Health":
-            (L10n.talents_phoenix_health_t3_1_description(5), [5])
+            return (L10n.talents_phoenix_health_t3_1_description(5), [5])
         case "Phoenix Gift":
-            (L10n.talents_phoenix_health_t3_1_name, [])
+            return (L10n.talents_phoenix_health_t3_1_name, [])
         case "Excess Health restored to you adds 2 damage to your next Burn attack":
-            (L10n.talents_phoenix_health_t3_2_description(2), [2])
+            return (L10n.talents_phoenix_health_t3_2_description(2), [2])
         case "Ashen Vitality":
-            (L10n.talents_phoenix_health_t3_2_name, [])
+            return (L10n.talents_phoenix_health_t3_2_name, [])
         case "Excess Health restoration Cleanses a debuff":
-            (L10n.talents_phoenix_health_t4_1_description(1), [1])
+            return (L10n.talents_phoenix_health_t4_1_description(1), [1])
         case "Clean Slate":
-            (L10n.talents_phoenix_health_t4_1_name, [])
+            return (L10n.talents_phoenix_health_t4_1_name, [])
         case "Restore 2 Health to the lowest Health ally when you Cleanse":
-            (L10n.talents_pixie_cleanse_t1_1_description(2), [2])
+            return (L10n.talents_pixie_cleanse_t1_1_description(2), [2])
         case "Fae Mending":
-            (L10n.talents_pixie_cleanse_t1_1_name, [])
+            return (L10n.talents_pixie_cleanse_t1_1_name, [])
         case "Cleansing has a 20% chance to Purge a buff from an enemy":
-            (L10n.talents_pixie_cleanse_t1_2_description(20, 1), [20, 1])
+            return (L10n.talents_pixie_cleanse_t1_2_description(20, 1), [20, 1])
         case "Dispel Magic":
-            (L10n.talents_pixie_cleanse_t1_2_name, [])
+            return (L10n.talents_pixie_cleanse_t1_2_name, [])
         case "Cleansing also removes all Freeze build-up from the target":
-            (L10n.talents_pixie_cleanse_t2_1_description, [])
+            return (L10n.talents_pixie_cleanse_t2_1_description, [])
         case "Fae Swiftness":
-            (L10n.talents_pixie_cleanse_t2_1_name, [])
+            return (L10n.talents_pixie_cleanse_t2_1_name, [])
         case "Cleansing grants the target 3 Block":
-            (L10n.talents_pixie_cleanse_t2_2_description(3), [3])
+            return (L10n.talents_pixie_cleanse_t2_2_description(3), [3])
         case "Cleansing Ward":
-            (L10n.talents_pixie_cleanse_t2_2_name, [])
+            return (L10n.talents_pixie_cleanse_t2_2_name, [])
         case "Your first Cleanse each turn removes one extra debuff":
-            (L10n.talents_pixie_cleanse_t3_1_description, [])
+            return (L10n.talents_pixie_cleanse_t3_1_description, [])
         case "Fae Ward":
-            (L10n.talents_pixie_cleanse_t3_1_name, [])
+            return (L10n.talents_pixie_cleanse_t3_1_name, [])
         case "Cleanse a debuff from each ally every other turn":
-            (L10n.talents_pixie_cleanse_t3_2_description(1), [1])
+            return (L10n.talents_pixie_cleanse_t3_2_description(1), [1])
         case "Purifying Aura":
-            (L10n.talents_pixie_cleanse_t3_2_name, [])
+            return (L10n.talents_pixie_cleanse_t3_2_name, [])
         case "Cleansing restores 4 Health per debuff removed":
-            (L10n.talents_pixie_cleanse_t4_1_description(4), [4])
+            return (L10n.talents_pixie_cleanse_t4_1_description(4), [4])
         case "Purifying Waters":
-            (L10n.talents_pixie_cleanse_t4_1_name, [])
+            return (L10n.talents_pixie_cleanse_t4_1_name, [])
         case "Your first Health restoration each turn restores 2 additional Health":
-            (L10n.talents_pixie_health_t1_1_description(2), [2])
+            return (L10n.talents_pixie_health_t1_1_description(2), [2])
         case "Sprite Touch":
-            (L10n.talents_pixie_health_t1_1_name, [])
+            return (L10n.talents_pixie_health_t1_1_name, [])
         case "Restore 25% more Health to allies below half Health":
-            (L10n.talents_pixie_health_t1_2_description(25), [25])
+            return (L10n.talents_pixie_health_t1_2_description(25), [25])
         case "Emergency Mend":
-            (L10n.talents_pixie_health_t1_2_name, [])
+            return (L10n.talents_pixie_health_t1_2_name, [])
         case "Restoring Health has a 20% chance to repeat next turn":
-            (L10n.talents_pixie_health_t2_1_description(20), [20])
+            return (L10n.talents_pixie_health_t2_1_description(20), [20])
         case "Lingering Blessing":
-            (L10n.talents_pixie_health_t2_1_name, [])
+            return (L10n.talents_pixie_health_t2_1_name, [])
         case "Allies at full Health gain +10% Dodge chance":
-            (L10n.talents_pixie_health_t2_2_description(10), [10])
+            return (L10n.talents_pixie_health_t2_2_description(10), [10])
         case "Protective Bloom":
-            (L10n.talents_pixie_health_t2_2_name, [])
+            return (L10n.talents_pixie_health_t2_2_name, [])
         case "Restore 6 Health the first time you drop below half Health each combat":
-            (L10n.talents_pixie_health_t3_1_description(6), [6])
+            return (L10n.talents_pixie_health_t3_1_description(6), [6])
         case "Vital Infusion":
-            (L10n.talents_pixie_health_t3_1_name, [])
+            return (L10n.talents_pixie_health_t3_1_name, [])
         case "Excess healing you provide becomes Block for its recipient":
-            (L10n.talents_pixie_health_t3_2_description, [])
+            return (L10n.talents_pixie_health_t3_2_description, [])
         case "Barrier Blessing":
-            (L10n.talents_pixie_health_t3_2_name, [])
+            return (L10n.talents_pixie_health_t3_2_name, [])
         case "Your excess healing makes your next Mana empowerment free":
-            (L10n.talents_pixie_health_t4_1_description, [])
+            return (L10n.talents_pixie_health_t4_1_description, [])
         case "Wishspring":
-            (L10n.talents_pixie_health_t4_1_name, [])
+            return (L10n.talents_pixie_health_t4_1_name, [])
         case "Holy attacks gain +10% Critical Hit chance":
-            (L10n.talents_pixie_holy_t1_1_description(10), [10])
+            return (L10n.talents_pixie_holy_t1_1_description(10), [10])
         case "Dazzle":
-            (L10n.talents_pixie_holy_t1_1_name, [])
+            return (L10n.talents_pixie_holy_t1_1_name, [])
         case "Piercing Starlight":
-            (L10n.talents_pixie_holy_t1_2_name, [])
+            return (L10n.talents_pixie_holy_t1_2_name, [])
         case "Your first Holy attack each turn grants 3 Block":
-            (L10n.talents_pixie_holy_t2_1_description(3), [3])
+            return (L10n.talents_pixie_holy_t2_1_description(3), [3])
         case "Radiant Barrier":
-            (L10n.talents_pixie_holy_t2_1_name, [])
+            return (L10n.talents_pixie_holy_t2_1_name, [])
         case "Holy Critical Hits deal 4 Stun damage":
-            (L10n.talents_pixie_holy_t2_2_description(4), [4])
+            return (L10n.talents_pixie_holy_t2_2_description(4), [4])
         case "Stun Flare":
-            (L10n.talents_pixie_holy_t2_2_name, [])
+            return (L10n.talents_pixie_holy_t2_2_name, [])
         case "Both allies deal 15% more Holy damage":
-            (L10n.talents_pixie_holy_t3_1_description(15), [15])
+            return (L10n.talents_pixie_holy_t3_1_description(15), [15])
         case "Supernal Glow":
-            (L10n.talents_pixie_holy_t3_1_name, [])
+            return (L10n.talents_pixie_holy_t3_1_name, [])
         case "Your first Holy attack each turn deals 2 additional damage":
-            (L10n.talents_pixie_holy_t3_2_description(2), [2])
+            return (L10n.talents_pixie_holy_t3_2_description(2), [2])
         case "Sunlight Spark":
-            (L10n.talents_pixie_holy_t3_2_name, [])
+            return (L10n.talents_pixie_holy_t3_2_name, [])
         case "While you have Block, Holy attacks ignore enemy Block":
-            (L10n.talents_pixie_holy_t4_1_description, [])
+            return (L10n.talents_pixie_holy_t4_1_description, [])
         case "Starlit Mantle":
-            (L10n.talents_pixie_holy_t4_1_name, [])
+            return (L10n.talents_pixie_holy_t4_1_name, [])
         case "Companion attacks deal 25% more damage to Bleeding enemies":
-            (L10n.talents_ranger_bleed_t1_1_description(25), [25])
+            return (L10n.talents_ranger_bleed_t1_1_description(25), [25])
         case "Lead the Hunt":
-            (L10n.talents_ranger_bleed_t1_1_name, [])
+            return (L10n.talents_ranger_bleed_t1_1_name, [])
         case "Bleed attacks ignore half enemy Block":
-            (L10n.talents_ranger_bleed_t1_2_description, [])
+            return (L10n.talents_ranger_bleed_t1_2_description, [])
         case "Broadhead Arrows":
-            (L10n.talents_ranger_bleed_t1_2_name, [])
+            return (L10n.talents_ranger_bleed_t1_2_name, [])
         case "Bleeding enemies deal 25% less damage":
-            (L10n.talents_ranger_bleed_t2_1_description(25), [25])
+            return (L10n.talents_ranger_bleed_t2_1_description(25), [25])
         case "Hamstring Shot":
-            (L10n.talents_ranger_bleed_t2_1_name, [])
+            return (L10n.talents_ranger_bleed_t2_1_name, [])
         case "Bleed lasts 1 extra turn":
-            (L10n.talents_ranger_bleed_t2_2_description(1), [1])
+            return (L10n.talents_ranger_bleed_t2_2_description(1), [1])
         case "Bloodscent":
-            (L10n.talents_ranger_bleed_t2_2_name, [])
+            return (L10n.talents_ranger_bleed_t2_2_name, [])
         case "Bleed attacks deal 50% more damage to Stunned enemies":
-            (L10n.talents_ranger_bleed_t3_1_description(50), [50])
+            return (L10n.talents_ranger_bleed_t3_1_description(50), [50])
         case "Pinning Strike":
-            (L10n.talents_ranger_bleed_t3_1_name, [])
+            return (L10n.talents_ranger_bleed_t3_1_name, [])
         case "Gain +15% Critical Hit chance against Bleeding enemies":
-            (L10n.talents_ranger_bleed_t3_2_description(15), [15])
+            return (L10n.talents_ranger_bleed_t3_2_description(15), [15])
         case "Blood Tracker":
-            (L10n.talents_ranger_bleed_t3_2_name, [])
+            return (L10n.talents_ranger_bleed_t3_2_name, [])
         case "Stunning a Bleeding enemy doubles its next Bleed damage":
-            (L10n.talents_ranger_bleed_t4_1_description, [])
+            return (L10n.talents_ranger_bleed_t4_1_description, [])
         case "Pin and Rend":
-            (L10n.talents_ranger_bleed_t4_1_name, [])
+            return (L10n.talents_ranger_bleed_t4_1_name, [])
         case "Burn attacks deal 75% more damage to enemy Block":
-            (L10n.talents_ranger_burn_t1_1_description(75), [75])
+            return (L10n.talents_ranger_burn_t1_1_description(75), [75])
         case "Flaming Arrows":
-            (L10n.talents_ranger_burn_t1_1_name, [])
+            return (L10n.talents_ranger_burn_t1_1_name, [])
         case "Burn fades 30% slower on Bleeding enemies":
-            (L10n.talents_ranger_burn_t1_2_description(30), [30])
+            return (L10n.talents_ranger_burn_t1_2_description(30), [30])
         case "Slow Burn":
-            (L10n.talents_ranger_burn_t1_2_name, [])
+            return (L10n.talents_ranger_burn_t1_2_name, [])
         case "Bleeding enemies take 25% increased Burn damage":
-            (L10n.talents_ranger_burn_t2_1_description(25), [25])
+            return (L10n.talents_ranger_burn_t2_1_description(25), [25])
         case "Woundfire":
-            (L10n.talents_ranger_burn_t2_1_name, [])
+            return (L10n.talents_ranger_burn_t2_1_name, [])
         case "Burning enemies grant both allies +10% Dodge":
-            (L10n.talents_ranger_burn_t2_2_description(10), [10])
+            return (L10n.talents_ranger_burn_t2_2_description(10), [10])
         case "Smoke Screen":
-            (L10n.talents_ranger_burn_t2_2_name, [])
+            return (L10n.talents_ranger_burn_t2_2_name, [])
         case "Burning enemies gain 25% less Block":
-            (L10n.talents_ranger_burn_t3_1_description(25), [25])
+            return (L10n.talents_ranger_burn_t3_1_description(25), [25])
         case "Scorched Earth":
-            (L10n.talents_ranger_burn_t3_1_name, [])
+            return (L10n.talents_ranger_burn_t3_1_name, [])
         case "Burn Critical Hits deal 4 additional damage":
-            (L10n.talents_ranger_burn_t3_2_description(4), [4])
+            return (L10n.talents_ranger_burn_t3_2_description(4), [4])
         case "Inferno Barrage":
-            (L10n.talents_ranger_burn_t3_2_name, [])
+            return (L10n.talents_ranger_burn_t3_2_name, [])
         case "Companion attacks gain +15% Critical chance against Burning enemies":
-            (L10n.talents_ranger_burn_t4_1_description(15), [15])
+            return (L10n.talents_ranger_burn_t4_1_description(15), [15])
         case "Firebrand":
-            (L10n.talents_ranger_burn_t4_1_name, [])
+            return (L10n.talents_ranger_burn_t4_1_name, [])
         case "Poison attacks deal 3 additional damage to Bleeding enemies":
-            (L10n.talents_ranger_poison_t1_1_description(3), [3])
+            return (L10n.talents_ranger_poison_t1_1_description(3), [3])
         case "Venomous Arrows":
-            (L10n.talents_ranger_poison_t1_1_name, [])
+            return (L10n.talents_ranger_poison_t1_1_name, [])
         case "Poisoned enemies have 15% less accuracy":
-            (L10n.talents_ranger_poison_t1_2_description(15), [15])
+            return (L10n.talents_ranger_poison_t1_2_description(15), [15])
         case "Paralytic Poison":
-            (L10n.talents_ranger_poison_t1_2_name, [])
+            return (L10n.talents_ranger_poison_t1_2_name, [])
         case "Companion attacks deal 25% more damage to Poisoned enemies":
-            (L10n.talents_ranger_poison_t2_1_description(25), [25])
+            return (L10n.talents_ranger_poison_t2_1_description(25), [25])
         case "Prey on the Weak":
-            (L10n.talents_ranger_poison_t2_1_name, [])
+            return (L10n.talents_ranger_poison_t2_1_name, [])
         case "Poison deals double damage once after a Poisoned enemy hurts your Companion":
-            (L10n.talents_ranger_poison_t2_2_description, [])
+            return (L10n.talents_ranger_poison_t2_2_description, [])
         case "Toxic Backlash":
-            (L10n.talents_ranger_poison_t2_2_name, [])
+            return (L10n.talents_ranger_poison_t2_2_name, [])
         case "Poison attacks remove 2 extra Block":
-            (L10n.talents_ranger_poison_t3_1_description(2), [2])
+            return (L10n.talents_ranger_poison_t3_1_description(2), [2])
         case "Corrosive Venom":
-            (L10n.talents_ranger_poison_t3_1_name, [])
+            return (L10n.talents_ranger_poison_t3_1_name, [])
         case "Enemies below half Health take 25% increased Poison damage":
-            (L10n.talents_ranger_poison_t3_2_description(25), [25])
+            return (L10n.talents_ranger_poison_t3_2_description(25), [25])
         case "Lethal Dose":
-            (L10n.talents_ranger_poison_t3_2_name, [])
+            return (L10n.talents_ranger_poison_t3_2_name, [])
         case "Companion Critical Hits double your next Poison attack":
-            (L10n.talents_ranger_poison_t4_1_description, [])
+            return (L10n.talents_ranger_poison_t4_1_description, [])
         case "Toxic Transfusion":
-            (L10n.talents_ranger_poison_t4_1_name, [])
+            return (L10n.talents_ranger_poison_t4_1_name, [])
         case "Entering Death's Door draws a card":
-            (L10n.talents_risen_skeleton_deathsdoor_t1_1_description, [])
+            return (L10n.talents_risen_skeleton_deathsdoor_t1_1_description, [])
         case "Death's Door lasts one additional turn":
-            (L10n.talents_risen_skeleton_deathsdoor_t1_2_description, [])
+            return (L10n.talents_risen_skeleton_deathsdoor_t1_2_description, [])
         case "Tenacious Spirit":
-            (L10n.talents_risen_skeleton_deathsdoor_t1_2_name, [])
+            return (L10n.talents_risen_skeleton_deathsdoor_t1_2_name, [])
         case "Dying after Death's Door deals 8 Physical damage":
-            (L10n.talents_risen_skeleton_deathsdoor_t2_1_description(8), [8])
+            return (L10n.talents_risen_skeleton_deathsdoor_t2_1_description(8), [8])
         case "Corpse Explosion":
-            (L10n.talents_risen_skeleton_deathsdoor_t2_1_name, [])
+            return (L10n.talents_risen_skeleton_deathsdoor_t2_1_name, [])
         case "While on Death's Door, gain +25% Critical Hit chance":
-            (L10n.talents_risen_skeleton_deathsdoor_t2_2_description(25), [25])
+            return (L10n.talents_risen_skeleton_deathsdoor_t2_2_description(25), [25])
         case "Deathly Wrath":
-            (L10n.talents_risen_skeleton_deathsdoor_t2_2_name, [])
+            return (L10n.talents_risen_skeleton_deathsdoor_t2_2_name, [])
         case "Surviving Death's Door grants both allies 4 Block":
-            (L10n.talents_risen_skeleton_deathsdoor_t3_1_description(4), [4])
+            return (L10n.talents_risen_skeleton_deathsdoor_t3_1_description(4), [4])
         case "Endless Legion":
-            (L10n.talents_risen_skeleton_deathsdoor_t3_1_name, [])
+            return (L10n.talents_risen_skeleton_deathsdoor_t3_1_name, [])
         case "Death's Door preserves your Block between turns":
-            (L10n.talents_risen_skeleton_deathsdoor_t3_2_description, [])
+            return (L10n.talents_risen_skeleton_deathsdoor_t3_2_description, [])
         case "Lichbone":
-            (L10n.talents_risen_skeleton_deathsdoor_t3_2_name, [])
+            return (L10n.talents_risen_skeleton_deathsdoor_t3_2_name, [])
         case "Attacks gain Leech while on Death's Door":
-            (L10n.talents_risen_skeleton_deathsdoor_t4_1_description, [])
+            return (L10n.talents_risen_skeleton_deathsdoor_t4_1_description, [])
         case "Borrowed Life":
-            (L10n.talents_risen_skeleton_deathsdoor_t4_1_name, [])
+            return (L10n.talents_risen_skeleton_deathsdoor_t4_1_name, [])
         case "Leeching causes the enemy's next hit to deal 25% less damage":
-            (L10n.talents_risen_skeleton_leech_t1_1_description(25), [25])
+            return (L10n.talents_risen_skeleton_leech_t1_1_description(25), [25])
         case "Weaken Soul":
-            (L10n.talents_risen_skeleton_leech_t1_1_name, [])
+            return (L10n.talents_risen_skeleton_leech_t1_1_name, [])
         case "Leech Critical Hits add 3 damage to your next Poison attack":
-            (L10n.talents_risen_skeleton_leech_t1_2_description(3), [3])
+            return (L10n.talents_risen_skeleton_leech_t1_2_description(3), [3])
         case "Toxic Touch":
-            (L10n.talents_risen_skeleton_leech_t1_2_name, [])
+            return (L10n.talents_risen_skeleton_leech_t1_2_name, [])
         case "Leech restores 25% more Health against enemies below half Health":
-            (L10n.talents_risen_skeleton_leech_t2_1_description(25), [25])
+            return (L10n.talents_risen_skeleton_leech_t2_1_description(25), [25])
         case "Grave Harvest":
-            (L10n.talents_risen_skeleton_leech_t2_1_name, [])
+            return (L10n.talents_risen_skeleton_leech_t2_1_name, [])
         case "Your first Leech restoration each turn also heals your ally equally":
-            (L10n.talents_risen_skeleton_leech_t2_2_description, [])
+            return (L10n.talents_risen_skeleton_leech_t2_2_description, [])
         case "Soul Sharing":
-            (L10n.talents_risen_skeleton_leech_t2_2_name, [])
+            return (L10n.talents_risen_skeleton_leech_t2_2_name, [])
         case "Leech restores 25% more Health from Poisoned enemies":
-            (L10n.talents_risen_skeleton_leech_t3_1_description(25), [25])
+            return (L10n.talents_risen_skeleton_leech_t3_1_description(25), [25])
         case "Affliction Siphon":
-            (L10n.talents_risen_skeleton_leech_t3_1_name, [])
+            return (L10n.talents_risen_skeleton_leech_t3_1_name, [])
         case "Leech attacks deal 25% more damage against Bleeding enemies":
-            (L10n.talents_risen_skeleton_leech_t3_2_description(25), [25])
+            return (L10n.talents_risen_skeleton_leech_t3_2_description(25), [25])
         case "Necrotic Bleed":
-            (L10n.talents_risen_skeleton_leech_t3_2_name, [])
+            return (L10n.talents_risen_skeleton_leech_t3_2_name, [])
         case "Your first excess Leech restoration each turn grants half as much Block":
-            (L10n.talents_risen_skeleton_leech_t4_1_description, [])
+            return (L10n.talents_risen_skeleton_leech_t4_1_description, [])
         case "Marrowmend":
-            (L10n.talents_risen_skeleton_leech_t4_1_name, [])
+            return (L10n.talents_risen_skeleton_leech_t4_1_name, [])
         case "Your first Physical attack each turn grants 3 Block":
-            (L10n.talents_risen_skeleton_physical_t1_1_description(3), [3])
+            return (L10n.talents_risen_skeleton_physical_t1_1_description(3), [3])
         case "Bone Shield":
-            (L10n.talents_risen_skeleton_physical_t1_1_name, [])
+            return (L10n.talents_risen_skeleton_physical_t1_1_name, [])
         case "When your Block breaks, your next Physical attack gains 3 damage":
-            (L10n.talents_risen_skeleton_physical_t1_2_description(3), [3])
+            return (L10n.talents_risen_skeleton_physical_t1_2_description(3), [3])
         case "Bone Burst":
-            (L10n.talents_risen_skeleton_physical_t1_2_name, [])
+            return (L10n.talents_risen_skeleton_physical_t1_2_name, [])
         case "Brittle Strike":
-            (L10n.talents_risen_skeleton_physical_t2_1_name, [])
+            return (L10n.talents_risen_skeleton_physical_t2_1_name, [])
         case "Block absorbs twice as much Physical damage":
-            (L10n.talents_risen_skeleton_physical_t2_2_description, [])
+            return (L10n.talents_risen_skeleton_physical_t2_2_description, [])
         case "Dense Bones":
-            (L10n.talents_risen_skeleton_physical_t2_2_name, [])
+            return (L10n.talents_risen_skeleton_physical_t2_2_name, [])
         case "Physical Critical Hits deal 3 Bleed damage":
-            (L10n.talents_risen_skeleton_physical_t3_1_description(3), [3])
+            return (L10n.talents_risen_skeleton_physical_t3_1_description(3), [3])
         case "Cleaving Bones":
-            (L10n.talents_risen_skeleton_physical_t3_1_name, [])
+            return (L10n.talents_risen_skeleton_physical_t3_1_name, [])
         case "While you have Block, take 2 less Physical damage":
-            (L10n.talents_risen_skeleton_physical_t3_2_description(2), [2])
+            return (L10n.talents_risen_skeleton_physical_t3_2_description(2), [2])
         case "Bone Armor":
-            (L10n.talents_risen_skeleton_physical_t3_2_name, [])
+            return (L10n.talents_risen_skeleton_physical_t3_2_name, [])
         case "Physical Critical Hits deal 50% more damage to Poisoned enemies":
-            (L10n.talents_risen_skeleton_physical_t4_1_description(50), [50])
+            return (L10n.talents_risen_skeleton_physical_t4_1_description(50), [50])
         case "Pressure Point":
-            (L10n.talents_risen_skeleton_physical_t4_1_name, [])
+            return (L10n.talents_risen_skeleton_physical_t4_1_name, [])
         case "Bleed from Critical Hits lasts 1 extra turn":
-            (L10n.talents_rogue_bleed_t1_1_description(1), [1])
+            return (L10n.talents_rogue_bleed_t1_1_description(1), [1])
         case "Serrated Blades":
-            (L10n.talents_rogue_bleed_t1_1_name, [])
+            return (L10n.talents_rogue_bleed_t1_1_name, [])
         case "Bleed ignores enemy Block":
-            (L10n.talents_rogue_bleed_t1_2_description, [])
+            return (L10n.talents_rogue_bleed_t1_2_description, [])
         case "Deep Wounds":
-            (L10n.talents_rogue_bleed_t1_2_name, [])
+            return (L10n.talents_rogue_bleed_t1_2_name, [])
         case "Leech attacks gain +25% Critical chance against Bleeding enemies":
-            (L10n.talents_rogue_bleed_t2_1_description(25), [25])
+            return (L10n.talents_rogue_bleed_t2_1_description(25), [25])
         case "Taste for Blood":
-            (L10n.talents_rogue_bleed_t2_1_name, [])
+            return (L10n.talents_rogue_bleed_t2_1_name, [])
         case "Defeating Bleeding enemies grants 5 Gold":
-            (L10n.talents_rogue_bleed_t2_2_description(5), [5])
+            return (L10n.talents_rogue_bleed_t2_2_description(5), [5])
         case "Bleed Critical Hits deal double damage below half enemy Health":
-            (L10n.talents_rogue_bleed_t3_1_description, [])
+            return (L10n.talents_rogue_bleed_t3_1_description, [])
         case "Exsanguinate":
-            (L10n.talents_rogue_bleed_t3_1_name, [])
+            return (L10n.talents_rogue_bleed_t3_1_name, [])
         case "Mortal Wound":
-            (L10n.talents_rogue_bleed_t3_2_name, [])
+            return (L10n.talents_rogue_bleed_t3_2_name, [])
         case "Bleed lasts 1 extra turn on Poisoned enemies":
-            (L10n.talents_rogue_bleed_t4_1_description(1), [1])
+            return (L10n.talents_rogue_bleed_t4_1_description(1), [1])
         case "Septic Wound":
-            (L10n.talents_rogue_bleed_t4_1_name, [])
+            return (L10n.talents_rogue_bleed_t4_1_name, [])
         case "Critical Hits steal 1 Gold":
-            (L10n.talents_rogue_gold_t1_1_description(1), [1])
+            return (L10n.talents_rogue_gold_t1_1_description(1), [1])
         case "Light Fingers":
-            (L10n.talents_rogue_gold_t1_1_name, [])
+            return (L10n.talents_rogue_gold_t1_1_name, [])
         case "Whenever you gain Gold in combat, gain Block equal to half that amount":
-            (L10n.talents_rogue_gold_t1_2_description, [])
+            return (L10n.talents_rogue_gold_t1_2_description, [])
         case "Coinmail":
-            (L10n.talents_rogue_gold_t1_2_name, [])
+            return (L10n.talents_rogue_gold_t1_2_name, [])
         case "Stun Critical Hits steal 5 Gold":
-            (L10n.talents_rogue_gold_t2_1_description(5), [5])
+            return (L10n.talents_rogue_gold_t2_1_description(5), [5])
         case "Cutpurse Cut":
-            (L10n.talents_rogue_gold_t2_1_name, [])
+            return (L10n.talents_rogue_gold_t2_1_name, [])
         case "After Dodging, double the next Gold you steal":
-            (L10n.talents_rogue_gold_t2_2_description, [])
+            return (L10n.talents_rogue_gold_t2_2_description, [])
         case "Escape Fund":
-            (L10n.talents_rogue_gold_t2_2_name, [])
+            return (L10n.talents_rogue_gold_t2_2_name, [])
         case "Defeating an enemy with a Critical Hit grants 10 Gold":
-            (L10n.talents_rogue_gold_t3_1_description(10), [10])
+            return (L10n.talents_rogue_gold_t3_1_description(10), [10])
         case "Bounty Hunter":
-            (L10n.talents_rogue_gold_t3_1_name, [])
+            return (L10n.talents_rogue_gold_t3_1_name, [])
         case "Critical Hits that steal Gold draw a card":
-            (L10n.talents_rogue_gold_t3_2_description, [])
+            return (L10n.talents_rogue_gold_t3_2_description, [])
         case "Quick Fingers":
-            (L10n.talents_rogue_gold_t3_2_name, [])
+            return (L10n.talents_rogue_gold_t3_2_name, [])
         case "Stealing Gold adds 3 damage to your next Physical attack":
-            (L10n.talents_rogue_gold_t4_1_description(3), [3])
+            return (L10n.talents_rogue_gold_t4_1_description(3), [3])
         case "Bounty Blade":
-            (L10n.talents_rogue_gold_t4_1_name, [])
+            return (L10n.talents_rogue_gold_t4_1_name, [])
         case "Bleeding enemies take 25% increased Poison damage":
-            (L10n.talents_rogue_poison_t1_1_description(25), [25])
+            return (L10n.talents_rogue_poison_t1_1_description(25), [25])
         case "Toxic Coating":
-            (L10n.talents_rogue_poison_t1_1_name, [])
+            return (L10n.talents_rogue_poison_t1_1_name, [])
         case "Enemy Poison fades 25% slower":
-            (L10n.talents_rogue_poison_t1_2_description(25), [25])
+            return (L10n.talents_rogue_poison_t1_2_description(25), [25])
         case "Lingering Toxin":
-            (L10n.talents_rogue_poison_t1_2_name, [])
+            return (L10n.talents_rogue_poison_t1_2_name, [])
         case "Poison Critical Hits make your next Bleed attack Critically Hit":
-            (L10n.talents_rogue_poison_t2_1_description, [])
+            return (L10n.talents_rogue_poison_t2_1_description, [])
         case "Noxious Reaction":
-            (L10n.talents_rogue_poison_t2_1_name, [])
+            return (L10n.talents_rogue_poison_t2_1_name, [])
         case "Poisoned enemies deal 20% less damage":
-            (L10n.talents_rogue_poison_t2_2_description(20), [20])
+            return (L10n.talents_rogue_poison_t2_2_description(20), [20])
         case "Blinding Fumes":
-            (L10n.talents_rogue_poison_t2_2_name, [])
+            return (L10n.talents_rogue_poison_t2_2_name, [])
         case "Enemy Poison has a 35% chance to grow instead of fading":
-            (L10n.talents_rogue_poison_t3_1_description(35), [35])
+            return (L10n.talents_rogue_poison_t3_1_description(35), [35])
         case "Poisoned enemies take 25% additional damage":
-            (L10n.talents_rogue_poison_t3_2_description(25), [25])
+            return (L10n.talents_rogue_poison_t3_2_description(25), [25])
         case "Deadly Dose":
-            (L10n.talents_rogue_poison_t3_2_name, [])
+            return (L10n.talents_rogue_poison_t3_2_name, [])
         case "Nerve Agent":
-            (L10n.talents_rogue_poison_t4_1_name, [])
+            return (L10n.talents_rogue_poison_t4_1_name, [])
         case "While you have Block, take 20% less damage":
-            (L10n.talents_shield_scarab_block_t1_1_description(20), [20])
+            return (L10n.talents_shield_scarab_block_t1_1_description(20), [20])
         case "Plated Hide":
-            (L10n.talents_shield_scarab_block_t1_1_name, [])
+            return (L10n.talents_shield_scarab_block_t1_1_name, [])
         case "While you have Block, take 2 less non-Physical damage":
-            (L10n.talents_shield_scarab_block_t1_2_description(2), [2])
+            return (L10n.talents_shield_scarab_block_t1_2_description(2), [2])
         case "Hardened Chitin":
-            (L10n.talents_shield_scarab_block_t1_2_name, [])
+            return (L10n.talents_shield_scarab_block_t1_2_name, [])
         case "Retain 75% of your Block between turns":
-            (L10n.talents_shield_scarab_block_t2_1_description(75), [75])
+            return (L10n.talents_shield_scarab_block_t2_1_description(75), [75])
         case "Enduring Shell":
-            (L10n.talents_shield_scarab_block_t2_1_name, [])
+            return (L10n.talents_shield_scarab_block_t2_1_name, [])
         case "While you have Block, your ally takes 20% less damage":
-            (L10n.talents_shield_scarab_block_t2_2_description(20), [20])
+            return (L10n.talents_shield_scarab_block_t2_2_description(20), [20])
         case "Bulwark Fortress":
-            (L10n.talents_shield_scarab_block_t2_2_name, [])
+            return (L10n.talents_shield_scarab_block_t2_2_name, [])
         case "While you have Block, Thorns deal 25% more damage":
-            (L10n.talents_shield_scarab_block_t3_1_description(25), [25])
+            return (L10n.talents_shield_scarab_block_t3_1_description(25), [25])
         case "Spiked Shell":
-            (L10n.talents_shield_scarab_block_t3_1_name, [])
+            return (L10n.talents_shield_scarab_block_t3_1_name, [])
         case "When your Block breaks, your next Holy hit deals double damage":
-            (L10n.talents_shield_scarab_block_t3_2_description, [])
+            return (L10n.talents_shield_scarab_block_t3_2_description, [])
         case "Sun-Struck Shell":
-            (L10n.talents_shield_scarab_block_t3_2_name, [])
+            return (L10n.talents_shield_scarab_block_t3_2_name, [])
         case "Your Block absorbs 50% more damage":
-            (L10n.talents_shield_scarab_block_t4_1_description(50), [50])
+            return (L10n.talents_shield_scarab_block_t4_1_description(50), [50])
         case "Adamant Carapace":
-            (L10n.talents_shield_scarab_block_t4_1_name, [])
+            return (L10n.talents_shield_scarab_block_t4_1_name, [])
         case "While you have Block, Holy damage is increased by 25%":
-            (L10n.talents_shield_scarab_holy_t1_1_description(25), [25])
+            return (L10n.talents_shield_scarab_holy_t1_1_description(25), [25])
         case "Gilded Carapace":
-            (L10n.talents_shield_scarab_holy_t1_1_name, [])
+            return (L10n.talents_shield_scarab_holy_t1_1_name, [])
         case "Blocking damage has a 10% chance to reflect it as Holy":
-            (L10n.talents_shield_scarab_holy_t1_2_description(10), [10])
+            return (L10n.talents_shield_scarab_holy_t1_2_description(10), [10])
         case "Radiant Shell":
-            (L10n.talents_shield_scarab_holy_t1_2_name, [])
+            return (L10n.talents_shield_scarab_holy_t1_2_name, [])
         case "Your first Holy hit each turn grants your ally 2 Block":
-            (L10n.talents_shield_scarab_holy_t2_1_description(2), [2])
+            return (L10n.talents_shield_scarab_holy_t2_1_description(2), [2])
         case "Sun Glyph":
-            (L10n.talents_shield_scarab_holy_t2_1_name, [])
+            return (L10n.talents_shield_scarab_holy_t2_1_name, [])
         case "Both allies' Holy attacks gain +10% Critical Hit chance":
-            (L10n.talents_shield_scarab_holy_t2_2_description(10), [10])
+            return (L10n.talents_shield_scarab_holy_t2_2_description(10), [10])
         case "Solar Ward":
-            (L10n.talents_shield_scarab_holy_t2_2_name, [])
+            return (L10n.talents_shield_scarab_holy_t2_2_name, [])
         case "Holy Critical Hits reduce the enemy's next attack accuracy by 20%":
-            (L10n.talents_shield_scarab_holy_t3_1_description(20), [20])
+            return (L10n.talents_shield_scarab_holy_t3_1_description(20), [20])
         case "Dazzling Guard":
-            (L10n.talents_shield_scarab_holy_t3_1_name, [])
+            return (L10n.talents_shield_scarab_holy_t3_1_name, [])
         case "Stunned enemies take 25% increased Holy damage":
-            (L10n.talents_shield_scarab_holy_t3_2_description(25), [25])
+            return (L10n.talents_shield_scarab_holy_t3_2_description(25), [25])
         case "Solar Judgment":
-            (L10n.talents_shield_scarab_holy_t3_2_name, [])
+            return (L10n.talents_shield_scarab_holy_t3_2_name, [])
         case "Your first Holy hit each turn deals 50% more damage":
-            (L10n.talents_shield_scarab_holy_t4_1_description(50), [50])
+            return (L10n.talents_shield_scarab_holy_t4_1_description(50), [50])
         case "Crownfall":
-            (L10n.talents_shield_scarab_holy_t4_1_name, [])
+            return (L10n.talents_shield_scarab_holy_t4_1_name, [])
         case "Stunning an enemy removes all their Block":
-            (L10n.talents_shield_scarab_stun_t1_1_description, [])
+            return (L10n.talents_shield_scarab_stun_t1_1_description, [])
         case "Sunder Shield":
-            (L10n.talents_shield_scarab_stun_t1_1_name, [])
+            return (L10n.talents_shield_scarab_stun_t1_1_name, [])
         case "Heavy Slam":
-            (L10n.talents_shield_scarab_stun_t1_2_name, [])
+            return (L10n.talents_shield_scarab_stun_t1_2_name, [])
         case "Stun has a 30% chance to last another turn":
-            (L10n.talents_shield_scarab_stun_t2_1_description(30), [30])
+            return (L10n.talents_shield_scarab_stun_t2_1_description(30), [30])
         case "Prolonged Daze":
-            (L10n.talents_shield_scarab_stun_t2_1_name, [])
+            return (L10n.talents_shield_scarab_stun_t2_1_name, [])
         case "Increase Stun build-up by 20%":
-            (L10n.talents_shield_scarab_stun_t2_2_description(20), [20])
+            return (L10n.talents_shield_scarab_stun_t2_2_description(20), [20])
         case "Seismic Impact":
-            (L10n.talents_shield_scarab_stun_t2_2_name, [])
+            return (L10n.talents_shield_scarab_stun_t2_2_name, [])
         case "Your first Block break each combat doubles your next Stun attack":
-            (L10n.talents_shield_scarab_stun_t3_1_description, [])
+            return (L10n.talents_shield_scarab_stun_t3_1_description, [])
         case "Quaking Carapace":
-            (L10n.talents_shield_scarab_stun_t3_1_name, [])
+            return (L10n.talents_shield_scarab_stun_t3_1_name, [])
         case "Stunning an enemy deals 2 Burn damage":
-            (L10n.talents_shield_scarab_stun_t3_2_description(2), [2])
+            return (L10n.talents_shield_scarab_stun_t3_2_description(2), [2])
         case "Solar Brand":
-            (L10n.talents_shield_scarab_stun_t3_2_name, [])
+            return (L10n.talents_shield_scarab_stun_t3_2_name, [])
         case "While you have Thorns, Stun attacks deal 25% more damage":
-            (L10n.talents_shield_scarab_stun_t4_1_description(25), [25])
+            return (L10n.talents_shield_scarab_stun_t4_1_description(25), [25])
         case "Resonant Shell":
-            (L10n.talents_shield_scarab_stun_t4_1_name, [])
+            return (L10n.talents_shield_scarab_stun_t4_1_name, [])
         case "Your Burn attacks deal 25% more damage to Bleeding enemies":
-            (L10n.talents_warlock_burn_t1_1_description(25), [25])
+            return (L10n.talents_warlock_burn_t1_1_description(25), [25])
         case "Bloodfire":
-            (L10n.talents_warlock_burn_t1_1_name, [])
+            return (L10n.talents_warlock_burn_t1_1_name, [])
         case "Below half Health, Burn damage is increased by 25%":
-            (L10n.talents_warlock_burn_t1_2_description(25), [25])
+            return (L10n.talents_warlock_burn_t1_2_description(25), [25])
         case "Scorching Ash":
-            (L10n.talents_warlock_burn_t1_2_name, [])
+            return (L10n.talents_warlock_burn_t1_2_name, [])
         case "Burning enemies restore half as much Health":
-            (L10n.talents_warlock_burn_t2_1_description, [])
+            return (L10n.talents_warlock_burn_t2_1_description, [])
         case "Withering Flame":
-            (L10n.talents_warlock_burn_t2_1_name, [])
+            return (L10n.talents_warlock_burn_t2_1_name, [])
         case "Spending your last Mana increases your next Burn attack’s damage by 50%":
-            (L10n.talents_warlock_burn_t2_2_description(50), [50])
+            return (L10n.talents_warlock_burn_t2_2_description(50), [50])
         case "Soul Burn":
-            (L10n.talents_warlock_burn_t2_2_name, [])
+            return (L10n.talents_warlock_burn_t2_2_name, [])
         case "Burning enemies take 25% additional damage":
-            (L10n.talents_warlock_burn_t3_1_description(25), [25])
+            return (L10n.talents_warlock_burn_t3_1_description(25), [25])
         case "Damnation":
-            (L10n.talents_warlock_burn_t3_1_name, [])
+            return (L10n.talents_warlock_burn_t3_1_name, [])
         case "Gain +15% Critical Hit chance against Burning enemies":
-            (L10n.talents_warlock_burn_t3_2_description(15), [15])
+            return (L10n.talents_warlock_burn_t3_2_description(15), [15])
         case "Raging Inferno":
-            (L10n.talents_warlock_burn_t3_2_name, [])
+            return (L10n.talents_warlock_burn_t3_2_name, [])
         case "Burn attacks that Critically Hit draw a card":
-            (L10n.talents_warlock_burn_t4_1_description, [])
+            return (L10n.talents_warlock_burn_t4_1_description, [])
         case "Ashen Arsenal":
-            (L10n.talents_warlock_burn_t4_1_name, [])
+            return (L10n.talents_warlock_burn_t4_1_name, [])
         case "Burn attacks add 1 damage to your next Bleed attack":
-            (L10n.talents_warlock_burn_t4_2_description(1), [1])
+            return (L10n.talents_warlock_burn_t4_2_description(1), [1])
         case "Bloodkindling":
-            (L10n.talents_warlock_burn_t4_2_name, [])
+            return (L10n.talents_warlock_burn_t4_2_name, [])
         case "Leech also heals from damage absorbed by enemy Block":
-            (L10n.talents_warlock_leech_t1_1_description, [])
+            return (L10n.talents_warlock_leech_t1_1_description, [])
         case "Vampiric Touch":
-            (L10n.talents_warlock_leech_t1_1_name, [])
+            return (L10n.talents_warlock_leech_t1_1_name, [])
         case "Leech attacks ignore half enemy Block":
-            (L10n.talents_warlock_leech_t1_2_description, [])
+            return (L10n.talents_warlock_leech_t1_2_description, [])
         case "Soulpiercer":
-            (L10n.talents_warlock_leech_t1_2_name, [])
+            return (L10n.talents_warlock_leech_t1_2_name, [])
         case "Excess Leech healing restores your Companion’s Health":
-            (L10n.talents_warlock_leech_t2_1_description, [])
+            return (L10n.talents_warlock_leech_t2_1_description, [])
         case "Blood Link":
-            (L10n.talents_warlock_leech_t2_1_name, [])
+            return (L10n.talents_warlock_leech_t2_1_name, [])
         case "Excess Leech healing restores equal Mana":
-            (L10n.talents_warlock_leech_t2_2_description, [])
+            return (L10n.talents_warlock_leech_t2_2_description, [])
         case "Soul Drain":
-            (L10n.talents_warlock_leech_t2_2_name, [])
+            return (L10n.talents_warlock_leech_t2_2_name, [])
         case "Leeching to full Health adds 1 bonus damage to your next attack":
-            (L10n.talents_warlock_leech_t3_1_description(1), [1])
+            return (L10n.talents_warlock_leech_t3_1_description(1), [1])
         case "Sanguine Overflow":
-            (L10n.talents_warlock_leech_t3_1_name, [])
+            return (L10n.talents_warlock_leech_t3_1_name, [])
         case "Leech also grants Block when below half Health":
-            (L10n.talents_warlock_leech_t3_2_description, [])
+            return (L10n.talents_warlock_leech_t3_2_description, [])
         case "Soul Ward":
-            (L10n.talents_warlock_leech_t3_2_name, [])
+            return (L10n.talents_warlock_leech_t3_2_name, [])
         case "Your first Burn attack each turn gains Leech if you are below half Health":
-            (L10n.talents_warlock_leech_t4_1_description, [])
+            return (L10n.talents_warlock_leech_t4_1_description, [])
         case "Emberdrinker":
-            (L10n.talents_warlock_leech_t4_1_name, [])
+            return (L10n.talents_warlock_leech_t4_1_name, [])
         case "At 0 Mana, Leech restores 50% more Health":
-            (L10n.talents_warlock_mana_t1_1_description(0, 50), [0, 50])
+            return (L10n.talents_warlock_mana_t1_1_description(0, 50), [0, 50])
         case "Dark Recovery":
-            (L10n.talents_warlock_mana_t1_1_name, [])
+            return (L10n.talents_warlock_mana_t1_1_name, [])
         case "Gain 1 Mana when you lose Health":
-            (L10n.talents_warlock_mana_t1_2_description(1), [1])
+            return (L10n.talents_warlock_mana_t1_2_description(1), [1])
         case "Forbidden Lore":
-            (L10n.talents_warlock_mana_t1_2_name, [])
+            return (L10n.talents_warlock_mana_t1_2_name, [])
         case "Spending Mana grants 2 Block":
-            (L10n.talents_warlock_mana_t2_1_description(2), [2])
+            return (L10n.talents_warlock_mana_t2_1_description(2), [2])
         case "Eldritch Shield":
-            (L10n.talents_warlock_mana_t2_1_name, [])
+            return (L10n.talents_warlock_mana_t2_1_name, [])
         case "Mana empowerment Purges a buff":
-            (L10n.talents_warlock_mana_t2_2_description(1), [1])
+            return (L10n.talents_warlock_mana_t2_2_description(1), [1])
         case "Hexing Rune":
-            (L10n.talents_warlock_mana_t2_2_name, [])
+            return (L10n.talents_warlock_mana_t2_2_name, [])
         case "Mana-empowered Critical Hits deal 50% more damage":
-            (L10n.talents_warlock_mana_t3_1_description(50), [50])
+            return (L10n.talents_warlock_mana_t3_1_description(50), [50])
         case "Chaos Rift":
-            (L10n.talents_warlock_mana_t3_1_name, [])
+            return (L10n.talents_warlock_mana_t3_1_name, [])
         case "Health costs reduce your next Mana empowerment cost by 1":
-            (L10n.talents_warlock_mana_t3_2_description(1), [1])
+            return (L10n.talents_warlock_mana_t3_2_description(1), [1])
         case "Life Tap":
-            (L10n.talents_warlock_mana_t3_2_name, [])
+            return (L10n.talents_warlock_mana_t3_2_name, [])
         case "At 0 Mana, Burn damage is increased by 25%":
-            (L10n.talents_warlock_mana_t4_1_description(0, 25), [0, 25])
+            return (L10n.talents_warlock_mana_t4_1_description(0, 25), [0, 25])
         case "Void Focus":
-            (L10n.talents_warlock_mana_t4_1_name, [])
+            return (L10n.talents_warlock_mana_t4_1_name, [])
         case "Dodging grants +20% Critical Hit chance on your next attack":
-            (L10n.talents_wildcard_dodge_t1_1_description(20), [20])
+            return (L10n.talents_wildcard_dodge_t1_1_description(20), [20])
         case "False Opening":
-            (L10n.talents_wildcard_dodge_t1_1_name, [])
+            return (L10n.talents_wildcard_dodge_t1_1_name, [])
         case "Dodging below half Health draws a card":
-            (L10n.talents_wildcard_dodge_t1_2_description, [])
+            return (L10n.talents_wildcard_dodge_t1_2_description, [])
         case "Missed Opportunity":
-            (L10n.talents_wildcard_dodge_t1_2_name, [])
+            return (L10n.talents_wildcard_dodge_t1_2_name, [])
         case "Dodging makes your Companion’s next attack Critically Hit":
-            (L10n.talents_wildcard_dodge_t2_1_description, [])
+            return (L10n.talents_wildcard_dodge_t2_1_description, [])
         case "Passing Luck":
-            (L10n.talents_wildcard_dodge_t2_1_name, [])
+            return (L10n.talents_wildcard_dodge_t2_1_name, [])
         case "Dodging has a 20% chance to deal 3 Bleed damage":
-            (L10n.talents_wildcard_dodge_t2_2_description(20, 3), [20, 3])
+            return (L10n.talents_wildcard_dodge_t2_2_description(20, 3), [20, 3])
         case "Scattered Caltrops":
-            (L10n.talents_wildcard_dodge_t2_2_name, [])
+            return (L10n.talents_wildcard_dodge_t2_2_name, [])
         case "Dodging has a 20% chance to deal 3 Burn damage":
-            (L10n.talents_wildcard_dodge_t3_1_description(20, 3), [20, 3])
+            return (L10n.talents_wildcard_dodge_t3_1_description(20, 3), [20, 3])
         case "Smoke Trick":
-            (L10n.talents_wildcard_dodge_t3_1_name, [])
+            return (L10n.talents_wildcard_dodge_t3_1_name, [])
         case "Each undodged attack increases your Dodge chance by 5%\nDodging resets this bonus":
-            (L10n.talents_wildcard_dodge_t3_2_description(5), [5])
+            return (L10n.talents_wildcard_dodge_t3_2_description(5), [5])
         case "Improving Odds":
-            (L10n.talents_wildcard_dodge_t3_2_name, [])
+            return (L10n.talents_wildcard_dodge_t3_2_name, [])
         case "Dodging makes your next Physical attack ignore enemy Block":
-            (L10n.talents_wildcard_dodge_t4_1_description, [])
+            return (L10n.talents_wildcard_dodge_t4_1_description, [])
         case "Blind Spot":
-            (L10n.talents_wildcard_dodge_t4_1_name, [])
+            return (L10n.talents_wildcard_dodge_t4_1_name, [])
         case "Your first fully Blocked attack each combat\nadds a random card to your hand":
-            (L10n.talents_wildcard_gold_t1_1_description, [])
+            return (L10n.talents_wildcard_gold_t1_1_description, [])
         case "Consolation Prize":
-            (L10n.talents_wildcard_gold_t1_1_name, [])
+            return (L10n.talents_wildcard_gold_t1_1_name, [])
         case "Gaining Gold has a 25% chance to restore 5 Health":
-            (L10n.talents_wildcard_gold_t1_2_description(25, 5), [25, 5])
+            return (L10n.talents_wildcard_gold_t1_2_description(25, 5), [25, 5])
         case "Health is Wealth":
-            (L10n.talents_wildcard_gold_t1_2_name, [])
+            return (L10n.talents_wildcard_gold_t1_2_name, [])
         case "Critical Hits that steal Gold grant 5 additional Gold":
-            (L10n.talents_wildcard_gold_t2_1_description(5), [5])
+            return (L10n.talents_wildcard_gold_t2_1_description(5), [5])
         case "Jackpot":
-            (L10n.talents_wildcard_gold_t2_1_name, [])
+            return (L10n.talents_wildcard_gold_t2_1_name, [])
         case "Gaining Gold has a 20% chance to Cleanse a debuff":
-            (L10n.talents_wildcard_gold_t2_2_description(20, 1), [20, 1])
+            return (L10n.talents_wildcard_gold_t2_2_description(20, 1), [20, 1])
         case "Lucky Charm":
-            (L10n.talents_wildcard_gold_t2_2_name, [])
+            return (L10n.talents_wildcard_gold_t2_2_name, [])
         case "Gaining Gold while below half Health draws a card":
-            (L10n.talents_wildcard_gold_t3_1_description, [])
+            return (L10n.talents_wildcard_gold_t3_1_description, [])
         case "Last Wager":
-            (L10n.talents_wildcard_gold_t3_1_name, [])
+            return (L10n.talents_wildcard_gold_t3_1_name, [])
         case "Stealing Gold grants +20% Dodge until your next turn":
-            (L10n.talents_wildcard_gold_t3_2_description(20), [20])
+            return (L10n.talents_wildcard_gold_t3_2_description(20), [20])
         case "Sleight of Coin":
-            (L10n.talents_wildcard_gold_t3_2_name, [])
+            return (L10n.talents_wildcard_gold_t3_2_name, [])
         case "Your first Gold gain each turn draws a card":
-            (L10n.talents_wildcard_gold_t4_1_description, [])
+            return (L10n.talents_wildcard_gold_t4_1_description, [])
         case "Lucky Break":
-            (L10n.talents_wildcard_gold_t4_1_name, [])
+            return (L10n.talents_wildcard_gold_t4_1_name, [])
         case "Your attacks have a 10% chance to also Freeze or Burn":
-            (L10n.talents_wildcard_physical_t1_1_description(10), [10])
+            return (L10n.talents_wildcard_physical_t1_1_description(10), [10])
         case "Prismatic Edge":
-            (L10n.talents_wildcard_physical_t1_1_name, [])
+            return (L10n.talents_wildcard_physical_t1_1_name, [])
         case "Your attacks have a 20% chance to deal double damage":
-            (L10n.talents_wildcard_physical_t1_2_description(20), [20])
+            return (L10n.talents_wildcard_physical_t1_2_description(20), [20])
         case "Loaded Strike":
-            (L10n.talents_wildcard_physical_t1_2_name, [])
+            return (L10n.talents_wildcard_physical_t1_2_name, [])
         case "Your Critical Hits ignore enemy Block":
-            (L10n.talents_wildcard_physical_t2_1_description, [])
+            return (L10n.talents_wildcard_physical_t2_1_description, [])
         case "Clean Cut":
-            (L10n.talents_wildcard_physical_t2_1_name, [])
+            return (L10n.talents_wildcard_physical_t2_1_name, [])
         case "Breaking enemy Block with Physical damage makes your next attack Critically Hit":
-            (L10n.talents_wildcard_physical_t2_2_description, [])
+            return (L10n.talents_wildcard_physical_t2_2_description, [])
         case "Cracked Guard":
-            (L10n.talents_wildcard_physical_t2_2_name, [])
+            return (L10n.talents_wildcard_physical_t2_2_name, [])
         case "Physical attacks against Frozen enemies gain +15% Critical Hit chance":
-            (L10n.talents_wildcard_physical_t3_1_description(15), [15])
+            return (L10n.talents_wildcard_physical_t3_1_description(15), [15])
         case "Cold Read":
-            (L10n.talents_wildcard_physical_t3_1_name, [])
+            return (L10n.talents_wildcard_physical_t3_1_name, [])
         case "An enemy fully Blocking your attack doubles your next Physical attack":
-            (L10n.talents_wildcard_physical_t3_2_description, [])
+            return (L10n.talents_wildcard_physical_t3_2_description, [])
         case "Feigned Miss":
-            (L10n.talents_wildcard_physical_t3_2_name, [])
+            return (L10n.talents_wildcard_physical_t3_2_name, [])
         case "Stealing Gold adds 3 damage to your next attack":
-            (L10n.talents_wildcard_physical_t4_1_description(3), [3])
+            return (L10n.talents_wildcard_physical_t4_1_description(3), [3])
         case "Paid in Full":
-            (L10n.talents_wildcard_physical_t4_1_name, [])
+            return (L10n.talents_wildcard_physical_t4_1_name, [])
         case "Burn deals 25% more damage to enemies with no Block":
-            (L10n.talents_wizard_burn_t1_1_description(25), [25])
+            return (L10n.talents_wizard_burn_t1_1_description(25), [25])
         case "Ignition":
-            (L10n.talents_wizard_burn_t1_1_name, [])
+            return (L10n.talents_wizard_burn_t1_1_name, [])
         case "Enemy Burn fades 25% slower":
-            (L10n.talents_wizard_burn_t1_2_description(25), [25])
+            return (L10n.talents_wizard_burn_t1_2_description(25), [25])
         case "Burn ignores enemy Block":
-            (L10n.talents_wizard_burn_t2_1_description, [])
+            return (L10n.talents_wizard_burn_t2_1_description, [])
         case "Searing Heat":
-            (L10n.talents_wizard_burn_t2_1_name, [])
+            return (L10n.talents_wizard_burn_t2_1_name, [])
         case "Mana-empowered Burn attacks deal 1 additional damage":
-            (L10n.talents_wizard_burn_t2_2_description(1), [1])
+            return (L10n.talents_wizard_burn_t2_2_description(1), [1])
         case "Fuel the Flames":
-            (L10n.talents_wizard_burn_t2_2_name, [])
+            return (L10n.talents_wizard_burn_t2_2_name, [])
         case "Burn attacks have a 10% chance to deal double damage":
-            (L10n.talents_wizard_burn_t3_1_description(10), [10])
+            return (L10n.talents_wizard_burn_t3_1_description(10), [10])
         case "Supernova":
-            (L10n.talents_wizard_burn_t3_1_name, [])
+            return (L10n.talents_wizard_burn_t3_1_name, [])
         case "Empowering Burn attacks costs 1 less Mana":
-            (L10n.talents_wizard_burn_t3_2_description(1), [1])
+            return (L10n.talents_wizard_burn_t3_2_description(1), [1])
         case "Pyromancer's Spark":
-            (L10n.talents_wizard_burn_t3_2_name, [])
+            return (L10n.talents_wizard_burn_t3_2_name, [])
         case "Burning enemies take 25% increased Critical Hit damage":
-            (L10n.talents_wizard_burn_t4_1_description(25), [25])
+            return (L10n.talents_wizard_burn_t4_1_description(25), [25])
         case "Backdraft":
-            (L10n.talents_wizard_burn_t4_1_name, [])
+            return (L10n.talents_wizard_burn_t4_1_name, [])
         case "Deal 2 additional Freeze damage to Frozen enemies":
-            (L10n.talents_wizard_freeze_t1_1_description(2), [2])
+            return (L10n.talents_wizard_freeze_t1_1_description(2), [2])
         case "Persistent Frost":
-            (L10n.talents_wizard_freeze_t1_1_name, [])
+            return (L10n.talents_wizard_freeze_t1_1_name, [])
         case "Freeze has a 20% chance to last 1 extra turn":
-            (L10n.talents_wizard_freeze_t1_2_description(20, 1), [20, 1])
+            return (L10n.talents_wizard_freeze_t1_2_description(20, 1), [20, 1])
         case "Numbing Cold":
-            (L10n.talents_wizard_freeze_t1_2_name, [])
+            return (L10n.talents_wizard_freeze_t1_2_name, [])
         case "Frozen enemies take 50% increased Burn damage":
-            (L10n.talents_wizard_freeze_t2_1_description(50), [50])
+            return (L10n.talents_wizard_freeze_t2_1_description(50), [50])
         case "Thermal Shock":
-            (L10n.talents_wizard_freeze_t2_1_name, [])
+            return (L10n.talents_wizard_freeze_t2_1_name, [])
         case "Gain 3 Block whenever an enemy becomes Frozen":
-            (L10n.talents_wizard_freeze_t2_2_description(3), [3])
+            return (L10n.talents_wizard_freeze_t2_2_description(3), [3])
         case "Glacial Barrier":
-            (L10n.talents_wizard_freeze_t2_2_name, [])
+            return (L10n.talents_wizard_freeze_t2_2_name, [])
         case "Frozen enemies cannot gain Block or restore Health":
-            (L10n.talents_wizard_freeze_t3_1_description, [])
+            return (L10n.talents_wizard_freeze_t3_1_description, [])
         case "Whiteout":
-            (L10n.talents_wizard_freeze_t3_2_name, [])
+            return (L10n.talents_wizard_freeze_t3_2_name, [])
         case "Blocking deals 3 Freeze damage once per turn":
-            (L10n.talents_wizard_freeze_t4_1_description(3), [3])
+            return (L10n.talents_wizard_freeze_t4_1_description(3), [3])
         case "Glacial Reprieve":
-            (L10n.talents_wizard_freeze_t4_1_name, [])
+            return (L10n.talents_wizard_freeze_t4_1_name, [])
         case "Mana empowerment increases attack damage by 1":
-            (L10n.talents_wizard_mana_t1_1_description(1), [1])
+            return (L10n.talents_wizard_mana_t1_1_description(1), [1])
         case "Arcane Focus":
-            (L10n.talents_wizard_mana_t1_1_name, [])
+            return (L10n.talents_wizard_mana_t1_1_name, [])
         case "At turn’s end, gain 1 Block per unspent Mana, up to 6":
-            (L10n.talents_wizard_mana_t1_2_description(1, 6), [1, 6])
+            return (L10n.talents_wizard_mana_t1_2_description(1, 6), [1, 6])
         case "Mana empowerment increases your next attack's damage by 20%":
-            (L10n.talents_wizard_mana_t2_1_description(20), [20])
+            return (L10n.talents_wizard_mana_t2_1_description(20), [20])
         case "Overcharge":
-            (L10n.talents_wizard_mana_t2_1_name, [])
+            return (L10n.talents_wizard_mana_t2_1_name, [])
         case "Ending a turn at 0 Mana Cleanses a debuff":
-            (L10n.talents_wizard_mana_t2_2_description(0, 1), [0, 1])
+            return (L10n.talents_wizard_mana_t2_2_description(0, 1), [0, 1])
         case "Arcane Cleansing":
-            (L10n.talents_wizard_mana_t2_2_name, [])
+            return (L10n.talents_wizard_mana_t2_2_name, [])
         case "Spending your last Mana draws a card":
-            (L10n.talents_wizard_mana_t3_1_description, [])
+            return (L10n.talents_wizard_mana_t3_1_description, [])
         case "Arcane Surge":
-            (L10n.talents_wizard_mana_t3_1_name, [])
+            return (L10n.talents_wizard_mana_t3_1_name, [])
         case "Mana-empowered attacks have a 10% chance to deal double damage":
-            (L10n.talents_wizard_mana_t3_2_description(10), [10])
+            return (L10n.talents_wizard_mana_t3_2_description(10), [10])
         case "Spell Echo":
-            (L10n.talents_wizard_mana_t3_2_name, [])
+            return (L10n.talents_wizard_mana_t3_2_name, [])
         case "Freeze Critical Hits restore 1 Mana":
-            (L10n.talents_wizard_mana_t4_1_description(1), [1])
+            return (L10n.talents_wizard_mana_t4_1_description(1), [1])
         case "Frost Circuit":
-            (L10n.talents_wizard_mana_t4_1_name, [])
+            return (L10n.talents_wizard_mana_t4_1_name, [])
         case "Both allies' Bleed attacks gain +10% Critical Hit chance":
-            (L10n.talents_wolf_bleed_t1_1_description(10), [10])
+            return (L10n.talents_wolf_bleed_t1_1_description(10), [10])
         case "Pack Ferocity":
-            (L10n.talents_wolf_bleed_t1_1_name, [])
+            return (L10n.talents_wolf_bleed_t1_1_name, [])
         case "Enemies below half Health take 25% increased Bleed damage":
-            (L10n.talents_wolf_bleed_t1_2_description(25), [25])
+            return (L10n.talents_wolf_bleed_t1_2_description(25), [25])
         case "Deep Bite":
-            (L10n.talents_wolf_bleed_t1_2_name, [])
+            return (L10n.talents_wolf_bleed_t1_2_name, [])
         case "Bleeding enemies deal 20% less Physical damage":
-            (L10n.talents_wolf_bleed_t2_1_description(20), [20])
+            return (L10n.talents_wolf_bleed_t2_1_description(20), [20])
         case "Hamstring":
-            (L10n.talents_wolf_bleed_t2_1_name, [])
+            return (L10n.talents_wolf_bleed_t2_1_name, [])
         case "Open Wounds":
-            (L10n.talents_wolf_bleed_t2_2_name, [])
+            return (L10n.talents_wolf_bleed_t2_2_name, [])
         case "Your first Bleed attack each turn gains Leech":
-            (L10n.talents_wolf_bleed_t3_1_description, [])
+            return (L10n.talents_wolf_bleed_t3_1_description, [])
         case "Carnivore":
-            (L10n.talents_wolf_bleed_t3_1_name, [])
+            return (L10n.talents_wolf_bleed_t3_1_name, [])
         case "Bleed Critical Hits deal 50% more damage":
-            (L10n.talents_wolf_bleed_t3_2_description(50), [50])
+            return (L10n.talents_wolf_bleed_t3_2_description(50), [50])
         case "Savage Tear":
-            (L10n.talents_wolf_bleed_t3_2_name, [])
+            return (L10n.talents_wolf_bleed_t3_2_name, [])
         case "Poisoned enemies take 25% increased Bleed damage":
-            (L10n.talents_wolf_bleed_t4_1_description(25), [25])
+            return (L10n.talents_wolf_bleed_t4_1_description(25), [25])
         case "Septicemia":
-            (L10n.talents_wolf_bleed_t4_1_name, [])
+            return (L10n.talents_wolf_bleed_t4_1_name, [])
         case "Bloodrush":
-            (L10n.talents_wolf_bleed_t4_2_name, [])
+            return (L10n.talents_wolf_bleed_t4_2_name, [])
         case "Gain +10% Dodge chance against Bleeding enemies":
-            (L10n.talents_wolf_dodge_t1_1_description(10), [10])
+            return (L10n.talents_wolf_dodge_t1_1_description(10), [10])
         case "Dodging makes your next Bleed attack deal 25% more damage":
-            (L10n.talents_wolf_dodge_t1_2_description(25), [25])
+            return (L10n.talents_wolf_dodge_t1_2_description(25), [25])
         case "Nimble Fang":
-            (L10n.talents_wolf_dodge_t1_2_name, [])
+            return (L10n.talents_wolf_dodge_t1_2_name, [])
         case "Both allies gain +10% Dodge chance":
-            (L10n.talents_wolf_dodge_t2_1_description(10), [10])
+            return (L10n.talents_wolf_dodge_t2_1_description(10), [10])
         case "Pack Coordination":
-            (L10n.talents_wolf_dodge_t2_1_name, [])
+            return (L10n.talents_wolf_dodge_t2_1_name, [])
         case "Dodging gives your ally's next attack +20% Critical Hit chance":
-            (L10n.talents_wolf_dodge_t2_2_description(20), [20])
+            return (L10n.talents_wolf_dodge_t2_2_description(20), [20])
         case "Flanking Position":
-            (L10n.talents_wolf_dodge_t2_2_name, [])
+            return (L10n.talents_wolf_dodge_t2_2_name, [])
         case "Your first Dodge each combat makes your ally Dodge their next incoming attack":
-            (L10n.talents_wolf_dodge_t3_1_description, [])
+            return (L10n.talents_wolf_dodge_t3_1_description, [])
         case "Evasive Pack":
-            (L10n.talents_wolf_dodge_t3_1_name, [])
+            return (L10n.talents_wolf_dodge_t3_1_name, [])
         case "Dodging has a 20% chance to deal 4 Physical damage":
-            (L10n.talents_wolf_dodge_t3_2_description(20, 4), [20, 4])
+            return (L10n.talents_wolf_dodge_t3_2_description(20, 4), [20, 4])
         case "Snapping Jaws":
-            (L10n.talents_wolf_dodge_t3_2_name, [])
+            return (L10n.talents_wolf_dodge_t3_2_name, [])
         case "Dodging makes your next Physical attack deal 50% more damage":
-            (L10n.talents_wolf_dodge_t4_1_description(50), [50])
+            return (L10n.talents_wolf_dodge_t4_1_description(50), [50])
         case "Phantom Counter":
-            (L10n.talents_wolf_dodge_t4_1_name, [])
+            return (L10n.talents_wolf_dodge_t4_1_name, [])
         case "Both allies' first Physical attack each combat gains +20% Critical Hit chance":
-            (L10n.talents_wolf_physical_t1_1_description(20), [20])
+            return (L10n.talents_wolf_physical_t1_1_description(20), [20])
         case "Alpha Howl":
-            (L10n.talents_wolf_physical_t1_1_name, [])
+            return (L10n.talents_wolf_physical_t1_1_name, [])
         case "Physical attacks gain +10% Critical Hit chance against Bleeding enemies":
-            (L10n.talents_wolf_physical_t1_2_description(10), [10])
+            return (L10n.talents_wolf_physical_t1_2_description(10), [10])
         case "Predatory Focus":
-            (L10n.talents_wolf_physical_t1_2_name, [])
+            return (L10n.talents_wolf_physical_t1_2_name, [])
         case "Bone-Crushing Bite":
-            (L10n.talents_wolf_physical_t2_1_name, [])
+            return (L10n.talents_wolf_physical_t2_1_name, [])
         case "Physical attacks deal 2 additional damage to enemies below half Health":
-            (L10n.talents_wolf_physical_t2_2_description(2), [2])
+            return (L10n.talents_wolf_physical_t2_2_description(2), [2])
         case "Alpha Might":
-            (L10n.talents_wolf_physical_t2_2_name, [])
+            return (L10n.talents_wolf_physical_t2_2_name, [])
         case "Physical attacks have a 20% chance to deal 50% more damage":
-            (L10n.talents_wolf_physical_t3_1_description(20, 50), [20, 50])
+            return (L10n.talents_wolf_physical_t3_1_description(20, 50), [20, 50])
         case "Feral Frenzy":
-            (L10n.talents_wolf_physical_t3_1_name, [])
+            return (L10n.talents_wolf_physical_t3_1_name, [])
         case "Physical Critical Hits deal 25% more damage to Bleeding enemies":
-            (L10n.talents_wolf_physical_t3_2_description(25), [25])
+            return (L10n.talents_wolf_physical_t3_2_description(25), [25])
         case "Rending Fangs":
-            (L10n.talents_wolf_physical_t3_2_name, [])
+            return (L10n.talents_wolf_physical_t3_2_name, [])
         case "Your first Physical attack each combat deals double damage":
-            (L10n.talents_wolf_physical_t4_1_description, [])
+            return (L10n.talents_wolf_physical_t4_1_description, [])
         case "Alpha Strike":
-            (L10n.talents_wolf_physical_t4_1_name, [])
+            return (L10n.talents_wolf_physical_t4_1_name, [])
         case "Deal double damage on the first attack":
-            (L10n.traits_ambush_description, [])
+            return (L10n.traits_ambush_description, [])
         case "Ambush":
-            (L10n.traits_ambush_name, [])
+            return (L10n.traits_ambush_name, [])
         case "Deals 2 Poison or Bleed damage every other turn", "Deals 2 Poison or Bleed damage every other turn.":
-            (L10n.traits_blighted_pulse_description(2), [2])
+            return (L10n.traits_blighted_pulse_description(2), [2])
         case "Blighted Pulse":
-            (L10n.traits_blighted_pulse_name, [])
+            return (L10n.traits_blighted_pulse_name, [])
         case "Attacks against Bleeding enemies deal 1 additional damage":
-            (L10n.traits_blood_scent_description(1), [1])
+            return (L10n.traits_blood_scent_description(1), [1])
         case "Blood Scent":
-            (L10n.traits_blood_scent_name, [])
+            return (L10n.traits_blood_scent_name, [])
         case "Attack hits inflict 1 Bleed", "Attack hits inflict 1 Bleed.":
-            (L10n.traits_bloodletting_description(1), [1])
+            return (L10n.traits_bloodletting_description(1), [1])
         case "Attacks deal 1 additional damage while it has Block":
-            (L10n.traits_bulwark_force_description(1), [1])
+            return (L10n.traits_bulwark_force_description(1), [1])
         case "Bulwark Force":
-            (L10n.traits_bulwark_force_name, [])
+            return (L10n.traits_bulwark_force_name, [])
         case "Attack hits deal 1 additional Freeze damage", "Attack hits deal 1 additional Freeze damage.":
-            (L10n.traits_chilling_strikes_description(1), [1])
+            return (L10n.traits_chilling_strikes_description(1), [1])
         case "Chilling Strikes":
-            (L10n.traits_chilling_strikes_name, [])
+            return (L10n.traits_chilling_strikes_name, [])
         case "Freeze damage taken increased by 30%":
-            (L10n.traits_cold_shocked_description(30), [30])
+            return (L10n.traits_cold_shocked_description(30), [30])
         case "Cold-Shocked":
-            (L10n.traits_cold_shocked_name, [])
+            return (L10n.traits_cold_shocked_name, [])
         case "Stun weakens the opponent’s next attack by 25%", "Stun weakens the opponent’s next attack by 25%.":
-            (L10n.traits_concussion_description(25), [25])
+            return (L10n.traits_concussion_description(25), [25])
         case "Concussion":
-            (L10n.traits_concussion_name, [])
+            return (L10n.traits_concussion_name, [])
         case "Attack hits deal 1 additional Holy damage against opponents below half Health", "Attack hits deal 1 additional Holy damage against opponents below half Health.":
-            (L10n.traits_condemn_description(1), [1])
+            return (L10n.traits_condemn_description(1), [1])
         case "Condemn":
-            (L10n.traits_condemn_name, [])
+            return (L10n.traits_condemn_name, [])
         case "Poison damage taken increased by 30%":
-            (L10n.traits_corrodible_description(30), [30])
+            return (L10n.traits_corrodible_description(30), [30])
         case "Corrodible":
-            (L10n.traits_corrodible_name, [])
+            return (L10n.traits_corrodible_name, [])
         case "Poison strips 1 Block before damaging Health":
-            (L10n.traits_corrosive_venom_description(1), [1])
+            return (L10n.traits_corrosive_venom_description(1), [1])
         case "Attacks deal 1 less damage while below half Health":
-            (L10n.traits_cowardly_description(1), [1])
+            return (L10n.traits_cowardly_description(1), [1])
         case "Cowardly":
-            (L10n.traits_cowardly_name, [])
+            return (L10n.traits_cowardly_name, [])
         case "Deals 1 Bleed damage every other turn", "Deals 1 Bleed damage every other turn.":
-            (L10n.traits_crimson_pulse_description(1), [1])
+            return (L10n.traits_crimson_pulse_description(1), [1])
         case "Crimson Pulse":
-            (L10n.traits_crimson_pulse_name, [])
+            return (L10n.traits_crimson_pulse_name, [])
         case "Attacks against Stunned enemies deal 1 additional damage":
-            (L10n.traits_dread_exploitation_description(1), [1])
+            return (L10n.traits_dread_exploitation_description(1), [1])
         case "Dread Exploitation":
-            (L10n.traits_dread_exploitation_name, [])
+            return (L10n.traits_dread_exploitation_name, [])
         case "Attacks against Burning enemies deal 25% additional damage":
-            (L10n.traits_fan_the_flames_description(25), [25])
+            return (L10n.traits_fan_the_flames_description(25), [25])
         case "Fan the Flames":
-            (L10n.traits_fan_the_flames_name, [])
+            return (L10n.traits_fan_the_flames_name, [])
         case "Stun damage taken increased by 30%":
-            (L10n.traits_fault_lines_description(30), [30])
+            return (L10n.traits_fault_lines_description(30), [30])
         case "Fault Lines":
-            (L10n.traits_fault_lines_name, [])
+            return (L10n.traits_fault_lines_name, [])
         case "Attack hits inflict 1 Burn", "Attack hits inflict 1 Burn.":
-            (L10n.traits_firestarter_description(1), [1])
+            return (L10n.traits_firestarter_description(1), [1])
         case "Firestarter":
-            (L10n.traits_firestarter_name, [])
+            return (L10n.traits_firestarter_name, [])
         case "Taking Health damage reduces the next attack’s damage by 1":
-            (L10n.traits_flickering_description(1), [1])
+            return (L10n.traits_flickering_description(1), [1])
         case "Flickering":
-            (L10n.traits_flickering_name, [])
+            return (L10n.traits_flickering_name, [])
         case "Physical damage taken increased by 30%":
-            (L10n.traits_frail_description(30), [30])
+            return (L10n.traits_frail_description(30), [30])
         case "Frail":
-            (L10n.traits_frail_name, [])
+            return (L10n.traits_frail_name, [])
         case "Deals 1 Stun or Burn damage every other turn", "Deals 1 Stun or Burn damage every other turn.":
-            (L10n.traits_furnace_pulse_description(1), [1])
+            return (L10n.traits_furnace_pulse_description(1), [1])
         case "Furnace Pulse":
-            (L10n.traits_furnace_pulse_name, [])
+            return (L10n.traits_furnace_pulse_name, [])
         case "Holy hits add 1 Holy damage to its next attack", "Holy hits add 1 Holy damage to its next attack.":
-            (L10n.traits_gathering_zeal_description(1), [1])
+            return (L10n.traits_gathering_zeal_description(1), [1])
         case "Gathering Zeal":
-            (L10n.traits_gathering_zeal_name, [])
+            return (L10n.traits_gathering_zeal_name, [])
         case "Physical damage taken reduced by 20%":
-            (L10n.traits_gelatinous_body_description(20), [20])
+            return (L10n.traits_gelatinous_body_description(20), [20])
         case "Gelatinous Body":
-            (L10n.traits_gelatinous_body_name, [])
+            return (L10n.traits_gelatinous_body_name, [])
         case "The first attack deals 2 additional Bleed damage":
-            (L10n.traits_hidden_fangs_description(2), [2])
+            return (L10n.traits_hidden_fangs_description(2), [2])
         case "Hidden Fangs":
-            (L10n.traits_hidden_fangs_name, [])
+            return (L10n.traits_hidden_fangs_name, [])
         case "Cannot be Leeched":
-            (L10n.traits_hollow_frame_description, [])
+            return (L10n.traits_hollow_frame_description, [])
         case "Hollow Frame":
-            (L10n.traits_hollow_frame_name, [])
+            return (L10n.traits_hollow_frame_name, [])
         case "Physical damage taken reduced by 30%":
-            (L10n.traits_incorporeal_description(30), [30])
+            return (L10n.traits_incorporeal_description(30), [30])
         case "Incorporeal":
-            (L10n.traits_incorporeal_name, [])
+            return (L10n.traits_incorporeal_name, [])
         case "Burn damage taken increased by 30%":
-            (L10n.traits_kindling_description(30), [30])
+            return (L10n.traits_kindling_description(30), [30])
         case "Loose Rubble":
-            (L10n.traits_loose_rubble_name, [])
+            return (L10n.traits_loose_rubble_name, [])
         case "Lumbering":
-            (L10n.traits_lumbering_name, [])
+            return (L10n.traits_lumbering_name, [])
         case "Frozen enemies deal 1 less damage":
-            (L10n.traits_numbing_presence_description(1), [1])
+            return (L10n.traits_numbing_presence_description(1), [1])
         case "Numbing Presence":
-            (L10n.traits_numbing_presence_name, [])
+            return (L10n.traits_numbing_presence_name, [])
         case "Steals 1 Block before each attack hit", "Steals 1 Block before each attack hit.":
-            (L10n.traits_pilfer_description(1), [1])
+            return (L10n.traits_pilfer_description(1), [1])
         case "Pilfer":
-            (L10n.traits_pilfer_name, [])
+            return (L10n.traits_pilfer_name, [])
         case "Restores 1 Health whenever an opponent takes Poison damage", "Restores 1 Health whenever an opponent takes Poison damage.":
-            (L10n.traits_plague_mask_description(1), [1])
+            return (L10n.traits_plague_mask_description(1), [1])
         case "Plague Mask":
-            (L10n.traits_plague_mask_name, [])
+            return (L10n.traits_plague_mask_name, [])
         case "Holy damage taken increased by 30%":
-            (L10n.traits_profane_description(30), [30])
+            return (L10n.traits_profane_description(30), [30])
         case "Profane":
-            (L10n.traits_profane_name, [])
+            return (L10n.traits_profane_name, [])
         case "Burn hits deal 1 additional damage", "Burn hits deal 1 additional damage.":
-            (L10n.traits_pyromancy_description(1), [1])
+            return (L10n.traits_pyromancy_description(1), [1])
         case "Deals 1 Holy damage every other turn", "Deals 1 Holy damage every other turn.":
-            (L10n.traits_radiant_judgment_description(1), [1])
+            return (L10n.traits_radiant_judgment_description(1), [1])
         case "Radiant Judgment":
-            (L10n.traits_radiant_judgment_name, [])
+            return (L10n.traits_radiant_judgment_name, [])
         case "Reckless":
-            (L10n.traits_reckless_name, [])
+            return (L10n.traits_reckless_name, [])
         case "Restore 1 Health at the start of each turn":
-            (L10n.traits_reform_description(1), [1])
+            return (L10n.traits_reform_description(1), [1])
         case "Reform":
-            (L10n.traits_reform_name, [])
+            return (L10n.traits_reform_name, [])
         case "Holy hits restore 1 Health", "Holy hits restore 1 Health.":
-            (L10n.traits_restoring_light_description(1), [1])
+            return (L10n.traits_restoring_light_description(1), [1])
         case "Restoring Light":
-            (L10n.traits_restoring_light_name, [])
+            return (L10n.traits_restoring_light_name, [])
         case "Holy and Stun hits grant 1 Block", "Holy and Stun hits grant 1 Block.":
-            (L10n.traits_righteous_guard_description(1), [1])
+            return (L10n.traits_righteous_guard_description(1), [1])
         case "Righteous Guard":
-            (L10n.traits_righteous_guard_name, [])
+            return (L10n.traits_righteous_guard_name, [])
         case "Gain 1 Block whenever an enemy becomes Frozen":
-            (L10n.traits_rimeguard_description(1), [1])
+            return (L10n.traits_rimeguard_description(1), [1])
         case "Rimeguard":
-            (L10n.traits_rimeguard_name, [])
+            return (L10n.traits_rimeguard_name, [])
         case "Reaching full Health makes the next attack deal 1 additional damage":
-            (L10n.traits_sated_fury_description(1), [1])
+            return (L10n.traits_sated_fury_description(1), [1])
         case "Sated Fury":
-            (L10n.traits_sated_fury_name, [])
+            return (L10n.traits_sated_fury_name, [])
         case "Apply 1 Burn to attackers when hit":
-            (L10n.traits_searing_body_description(1), [1])
+            return (L10n.traits_searing_body_description(1), [1])
         case "Searing Body":
-            (L10n.traits_searing_body_name, [])
+            return (L10n.traits_searing_body_name, [])
         case "Deals 1 Physical damage every other turn", "Deals 1 Physical damage every other turn.":
-            (L10n.traits_seismic_pulse_description(1), [1])
+            return (L10n.traits_seismic_pulse_description(1), [1])
         case "Seismic Pulse":
-            (L10n.traits_seismic_pulse_name, [])
+            return (L10n.traits_seismic_pulse_name, [])
         case "Loses 1 Health after each attack hit", "Loses 1 Health after each attack hit.":
-            (L10n.traits_self_sacrifice_description(1), [1])
+            return (L10n.traits_self_sacrifice_description(1), [1])
         case "Self-Sacrifice":
-            (L10n.traits_self_sacrifice_name, [])
+            return (L10n.traits_self_sacrifice_name, [])
         case "Shieldbreaker":
-            (L10n.traits_shieldbreaker_name, [])
+            return (L10n.traits_shieldbreaker_name, [])
         case "Attack hits restore 1 Health", "Attack hits restore 1 Health.":
-            (L10n.traits_siphon_description(1), [1])
+            return (L10n.traits_siphon_description(1), [1])
         case "Stonehide":
-            (L10n.traits_stonehide_name, [])
+            return (L10n.traits_stonehide_name, [])
         case "Thawing":
-            (L10n.traits_thawing_name, [])
+            return (L10n.traits_thawing_name, [])
         case "Deals 1 Physical or Stun damage every other turn", "Deals 1 Physical or Stun damage every other turn.":
-            (L10n.traits_thunderous_tremor_description(1), [1])
+            return (L10n.traits_thunderous_tremor_description(1), [1])
         case "Thunderous Tremor":
-            (L10n.traits_thunderous_tremor_name, [])
+            return (L10n.traits_thunderous_tremor_name, [])
         case "Attack hits inflict 1 Poison", "Attack hits inflict 1 Poison.":
-            (L10n.traits_venomous_strikes_description(1), [1])
+            return (L10n.traits_venomous_strikes_description(1), [1])
         case "Venomous Strikes":
-            (L10n.traits_venomous_strikes_name, [])
+            return (L10n.traits_venomous_strikes_name, [])
         case "Gain 1 Block at the start of each round":
-            (L10n.traits_watchful_guard_description(1), [1])
+            return (L10n.traits_watchful_guard_description(1), [1])
         case "Watchful Guard":
-            (L10n.traits_watchful_guard_name, [])
+            return (L10n.traits_watchful_guard_name, [])
         case "Freeze damage taken reduced by 30%":
-            (L10n.traits_winterborn_description(30), [30])
+            return (L10n.traits_winterborn_description(30), [30])
         case "Winterborn":
-            (L10n.traits_winterborn_name, [])
+            return (L10n.traits_winterborn_name, [])
         case "Deals 1 Freeze damage every other turn", "Deals 1 Freeze damage every other turn.":
-            (L10n.traits_winters_grasp_description(1), [1])
+            return (L10n.traits_winters_grasp_description(1), [1])
         case "Winter’s Grasp":
-            (L10n.traits_winters_grasp_name, [])
-        default: numericMatch(english)
+            return (L10n.traits_winters_grasp_name, [])
+        default: return numericMatch(english)
         }
     }
 
