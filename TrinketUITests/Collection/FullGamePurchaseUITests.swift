@@ -110,6 +110,11 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         session.askToBuyEnabled = true
         tapButton(AccessibilityID.FullGame.purchase)
         let pending = try pendingTransaction(in: session)
+        // The test service can register a deferred transaction before the app
+        // receives the purchase result. Keep the offer alive until it does.
+        waitUntil("The app must receive the pending purchase result", timeout: 60) {
+            (try? self.coverageReport()["fullGameOutcome"] as? String) == "pendingApproval"
+        }
         dismissSheet(AccessibilityID.FullGame.offer)
         assertFullGameAccess(false)
         return pending
