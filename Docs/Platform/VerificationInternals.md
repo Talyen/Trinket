@@ -206,10 +206,11 @@ family's old stamp before compilation so failed work cannot appear reusable.
 The [metadata owner](../../Scripts/build-metadata.py) fingerprints source edits and
 deletions, authored test plans, generated project and schemes. Markdown, compiler
 caches and Xcode user state are excluded. Change cache-version prefixes when layouts
-change. Content and localization edits change the exact cache key but retain
-the compatible restore prefix, allowing Xcode to rebuild their changed generated
-sources/resources incrementally. Timestamp restoration compares file bytes and
-mode first, including shared schemes and localization-region/StoreKit resources;
+change. Artwork, audio, StoreKit, content and localization edits change the exact
+cache key but retain the compatible restore prefix, allowing Xcode to rebuild
+their changed generated sources/resources incrementally. Timestamp restoration
+compares file bytes and mode first, including the generated workspace, shared
+schemes and localization-region/StoreKit resources;
 changed inputs keep fresh timestamps. Assess cache value using restore, build
 and save durations together.
 

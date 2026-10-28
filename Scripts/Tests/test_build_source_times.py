@@ -51,6 +51,7 @@ class BuildSourceTimesTests(unittest.TestCase):
                 'Localization/Generated/Regions/en.lproj/InfoPlist.strings',
                 'StoreKit/Trinket.storekit',
                 'Trinket.xcodeproj/xcshareddata/xcschemes/Trinket.xcscheme',
+                'Trinket.xcodeproj/project.xcworkspace/contents.xcworkspacedata',
             )]
             old, fresh = 1700000000000000000, 1700000010000000000
             for path in paths:
@@ -63,7 +64,7 @@ class BuildSourceTimesTests(unittest.TestCase):
             for path in paths:
                 os.utime(path, ns=(fresh, fresh))
             TIMES.process(root, 'restore')
-            self.assertEqual([path.stat().st_mtime_ns for path in paths], [old, fresh, old])
+            self.assertEqual([path.stat().st_mtime_ns for path in paths], [old, fresh, old, old])
             self.assertEqual(paths[1].read_text(), 'modified')
 
     def test_missing_corrupt_foreign_and_escape_metadata_never_changes_other_inputs(self):

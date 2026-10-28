@@ -26,8 +26,12 @@ def main() -> int:
         findings.extend(f'Missing package tenant in shared build inputs: Packages/{package}'
                         for package in args.packages if f'Packages/{package}' not in args.inputs)
         for key, required, forbidden in (
-            ('full', ('Trinket/**', 'Packages/**', 'ContentManifest/**', 'Localization/**'), ()),
-            ('nonsource', ('Scripts/tool-versions.env',), ('Scripts/**', 'ContentManifest/**', 'Localization/**')),
+            ('full', ('Trinket/**', 'Packages/**', 'ContentManifest/**', 'Localization/**',
+                      'StoreKit/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**',
+                      'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json'), ()),
+            ('nonsource', ('Scripts/tool-versions.env',), ('Scripts/**', 'ContentManifest/**', 'Localization/**',
+                'StoreKit/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**',
+                'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json')),
         ):
             line = next((line for line in source.splitlines() if key + '=' in line), None)
             if line is None:

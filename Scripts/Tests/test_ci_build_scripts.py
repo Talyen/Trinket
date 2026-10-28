@@ -155,16 +155,22 @@ xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUND
             def run_checker() -> subprocess.CompletedProcess[str]:
                 return run_captured([str(root / "Scripts/check-build-cache-paths.sh")], cwd=root)
 
-            lines = live.splitlines(keepends=True)
-            full_index = next(i for i, line in enumerate(lines) if "full=" in line)
-            self.assertIn("'Trinket/**', ", lines[full_index])
-            lines[full_index] = lines[full_index].replace("'Trinket/**', ", "", 1)
-            action.write_text("".join(lines), encoding="utf-8")
-            result = run_checker()
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn("must include Trinket/**", result.stderr)
+            self.assertEqual(run_checker().returncode, 0)
+            for glob in ('Trinket/**', 'StoreKit/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**',
+                         'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json'):
+                with self.subTest(exact_key_input=glob):
+                    lines = live.splitlines(keepends=True)
+                    full_index = next(i for i, line in enumerate(lines) if "full=" in line)
+                    self.assertIn(f"'{glob}', ", lines[full_index])
+                    lines[full_index] = lines[full_index].replace(f"'{glob}', ", "", 1)
+                    action.write_text("".join(lines), encoding="utf-8")
+                    result = run_checker()
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn(f"must include {glob}", result.stderr)
 
-            for glob in ('Scripts/**', 'ContentManifest/**', 'Localization/**'):
+            for glob in ('Scripts/**', 'ContentManifest/**', 'Localization/**',
+                         'StoreKit/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**',
+                         'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json'):
                 with self.subTest(glob=glob):
                     lines = live.splitlines(keepends=True)
                     nonsource_index = next(i for i, line in enumerate(lines) if "nonsource=" in line)

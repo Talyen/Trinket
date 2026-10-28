@@ -21,7 +21,8 @@ def inputs(root):
         if (not name.endswith('.md') and (name.startswith(('Trinket/', 'TrinketUITests/', 'Packages/',
                                              'Localization/Generated/Regions/', 'StoreKit/',
                                              'Trinket.xcodeproj/xcshareddata/'))
-                or name in ('project.yml', 'Trinket.xcodeproj/project.pbxproj') or name.endswith('.xctestplan'))
+                or name in ('project.yml', 'Trinket.xcodeproj/project.pbxproj',
+                            'Trinket.xcodeproj/project.xcworkspace/contents.xcworkspacedata') or name.endswith('.xctestplan'))
                 and not path.is_symlink() and path.resolve().is_relative_to(root.resolve()) and path.is_file()):
             yield name, path
 
