@@ -63,25 +63,18 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         )).firstMatch
         tapWhenReady(artwork)
         assertExists(AccessibilityID.Voyage.destinationSheet)
-        let enemyButtons = app.buttons.matching(NSPredicate(
-            format: "identifier BEGINSWITH %@", AccessibilityID.Voyage.destinationEnemy(""),
-        ))
-        let boss = enemyButtons.element(boundBy: 0)
-        let enemy = enemyButtons.element(boundBy: 1)
-        reveal(enemy)
-        let secondEnemy = enemyButtons.element(boundBy: 2)
-        XCTAssertTrue(secondEnemy.waitForExistence(timeout: 5))
-        let firstFrame = enemy.frame
-        let secondFrame = secondEnemy.frame
-        XCTAssertLessThan(boss.frame.maxY, firstFrame.minY, "The boss should appear above the enemy pool")
-        XCTAssertEqual(boss.frame.width, firstFrame.width, accuracy: 2)
-        XCTAssertEqual(firstFrame.minY, secondFrame.minY, accuracy: 2, "Enemy artwork should share a row")
-        XCTAssertLessThan(firstFrame.maxX, secondFrame.minX)
-        XCTAssertEqual(firstFrame.width / firstFrame.height, 1200.0 / 896, accuracy: 0.03)
-        retainScreenshot(named: "Voyage destination boss and enemies")
-        let enemyName = enemy.label
-        tapWhenReady(enemy)
-        assertExists(AccessibilityID.CombatantDetail.header(name: enemyName))
+        let stage = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@ AND identifier CONTAINS %@",
+            AccessibilityID.Voyage.row(""), "-node-",
+        )).firstMatch
+        reveal(stage)
+        let stageID = String(stage.identifier.dropFirst(AccessibilityID.Voyage.row("").count))
+        retainScreenshot(named: "Voyage destination route preview")
+        tapWhenReady(stage)
+        let detailHeader = app.staticTexts.matching(NSPredicate(
+            format: "identifier ENDSWITH %@", AccessibilityID.CombatantDetail.header(name: ""),
+        )).firstMatch
+        XCTAssertTrue(detailHeader.waitForExistence(timeout: 12), "The combat stage should open enemy details")
         let back = app.buttons.matching(NSPredicate(format: "identifier == %@", "BackButton")).allElementsBoundByIndex.last
         if let back {
             back.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
@@ -90,7 +83,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
             return
         }
         assertExists(AccessibilityID.Voyage.destinationSheet)
-        XCTAssertTrue(enemy.isHittable, "Returning from enemy details should preserve the gallery position")
+        XCTAssertTrue(stage.isHittable, "Returning from enemy details should preserve the route position")
         let grabber = app.buttons.matching(NSPredicate(format: "label == %@", "Sheet Grabber")).firstMatch
         if grabber.exists, grabber.frame.minY < 10, app.frame.width > 430 {
             // On the Duo the sheet is inset, while its grabber overlaps the top system edge.
@@ -103,6 +96,7 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
             format: "identifier BEGINSWITH %@", AccessibilityID.Voyage.action(""),
         )).firstMatch
         tapWhenReady(embark)
+        assertExists(AccessibilityID.Voyage.artwork(stageID))
         tapButton(AccessibilityID.Voyage.options)
         tapButton(AccessibilityID.Voyage.abandon)
         tapButton(AccessibilityID.Voyage.confirmAbandon)

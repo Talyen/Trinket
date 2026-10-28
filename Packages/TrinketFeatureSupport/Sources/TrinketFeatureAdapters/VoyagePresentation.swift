@@ -31,11 +31,11 @@ public extension StageSelectRowPresentation where Item == VoyageOffer {
 }
 
 public extension StageSelectRowPresentation where Item == VoyageNode {
-    static func voyageNodes(_ run: VoyageRun, inventory: PlayerInventoryState) -> [Self] {
+    static func voyageNodes(_ run: VoyageRun, inventory: PlayerInventoryState, allCompact: Bool = false) -> [Self] {
         let nextNodeID = run.nextNode?.id
         return run.nodes.compactMap { node in
             guard !node.isCleared else { return nil }
-            let isActive = node.id == nextNodeID
+            let isActive = !allCompact && node.id == nextNodeID
             return Self(
                 item: node, isActive: isActive, activeEyebrow: "",
                 mapLabel: "", title: node.enemyID.flatMap { GameContent.enemy(matching: $0)?.name } ?? node.type.title,

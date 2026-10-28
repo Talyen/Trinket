@@ -90,7 +90,8 @@ struct VoyageView: View {
             }
         }
         .preparedArtworkSheet(item: $inspectedDestination, artworkNames: { selection in
-            VoyageDestinationSheet.artworkNames(chapterID: selection.chapterID)
+            guard let offer = playerSave.voyage.offers.first(where: { $0.id == selection.id }) else { return [] }
+            return VoyageDestinationSheet.artworkNames(offer: offer, save: playerSave.currentSave, access: playerSave.contentAccess)
         }, content: { selection in
             if let offer = playerSave.voyage.offers.first(where: { $0.id == selection.id }) {
                 VoyageDestinationSheet(offer: offer)
@@ -180,7 +181,7 @@ struct VoyageView: View {
             primaryActionLabelColor: TrinketDesign.Colors.canvas,
             isPrimaryActionDisabled: { _ in !isReady }, onArtworkTap: { offer in
                 guard isReady else { return }
-                inspectedDestination = VoyageDestinationSelection(id: offer.id, chapterID: offer.chapterID)
+                inspectedDestination = VoyageDestinationSelection(id: offer.id)
             },
             onPrimaryAction: embark, artwork: { offer, _ in
                 if let art = ArtCatalog.backgroundArtByID[offer.chapterID] {

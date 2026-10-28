@@ -7,27 +7,13 @@ import TrinketPersistence
 
 struct VoyageDestinationSelection: Hashable, Identifiable {
     let id: String
-    let chapterID: String
 }
 
 struct VoyageDestinationSheet: View {
     @Environment(PlayerSaveStore.self) private var playerSave
-    @Environment(\.locale) private var locale
     let offer: VoyageOffer
     @State private var requestedEnemy: CombatantCardDetail?
     @State private var inspectedEnemy: CombatantCardDetail?
-
-    private var enemies: [Enemy] {
-        VoyageCatalog.enemyIDs(chapterID: offer.chapterID).compactMap { GameContent.enemy(matching: $0) }
-    }
-
-    private var boss: Enemy? {
-        VoyageCatalog.bossID(chapterID: offer.chapterID).flatMap { GameContent.enemy(matching: $0) }
-    }
-
-    private var columns: [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: TrinketDesign.Spacing.small), count: 2)
-    }
 
     private var level: Int {
         EncounterScaling.voyage(offer.difficulty).resolve(partyAverageLevel: playerSave.roster.activePartyAverageLevel).level
@@ -40,36 +26,60 @@ struct VoyageDestinationSheet: View {
         ))
     }
 
-    static func artworkNames(chapterID: String) -> [String] {
-        let ids = VoyageCatalog.enemyIDs(chapterID: chapterID) + [VoyageCatalog.bossID(chapterID: chapterID)].compactMap(\.self)
-        let enemyArt = ids.compactMap { GameContent.enemy(matching: $0)?.combatant.artReference }
-        return [ArtCatalog.backgroundArtByID[chapterID]?.imageName].compactMap(\.self)
-            + enemyArt.map { $0.preparedThumbnailImageName ?? $0.imageName }
+    private static func preview(offer: VoyageOffer, save: PlayerSave, access: ContentAccessPolicy) -> (VoyageRun, PlayerSave) {
+        let nodes = VoyageGenerator.nodes(
+            for: offer,
+            eligibleRecruitEventIDs: save.roster.eligibleRecruitEventIDs(access: access),
+            eligibleRewards: RewardOwnership(save).eligibleModifiers,
+        )
+        let run = VoyageRun(offer: offer, nodes: nodes)
+        var previewSave = save
+        previewSave.voyage.activeRun = run
+        return (run, previewSave)
     }
 
-    private func enemyArtworkButton(_ enemy: Enemy) -> some View {
-        Button {
-            requestedEnemy = makePlayEnemyDetail(combatant: enemy.combatant, level: level)
-        } label: {
-            CombatantArtwork(combatant: enemy.combatant, variant: .card)
-                .aspectRatio(1200.0 / 896, contentMode: .fit)
-                .clipShape(TrinketDesign.cardShape)
+    private static func artwork(
+        for node: VoyageNode, in run: VoyageRun, save: PlayerSave, access: ContentAccessPolicy,
+    ) -> (any PreparedArtworkReference)? {
+        if let enemyID = node.enemyID {
+            return GameContent.enemy(matching: enemyID)?.combatant.artReference
         }
-        .trinketArtworkCardButtonStyle()
-        .accessibilityLabel(ContentCopy.localized(enemy.name, locale: locale))
-        .accessibilityIdentifier(AccessibilityID.Voyage.destinationEnemy(enemy.id))
+        if node.type == .recruit {
+            return GameContent.recruitEncounterArtReference(forEventID: node.recruitEventID)
+        }
+        if node.type == .mystery,
+           let event = EncounterIdentity(location: .voyage(runID: run.id, nodeID: node.id), save: save)
+           .mysteryEvent(in: save, access: access) {
+            return MysteryEventArtwork.preparedReference(event: event, chapterID: run.offer.chapterID)
+        }
+        return LabyrinthMapPresentation.destinationEncounterArtID(for: node.type).flatMap { ArtCatalog.encounterArtByID[$0] }
+    }
+
+    static func artworkNames(offer: VoyageOffer, save: PlayerSave, access: ContentAccessPolicy) -> [String] {
+        let (run, previewSave) = preview(offer: offer, save: save, access: access)
+        let artworkNames = run.nodes.compactMap { artwork(for: $0, in: run, save: previewSave, access: access) }
+            .map { $0.preparedThumbnailImageName ?? $0.imageName }
+        return [ArtCatalog.backgroundArtByID[offer.chapterID]?.imageName].compactMap(\.self) + artworkNames
+    }
+
+    private func inspect(_ node: VoyageNode) {
+        guard let enemy = node.enemyID.flatMap({ GameContent.enemy(matching: $0) }) else { return }
+        let modifiers = RewardOwnership(playerSave.inventory).modifiers(ids: node.modifierIDs, enemyIsBoss: node.type == .boss)
+        requestedEnemy = makePlayEnemyDetail(combatant: enemy.combatant, level: level, nodeModifiers: modifiers)
     }
 
     var body: some View {
-        NavigationStack {
+        let (run, previewSave) = Self.preview(offer: offer, save: playerSave.currentSave, access: playerSave.contentAccess)
+        return NavigationStack {
             DetailHeroScrollShell(
                 title: GameContent.chapter(id: offer.chapterID)?.title ?? "", heroHeightPolicy: .cinematicLandscape,
             ) { height in
                 DetailHeroHeader(
                     eyebrow: offer.difficulty.title,
                     title: GameContent.chapter(id: offer.chapterID)?.title ?? "",
+                    titleAccessibilityIdentifier: AccessibilityID.Voyage.destinationSheet,
                     baseHeight: height,
-                    footerSpacing: TrinketDesign.Spacing.small,
+                    footerSpacing: TrinketDesign.Spacing.tight,
                 ) {
                     if let art = ArtCatalog.backgroundArtByID[offer.chapterID] {
                         FocalBackgroundArtwork(art: art)
@@ -78,28 +88,17 @@ struct VoyageDestinationSheet: View {
                     StageSelectModifierLine(modifier: reward)
                 }
             } bodyContent: {
-                VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionSpacing) {
-                    if let boss {
-                        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-                            GameLabel(LabyrinthNodeType.boss.title, resource: LabyrinthNodeType.boss.contextualTitleResource)
-                                .trinketTypography(.sectionTitle)
-                            LazyVGrid(columns: columns, spacing: TrinketDesign.Spacing.small) {
-                                enemyArtworkButton(boss)
-                            }
+                StageSelectList(
+                    rows: StageSelectRowPresentation<VoyageNode>.voyageNodes(run, inventory: playerSave.inventory, allCompact: true),
+                    isPrimaryActionDisabled: { _ in true }, onArtworkTap: inspect,
+                    onPrimaryAction: { _ in false }, artwork: { node, _ in
+                        if let art = Self.artwork(for: node, in: run, save: previewSave, access: playerSave.contentAccess) {
+                            MapTileArtwork(art: art, prefersThumbnail: true)
+                        } else {
+                            MapTilePlaceholder(tint: LabyrinthMapPresentation.tint(for: node.type), icon: GameIcon(id: node.type.iconID))
                         }
-                    }
-                    VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-                        Text(L10n.voyage_destination_enemies)
-                            .trinketTypography(.sectionTitle)
-                            .accessibilityIdentifier(AccessibilityID.Voyage.destinationSheet)
-                        LazyVGrid(columns: columns, spacing: TrinketDesign.Spacing.small) {
-                            ForEach(enemies) { enemy in
-                                enemyArtworkButton(enemy)
-                            }
-                        }
-                    }
-                }
-                .padding(TrinketDesign.Layout.contentMargin)
+                    }, partyPickerSheet: { _ in EmptyView() },
+                )
             }
             .navigationDestination(item: $inspectedEnemy) { detail in
                 CombatantDetailPane(snapshot: detail)
