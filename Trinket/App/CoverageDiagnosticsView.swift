@@ -1,4 +1,5 @@
 #if DEBUG
+import StoreKit
 import SwiftUI
 import TrinketAppState
 import TrinketDesignSystem
@@ -9,6 +10,7 @@ struct CoverageDiagnosticsView: View {
     let appState: AppState
     @Environment(\.dynamicTypeSize) private var textSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var storeKitEntitlements = [String]()
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.25)) { _ in
@@ -20,6 +22,24 @@ struct CoverageDiagnosticsView: View {
                 .frame(width: 1, height: 1)
                 .clipped()
         }
+        .task {
+            while !Task.isCancelled {
+                var entitlements = [String]()
+                for await result in Transaction.currentEntitlements {
+                    switch result {
+                    case let .verified(transaction):
+                        entitlements
+                            .append(
+                                "verified id=\(transaction.id) product=\(transaction.productID) revoked=\(transaction.revocationDate != nil)",
+                            )
+                    case let .unverified(transaction, _):
+                        entitlements.append("unverified id=\(transaction.id) product=\(transaction.productID)")
+                    }
+                }
+                storeKitEntitlements = entitlements
+                try? await Task.sleep(for: .seconds(1))
+            }
+        }
     }
 
     private var report: String {
@@ -30,6 +50,7 @@ struct CoverageDiagnosticsView: View {
         values["reduceMotion"] = reduceMotion
         values["fullGameAccess"] = playerSave.contentAccess.allowsChapter(4)
         values["fullGameOwnership"] = String(describing: appState.fullGame.ownership)
+        values["storeKitEntitlements"] = storeKitEntitlements
         values["fullGameOutcome"] = appState.fullGame.outcome.map { String(describing: $0) } ?? "none"
         values["gameplayActive"] = appState.play.isGameplayActive
         values["selectedTab"] = appState.shellSession.selectedTab.rawValue
