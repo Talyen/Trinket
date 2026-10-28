@@ -38,9 +38,15 @@ Pushes and player-resource changes remain outside this task.
 
 ## Remaining protected state
 
-- [ ] Review the 29 unfinished or unknown deployment receipts when their owners or
-  state can be established. Build 42 is exported but has no registered authoritative
-  backup; retain its archive, IPA and inspection data. Do not replace unique evidence.
+- [ ] Recheck build 42's duplicate working files after the 24-hour grace period
+  following its receipt update. Its existing archive, IPA and symbols were verified
+  and linked to the receipt; Apple reported no matching build for the current
+  marketing version. Preserve the backup and receipt regardless of cleanup.
+- [ ] Preserve the 29 created-stage build-number reservations. None records an
+  archive or IPA; build 49 also retains an archive result. Missing command logs
+  prevent determining all outcomes from local evidence. Build 44 has no located
+  local archive backup, but Apple's read-only check reports its symbols present.
+  Four other ready builds now link to verified existing local backups.
 - [ ] Assess old integrated worktrees only when their owners have finished and
   inactivity is provable. A clean tree and ancestor relationship do not establish
   that a retained checkout is no longer needed; do not poll or alter other chats.
