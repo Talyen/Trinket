@@ -231,8 +231,9 @@ public extension PlaySession {
         _ configuration: BattleRunConfiguration,
         settlement: BattleRewardSettlement,
         action: BattleDefeatAction,
+        onStaleRetry: @escaping @MainActor (BattleRewardSettlement) -> Void = { _ in },
     ) -> BattleCompletionResult {
-        battleCoordinator.completeDefeat(configuration, settlement: settlement, action: action) { [weak self] in
+        battleCoordinator.completeDefeat(configuration, settlement: settlement, action: action, onStaleRetry: onStaleRetry) { [weak self] in
             self?.finishBattleExit(for: [configuration.hero.combatant, configuration.companion.combatant])
         }
     }

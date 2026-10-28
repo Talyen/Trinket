@@ -100,6 +100,37 @@ struct DefeatCompletionTests {
         #expect(play.playerSave.roster.progression(for: configuration.hero.combatant) == refreshed.heroProgressionAfter)
     }
 
+    @Test func `automatic defeat retry refreshes stale rewards before claiming`() async throws {
+        let play = try context.makePlaySession(arguments: ["-reset-state"])
+        let stage = try #require(GameContent.chapters[0].stages.first)
+        #expect(play.journey.startBattle(for: stage) == nil)
+        let battle = try #require(context.lastBattle)
+        let configuration = try #require(battle.activeBattle)
+        try resolveDefeat(battle)
+        guard case let .defeat(settlement) = battle.spectacle.outcomePresentation else {
+            Issue.record("Expected displayed defeat settlement")
+            return
+        }
+        play.playerSave.forcesNextSaveFailure = true
+        #expect(!battle.claimDefeat(configurationID: configuration.id, settlement: settlement, action: .leave))
+        try play.playerSave.performFixtureMutation { save in
+            save.roster.grantExperience(1, to: configuration.hero.combatant)
+        }
+        let changedSave = play.playerSave.currentSave
+
+        try await PlayBattleLaunchTestSupport.awaitSaveQuiescence { play.playerSave.isRetryingSaveAction }
+        #expect(battle.activeBattle?.id == configuration.id)
+        #expect(play.playerSave.currentSave == changedSave)
+        guard case let .defeat(refreshed) = battle.spectacle.outcomePresentation else {
+            Issue.record("Expected refreshed defeat settlement after retry")
+            return
+        }
+        #expect(refreshed.inputs.productionDate == settlement.inputs.productionDate)
+        #expect(refreshed.inputs.heroProgression != settlement.inputs.heroProgression)
+        #expect(battle.claimDefeat(configurationID: configuration.id, settlement: refreshed, action: .leave))
+        #expect(play.playerSave.roster.progression(for: configuration.hero.combatant) == refreshed.heroProgressionAfter)
+    }
+
     @Test func `claimed defeat can leave after failed restart without another award`() throws {
         let battle = BattleSession(outcomePresentationDelayOverride: 0)
         let runtime = RefusingRestartRuntime(battle)

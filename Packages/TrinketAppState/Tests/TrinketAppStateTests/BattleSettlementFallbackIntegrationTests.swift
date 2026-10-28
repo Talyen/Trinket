@@ -79,8 +79,9 @@ private final class UnavailableVictorySettlement: BattleProgressionDelegate {
         _ configuration: BattleRunConfiguration,
         settlement: BattleRewardSettlement,
         action: BattleDefeatAction,
+        onStaleRetry: @escaping @MainActor (BattleRewardSettlement) -> Void,
     ) -> BattleCompletionResult {
-        underlying.completeDefeat(configuration, settlement: settlement, action: action)
+        underlying.completeDefeat(configuration, settlement: settlement, action: action, onStaleRetry: onStaleRetry)
     }
 
     func finishBattleRewardPresentation(configurationID: UUID) {

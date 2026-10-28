@@ -109,7 +109,7 @@ it must not debit the battle wallet.
 
 Defeat Continue uses the leave action to claim settled XP through the configured
 progression capability. Revalidate the active configuration, resolved defeat (including retreat), and
-settlement before saving; stale inputs refresh the reveal and storage failures
+settlement before saving; stale inputs refresh the reveal, including after an automatic retry, and storage failures
 retain the chosen action for an automatic retry without an error alert. A committed configuration retains its settlement
 until exit/replacement so a failed restart followed by either action cannot pay
 again. Retry rebuilds from the retained launch request with updated saved party inputs

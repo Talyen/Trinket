@@ -301,6 +301,7 @@ final class BattleProgressionProbe: BattleProgressionDelegate {
     let presentation: BattlePresentationContext?
     let plan: BattleRewardPlan?
     let completeVictory: (BattleRunConfiguration, BattleGoldFlow, BattleRewardSettlement?) -> BattleCompletionResult
+    var onStaleDefeatRetry: (@MainActor (BattleRewardSettlement) -> Void)?
 
     init(
         session: BattleSession? = nil,
@@ -352,8 +353,10 @@ final class BattleProgressionProbe: BattleProgressionDelegate {
         _: BattleRunConfiguration,
         settlement _: BattleRewardSettlement,
         action _: BattleDefeatAction,
+        onStaleRetry: @escaping @MainActor (BattleRewardSettlement) -> Void,
     ) -> BattleCompletionResult {
-        .unavailable
+        onStaleDefeatRetry = onStaleRetry
+        return .unavailable
     }
 
     func finishBattleRewardPresentation(configurationID _: UUID) {}

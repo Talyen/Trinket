@@ -77,7 +77,11 @@ extension BattleSession {
     func claimDefeat(configurationID: UUID, settlement: BattleRewardSettlement, action: BattleDefeatAction) -> Bool {
         guard let configuration = activeBattle, configuration.id == configurationID,
               resolvedDefeatProgress != nil, let progression else { return false }
-        let result = progression.completeDefeat(configuration, settlement: settlement, action: action)
+        let result = progression.completeDefeat(configuration, settlement: settlement, action: action) { [weak self] refreshed in
+            guard let self, activeBattle?.id == configurationID,
+                  case let .defeat(current) = spectacle.outcomePresentation, current == settlement else { return }
+            spectacle.outcomePresentation = .defeat(refreshed)
+        }
         guard activeBattle?.id == configurationID else { return result.didComplete }
         switch result {
         case .completed:

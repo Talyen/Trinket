@@ -178,6 +178,7 @@ extension PlayBattleCoordinator {
         _ configuration: BattleRunConfiguration,
         settlement: BattleRewardSettlement,
         action: BattleDefeatAction,
+        onStaleRetry: @escaping @MainActor (BattleRewardSettlement) -> Void = { _ in },
         onFinished: @escaping () -> Void,
     ) -> BattleCompletionResult {
         guard runtimeTransition == .idle, let expectedBattle = activeBattle, isCurrent(expectedBattle),
@@ -185,10 +186,10 @@ extension PlayBattleCoordinator {
               expectedBattle.canRestart else { return .unavailable }
         return playerSave.performSaveAction(key: SaveRetryKey.defeat(configuration.id)) { [weak self] isRetry in
             guard let self, isCurrent(expectedBattle) else { return SaveActionAttempt(.unavailable) }
-            guard let refreshed = isRetry ? settleDefeat(configuration, at: Date()) : settlement
-            else { return SaveActionAttempt(.unavailable) }
-
-            let result = claimDefeat(configuration, settlement: refreshed)
+            let result = claimDefeat(configuration, settlement: settlement)
+            if isRetry, case let .staleSettlement(refreshed) = result.value, isCurrent(expectedBattle) {
+                onStaleRetry(refreshed)
+            }
             guard result.value.didComplete, isCurrent(expectedBattle) else { return result }
             switch action {
             case .retry:

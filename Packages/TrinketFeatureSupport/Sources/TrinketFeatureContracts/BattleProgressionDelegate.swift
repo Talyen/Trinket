@@ -24,6 +24,7 @@ public protocol BattleProgressionDelegate: AnyObject {
         _ configuration: BattleRunConfiguration,
         settlement: BattleRewardSettlement,
         action: BattleDefeatAction,
+        onStaleRetry: @escaping @MainActor (BattleRewardSettlement) -> Void,
     ) -> BattleCompletionResult
     func finishBattleRewardPresentation(configurationID: UUID)
 }

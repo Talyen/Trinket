@@ -86,6 +86,38 @@ struct BattleSessionSettlementFallbackTests {
         #expect(settlement.award.heroExperience > 0)
     }
 
+    @Test func `a late defeat retry cannot replace a newer reveal`() throws {
+        let (configuration, context) = BattleRunConfigurationTestSupport.make(
+            hero: CombatantFixtures.passiveHero(), companion: CombatantFixtures.passiveCompanion(),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            heroExperienceAward: 100, companionExperienceAward: 60,
+        )
+        let session = BattleSession(outcomePresentationDelayOverride: .zero)
+        let progression = BattleProgressionProbe(session: session, presentation: context)
+        session.connectProgression(to: progression)
+        #expect(session.activate(configuration, presentation: context))
+        defer { session.endBattle() }
+        var state = try #require(session.engineState)
+        state.roster.enemy.currentHealth = 41
+        state.roster.hero.currentHealth = 0
+        state.roster.companion.currentHealth = 0
+        session.engineState = state
+        session.handleOutcomeIfNeeded(at: .now)
+        guard case let .defeat(original) = session.spectacle.outcomePresentation else {
+            Issue.record("Expected defeat reveal")
+            return
+        }
+        #expect(!session.claimDefeat(configurationID: configuration.id, settlement: original, action: .leave))
+        let callback = try #require(progression.onStaleDefeatRetry)
+        let progress = try #require(session.resolvedDefeatProgress)
+        let refreshed = Self.alternativePlan.settleDefeat(progress: progress, inputs: original.inputs)
+        #expect(refreshed != original)
+        callback(refreshed)
+        #expect(session.spectacle.outcomePresentation == .defeat(refreshed))
+        callback(original)
+        #expect(session.spectacle.outcomePresentation == .defeat(refreshed))
+    }
+
     private static let alternativePlan = BattleRewardPlan(
         stageGold: 31, goldFindPercent: 0,
         heroExperience: 200, companionExperience: 120,
