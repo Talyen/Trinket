@@ -31,8 +31,12 @@ from internal.diagnostics.failure_diagnostics_parsers import (
 
 
 def _attachment_path(directory: Path, name: str) -> str:
-    path = directory / name
-    return _display_path(str(path)) if path.is_file() else ""
+    try:
+        root = directory.resolve()
+        path = (root / name).resolve()
+    except (OSError, RuntimeError):
+        return ""
+    return _display_path(str(path)) if path.is_relative_to(root) and path.is_file() else ""
 
 
 def assign_attachments(

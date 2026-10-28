@@ -288,15 +288,15 @@ def parse_test_nodes(tests: dict[str, Any]) -> tuple[list[IssueObservation], lis
 
 
 def _collect_strings(node: Any, output: list[str]) -> None:
-    if isinstance(node, dict):
-        for key, value in node.items():
-            if key in {"name", "details", "message", "failureText"} and isinstance(value, str):
-                output.append(value)
-            else:
-                _collect_strings(value, output)
-    elif isinstance(node, list):
-        for value in node:
-            _collect_strings(value, output)
+    pending = [(None, node)]
+    while pending:
+        key, value = pending.pop()
+        if key in {"name", "details", "message", "failureText"} and isinstance(value, str):
+            output.append(value)
+        elif isinstance(value, dict):
+            pending.extend(reversed(list(value.items())))
+        elif isinstance(value, list):
+            pending.extend((None, item) for item in reversed(value))
 
 
 def parse_test_detail(detail: dict[str, Any], test_id: str) -> IssueObservation:
@@ -306,7 +306,10 @@ def parse_test_detail(detail: dict[str, Any], test_id: str) -> IssueObservation:
     values: list[str] = []
     _collect_strings(detail.get("testRuns", []), values)
     failures = [value for value in values if value and ("failed" in value.lower() or "expectation" in value.lower())]
-    message = next((value for value in failures if "expectation" in value.lower()), "Test reported Failed")
+    message = next((value for value in failures if "expectation" in value.lower()), None)
+    if message is None:
+        message = next((value for value in failures if re.search(r"XCTAssert|XCTFail|assertion failed|\.swift:\d+", value, re.I)),
+                       failures[0] if failures else "Test reported Failed")
     message, accessibility_details = _split_accessibility_snapshot(message)
     file = ""
     line: int | None = None

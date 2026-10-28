@@ -183,7 +183,8 @@ class IssueAccumulator:
             return
         for issue in self._issues:
             same_test_failure = (
-                self._same_test(issue, item)
+                bool(issue.test_aliases and item.test_aliases)
+                and self._same_test(issue, item)
                 and issue.message == item.message
                 and self._locations_compatible(issue, item)
                 and issue.kind != "build-failure"
@@ -205,7 +206,8 @@ class IssueAccumulator:
 
     def finalize(self) -> list[DiagnosticIssue]:
         for observation in self._generic:
-            candidates = [issue for issue in self._issues if self._same_test(issue, observation)]
+            candidates = [issue for issue in self._issues
+                          if self._same_test(issue, observation) and self._locations_compatible(issue, observation)]
             if len(candidates) == 1:
                 candidates[0].enrich(observation)
             elif not candidates:

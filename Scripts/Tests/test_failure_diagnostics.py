@@ -46,6 +46,54 @@ def namespace(bundle: Path, log: Path | None, exit_code: int, prefix: Path) -> S
 
 
 class ReporterTests(unittest.TestCase):
+    def test_unidentified_failures_with_the_same_message_keep_their_classifications(self):
+        accumulator = REPORTER.IssueAccumulator()
+        accumulator.add(REPORTER.IssueObservation("simulator-infrastructure", "Simulator", "Connection lost"))
+        accumulator.add(REPORTER.IssueObservation("tooling", "Toolchain", "Connection lost"))
+        issues = accumulator.finalize()
+        self.assertEqual({issue.kind for issue in issues}, {"simulator-infrastructure", "tooling"})
+
+        accumulator = REPORTER.IssueAccumulator()
+        aliases = frozenset({"Suite/test"})
+        accumulator.add(REPORTER.IssueObservation("test-failure", "Test", "failure", test_aliases=aliases))
+        accumulator.add(REPORTER.IssueObservation("test-failure", "Test", "failure", test="Suite/test"))
+        self.assertEqual(len(accumulator.finalize()), 1)
+
+    def test_generic_test_failure_does_not_inherit_a_different_assertion_location(self):
+        accumulator = REPORTER.IssueAccumulator()
+        accumulator.add(REPORTER.IssueObservation("test-failure", "Test", "first failed", test="Suite/test", file="Test.swift", line=10))
+        accumulator.add(REPORTER.IssueObservation("test-failure", "Test", "Test reported Failed", test="Suite/test", file="Test.swift", line=20))
+        issues = accumulator.finalize()
+        self.assertEqual({issue.line for issue in issues}, {10, 20})
+
+    def test_deeply_nested_test_details_are_read_without_recursion_failure(self):
+        detail = {"message": "Expectation failed: alive"}
+        for _ in range(1500):
+            detail = {"children": [detail]}
+        issue = REPORTER.parse_test_detail({"testRuns": [detail]}, "Suite/test")
+        self.assertEqual(issue.message, "Expectation failed: alive")
+
+    def test_test_details_retain_non_expectation_assertion_text(self):
+        detail = {"testRuns": [{"name": "Test failed", "message": "BattleTests.swift:42: XCTAssertEqual failed: 1 != 2"}]}
+        issue = REPORTER.parse_test_detail(detail, "Suite/test")
+        self.assertEqual(issue.message, "XCTAssertEqual failed: 1 != 2")
+        self.assertEqual(issue.line, 42)
+        self.assertFalse(issue.generic)
+
+    def test_attachment_manifest_cannot_reference_files_outside_its_export(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            export = root / "attachments"
+            export.mkdir()
+            external = root / "unrelated.txt"
+            external.write_text("unrelated")
+            (export / "linked.txt").symlink_to(external)
+            (export / "actual.txt").write_text("evidence")
+            records = [REPORTER.xcresult.ExportedAttachment(name, "", True)
+                       for name in ("../unrelated.txt", str(external), "linked.txt", "actual.txt")]
+            unmatched = REPORTER.assign_attachments([], export, records)
+            self.assertEqual([Path(path).name for path in unmatched], ["actual.txt"])
+
     def test_launch_snapshot_marker_is_narrow_and_preserves_assertion_failures(self):
         message = "Failed to get matching snapshots: Timed out while evaluating UI query."
         marked = "[Trinket launch snapshot timeout] " + message
