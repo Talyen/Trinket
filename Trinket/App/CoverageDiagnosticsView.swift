@@ -50,6 +50,7 @@ struct CoverageDiagnosticsView: View {
         values["reduceMotion"] = reduceMotion
         values["fullGameAccess"] = playerSave.contentAccess.allowsChapter(4)
         values["fullGameOwnership"] = String(describing: appState.fullGame.ownership)
+        values["fullGameOutcome"] = appState.fullGame.outcome.map { String(describing: $0) } ?? "none"
         values["currentEntitlements"] = entitlements
         values["gameplayActive"] = appState.play.isGameplayActive
         values["selectedTab"] = appState.shellSession.selectedTab.rawValue
