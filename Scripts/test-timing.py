@@ -229,12 +229,20 @@ def record(results_dir: Path, log_path: Path, args: list[str]) -> None:
     if suite:
         tests = parsed["tests"]
         summary = parsed["summary"]
+        # The playthrough worker is enabled only for an explicitly requested sweep.
+        allowed_skips = set()
+        if (mode == "package:TrinketAppState" and values.get("skip_suite") == "FullGameStoreTests"
+                and "TRINKET_PLAYTHROUGH_REQUEST" not in os.environ):
+            allowed_skips.add("PlaythroughSweepTests/`run owned worker`()")
+        skipped = [test for test in tests if test.get("result") == "Skipped"]
         if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", suite) or not tests:
             scope_error = "Package suite filter lacks executed case evidence"
         elif (summary.get("result") != "Passed" or type(summary.get("passed")) is not int
-              or summary["passed"] != len(tests) or any(type(summary.get(key)) is not int or summary[key] != 0
-                                                         for key in ("failed", "skipped"))
-              or any(test.get("result") != "Passed" or not isinstance(test.get("arguments"), list)
+              or summary["passed"] < 1 or summary["passed"] != len(tests) - len(skipped)
+              or type(summary.get("failed")) is not int or summary["failed"] != 0
+              or type(summary.get("skipped")) is not int or summary["skipped"] != len(skipped)
+              or any(test.get("id") not in allowed_skips or test.get("arguments") != [] for test in skipped)
+              or any(test.get("result") not in ("Passed", "Skipped") or not isinstance(test.get("arguments"), list)
                      or any(result != "Passed" for result in test["arguments"]) for test in tests)
               or len({test["id"] for test in tests}) != len(tests)):
             scope_error = "Package suite filter lacks complete successful case evidence"

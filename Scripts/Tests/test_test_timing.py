@@ -88,6 +88,31 @@ class TestTimingTests(unittest.TestCase):
                                                   '--xcresult', str(bundle), '--only-suite', 'Store'])
                 self.assertIs(json.loads(log.read_text())['scope_validated'], False)
 
+    def test_filtered_state_scope_accepts_only_the_disabled_playthrough_worker(self) -> None:
+        timing = load_script("filtered_state_scope", "test-timing.py")
+        passed = dict(id='Other/example()', name='example', seconds=0, result='Passed', arguments=[])
+        worker = dict(id='PlaythroughSweepTests/`run owned worker`()', name='worker', seconds=0, result='Skipped', arguments=[])
+        summary = dict(result='Passed', passed=1, failed=0, skipped=1)
+        for skipped, request, valid in ((worker, None, True), (worker, 'requested', False),
+                                        ({**worker, 'id': 'Other/skipped()'}, None, False)):
+            with self.subTest(skipped=skipped, request=request), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                bundle = root / 'cases.xcresult'
+                bundle.mkdir()
+                (bundle / 'Info.plist').touch()
+                log = root / 'timing-log.jsonl'
+                environment = {} if request is None else {'TRINKET_PLAYTHROUGH_REQUEST': request}
+                with patch.dict(os.environ, environment, clear=True), \
+                     patch.object(timing, 'parse_xcresult', return_value=dict(summary=summary, tests=[passed, skipped])):
+                    args = ['--mode', 'package:TrinketAppState', '--run', 'filtered', '--xcresult', str(bundle),
+                            '--skip-suite', 'FullGameStoreTests']
+                    if valid:
+                        timing.record(root, log, args)
+                    else:
+                        with self.assertRaises(SystemExit):
+                            timing.record(root, log, args)
+                self.assertIs(json.loads(log.read_text())['scope_validated'], valid)
+
     def test_wall_budget_checks_wall_time_not_the_shorter_test_bundle(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
