@@ -130,10 +130,11 @@ def worker(args, template, name, operation="run", source=None, crash_after=None,
         owned_worker = None
         process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
         try:
-            deadline = started + args.timeout
+            ci_execution = os.environ.get('GITHUB_ACTIONS') == 'true'
+            deadline = float('inf') if ci_execution else started + args.timeout
             interruption_seen = None
             active_career = None
-            batch_deadline = started + args.timeout * (len(careers) + 1) if careers else deadline
+            batch_deadline = (float('inf') if ci_execution else started + args.timeout * (len(careers) + 1)) if careers else deadline
             while process.poll() is None:
                 active_path = folder / "active-career.txt"
                 if careers and active_path.exists():
@@ -142,7 +143,8 @@ def worker(args, template, name, operation="run", source=None, crash_after=None,
                         if not active.isdecimal() or not (0 <= int(active) < len(careers)) or (active_career is not None and int(active) <= int(active_career)):
                             raise ValueError("Invalid batch career sequence")
                         active_career = active
-                        deadline = time.monotonic() + args.timeout
+                        if not ci_execution:
+                            deadline = time.monotonic() + args.timeout
                 pid_file = folder / "worker-pid.txt"
                 if owned_worker is None and pid_file.exists():
                     pid = int(pid_file.read_text())

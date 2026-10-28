@@ -81,6 +81,22 @@ class PlaythroughSweepTests(unittest.TestCase):
             self.assertEqual(result['termination'], 'watchdogTimeout')
             stop.assert_called_once_with(process, (321, 'owned-start-time'))
 
+    def test_ci_batch_can_finish_after_the_local_worker_deadline(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            args = SimpleNamespace(output=root, seed=101, horizon=10, full_access=True,
+                                   mode='contracts', policy='setupAware-v1', hero='knight', companion='wolf',
+                                   scenario=None, timeout=180, crash_proof=False, destination='fixture')
+            process = Mock(returncode=0)
+            process.poll.side_effect = [None, 0]
+            with patch.dict(MODULE.os.environ, {'GITHUB_ACTIONS': 'true'}), \
+                    patch.object(MODULE, 'configure_worker'), patch.object(MODULE.subprocess, 'Popen', return_value=process), \
+                    patch.object(MODULE.time, 'monotonic', side_effect=[0, 181, 182]), \
+                    patch.object(MODULE.time, 'sleep'), patch.object(MODULE, 'stop_worker') as stop:
+                result = MODULE.worker(args, root / 'unused', 'batch', operation='batch', careers=[{}])
+            self.assertEqual(result['exitCode'], 0)
+            stop.assert_not_called()
+
     def test_coverage_portfolio_keeps_all_modes_seeds_policies_and_rejects_missing_evidence(self):
         with tempfile.TemporaryDirectory() as temporary:
             args = SimpleNamespace(output=Path(temporary), scenarios=1, seed=42, seed_stride=1,

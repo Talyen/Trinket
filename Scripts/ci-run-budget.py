@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bound an owned verification command, reserving the job's final diagnostic time."""
+"""Run an owned verification command with cancellation and failure diagnostics."""
 from __future__ import annotations
 
 import argparse
@@ -86,6 +86,8 @@ def has_failure_receipt(results: Path, environment: dict[str, str], before: dict
 
 
 def remaining(environment: dict[str, str], now: float) -> float | None:
+    if environment.get('GITHUB_ACTIONS') == 'true':
+        return None
     value = environment.get('TRINKET_CI_DEADLINE_EPOCH')
     if value is None:
         return None

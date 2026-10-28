@@ -29,7 +29,6 @@ jobs:
   changes:
     name: Path filter
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     outputs:
       units: ${{ steps.filter.outputs.units }}
       unit-matrix: ${{ steps.filter.outputs.unit-matrix }}

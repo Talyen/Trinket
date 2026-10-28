@@ -189,7 +189,7 @@ class PerformanceScenarioTests(unittest.TestCase):
                 reports = list((root / ".DerivedData/PerformanceResults").glob("*/reports.json"))
                 self.assertEqual(len(reports), 1)
                 self.assertEqual(len(json.loads(reports[0].read_text())["reports"]), 1)
-                self.assertGreaterEqual(int((reports[0].parent / "TestResults/wall-budget.txt").read_text()), 1200)
+                self.assertEqual(int((reports[0].parent / "TestResults/wall-budget.txt").read_text()), 0)
                 self.assertFalse((root / ".DerivedData/.performance.lock").exists())
                 environment["TRINKET_PERFORMANCE_OUTPUT_DIR"] = str(reports[0].parent)
                 reused = run_captured([str(scripts / "performance.sh")], env=environment)

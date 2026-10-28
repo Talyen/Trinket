@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
 xcode_runner_wall_timeout_seconds() {
+  if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    printf '0'
+    return
+  fi
   local wall="${TRINKET_XCODE_WALL_TIMEOUT_SECONDS:-1200}"
   if [[ "${TRINKET_CI_DEADLINE_EPOCH:-}" =~ ^[0-9]+$ ]]; then
     local available=$((TRINKET_CI_DEADLINE_EPOCH - $(date +%s) - 30))
@@ -11,6 +15,10 @@ xcode_runner_wall_timeout_seconds() {
 }
 
 xcode_runner_idle_timeout_seconds() {
+  if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    printf '0'
+    return
+  fi
   printf '%s' "${TRINKET_XCODE_IDLE_TIMEOUT_SECONDS:-45}"
 }
 

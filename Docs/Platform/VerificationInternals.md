@@ -40,12 +40,10 @@ establish completed native execution.
 
 ## Execution deadlines
 
-Standard build, package, UI, asset, and unsigned Release jobs record an absolute
-execution deadline in their first step, reserving three minutes before the GitHub
-job timeout for diagnostic classification and upload. The shorter generation/style
-gate reserves two minutes. The command supervisor includes simulator
-preparation and serial package work; per-command Xcode watchdogs also cap themselves
-against the remaining deadline, preserving a short manifest-finalization allowance.
+GitHub Actions jobs do not set repository execution deadlines or XCTest method
+allowances. GitHub-hosted jobs remain subject to GitHub's six-hour execution limit;
+that platform limit can interrupt a run before diagnostics are uploaded. Local
+verification retains its own resource limits and cancellation behavior.
 CI allows five minutes per cold boot (local default: 150 seconds), based on
 observed boots finishing after the old four-minute limit. Simulator recovery
 admits another boot only when its full watchdog fits
@@ -56,17 +54,8 @@ recovery. An exhausted window fails before consuming the test budget.
 retains its existing attempts. Timeouts remain failures and emit structured receipts. Supervisors terminate only
 their own process groups; existing simulator guest/lease cleanup remains in force.
 
-Combined build/smoke/exhaustive jobs allow 55 minutes so the existing 30-minute UI
-watchdog can run after compilation and smoke; ordinary build/smoke jobs allow 40.
-The Battle package shard allows 30 minutes (other package shards allow 25), and
-exact-build UI diagnostics allow 30. Each keeps the three-minute diagnostic reserve.
-
-CI Smoke and the explicitly selected qualified release journeys enable XCTest's
-five-minute per-method execution limit. Hosted UI preparation records memory and
-swap counters after boot to distinguish resource pressure from test execution. Their observed baseline methods finish
-below 136 seconds. A stuck method must fail and retain evidence before consuming
-the entire batch watchdog; this does not classify a product timeout as infrastructure.
-Other FullUI, Soak and performance runs retain their existing execution allowances.
+Hosted UI preparation records memory and swap counters after boot to distinguish
+resource pressure from test execution.
 After a failure on an ownership-verified simulator, disposable CI retains up to
 four recent Trinket app IPS crash reports (2 MiB each), validating their bundle ID.
 It does not run Xcode sysdiagnose: that collection has stalled result finalization

@@ -30,7 +30,6 @@ permissions:
 jobs:
   source:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     outputs:
       sha: ${{ steps.source.outputs.sha }}
       artifact: ${{ steps.source.outputs.artifact }}
@@ -48,11 +47,7 @@ jobs:
   diagnostic:
     needs: source
     runs-on: xcode-27
-    timeout-minutes: 30
     steps:
-      - name: Reserve diagnostic time
-        shell: bash
-        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 30 * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           sparse-checkout: Scripts

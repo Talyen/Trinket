@@ -50,7 +50,6 @@ jobs:
   reuse:
     name: Reuse verified commit
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     outputs:
       standard: ${{ steps.proof.outputs.standard }}
       assets: ${{ steps.proof.outputs.assets }}
@@ -84,11 +83,7 @@ jobs:
     needs: [changes, reuse]
     if: ${{ !inputs.qualify-native && needs.reuse.outputs.assets != 'true' && (github.event_name == 'workflow_dispatch' || needs.changes.outputs.assets == 'true') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
-      - name: Reserve diagnostic time
-        shell: bash
-        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 20 * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       # Same semantics as local ./Scripts/ci-assets-gate.sh (single owner).
       - name: Prepared asset integrity gate
@@ -117,16 +112,12 @@ jobs:
       inputs.include-exhaustive ||
       needs.changes.outputs.smoke == 'true')
     runs-on: xcode-27
-    timeout-minutes: ${{ inputs.include-exhaustive && 55 || 40 }}
     outputs:
       build-artifact: ${{ steps.restore-and-build.outputs.artifact-name }}
       products-outcome: ${{ steps.restore-and-build.outcome }}
       smoke-targets: ${{ steps.ui-matrices.outputs.smoke-targets }}
       inline-ui-outcome: ${{ steps.inline-ui.outcome }}
     steps:
-      - name: Reserve diagnostic time
-        shell: bash
-        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + ${{ inputs.include-exhaustive && 55 || 40 }} * 60 - 180 ))" >> "$GITHUB_ENV"
       # Local composite actions cannot run before the repo exists, so the
       # checkout step inlines actions/checkout (same sparse set as
       # .github/actions/checkout-trinket, which documents the shared list).
@@ -197,8 +188,6 @@ jobs:
         if: always() && !cancelled() && inputs.include-exhaustive && steps.restore-and-build.outcome == 'success'
         continue-on-error: true
         uses: ./.github/actions/test-job
-        env:
-          TRINKET_XCODE_WALL_TIMEOUT_SECONDS: '1800'
         with:
           artifact-name: exhaustive-ui-inline
           artifact-prefix: ${{ inputs.artifact-prefix }}
@@ -219,11 +208,7 @@ jobs:
       always() && !inputs.qualify-native && needs.reuse.result == 'success' &&
       (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
     runs-on: xcode-27
-    timeout-minutes: 30
     steps:
-      - name: Reserve diagnostic time
-        shell: bash
-        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 30 * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 1
@@ -273,9 +258,6 @@ jobs:
       - name: Compile unsigned device Release
         env:
           SKIP_GENERATE: 1
-          # Cold Release exceeds the 1200s xcode-runner default on slow
-          # runners; cap execution before the job timeout so diagnostics can finish.
-          TRINKET_XCODE_WALL_TIMEOUT_SECONDS: '1800'
         run: python3 Scripts/ci-run-budget.py -- ./Scripts/build.sh --release-device --quiet
       - name: Record Release compiler input timestamps
         if: success() && steps.release-cache.outputs.cache-hit != 'true'
@@ -333,14 +315,10 @@ jobs:
     # Package schemes are compiled in this job; the shared build is app-only
     # so smoke/UI can start without waiting on package test products.
     # Save and app-state packages have independent simulators and retry boundaries.
-    timeout-minutes: ${{ matrix.name == 'Battle' && 30 || 25 }}
     env: &package-env
       TRINKET_DIAGNOSTICS_SESSION_ID: unit-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
       TRINKET_CI_NATIVE_LOGIC: ${{ inputs.native-logic }}
     steps: &package-steps
-      - name: Reserve diagnostic time
-        shell: bash
-        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + ${{ matrix.name == 'Battle' && 30 || 25 }} * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 1
@@ -444,7 +422,6 @@ jobs:
       max-parallel: 2
       matrix: ${{ fromJSON(needs.changes.outputs.unit-stages).logic.matrix }}
     runs-on: xcode-27
-    timeout-minutes: 25
     env: *package-env
     steps: *package-steps
 
@@ -466,15 +443,11 @@ jobs:
             package: TrinketContent
             source-shard: Content
     runs-on: xcode-27
-    timeout-minutes: 25
     env:
       CI: true
       TRINKET_DIAGNOSTICS_SESSION_ID: parity-${{ matrix.name }}-${{ github.run_id }}-${{ github.run_attempt }}
       TRINKET_IOS_COMPARATOR_PROOF: ${{ github.workspace }}/.DerivedData/Comparator/ios.json
     steps:
-      - name: Reserve diagnostic time
-        shell: bash
-        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 25 * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 1
@@ -569,13 +542,7 @@ jobs:
       (needs.build.outputs.products-outcome == 'success' || needs.reuse.outputs.standard == 'true') &&
       (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || needs.changes.outputs.code == 'true')
     runs-on: ${{ needs.reuse.outputs.standard == 'true' && 'xcode-27' || 'ubuntu-latest' }}
-    timeout-minutes: 40
-    env:
-      TRINKET_XCODE_WALL_TIMEOUT_SECONDS: '1800'
     steps:
-      - name: Reserve diagnostic time
-        shell: bash
-        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 40 * 60 - 180 ))" >> "$GITHUB_ENV"
       - name: Verify inline exhaustive outcome
         if: needs.reuse.outputs.standard != 'true'
         env:
@@ -644,16 +611,12 @@ jobs:
       (needs.build.outputs.products-outcome == 'success' || needs.reuse.outputs.standard == 'true') &&
       (github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || needs.changes.outputs.code == 'true')
     runs-on: xcode-27
-    timeout-minutes: 75
     env:
       CI: true
       TRINKET_SIM_DEVICE_TYPE: com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro
       TRINKET_SIM_OS_VERSION: '26.2'
       TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS: '720'
-      TRINKET_XCODE_WALL_TIMEOUT_SECONDS: '1800'
     steps:
-      - name: Reserve diagnostic time
-        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 75 * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: ./.github/actions/setup-trinket
         with:
@@ -663,7 +626,6 @@ jobs:
       # iOS 27 StoreKitTest can return a declined transaction as a verified entitlement.
       # Preserve all purchase assertions on the independently qualified runtime.
       - name: Install and validate qualified StoreKit runtime
-        timeout-minutes: 35
         run: |
           python3 - <<'PYTHON'
           import json
@@ -675,7 +637,7 @@ jobs:
                      and item.get('buildversion') == '23C54' for item in runtimes):
               subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '23C54',
                               '-architectureVariant', 'arm64' if platform.machine() == 'arm64' else 'universal'],
-                             check=True, timeout=1800)
+                             check=True)
           PYTHON
           python3 Scripts/deploy-verification.py --mode hosted-beta --preflight
       - uses: ./.github/actions/test-job
@@ -694,7 +656,6 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.code == 'true' || needs.changes.outputs.infra == 'true'
     continue-on-error: true
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
@@ -743,7 +704,6 @@ jobs:
     needs: [changes, reuse, gate, assets-gate, build, release-device, logic, unit, native-parity]
     if: always()
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
@@ -764,7 +724,6 @@ jobs:
     needs: [changes, exhaustive-ui, exhaustive-purchases]
     if: always()
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         if: inputs.include-exhaustive

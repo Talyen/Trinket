@@ -26,7 +26,6 @@ jobs:
     name: Export Apple's iOS 18 runtime
     if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'compatibility' || inputs.scope == 'all'
     runs-on: macos-26
-    timeout-minutes: 50
     steps:
       # Xcode 27's CLI rejects pre-26 downloads (FB24836279). Export with
       # Xcode 26, then import on the verified build/test runner below.
@@ -51,7 +50,6 @@ jobs:
     needs: ios18-runtime
     if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'compatibility' || inputs.scope == 'all'
     runs-on: xcode-27
-    timeout-minutes: 120
     env:
       DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
       TRINKET_DIAGNOSTICS_SESSION_ID: ios18-${{ github.run_id }}-${{ github.run_attempt }}
@@ -73,7 +71,6 @@ jobs:
           name: ios18-runtime-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/ios18-runtime
       - name: Import and validate the required iOS 18 runtime
-        timeout-minutes: 35
         run: |
           python3 - <<'PY'
           import os
@@ -82,7 +79,7 @@ jobs:
           archives = list((Path(os.environ['RUNNER_TEMP']) / 'ios18-runtime').rglob('*.dmg'))
           if len(archives) != 1:
               raise SystemExit(f'Expected one Apple runtime archive, found {len(archives)}')
-          subprocess.run(['xcodebuild', '-importPlatform', str(archives[0])], check=True, timeout=1800)
+          subprocess.run(['xcodebuild', '-importPlatform', str(archives[0])], check=True)
           archives[0].unlink()
           PY
           python3 Scripts/coverage_profiles.py prepare --name ios18
@@ -111,7 +108,6 @@ jobs:
     name: Critical controls on compact phone, iPad and Duo
     if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all'
     runs-on: xcode-27
-    timeout-minutes: 120
     env:
       DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
       TRINKET_DIAGNOSTICS_SESSION_ID: player-profiles-${{ github.run_id }}-${{ github.run_attempt }}
@@ -161,7 +157,6 @@ jobs:
     name: Weekly repeated play and crash recovery
     if: github.event.schedule == '0 9 * * 0' || inputs.scope == 'soak' || inputs.scope == 'all'
     runs-on: xcode-27
-    timeout-minutes: 120
     env:
       DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
     steps:

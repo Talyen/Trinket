@@ -16,7 +16,6 @@ jobs:
   verify:
     name: Verify release commit
     runs-on: ubuntu-latest
-    timeout-minutes: 90
     permissions:
       contents: read
       actions: read
@@ -80,7 +79,6 @@ jobs:
     name: GitHub Release
     needs: verify
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     permissions:
       contents: write
     steps:

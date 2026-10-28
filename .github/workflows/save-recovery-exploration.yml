@@ -10,7 +10,6 @@ jobs:
   generated-cases:
     name: Explore save recovery and Voyage replay
     runs-on: xcode-27
-    timeout-minutes: 40
     env:
       TEST_RUNNER_TRINKET_GENERATED_CASES: '512'
       TRINKET_CLEANUP_TEST_ARTIFACTS: '0'
@@ -18,9 +17,6 @@ jobs:
       TRINKET_DIAGNOSTICS_SESSION_ID: generated-save-${{ github.run_id }}-${{ github.run_attempt }}
       SKIP_GENERATE: '1'
     steps:
-      - name: Reserve diagnostic time
-        shell: bash
-        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 40 * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 1

@@ -133,6 +133,18 @@ class PlayerCoverageTests(unittest.TestCase):
                     patch.object(MODULE.subprocess, 'run'), self.assertRaisesRegex(ValueError, f'unavailable iOS {major}'):
                 MODULE.prepare_profile(name)
 
+    def test_ci_runtime_install_has_no_execution_deadline(self):
+        device, major = MODULE.PROFILES['compact']
+        types = json.dumps({'devicetypes': [dict(identifier=device)]})
+        available = json.dumps({'runtimes': [dict(identifier=f'ios-{major}', version=f'{major}.0',
+                                                   platform='iOS', isAvailable=True)]})
+        with patch.dict(MODULE.os.environ, {'GITHUB_ACTIONS': 'true'}), \
+                patch.object(MODULE, 'simctl', side_effect=[types, json.dumps({'runtimes': []}), available]), \
+                patch.object(MODULE.platform, 'machine', return_value='arm64'), \
+                patch.object(MODULE.subprocess, 'run') as install:
+            MODULE.prepare_profile('compact')
+            self.assertIsNone(install.call_args.kwargs['timeout'])
+
     def test_native_text_size_restores_after_body_or_setting_failure(self):
         for fail in ('body', 'setting'):
             current, events = ['medium'], []

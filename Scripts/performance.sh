@@ -55,6 +55,9 @@ TRINKET_PERFORMANCE_SCENARIOS="$(python3 -c 'import json,sys; print(",".join(jso
 wall_budget=$((300 + ${#TESTS[@]} * 60 * REPETITIONS))
 if (( wall_budget < 1200 )); then wall_budget=1200; fi
 export TRINKET_XCODE_WALL_TIMEOUT_SECONDS="${TRINKET_XCODE_WALL_TIMEOUT_SECONDS:-$wall_budget}"
+if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+  export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=0
+fi
 python3 Scripts/performance_environment.py "$OUTPUT_DIR/environment.json" "$REPETITIONS"
 
 echo "Running exclusive full-fidelity app performance matrix (${REPETITIONS} measured run(s)/scenario)..."

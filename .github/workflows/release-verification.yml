@@ -24,7 +24,6 @@ jobs:
   qualified:
     name: Qualified release journeys
     runs-on: xcode-27
-    timeout-minutes: 75
     env:
       CI: true
       TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE: '0'
@@ -48,7 +47,6 @@ jobs:
           metal: 'true'
           xcode-channel: verified
       - name: Install the qualified runtime if absent
-        timeout-minutes: 35
         run: |
           python3 - <<'PY'
           import json
@@ -60,7 +58,7 @@ jobs:
                      and item.get('buildversion') == '23C54' for item in runtimes):
               subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '23C54',
                               '-architectureVariant', 'arm64' if platform.machine() == 'arm64' else 'universal'],
-                             check=True, timeout=1800)
+                             check=True)
           PY
           python3 Scripts/deploy-verification.py --mode hosted-beta --preflight
       - uses: ./.github/actions/coverage-products

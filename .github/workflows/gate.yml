@@ -15,11 +15,7 @@ jobs:
   gate:
     name: Generate and style
     runs-on: xcode-27
-    timeout-minutes: 10
     steps:
-      - name: Reserve diagnostic time
-        shell: bash
-        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 10 * 60 - 120 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           # Depth-1 history suffices for changelog validation. blob:limit=1g

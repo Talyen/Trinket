@@ -377,8 +377,8 @@ class CIImprovementsTests(unittest.TestCase):
         self.assertIn('export-ios', unit)
         self.assertIn("if: always() && steps.ios-proof.outcome == 'success'", unit)
         self.assertIn('TRINKET_DIAGNOSTICS_SESSION_ID: parity-', parity)
-        self.assertIn('timeout-minutes: 25', parity)
-        self.assertIn('+ 25 * 60 - 180', parity)
+        self.assertNotIn('timeout-minutes:', parity)
+        self.assertNotIn('TRINKET_CI_DEADLINE_EPOCH=', parity)
         self.assertIn("if: always() && !cancelled() && github.event_name != 'push' && !inputs.native-logic && needs.unit.result != 'skipped'", parity)
         self.assertIn('ios-parity-${{ matrix.source-shard }}-${{ github.run_id }}-${{ github.run_attempt }}', parity)
         self.assertIn('unit, native-parity]', workflow.split('  ci-ok:\n', 1)[1])
@@ -415,18 +415,23 @@ class CIImprovementsTests(unittest.TestCase):
                               env={**os.environ, 'REQUIRE_PARITY': 'false', 'JOB_RESULTS': json.dumps(jobs)})
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
 
-    def test_declared_job_timeouts_leave_a_diagnostic_reserve_before_checkout(self):
-        for filename in ('tests.yml', 'diagnostic-ui.yml', 'gate.yml'):
-            workflow = (ROOT / '.github/workflows' / filename).read_text()
-            for block in re.split(r'^  [\w-]+:\n', workflow, flags=re.M):
-                if 'TRINKET_CI_DEADLINE_EPOCH=' not in block:
-                    continue
-                minutes = re.search(r'timeout-minutes: (.+)', block)[1]
-                declared, reserve = re.search(r'\+ (.+) \* 60 - (\d+)', block).groups()
-                self.assertEqual(minutes, declared)
-                self.assertRegex(minutes, r'^(?:\d+|\$\{\{.+\}\})$')
-                self.assertGreaterEqual(int(reserve), 120)
-                self.assertLess(block.index('TRINKET_CI_DEADLINE_EPOCH='), block.index('actions/checkout@'))
+    def test_ci_workflows_do_not_set_execution_deadlines(self):
+        for path in (ROOT / '.github/workflows').glob('*.yml'):
+            with self.subTest(path=path.name):
+                workflow = path.read_text()
+                self.assertNotIn('timeout-minutes:', workflow)
+                self.assertNotIn('TRINKET_CI_DEADLINE_EPOCH=', workflow)
+                self.assertNotIn('TRINKET_XCODE_WALL_TIMEOUT_SECONDS:', workflow)
+        self.assertIsNone(BUDGET.remaining({'GITHUB_ACTIONS': 'true', 'TRINKET_CI_DEADLINE_EPOCH': '1'}, 2))
+
+    def test_ci_xcode_watchdog_has_no_wall_or_idle_execution_deadline(self):
+        result = run_captured(['bash', '-c', 'source Scripts/lib/xcode-watchdog.sh; '
+                               'printf "%s %s" "$(xcode_runner_wall_timeout_seconds)" '
+                               '"$(xcode_runner_idle_timeout_seconds)"'], cwd=ROOT,
+                              env={**os.environ, 'GITHUB_ACTIONS': 'true',
+                                   'TRINKET_XCODE_WALL_TIMEOUT_SECONDS': '1',
+                                   'TRINKET_XCODE_IDLE_TIMEOUT_SECONDS': '1'}, expected=0)
+        self.assertEqual(result.stdout, '0 0')
 
     def test_push_native_routing_keeps_manual_ios_comparators(self):
         # Exercise dispatcher defaults independently of the runner's selected backend.

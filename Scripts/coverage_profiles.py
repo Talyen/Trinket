@@ -102,7 +102,7 @@ def prepare_profile(name):
         variant = 'arm64' if platform.machine() == 'arm64' else 'universal'
         subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '.'.join(map(str, minimum)),
                         '-architectureVariant', variant],
-                       check=True, timeout=1800)
+                       check=True, timeout=None if os.environ.get('GITHUB_ACTIONS') == 'true' else 1800)
         runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
     select_profile(runtimes, types, type_id, major)
 

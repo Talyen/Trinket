@@ -107,13 +107,13 @@ Disabling bulk simulator diagnostics retains XCTest results, ordinary attachment
 and our structured failure reports. An explicit `-collect-test-diagnostics on-failure`
 argument to the shared runner remains available for a deliberate forensic run.
 
-The shared watchdog tracks top-level starts and completions in log order. A new
+The local watchdog tracks top-level starts and completions in log order. A new
 Swift Testing run disarms idle finalization inferred from an earlier legacy
 XCTest summary; the normal wall deadline still bounds active tests.
 The shared watchdog allows 45 seconds of quiet after the terminal test marker
 before treating finalization as stalled; `TRINKET_XCODE_IDLE_TIMEOUT_SECONDS`
-overrides that limit. Local tests use the same allowance as CI: healthy exports
-can take longer than 10 seconds after the suite passes. A passed suite can still
+overrides that limit. GitHub Actions does not apply this repository watchdog;
+GitHub's runner limit still applies. A passed suite can still
 hang during result finalization, leaving an incomplete `.xcresult`. The watchdog bounds that wait and
 can report success only after an authoritative `** TEST SUCCEEDED **` or
 `** BUILD SUCCEEDED **` action marker. XCTest suite and Swift Testing run summaries

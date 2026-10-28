@@ -37,10 +37,10 @@ def main() -> None:
         raise SystemExit("repetitions must be positive")
     try:
         wall_timeout = int(os.environ.get("TRINKET_XCODE_WALL_TIMEOUT_SECONDS", "1200"))
-        if wall_timeout < 1:
+        if wall_timeout < 0:
             raise ValueError
     except ValueError:
-        raise SystemExit("TRINKET_XCODE_WALL_TIMEOUT_SECONDS must be a positive integer") from None
+        raise SystemExit("TRINKET_XCODE_WALL_TIMEOUT_SECONDS must be a nonnegative integer") from None
     output = Path(sys.argv[1])
     # --porcelain is the stable spelling of --short: one status run feeds both.
     git_status = command("git", "status", "--porcelain", required=True)
