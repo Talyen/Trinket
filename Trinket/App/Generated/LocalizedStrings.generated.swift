@@ -1319,4 +1319,28 @@ enum L10n {
         LocalizedStringResource("ui.voyageview.voyage_options_094ff", defaultValue: "Voyage options", table: "Localizable", bundle: .main)
     }
 
+    static var voyage_destination_bonus: LocalizedStringResource {
+        LocalizedStringResource("voyage.destination.bonus", defaultValue: "+20% of combat Gold and materials", table: "Localizable", bundle: .main)
+    }
+
+    static var voyage_destination_completion: LocalizedStringResource {
+        LocalizedStringResource("voyage.destination.completion", defaultValue: "Completion", table: "Localizable", bundle: .main)
+    }
+
+    static var voyage_destination_embark: LocalizedStringResource {
+        LocalizedStringResource("voyage.destination.embark", defaultValue: "Embark", table: "Localizable", bundle: .main)
+    }
+
+    static var voyage_destination_enemies: LocalizedStringResource {
+        LocalizedStringResource("voyage.destination.enemies", defaultValue: "Possible Enemies", table: "Localizable", bundle: .main)
+    }
+
+    static func voyage_destination_level(_ value1: String) -> LocalizedStringResource {
+        LocalizedStringResource("voyage.destination.level", defaultValue: "Level \(ContentCopy.localized(value1))", table: "Localizable", bundle: .main)
+    }
+
+    static var voyage_destination_route: LocalizedStringResource {
+        LocalizedStringResource("voyage.destination.route", defaultValue: "Route", table: "Localizable", bundle: .main)
+    }
+
 }

@@ -4606,6 +4606,90 @@
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Opções de Viagem"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "遠征選項"}}
       }
+    },
+    "voyage.destination.bonus": {
+      "comment": "Additional reward earned on defeating the Voyage boss, based on combat earnings.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "+20%% des im Kampf erhaltenen Goldes und der Materialien"}},
+        "en": {"stringUnit": {"state": "translated", "value": "+20%% of combat Gold and materials"}},
+        "es": {"stringUnit": {"state": "translated", "value": "+20%% del oro y los materiales obtenidos en combate"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "+20%% de l'Or et des matériaux obtenus au combat"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘で獲得したゴールドと素材の20%%を追加獲得"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전투에서 획득한 골드와 재료의 20%% 추가 획득"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "+20%% do ouro e dos materiais obtidos em combate"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "額外獲得戰鬥所得金幣與材料的20%%"}}
+      }
+    },
+    "voyage.destination.completion": {
+      "comment": "Heading for rewards granted on completing a Voyage.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Abschlussbelohnung"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Completion"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Recompensas de finalización"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Récompenses d’accomplissement"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "達成報酬"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "완료 보상"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Recompensas de conclusão"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "完成獎勵"}}
+      }
+    },
+    "voyage.destination.embark": {
+      "comment": "Button to begin the selected Voyage.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Aufbrechen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Embark"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Partir"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Partir"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "出発"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "출발"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Partir"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "出發"}}
+      }
+    },
+    "voyage.destination.enemies": {
+      "comment": "Heading for possible ordinary Voyage enemies.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Mögliche Gegner"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Possible Enemies"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Posibles enemigos"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Ennemis possibles"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "出現する可能性のある敵"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "출현 가능한 적"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Possíveis inimigos"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "可能出現的敵人"}}
+      }
+    },
+    "voyage.destination.level": {
+      "comment": "Voyage encounter level for the currently selected party.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Stufe %1$@"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Level %1$@"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Nivel %1$@"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Niveau %1$@"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "レベル %1$@"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "레벨 %1$@"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Nível %1$@"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "等級 %1$@"}}
+      }
+    },
+    "voyage.destination.route": {
+      "comment": "Heading for counts of encounters on a Voyage.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Reiseweg"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Route"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Ruta"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Itinéraire"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "道程"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "경로"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Rota"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "路線"}}
+      }
     }
   },
   "version": "1.0"

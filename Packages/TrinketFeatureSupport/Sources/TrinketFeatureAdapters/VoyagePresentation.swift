@@ -18,7 +18,7 @@ public extension StageSelectRowPresentation where Item == VoyageOffer {
                 encounterTypeTitle: String(localized: L10n.ui_voyagepresentation_voyage_10d91),
                 icon: .system("location.north.fill"), tint: TrinketDesign.Colors.accent,
                 primaryActionTitle: String(localized: L10n.ui_voyagepresentation_embark_883ea),
-                showsPartyPicker: true, isArtworkInteractive: false,
+                showsPartyPicker: true, isArtworkInteractive: true,
                 rowAccessibilityID: AccessibilityID.Voyage.row(offer.difficulty.rawValue),
                 artworkAccessibilityID: AccessibilityID.Voyage.artwork(offer.difficulty.rawValue),
                 actionAccessibilityID: AccessibilityID.Voyage.action(offer.difficulty.rawValue),

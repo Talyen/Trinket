@@ -12,8 +12,13 @@ completion is not required. Refresh is free before embarking.
 
 Each card reuses Chapter art, with difficulty above the location name, a distinct
 eligible reward modifier when possible, the shared Party picker, and Embark
-(`location.north.fill`). Refresh rerolls all three modifiers. The Explore card and board hero
-use the compass-and-map Voyage artwork; the title is native UI text.
+(`location.north.fill`). Tap destination artwork to inspect its possible enemy pool,
+guaranteed boss, encounter level for the current party, route counts, and completion
+rewards. Enemy and boss portraits open their combatant details; Embark is also
+available from the detail sheet. The route summary uses current recruit eligibility,
+and rewards resolve against current ownership. Refresh rerolls all three modifiers.
+The Explore card and board hero use the compass-and-map Voyage artwork; the title is
+native UI text.
 
 One Voyage can be active. Embark persists the complete generated route before
 navigation. Returning from Explore resumes it directly. The route uses Campaign's

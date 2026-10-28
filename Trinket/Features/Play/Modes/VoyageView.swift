@@ -19,6 +19,7 @@ struct VoyageView: View {
     @State private var message: StageMapMessage?
     @State private var abandonRunID: String?
     @State private var embarkedOfferID: String?
+    @State private var inspectedDestination: VoyageDestinationSelection?
     @State private var isCrossfading = false
     @State private var preparationGeneration = UUID()
     @Environment(\.dismiss) private var dismiss
@@ -88,6 +89,22 @@ struct VoyageView: View {
                 .trinketScreenBackground()
             }
         }
+        .preparedArtworkSheet(item: $inspectedDestination, artworkNames: { selection in
+            VoyageDestinationSheet.artworkNames(chapterID: selection.chapterID)
+        }, content: { selection in
+            if let offer = playerSave.voyage.offers.first(where: { $0.id == selection.id }) {
+                VoyageDestinationSheet(offer: offer, isEmbarkDisabled: !isReady) {
+                    embark(offer)
+                }
+                .trinketDetailSheet()
+            }
+        })
+        .onChange(of: playerSave.voyage) { _, state in
+            if let selection = inspectedDestination,
+               state.activeRun != nil || !state.offers.contains(where: { $0.id == selection.id }) {
+                inspectedDestination = nil
+            }
+        }
         .trinketPlayActionResult($message)
         .disabled(playerSave.isRetryingSaveAction)
         .task { message = voyage.enter() }
@@ -109,6 +126,7 @@ struct VoyageView: View {
             artworkPins.release()
             displayed = nil
             embarkedOfferID = nil
+            inspectedDestination = nil
             isCrossfading = false
             abandonRunID = nil
             preparationGeneration = UUID()
@@ -162,18 +180,25 @@ struct VoyageView: View {
             rows: StageSelectRowPresentation<VoyageOffer>.voyageOffers(offers, inventory: playerSave.inventory),
             rowSpacing: TrinketDesign.Spacing.large,
             primaryActionLabelColor: TrinketDesign.Colors.canvas,
-            isPrimaryActionDisabled: { _ in !isReady }, onArtworkTap: { _ in },
-            onPrimaryAction: { offer in
-                guard isReady else { return false }
-                embarkedOfferID = offer.id
-                voyage.embark(offerID: offer.id)
-                return true
-            }, artwork: { offer, _ in
+            isPrimaryActionDisabled: { _ in !isReady }, onArtworkTap: { offer in
+                guard isReady else { return }
+                inspectedDestination = VoyageDestinationSelection(id: offer.id, chapterID: offer.chapterID)
+            },
+            onPrimaryAction: embark, artwork: { offer, _ in
                 if let art = ArtCatalog.backgroundArtByID[offer.chapterID] {
                     MapTileArtwork(art: art)
                 }
             }, partyPickerSheet: { _ in StageBattlePartyPickerSheet() },
         )
+    }
+
+    private func embark(_ offer: VoyageOffer) -> Bool {
+        guard isReady, playerSave.voyage.activeRun == nil,
+              playerSave.voyage.offers.contains(where: { $0.id == offer.id }) else { return false }
+        inspectedDestination = nil
+        embarkedOfferID = offer.id
+        voyage.embark(offerID: offer.id)
+        return true
     }
 
     private func route(_ run: VoyageRun) -> some View {
@@ -245,6 +270,7 @@ struct VoyageView: View {
             && displayed != nil
         if shouldCrossfade {
             embarkedOfferID = nil
+            inspectedDestination = nil
             isCrossfading = true
             withAnimation(TrinketMotion.Screen.crossfade) { displayed = state }
             do {

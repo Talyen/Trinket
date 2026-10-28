@@ -53,6 +53,32 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         assertExists(AccessibilityID.Play.labyrinthMap)
     }
 
+    func testVoyageDestinationInspectionAndEmbark() {
+        launchApp(arguments: TestLaunchArg.allForTab("play"))
+        play.openExplore()
+        tapButtonAfterScroll(AccessibilityID.Voyage.modeCard)
+        assertExists(AccessibilityID.Voyage.screen)
+        let artwork = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", AccessibilityID.Voyage.artwork(""),
+        )).firstMatch
+        tapWhenReady(artwork)
+        assertExists(AccessibilityID.Voyage.destinationSheet)
+        let enemy = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", AccessibilityID.Voyage.destinationEnemy(""),
+        )).firstMatch
+        let enemyName = enemy.label
+        tapWhenReady(enemy)
+        dismissSheet(AccessibilityID.CombatantDetail.header(name: enemyName))
+        assertExists(AccessibilityID.Voyage.destinationSheet)
+        reveal(any(AccessibilityID.Voyage.destinationCompletion))
+        tapButton(AccessibilityID.Voyage.destinationEmbark)
+        tapButton(AccessibilityID.Voyage.options)
+        tapButton(AccessibilityID.Voyage.abandon)
+        tapButton(AccessibilityID.Voyage.confirmAbandon)
+        assertExists(AccessibilityID.Voyage.refresh)
+        assertDoesNotExist(AccessibilityID.Voyage.options)
+    }
+
     func testVoyageEmbarkAndAbandonReturnsToOffers() {
         launchApp(arguments: TestLaunchArg.allForTab("play"))
         play.openExplore()

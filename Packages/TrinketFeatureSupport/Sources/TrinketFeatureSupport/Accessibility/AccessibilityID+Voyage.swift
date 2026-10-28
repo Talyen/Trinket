@@ -2,6 +2,14 @@ public extension AccessibilityID {
     enum Voyage {
         public static let modeCard = "Voyage Mode Card"
         public static let screen = "Voyage Screen"
+        public static let destinationSheet = "Voyage Destination Sheet"
+        public static let destinationCompletion = "Voyage Destination Completion"
+        public static let destinationEmbark = "Voyage Destination Embark"
+        public static let destinationClose = "Voyage Destination Close"
+        public static func destinationEnemy(_ id: String) -> String {
+            "Voyage Destination Enemy \(id)"
+        }
+
         public static let destinationReward = "Voyage Destination Reward"
         public static let options = "Voyage Options"
         public static let confirmAbandon = "Confirm Abandon Voyage"

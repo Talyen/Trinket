@@ -114,6 +114,7 @@ struct StageSelectActiveCard<
             // UIStyleCheck: allow - Encounter artwork is the enemy-detail affordance.
             .trinketArtworkCardButtonStyle()
             .accessibilityIdentifier(presentation.artworkAccessibilityID)
+            .accessibilityLabel(label(presentation.title, resource: presentation.titleResource))
         } else {
             artwork()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
