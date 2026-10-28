@@ -150,7 +150,7 @@ struct FullGameOfferView: View {
                 }
                 Text(L10n.ui_fullgameofferview_restore_purchases_16351)
             }
-            .frame(minHeight: footerControlMinHeight)
+            .frame(minHeight: 44)
             .contentShape(.rect)
         }
         .disabled(store.isRestoring || store.isPurchasing)
@@ -160,17 +160,10 @@ struct FullGameOfferView: View {
     private var privacyLink: some View {
         Link(destination: TrinketPublicPages.privacy) {
             Text(L10n.ui_fullgameofferview_privacy_54a57)
-                .frame(minWidth: footerControlMinHeight, minHeight: footerControlMinHeight)
+                .frame(minWidth: 44, minHeight: 44)
                 .contentShape(.rect)
         }
         .accessibilityIdentifier(AccessibilityID.FullGame.privacy)
-    }
-
-    private var footerControlMinHeight: CGFloat? {
-        if #available(iOS 26.0, *) {
-            return nil
-        }
-        return 44
     }
 }
 
