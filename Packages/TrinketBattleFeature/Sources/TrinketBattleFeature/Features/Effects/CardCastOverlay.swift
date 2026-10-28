@@ -126,7 +126,6 @@ struct CardActivationRequest: Equatable, Identifiable {
         scale: CGFloat,
         perspective: CGFloat = 0.35,
         keywords: [Keyword],
-        particleCount: Int = BattleMotion.cardCastParticleCount,
     ) {
         self.id = id
         self.startedAt = startedAt
@@ -142,9 +141,7 @@ struct CardActivationRequest: Equatable, Identifiable {
             result.append(keyword)
         }
         self.keywords = uniqueKeywords.isEmpty ? [.physical] : uniqueKeywords
-        particles = particleCount == BattleMotion.cardCastParticleCount
-            ? CardActivationParticle.castParticles
-            : CardActivationParticle.make(count: particleCount)
+        particles = CardActivationParticle.castParticles
     }
 
     static func restingRequest(
@@ -181,32 +178,19 @@ struct CardActivationRequest: Equatable, Identifiable {
 
 struct CardCastEffectsLayer: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    let request: CardActivationRequest?
+    let request: CardActivationRequest
     let scheduledCast: BattleRecordedCardCast?
     let onFinished: (UUID) -> Void
 
-    private static let idleRequest = CardActivationRequest(
-        artworkName: nil,
-        center: .zero,
-        size: .zero,
-        rotation: 0,
-        verticalTilt: 0,
-        scale: 1,
-        keywords: [.physical],
-    )
-
     var body: some View {
-        TimelineView(.animation(paused: request == nil || request?.pausedAt != nil)) { timeline in
-            let displayedRequest = request ?? Self.idleRequest
-            let progress = request.map {
-                scheduledCast?.departureProgress(at: $0.pausedAt ?? timeline.date)
-                    ?? cardActivationProgress(elapsed: ($0.pausedAt ?? timeline.date).timeIntervalSince($0.startedAt))
-            } ?? 0
-            cast(displayedRequest, progress: progress)
-                .opacity(request?.isVisible == true ? 1 : 0)
+        TimelineView(.animation(paused: request.pausedAt != nil)) { timeline in
+            let date = request.pausedAt ?? timeline.date
+            let progress = scheduledCast?.departureProgress(at: date)
+                ?? cardActivationProgress(elapsed: date.timeIntervalSince(request.startedAt))
+            cast(request, progress: progress)
+                .opacity(request.isVisible ? 1 : 0)
         }
         .task(id: completionDate) {
-            guard let request, request.pausedAt == nil else { return }
             guard let completionDate else { return }
             let remaining = max(0, completionDate.timeIntervalSinceNow)
             try? await Task.sleep(for: .seconds(remaining))
@@ -214,19 +198,17 @@ struct CardCastEffectsLayer: View {
             onFinished(request.id)
         }
         .onDisappear {
-            if let request {
-                onFinished(request.id)
-            }
+            onFinished(request.id)
         }
         .allowsHitTesting(false)
         .battleFramePacingSignpost(
             BattleFramePacingSignposts.Name.cardCast,
-            isActive: request != nil,
+            isActive: true,
         )
     }
 
     private var completionDate: Date? {
-        guard let request, request.pausedAt == nil, scheduledCast?.pausedAt == nil else { return nil }
+        guard request.pausedAt == nil, scheduledCast?.pausedAt == nil else { return nil }
         return request.completionDate(scheduledCast: scheduledCast)
     }
 
@@ -262,7 +244,6 @@ struct CardCastEffectsLayer: View {
 struct CardCastPresentationLane: View {
     let presentation: BattleCastPresentationState
     let playback: BattleCardPlaybackState
-    let hapticsEnabled: Bool
 
     var body: some View {
         ZStack {

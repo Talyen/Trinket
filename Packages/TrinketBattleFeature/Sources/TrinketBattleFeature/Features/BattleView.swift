@@ -359,7 +359,6 @@ struct BattleFieldLane: View {
         CardCastPresentationLane(
             presentation: castPresentation,
             playback: presentation.cardPlayback,
-            hapticsEnabled: battleSession.hapticsEnabled,
         )
     }
 

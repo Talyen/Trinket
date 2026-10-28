@@ -148,10 +148,6 @@ enum CardDissolveTexture {
         }
     }
 
-    static func prewarm(cutAngleDegrees: CGFloat? = nil) {
-        _ = prewarmTask(cutAngleDegrees: cutAngleDegrees)
-    }
-
     static func prepare(cutAngleDegrees: CGFloat? = nil) async {
         while !Task.isCancelled {
             let preparingCache = cache

@@ -23,12 +23,10 @@ struct BattleAbilityCardView: View {
     var onLiftCancel: (() -> Void)?
 
     @State private var dragTranslation: CGSize = .zero
-    @State private var didExceedTapSlop = false
     @State private var interactionResolution: InteractionResolution = .idle
     @State private var didAnnounceWindUp = false
     @State private var inspectFeedbackToken = 0
     @State private var denyFeedbackToken = 0
-    @State private var didAnnounceDeny = false
     @State private var didReportPlayDenied = false
     @GestureState private var isGestureActive = false
     @Environment(\.scenePhase) private var scenePhase
@@ -193,9 +191,8 @@ struct BattleAbilityCardView: View {
             onInteractionChanged(true)
             announceWindUpIfNeeded(mode: .pressPreview)
         }
-        if !didExceedTapSlop,
+        if interactionResolution == .pressing,
            BattleCardGesturePolicy.exceedsTapSlop(translation: value.translation) {
-            didExceedTapSlop = true
             interactionResolution = .dragging
             if didAnnounceWindUp {
                 onLift?(.preview)
@@ -204,7 +201,7 @@ struct BattleAbilityCardView: View {
             }
         }
         // A hold keeps its fan position; finger jitter must not start drag presentation.
-        guard didExceedTapSlop else { return }
+        guard interactionResolution == .dragging else { return }
         dragTranslation = BattleCardGesturePolicy.presentationTranslation(
             value.translation,
             isPlayable: isPlayable,
@@ -215,11 +212,8 @@ struct BattleAbilityCardView: View {
                 translation: value.translation,
                 isPlayable: true,
             )
-            if crossedDenyThreshold, !didAnnounceDeny {
-                didAnnounceDeny = true
+            if crossedDenyThreshold {
                 reportPlayDeniedIfNeeded()
-            } else if !crossedDenyThreshold {
-                didAnnounceDeny = false
             }
         }
     }
@@ -231,7 +225,7 @@ struct BattleAbilityCardView: View {
 
         let isTap = BattleCardGesturePolicy.isTapGesture(
             translation: value.translation,
-            didExceedTapSlop: didExceedTapSlop,
+            didExceedTapSlop: interactionResolution == .dragging,
             minimumDistance: BattleCardGesturePolicy.dragMinimumDistance,
         )
         if isTap {
@@ -252,7 +246,7 @@ struct BattleAbilityCardView: View {
     }
 
     private func beginInspection() {
-        guard interactionResolution == .pressing, !didExceedTapSlop else { return }
+        guard interactionResolution == .pressing else { return }
         presentInspection()
     }
 
@@ -285,8 +279,6 @@ struct BattleAbilityCardView: View {
     private func resetVisualState() {
         cancelAnnouncedWindUp()
         dragTranslation = .zero
-        didExceedTapSlop = false
-        didAnnounceDeny = false
         didReportPlayDenied = false
     }
 
