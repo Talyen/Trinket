@@ -24,5 +24,12 @@ def report(**overrides: object) -> dict[str, object]:
         "missedDeadlineRatio": 25 / 120,
         "severeStallCount": 0,
     }
+    if overrides.get("schemaVersion") == 6:
+        report.update({
+            "averageFPS": 60.0, "onePercentLowFPS": 60.0,
+            "p95FrameMs": 1000 / 60, "p99FrameMs": 1000 / 60, "maxFrameMs": 1000 / 60,
+            "missedDeadlineCount": 0, "missedDeadlineRatio": 0,
+            "severeStallCount": 0, "estimatedMissedFrameCount": 0,
+        })
     report.update(overrides)
     return report

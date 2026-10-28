@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import sys
 import tempfile
 import unittest
@@ -66,7 +67,7 @@ class ComparePerformanceTests(unittest.TestCase):
 
     def test_inconsistent_interaction_metrics_fail_even_in_observe_mode(self) -> None:
         for overrides, reason in (
-            ({"sampleCount": 2}, "missed deadlines <= sample count"),
+            ({"sampleCount": 2, "missedDeadlineCount": 3}, "missed deadlines <= sample count"),
             ({"severeStallCount": 26}, "severe stalls <= missed deadlines"),
             ({"missedDeadlineCount": 0, "missedDeadlineRatio": 0, "severeStallCount": 5},
              "severe stalls <= missed deadlines"),
@@ -83,8 +84,11 @@ class ComparePerformanceTests(unittest.TestCase):
 
     def test_interaction_metric_consistency_accepts_equal_counts_and_rounded_ratios(self) -> None:
         for overrides in (
-            {"sampleCount": 25, "missedDeadlineCount": 25, "severeStallCount": 25, "missedDeadlineRatio": 1},
-            {"missedDeadlineRatio": 0.208333},
+            {"sampleCount": 25, "missedDeadlineCount": 25, "severeStallCount": 25, "missedDeadlineRatio": 1,
+             "estimatedMissedFrameCount": 50, "averageFPS": 20, "onePercentLowFPS": 20,
+             "p95FrameMs": 50, "p99FrameMs": 50, "maxFrameMs": 50,
+             "measurementDuration": 1.25, "captureEndedAt": 101.25},
+            {"missedDeadlineCount": 25, "estimatedMissedFrameCount": 25, "missedDeadlineRatio": 0.208333},
         ):
             status, summary = self.run_comparison([report(schemaVersion=6, **overrides)], mode="observe")
             self.assertEqual(status, 0)
@@ -104,8 +108,49 @@ class ComparePerformanceTests(unittest.TestCase):
                 self.assertIn(reason, summary)
 
         status, _ = self.run_comparison([report(schemaVersion=6, averageFPS=10, onePercentLowFPS=10,
-                                                 p95FrameMs=100, p99FrameMs=100, maxFrameMs=100)], mode="observe")
+                                                 p95FrameMs=100, p99FrameMs=100, maxFrameMs=100,
+                                                 measurementDuration=12, captureEndedAt=112)], mode="observe")
         self.assertEqual(status, 0)
+
+    def test_interaction_evidence_rejects_impossible_sampled_metrics(self) -> None:
+        for overrides, reason in (
+            ({"averageFPS": 59, "onePercentLowFPS": 59}, "sampled intervals exceed the capture duration"),
+            ({"onePercentLowFPS": 10}, "1% low FPS is incompatible with maximum frame time"),
+            ({"p99FrameMs": 20, "maxFrameMs": 20}, "1% low FPS is incompatible with p99 frame time"),
+            ({"estimatedMissedFrameCount": -1}, "estimated missed frames must be a non-negative integer"),
+            ({"estimatedMissedFrameCount": 0.5}, "estimated missed frames must be a non-negative integer"),
+            ({"estimatedMissedFrameCount": None}, "estimatedMissedFrameCount is missing or non-numeric"),
+        ):
+            with self.subTest(overrides=overrides):
+                status, summary = self.run_comparison([report(schemaVersion=6, **overrides)], mode="observe")
+                self.assertEqual(status, 1)
+                self.assertIn(reason, summary)
+
+    def test_consistency_accepts_actual_sampler_statistics_at_percentile_boundaries(self) -> None:
+        from internal.performance.performance_model import validate_report
+        for count in (1, 2, 99, 100, 101, 200):
+            intervals = sorted([1 / 60] * (count - 1) + [0.08])
+            worst = intervals[-math.ceil(count * 0.01):]
+            missed = sum(interval >= 1.5 / 60 for interval in intervals)
+            severe = sum(interval >= 3 / 60 for interval in intervals)
+            estimated = sum(max(0, math.floor(interval * 60 + 0.5) - 1) for interval in intervals)
+            duration = sum(intervals) + 0.001
+            measured = report(
+                schemaVersion=6, sampleCount=count, measurementDuration=duration, captureEndedAt=100 + duration,
+                averageFPS=count / sum(intervals), onePercentLowFPS=len(worst) / sum(worst),
+                p95FrameMs=1000 * intervals[math.ceil(count * 0.95) - 1],
+                p99FrameMs=1000 * intervals[math.ceil(count * 0.99) - 1], maxFrameMs=80,
+                missedDeadlineCount=missed, severeStallCount=severe,
+                estimatedMissedFrameCount=estimated, missedDeadlineRatio=missed / count,
+            )
+            with self.subTest(count=count):
+                self.assertEqual(validate_report(measured), [])
+
+    def test_device_baseline_requires_current_interaction_reports(self) -> None:
+        from internal.cli import read_json
+        from internal.performance.performance_model import validate_report
+        baseline = read_json(ROOT / 'Performance/Baselines/device-120.json')
+        self.assertTrue(any('legacy report' in failure for failure in validate_report(report(), baseline)))
 
     def test_legacy_metrics_do_not_require_current_interaction_consistency(self) -> None:
         status, summary = self.run_comparison([report(missedDeadlineRatio=0.4)], mode="observe")

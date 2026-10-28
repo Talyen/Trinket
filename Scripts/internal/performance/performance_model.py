@@ -59,7 +59,7 @@ def validate_report_domains(report: dict[str, Any]) -> list[str]:
     return failures
 
 
-def validate_report_consistency(report: dict[str, Any], samples: float) -> list[str]:
+def validate_report_consistency(report: dict[str, Any], samples: float, duration: float) -> list[str]:
     scenario = report.get("scenario")
     try:
         missed = finite_number(report, "missedDeadlineCount")
@@ -86,6 +86,18 @@ def validate_report_consistency(report: dict[str, Any], samples: float) -> list[
         failures.append(f"{scenario}: 1% low FPS cannot exceed average FPS")
     if maximum > 0 and average_fps > 0 and average_fps * maximum < 1000 - 1e-6:
         failures.append(f"{scenario}: average FPS is incompatible with maximum frame time")
+    if average_fps > 0 and samples / average_fps > duration + 1e-6:
+        failures.append(f"{scenario}: sampled intervals exceed the capture duration")
+    if maximum > 0 and low_fps > 0 and low_fps * maximum < 1000 - 1e-6:
+        failures.append(f"{scenario}: 1% low FPS is incompatible with maximum frame time")
+    if p99 > 0 and low_fps > 0 and low_fps * p99 > 1000 + 1e-6:
+        failures.append(f"{scenario}: 1% low FPS is incompatible with p99 frame time")
+    try:
+        estimated = finite_number(report, "estimatedMissedFrameCount")
+        if not estimated.is_integer() or estimated < 0:
+            failures.append(f"{scenario}: estimated missed frames must be a non-negative integer")
+    except ValueError as error:
+        failures.append(f"{scenario}: {error}")
     return failures
 
 
@@ -193,7 +205,7 @@ def validate_report(report: dict[str, Any], baseline: dict[str, Any] | None = No
             if end <= start or duration <= 0 or duration >= 60 or abs(end - start - duration) > 0.01 or samples <= 0:
                 failures.append(f"{scenario}: invalid measurement boundaries or samples")
             if samples > 0 and samples.is_integer():
-                failures.extend(validate_report_consistency(report, samples))
+                failures.extend(validate_report_consistency(report, samples, duration))
         except ValueError as error:
             failures.append(f"{scenario}: {error}")
     if baseline and (not isinstance(version, int) or isinstance(version, bool) or version < baseline.get("minimumReportSchema", 5)):

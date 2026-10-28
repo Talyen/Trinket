@@ -6,6 +6,7 @@
   },
   "mode": "observe",
   "refreshTargetHz": 120,
+  "minimumReportSchema": 6,
   "scenarios": [
     "tab-round-trip",
     "collection-navigation",
