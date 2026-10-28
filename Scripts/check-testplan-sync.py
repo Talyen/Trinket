@@ -19,10 +19,29 @@ def swift_code(source: str) -> str:
     masked = list(source)
     length = len(source)
     string_pattern = re.compile(r'(#*)("""|")')
+    regex_pattern = re.compile(r'#+/')
 
     def string_start(index: int) -> tuple[str, str] | None:
         match = string_pattern.match(source, index) if source[index] in '#"' else None
         return (match[1], match[2]) if match else None
+
+    def regex_start(index: int) -> str | None:
+        if source[index] != '#':
+            return None
+        match = regex_pattern.match(source, index)
+        return match[0][:-1] if match else None
+
+    def regex_end(index: int, hashes: str) -> int:
+        index += len(hashes) + 1
+        closing = '/' + hashes
+        while index < length:
+            if source.startswith(closing, index):
+                return index + len(closing)
+            if source[index] == '\\':
+                index += 2
+            else:
+                index += 1
+        raise ValueError('unterminated Swift extended regex')
 
     def comment_end(index: int) -> int:
         if source.startswith('//', index):
@@ -48,6 +67,8 @@ def swift_code(source: str) -> str:
         while index < length:
             if source.startswith(('//', '/*'), index):
                 index = comment_end(index)
+            elif hashes := regex_start(index):
+                index = regex_end(index, hashes)
             elif string_start(index):
                 index = string_end(index)
             elif source[index] == '(':
@@ -85,6 +106,8 @@ def swift_code(source: str) -> str:
         start = index
         if source.startswith(('//', '/*'), index):
             index = comment_end(index)
+        elif hashes := regex_start(index):
+            index = regex_end(index, hashes)
         elif string_start(index):
             index = string_end(index)
         else:
@@ -96,30 +119,55 @@ def swift_code(source: str) -> str:
     return ''.join(masked)
 
 
+def swift_classes(source: str):
+    identifier = r'(?:`[A-Za-z_][A-Za-z0-9_]*`|[A-Za-z_][A-Za-z0-9_]*)'
+    declaration = re.compile(rf'\bclass\s+({identifier})')
+    superclass = re.compile(rf'\s*:\s*({identifier}(?:\s*\.\s*{identifier})*)')
+    for match in declaration.finditer(source):
+        position = match.end()
+        while position < len(source) and source[position].isspace():
+            position += 1
+        if position < len(source) and source[position] == '<':
+            depth = 1
+            position += 1
+            while position < len(source) and depth:
+                depth += (source[position] == '<') - (source[position] == '>')
+                position += 1
+            if depth:
+                raise ValueError('unterminated Swift generic parameter list')
+        parent = superclass.match(source, position)
+        name = match[1].strip('`')
+        base = re.split(r'\s*\.\s*', parent[1])[-1].strip('`') if parent else None
+        yield name, base
+
+
 def registration_failures(root: Path, rows: list[dict]) -> list[str]:
     failures = []
     declarations = {suite: [] for suite in SUITES if any(row['suite'] == suite for row in rows)}
     classes = []
     parents = {}
-    pattern = re.compile(r'\bclass\s+(\w+)\s*:\s*([\w.]+)')
     for path in sorted((root / 'TrinketUITests').rglob('*.swift')):
         parts = path.relative_to(root).parts
         suite = next((name for name in ('Smoke', 'Profiles', 'Soak') if name in parts), 'FullUI')
         eligible = not any(part in {'Performance', 'Support'} for part in parts)
         try:
             source = swift_code(path.read_text())
+            found = list(swift_classes(source))
         except ValueError as error:
             raise ValueError(f'{path}: {error}') from error
-        for name, parent in pattern.findall(source):
-            parent = parent.rsplit('.', 1)[-1]
-            classes.append((name, parent, suite, eligible))
-            parents.setdefault(name, set()).add(parent)
+        for name, parent in found:
+            bases = parents.setdefault(name, set())
+            if parent:
+                classes.append((name, parent, suite, eligible))
+                bases.add(parent)
 
     def is_test_case(name: str, seen: set[str]) -> bool:
-        if name == 'XCTestCase' or name.endswith('UITestCase'):
+        if name == 'XCTestCase':
             return True
         if name in seen:
             return False
+        if name not in parents:
+            return name.endswith('UITestCase')
         return any(is_test_case(parent, seen | {name}) for parent in parents.get(name, ()))
 
     for name, parent, suite, eligible in classes:

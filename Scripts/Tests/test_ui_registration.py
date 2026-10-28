@@ -16,6 +16,45 @@ REGISTRY = load_script('ui_registration', 'check-testplan-sync.py')
 
 
 class UIRegistrationTests(unittest.TestCase):
+    def test_discovery_handles_generic_qualified_and_escaped_classes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            support = root / 'TrinketUITests' / 'Support'
+            support.mkdir(parents=True)
+            (support / 'Bases.swift').write_text('''
+                class GenericBase<Value: Collection>: XCTest . XCTestCase {}
+                class PretendUITestCase: NSObject {}
+                class EmptyUITestCase {}
+            ''')
+            source = root / 'TrinketUITests' / 'Cases.swift'
+            source.write_text('''
+                class ViaGeneric: GenericBase<[String]> {}
+                class `EscapedTests`: XCTest . `XCTestCase` {}
+                class NotTests: PretendUITestCase {}
+                class NeitherTests: EmptyUITestCase {}
+            ''')
+            rows = [{'suite': 'FullUI', 'name': name} for name in ('ViaGeneric', 'EscapedTests')]
+            self.assertEqual(REGISTRY.registration_failures(root, rows), [])
+            for row in rows:
+                with self.subTest(missing=row['name']):
+                    failures = REGISTRY.registration_failures(root, [other for other in rows if other != row])
+                    self.assertTrue(any(row['name'] in failure for failure in failures))
+
+    def test_discovery_ignores_extended_regex_literals(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'TrinketUITests' / 'Cases.swift'
+            source.parent.mkdir()
+            source.write_text('''
+                let regex = #/ class Phantom: XCTestCase {} " // /#
+                let other = ##/ class AnotherPhantom: XCTestCase {} /##
+                class RealTests: XCTestCase {}
+            ''')
+            self.assertEqual(REGISTRY.registration_failures(root, [{'suite': 'FullUI', 'name': 'RealTests'}]), [])
+            source.write_text('let broken = #/unfinished')
+            with self.assertRaisesRegex(ValueError, 'unterminated Swift extended regex'):
+                REGISTRY.registration_failures(root, [])
+
     def test_discovery_handles_swift_declarations_and_ignores_non_classes(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
