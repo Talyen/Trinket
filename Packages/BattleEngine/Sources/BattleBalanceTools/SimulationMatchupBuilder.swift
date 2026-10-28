@@ -120,7 +120,7 @@ public enum SimulationMatchupBuilder {
     public static let minimumPartyDamagingAbilities = 3
 
     public static func damagingAbilityCount(hero: AbilityLoadout, companion: AbilityLoadout) -> Int {
-        (hero.abilities + companion.abilities).filter(\.dealsCombatDamage).count
+        hero.abilities.count(where: \.dealsCombatDamage) + companion.abilities.count(where: \.dealsCombatDamage)
     }
 
     public static func samplePartyLoadouts(
@@ -203,7 +203,7 @@ public enum SimulationMatchupBuilder {
         guard tier.usesStarterGear else { return nil }
         let withLoadout = combatant.withAbilityLoadout(loadout, fillsMissingSelections: false)
         let scaled = CombatantLevelScaler.scale(combatant: withLoadout, level: level ?? tier.level)
-        let bias = gearKeywordBias ?? Set(scaled.abilities.flatMap(\.keywords))
+        let bias = gearKeywordBias ?? Set(scaled.abilities.lazy.flatMap(\.keywords))
         let build = gearGenerator.generate(
             for: scaled,
             rarity: .basic,
@@ -256,7 +256,7 @@ public enum SimulationMatchupBuilder {
     }
 
     public static func minimalPrefix(for tree: TalentTree, throughRow row: Int) -> Set<String> {
-        Set(tree.nodes.filter { $0.row < row }.map(\.id))
+        Set(tree.nodes.lazy.filter { $0.row < row }.map(\.id))
     }
 
     private struct PartySlot {
@@ -280,7 +280,7 @@ public enum SimulationMatchupBuilder {
 
         let gear = slot.gearOverride ?? generateGear(
             for: scaled, tier: slot.tier,
-            keywordBias: slot.bias ?? Set(scaled.abilities.flatMap(\.keywords)),
+            keywordBias: slot.bias ?? Set(scaled.abilities.lazy.flatMap(\.keywords)),
             idPrefix: slot.idPrefix, generator: slot.generator,
             using: &randomNumberGenerator,
         ) ?? GearOverride(inventory: [], loadout: EquipmentLoadout())

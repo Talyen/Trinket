@@ -27,7 +27,7 @@ public enum BalanceProgressionRunner {
 
         let allRecords = results.flatMap(\.records)
         let allStates = results.map(\.endState)
-        let truncatedRuns = results.filter(\.didTruncate).count
+        let truncatedRuns = results.count(where: \.didTruncate)
         let hotspots = HotspotAnalyzer.analyze(records: allRecords)
 
         return (allRecords, hotspots, allStates, truncatedRuns)

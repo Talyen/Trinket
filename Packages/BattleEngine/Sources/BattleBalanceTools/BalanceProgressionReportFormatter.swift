@@ -30,17 +30,18 @@ public enum BalanceProgressionReportFormatter {
                 )
         }
         lines.append("")
-        let avgEndLevel = playerStates.isEmpty ? 0 : Double(playerStates.map(\.heroLevel).reduce(0, +)) / Double(playerStates.count)
+        let flagged = hotspots.filter(\.isFlagged)
+        let avgEndLevel = playerStates.isEmpty ? 0 : Double(playerStates.reduce(0) { $0 + $1.heroLevel }) / Double(playerStates.count)
         lines.append("## Progression Summary")
         lines.append("")
         lines.append("| Metric | Value |")
         lines.append("| :--- | :--- |")
         lines.append("| Avg End Hero Level | \(String(format: "%.1f", avgEndLevel)) |")
-        lines.append("| Total Mode Bounces (Level Walls) | \(playerStates.map(\.modeBounces).reduce(0, +)) |")
+        lines.append("| Total Mode Bounces (Level Walls) | \(playerStates.reduce(0) { $0 + $1.modeBounces }) |")
         lines.append("| Total Nodes Evaluated | \(hotspots.count) |")
-        lines.append("| Difficulty Hotspots Flagged | \(hotspots.filter(\.isFlagged).count) |")
+        lines.append("| Difficulty Hotspots Flagged | \(flagged.count) |")
         lines.append("")
-        return (lines + flaggedHotspots(hotspots.filter(\.isFlagged)) + modeDetails(hotspots)).joined(separator: "\n")
+        return (lines + flaggedHotspots(flagged) + modeDetails(hotspots)).joined(separator: "\n")
     }
 
     private static func cells(_ hotspot: NodeHotspotSummary)

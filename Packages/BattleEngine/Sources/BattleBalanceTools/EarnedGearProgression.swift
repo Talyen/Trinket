@@ -63,8 +63,8 @@ final class EarnedGearProgression {
     func awardVictory(step: ModeProgressionStep, encounterLevel: Int) {
         guard claimedSteps.insert(step.id).inserted else { return }
         let ownership = RewardOwnership(
-            ownedTrinketIDs: Set(inventory.filter(\.isTrinket).map(\.templateID)),
-            ownedUniqueIDs: Set(inventory.filter { $0.rarity == .unique }.map(\.templateID)),
+            ownedTrinketIDs: Set(inventory.lazy.filter(\.isTrinket).map(\.templateID)),
+            ownedUniqueIDs: Set(inventory.lazy.filter { $0.rarity == .unique }.map(\.templateID)),
         )
         let roster = PlayerRosterState(
             activeHeroID: hero.id, activeCompanionID: companion.id,

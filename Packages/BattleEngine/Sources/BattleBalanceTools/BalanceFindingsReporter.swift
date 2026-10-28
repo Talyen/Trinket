@@ -78,7 +78,7 @@ public enum BalanceFindingsReporter {
             lines.append("")
         }
         if !report.progressionPlayerStates.isEmpty {
-            let flagged = report.progressionHotspots.filter(\.isFlagged).count
+            let flagged = report.progressionHotspots.count(where: \.isFlagged)
             lines.append(
                 "- Progression nodes: `\(report.progressionHotspots.count)`, "
                     + "hotspots: `\(flagged)`, runs: `\(report.progressionPlayerStates.count)`",
