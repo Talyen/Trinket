@@ -41,7 +41,7 @@ struct StageSelectActiveCard<
         onPrimaryAction: @escaping () -> Bool,
         @ViewBuilder artwork: @escaping () -> Artwork,
         @ViewBuilder partyPickerSheet: @escaping () -> PartyPickerSheet,
-        @ViewBuilder artworkAccessory: @escaping () -> ArtworkAccessory,
+        @ViewBuilder artworkAccessory: @escaping () -> ArtworkAccessory = { EmptyView() },
     ) {
         self.presentation = presentation
         self.hapticsEnabledOverride = hapticsEnabledOverride
@@ -261,33 +261,6 @@ struct StageSelectActiveCard<
         .disabled(isBattleActive)
         .accessibilityLabel(Text(L10n.ui_stageselectactivecard_party_dfa82))
         .accessibilityIdentifier(presentation.partyControlAccessibilityID)
-    }
-}
-
-extension StageSelectActiveCard where ArtworkAccessory == EmptyView {
-    init(
-        presentation: StageSelectRowPresentation<Item>,
-        hapticsEnabledOverride: Bool? = nil,
-        isPrimaryActionDisabled: Bool,
-        isLockedContent: Bool = false,
-        primaryActionLabelColor: Color = TrinketDesign.Colors.Overlay.paper,
-        onArtworkTap: @escaping () -> Void,
-        onPrimaryAction: @escaping () -> Bool,
-        @ViewBuilder artwork: @escaping () -> Artwork,
-        @ViewBuilder partyPickerSheet: @escaping () -> PartyPickerSheet,
-    ) {
-        self.init(
-            presentation: presentation,
-            hapticsEnabledOverride: hapticsEnabledOverride,
-            isPrimaryActionDisabled: isPrimaryActionDisabled,
-            isLockedContent: isLockedContent,
-            primaryActionLabelColor: primaryActionLabelColor,
-            onArtworkTap: onArtworkTap,
-            onPrimaryAction: onPrimaryAction,
-            artwork: artwork,
-            partyPickerSheet: partyPickerSheet,
-            artworkAccessory: { EmptyView() },
-        )
     }
 }
 

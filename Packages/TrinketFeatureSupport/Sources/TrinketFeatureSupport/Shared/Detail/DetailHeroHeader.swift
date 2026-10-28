@@ -33,7 +33,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         titleScale: CGFloat = 1,
         eyebrowScale: CGFloat = 1,
         @ViewBuilder art: @escaping () -> Art,
-        @ViewBuilder footer: @escaping () -> Footer,
+        @ViewBuilder footer: @escaping () -> Footer = { EmptyView() },
     ) {
         self.eyebrow = eyebrow
         self.eyebrowIndicators = eyebrowIndicators
@@ -158,38 +158,5 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         } else {
             text
         }
-    }
-}
-
-public extension DetailHeroHeader where Footer == EmptyView {
-    init(
-        eyebrow: String? = nil,
-        eyebrowIndicators: [DetailChangeIndicator] = [],
-        title: String,
-        titleShine: Shine = .none,
-        titleAccessibilityIdentifier: String? = nil,
-        baseHeight: CGFloat,
-        horizontalPadding: CGFloat = TrinketDesign.Spacing.large,
-        bottomPadding: CGFloat = TrinketDesign.Spacing.large,
-        singleLineTitle: Bool = false,
-        titleScale: CGFloat = 1,
-        eyebrowScale: CGFloat = 1,
-        @ViewBuilder art: @escaping () -> Art,
-    ) {
-        self.init(
-            eyebrow: eyebrow,
-            eyebrowIndicators: eyebrowIndicators,
-            title: title,
-            titleShine: titleShine,
-            titleAccessibilityIdentifier: titleAccessibilityIdentifier,
-            baseHeight: baseHeight,
-            horizontalPadding: horizontalPadding,
-            bottomPadding: bottomPadding,
-            singleLineTitle: singleLineTitle,
-            titleScale: titleScale,
-            eyebrowScale: eyebrowScale,
-            art: art,
-            footer: { EmptyView() },
-        )
     }
 }

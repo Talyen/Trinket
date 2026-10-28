@@ -10,13 +10,7 @@ public struct GameLabel: View {
     private let resource: LocalizedStringResource?
     private let balanced: Bool
 
-    public init(_ english: String, balanced: Bool = false) {
-        self.english = english
-        resource = nil
-        self.balanced = balanced
-    }
-
-    public init(_ english: String, resource: LocalizedStringResource?, balanced: Bool = false) {
+    public init(_ english: String, resource: LocalizedStringResource? = nil, balanced: Bool = false) {
         self.english = english
         self.resource = resource
         self.balanced = balanced

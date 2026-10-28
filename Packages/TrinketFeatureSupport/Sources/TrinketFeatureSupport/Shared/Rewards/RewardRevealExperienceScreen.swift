@@ -76,7 +76,7 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
         onExceptionalReveal: @escaping () -> Void = {},
         contentTopPadding: CGFloat = TrinketDesign.Spacing.small,
         contentStackSpacing: CGFloat = TrinketDesign.Spacing.large,
-        @ViewBuilder emptyExperience: @escaping () -> EmptyExperience,
+        @ViewBuilder emptyExperience: @escaping () -> EmptyExperience = { EmptyView() },
     ) {
         self.eyebrow = eyebrow
         self.title = title
@@ -239,43 +239,6 @@ public struct RewardRevealExperienceScreen<EmptyExperience: View>: View {
         Array(Set(loot.items.flatMap {
             [$0.artReference?.imageName, $0.artReference?.thumbnailImageName].compactMap(\.self)
         })).sorted()
-    }
-}
-
-public extension RewardRevealExperienceScreen where EmptyExperience == EmptyView {
-    init(
-        eyebrow: String?,
-        title: String,
-        titleAccessibilityIdentifier: String,
-        experienceAwards: [Award] = [],
-        experienceAccessibilityIdentifier: String? = nil,
-        experienceSpacing: CGFloat = TrinketDesign.Spacing.medium,
-        loot: Loot,
-        primaryActionTitle: String,
-        primaryActionAccessibilityIdentifier: String,
-        action: RewardRevealAction,
-        allowsImmediatePrimaryAction: Bool = false,
-        onExceptionalReveal: @escaping () -> Void = {},
-        contentTopPadding: CGFloat = TrinketDesign.Spacing.small,
-        contentStackSpacing: CGFloat = TrinketDesign.Spacing.large,
-    ) {
-        self.init(
-            eyebrow: eyebrow,
-            title: title,
-            titleAccessibilityIdentifier: titleAccessibilityIdentifier,
-            experienceAwards: experienceAwards,
-            experienceAccessibilityIdentifier: experienceAccessibilityIdentifier,
-            experienceSpacing: experienceSpacing,
-            loot: loot,
-            primaryActionTitle: primaryActionTitle,
-            primaryActionAccessibilityIdentifier: primaryActionAccessibilityIdentifier,
-            action: action,
-            allowsImmediatePrimaryAction: allowsImmediatePrimaryAction,
-            onExceptionalReveal: onExceptionalReveal,
-            contentTopPadding: contentTopPadding,
-            contentStackSpacing: contentStackSpacing,
-            emptyExperience: { EmptyView() },
-        )
     }
 }
 

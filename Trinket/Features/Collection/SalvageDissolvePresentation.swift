@@ -32,7 +32,7 @@ struct SalvageItemButton: View {
                 isLocked: isLocked && !isRetiring,
                 showsName: showsName,
                 isSelected: isPreparing,
-            ) {
+            ) { _ in
                 itemArtwork
             }
         }

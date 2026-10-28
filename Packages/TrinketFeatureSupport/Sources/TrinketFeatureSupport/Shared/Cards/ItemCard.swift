@@ -17,12 +17,9 @@ public struct ItemCard<Art: View>: View {
     var presentation: ItemCardPresentation = .standard
     var appliesCardSurface: Bool = true
     var isSelected = false
-    var fadesLabel = false
     var shine: Shine?
     var shineLineWidth: CGFloat = 2
-    @ViewBuilder private var art: () -> Art
-
-    @State private var labelOpacity = 1.0
+    @ViewBuilder private var art: (InventoryItem) -> Art
 
     public init(
         item: InventoryItem,
@@ -33,10 +30,9 @@ public struct ItemCard<Art: View>: View {
         presentation: ItemCardPresentation = .standard,
         appliesCardSurface: Bool = true,
         isSelected: Bool = false,
-        fadesLabel: Bool = false,
         shine: Shine? = nil,
         shineLineWidth: CGFloat = 2,
-        @ViewBuilder art: @escaping () -> Art,
+        @ViewBuilder art: @escaping (InventoryItem) -> Art = { ItemArtwork(item: $0, variant: .thumbnail) },
     ) {
         self.item = item
         self.showsAffixCount = showsAffixCount
@@ -46,7 +42,6 @@ public struct ItemCard<Art: View>: View {
         self.presentation = presentation
         self.appliesCardSurface = appliesCardSurface
         self.isSelected = isSelected
-        self.fadesLabel = fadesLabel
         self.shine = shine
         self.shineLineWidth = shineLineWidth
         self.art = art
@@ -72,7 +67,7 @@ public struct ItemCard<Art: View>: View {
             reservesLabelSpace: reservesLabelSpace,
             shine: isLocked ? .none : borderShine,
             shineLineWidth: shineLineWidth,
-            art: art,
+            art: { art(item) },
             label: {
                 if isLocked {
                     Text(balanced: item.localizedDisplayName(locale: locale))
@@ -90,17 +85,10 @@ public struct ItemCard<Art: View>: View {
                 }
             },
         )
-        .onAppear {
-            guard fadesLabel else { return }
-            withAnimation(.easeOut(duration: TrinketMotion.Content.cardDissolveDuration)) {
-                labelOpacity = 0
-            }
-        }
     }
 
     private var standardLabel: some View {
         ItemCardLabel(item: item, showsAffixCount: showsAffixCount, shine: shine)
-            .opacity(labelOpacity)
     }
 
     private var revealLabel: some View {
@@ -115,39 +103,6 @@ public struct ItemCard<Art: View>: View {
                 .shineText(shine ?? item.displayTextShine)
                 .multilineTextAlignment(.center)
                 .trinketFittedText()
-        }
-        .opacity(labelOpacity)
-    }
-}
-
-public extension ItemCard where Art == ItemArtwork {
-    init(
-        item: InventoryItem,
-        showsAffixCount: Bool,
-        isLocked: Bool = false,
-        showsName: Bool = true,
-        reservesLabelSpace: Bool = true,
-        presentation: ItemCardPresentation = .standard,
-        appliesCardSurface: Bool = true,
-        isSelected: Bool = false,
-        fadesLabel: Bool = false,
-        shine: Shine? = nil,
-        shineLineWidth: CGFloat = 2,
-    ) {
-        self.init(
-            item: item,
-            showsAffixCount: showsAffixCount,
-            isLocked: isLocked,
-            showsName: showsName,
-            reservesLabelSpace: reservesLabelSpace,
-            presentation: presentation,
-            appliesCardSurface: appliesCardSurface,
-            isSelected: isSelected,
-            fadesLabel: fadesLabel,
-            shine: shine,
-            shineLineWidth: shineLineWidth,
-        ) {
-            ItemArtwork(item: item, variant: .thumbnail)
         }
     }
 }
