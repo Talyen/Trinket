@@ -42,8 +42,10 @@ struct CardIntentFeedbackTests {
         )
         #expect(try #require(CombatFeedbackPresenter.makeItems(from: [empty, block], at: .now).first).region == .impact)
         let mixed = CombatFeedbackPresenter.makeItems(from: [empty, block, hit], at: .now)
-        #expect(mixed.first { $0.id == 2 }?.region == .benefit)
-        #expect(mixed.first { $0.id == 3 }?.region == .impact)
+        let support = try #require(mixed.first { $0.sourceEventIDs.contains(2) })
+        #expect(support.region == .benefit)
+        #expect(support.label == .amount(5))
+        #expect(mixed.first { $0.sourceEventIDs.contains(3) }?.region == .impact)
     }
 
     @Test func `health cost stays secondary when the card also deals damage`() {
