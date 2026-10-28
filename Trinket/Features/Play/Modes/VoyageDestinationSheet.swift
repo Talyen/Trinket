@@ -18,9 +18,15 @@ struct VoyageDestinationSheet: View {
     @State private var inspectedEnemy: CombatantCardDetail?
 
     private var enemies: [Enemy] {
-        let ids = VoyageCatalog.enemyIDs(chapterID: offer.chapterID)
-            + [VoyageCatalog.bossID(chapterID: offer.chapterID)].compactMap(\.self)
-        return ids.compactMap { GameContent.enemy(matching: $0) }
+        VoyageCatalog.enemyIDs(chapterID: offer.chapterID).compactMap { GameContent.enemy(matching: $0) }
+    }
+
+    private var boss: Enemy? {
+        VoyageCatalog.bossID(chapterID: offer.chapterID).flatMap { GameContent.enemy(matching: $0) }
+    }
+
+    private var columns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: TrinketDesign.Spacing.small), count: 2)
     }
 
     private var level: Int {
@@ -41,6 +47,19 @@ struct VoyageDestinationSheet: View {
             + enemyArt.map { $0.preparedThumbnailImageName ?? $0.imageName }
     }
 
+    private func enemyArtworkButton(_ enemy: Enemy) -> some View {
+        Button {
+            requestedEnemy = makePlayEnemyDetail(combatant: enemy.combatant, level: level)
+        } label: {
+            CombatantArtwork(combatant: enemy.combatant, variant: .card)
+                .aspectRatio(1200.0 / 896, contentMode: .fit)
+                .clipShape(TrinketDesign.cardShape)
+        }
+        .trinketArtworkCardButtonStyle()
+        .accessibilityLabel(ContentCopy.localized(enemy.name, locale: locale))
+        .accessibilityIdentifier(AccessibilityID.Voyage.destinationEnemy(enemy.id))
+    }
+
     var body: some View {
         NavigationStack {
             DetailHeroScrollShell(
@@ -59,25 +78,24 @@ struct VoyageDestinationSheet: View {
                     StageSelectModifierLine(modifier: reward)
                 }
             } bodyContent: {
-                VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
-                    Text(L10n.voyage_destination_enemies)
-                        .trinketTypography(.sectionTitle)
-                        .accessibilityIdentifier(AccessibilityID.Voyage.destinationSheet)
-                    LazyVGrid(
-                        columns: Array(repeating: GridItem(.flexible(), spacing: TrinketDesign.Spacing.small), count: 2),
-                        spacing: TrinketDesign.Spacing.small,
-                    ) {
-                        ForEach(enemies) { enemy in
-                            Button {
-                                requestedEnemy = makePlayEnemyDetail(combatant: enemy.combatant, level: level)
-                            } label: {
-                                CombatantArtwork(combatant: enemy.combatant, variant: .card)
-                                    .aspectRatio(1200.0 / 896, contentMode: .fit)
-                                    .clipShape(TrinketDesign.cardShape)
+                VStack(alignment: .leading, spacing: TrinketDesign.Layout.sectionSpacing) {
+                    if let boss {
+                        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+                            GameLabel(LabyrinthNodeType.boss.title, resource: LabyrinthNodeType.boss.contextualTitleResource)
+                                .trinketTypography(.sectionTitle)
+                            LazyVGrid(columns: columns, spacing: TrinketDesign.Spacing.small) {
+                                enemyArtworkButton(boss)
                             }
-                            .trinketArtworkCardButtonStyle()
-                            .accessibilityLabel(ContentCopy.localized(enemy.name, locale: locale))
-                            .accessibilityIdentifier(AccessibilityID.Voyage.destinationEnemy(enemy.id))
+                        }
+                    }
+                    VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
+                        Text(L10n.voyage_destination_enemies)
+                            .trinketTypography(.sectionTitle)
+                            .accessibilityIdentifier(AccessibilityID.Voyage.destinationSheet)
+                        LazyVGrid(columns: columns, spacing: TrinketDesign.Spacing.small) {
+                            ForEach(enemies) { enemy in
+                                enemyArtworkButton(enemy)
+                            }
                         }
                     }
                 }
