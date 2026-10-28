@@ -18,7 +18,6 @@ import time
 from internal.cli import ROOT
 
 TEXT = {'.json', '.jsonl', '.log', '.txt', '.md'}
-MEDIA = {'.png', '.mp4', '.jpg', '.jpeg'}
 MINIMUM = 1024 * 1024
 MAXIMUM = 128 * 1024 * 1024
 AGE = 7 * 86400
@@ -42,7 +41,7 @@ def safe(path: Path, common: Path, active: set[str], now: float) -> bool:
         rel = path.relative_to(common / 'trinket-evidence' / 'codex')
         if len(rel.parts) < 5 or 'codex/' + rel.parts[0] in active:
             return False
-        if 'Verification' in rel.parts or any(part.endswith(('.xcresult', '.xcarchive', '.dSYM', '.trace')) for part in rel.parts):
+        if 'Verification' in rel.parts:
             return False
         if any(ord(c) < 32 for c in str(rel)):
             return False
@@ -83,7 +82,7 @@ def active_branches(root: Path) -> set[str]:
             if part.startswith(b'branch refs/heads/')}
 
 
-def candidate_files(common: Path):
+def candidate_files(common: Path, after: str = ''):
     root = common / 'trinket-evidence' / 'codex'
     if not root.is_dir() or root.is_symlink() or root.parent.is_symlink():
         return
@@ -98,11 +97,13 @@ def candidate_files(common: Path):
                 saved = json.loads(manifest.read_text())
                 if saved['branch'] != 'codex/' + branch.name or not isinstance(saved['files'], list):
                     continue
-                for name in saved['files']:
+                for name in sorted(saved['files']):
                     rel = Path(name)
-                    if rel.is_absolute() or '..' in rel.parts or not rel.parts or rel.suffix.lower() not in TEXT | MEDIA:
+                    if rel.is_absolute() or '..' in rel.parts or not rel.parts:
                         continue
-                    yield branch.name, str(rel), snapshot / 'files' / rel
+                    path = snapshot / 'files' / rel
+                    if str(path.relative_to(common)) > after:
+                        yield branch.name, str(rel), path
             except (OSError, ValueError, KeyError, TypeError):
                 continue
 
@@ -115,7 +116,8 @@ def compact(common: Path, root: Path, *, seconds: float = 12, max_attempts: int 
         return 0, 0
     maintenance.mkdir(mode=0o700, exist_ok=True)
     journal = maintenance / 'processed.jsonl'
-    if journal.is_symlink():
+    cursor_path = maintenance / 'cursor.json'
+    if journal.is_symlink() or cursor_path.is_symlink():
         return 0, 0
     start, now, attempts, changed, saved_bytes = time.monotonic(), time.time(), 0, 0, 0
     with journal.open('a+') as stream:
@@ -141,20 +143,44 @@ def compact(common: Path, root: Path, *, seconds: float = 12, max_attempts: int 
                     temporary.unlink()
             except (OSError, subprocess.SubprocessError):
                 continue
-        groups = {}
-        for branch, relative, path in candidate_files(common):
-            if time.monotonic() - start >= seconds or attempts >= max_attempts:
+        try:
+            cursor = json.loads(cursor_path.read_text())['after'] if cursor_path.exists() else ''
+            if not isinstance(cursor, str):
+                return 0, 0
+        except (OSError, ValueError, KeyError, TypeError):
+            return 0, 0
+        last = cursor
+        complete = True
+        considered = 0
+        for branch, relative, path in candidate_files(common, cursor):
+            if considered and (time.monotonic() - start >= seconds or attempts >= max_attempts):
+                complete = False
                 break
+            considered += 1
+            last = str(path.relative_to(common))
             key = None
             try:
                 info = path.lstat()
                 if not stat.S_ISREG(info.st_mode) or not MINIMUM <= info.st_size <= MAXIMUM:
                     continue
                 key = json.dumps([str(path.relative_to(common)), *identity(path)], separators=(',', ':'))
-                group = (branch, relative, info.st_size)
-                previous = groups.get(group)
-                groups.setdefault(group, path)
+                previous = []
+                branch_root = common / 'trinket-evidence' / 'codex' / branch
+                for snapshot_files in sorted(branch_root.glob('*/files')):
+                    candidate = snapshot_files / relative
+                    if candidate == path or str(candidate.relative_to(common)) >= last:
+                        continue
+                    try:
+                        if candidate.is_file() and candidate.stat().st_size == info.st_size:
+                            previous.append(candidate)
+                    except OSError:
+                        continue
                 if key in seen or not safe(path, common, active, now):
+                    continue
+                # Unknown and native formats are eligible only for an exact
+                # independent clone, never for transformation/compression.
+                native = any(part.endswith(('.xcresult', '.xcarchive', '.dSYM', '.trace')) for part in path.parts)
+                if (path.suffix.lower() not in TEXT or native) and not previous:
                     continue
                 attempts += 1
                 before = identity(path)
@@ -167,22 +193,25 @@ def compact(common: Path, root: Path, *, seconds: float = 12, max_attempts: int 
                 try:
                     action = 'compress'
                     cloned = False
-                    if previous and previous != path and safe(previous, common, active, now):
-                        previous_before = identity(previous)
-                        if digest(previous) == source_hash and metadata(previous) == source_meta:
+                    for candidate in previous:
+                        if not safe(candidate, common, active, now):
+                            continue
+                        previous_before = identity(candidate)
+                        if digest(candidate) == source_hash and metadata(candidate) == source_meta:
                             clone = getattr(ctypes.CDLL(None, use_errno=True), 'clonefile', None)
                             if clone is not None:
                                 clone.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_uint32]
                                 clone.restype = ctypes.c_int
-                                cloned = clone(os.fsencode(previous), os.fsencode(temp), 1) == 0
-                                if cloned and identity(previous) != previous_before:
+                                cloned = clone(os.fsencode(candidate), os.fsencode(temp), 1) == 0
+                                if cloned and identity(candidate) != previous_before:
                                     cloned = False
                             if cloned:
                                 action = 'clone'
+                                break
                     if not cloned:
                         if temp.exists() or temp.is_symlink():
                             continue
-                        if path.suffix.lower() not in TEXT:
+                        if path.suffix.lower() not in TEXT or native:
                             continue
                         result = subprocess.run(['/usr/bin/ditto', '--hfsCompression', '--noclone', str(path), str(temp)],
                                                 capture_output=True, timeout=8)
@@ -217,6 +246,11 @@ def compact(common: Path, root: Path, *, seconds: float = 12, max_attempts: int 
                     stream.flush()
                     seen.add(key)
                 continue
+        if complete:
+            cursor_path.unlink(missing_ok=True)
+        else:
+            from internal.cli import write_json_atomic
+            write_json_atomic(cursor_path, {'after': last})
     return changed, saved_bytes
 
 

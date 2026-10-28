@@ -153,9 +153,30 @@ def preserve_evidence(source: Path, names: list[str], *, routine: bool = False) 
             return candidate
     saved = Path(tempfile.mkdtemp(prefix=head[:12] + '-', dir=destination))
     for path in sorted(set(paths)):
-        target = saved / 'files' / path.relative_to(source)
+        relative = path.relative_to(source)
+        target = saved / 'files' / relative
         target.parent.mkdir(parents=True, exist_ok=True)
-        copy_evidence(path, target)
+        # Clone unchanged files from a previous snapshot when possible. Each
+        # snapshot remains independently writable and keeps its original paths.
+        previous = None
+        if sys.platform == 'darwin':
+            for candidate in sorted(destination.glob('*/files'), reverse=True):
+                item = candidate / relative
+                parents = [item, *[p for p in item.parents if p.is_relative_to(destination)]]
+                if any(p.is_symlink() for p in parents) or not item.is_file():
+                    continue
+                if item.stat().st_size != path.stat().st_size:
+                    continue
+                value = hashlib.sha256()
+                with item.open('rb') as stream:
+                    for block in iter(lambda: stream.read(1024 * 1024), b''):
+                        value.update(block)
+                if value.hexdigest() == expected[str(relative)]:
+                    previous = item
+                    break
+        copy_evidence(previous or path, target)
+        if previous is not None:
+            shutil.copystat(path, target, follow_symlinks=False)
         with target.open('rb') as stream:
             value = hashlib.sha256()
             for block in iter(lambda: stream.read(1024 * 1024), b''):
@@ -170,6 +191,7 @@ def preserve_evidence(source: Path, names: list[str], *, routine: bool = False) 
     (saved / 'evidence.json').write_text(json.dumps({
         'preserved_at_commit': head, 'branch': git(source, 'branch', '--show-current'),
         'files': [str(path.relative_to(source)) for path in sorted(set(paths))],
+        'file_hashes': expected,
         'routine_reports': reports,
     }, indent=2) + '\n')
     record_preservation(destination, saved, head)
@@ -229,6 +251,8 @@ def remove_integrated_worktree(source: Path, target: Path, branch: str, head: st
     common = Path(git(target, "rev-parse", "--path-format=absolute", "--git-common-dir")).resolve()
     if any(archive_root == p or archive_root.is_relative_to(p) for p in (source, target, common)):
         raise RuntimeError("Recovery directory must be outside the repository and task checkout")
+    ensure_checkout_inactive(source)
+    clean(source)
     archive_root.mkdir(parents=True, exist_ok=True, mode=0o700)
     recovery = Path(tempfile.mkdtemp(prefix=branch.replace('/', '-') + '-', dir=archive_root))
     (recovery / 'recovery.json').write_text(json.dumps(dict(main=str(target), task=str(source), branch=branch, head=head), indent=2))
@@ -272,25 +296,111 @@ def integration_lock(common: Path):
         yield
 
 
+def ensure_checkout_inactive(source: Path) -> None:
+    """Allow this command's ancestors, but preserve foreign users of the checkout."""
+    try:
+        processes = subprocess.run(['ps', '-axo', 'pid=,ppid='], capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError) as error:
+        raise RuntimeError('Process inventory unavailable; checkout retained') from error
+    if processes.returncode:
+        raise RuntimeError('Process inventory unavailable; checkout retained')
+    parents = {}
+    for line in processes.stdout.splitlines():
+        fields = line.split()
+        if len(fields) != 2 or not all(field.isdigit() for field in fields):
+            raise RuntimeError('Process inventory is incomplete; checkout retained')
+        parents[int(fields[0])] = int(fields[1])
+    ancestors = set()
+    pid = os.getpid()
+    while pid > 0 and pid not in ancestors:
+        ancestors.add(pid)
+        if pid not in parents:
+            raise RuntimeError('Process ancestry unavailable; checkout retained')
+        pid = parents[pid]
+    try:
+        opened = subprocess.run(['lsof', '-n', '-P', '-F', 'p', '+D', str(source)],
+                                cwd='/', capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError) as error:
+        raise RuntimeError('Open-file inventory unavailable; checkout retained') from error
+    if (opened.returncode not in (0, 1) or opened.stderr.strip()
+            or (opened.returncode == 0 and not opened.stdout.strip())):
+        raise RuntimeError('Open-file inventory unavailable; checkout retained')
+    users = set()
+    for line in opened.stdout.splitlines():
+        if line.startswith('f') and users:
+            continue
+        if not line.startswith('p') or not line[1:].isdigit():
+            raise RuntimeError('Open-file inventory is incomplete; checkout retained')
+        users.add(int(line[1:]))
+    if users - ancestors:
+        raise RuntimeError(f'Checkout has active processes {sorted(users - ancestors)}; checkout retained')
+
+
+def cleanup_locked(source: Path, target: Path) -> None:
+    branch = git(source, 'branch', '--show-current')
+    if not branch.startswith('codex/') or git(target, 'branch', '--show-current') != 'main':
+        raise RuntimeError('Cleanup requires a codex/ task and a primary checkout on main')
+    clean(source)
+    head = git(source, 'rev-parse', 'HEAD')
+    main_head = git(target, 'rev-parse', 'HEAD')
+    subprocess.run(['git', '-C', str(source), 'merge-base', '--is-ancestor', head, main_head], check=True)
+    ensure_checkout_inactive(source)
+    preserve_default_evidence(source)
+    evidence = evidence_directory(source)
+    from internal.cli import write_json_atomic
+    remove_integrated_worktree(source, target, branch, head, main_head=main_head)
+    write_json_atomic(evidence / 'routine-completion.json', {
+        'schema': 1, 'branch': branch, 'head': head,
+        'completed_at': datetime.now(timezone.utc).isoformat(),
+    })
+
+
 def cleanup(source: Path) -> None:
     """Retry only cleanup, including after main advances beyond the landed task."""
     common, target = checkout_context(source)
     with integration_lock(common):
-        branch = git(source, 'branch', '--show-current')
-        if not branch.startswith('codex/') or git(target, 'branch', '--show-current') != 'main':
-            raise RuntimeError('Cleanup requires a codex/ task and a primary checkout on main')
-        clean(source)
-        head = git(source, 'rev-parse', 'HEAD')
-        main_head = git(target, 'rev-parse', 'HEAD')
-        subprocess.run(['git', '-C', str(source), 'merge-base', '--is-ancestor', head, main_head], check=True)
-        preserve_default_evidence(source)
-        evidence = evidence_directory(source)
-        from internal.cli import write_json_atomic
-        remove_integrated_worktree(source, target, branch, head, main_head=main_head)
-        write_json_atomic(evidence / 'routine-completion.json', {
-            'schema': 1, 'branch': branch, 'head': head,
-            'completed_at': datetime.now(timezone.utc).isoformat(),
-        })
+        cleanup_locked(source, target)
+
+
+def automatic_cleanup_guard(source: Path, target: Path) -> None:
+    """Unknown ignored files may be unfinished work, even in a clean checkout."""
+    ignored = git(source, 'ls-files', '--others', '--ignored', '--exclude-standard', '-z')
+    for name in filter(None, ignored.rstrip('\0').split('\0')):
+        path = Path(name)
+        if path.is_relative_to(Path('.DerivedData/Deliverables')):
+            continue
+        if '__pycache__' in path.parts and path.suffix == '.pyc':
+            continue
+        if path.is_relative_to(Path('.tools')):
+            local, shared = source / path, target / path
+            parents = [local, shared, *[p for p in local.parents if p.is_relative_to(source)],
+                       *[p for p in shared.parents if p.is_relative_to(target)]]
+            if (not any(p.is_symlink() for p in parents)
+                    and local.is_file() and shared.is_file()):
+                local_stat, shared_stat = local.stat(), shared.stat()
+                if (local_stat.st_size == shared_stat.st_size
+                        and local_stat.st_mode == shared_stat.st_mode
+                        and local_stat.st_uid == shared_stat.st_uid
+                        and local_stat.st_gid == shared_stat.st_gid
+                        and getattr(local_stat, 'st_flags', 0) == getattr(shared_stat, 'st_flags', 0)):
+                    def digest(file):
+                        value = hashlib.sha256()
+                        with file.open('rb') as stream:
+                            for block in iter(lambda: stream.read(1024 * 1024), b''):
+                                value.update(block)
+                        return value.digest()
+                    def identity(info):
+                        return (info.st_dev, info.st_ino, info.st_size, info.st_mode,
+                                info.st_mtime_ns, info.st_ctime_ns)
+                    def attributes(file):
+                        return subprocess.check_output(['/usr/bin/xattr', '-l', str(file)], timeout=5)
+                    acl = subprocess.run(['/bin/ls', '-lde', str(local)], capture_output=True, text=True)
+                    if (acl.returncode == 0 and len(acl.stdout.splitlines()) == 1
+                            and attributes(local) == attributes(shared)
+                            and digest(local) == digest(shared) and identity(local.stat()) == identity(local_stat)
+                            and identity(shared.stat()) == identity(shared_stat)):
+                        continue
+        raise RuntimeError(f'Unclassified ignored file retained: {name}. Preserve or review it before explicit cleanup')
 
 
 def expire_routine_evidence(source: Path, *, now: float | None = None) -> int:
@@ -459,7 +569,8 @@ class ReviewRequired(RuntimeError):
     """The combined revision needs source review before a separate landing attempt."""
 
 
-def integrate(source: Path, *, reviewed_main: str | None = None, keep_plan: bool = False) -> None:
+def integrate(source: Path, *, reviewed_main: str | None = None, keep_plan: bool = False,
+              keep_worktree: bool = False) -> None:
     common, target = checkout_context(source)
     with integration_lock(common):
         if git(target, "branch", "--show-current") != "main":
@@ -484,8 +595,12 @@ def integrate(source: Path, *, reviewed_main: str | None = None, keep_plan: bool
         head = git(source, "rev-parse", "HEAD")
         if head == base:
             print("Task already integrated; main unchanged.")
-            preserve_default_evidence(source)
-            print('Task checkout retained; use node Scripts/agent-worktree.mjs cleanup when finished.')
+            if keep_worktree:
+                preserve_default_evidence(source)
+                print('Task checkout retained; use node Scripts/agent-worktree.mjs cleanup when finished.')
+            else:
+                automatic_cleanup_guard(source, target)
+                cleanup_locked(source, target)
             return
         if new_main and reviewed_main is None:
             # A clean textual rebase is not semantic review or compiled evidence.
@@ -526,11 +641,19 @@ def integrate(source: Path, *, reviewed_main: str | None = None, keep_plan: bool
             raise RuntimeError("Checkout changed during verification; main was not advanced by this command. Retry after review.")
         preserve_ignored(target, head)
         subprocess.run(["git", "-C", str(target), "merge", "--ff-only", "--no-overwrite-ignore", head], check=True)
-        report = save_task_report(source, base, head, paths, landed=True)
+        save_task_report(source, base, head, paths, landed=True)
         if saved is not None:
-            shutil.copy2(report, saved / 'files/.DerivedData/Deliverables/task-report.json', follow_symlinks=False)
+            # Keep prior snapshot and its hashes immutable when the landing report changes.
+            preserve_default_evidence(source)
         print(f"Integrated {branch} into local main at {head}. Nothing pushed; hosted checks remain pending.")
-        print('Task checkout retained. Finish any remaining work, then run node Scripts/agent-worktree.mjs cleanup.')
+        if keep_worktree:
+            print('Task checkout retained. Finish any remaining work, then run node Scripts/agent-worktree.mjs cleanup.')
+        else:
+            try:
+                automatic_cleanup_guard(source, target)
+                cleanup_locked(source, target)
+            except (OSError, RuntimeError, subprocess.SubprocessError) as error:
+                raise RuntimeError(f'Landing succeeded, but cleanup failed: {error}. Inspect the task and recovery checkout; retry cleanup if the task checkout remains.') from error
 
 
 if __name__ == "__main__":
@@ -548,12 +671,13 @@ if __name__ == "__main__":
             cleanup(source)
         else:
             import argparse
-            parser = argparse.ArgumentParser(description='Land reviewed task work; retain the checkout until explicit cleanup.')
-            parser.add_argument('--keep-worktree', action='store_true', help='compatibility flag; landing always keeps the checkout')
+            parser = argparse.ArgumentParser(description='Land reviewed task work and clean the finished checkout.')
+            parser.add_argument('--keep-worktree', action='store_true', help='retain the checkout for unfinished work')
             parser.add_argument('--reviewed-main', help='full main commit ID already reviewed against this task')
             parser.add_argument('--keep-plan', action='store_true', help='retain intentionally unfinished plans; still validate their metadata and links')
             arguments = parser.parse_args()
-            integrate(source, reviewed_main=arguments.reviewed_main, keep_plan=arguments.keep_plan)
+            integrate(source, reviewed_main=arguments.reviewed_main, keep_plan=arguments.keep_plan,
+                      keep_worktree=arguments.keep_worktree)
     except ReviewRequired as error:
         print(str(error), file=sys.stderr)
         sys.exit(3)

@@ -103,7 +103,7 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         (reports / ('static-' + 'b' * 32 + '.json')).write_text(json.dumps({**successful, 'exit_status': 1}))
         (reports / ('static-' + 'c' * 32 + '.json')).write_text(json.dumps({**successful, 'route': 'visual'}))
         self.assertEqual(self.helper(task, 'evidence', str((reports / name).relative_to(task))).returncode, 0)
-        self.assertEqual(self.helper(task, 'integrate').returncode, 0)
+        self.assertEqual(self.helper(task, 'integrate', '--keep-worktree').returncode, 0)
         evidence = self.root / '.git/trinket-evidence/codex/expiry'
         now = time.time()
         real_run = subprocess.run
@@ -153,6 +153,28 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         self.assertEqual(self.helper(task, 'evidence', '.DerivedData/Deliverables').returncode, 0)
         self.assertEqual({p.read_bytes() for p in evidence.glob('*/files/.DerivedData/Deliverables/screen.png')},
                          {b'original', b'changed'})
+
+    def test_changed_snapshot_reuses_verified_unchanged_file_independently(self):
+        module = load_script('agent_integrate_incremental_test', 'agent-integrate.py')
+        task = self.task('incremental')
+        directory = task / '.DerivedData/Deliverables'
+        directory.mkdir(parents=True)
+        image = directory / 'image.png'
+        image.write_bytes(b'original pixels')
+        first = module.preserve_evidence(task, ['.DerivedData/Deliverables'])
+        (directory / 'report.txt').write_text('new report')
+        with mock.patch.object(module, 'copy_evidence', wraps=module.copy_evidence) as copied:
+            second = module.preserve_evidence(task, ['.DerivedData/Deliverables'])
+        old_image = first / 'files/.DerivedData/Deliverables/image.png'
+        new_image = second / 'files/.DerivedData/Deliverables/image.png'
+        if module.sys.platform == 'darwin':
+            self.assertTrue(any(call.args[0] == old_image for call in copied.call_args_list))
+        manifest = json.loads((second / 'evidence.json').read_text())
+        self.assertEqual(manifest['file_hashes']['.DerivedData/Deliverables/image.png'],
+                         hashlib.sha256(b'original pixels').hexdigest())
+        new_image.write_bytes(b'changed later')
+        self.assertEqual(old_image.read_bytes(), b'original pixels')
+        self.assertEqual(image.read_bytes(), b'original pixels')
 
     """Protect shared main and unfinished task work across real linked checkouts."""
 
@@ -208,7 +230,7 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         return task
 
     def assert_stopped(self, task: Path, main: str) -> subprocess.CompletedProcess[str]:
-        result = self.helper(task, 'integrate')
+        result = self.helper(task, 'integrate', '--keep-worktree')
         self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), main)
         return result
@@ -220,14 +242,14 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         (second / 'second').write_text('second task\n')
         self.commit(second)
         for task in (first, second):
-            result = self.helper(task, 'integrate')
+            result = self.helper(task, 'integrate', '--keep-worktree')
             if task == second:
                 self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
                 self.assertIn('Review incoming changes:', result.stderr)
                 self.assertTrue(task.exists())
                 self.assertEqual((self.root / 'first').read_text(), 'task work\n')
                 self.assertFalse((self.root / 'second').exists())
-                result = self.helper(task, 'integrate')
+                result = self.helper(task, 'integrate', '--keep-worktree')
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertTrue(task.exists())
             self.assertEqual(self.helper(task, 'cleanup').returncode, 0)
@@ -265,14 +287,14 @@ sys.exit(bool(failures))
         for arguments in (('--keep-plan', '--keep-plan'), ('--keep-plan', '--unknown')):
             self.assertNotEqual(self.helper(task, 'integrate', *arguments).returncode, 0)
             self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), main)
-        result = self.helper(task, 'integrate', '--keep-plan')
+        result = self.helper(task, 'integrate', '--keep-plan', '--keep-worktree')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn('status: active', (self.root / 'Docs/Plans/Campaign.md').read_text())
 
         plan.write_text(plan.read_text().replace('updated: 2026-10-23\n', ''))
         self.commit(task)
         main = self.git(self.root, 'rev-parse', 'HEAD')
-        result = self.helper(task, 'integrate', '--keep-plan')
+        result = self.helper(task, 'integrate', '--keep-plan', '--keep-worktree')
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('missing updated', result.stdout)
         self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), main)
@@ -286,12 +308,12 @@ sys.exit(bool(failures))
             (self.root / name).write_text('incoming\n')
             self.commit(self.root)
             main = self.git(self.root, 'rev-parse', 'HEAD')
-            result = self.helper(task, 'integrate')
+            result = self.helper(task, 'integrate', '--keep-worktree')
             self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
             self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), main)
             self.assertFalse((self.root / '.git/checks').exists())
             self.assertEqual(self.git(task, 'merge-base', 'HEAD', 'main'), main)
-        result = self.helper(task, 'integrate')
+        result = self.helper(task, 'integrate', '--keep-worktree')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual((self.root / '.git/checks').read_text(), 'checked\n')
 
@@ -304,7 +326,7 @@ sys.exit(bool(failures))
             self.assertNotEqual(self.helper(task, 'integrate', *arguments).returncode, 0)
             self.assertTrue(task.exists())
             self.assertEqual(self.git(self.root, 'rev-parse', 'HEAD'), reviewed)
-        result = self.helper(task, 'integrate', '--reviewed-main', reviewed)
+        result = self.helper(task, 'integrate', '--reviewed-main', reviewed, '--keep-worktree')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(task.exists())
         self.assertEqual((self.root / 'task').read_text(), 'task work\n')
@@ -330,7 +352,7 @@ sys.exit(bool(failures))
         with (task / '.gitignore').open('a') as stream:
             stream.write('handoff-arguments\n')
         self.commit(task)
-        result = self.helper(task, 'integrate')
+        result = self.helper(task, 'integrate', '--keep-worktree')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertFalse((task / 'compiled').exists())
         arguments = (task / 'handoff-arguments').read_text().splitlines()
@@ -351,7 +373,7 @@ sys.exit(bool(failures))
                 self.assert_stopped(task, main)
                 self.assertEqual(evidence.read_text(), 'preserve me')
                 evidence.unlink()
-        result = self.helper(task, 'integrate')
+        result = self.helper(task, 'integrate', '--keep-worktree')
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_failed_or_mutating_verification_cannot_land(self) -> None:
@@ -378,6 +400,75 @@ sys.exit(bool(failures))
         self.assertIn('task version', (task / 'shared').read_text())
         self.assertIn('UU shared', self.git(task, 'status', '--porcelain'))
         self.git(self.root, 'show-ref', '--verify', 'refs/heads/codex/task')
+
+    def test_final_landing_automatically_cleans_only_its_worktree(self) -> None:
+        task = self.task('automatic')
+        peer = self.task('peer')
+        deliverables = task / '.DerivedData/Deliverables'
+        deliverables.mkdir(parents=True)
+        (deliverables / 'screen.png').write_bytes(b'visible evidence')
+        (peer / 'unfinished').write_text('peer work')
+        result = self.helper(task, 'integrate')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertFalse(task.exists())
+        self.assertEqual((peer / 'unfinished').read_text(), 'peer work')
+        self.git(self.root, 'show-ref', '--verify', 'refs/heads/codex/automatic')
+        evidence = self.root / '.git/trinket-evidence/codex/automatic'
+        self.assertEqual(next(evidence.glob('*/files/.DerivedData/Deliverables/screen.png')).read_bytes(),
+                         b'visible evidence')
+        self.assertTrue((evidence / 'routine-completion.json').is_file())
+
+    def test_cleanup_rejects_foreign_or_unknown_open_file_inventory(self) -> None:
+        module = load_script('agent_integrate_open_files_test', 'agent-integrate.py')
+        own = os.getpid()
+        parent = os.getppid()
+        processes = subprocess.CompletedProcess([], 0, f'{own} {parent}\n{parent} 0\n', '')
+        for opened in (subprocess.CompletedProcess([], 0, 'p999999\n', ''),
+                       subprocess.CompletedProcess([], 2, '', 'inspection denied'),
+                       subprocess.CompletedProcess([], 1, 'p999999\n', '')):
+            with mock.patch.object(module.subprocess, 'run', side_effect=[processes, opened]):
+                with self.assertRaises(RuntimeError):
+                    module.ensure_checkout_inactive(self.root)
+        with mock.patch.object(module.subprocess, 'run', side_effect=[
+                processes, subprocess.TimeoutExpired('lsof', 30)]):
+            with self.assertRaisesRegex(RuntimeError, 'Open-file inventory unavailable'):
+                module.ensure_checkout_inactive(self.root)
+        with mock.patch.object(module.subprocess, 'run', side_effect=[
+                processes, subprocess.CompletedProcess([], 0, f'p{own}\np{parent}\n', '')]):
+            module.ensure_checkout_inactive(self.root)
+
+    def test_automatic_cleanup_accepts_only_verified_tool_duplicates(self) -> None:
+        module = load_script('agent_integrate_tool_guard_test', 'agent-integrate.py')
+        task = self.create('tool-guard')
+        for root in (self.root, task):
+            (root / '.tools').mkdir(exist_ok=True)
+            (root / '.tools/tool').write_bytes(b'known executable')
+        module.automatic_cleanup_guard(task, self.root)
+        (task / '.tools/tool').write_bytes(b'unique local content')
+        with self.assertRaisesRegex(RuntimeError, 'Unclassified ignored file retained'):
+            module.automatic_cleanup_guard(task, self.root)
+        self.assertEqual((task / '.tools/tool').read_bytes(), b'unique local content')
+
+    def test_automatic_cleanup_preserves_unclassified_ignored_work(self) -> None:
+        task = self.task('ignored-work')
+        (task / 'ignored').write_text('unique unfinished work')
+        result = self.helper(task, 'integrate')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('Unclassified ignored file retained', result.stderr)
+        self.assertEqual((task / 'ignored').read_text(), 'unique unfinished work')
+        self.assertEqual(self.git(self.root, 'rev-parse', 'main'), self.git(task, 'rev-parse', 'HEAD'))
+
+    def test_automatic_cleanup_failure_reports_landed_state_and_allows_retry(self) -> None:
+        task = self.task('locked')
+        self.git(self.root, 'worktree', 'lock', str(task))
+        result = self.helper(task, 'integrate')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('Landing succeeded, but cleanup failed', result.stderr)
+        self.assertTrue(task.exists())
+        self.assertEqual(self.git(self.root, 'rev-parse', 'main'), self.git(task, 'rev-parse', 'HEAD'))
+        self.git(self.root, 'worktree', 'unlock', str(task))
+        self.assertEqual(self.helper(task, 'cleanup').returncode, 0)
+        self.assertFalse(task.exists())
 
     def test_cleanup_preserves_unmerged_dirty_and_ignored_work(self) -> None:
         task = self.task('task')
@@ -429,7 +520,7 @@ sys.exit(bool(failures))
         (task / 'ignored/build-output').write_text('rebuildable')
         (task / 'ignored/peer').symlink_to(peer, target_is_directory=True)
         (peer / 'unfinished').write_text('peer work')
-        result = self.helper(task, 'integrate')
+        result = self.helper(task, 'integrate', '--keep-worktree')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertTrue(task.exists())
         self.assertEqual((task / 'ignored/build-output').read_text(), 'rebuildable')
@@ -451,18 +542,23 @@ sys.exit(bool(failures))
         write_executable(task / 'Scripts/handoff.sh', '#!/bin/sh\necho checked >> "$(git rev-parse --git-common-dir)/checks"\n')
         self.commit(task)
         head = self.git(task, 'rev-parse', 'HEAD')
-        result = self.helper(task, 'integrate')
+        result = self.helper(task, 'integrate', '--keep-worktree')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertTrue(task.exists())
         self.assertEqual((self.root / '.git/checks').read_text(), 'checked\n')
         evidence = self.root / '.git/trinket-evidence/codex/task'
         saved = list(evidence.glob('*/files/.DerivedData/Deliverables/screen.png'))
-        self.assertEqual(len(saved), 1)
-        self.assertEqual(saved[0].read_bytes(), b'fixture capture')
+        self.assertTrue(saved)
+        self.assertTrue(all(path.read_bytes() == b'fixture capture' for path in saved))
         manifest = json.loads(next(evidence.glob(head[:12] + '-*/evidence.json')).read_text())
         self.assertEqual(manifest['preserved_at_commit'], head)
         self.assertEqual(next(evidence.glob('*/files/ignored')).read_text(), 'other task evidence')
-        report = json.loads(next(evidence.glob('*/files/.DerivedData/Deliverables/task-report.json')).read_text())
+        reports = [json.loads(path.read_text()) for path in evidence.glob('*/files/.DerivedData/Deliverables/task-report.json')]
+        report = next(item for item in reports if item['completion_state'] == 'locally integrated; hosted verification pending')
+        for snapshot in evidence.glob(head[:12] + '-*'):
+            manifest = json.loads((snapshot / 'evidence.json').read_text())
+            for name, digest in manifest['file_hashes'].items():
+                self.assertEqual(hashlib.sha256((snapshot / 'files' / name).read_bytes()).hexdigest(), digest)
         self.assertEqual(report['static_verified_commit'], head)
         self.assertIn('task', report['changed_paths'])
         self.assertEqual(report['completion_state'], 'locally integrated; hosted verification pending')
@@ -482,7 +578,7 @@ sys.exit(bool(failures))
     def test_locked_worktree_cleanup_is_blocked_after_landing(self) -> None:
         task = self.task('task')
         self.git(self.root, 'worktree', 'lock', str(task))
-        result = self.helper(task, 'integrate')
+        result = self.helper(task, 'integrate', '--keep-worktree')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertNotEqual(self.helper(task, 'cleanup').returncode, 0)
         self.assertTrue(task.exists())

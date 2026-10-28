@@ -14,7 +14,7 @@ wrappers are for diagnostics/tooling, subject to [execution limits](../Docs/Plat
 | `python3 Scripts/agent-brief.py --status --read --paths <files...>` | Read scoped safeguards and ownership; `--full --read` expands linked contracts, `--task <concern>` selects indexed concern depth |
 | `python3 Scripts/content-inspect.py --id <id>` | Inspect content; `--name`, `--trigger`, and `--references` support rule/caller investigation |
 | `node Scripts/agent-worktree.mjs create --task <slug>` | Create an isolated task checkout from committed local main |
-| `node Scripts/agent-worktree.mjs integrate` | Land under the shared lock; [review, recovery and cleanup](../Docs/Platform/Development.md#isolated-chat-workflow) own its preconditions |
+| `node Scripts/agent-worktree.mjs integrate` | Land under the shared lock and clean the finished checkout; `--keep-worktree` retains it for ongoing work. [Review and recovery](../Docs/Platform/Development.md#isolated-chat-workflow) own preconditions |
 | `node Scripts/agent-worktree.mjs cleanup` | Preserve deliverables and remove this clean integrated worktree, retaining its branch |
 | `node Scripts/agent-worktree.mjs evidence [path...]` | Preserve task-local evidence, or print its durable directory |
 | `node Scripts/agent-worktree.mjs remove --task <slug>` | Legacy removal from primary; refuses dirty/unmerged tasks and ignored files |
@@ -282,6 +282,12 @@ the required toolchain.
 
 ### Output retention
 
+`python3 Scripts/report-storage.py` reports primary checkout storage, worktree
+Git state and guarded cleanup summaries without mutation. Add `--details` for
+individual cleanup decisions or `--evidence-details` for task-level evidence sizes.
+Clean status and ancestry do not prove inactivity;
+APFS allocation estimates may share extents and are not reclaimable-space promises.
+
 This matrix owns artifact lifetimes and cleanup eligibility. The executable owners
 are [output retention](internal/output_retention.py),
 [release-copy validation](../Docs/Platform/Release.md#options-and-recovery),
@@ -337,8 +343,9 @@ Task creation also runs a bounded, incremental pass over inactive task snapshots
 On macOS it losslessly compresses eligible old text and clones exact duplicate
 files at matching paths within a branch when filesystem support and byte/metadata
 checks permit. Candidates are 1–128 MiB files last modified at least seven days ago;
-each pass attempts at most four. Verification reports and native result, archive,
-symbol and trace bundles stay outside this compaction path.
+each pass attempts at most four. Verification reports stay outside this path;
+native result, archive, symbol and trace contents may only use exact clones, never
+compression or conversion.
 Paths remain unchanged; active, open, kept, recently modified, ACL-bearing and
 unknown evidence is skipped. Per-file allocated-byte estimates can overstate real
 free-space gains on APFS. Existing unclassified routine evidence remains retained.

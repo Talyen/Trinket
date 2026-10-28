@@ -62,6 +62,30 @@ class EvidenceCompactionTests(unittest.TestCase):
             self.assertEqual(compact.compact(self.common, self.root), (0, 0))
         self.assertEqual(compact.identity(report), identity)
 
+    def test_native_result_duplicates_are_cloned_without_transforming_contents(self):
+        first = self.report('first', 'run.xcresult/Data/payload.bin')
+        second = self.report('second', 'run.xcresult/Data/payload.bin')
+        os.utime(second, ns=(first.stat().st_atime_ns, first.stat().st_mtime_ns))
+        with mock.patch.object(compact, 'active_branches', return_value=set()):
+            changed, _ = compact.compact(self.common, self.root, seconds=12, max_attempts=4)
+        self.assertEqual(changed, 1)
+        self.assertEqual(first.read_bytes(), self.content)
+        self.assertEqual(second.read_bytes(), self.content)
+        second.write_bytes(b'independent update')
+        self.assertEqual(first.read_bytes(), self.content)
+
+    def test_bounded_pass_resumes_and_still_finds_previous_snapshot(self):
+        first = self.report('first', 'run.xcresult/Data/payload.bin')
+        second = self.report('second', 'run.xcresult/Data/payload.bin')
+        third = self.report('third', 'run.xcresult/Data/payload.bin')
+        for path in (second, third):
+            os.utime(path, ns=(first.stat().st_atime_ns, first.stat().st_mtime_ns))
+        with mock.patch.object(compact, 'active_branches', return_value=set()):
+            self.assertEqual(compact.compact(self.common, self.root, max_attempts=1)[0], 1)
+            self.assertTrue((self.common / 'trinket-storage-maintenance/cursor.json').exists())
+            self.assertEqual(compact.compact(self.common, self.root, max_attempts=1)[0], 1)
+        self.assertEqual(third.read_bytes(), self.content)
+
     def test_bad_compressed_copy_never_replaces_evidence(self):
         report = self.report('first')
         identity = compact.identity(report)

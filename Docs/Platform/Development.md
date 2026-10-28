@@ -88,9 +88,13 @@ landing checks still run. Keep the plan's actual status and remaining work intac
 
 ### Evidence and cleanup
 
-Landing retains the checkout, ignored files and build outputs. Completion follows
+Final landing preserves evidence and removes the invoking task checkout when its
+ignored files are classified for safe removal. Use `integrate --keep-worktree` for an intermediate
+landing or when further work needs the checkout. Completion follows
 [Verification](Verification.md#completion-states), including required visual evidence.
-`--keep-worktree` remains a compatibility no-op.
+Automatic cleanup stops if ignored files are not classified as preserved deliverables,
+disposable Python bytecode, or byte-identical tools independently present in primary.
+Review and preserve other ignored files before explicit cleanup.
 
 Handoff writes verification reports automatically. Integration adds `task-report.json`
 with the local completion state, main base, task paths and evidence links, and copies
@@ -101,7 +105,9 @@ only after comparing actual source and retained bytes. A separate
 `preservations.jsonl` records each preservation event; changed or damaged snapshots
 are preserved separately. New evidence files use independent copy-on-write clones
 when supported, falling back to ordinary copies; both are verified against the
-source. No mutable hard links are used. After completed worktree cleanup, newly
+source. Unchanged files in a later snapshot can clone a verified earlier file;
+each new manifest records file hashes, while paths and independent writes remain.
+No mutable hard links are used. After completed worktree cleanup, newly
 classified successful static handoff reports expire after seven days during later
 task creation; their original snapshot inventory and expiry journal remain.
 Legacy snapshots can also expire successful static reports when an integrated
@@ -116,10 +122,12 @@ separately. Save visual artifacts in Deliverables. For other task-local evidence
 use `node Scripts/agent-worktree.mjs evidence <paths...>`; without paths it prints
 the durable directory. Evidence provenance still comes from the capture/build record.
 
-When no remaining work needs the checkout, run `cleanup` there. It preserves
+When a kept checkout is no longer needed, or automatic cleanup failed, run
+`cleanup` there. It preserves
 deliverables again and removes only this clean, registered, integrated task worktree,
 including ignored outputs; it retains the branch and never changes primary main.
-It refuses unmerged/dirty tasks, locked worktrees, submodules and unsafe registrations.
+It refuses unmerged/dirty tasks, locked worktrees, submodules, unsafe registrations,
+foreign processes using the checkout, and unavailable process/open-file inventories.
 It can run after main advances or while primary files are dirty. A cleanup failure
 does not roll back landing; inspect the reported path and retry cleanup.
 
