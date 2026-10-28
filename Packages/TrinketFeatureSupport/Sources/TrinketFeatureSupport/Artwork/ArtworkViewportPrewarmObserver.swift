@@ -31,7 +31,7 @@ public struct ArtworkViewportPrewarmObserver<ID: Hashable>: View {
     }
 
     let entries: [ArtworkViewportEntry<ID>]
-    @State private var window = ArtworkViewportPrewarm.Window<ArtworkViewportEntry<ID>>(orderedItems: [])
+    @State private var orderedEntries: [ArtworkViewportEntry<ID>] = []
     @State private var generation = 0
     let viewport: ArtworkViewportTracker<ID>
     let prefetchRows: Int
@@ -53,7 +53,7 @@ public struct ArtworkViewportPrewarmObserver<ID: Hashable>: View {
         Color.clear
             .frame(width: 0, height: 0)
             .onChange(of: entries, initial: true) { _, entries in
-                window = ArtworkViewportPrewarm.Window(orderedItems: entries)
+                orderedEntries = entries
                 viewport.visibleIDs.formIntersection(entries.map(\.id))
                 generation &+= 1
             }
@@ -64,7 +64,7 @@ public struct ArtworkViewportPrewarmObserver<ID: Hashable>: View {
                 estimatedColumns: estimatedColumns,
             )) {
                 await ArtworkViewportPrewarm.prewarm(
-                    window: window,
+                    orderedItems: orderedEntries,
                     visibleIDs: viewport.visibleIDs,
                     currentVisibleIDs: { viewport.visibleIDs },
                     thumbnailName: { $0.name },

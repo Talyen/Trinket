@@ -53,8 +53,8 @@ final class ArtworkDecodeScheduler {
     private static let maxConcurrentDecodes = 2
     // The index includes running jobs so overlapping callers share their decode.
     // Request cancellation detaches consumers without releasing running decode slots.
+    // Jobs not present in runningPriorities are queued; keep a single job index.
     private var jobsByName: [String: Job] = [:]
-    private var queuedJobs: [Job] = []
     private var nextSequence: UInt64 = 0
     private var runningPriorities: [String: Priority] = [:]
 
@@ -91,9 +91,6 @@ final class ArtworkDecodeScheduler {
                         job.priority = request.priority
                     }
                     request.pendingNames.insert(name)
-                    if runningPriorities[name] == nil, !queuedJobs.contains(where: { $0 === job }) {
-                        queuedJobs.append(job)
-                    }
                 }
                 startAvailableJobs()
             }
@@ -105,11 +102,10 @@ final class ArtworkDecodeScheduler {
     private func startAvailableJobs() {
         while runningPriorities.count < Self.maxConcurrentDecodes {
             let hasDeferred = runningPriorities.values.contains(.deferred)
-            guard let index = bestQueuedIndex() else { return }
-            let next = queuedJobs[index]
+            guard let next = jobsByName.values.lazy.filter({ self.runningPriorities[$0.name] == nil }).min(by: precedes)
+            else { return }
             // A deferred candidate means no higher-priority work remains queued.
             guard !hasDeferred || next.priority != .deferred else { return }
-            queuedJobs.remove(at: index)
             runningPriorities[next.name] = next.priority
             let priority = next.priority
             Task(priority: priority == Priority.deferred ? .utility : .userInitiated) {
@@ -136,20 +132,6 @@ final class ArtworkDecodeScheduler {
         return lhs.sequence < rhs.sequence
     }
 
-    private func bestQueuedIndex() -> Int? {
-        var best: Int?
-        for index in queuedJobs.indices {
-            guard let current = best else {
-                best = index
-                continue
-            }
-            if precedes(queuedJobs[index], queuedJobs[current]) {
-                best = index
-            }
-        }
-        return best
-    }
-
     private func cancel(_ request: Request) {
         let names = request.pendingNames
         request.pendingNames.removeAll()
@@ -159,9 +141,6 @@ final class ArtworkDecodeScheduler {
             // Shared started jobs still publish and occupy their slots until decoding ends.
             guard runningPriorities[name] == nil else { continue }
             guard !job.requests.isEmpty else {
-                if let index = queuedJobs.firstIndex(where: { $0 === job }) {
-                    queuedJobs.remove(at: index)
-                }
                 jobsByName.removeValue(forKey: name)
                 continue
             }

@@ -7,24 +7,6 @@ public enum ArtworkViewportPrewarm {
     public static let backwardPrefetchRows = 1
     public static let viewportDebounceInterval: Duration = .milliseconds(50)
 
-    public struct Window<Item: Identifiable> where Item.ID: Hashable {
-        public let orderedItems: [Item]
-
-        public init(orderedItems: [Item]) {
-            self.orderedItems = orderedItems
-        }
-
-        fileprivate func visibleIndices(matching ids: Set<Item.ID>) -> [Int] {
-            guard !ids.isEmpty else { return [] }
-            var indices: [Int] = []
-            indices.reserveCapacity(min(ids.count, orderedItems.count))
-            for (offset, item) in orderedItems.enumerated() where ids.contains(item.id) {
-                indices.append(offset)
-            }
-            return indices
-        }
-    }
-
     @MainActor
     public static func prewarm<Item: Identifiable>(
         orderedItems: [Item],
@@ -46,25 +28,6 @@ public enum ArtworkViewportPrewarm {
         }
     }
 
-    @MainActor
-    public static func prewarm<Item: Identifiable>(
-        window: Window<Item>,
-        visibleIDs: Set<Item.ID>,
-        currentVisibleIDs: (() -> Set<Item.ID>)? = nil,
-        thumbnailName: (Item) -> String?,
-        prefetchRows: Int = defaultPrefetchRows,
-        estimatedColumns: Int = collectionEstimatedColumns,
-    ) async where Item.ID: Hashable {
-        await prewarm(
-            orderedItems: window.orderedItems,
-            visibleIDs: visibleIDs,
-            currentVisibleIDs: currentVisibleIDs,
-            thumbnailName: thumbnailName,
-            prefetchRows: prefetchRows,
-            estimatedColumns: estimatedColumns,
-        )
-    }
-
     /// Debounce, re-read the visible IDs, then prepare.
     @MainActor
     private static func prewarm(hasVisibleIDs: Bool, names: () -> [String]) async {
@@ -78,62 +41,19 @@ public enum ArtworkViewportPrewarm {
     }
 
     public static func windowNames<Item: Identifiable>(
-        window: Window<Item>,
-        visibleIDs: Set<Item.ID>,
-        thumbnailName: (Item) -> String?,
-        prefetchRows: Int,
-        estimatedColumns: Int,
-    ) -> [String] where Item.ID: Hashable {
-        windowNames(
-            orderedItems: window.orderedItems,
-            visibleIndices: window.visibleIndices(matching: visibleIDs),
-            thumbnailName: thumbnailName,
-            prefetchRows: prefetchRows,
-            estimatedColumns: estimatedColumns,
-        )
-    }
-
-    public static func windowNames<Item: Identifiable>(
         orderedItems: [Item],
         visibleIDs: Set<Item.ID>,
         thumbnailName: (Item) -> String?,
         prefetchRows: Int,
         estimatedColumns: Int,
     ) -> [String] where Item.ID: Hashable {
-        // Initial presentation only needs the prefix, regardless of catalog size.
         guard !orderedItems.isEmpty else { return [] }
-        guard !visibleIDs.isEmpty else {
-            return initialWindowNames(
-                orderedItems: orderedItems,
-                thumbnailName: thumbnailName,
-                prefetchRows: prefetchRows,
-                estimatedColumns: estimatedColumns,
-            )
+        let visibleIndices = visibleIDs.isEmpty ? [] : orderedItems.indices.filter {
+            visibleIDs.contains(orderedItems[$0].id)
         }
-        return windowNames(
-            orderedItems: orderedItems,
-            visibleIndices: visibleIndices(for: orderedItems, matching: { visibleIDs.contains($0.id) }),
-            thumbnailName: thumbnailName,
-            prefetchRows: prefetchRows,
-            estimatedColumns: estimatedColumns,
-        )
-    }
-
-    private static func windowNames<Item: Identifiable>(
-        orderedItems: [Item],
-        visibleIndices: [Int],
-        thumbnailName: (Item) -> String?,
-        prefetchRows: Int,
-        estimatedColumns: Int,
-    ) -> [String] {
-        guard !orderedItems.isEmpty else { return [] }
-        guard visibleIndices.first != nil else {
-            return initialWindowNames(
-                orderedItems: orderedItems,
-                thumbnailName: thumbnailName,
-                prefetchRows: prefetchRows,
-                estimatedColumns: estimatedColumns,
-            )
+        guard !visibleIndices.isEmpty else {
+            let initialCount = min(orderedItems.count, prefetchRows * estimatedColumns * 2)
+            return dedupedNames(for: orderedItems.prefix(initialCount), thumbnailName: thumbnailName)
         }
         let forwardCount = prefetchRows * estimatedColumns
         let backwardCount = backwardPrefetchRows * estimatedColumns
@@ -153,23 +73,6 @@ public enum ArtworkViewportPrewarm {
             }
         }
         return result
-    }
-
-    private static func initialWindowNames<Item: Identifiable>(
-        orderedItems: [Item],
-        thumbnailName: (Item) -> String?,
-        prefetchRows: Int,
-        estimatedColumns: Int,
-    ) -> [String] {
-        let initialCount = min(orderedItems.count, prefetchRows * estimatedColumns * 2)
-        return dedupedNames(for: orderedItems.prefix(initialCount), thumbnailName: thumbnailName)
-    }
-
-    private static func visibleIndices<Item: Identifiable>(
-        for orderedItems: [Item],
-        matching predicate: (Item) -> Bool,
-    ) -> [Int] {
-        orderedItems.enumerated().compactMap { predicate($0.element) ? $0.offset : nil }
     }
 
     private static func dedupedNames<Item>(

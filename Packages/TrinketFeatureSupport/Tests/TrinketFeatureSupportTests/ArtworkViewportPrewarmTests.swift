@@ -8,33 +8,23 @@ private struct ViewportItem: Identifiable, Equatable {
 
 @MainActor
 struct ArtworkViewportPrewarmTests {
-    @Test func `indexed windows preserve ordering after filtering and artwork replacement`() {
-        let original = (0 ..< 30).map { ViewportItem(id: "\($0)", thumbnail: "thumb\($0 / 2)") }
-        let replacement = original.reversed().filter { $0.id != "10" }.map {
-            ViewportItem(id: $0.id, thumbnail: "new-\($0.thumbnail)")
+    @Test func `filtered and reordered artwork follows the current catalog order`() {
+        let items = (0 ..< 30).reversed().filter { $0 != 10 }.map {
+            ViewportItem(id: "\($0)", thumbnail: "new-thumb\($0 / 2)")
         }
-        for items in [original, replacement] {
-            let window = ArtworkViewportPrewarm.Window(orderedItems: items)
-            let visibleSets: [Set<String>] = [[], ["missing"], ["2", "3"], ["0", "10", "29"]]
-            for visible in visibleSets {
-                let indexed = ArtworkViewportPrewarm.windowNames(
-                    window: window, visibleIDs: visible, thumbnailName: { $0.thumbnail },
-                    prefetchRows: 1, estimatedColumns: 2,
-                )
-                let scanned = ArtworkViewportPrewarm.windowNames(
-                    orderedItems: items, visibleIDs: visible, thumbnailName: { $0.thumbnail },
-                    prefetchRows: 1, estimatedColumns: 2,
-                )
-                #expect(indexed == scanned)
-            }
-        }
+        let names = ArtworkViewportPrewarm.windowNames(
+            orderedItems: items, visibleIDs: ["0", "10", "29"], thumbnailName: { $0.thumbnail },
+            prefetchRows: 1, estimatedColumns: 2,
+        )
+        #expect(names == ["new-thumb14", "new-thumb13", "new-thumb1", "new-thumb0"])
     }
 
-    @Test func `empty visible I ds prefetches initial window`() {
+    @Test(arguments: [Set<String>(), Set(["missing"])])
+    func `no matching visible IDs prefetches initial window`(visibleIDs: Set<String>) {
         let items = (0 ..< 20).map { ViewportItem(id: "\($0)", thumbnail: "thumb\($0)") }
         let names = ArtworkViewportPrewarm.windowNames(
-            window: ArtworkViewportPrewarm.Window(orderedItems: items),
-            visibleIDs: [],
+            orderedItems: items,
+            visibleIDs: visibleIDs,
             thumbnailName: { $0.thumbnail },
             prefetchRows: 3,
             estimatedColumns: 3,
@@ -45,7 +35,7 @@ struct ArtworkViewportPrewarmTests {
     @Test func `visible window includes visible plus three rows ahead`() {
         let items = (0 ..< 20).map { ViewportItem(id: "\($0)", thumbnail: "thumb\($0)") }
         let names = ArtworkViewportPrewarm.windowNames(
-            window: ArtworkViewportPrewarm.Window(orderedItems: items),
+            orderedItems: items,
             visibleIDs: ["3", "4", "5"],
             thumbnailName: { $0.thumbnail },
             prefetchRows: 3,
@@ -57,7 +47,7 @@ struct ArtworkViewportPrewarmTests {
     @Test func `window clamps at end of collection`() {
         let items = (0 ..< 10).map { ViewportItem(id: "\($0)", thumbnail: "thumb\($0)") }
         let names = ArtworkViewportPrewarm.windowNames(
-            window: ArtworkViewportPrewarm.Window(orderedItems: items),
+            orderedItems: items,
             visibleIDs: ["8", "9"],
             thumbnailName: { $0.thumbnail },
             prefetchRows: 3,
@@ -73,7 +63,7 @@ struct ArtworkViewportPrewarmTests {
             ViewportItem(id: "c", thumbnail: "other"),
         ]
         let names = ArtworkViewportPrewarm.windowNames(
-            window: ArtworkViewportPrewarm.Window(orderedItems: items),
+            orderedItems: items,
             visibleIDs: ["a"],
             thumbnailName: { $0.thumbnail },
             prefetchRows: 3,
@@ -85,7 +75,7 @@ struct ArtworkViewportPrewarmTests {
     @Test func `dispersed visible items prewarm per cluster`() {
         let items = (0 ..< 20).map { ViewportItem(id: "\($0)", thumbnail: "thumb\($0)") }
         let names = ArtworkViewportPrewarm.windowNames(
-            window: ArtworkViewportPrewarm.Window(orderedItems: items),
+            orderedItems: items,
             visibleIDs: ["0", "10"],
             thumbnailName: { $0.thumbnail },
             prefetchRows: 1,
