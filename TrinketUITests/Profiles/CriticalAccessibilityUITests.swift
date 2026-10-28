@@ -111,7 +111,13 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         let motionCell = settings.cells["MOTION_TITLE"].firstMatch
         let motion = motionCell.exists ? motionCell : settings.cells.containing(.staticText, identifier: "Motion").firstMatch
         try revealSettingsElement(motion, scrolling: settingsContent())
-        motion.tap()
+        let motionButton = settings.buttons["MOTION_TITLE"].firstMatch
+        if motionButton.exists {
+            try revealSettingsElement(motionButton, scrolling: settingsContent())
+            motionButton.tap()
+        } else {
+            motion.tap()
+        }
         guard reduceMotionSwitch.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout) else {
             throw NativeSettingsFailure(
                 description: "Reduce Motion switch missing after opening Motion. \(settings.debugDescription.suffix(10000))",
@@ -133,7 +139,12 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
 
     @MainActor private static func revealSettingsElement(_ element: XCUIElement, scrolling container: XCUIElement) throws {
         for _ in 0 ..< 10 {
-            if element.exists, element.isHittable, container.frame.contains(CGPoint(x: element.frame.midX, y: element.frame.midY)) {
+            // A partially clipped Settings row can be reported hittable even
+            // though its tap lands under the bottom system inset at large text sizes.
+            let visibleFrame = container.frame.insetBy(dx: 0, dy: 44)
+            if element.exists, element.isHittable,
+               visibleFrame.contains(CGPoint(x: element.frame.midX, y: element.frame.midY)),
+               element.frame.minY >= visibleFrame.minY, element.frame.maxY <= visibleFrame.maxY {
                 return
             }
             if element.exists, element.frame.midY < container.frame.midY {
