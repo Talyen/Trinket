@@ -6,6 +6,8 @@ import json
 import os
 from pathlib import Path
 import sys
+import subprocess
+import time
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -127,8 +129,23 @@ class ToolingEvidenceTests(unittest.TestCase):
                     self.assertEqual(source_times.process(root, 'restore'), 0)
                     utime.assert_not_called()
 
+    def test_phase_timing_spans_separate_interpreters(self):
+        with tempfile.TemporaryDirectory() as directory:
+            env = {**os.environ, 'RESULTS_DIR': directory}
+            # Delaying only the begin interpreter exposes per-process clock origins.
+            started = subprocess.check_output([sys.executable, '-c',
+                'import time, runpy, sys; time.sleep(.2); sys.argv = [sys.argv[1], "begin"]; '
+                'runpy.run_path(sys.argv[0], run_name="__main__")', phase.__file__],
+                env={**env, 'PYTHONPATH': str(Path(phase.__file__).parent)}, text=True).strip()
+            time.sleep(.1)
+            subprocess.run([sys.executable, phase.__file__, 'end', 'build', started, 'fixture'],
+                           env=env, check=True, capture_output=True, text=True, timeout=10)
+            entry = json.loads((Path(directory) / 'phase-timing.jsonl').read_text())
+            self.assertGreaterEqual(entry['seconds'], .1)
+            self.assertLess(entry['seconds'], 10)
+
     def test_phase_cli_rejects_bad_commands_and_future_timestamps(self):
-        with patch.object(phase, 'update_timing') as update, patch.object(phase.time, 'monotonic_ns', return_value=100), \
+        with patch.object(phase, 'update_timing') as update, patch.object(phase.time, 'clock_gettime_ns', return_value=100), \
                 contextlib.redirect_stderr(io.StringIO()):
             for args in ([], ['typo', 'build', '1', 'scope'], ['end'], ['end', 'build', '-1', 'scope'],
                          ['end', 'build', '101', 'scope']):
@@ -136,7 +153,7 @@ class ToolingEvidenceTests(unittest.TestCase):
                     phase.main(args)
             update.assert_not_called()
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, RESULTS_DIR=directory), \
-                patch.object(phase, 'update_timing') as update, patch.object(phase.time, 'monotonic_ns', return_value=2000000000):
+                patch.object(phase, 'update_timing') as update, patch.object(phase.time, 'clock_gettime_ns', return_value=2000000000):
             phase.main(['end', 'build', '1000000000', 'scope'])
             self.assertEqual(update.call_args.kwargs['entry']['seconds'], 1)
 

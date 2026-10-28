@@ -105,7 +105,7 @@ if not ios_runtimes:
 # Sort newest-first by version, then build, so duplicate version entries
 # (parallel runtime trains sharing one identifier) resolve deterministically.
 ios_runtimes.sort(
-    key=lambda r: (r.get("version", ""), r.get("buildversion", "")),
+    key=lambda r: (tuple(int(part) for part in r["version"].split(".")), r.get("buildversion", "")),
     reverse=True,
 )
 def types_for(runtime):

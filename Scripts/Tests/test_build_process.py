@@ -189,6 +189,9 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                 ("xcrun", 'printf "%s\\n" "$@" > installed\n'),
             ):
                 write_executable(root / name, '#!/bin/bash\n' + body)
+            # Exercise the actual shared runner around the fake compiler and installer.
+            shutil.copy2(ROOT / "Scripts/xcode-runner.sh", runner)
+            env.update(TRINKET_XCODE_WALL_TIMEOUT_SECONDS="0", TRINKET_XCODE_IDLE_TIMEOUT_SECONDS="0")
             products = f"{root}/.DerivedData/Device/Build/Products"
             for flags, configuration in (([], "Debug"), (["--release"], "Release")):
                 with self.subTest(configuration=configuration):
@@ -199,6 +202,13 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                     self.assertNotIn("CODE_SIGNING_ALLOWED=NO", args)
                     self.assertEqual(args[args.index("-configuration") + 1], configuration)
                     self.assertIn(f"{products}/{configuration}-iphoneos/Trinket.app", (root / "installed").read_text())
+
+            (root / "installed").unlink()
+            write_executable(root / "xcodebuild", '#!/bin/bash\necho "error: fixture compiler failure"\nexit 65\n')
+            for flags in ([], ["--verbose"]):
+                result = run_captured([str(scripts / "install-device.sh"), "--device", "fixture", "--no-launch", *flags], env=env)
+                self.assertEqual(result.returncode, 65, result.stdout + result.stderr)
+                self.assertFalse((root / "installed").exists())
 
     def test_analyzer_requires_coverage_and_propagates_build_failure(self):
         with tempfile.TemporaryDirectory() as directory:

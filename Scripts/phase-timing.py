@@ -17,7 +17,9 @@ def main(argv=None):
     end.add_argument("started", type=int)
     end.add_argument("scope")
     args = parser.parse_args(argv)
-    now = time.monotonic_ns()
+    # Apple Python 3.9 monotonic_ns has a per-process origin; begin/end run
+    # in separate interpreters and require the shared system clock.
+    now = time.clock_gettime_ns(time.CLOCK_MONOTONIC)
     if args.command == "begin":
         print(now)
         return

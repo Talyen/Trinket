@@ -87,7 +87,7 @@ class VerificationPolicyTests(ScriptRegressionTestCase):
             root = Path(directory)
             scripts = root / 'Scripts'
             (scripts / 'lib').mkdir(parents=True)
-            for name in ('build.sh', 'test.sh', 'test-package.sh', 'run-simulator.sh',
+            for name in ('build.sh', 'test.sh', 'test-package.sh', 'run-simulator.sh', 'install-device.sh',
                          'lib/verification-policy.sh', 'lib/args.sh'):
                 (scripts / name).write_text((ROOT / 'Scripts' / name).read_text())
             (scripts / 'run-env.sh').write_text(
@@ -110,7 +110,8 @@ class VerificationPolicyTests(ScriptRegressionTestCase):
             for name, args in (('build.sh', ['--release-device']),
                                ('test.sh', ['smoke', 'ExampleTests/testMethod']),
                                ('test-package.sh', ['--only-suite', 'ExampleTests', 'TrinketCore']),
-                               ('run-simulator.sh', ['--isolate', '--unlocked', '--', '-launch-screen', 'battle'])):
+                               ('run-simulator.sh', ['--isolate', '--unlocked', '--', '-launch-screen', 'battle']),
+                               ('install-device.sh', ['--device', 'fixture phone', '--release', '--no-launch'])):
                 with self.subTest(name=name):
                     result = run_captured(['bash', str(scripts / name), *args], cwd=root, env=env)
                     self.assertEqual(result.returncode, 75, result.stdout + result.stderr)

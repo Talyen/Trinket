@@ -23,7 +23,7 @@ wrappers are for diagnostics/tooling, subject to [execution limits](../Docs/Plat
 | `./Scripts/update-tools.sh --apply` | Update tool pins and installation; omit `--apply` for a report |
 | `./Scripts/run-simulator.sh --isolate --inspect` | Hold a managed build/launch/inspection session; [simulator operations](../Docs/Platform/SimulatorOperations.md#inspection-lease-and-capture) own targeting and recovery |
 | `./Scripts/promote.sh` | Build once in isolation and install on Trinket Run; no launch by default |
-| `./Scripts/install-device.sh --device <name-or-id>` | Build/install/launch on selected physical hardware; `--release` selects optimized testing |
+| `./Scripts/install-device.sh --device <name-or-id>` | Build/install/launch on selected physical hardware through host admission and the shared Xcode runner; `--release` selects optimized testing |
 
 Handoff defaults to the complete task against `main`: commits plus dirty files,
 deletions and both rename endpoints. Briefing requires an explicit scope; use

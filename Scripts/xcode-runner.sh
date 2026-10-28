@@ -195,7 +195,9 @@ xcode_runner_run() {
   while (( attempt <= max_attempts )); do
     XCODE_RUNNER_COMPLETION_SOURCE="process-exit"
     XCODE_RUNNER_TEST_EXECUTION_PROVEN="false"
-    if [[ "$quiet" == "true" ]] && xcode_runner_watchdog_enabled; then
+    local XCODE_RUNNER_STREAM_OUTPUT=false
+    [[ "$quiet" == true ]] || XCODE_RUNNER_STREAM_OUTPUT=true
+    if xcode_runner_watchdog_enabled; then
       set +e
       xcode_runner_execute_watched "$log_file" "$working_directory" "${command_args[@]}"
       xcode_exit=$?
@@ -209,23 +211,10 @@ xcode_runner_run() {
       fi
       xcode_exit=$?
       if [[ "$restore_errexit" == "true" ]]; then set -e; else set +e; fi
-    elif command -v xcbeautify >/dev/null 2>&1; then
-      set +e
-      if [[ -n "$working_directory" ]]; then
-        (cd "$working_directory" && "${command_args[@]}" 2>&1) | tee "$log_file" | xcbeautify
-      else
-        "${command_args[@]}" 2>&1 | tee "$log_file" | xcbeautify
-      fi
-      xcode_exit=${PIPESTATUS[0]}
-      if [[ "$restore_errexit" == "true" ]]; then set -e; else set +e; fi
     else
       set +e
-      if [[ -n "$working_directory" ]]; then
-        (cd "$working_directory" && "${command_args[@]}" 2>&1) | tee "$log_file"
-      else
-        "${command_args[@]}" 2>&1 | tee "$log_file"
-      fi
-      xcode_exit=${PIPESTATUS[0]}
+      xcode_runner_execute_verbose "$log_file" "$working_directory" "${command_args[@]}"
+      xcode_exit=$?
       if [[ "$restore_errexit" == "true" ]]; then set -e; else set +e; fi
     fi
 
@@ -267,17 +256,19 @@ xcode_runner_run() {
           ensure_test_simulator_logged force
           local sim_status=$?
           if [[ "$restore_errexit" == "true" ]]; then set -e; else set +e; fi
-          if [[ "$sim_status" -eq 0 ]]; then
-            if [[ -n "${SIMULATOR_DESTINATION:-}" ]]; then
-              local _i
-              for (( _i = 0; _i < ${#command_args[@]}; _i++ )); do
-                if [[ "${command_args[$_i]}" == "-destination" && $((_i + 1)) -lt ${#command_args[@]} ]]; then
-                  command_args[$((_i + 1))]="$SIMULATOR_DESTINATION"
-                elif [[ "${command_args[$_i]}" == -destination=* ]]; then
-                  command_args[$_i]="-destination=$SIMULATOR_DESTINATION"
-                fi
-              done
-            fi
+          if [[ "$sim_status" -ne 0 ]]; then
+            echo "xcode-runner: simulator recovery failed (exit $sim_status); preserving the failed attempt and stopping retries." >&2
+            break
+          fi
+          if [[ -n "${SIMULATOR_DESTINATION:-}" ]]; then
+            local _i
+            for (( _i = 0; _i < ${#command_args[@]}; _i++ )); do
+              if [[ "${command_args[$_i]}" == "-destination" && $((_i + 1)) -lt ${#command_args[@]} ]]; then
+                command_args[$((_i + 1))]="$SIMULATOR_DESTINATION"
+              elif [[ "${command_args[$_i]}" == -destination=* ]]; then
+                command_args[$_i]="-destination=$SIMULATOR_DESTINATION"
+              fi
+            done
           fi
         fi
         rm -rf "$result_bundle"

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Build, install, and optionally launch Trinket on a connected physical device.
 set -euo pipefail
+TRINKET_ENTRY_ARGS=("$@")
 
 cd "$(dirname "$0")/.."
 # shellcheck source=lib/tools.sh
@@ -47,6 +48,9 @@ USAGE
     *) break ;;
   esac
 done
+
+source Scripts/lib/verification-policy.sh
+trinket_host_admit "$PWD/Scripts/install-device.sh" "${TRINKET_ENTRY_ARGS[@]+"${TRINKET_ENTRY_ARGS[@]}"}" || exit $?
 
 if [[ -z "$DEVICE" ]]; then
   DEVICE="$(xcrun devicectl list devices -j - 2>/dev/null | python3 -c '
@@ -95,23 +99,15 @@ BUILD_ARGS=(
 )
 
 BUILD_LOG="$DERIVED_DATA/install-device-build.log"
-if [[ "$VERBOSE" == "true" ]]; then
-  set +e
-  xcodebuild build "${BUILD_ARGS[@]}" 2>&1 | tee "$BUILD_LOG"
-  build_exit=${PIPESTATUS[0]}
-  set -e
-else
-  echo "  (quiet mode; log at $BUILD_LOG)"
-  xcodebuild build "${BUILD_ARGS[@]}" >"$BUILD_LOG" 2>&1 || build_exit=$?
-  build_exit=${build_exit:-0}
-fi
+source ./Scripts/xcode-runner.sh
+xcode_runner_prepare install-device "$DERIVED_DATA/TestResults"
+verbosity=--quiet
+[[ "$VERBOSE" == false ]] || verbosity=--verbose
+xcode_runner_run --label install-device --log "$BUILD_LOG" \
+  --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
+  --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" "$verbosity" -- \
+  xcodebuild build "${BUILD_ARGS[@]}"
 
-if [[ "${build_exit:-0}" -ne 0 ]]; then
-  echo "error: build failed (exit $build_exit)" >&2
-  echo "  Log: $BUILD_LOG" >&2
-  tail -30 "$BUILD_LOG" >&2 || true
-  exit 1
-fi
 echo "Build succeeded."
 
 APP_PATH="$DERIVED_DATA/Build/Products/$DEVICE_BUILD_CONFIGURATION-iphoneos/Trinket.app"

@@ -148,7 +148,7 @@ case "$WATCHDOG_CASE" in
     echo "Example.swift:12: error: XCTAssertEqual failed" ;;
   growing)
     while true; do echo "compiling..."; sleep 0.2; done ;;
-  silent) echo "compiling..." ;;
+  silent|verbose-silent) echo "compiling..." ;;
 esac
 while true; do sleep 60; done
 FAKE_WATCHED
@@ -254,6 +254,26 @@ FAKE_XCODE_STATE="$retry_state" FAKE_XCODE_MODE=retry \
     grep -F -- "\"diagnostics_json\":\"\"" "$manifest"
   ' _ "$RUNNER" "$retry_results" "$TMP_DIR/fake-xcodebuild"
 
+# Recovery failure preserves the original diagnostics and never retries a stale UDID.
+FAKE_XCODE_STATE="$TMP_DIR/recovery-failure-state" FAKE_XCODE_MODE=retry \
+  REPORT_CAPTURE="$TMP_DIR/recovery-failure-report" \
+  TRINKET_XCODE_WALL_TIMEOUT_SECONDS=0 TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=0 \
+  XCODE_RUNNER_REPORTER="$TMP_DIR/fake-reporter" \
+  bash -eu -c '
+    source "$1"
+    ensure_test_simulator_logged() { return 42; }
+    retryable() { [[ "$1" -eq 70 ]]; }
+    mkdir -p "$2/original.xcresult"
+    touch "$2/original.xcresult/preserved"
+    status=0
+    xcode_runner_run --label recovery-failure --result-bundle "$2/original.xcresult" \
+      --log "$2/failed.log" --report-prefix "$2/report" \
+      --retry-callback retryable -- "$3" || status=$?
+    [[ "$status" -eq 70 && "$(<"$FAKE_XCODE_STATE")" -eq 1 ]]
+    [[ -f "$2/original.xcresult/preserved" ]]
+    grep -q "Unable to boot simulator" "$2/failed.log"
+  ' _ "$RUNNER" "$TMP_DIR/recovery-failure" "$TMP_DIR/fake-xcodebuild"
+
 run_watchdog_case() (
   mode="$1"
   results="$TMP_DIR/watchdog-$mode"
@@ -281,7 +301,7 @@ run_watchdog_case() (
       expected=124
       completion=process-exit ;;
     failure|late-failure) expected=65 ;;
-    silent|growing)
+    silent|verbose-silent|growing)
       export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=2
       export TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=0
       expected=124
@@ -295,10 +315,12 @@ run_watchdog_case() (
   fi
   xcode_runner_prepare "$mode" "$results"
   status=0
+  verbosity=--quiet
+  [[ "$mode" != verbose-silent ]] || verbosity=--verbose
   xcode_runner_run --label "$mode" \
     --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
     --log "$XCODE_RUNNER_LOG_PATH" --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" \
-    --quiet -- "${command_args[@]}" || status=$?
+    "$verbosity" -- "${command_args[@]}" || status=$?
   [[ "$status" == "$expected" ]] || return 1
   python3 - "$XCODE_RUNNER_MANIFEST_PATH" "$status" "$completion" "$mode" <<'PY_MANIFEST' || return 1
 import json, sys
@@ -316,7 +338,7 @@ PY_MANIFEST
   esac
 )
 
-watchdog_cases=(finalization success selected zero zero-options mixed-active mixed-incomplete swift-summary failure late-failure silent growing)
+watchdog_cases=(finalization success selected zero zero-options mixed-active mixed-incomplete swift-summary failure late-failure silent verbose-silent growing)
 watchdog_pids=()
 for mode in "${watchdog_cases[@]}"; do
   mkdir -p "$TMP_DIR/watchdog-$mode"

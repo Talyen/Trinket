@@ -103,7 +103,7 @@ Scripts/format.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,t
 Scripts/generate.sh	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py
 Scripts/git-safety-guard.mjs	test_git_safety.py
 Scripts/handoff.sh	test-lib-args.sh,test_ci_gate_scripts.py,test_ci_handoff_routing.py,test_ci_path_filter.py,test_documentation.py,test_output_retention.py,test_verification_policy.py
-Scripts/install-device.sh	test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py
+Scripts/install-device.sh	test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py,test_verification_policy.py
 Scripts/internal/agent_arguments.py	test_agent_read.py,test_agent_search.py
 Scripts/internal/agent_callers.py	test_agent_callers.py,test_agent_investigate.py
 Scripts/internal/agent_status.py	test_agent_context.py

@@ -9,6 +9,10 @@
 - Close SwiftUI Previews before long verification runs. Set
   `TRINKET_CLEANUP_PREVIEW_SIMS=0` only while intentionally keeping previews.
 - Erase is a recovery operation after a failed cold boot, not routine cleanup.
+  If simulator recovery fails, the Xcode runner stops without retrying the old
+  destination and preserves the failed attempt’s log and result bundle.
+  Quiet and verbose Xcode runs use the same wall-clock and post-result idle
+  watchdogs; verbose output does not disable timeout protection.
 
 `Scripts/run-env.sh` leases a simulator and a corresponding
 `.DerivedData/runs/agent-N/` tree. Linked Git worktrees share simulator leases,

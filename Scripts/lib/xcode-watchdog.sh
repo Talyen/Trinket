@@ -93,6 +93,21 @@ xcode_runner_force_kill_tree() {
   xcode_runner_kill_tree_impl "$1" KILL
 }
 
+xcode_runner_execute_verbose() (
+  local log_file="$1" working_directory="$2"
+  shift 2
+  [[ -z "$working_directory" ]] || cd "$working_directory" || exit 127
+  # Preserve the compiler status independently of tee and the formatter.
+  set +e
+  if command -v xcbeautify >/dev/null 2>&1; then
+    "$@" 2>&1 | tee "$log_file" | xcbeautify
+    exit "${PIPESTATUS[0]}"
+  else
+    "$@" 2>&1 | tee "$log_file"
+    exit "${PIPESTATUS[0]}"
+  fi
+)
+
 xcode_runner_execute_watched() {
   local log_file="$1"
   local working_directory="${2:-}"
@@ -117,7 +132,10 @@ xcode_runner_execute_watched() {
   mkdir -p "$(dirname "$log_file")"
   : >"$log_file"
 
-  if [[ -n "$working_directory" ]]; then
+  if [[ "${XCODE_RUNNER_STREAM_OUTPUT:-false}" == true ]]; then
+    xcode_runner_execute_verbose "$log_file" "$working_directory" "$@" &
+    cmd_pid=$!
+  elif [[ -n "$working_directory" ]]; then
     (
       cd "$working_directory" || exit 127
       exec "$@"
