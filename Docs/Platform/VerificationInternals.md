@@ -122,6 +122,10 @@ publishes products for exhaustive UI. Exhaustive UI runs every registered FullUI
 class on one runner with one product transfer. It restores the exact-run product
 archive from the retained build artifact and rebuilds when that transfer is missing
 or cannot be validated. Incremental build caches are separate from product transfers.
+The hosted app build prints Xcode's timing summary so compiler tasks can be compared
+with the separately timed cache restore, cache save, and product archive steps.
+Product archives use fast gzip compression; the test transfer retains its existing
+product and build-stamp validation before reuse.
 Pushes select owning packages for edits confined to their `Tests/` directories.
 Source and shared test-support edits also select transitive dependents. Shared build
 inputs, package-manifest changes, unknown ownership, and missing dependency evidence

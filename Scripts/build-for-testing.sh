@@ -89,10 +89,16 @@ fi
 # Build-only invocations do not write a result bundle; logs + manifests carry
 # the outcome and test runs produce their own xcresults.
 begin_build_stamps "$RESULTS_DIR" smoke
+if [[ "${CI:-}" == true ]]; then
+  TRINKET_APP_XCODEBUILD_ARGS+=(-showBuildTimingSummary)
+fi
 xcode_runner_run "${app_runner_args[@]}" -- xcodebuild build-for-testing \
   "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
 
 if [[ "${CI:-}" == true ]]; then
+  # The runner keeps successful build output in a local log; publish the timing
+  # summary so hosted builds expose compiler work separately from cache transfer.
+  awk '/^Build Timing Summary/ { printing = 1 } printing { print }' "$XCODE_RUNNER_LOG_PATH"
   python3 Scripts/check-localization-build.py --derived-data "$DERIVED_DATA_PATH" \
     --app "$DERIVED_DATA_PATH/Build/Products/Debug-iphonesimulator/Trinket.app"
 fi

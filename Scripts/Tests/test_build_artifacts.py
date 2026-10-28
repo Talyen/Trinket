@@ -54,6 +54,24 @@ class BuildArtifactTests(unittest.TestCase):
                          "Build/Products/removed", "ci-test-artifact.tar"):
                 self.assertFalse((restored / path).exists(), path)
 
+    def test_product_archive_fails_when_tar_or_compression_fails(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "Build/Products").mkdir(parents=True)
+            tools = root / "bin"
+            tools.mkdir()
+            for failing_tool in ("tar", "gzip"):
+                with self.subTest(failing_tool=failing_tool):
+                    executable = tools / failing_tool
+                    write_executable(executable, "#!/bin/sh\nexit 42\n")
+                    result = subprocess.run(
+                        [str(ROOT / "Scripts/stage-ci-test-artifact.sh"), str(root)],
+                        env={**os.environ, "PATH": f"{tools}:{os.environ['PATH']}"},
+                        capture_output=True,
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    executable.unlink()
+
     def test_ci_pruning_retains_incremental_state_and_rejects_foreign_directories(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

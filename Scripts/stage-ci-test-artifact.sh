@@ -25,7 +25,7 @@ fi
     --exclude="*.swiftdoc" \
     --exclude="*.swiftsourceinfo" \
     --exclude="*.abi.json" \
-    -czf "$ARCHIVE" "${inputs[@]}"
+    -cf - "${inputs[@]}" | gzip -1 > "$ARCHIVE"
 )
 echo "=== Archived test products: $ARCHIVE ==="
 du -sh "$ARCHIVE"

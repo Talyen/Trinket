@@ -89,12 +89,27 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
             'xcode_runner_prepare() { XCODE_RUNNER_INVOCATION_ID=fixture; XCODE_RUNNER_LOG_PATH="$PWD/compiler.log"; '
             'XCODE_RUNNER_REPORT_PREFIX="$PWD/report"; XCODE_RUNNER_RESULT_BUNDLE_PATH="$PWD/result.xcresult"; }\n'
             'xcode_runner_run() { while [[ "$1" != -- ]]; do shift; done; shift; '
-            'printf "%s\\n" "$@" > "$PWD/arguments"; echo swiftc > "$PWD/compiler.log"; '
+            'printf "%s\\n" "$@" > "$PWD/arguments"; printf "%s\\n" "${BUILD_LOG:-swiftc}" > "$PWD/compiler.log"; '
             'return "${BUILD_STATUS:-0}"; }\n'
         )
         # Build orchestration fixture; extraction correctness is covered by test_localization.
         (scripts / "check-localization-build.py").write_text("# Successful compiler-extraction fixture.\n")
         return scripts
+
+    def test_ci_build_publishes_the_xcode_timing_summary(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            scripts = self.fixture(root)
+            (scripts / "build-freshness.sh").write_text(
+                (ROOT / "Scripts/build-freshness.sh").read_text()
+                + '\nprepare_generated_inputs() { :; }\nbegin_build_stamps() { :; }\ntouch_build_stamp() { :; }\n'
+            )
+            env = {**os.environ, "CI": "true", "TRINKET_ALLOW_HEAVY_LOCAL": "1",
+                   "BUILD_LOG": "compile output\nBuild Timing Summary\nSwiftCompile 1.5 seconds"}
+            result = run_captured([str(scripts / "build-for-testing.sh"), "--app-only"], env=env, expected=0)
+            self.assertIn("-showBuildTimingSummary", (root / "arguments").read_text().splitlines())
+            self.assertIn("Build Timing Summary\nSwiftCompile 1.5 seconds", result.stdout)
+            self.assertNotIn("compile output", result.stdout)
 
     def test_compile_actions_do_not_stamp_test_products(self):
         with tempfile.TemporaryDirectory() as directory:
