@@ -204,6 +204,7 @@ Scripts/release-notes.sh	test_policy_scripts.py,test_swift_style_policy.py
 Scripts/release.sh	test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py
 Scripts/report-art-memory.sh	test_ci_build_scripts.py,test_media_asset_scripts.py
 Scripts/report-exhaustive-ci.py	test_ci_gate_scripts.py,test_exhaustive_report_regressions.py
+Scripts/resolve-built-app.py	test_ci_session_scripts.py
 Scripts/restore-ci-test-products.sh	test_build_metadata.py
 Scripts/run-env.sh	test-run-env.sh,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py,test_shared_build_lease.py
 Scripts/run-simulator.sh	test_build_metadata.py,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py,test_inspection.py

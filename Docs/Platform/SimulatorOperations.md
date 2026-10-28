@@ -168,6 +168,9 @@ reports UI-open failures separately from app-launch failures, so a successful
 headless launch is not visual verification. An opted-in handoff mirror does not
 launch by default. Agents use `./Scripts/run-simulator.sh --isolate --inspect`
 to keep their lease throughout inspection.
+The launcher locates the app from the successful build's target output when it
+identifies exactly one existing product. Missing or ambiguous output falls back
+to Xcode's build-settings query before installing anything.
 
 ## Xcode IDE loop
 

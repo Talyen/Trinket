@@ -104,17 +104,21 @@ python3 Scripts/build-metadata.py invalidate "$RESULTS_DIR" smoke
 xcode_runner_run --label "run-simulator" --quiet -- \
   xcodebuild build "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
 
-BUILD_SETTINGS_PATH="$(mktemp "$RESULTS_DIR/run-simulator-settings.XXXXXX")"
-trinket_temp_track "$BUILD_SETTINGS_PATH" "$BUILD_SETTINGS_PATH.log"
-if ! TRINKET_XCODE_WALL_TIMEOUT_SECONDS=60 TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=0 \
-  xcode_runner_execute_watched "$BUILD_SETTINGS_PATH.log" "" \
-  bash -c 'output=$1; shift; exec "$@" > "$output"' _ "$BUILD_SETTINGS_PATH" \
-  xcodebuild -showBuildSettings -json "${TRINKET_APP_XCODEBUILD_ARGS[@]}"; then
-  echo "error: could not resolve Trinket build settings; output: $BUILD_SETTINGS_PATH; log: $BUILD_SETTINGS_PATH.log" >&2
-  trinket_temp_untrack "$BUILD_SETTINGS_PATH" "$BUILD_SETTINGS_PATH.log"
-  exit 1
-fi
-if ! APP_PATH="$(python3 - "$BUILD_SETTINGS_PATH" <<'PYSETTINGS'
+if [[ ! -s "${XCODE_RUNNER_LOG_PATH:-}" ]] \
+  || ! APP_PATH="$(python3 Scripts/resolve-built-app.py "$XCODE_RUNNER_LOG_PATH")"; then
+  # A completely up-to-date build may not emit a task naming the app. Retain
+  # the authoritative settings query for missing or ambiguous build output.
+  BUILD_SETTINGS_PATH="$(mktemp "$RESULTS_DIR/run-simulator-settings.XXXXXX")"
+  trinket_temp_track "$BUILD_SETTINGS_PATH" "$BUILD_SETTINGS_PATH.log"
+  if ! TRINKET_XCODE_WALL_TIMEOUT_SECONDS=60 TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=0 \
+    xcode_runner_execute_watched "$BUILD_SETTINGS_PATH.log" "" \
+    bash -c 'output=$1; shift; exec "$@" > "$output"' _ "$BUILD_SETTINGS_PATH" \
+    xcodebuild -showBuildSettings -json "${TRINKET_APP_XCODEBUILD_ARGS[@]}"; then
+    echo "error: could not resolve Trinket build settings; output: $BUILD_SETTINGS_PATH; log: $BUILD_SETTINGS_PATH.log" >&2
+    trinket_temp_untrack "$BUILD_SETTINGS_PATH" "$BUILD_SETTINGS_PATH.log"
+    exit 1
+  fi
+  if ! APP_PATH="$(python3 - "$BUILD_SETTINGS_PATH" <<'PYSETTINGS'
 import json
 import pathlib
 import sys
@@ -137,9 +141,10 @@ except (OSError, ValueError, KeyError, TypeError) as error:
     raise SystemExit(f"error: could not resolve built Trinket app: {error}") from error
 PYSETTINGS
 )"; then
-  echo "Build settings retained: $BUILD_SETTINGS_PATH" >&2
-  trinket_temp_untrack "$BUILD_SETTINGS_PATH" "$BUILD_SETTINGS_PATH.log"
-  exit 1
+    echo "Build settings retained: $BUILD_SETTINGS_PATH" >&2
+    trinket_temp_untrack "$BUILD_SETTINGS_PATH" "$BUILD_SETTINGS_PATH.log"
+    exit 1
+  fi
 fi
 
 if [[ -n "${TRINKET_SIMULATOR_NAME:-}" ]]; then

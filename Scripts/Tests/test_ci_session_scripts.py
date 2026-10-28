@@ -514,8 +514,20 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
 
 
     def test_simulator_launcher_installs_resolved_product_and_rejects_missing_outputs(self) -> None:
-        for mode in ("valid", "missing-target", "missing-product", "missing-plist", "settings-failed",
-                     "inspect-stop", "inspect-capture", "inspect-capture-failed", "inspect-eof", "inspect-cancel", "inspect-no-terminal", "inspect-legacy", "inspect-unlocked"):
+        self.check_simulator_launcher_modes((
+            "valid", "missing-target", "missing-product", "missing-plist", "settings-failed",
+            "inspect-stop", "inspect-capture", "inspect-capture-failed", "inspect-eof", "inspect-cancel",
+            "inspect-no-terminal", "inspect-legacy", "inspect-unlocked",
+        ))
+
+    def test_simulator_launcher_resolves_unambiguous_build_output(self) -> None:
+        self.check_simulator_launcher_modes((
+            "fast-copy", "fast-plist", "fast-sign", "fast-conflict", "fast-wrong-target", "fast-malformed",
+            "fast-missing-product", "fast-missing-plist",
+        ))
+
+    def check_simulator_launcher_modes(self, modes) -> None:
+        for mode in modes:
             with self.subTest(mode=mode), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 scripts = root / "Scripts"
@@ -537,14 +549,19 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
                 )
                 (scripts / "xcode-runner.sh").write_text(
                     'source Scripts/lib/xcode-watchdog.sh\n'
-                    'xcode_runner_run() { while [[ "$1" != -- ]]; do shift; done; shift; "$@"; }\n'
+                    'xcode_runner_run() { while [[ "$1" != -- ]]; do shift; done; shift; '
+                    'XCODE_RUNNER_LOG_PATH="$RESULTS_DIR/build.log"; "$@" > "$XCODE_RUNNER_LOG_PATH" 2>&1; }\n'
                 )
                 app = root / "custom products/Debug-iphonesimulator/Trinket.app"
                 app.mkdir(parents=True)
-                if mode != "missing-plist":
+                if mode not in ("missing-plist", "fast-missing-plist"):
                     (app / "Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier": "fixture.trinket"}))
-                if mode == "missing-product":
+                if mode in ("missing-product", "fast-missing-product"):
                     shutil.rmtree(app)
+                if mode == "fast-conflict":
+                    other = app.parent / "Other.app"
+                    other.mkdir()
+                    (other / "Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier": "fixture.other"}))
                 settings = [{"target": "Dependency", "buildSettings": {}}]
                 if mode != "missing-target":
                     settings.append({"target": "Trinket", "buildSettings": {
@@ -556,9 +573,21 @@ case "$2" in shared) trinket_shared_sim_lease_acquire ;; ui) trinket_ui_slot_acq
                 binaries.mkdir()
                 commands = {
                     "xcodebuild": r"""#!/usr/bin/env python3
-import json, pathlib, sys
+import json, pathlib, shlex, sys
 with pathlib.Path('build-args.jsonl').open('a') as handle:
     handle.write(json.dumps(sys.argv[1:]) + '\n')
+mode = pathlib.Path('mode').read_text()
+if sys.argv[1] == 'build' and mode.startswith('fast-'):
+    entry = next(item for item in json.loads(pathlib.Path('settings.json').read_text()) if item['target'] == 'Trinket')
+    app = pathlib.Path(entry['buildSettings']['TARGET_BUILD_DIR']) / entry['buildSettings']['FULL_PRODUCT_NAME']
+    task = 'ProcessInfoPlistFile' if mode == 'fast-plist' else 'CodeSign' if mode == 'fast-sign' else 'CopySwiftLibs'
+    path = app / 'Info.plist' if mode == 'fast-plist' else app
+    target = 'Other' if mode == 'fast-wrong-target' else 'Trinket'
+    print(f"{task} {shlex.quote(str(path))} (in target '{target}' from project 'Trinket')")
+    if mode == 'fast-conflict':
+        print(f"CodeSign {shlex.quote(str(app.parent / 'Other.app'))} (in target 'Trinket' from project 'Trinket')")
+    if mode == 'fast-malformed':
+        print("CodeSign '/unterminated (in target 'Trinket' from project 'Trinket')")
 if '-showBuildSettings' in sys.argv:
     if pathlib.Path('mode').read_text() == 'settings-failed':
         raise SystemExit(72)
@@ -671,9 +700,13 @@ pathlib.Path('open.json').write_text(json.dumps(sys.argv[1:]))
                 result = run_captured([str(scripts / "run-simulator.sh"), "--isolate"], env={**os.environ, "PATH": str(binaries) + os.pathsep + os.environ["PATH"]})
                 calls = [json.loads(line) for line in (root / "build-args.jsonl").read_text().splitlines()]
                 self.assertEqual(calls[0][0], "build")
-                self.assertEqual(calls[1][:2], ["-showBuildSettings", "-json"])
-                self.assertEqual(calls[0][1:], calls[1][2:])
-                if mode == "valid":
+                fast = mode in ("fast-copy", "fast-plist", "fast-sign")
+                if fast:
+                    self.assertEqual(len(calls), 1)
+                else:
+                    self.assertEqual(calls[1][:2], ["-showBuildSettings", "-json"])
+                    self.assertEqual(calls[0][1:], calls[1][2:])
+                if mode == "valid" or mode in ("fast-copy", "fast-plist", "fast-sign", "fast-conflict", "fast-wrong-target", "fast-malformed"):
                     self.assertEqual(result.returncode, 73, result.stdout + result.stderr)
                     self.assertEqual(json.loads((root / "install.json").read_text()), ["fixture", str(app)])
                 else:
