@@ -727,8 +727,9 @@ bash -eu -c '
 ' _ "$ROOT_DIR" "$TMP_DIR"
 
 # --- stalled boot commands cannot bypass the shared boot deadline ---
+# The hosted CI boot path is deliberately unbounded; exercise the local watchdog.
 for stalled in boot bootstatus; do
-  bash -eu -c '
+  GITHUB_ACTIONS=false bash -eu -c '
     source "$1/Scripts/run-env.sh"
     source "$1/Scripts/ensure-simulator.sh"
     SIMULATOR_UDID=fixture
