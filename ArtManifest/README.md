@@ -11,6 +11,10 @@ Trinket keeps raw art and app-ready art separate.
 - `Trinket/Assets.xcassets`: generated app-ready image assets.
 - `Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift`: generated Swift lookup table for curated assets.
 
+Launch PNG layers and BattleFeature boss MP4s are authored resources outside this
+manifest and its preparation pipeline. Their ownership and update path live in
+[authored animation resources](../Docs/AgentContext/content-and-manifests.md#authored-animation-resources).
+
 ## Manifest Format
 
 `ArtManifest/curated-assets.tsv` is tab-separated:
@@ -107,8 +111,9 @@ catalog's estimated RGBA footprint, grouped by art kind and variant, with:
 The default full-catalog ceiling is 1024 MiB. Override it while investigating with
 `ART_CATALOG_DECODED_MEMORY_BUDGET_MIB=<MiB>`. Pass `--enforce` to return a failure
 when the generated catalog exceeds the configured ceiling. This is a full-catalog
-sizing check, not a measurement of launch decoding or simultaneous residency;
-resident/process diagnostic thresholds and device verification:
+sizing check for manifest-listed images, excluding launch PNGs, boss video buffers,
+and other framework/GPU allocations. It does not measure launch decoding or
+simultaneous residency. Resident/process diagnostic thresholds and device verification:
 [Memory and energy](../Docs/Platform/PerformanceInvestigationPlaybook.md#memory-and-energy).
 
 ## Adding Art

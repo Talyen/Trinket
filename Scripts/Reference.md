@@ -29,7 +29,9 @@ Handoff defaults to the complete task against `main`: commits plus dirty files,
 deletions and both rename endpoints. Briefing requires an explicit scope; use
 `python3 Scripts/agent-brief.py --base main` for that same complete task.
 `--base <ref>` selects another comparison base, `--paths` selects an iteration, and `--working-tree` selects dirty
-files only. Worktree creation accepts `--base` only for a user-specified alternative.
+files only. Briefing `--paths` requires individual repository-relative files, not
+directories; use `rg --files` to identify files before selecting the intended scope.
+Worktree creation accepts `--base` only for a user-specified alternative.
 For a concrete local diagnostic, add `--diagnostic-package <package>`,
 and `--diagnostic-suite <suite>` to a scoped briefing. For a visual inspection,
 add `--visual-command`. Briefing uses `CODEX_THREAD_ID` for the host owner; pass

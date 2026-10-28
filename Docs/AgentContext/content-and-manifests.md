@@ -136,8 +136,9 @@ The focused shell commands delegate to that shared incremental pipeline. It reus
 `asset-library.py` for source identity and receipts; static Swift catalog declarations
 live in `Scripts/internal/media_templates/`.
 
-Shared media-pipeline rules: selected raw masters are tracked in repository `AssetSources/`, outside Xcode target membership; processed outputs under
-`Trinket/` are. Hash-based media pipelines re-encode when source bytes or encode settings
+For manifest-driven art, music, SFX, and app icons, selected raw masters are tracked
+in repository `AssetSources/`, outside Xcode target membership; processed outputs
+under `Trinket/` are bundled. Hash-based media pipelines re-encode when source bytes or encode settings
 change; set `FORCE_ASSET_REENCODE=1` to rebuild regardless of cached state.
 
 Each `prepare-<media>-assets.sh` is that pipeline's focused debugging entry point.
@@ -158,6 +159,26 @@ git sparse-checkout set --no-cone '/*' '!/AssetSources/'
 ```
 
 Use this only in a clean checkout without unique or active authoring work under `AssetSources/`. Sparse settings belong to this working copy; other worktrees may retain their masters. Missing skipped masters are intentional, not deleted assets. App resources stay materialized, and ordinary builds and output-only checks need no Drive connection. Before media preparation, source-freshness checks, or asset-related pre-push checks, run `git sparse-checkout disable` to restore the full authoring checkout from Git. Check local headroom first; restoring masters costs their full working-copy size. Never force sparse removal over changes or replace the repository sources with a required mounted Drive path. This changes working-copy residency, not Git history or object storage.
+
+### Authored animation resources
+
+Two animation resource sets bypass the manifest pipelines and prepared-media
+receipts:
+
+- `Trinket/LaunchArtwork/` contains authored transparent PNG layers, bundled by
+  `project.yml`. Preserved source sheets remain in `AssetSources/`;
+  [launch artwork](ui-performance.md#launch-cover-and-readiness) owns their loading
+  and animation. Do not send these layers through the curated HEIC pipeline.
+- `Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/Resources/BossIdles/`
+  contains finished authored MP4s copied into the package bundle by `Package.swift`.
+  `BossIdleCatalog` in `BossIdleArtwork.swift` maps enemy IDs to the required clip
+  filenames. Keep that mapping and the bundled clips together when editing them;
+  [boss idle artwork](battle-presentation.md#boss-idle-artwork) owns playback and
+  static fallback behavior. `generate.sh --assets` does not generate these videos.
+
+Prepared-media receipt checks and the curated-art memory report do not validate
+these animation resources. Review their bundle declarations and consuming code,
+and use the existing visual gate for changed artwork or playback.
 
 ## Project generation
 

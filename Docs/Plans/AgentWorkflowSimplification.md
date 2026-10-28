@@ -47,19 +47,17 @@ removing mechanisms. Do not push or publish as part of this plan without authori
    and [Duo guidance](../Platform/SimulatorOperations.md#duo-display-routing)
    already exist. These are observed tooling limitations, not proof that the app
    is broken or that a repository-only fix exists.
-5. **Make the verification decision executable.** A focused diagnostic requires
-   agents to combine a concrete selector, a local opt-in, single-worker settings,
-   a five-minute execution deadline, a separate admission wait and an outer host-lane
-   wrapper. The visual route has different authorization and evidence requirements.
-   [Verification](../Platform/Verification.md#confidence-ladder) explains these,
-   but the agent still assembles the command and interprets multiple layers of
-   output. This is a source-review finding, not a measured failure rate.
-6. **Fix a concrete command-reference mismatch.**
-   [Scripts/Reference.md](../../Scripts/Reference.md#development) says briefing
-   defaults to the complete task against `main`, but `python3 Scripts/agent-brief.py`
-   exits with an error unless given `--paths`, `--working-tree`, `--base` or
-   `--task`. Handoff does have a complete-task default. An agent following the
-   reference can choose the wrong invocation or scope.
+5. **Verification command routing implemented; measurement remains open.** Scoped
+   briefing now prints the bounded host-wrapped command for a selected focused
+   diagnostic or visual inspection. The caller still supplies the relevant selector;
+   printing a command neither runs it nor grants broader authorization.
+   [Verification](../Platform/Verification.md#confidence-ladder) owns those limits.
+   Representative end-to-end comparisons below remain outstanding.
+6. **Briefing scope mismatch corrected.**
+   [Scripts/Reference.md](../../Scripts/Reference.md#development) now distinguishes
+   handoff's complete-task default from briefing's required selector. Use
+   `python3 Scripts/agent-brief.py --base main` for complete-task briefing; explicit
+   file, working-tree, and concern selectors remain available.
 7. **Measure copy-change and compatibility overhead.** Player-facing copy requires
    all configured locales and a separate AI review under
    [Localization](../Platform/Localization.md#agent-workflow). The workflow has

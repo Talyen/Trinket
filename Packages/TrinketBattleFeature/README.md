@@ -36,6 +36,14 @@ Feedback scheduling, recipes, presentation models, and sound mapping live in
 `State/Feedback/`; rendering stays in `Features/Feedback/`. Debug performance
 scenario drivers and harnesses live in `Support/Performance/` within this target.
 
+## Boss idle artwork
+
+`Resources/BossIdles/` contains authored MP4s bundled by this package.
+`BossIdleCatalog` maps supported enemy IDs to complete clip sets; missing clips
+retain static prepared artwork. Playback, shuffled ordering, preloading, and
+retirement follow the [boss idle contract](../../Docs/AgentContext/battle-presentation.md#boss-idle-artwork).
+These videos are outside the [manifest media pipeline](../../Docs/AgentContext/content-and-manifests.md#authored-animation-resources).
+
 ## Boss lyrics
 
 Supported boss music reveals original English words as sung, with a gold active

@@ -144,7 +144,10 @@ Battle currency and experience continue to use the encounter level beyond the
 item-quality cap. Saved items
 and pinned offers retain their contents; newly generated rewards use current tuning.
 
-From the repository root, produce the exact balance report with:
+The exact loot report compiles and runs the `LootBalanceReport` executable; it is
+not a static documentation check. Run it in CI or an expressly requested local
+investigation under the [execution limits](../../Docs/Platform/Verification.md#execution-limits).
+For authorized local execution, the command inside the shared host wrapper is:
 
 ```sh
 swift run --package-path Packages/TrinketContent LootBalanceReport

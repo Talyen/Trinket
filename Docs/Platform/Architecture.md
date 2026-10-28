@@ -11,6 +11,7 @@ Trinket/                    Thin app target — entry, roots, non-Battle product
   Assets.xcassets           Processed art (HEIC) from ArtManifest
   Media/Music               AAC tracks from MusicManifest
   Media/SFX                 AAC clips from SoundManifest
+  LaunchArtwork/            Authored launch PNG layers (outside curated art generation)
 
 Packages/
   TrinketCore/              Domain primitives (effects, stats, enums, progression)
@@ -23,6 +24,7 @@ Packages/
     Sources/TrinketFeatureContracts/ Navigation/deep-link values and battle boundary contracts (SwiftUI-free)
     Sources/TrinketFeatureAdapters/  Save-backed map/detail adapters
   TrinketBattleFeature/     Battle facade, read lanes, presentation, outcome, and Battle UI
+    Sources/TrinketBattleFeature/Resources/BossIdles/  Authored bundled boss MP4s
   TrinketAppState/          App/Play/Purchases orchestration and audio
 
 Shared test fixtures (`CombatantFixtures`, `ItemFixtures`, `BattlePartyFixtures`)
@@ -57,6 +59,7 @@ source selection and preparation.
 | App and Play orchestration | [TrinketAppState](../../Packages/TrinketAppState/README.md) | Composition, shell navigation, mode owners, and audio |
 | App entry and non-Battle screens | `Trinket` | SwiftUI roots and product screens |
 | Processed bundle assets | `Trinket/Assets.xcassets`, `Trinket/Media/` | Generated app resources |
+| Authored animation resources | `Trinket/LaunchArtwork/`, BattleFeature `Resources/BossIdles/` | [Bundling and update ownership](../AgentContext/content-and-manifests.md#authored-animation-resources); outside manifest generation |
 
 Battle launch/DTO contract: [battle-runtime.md](../AgentContext/battle-runtime.md). Persistence graph: [TrinketPersistence README](../../Packages/TrinketPersistence/README.md). UIKit feedback island: [TrinketBattleFeature README](../../Packages/TrinketBattleFeature/README.md). SwiftUI standing rules: [swiftui-features.md](../AgentContext/swiftui-features.md) and [TrinketDesignSystem README](../../Packages/TrinketDesignSystem/README.md). Shared fixtures: [Testing.md](Testing.md#fixtures).
 
