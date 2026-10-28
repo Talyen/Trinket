@@ -49,7 +49,7 @@ enum ItemLootPolicy {
             }
         }
         let t = progress(level: level)
-        let weights = ItemDropTier.allCases.map { tier in
+        var probabilities = ItemDropTier.allCases.map { tier in
             guard availableTiers.contains(tier) else { return 0.0 }
             let endpoints: (base: Double, top: Double) = switch tier {
             case .basic: (98, 60)
@@ -66,9 +66,11 @@ enum ItemLootPolicy {
             }
             return weight
         }
-        let total = weights.reduce(0, +)
+        let total = probabilities.reduce(0, +)
         precondition(total > 0, "Item rewards require an eligible category.")
-        var probabilities = weights.map { $0 / total }
+        for index in probabilities.indices {
+            probabilities[index] /= total
+        }
         guard collectibleChancePercent < 100,
               let gearIndex = ItemDropTier.allCases.firstIndex(where: {
                   ($0 == .basic || $0 == .astral) && availableTiers.contains($0)

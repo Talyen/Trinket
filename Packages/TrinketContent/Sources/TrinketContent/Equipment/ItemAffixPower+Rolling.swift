@@ -110,7 +110,7 @@ public extension ItemAffixPower {
             }
             return switch value {
             case let .int(amount): amount == 0 ? value : .int(ItemAffixMagnitudeRoll.integerRange(around: amount).lowerBound)
-            case let .percent(amount): amount == 0 ? value : .percent(ItemAffixMagnitudeRoll.percentValues(around: amount).min() ?? amount)
+            case let .percent(amount): amount == 0 ? value : .percent(ItemAffixMagnitudeRoll.percentMinimum(around: amount))
             }
         }
     }
@@ -204,6 +204,11 @@ public enum ItemAffixMagnitudeRoll: Sendable {
 
     public static func percentValues(around value: Double) -> [Double] {
         percentPoints(around: value)?.map { Double($0) / 100 } ?? [value]
+    }
+
+    fileprivate static func percentMinimum(around value: Double) -> Double {
+        guard let bounds = percentPointBounds(around: value) else { return value }
+        return Double(bounds.start) / 100
     }
 
     fileprivate static func percentMaximum(around value: Double) -> Double {

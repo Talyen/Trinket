@@ -4,11 +4,14 @@ import TrinketContentTestSupport
 import TrinketCore
 
 struct ItemAffixMagnitudeRollTests {
-    @Test func `maximum percentage roll matches the last selectable value`() throws {
+    @Test func `percentage roll bounds match the selectable values`() throws {
         for points in Array(stride(from: 1, through: 500, by: 7)) + [3999, 4000, 40000] {
             let magnitude = Double(points) / 100
             let power = ItemAffixPower(description: "Saved power", modifiers: [.leechGainedPercent(magnitude)])
-            let expected = try #require(ItemAffixMagnitudeRoll.percentValues(around: magnitude).max())
+            let selectable = ItemAffixMagnitudeRoll.percentValues(around: magnitude)
+            let minimum = try #require(selectable.min())
+            #expect(power.rolledMin().modifiers == [.leechGainedPercent(minimum)])
+            let expected = try #require(selectable.max())
             #expect(power.rolledMax().modifiers == [.leechGainedPercent(expected)])
         }
     }
@@ -18,6 +21,7 @@ struct ItemAffixMagnitudeRollTests {
         let power = ItemAffixPower(description: "Saved power", modifiers: [.leechGainedPercent(magnitude)])
         var rng = SeededRandomNumberGenerator(seed: 3)
         #expect(power.rolled(using: &rng).modifiers == power.modifiers)
+        #expect(power.rolledMin().modifiers == power.modifiers)
         #expect(power.rolledMax().modifiers == power.modifiers)
         #expect(ItemAffixMagnitudeRoll.percentValues(around: magnitude) == [magnitude])
     }

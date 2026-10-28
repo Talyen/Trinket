@@ -45,7 +45,7 @@ public struct EquipmentRecipe: Identifiable, Hashable, Sendable {
 
     private static let blacksmithRecipes = all + focusedBlacksmith
     private static let recipesByID = Dictionary(
-        (all + archery + outfitter + focusedBlacksmith).lazy.map { ($0.id, $0) },
+        [all, archery, outfitter, focusedBlacksmith].lazy.joined().map { ($0.id, $0) },
         uniquingKeysWith: { first, _ in first },
     )
 

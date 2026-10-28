@@ -225,8 +225,9 @@ package extension CombatTriggerEngine {
         in context: inout BattleState,
     ) {
         guard triggers.spendManaRemovesAfflictions, amountSpent > 0 else { return }
+        let effects = context.roster.activeEffects(for: actor)
         let keywords = [Keyword.burn, .poison].filter { keyword in
-            context.roster.activeEffects(for: actor).contains { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }
+            effects.contains { $0.effect.keyword == keyword && $0.effect.isDecayingDoT }
         }
         if let keyword = keywords.randomElement(using: &context.rng) {
             _ = DoTApplicator.consume(keyword, upTo: amountSpent, on: actor, in: &context)

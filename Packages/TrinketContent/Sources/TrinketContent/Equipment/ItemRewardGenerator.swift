@@ -108,7 +108,7 @@ public enum ItemRewardGenerator {
                 !ownedTrinketIDs.contains($0.templateID)
                     && !reservedTrinketIDs.contains($0.templateID)
                     && (eligibleTrinketIDs?.contains($0.templateID) ?? true)
-                    && (keywordBias.isEmpty || !$0.keywords.isDisjoint(with: keywordBias))
+                    && (keywordBias.isEmpty || $0.affixes.contains { !$0.keywords.isDisjoint(with: keywordBias) })
             }
         }
         let uniques: [InventoryItem] = if !available.contains(.unique) || eligibleUniqueIDs?.isEmpty == true {
@@ -119,7 +119,7 @@ public enum ItemRewardGenerator {
             GameContent.uniqueItems.filter {
                 !ownedUniqueIDs.contains($0.templateID)
                     && (eligibleUniqueIDs?.contains($0.templateID) ?? true)
-                    && (keywordBias.isEmpty || !$0.keywords.isDisjoint(with: keywordBias))
+                    && (keywordBias.isEmpty || $0.affixes.contains { !$0.keywords.isDisjoint(with: keywordBias) })
             }
         }
         if trinkets.isEmpty {

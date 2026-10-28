@@ -11,8 +11,9 @@ public struct BlacksmithForgePlan: Sendable {
     public let recipe: BlacksmithRecipe
     public let item: InventoryItem
 
-    private static let uniqueIDsByBase = Dictionary(grouping: GameContent.uniqueItems, by: { $0.baseType.id })
-        .mapValues { Set($0.lazy.map(\.templateID)) }
+    private static let uniqueIDsByBase = GameContent.uniqueItems.reduce(into: [String: Set<String>]()) { result, item in
+        result[item.baseType.id, default: []].insert(item.templateID)
+    }
 
     public static func prepare(
         recipeID: String,

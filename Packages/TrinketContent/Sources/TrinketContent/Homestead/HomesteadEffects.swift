@@ -75,6 +75,7 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
         let bonus = SaturatedArithmetic.saturatingAdd(
             gemsFindBonus, remainders.bonus(for: .gems, amount: gems, percent: gemsFindPercent),
         )
+        guard bonus != 0 else { return amounts }
         var applied = false
         return amounts.map { amount in
             guard amount.resource == .gems, amount.quantity > 0, !applied else { return amount }

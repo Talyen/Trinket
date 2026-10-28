@@ -231,7 +231,7 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
                   slot.baseItemSlot == destination.baseItemSlot,
                   let siblingID = itemID(for: slot),
                   siblingID != candidateID,
-                  let worn = equippedItem(in: slot, inventory: inventory)
+                  let worn = inventory.first(where: { $0.id == siblingID })
             else { return true }
             return worn.baseType.id != baseType.id
         }
