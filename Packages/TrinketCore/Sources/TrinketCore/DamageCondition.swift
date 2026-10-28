@@ -16,5 +16,6 @@ public enum DamageCondition: CaseIterable, Hashable, Sendable {
     case enemyHasBlock
     case enemyFullHealth
     case actorHasTwoBlock
+    case actorGainedGoldThisTurn
     case firstTurn
 }

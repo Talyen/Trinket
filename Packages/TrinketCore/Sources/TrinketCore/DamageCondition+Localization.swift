@@ -18,6 +18,7 @@ public extension DamageCondition {
         case .enemyHasBlock: L10n.condition_enemyhasblock
         case .enemyFullHealth: L10n.condition_enemyfullhealth
         case .actorHasTwoBlock: L10n.condition_actorhastwoblock
+        case .actorGainedGoldThisTurn: L10n.condition_actorgainedgoldthisturn
         case .firstTurn: L10n.condition_firstturn
         }
         return LocalizedGameText(resource, locale: locale)

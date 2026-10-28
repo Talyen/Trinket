@@ -90,11 +90,11 @@ struct KeywordCohesionMechanicsTests {
         #expect(!battle.roster.activeEffects(for: hero).contains { $0.effect == .nextStrikeLeech })
     }
 
-    @Test func `golden plate grants block and gold only`() throws {
+    @Test func `golden plate grants base block without creating gold`() throws {
         var battle = cohesionBattleWithHand(.goldenPlate)
         _ = try BattleTestFixtures.playCardNamed("Golden Plate", owner: .hero, on: &battle)
         #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 8)
-        #expect(battle.gold == 1)
+        #expect(battle.gold == 0)
     }
 
     @Test(arguments: [BattleParticipant.hero, .enemy])

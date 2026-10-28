@@ -2,6 +2,10 @@
 import Foundation
 
 enum L10n {
+    static var condition_actorgainedgoldthisturn: LocalizedStringResource {
+        LocalizedStringResource("condition.actorgainedgoldthisturn", defaultValue: "you gained Gold this turn", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static var condition_actorhastwoblock: LocalizedStringResource {
         LocalizedStringResource("condition.actorhastwoblock", defaultValue: "you have at least 2 <keyword id=\"block\">Block</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }

@@ -65,7 +65,7 @@ extension InventoryItem {
             }
             description = "Every other turn, lose 1 Health and draw a card"
         case "the_returning_gale":
-            description = "Once per turn, Dodging returns the last card you played to your hand"
+            description = "Once per turn, Dodging returns your last attack card"
         case "the_golden_crucible":
             description = "Gold gained in combat adds equal damage to your next Holy hit from a manually played card"
         case "the_patient_edge":

@@ -232,7 +232,7 @@ extension UniqueCombatEngine {
     ) {
         guard context.modifiers(for: actor.id).triggers.thirdCardReturnsToHand,
               !context.roster[owner].uniques.returnedGaleThisTurn,
-              let copyID = context.roster[owner].uniques.lastOrdinaryCopyID,
+              let copyID = context.roster[owner].uniques.lastOrdinaryAttackCopyID,
               !context.isBattleOver,
               BattleCardCombatEngine.canDrawFromDeck(for: owner, in: context)
         else { return }

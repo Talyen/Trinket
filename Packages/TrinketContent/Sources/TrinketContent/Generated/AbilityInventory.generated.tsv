@@ -53,7 +53,7 @@ bloodthorn	Bloodthorn	ultimate	Deal 3 Bleed or Poison damage\nLeech
 combustion	Combustion	ultimate	Deal 6 Burn damage\nDetonate all enemy Burn
 earthquake	Earthquake	ultimate	Deal 6 Stun damage this turn and next
 faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health\nDeal 4 Burn damage\nDraw 1 card
-golden-plate	Golden Plate	ultimate	Gain 8 Block\nGain 1 Gold
+golden-plate	Golden Plate	ultimate	Gain 8 Block\nGain 4 more if you gained Gold this turn
 hemorrhage	Hemorrhage	ultimate	Deal 6 Bleed damage\nDetonate all Bleed
 luck-potion	Luck Potion	ultimate	Roll a 12-sided die\nGain that much Block, Thorns, or Health\nAt full party Health, roll Block or Thorns\nDraw 1 card
 meteor	Meteor	ultimate	Deal 6 Burn damage\nSpend additional Mana to increase Burn damage

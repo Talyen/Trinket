@@ -38,9 +38,9 @@ package enum UniqueCombatEngine {
             context.roster[play.owner].uniques = owner
             context.uniques.card = play
         }
-        // The Returning Gale tracks the last ordinary card play, including non-damaging cards.
-        if triggers.thirdCardReturnsToHand {
-            owner.lastOrdinaryCopyID = play.originalCopyID
+        // Support cards preserve the last ordinary attack for The Returning Gale.
+        if triggers.thirdCardReturnsToHand, !facts.damageKeywords.isEmpty {
+            owner.lastOrdinaryAttackCopyID = play.originalCopyID
         }
         if triggers.dodgeDrawPoisonAndReadyCritical,
            owner.wildheartReady, facts.damageKeywords.contains(.poison) {

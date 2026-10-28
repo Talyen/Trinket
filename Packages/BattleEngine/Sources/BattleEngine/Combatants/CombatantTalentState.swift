@@ -4,6 +4,7 @@ struct CombatantTalentHistory: Hashable, Sendable {
     var previousAttackKeyword: Keyword?
     var spentMana = false
     var preparations: Set<TalentPreparation> = []
+    var lastGoldGainTurn: Int?
     var stolenGoldDamage = 0
     var blindingReduction = 0
     var dodgeGrowth = 0

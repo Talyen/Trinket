@@ -84,9 +84,10 @@ struct CombatRuleAuditRegressionTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
-        let events = try play(.goldenPlate, in: &battle)
+        let reward = Ability(id: "gold-reward", name: "Gold Reward", tier: .skill, effects: [.resourceGain(.gold, 1)])
+        let events = try play(reward, in: &battle)
         #expect(battle.gold == 3)
-        let summary = try #require(events.first { $0.kind == .ability && $0.abilityID == Ability.goldenPlate.id })
+        let summary = try #require(events.first { $0.kind == .ability && $0.abilityID == reward.id })
         #expect(summary.appliedEffects.contains(.resourceGain(.gold, 3)))
     }
 

@@ -75,11 +75,13 @@ public extension AbilityCatalog {
 
     static let goldenPlate = Ability(
         id: "golden-plate", name: "Golden Plate", tier: .ultimate,
-        description: "Gain 8 Block\nGain 1 Gold",
-        targetedEffects: [
-            TargetedEffect(.shield(.block, 8)),
-            TargetedEffect(.resourceGain(.gold, 1)),
-        ],
+        description: "Gain 8 Block\nGain 4 more if you gained Gold this turn",
+        targetedEffects: [TargetedEffect(.shield(.block, 8))],
+        conditionalOutcome: AbilityConditionalOutcome(
+            condition: .actorGainedGoldThisTurn,
+            operations: [.effect(TargetedEffect(.shield(.block, 12)))],
+            contributesToIdentity: false,
+        ),
     )
 
     static let hemorrhage = Ability(

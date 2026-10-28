@@ -7,7 +7,7 @@ struct CombatantUniqueState: Hashable {
     var answeredBlock = false
     var usedFinalSpark = false
     var lastAttack: Ability?
-    var lastOrdinaryCopyID: Int?
+    var lastOrdinaryAttackCopyID: Int?
     var returnedGaleThisTurn = false
     var returnedFlightThisTurn = false
     var hasAttacked = false
@@ -24,7 +24,7 @@ struct CombatantUniqueState: Hashable {
         answeredBlock = false
         usedFinalSpark = false
         lastAttack = nil
-        lastOrdinaryCopyID = nil
+        lastOrdinaryAttackCopyID = nil
         returnedGaleThisTurn = false
         returnedFlightThisTurn = false
         wrenflightDodge = 0

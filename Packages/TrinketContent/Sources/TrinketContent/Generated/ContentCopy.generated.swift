@@ -1497,8 +1497,8 @@ public enum ContentCopy {
             return (L10n.authored_0b56b6f180a9efc4, [])
         case "Thunder Writ":
             return (L10n.authored_0c0a3c941491af03, [])
-        case "Gain 8 Block\nGain 1 Gold":
-            return (L10n.authored_0c6b172c72634036(8, 1), [8, 1])
+        case "Gain 8 Block\nGain 4 more if you gained Gold this turn":
+            return (L10n.authored_0c6b172c72634036(8, 4), [8, 4])
         case "That choice isn't available anymore", "That choice isn't available anymore.":
             return (L10n.authored_0ca0cc5d15f73c74, [])
         case "Blackfletch":
@@ -1877,7 +1877,7 @@ public enum ContentCopy {
             return (L10n.authored_817e8cf7b1109f92, [])
         case "Quarry Writ":
             return (L10n.authored_8181d2cc99975702, [])
-        case "Once per turn, Dodging returns the last card you played to your hand":
+        case "Once per turn, Dodging returns your last attack card":
             return (L10n.authored_83333795ca476074, [])
         case "Arms Hoard":
             return (L10n.authored_84aa5a2803ca4647, [])
@@ -5088,7 +5088,7 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Dodging adds ", regex: try? NSRegularExpression(pattern: "^Dodging\\ adds\\ ([0-9]+)\\ damage\\ to\\ your\\ next\\ Stun\\ attack$"), count: 1, make: { values in L10n.affixes_whiplash_astral_description(values[0]) }),
         NumericTemplate(prefix: "Restore ", regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ Health\\ when\\ you\\ gain\\ Gold$"), count: 1, make: { values in L10n.affixes_windfall_astral_description(values[0]) }),
         NumericTemplate(prefix: "On victory, gain ", regex: try? NSRegularExpression(pattern: "^On\\ victory,\\ gain\\ ([0-9]+)\\ Gold\\ or\\ gain\\ ([0-9]+)\\ Gold$"), count: 2, make: { values in L10n.affixes_wishing_well_coin_astral_description(values[0], values[1]) }),
-        NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Block\\\nGain\\ ([0-9]+)\\ Gold$"), count: 2, make: { values in L10n.authored_0c6b172c72634036(values[0], values[1]) }),
+        NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Block\\\nGain\\ ([0-9]+)\\ more\\ if\\ you\\ gained\\ Gold\\ this\\ turns?$"), count: 2, make: { values in L10n.authored_0c6b172c72634036(values[0], values[1]) }),
         NumericTemplate(prefix: "Burn, Freeze, or Holy damage has a ", regex: try? NSRegularExpression(pattern: "^Burn,\\ Freeze,\\ or\\ Holy\\ damage\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ restore\\ ([0-9]+)\\ Mana\\ to\\ the\\ wearer$"), count: 2, make: { values in L10n.authored_0dcca8be276ca533(values[0], values[1]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Holy\\ damage\\\nPurge\\ ([0-9]+)\\ buffs?\\ from\\ the\\ enemy$"), count: 2, make: { values in L10n.authored_128a299334d9ba34(values[0], values[1]) }),
         NumericTemplate(prefix: "Playing your second ", regex: try? NSRegularExpression(pattern: "^Playing\\ your\\ second\\ cards?\\ each\\ turns?\\ draws\\ a\\ cards?\\ and\\ grants\\ ([0-9]+)%\\ Dodge\\ until\\ your\\ next\\ turns?$"), count: 1, make: { values in L10n.authored_12fdafc7a89108bc(values[0]) }),

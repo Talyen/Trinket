@@ -43,13 +43,7 @@ package extension BattleState {
         let previousEarned = goldFlow.gained
         granted = recordGoldGain(granted)
         guard granted > 0 else { return 0 }
-        if isTheft, modifiers(for: combatant.id).triggers.gildedClaws {
-            roster.mutateRuntime(for: combatant) {
-                $0.talents.history.stolenGoldDamage = SaturatedArithmetic.saturatingAdd(
-                    $0.talents.history.stolenGoldDamage, granted,
-                )
-            }
-        }
+        recordGoldHistory(granted, for: combatant, isTheft: isTheft)
         UniqueCombatEngine.gainedGold(granted, by: combatant, in: &self)
         let currentEarned = goldFlow.gained
         nextEvent(
@@ -72,6 +66,19 @@ package extension BattleState {
             in: &self,
         )
         return granted
+    }
+
+    private mutating func recordGoldHistory(_ amount: Int, for combatant: Combatant, isTheft: Bool) {
+        let gainedAtTurn = turnCount
+        let preparesDamage = isTheft && modifiers(for: combatant.id).triggers.gildedClaws
+        roster.mutateRuntime(for: combatant) {
+            $0.talents.history.lastGoldGainTurn = gainedAtTurn
+            if preparesDamage {
+                $0.talents.history.stolenGoldDamage = SaturatedArithmetic.saturatingAdd(
+                    $0.talents.history.stolenGoldDamage, amount,
+                )
+            }
+        }
     }
 
     func goldGranted(for amount: Int, sourceActorID: String) -> Int {

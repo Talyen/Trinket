@@ -150,7 +150,7 @@ extension UniqueCollectionTests {
         )
         // 1. Play an ordinary card (goes to deck bottom, tracked as last ordinary).
         try galePlay(galeAttack(id: "played"), owner: .hero, in: &context)
-        try #require(context.roster[.hero].uniques.lastOrdinaryCopyID == context.heroDeck.discarded.last?.copyID)
+        try #require(context.roster[.hero].uniques.lastOrdinaryAttackCopyID == context.heroDeck.discarded.last?.copyID)
         // 2. Force the wearer to Dodge during the enemy turn.
         context.insertEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0, at: 0)
         let heroDeckBefore = context.heroDeck.abilities.map(\.id)
@@ -218,7 +218,7 @@ extension UniqueCollectionTests {
         // Already held -> do nothing (no duplicate).
         context = try galeBattle(["the_returning_gale"], heroDeck: [galeAttack(id: "played")])
         try galePlay(galeAttack(id: "played"), owner: .hero, in: &context)
-        let trackedCopyID = try #require(context.roster[.hero].uniques.lastOrdinaryCopyID)
+        let trackedCopyID = try #require(context.roster[.hero].uniques.lastOrdinaryAttackCopyID)
         _ = BattleCardCombatEngine.recoverCard(copyID: trackedCopyID, owner: .hero, context: &context)
         let totalBefore = context.hand.totalCount + context.heroDeck.count
         context.insertEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0, at: 0)
@@ -272,21 +272,21 @@ extension UniqueCollectionTests {
         #expect(context.heroDeck.discarded.contains { $0.ability.id == "played" })
     }
 
-    @Test func `gale tracks non-damaging ordinary but not automatic`() throws {
+    @Test func `gale preserves ordinary attacks through support and automatic plays`() throws {
         var context = try galeBattle(
             ["the_returning_gale"],
-            heroDeck: [galeSupport(id: "tracked")],
+            heroDeck: [galeAttack(id: "tracked")],
         )
-        // Non-damaging ordinary support qualifies (Sniff Out / Predator's Focus style).
-        try galePlay(galeSupport(id: "tracked"), owner: .hero, in: &context)
-        #expect(context.roster[.hero].uniques.lastOrdinaryCopyID == context.heroDeck.discarded.first { $0.ability.id == "tracked" }?
+        try galePlay(galeAttack(id: "tracked"), owner: .hero, in: &context)
+        try galePlay(galeSupport(id: "support"), owner: .hero, in: &context)
+        #expect(context.roster[.hero].uniques.lastOrdinaryAttackCopyID == context.heroDeck.discarded.first { $0.ability.id == "tracked" }?
             .copyID)
         // Automatic abilities do not replace tracked ordinary card.
         _ = try context.withAutomaticPlay { context in
             let card = BattleCardCombatEngine.deal(galeAttack(id: "auto"), owner: .hero, context: &context)
             return try CombatExecutor.run { try await BattleCardCombatEngine.resolveDrawnCard(card, context: &context) }
         }
-        #expect(context.roster[.hero].uniques.lastOrdinaryCopyID == context.heroDeck.discarded.first { $0.ability.id == "tracked" }?
+        #expect(context.roster[.hero].uniques.lastOrdinaryAttackCopyID == context.heroDeck.discarded.first { $0.ability.id == "tracked" }?
             .copyID)
     }
 

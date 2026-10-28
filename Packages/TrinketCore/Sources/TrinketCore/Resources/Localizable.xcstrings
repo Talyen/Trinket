@@ -1,6 +1,20 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "condition.actorgainedgoldthisturn": {
+      "comment": "The acting combatant gained Gold during the current turn, not merely their ally or in an earlier turn.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "du hast in diesem Zug Gold erhalten"}},
+        "en": {"stringUnit": {"state": "translated", "value": "you gained Gold this turn"}},
+        "es": {"stringUnit": {"state": "translated", "value": "has obtenido Oro este turno"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "vous avez gagné de l’Or ce tour-ci"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "このターンに自分がゴールドを獲得した"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "이번 턴에 자신이 골드를 획득함"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "você ganhou Ouro neste turno"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你在本回合獲得過金幣"}}
+      }
+    },
     "condition.actorhastwoblock": {
       "comment": "Complete condition clause inserted into an ability rule. Preserve actor, target, negation, and threshold.",
       "extractionState": "manual",

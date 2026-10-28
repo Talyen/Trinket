@@ -2011,7 +2011,7 @@ enum L10n {
     }
 
     static func authored_0c6b172c72634036(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
-        LocalizedStringResource("authored.0c6b172c72634036", defaultValue: "Gain <value id=\"quantity_1\">\(value1)</value> <keyword id=\"block\">Block</keyword>\nGain <value id=\"quantity_2\">\(value2)</value> <keyword id=\"gold\">Gold</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("authored.0c6b172c72634036", defaultValue: "Gain <value id=\"quantity_1\">\(value1)</value> <keyword id=\"block\">Block</keyword>\nGain <value id=\"quantity_2\">\(value2)</value> more if you gained <keyword id=\"gold\">Gold</keyword> this turn", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var authored_0ca0cc5d15f73c74: LocalizedStringResource {
@@ -3007,7 +3007,7 @@ enum L10n {
     }
 
     static var authored_83333795ca476074: LocalizedStringResource {
-        LocalizedStringResource("authored.83333795ca476074", defaultValue: "Once per turn, Dodging returns the last card you played to your hand", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("authored.83333795ca476074", defaultValue: "Once per turn, Dodging returns your last attack card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var authored_84aa5a2803ca4647: LocalizedStringResource {
@@ -3623,7 +3623,7 @@ enum L10n {
     }
 
     static var authored_d2e58983fcedb971: LocalizedStringResource {
-        LocalizedStringResource("authored.d2e58983fcedb971", defaultValue: "Once per turn, Dodging returns the last card you played to your hand", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("authored.d2e58983fcedb971", defaultValue: "Once per turn, Dodging returns your last attack card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func authored_d3657c570dbd1675(_ value1: Int) -> LocalizedStringResource {

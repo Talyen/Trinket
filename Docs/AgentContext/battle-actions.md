@@ -139,9 +139,11 @@ powers adopt this rule and stop granting turn-start Gold.
 Targeted effects can carry a fixed chance, rolled once after their condition passes.
 A failed roll grants no resource or gain feedback; preceding card damage still resolves.
 Empowerment and talent transformations preserve the chance.
-Gold effect summaries use the ability's theft marker: Golden Plate gains Gold,
-while Steal and the other theft cards steal it. Gold summaries report the actual
-grant after equipment and talent bonuses.
+Gold effect summaries use the ability's theft marker and report the actual grant
+after equipment and talent bonuses. Golden Plate grants 8 Block, or 12 if its
+wearer gained positive Gold during the current turn. Gold from the partner or a
+previous turn does not qualify. The condition resolves one Block grant, so
+Block-gain bonuses and reactions apply once; Golden Plate never grants or spends Gold.
 
 ## Turn ordering
 

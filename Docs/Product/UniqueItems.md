@@ -53,7 +53,8 @@ Card returns move exact physical copies instead of creating copies. Ordinary
 played cards wait in discard until next turn. The Returning Flight returns the
 wearer's first Physical card each player turn after effects and on-play draws;
 claim before returning so replay cannot return again. The Returning Gale tracks
-the last ordinary physical copy, including support cards, through the enemy turn.
+the last ordinary attack card copy through the enemy turn; support cards preserve
+that selection and cannot return themselves.
 On Dodge it moves that copy from discard or draw pile to hand at most once per
 player-turn cycle. An identical ability held as a different copy does not prevent
 recovery. Already-held, unavailable, or absent copies produce no return. Both

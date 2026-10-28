@@ -161,7 +161,8 @@ struct BattleLogProjectionTests {
     @Test(arguments: [false, true])
     func `Gold rewards and Gold steals retain their meaning in the battle log`(theft: Bool) {
         var battle = makeSupportBattle()
-        let ability = theft ? Ability.steal : Ability.goldenPlate
+        let reward = Ability(id: "gold-reward", name: "Gold Reward", tier: .skill, effects: [.resourceGain(.gold, 1)])
+        let ability = theft ? Ability.steal : reward
         let events = battle.performTestAction(ability)
         let lines = BattleLogProjection.entries(from: events).map { $0.localizedText(locale: english) }
         let gold = events.filter { $0.effectKind == .resourceGain && $0.keyword == .gold }.reduce(0) { $0 + $1.amount }

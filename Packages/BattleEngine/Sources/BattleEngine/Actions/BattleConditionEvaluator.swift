@@ -60,6 +60,8 @@ public enum BattleConditionEvaluator {
             return context.roster.health(for: enemy) == context.roster.maxHealth(for: enemy)
         case .actorHasTwoBlock:
             return DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: action.actor)) >= 2
+        case .actorGainedGoldThisTurn:
+            return context.roster.runtime(for: action.actor)?.talents.history.lastGoldGainTurn == context.turnCount
         case .firstTurn:
             return context.turnCount == 0
         }

@@ -7033,14 +7033,14 @@
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+Ultimate.swift: description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>\nErhalte <value id=\"quantity_2\">%2$lld</value> <keyword id=\"gold\">Gold</keyword>"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>\nGain <value id=\"quantity_2\">%2$lld</value> <keyword id=\"gold\">Gold</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword>\nObtén <value id=\"quantity_2\">%2$lld</value> de <keyword id=\"gold\">Oro</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword>\nGagnez <value id=\"quantity_2\">%2$lld</value> <keyword id=\"gold\">Or</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得\n<keyword id=\"gold\">ゴールド</keyword>を<value id=\"quantity_2\">%2$lld</value>獲得"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득\n<keyword id=\"gold\">골드</keyword> <value id=\"quantity_2\">%2$lld</value> 획득"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword>\nGanhe <value id=\"quantity_2\">%2$lld</value> de <keyword id=\"gold\">Ouro</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>\n獲得<value id=\"quantity_2\">%2$lld</value><keyword id=\"gold\">金幣</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>\nErhalte <value id=\"quantity_2\">%2$lld</value> mehr, wenn du in diesem Zug <keyword id=\"gold\">Gold</keyword> erhalten hast"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>\nGain <value id=\"quantity_2\">%2$lld</value> more if you gained <keyword id=\"gold\">Gold</keyword> this turn"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword>\nObtén <value id=\"quantity_2\">%2$lld</value> más si has obtenido <keyword id=\"gold\">Oro</keyword> este turno"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword>\nGagnez-en <value id=\"quantity_2\">%2$lld</value> de plus si vous avez gagné de l’<keyword id=\"gold\">Or</keyword> ce tour-ci"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得\nこのターンに自分が<keyword id=\"gold\">ゴールド</keyword>を獲得していれば、ブロックをさらに<value id=\"quantity_2\">%2$lld</value>獲得"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득\n이번 턴에 자신이 <keyword id=\"gold\">골드</keyword>를 획득했다면 방어도 <value id=\"quantity_2\">%2$lld</value> 추가 획득"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword>\nGanhe mais <value id=\"quantity_2\">%2$lld</value> se você ganhou <keyword id=\"gold\">Ouro</keyword> neste turno"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>\n若你在本回合獲得過<keyword id=\"gold\">金幣</keyword>，則額外獲得<value id=\"quantity_2\">%2$lld</value>點格擋"}}
       }
     },
     "authored.0ca0cc5d15f73c74": {
@@ -10519,14 +10519,14 @@
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Equipment/UniqueCatalog+Ranged.swift: description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Einmal pro Zug: Ausweichen bringt deine zuletzt gespielte Karte auf deine Hand zurück"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Once per turn, Dodging returns the last card you played to your hand"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Una vez por turno, esquivar devuelve a tu mano la última carta que jugaste"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Une fois par tour, une esquive renvoie dans votre main la dernière carte que vous avez jouée"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "1ターンに1回、回避すると最後に使ったカードが手札に戻る"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "턴마다 한 번, 회피 시 마지막으로 사용한 카드를 손패로 반환"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Uma vez por turno, esquivar devolve à sua mão a última carta que você jogou"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每回合一次，閃避時將最後打出的牌返回手牌"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Einmal pro Zug: Ausweichen bringt deine zuletzt gespielte Angriffskarte auf deine Hand zurück"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Once per turn, Dodging returns your last attack card"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Una vez por turno, esquivar devuelve a tu mano la última carta de ataque que jugaste"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Une fois par tour, une esquive renvoie dans votre main la dernière carte d’attaque que vous avez jouée"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "1ターンに1回、回避すると最後に使った攻撃カードが手札に戻る"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "턴마다 한 번, 회피 시 마지막으로 사용한 공격 카드를 손패로 반환"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Uma vez por turno, esquivar devolve à sua mão a última carta de ataque que você jogou"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每回合一次，閃避時將你最後打出的攻擊卡牌返回手牌"}}
       }
     },
     "authored.84aa5a2803ca4647": {
@@ -12675,14 +12675,14 @@
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Equipment/InventoryItem+Compatibility.swift: canonical numeric compatibility description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Einmal pro Zug: Ausweichen bringt deine zuletzt gespielte Karte auf deine Hand zurück"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Once per turn, Dodging returns the last card you played to your hand"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Una vez por turno, esquivar devuelve a tu mano la última carta que jugaste"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Une fois par tour, une Esquive renvoie dans votre main la dernière carte que vous avez jouée"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "1ターンに1回、回避すると最後に使ったカードが手札に戻る"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "턴마다 한 번, 회피 시 마지막으로 사용한 카드를 손패로 반환"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Uma vez por turno, esquivar devolve à sua mão a última carta que você jogou"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每回合一次，閃避時將最後打出的卡牌返回手牌"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Einmal pro Zug: Ausweichen bringt deine zuletzt gespielte Angriffskarte auf deine Hand zurück"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Once per turn, Dodging returns your last attack card"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Una vez por turno, esquivar devuelve a tu mano la última carta de ataque que jugaste"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Une fois par tour, une esquive renvoie dans votre main la dernière carte d’attaque que vous avez jouée"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "1ターンに1回、回避すると最後に使った攻撃カードが手札に戻る"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "턴마다 한 번, 회피 시 마지막으로 사용한 공격 카드를 손패로 반환"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Uma vez por turno, esquivar devolve à sua mão a última carta de ataque que você jogou"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每回合一次，閃避時將你最後打出的攻擊卡牌返回手牌"}}
       }
     },
     "authored.d3657c570dbd1675": {
