@@ -1,613 +1,483 @@
 {
-  "fields": [
-    {
-      "name": "firstCriticalHitRepeatsPerTurn",
+  "fields": {
+    "firstCriticalHitRepeatsPerTurn": {
       "type": "Bool"
     },
-    {
-      "name": "heldCardNextAttackDamage",
+    "heldCardNextAttackDamage": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "partnerFirstAttackDamage",
+    "partnerFirstAttackDamage": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "dazingSwipeChancePercent",
+    "dazingSwipeChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "dazingSwipeStunDamage",
+    "dazingSwipeStunDamage": {
       "type": "Int"
     },
-    {
-      "name": "secondCardDrawAndDodgePercent",
+    "secondCardDrawAndDodgePercent": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "thirdCardReturnsToHand",
+    "thirdCardReturnsToHand": {
       "type": "Bool"
     },
-    {
-      "name": "recoverLastAttackCardEachTurn",
+    "recoverLastAttackCardEachTurn": {
       "type": "Bool"
     },
-    {
-      "name": "attacksApplyPoison",
+    "attacksApplyPoison": {
       "type": "Int"
     },
-    {
-      "name": "physicalAttackApplyBleed",
+    "physicalAttackApplyBleed": {
       "type": "Int"
     },
-    {
-      "name": "physicalAttackApplyBleedAndStun",
+    "physicalAttackApplyBleedAndStun": {
       "type": "Int"
     },
-    {
-      "name": "basicAttackApplyBleed",
+    "basicAttackApplyBleed": {
       "type": "Int"
     },
-    {
-      "name": "basicAttackFreezeBuildup",
+    "basicAttackFreezeBuildup": {
       "type": "Int"
     },
-    {
-      "name": "criticalApplyPoison",
+    "criticalApplyPoison": {
       "type": "Int"
     },
-    {
-      "name": "criticalApplyBurn",
+    "criticalApplyBurn": {
       "type": "Int"
     },
-    {
-      "name": "holyAttackApplyBurnAndStunBuildup",
+    "holyAttackApplyBurnAndStunBuildup": {
       "type": "Int"
     },
-    {
-      "name": "onAttackStealGold",
+    "onAttackStealGold": {
       "type": "Int"
     },
-    {
-      "name": "basicAttackStealGold",
+    "basicAttackStealGold": {
       "type": "Int"
     },
-    {
-      "name": "onAttackFrozenEnemyGainMana",
+    "onAttackFrozenEnemyGainMana": {
       "type": "Int"
     },
-    {
-      "name": "onAttackFrozenEnemyGainBlock",
+    "onAttackFrozenEnemyGainBlock": {
       "type": "Int"
     },
-    {
-      "name": "onAttackStunnedEnemyGold",
+    "onAttackStunnedEnemyGold": {
       "type": "Int"
     },
-    {
-      "name": "onAttackStunnedEnemyBlock",
+    "onAttackStunnedEnemyBlock": {
       "type": "Int"
     },
-    {
-      "name": "holyDamageNextHitBonus",
+    "holyDamageNextHitBonus": {
       "type": "Int"
     },
-    {
-      "name": "holyDamageNextAttackHolyBonus",
+    "holyDamageNextAttackHolyBonus": {
       "type": "Int"
     },
-    {
-      "name": "onBleedDamageNextBasicGuaranteedCrit",
+    "onBleedDamageNextBasicGuaranteedCrit": {
       "type": "Bool"
     },
-    {
-      "name": "onBleedDamageNextBasicCritBonus",
+    "onBleedDamageNextBasicCritBonus": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "nextAttackBonusOnFullHealth",
+    "nextAttackBonusOnFullHealth": {
       "type": "Int"
     },
-    {
-      "name": "leechOverhealDamageBonus",
+    "leechOverhealDamageBonus": {
       "type": "Int"
     },
-    {
-      "name": "onHeroSpendManaCompanionNextAttackBonus",
+    "onHeroSpendManaCompanionNextAttackBonus": {
       "type": "Int"
     },
-    {
-      "name": "partyBasicAttackHolyBonus",
+    "partyBasicAttackHolyBonus": {
       "type": "Int"
     },
-    {
-      "name": "partyHolyDamageBonusWhileCompanionFullHealth",
+    "partyHolyDamageBonusWhileCompanionFullHealth": {
       "type": "Int"
     },
-    {
-      "name": "partyDamageBonusWhileCompanionFullHealth",
+    "partyDamageBonusWhileCompanionFullHealth": {
       "type": "Int"
     },
-    {
-      "name": "partyPhysicalDamageBonusFirstTurns",
+    "partyPhysicalDamageBonusFirstTurns": {
       "type": "Int"
     },
-    {
-      "name": "partyPhysicalDamageBonusFirstTurnCount",
+    "partyPhysicalDamageBonusFirstTurnCount": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "attackBurstChancePercent",
+    "attackBurstChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "attackBurstDamage",
+    "attackBurstDamage": {
       "type": "Int"
     },
-    {
-      "name": "attackBurstBlock",
+    "attackBurstBlock": {
       "type": "Int"
     },
-    {
-      "name": "directHitBleedChancePercent",
+    "directHitBleedChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "attackApplyBleed",
+    "attackApplyBleed": {
       "type": "Int"
     },
-    {
-      "name": "onHeroAttackPoisonedEnemyApplyPoison",
+    "onHeroAttackPoisonedEnemyApplyPoison": {
       "type": "Int"
     },
-    {
-      "name": "onPhysicalDamageGainBlock",
+    "onPhysicalDamageGainBlock": {
       "type": "Int"
     },
-    {
-      "name": "critStealEnemyBlock",
+    "critStealEnemyBlock": {
       "type": "Bool"
     },
-    {
-      "name": "criticalPurgeCount",
+    "criticalPurgeCount": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 27
       }
     },
-    {
-      "name": "criticalPurgeAll",
+    "criticalPurgeAll": {
       "type": "Bool",
       "affix_roll": {
         "reason": "On/off rule with no rollable magnitude."
       }
     },
-    {
-      "name": "cleanCut",
+    "cleanCut": {
       "type": "Bool"
     },
-    {
-      "name": "crackedGuard",
+    "crackedGuard": {
       "type": "Bool"
     },
-    {
-      "name": "blockedAttackNextPhysicalDouble",
+    "blockedAttackNextPhysicalDouble": {
       "type": "Bool"
     },
-    {
-      "name": "poisonCritPreparesBleedCrit",
+    "poisonCritPreparesBleedCrit": {
       "type": "Bool"
     },
-    {
-      "name": "leechCriticalVsBleedingBonus",
+    "leechCriticalVsBleedingBonus": {
       "type": "Double"
     },
-    {
-      "name": "burnAttackCritDrawCard",
+    "burnAttackCritDrawCard": {
       "type": "Bool"
     },
-    {
-      "name": "burnPreparesBleedDamageBonus",
+    "burnPreparesBleedDamageBonus": {
       "type": "Int"
     },
-    {
-      "name": "physicalElementChancePercent",
+    "physicalElementChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "physicalElementDamage",
+    "physicalElementDamage": {
       "type": "Int"
     },
-    {
-      "name": "standardDeviation",
+    "standardDeviation": {
       "type": "Bool"
     },
-    {
-      "name": "physicalVsFrozenCritBonus",
+    "physicalVsFrozenCritBonus": {
       "type": "Double"
     },
-    {
-      "name": "blockBreakNextPhysicalBonus",
+    "blockBreakNextPhysicalBonus": {
       "type": "Int"
     },
-    {
-      "name": "physicalDamageVsStunnedMultiplier",
+    "physicalDamageVsStunnedMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "physicalCritChanceBelowHalfBonus",
+    "physicalCritChanceBelowHalfBonus": {
       "type": "Double"
     },
-    {
-      "name": "physicalCritRemoveEnemyBlock",
+    "physicalCritRemoveEnemyBlock": {
       "type": "Bool"
     },
-    {
-      "name": "firstPhysicalAttackBlockDamagePercent",
+    "firstPhysicalAttackBlockDamagePercent": {
       "type": "Double"
     },
-    {
-      "name": "poisonCriticalHasLeech",
+    "poisonCriticalHasLeech": {
       "type": "Bool"
     },
-    {
-      "name": "poisonAttackStunChancePercent",
+    "poisonAttackStunChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "bleedCriticalPoisonDamage",
+    "bleedCriticalPoisonDamage": {
       "type": "Int"
     },
-    {
-      "name": "bleedCriticalThorns",
+    "bleedCriticalThorns": {
       "type": "Int"
     },
-    {
-      "name": "bleedCriticalDrawChancePercent",
+    "bleedCriticalDrawChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "criticalGoldStealFlat",
+    "criticalGoldStealFlat": {
       "type": "Int"
     },
-    {
-      "name": "bleedAttackDamageBonus",
+    "bleedAttackDamageBonus": {
       "type": "Int"
     },
-    {
-      "name": "bleedAttackCriticalBonus",
+    "bleedAttackCriticalBonus": {
       "type": "Double"
     },
-    {
-      "name": "attackVsBleedingBelowHalfMultiplier",
+    "attackVsBleedingBelowHalfMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "bleedCriticalDamageMultiplier",
+    "bleedCriticalDamageMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "belowHalfHealthNextBleedDouble",
+    "belowHalfHealthNextBleedDouble": {
       "type": "Bool"
     },
-    {
-      "name": "partyCritChanceWhileCompanionFullHealth",
+    "partyCritChanceWhileCompanionFullHealth": {
       "type": "Double"
     },
-    {
-      "name": "holyCriticalAllyIgnoreBlock",
+    "holyCriticalAllyIgnoreBlock": {
       "type": "Bool"
     },
-    {
-      "name": "holyAttackCriticalBonus",
+    "holyAttackCriticalBonus": {
       "type": "Double"
     },
-    {
-      "name": "holyAttackEnemyMissChance",
+    "holyAttackEnemyMissChance": {
       "type": "Double"
     },
-    {
-      "name": "holyAttackDrawChancePercent",
+    "holyAttackDrawChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "holyCriticalPurgeCount",
+    "holyCriticalPurgeCount": {
       "type": "Int"
     },
-    {
-      "name": "holyAttackCleanseAllyChancePercent",
+    "holyAttackCleanseAllyChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "attackDamageVsStunnedMultiplier",
+    "attackDamageVsStunnedMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "bleedDamageVsPoisonedMultiplier",
+    "bleedDamageVsPoisonedMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "burnCriticalDamageMultiplier",
+    "burnCriticalDamageMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "burnCriticalIgnoreBlock",
+    "burnCriticalIgnoreBlock": {
       "type": "Bool"
     },
-    {
-      "name": "firstBleedAttackLeechPerTurn",
+    "firstBleedAttackLeechPerTurn": {
       "type": "Bool"
     },
-    {
-      "name": "firstHolyAttackBlockPerTurn",
+    "firstHolyAttackBlockPerTurn": {
       "type": "Int"
     },
-    {
-      "name": "firstHolyAttackBonusPerTurn",
+    "firstHolyAttackBonusPerTurn": {
       "type": "Int"
     },
-    {
-      "name": "firstHolyHitDamageMultiplierPerTurn",
+    "firstHolyHitDamageMultiplierPerTurn": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "firstPhysicalAttackBattleMultiplier",
+    "firstPhysicalAttackBattleMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "firstPhysicalAttackBlockPerTurn",
+    "firstPhysicalAttackBlockPerTurn": {
       "type": "Int"
     },
-    {
-      "name": "freezeAttackCriticalBonus",
+    "freezeAttackCriticalBonus": {
       "type": "Double"
     },
-    {
-      "name": "freezeCriticalDamageMultiplier",
+    "freezeCriticalDamageMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "holyCriticalStunDamage",
+    "holyCriticalStunDamage": {
       "type": "Int"
     },
-    {
-      "name": "holyDamageMultiplierWhileBlocked",
+    "holyDamageMultiplierWhileBlocked": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "holyDamageVsStunnedMultiplier",
+    "holyDamageVsStunnedMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "leechAttackDamageVsBleedingMultiplier",
+    "leechAttackDamageVsBleedingMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "partyBleedCritChanceBonus",
+    "partyBleedCritChanceBonus": {
       "type": "Double"
     },
-    {
-      "name": "partyFirstPhysicalCriticalBonus",
+    "partyFirstPhysicalCriticalBonus": {
       "type": "Double"
     },
-    {
-      "name": "partyHolyAttackCriticalBonus",
+    "partyHolyAttackCriticalBonus": {
       "type": "Double"
     },
-    {
-      "name": "partyHolyDamageMultiplier",
+    "partyHolyDamageMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "physicalAttackBurstChancePercent",
+    "physicalAttackBurstChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "physicalAttackBurstMultiplier",
+    "physicalAttackBurstMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "physicalCritVsBleedingBonus",
+    "physicalCritVsBleedingBonus": {
       "type": "Double"
     },
-    {
-      "name": "physicalCriticalBleedDamage",
+    "physicalCriticalBleedDamage": {
       "type": "Int"
     },
-    {
-      "name": "physicalCriticalDamageVsBleedingMultiplier",
+    "physicalCriticalDamageVsBleedingMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "physicalCriticalDamageVsPoisonedMultiplier",
+    "physicalCriticalDamageVsPoisonedMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "stunAttackCriticalBonus",
+    "stunAttackCriticalBonus": {
       "type": "Double"
     },
-    {
-      "name": "stunCriticalIgnoreBlock",
+    "stunCriticalIgnoreBlock": {
       "type": "Bool"
     },
-    {
-      "name": "stunDamageMultiplierWhileThorns",
+    "stunDamageMultiplierWhileThorns": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "firstHolyHitAllyBlockPerTurn",
+    "firstHolyHitAllyBlockPerTurn": {
       "type": "Int"
     },
-    {
-      "name": "redHarvestPhysicalCriticalDetonatesBleed",
+    "redHarvestPhysicalCriticalDetonatesBleed": {
       "type": "Bool"
     },
-    {
-      "name": "huntsmasterPhysicalCriticalDrawsCompanion",
+    "huntsmasterPhysicalCriticalDrawsCompanion": {
       "type": "Bool"
     },
-    {
-      "name": "attackPurgeCount",
+    "attackPurgeCount": {
       "type": "Int",
-      "affix_roll": { "reason": "Encounter-only attack rule, not an equipment roll." }
+      "affix_roll": {
+        "reason": "Encounter-only attack rule, not an equipment roll."
+      }
     },
-    {
-      "name": "loadedStrike",
+    "loadedStrike": {
       "type": "Bool"
     },
-    {
-      "name": "dazingSwipeStunBuildup",
+    "dazingSwipeStunBuildup": {
       "type": "Int"
     },
-    {
-      "name": "burnAttackDamageVsBleedingMultiplier",
+    "burnAttackDamageVsBleedingMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "max"
     },
-    {
-      "name": "physicalAttackDamageVsBurningOrFrozenFlat",
+    "physicalAttackDamageVsBurningOrFrozenFlat": {
       "type": "Int"
     },
-    {
-      "name": "prismaticEdge",
+    "prismaticEdge": {
       "type": "Bool"
     },
-    {
-      "name": "physicalAttackBleedChancePercent",
+    "physicalAttackBleedChancePercent": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 96
       }
     },
-    {
-      "name": "attackPreparesAllyDamage",
+    "attackPreparesAllyDamage": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 100
       }
     },
-    {
-      "name": "alternatingAttackDamageBonus",
+    "alternatingAttackDamageBonus": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 101
       }
     },
-    {
-      "name": "attackDamageVsHigherBlockBonus",
+    "attackDamageVsHigherBlockBonus": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 102
       }
     },
-    {
-      "name": "attackBlockBreakOverflowPercent",
+    "attackBlockBreakOverflowPercent": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 103
       }
     },
-    {
-      "name": "attackDamageVsBurningPoisonedBonus",
+    "attackDamageVsBurningPoisonedBonus": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 105
       }
     },
-    {
-      "name": "attackDamagePerEnemyBuff",
+    "attackDamagePerEnemyBuff": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 106
       }
     },
-    {
-      "name": "attackDamageWithoutDebuffsPercent",
+    "attackDamageWithoutDebuffsPercent": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 107
       }
     },
-    {
-      "name": "attackHealthCost",
+    "attackHealthCost": {
       "type": "Int"
     },
-    {
-      "name": "attacksApplyBleed",
+    "attacksApplyBleed": {
       "type": "Int"
     },
-    {
-      "name": "basicAttackApplyBurn",
+    "basicAttackApplyBurn": {
       "type": "Int"
     },
-    {
-      "name": "attackHealFlat",
+    "attackHealFlat": {
       "type": "Int"
     },
-    {
-      "name": "attackHealthRecoil",
+    "attackHealthRecoil": {
       "type": "Int"
     },
-    {
-      "name": "burnAttackDamageBonus",
+    "burnAttackDamageBonus": {
       "type": "Int"
     },
-    {
-      "name": "attackHolyBonusVsBelowHalf",
+    "attackHolyBonusVsBelowHalf": {
       "type": "Int"
     },
-    {
-      "name": "attackDamageReductionBelowHalf",
+    "attackDamageReductionBelowHalf": {
       "type": "Int"
     }
-  ]
+  }
 }

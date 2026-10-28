@@ -1,122 +1,96 @@
 {
-  "fields": [
-    {
-      "name": "passiveMitigationFlat",
+  "fields": {
+    "passiveMitigationFlat": {
       "type": "Int"
     },
-    {
-      "name": "passivePhysicalMitigationFlat",
+    "passivePhysicalMitigationFlat": {
       "type": "Int"
     },
-    {
-      "name": "thornsPercent",
+    "thornsPercent": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 2
       }
     },
-    {
-      "name": "bleedResistance",
+    "bleedResistance": {
       "type": "Double"
     },
-    {
-      "name": "frozenEnemyDamageReductionFlat",
+    "frozenEnemyDamageReductionFlat": {
       "type": "Int"
     },
-    {
-      "name": "bleedingEnemyDamageReductionFlat",
+    "bleedingEnemyDamageReductionFlat": {
       "type": "Int"
     },
-    {
-      "name": "stunnedEnemyNextTurnDamageMultiplier",
+    "stunnedEnemyNextTurnDamageMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "enemyBleedStacksDamageReductionStacks",
+    "enemyBleedStacksDamageReductionStacks": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "enemyBleedStacksDamageReductionPercent",
+    "enemyBleedStacksDamageReductionPercent": {
       "type": "Double"
     },
-    {
-      "name": "poisonedEnemyAccuracyPenaltyPercent",
+    "poisonedEnemyAccuracyPenaltyPercent": {
       "type": "Double"
     },
-    {
-      "name": "poisonedEnemyMissChancePercent",
+    "poisonedEnemyMissChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "subzeroMist",
+    "subzeroMist": {
       "type": "Bool"
     },
-    {
-      "name": "blindingLight",
+    "blindingLight": {
       "type": "Bool"
     },
-    {
-      "name": "holyDamageReduceTargetDamage",
+    "holyDamageReduceTargetDamage": {
       "type": "Int"
     },
-    {
-      "name": "bleedingEnemyAttackDealDamage",
+    "bleedingEnemyAttackDealDamage": {
       "type": "Int"
     },
-    {
-      "name": "onAllyDamageHeal",
+    "onAllyDamageHeal": {
       "type": "Int"
     },
-    {
-      "name": "damageReductionPerUnspentManaEvery",
+    "damageReductionPerUnspentManaEvery": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "toughnessOnHit",
+    "toughnessOnHit": {
       "type": "Int"
     },
-    {
-      "name": "toughnessOnHitCap",
+    "toughnessOnHitCap": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "blockedControlBurnResistance",
+    "blockedControlBurnResistance": {
       "type": "Double"
     },
-    {
-      "name": "afflictionResistance",
+    "afflictionResistance": {
       "type": "Double"
     },
-    {
-      "name": "burningEnemyDamageReductionFlat",
+    "burningEnemyDamageReductionFlat": {
       "type": "Int"
     },
-    {
-      "name": "blockHalvesDoTDamage",
+    "blockHalvesDoTDamage": {
       "type": "Bool"
     },
-    {
-      "name": "bleedingEnemyOutgoingDamageMultiplier",
+    "bleedingEnemyOutgoingDamageMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "verdantShelterDamageMultiplier",
+    "verdantShelterDamageMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "onHealthLossNextDamageReduction",
+    "onHealthLossNextDamageReduction": {
       "type": "Int",
       "merge": "max"
     }
-  ]
+  }
 }

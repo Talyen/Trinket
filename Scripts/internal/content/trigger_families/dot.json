@@ -1,403 +1,321 @@
 {
-  "fields": [
-    {
-      "name": "redline",
+  "fields": {
+    "redline": {
       "type": "Bool"
     },
-    {
-      "name": "bleedHalvesAfterExpiration",
+    "bleedHalvesAfterExpiration": {
       "type": "Bool"
     },
-    {
-      "name": "burnAndBleedShareDamageBonuses",
+    "burnAndBleedShareDamageBonuses": {
       "type": "Bool"
     },
-    {
-      "name": "burnDecaySlowPercent",
+    "burnDecaySlowPercent": {
       "type": "Double"
     },
-    {
-      "name": "poisonDecaySlowPercent",
+    "poisonDecaySlowPercent": {
       "type": "Double"
     },
-    {
-      "name": "poisonDecayIncreaseChance",
+    "poisonDecayIncreaseChance": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 6
       }
     },
-    {
-      "name": "onBleedApplyPoison",
+    "onBleedApplyPoison": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 3
       }
     },
-    {
-      "name": "onBurnApplyPoison",
+    "onBurnApplyPoison": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 4
       }
     },
-    {
-      "name": "onBleedDealBurnDamage",
+    "onBleedDealBurnDamage": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 5
       }
     },
-    {
-      "name": "onBleedDealPoisonChancePercent",
+    "onBleedDealPoisonChancePercent": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 53
       }
     },
-    {
-      "name": "onBurnDealPoisonChancePercent",
+    "onBurnDealPoisonChancePercent": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 54
       }
     },
-    {
-      "name": "onBleedDealBurnChancePercent",
+    "onBleedDealBurnChancePercent": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 55
       }
     },
-    {
-      "name": "onBurnDamageDetonateBleedChancePercent",
+    "onBurnDamageDetonateBleedChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "poisonStunChancePercent",
+    "poisonStunChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "freezeDamageWhileBurningBonus",
+    "freezeDamageWhileBurningBonus": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 7
       }
     },
-    {
-      "name": "bleedConsumesPoison",
+    "bleedConsumesPoison": {
       "type": "Bool"
     },
-    {
-      "name": "bleedApplicationTicksExisting",
+    "bleedApplicationTicksExisting": {
       "type": "Bool"
     },
-    {
-      "name": "onBleedAppliedToBleedingDealDamage",
+    "onBleedAppliedToBleedingDealDamage": {
       "type": "Int"
     },
-    {
-      "name": "bleedsIgnoreMitigation",
+    "bleedsIgnoreMitigation": {
       "type": "Bool"
     },
-    {
-      "name": "onBleedDamageHealSelf",
+    "onBleedDamageHealSelf": {
       "type": "Int"
     },
-    {
-      "name": "onBurnTickHolyDamage",
+    "onBurnTickHolyDamage": {
       "type": "Int"
     },
-    {
-      "name": "burnTicksTwicePerTurn",
+    "burnTicksTwicePerTurn": {
       "type": "Bool"
     },
-    {
-      "name": "damagePerBurnPotencyPercent",
+    "damagePerBurnPotencyPercent": {
       "type": "Double"
     },
-    {
-      "name": "burnIncreaseChancePercent",
+    "burnIncreaseChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "poisonThresholdStunAmount",
+    "poisonThresholdStunAmount": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "poisonDamageLeechChancePercent",
+    "poisonDamageLeechChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "onCritDoubleBleedDuration",
+    "onCritDoubleBleedDuration": {
       "type": "Bool"
     },
-    {
-      "name": "criticalOnBleedingDetonateBleed",
+    "criticalOnBleedingDetonateBleed": {
       "type": "Bool"
     },
-    {
-      "name": "criticalOnBleedingDetonateBleedChance",
+    "criticalOnBleedingDetonateBleedChance": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "criticalDetonateBleedAndPoison",
+    "criticalDetonateBleedAndPoison": {
       "type": "Bool"
     },
-    {
-      "name": "onBurnDamageDetonateBleed",
+    "onBurnDamageDetonateBleed": {
       "type": "Bool"
     },
-    {
-      "name": "freezeDamageLeech",
+    "freezeDamageLeech": {
       "type": "Bool"
     },
-    {
-      "name": "poisonAttackLeech",
+    "poisonAttackLeech": {
       "type": "Bool",
       "affix_roll": {
         "reason": "On/off rule with no rollable magnitude."
       }
     },
-    {
-      "name": "bleedDamageGoldFlat",
+    "bleedDamageGoldFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 44
       }
     },
-    {
-      "name": "burnDamageRampPerRound",
+    "burnDamageRampPerRound": {
       "type": "Int"
     },
-    {
-      "name": "burnDamageRampCap",
+    "burnDamageRampCap": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "bleedDamageRampPerRound",
+    "bleedDamageRampPerRound": {
       "type": "Int"
     },
-    {
-      "name": "bleedDamageRampCap",
+    "bleedDamageRampCap": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "burnDamageManaRestoreThreshold",
+    "burnDamageManaRestoreThreshold": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "onBurnDamageRestoreManaPerTurnCap",
+    "onBurnDamageRestoreManaPerTurnCap": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "burnProcsBleedChancePercent",
+    "burnProcsBleedChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "bleedProcsBurnChancePercent",
+    "bleedProcsBurnChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "burnDamageLeech",
+    "burnDamageLeech": {
       "type": "Bool"
     },
-    {
-      "name": "firstBurnAttackLeech",
+    "firstBurnAttackLeech": {
       "type": "Bool"
     },
-    {
-      "name": "bleedDamageLeech",
+    "bleedDamageLeech": {
       "type": "Bool"
     },
-    {
-      "name": "shatterpoint",
+    "shatterpoint": {
       "type": "Bool"
     },
-    {
-      "name": "cryostasis",
+    "cryostasis": {
       "type": "Bool"
     },
-    {
-      "name": "crossContamination",
+    "crossContamination": {
       "type": "Bool"
     },
-    {
-      "name": "backdraft",
+    "backdraft": {
       "type": "Bool"
     },
-    {
-      "name": "ashenArsenal",
+    "ashenArsenal": {
       "type": "Bool"
     },
-    {
-      "name": "arterialCascade",
+    "arterialCascade": {
       "type": "Bool"
     },
-    {
-      "name": "steamExplosion",
+    "steamExplosion": {
       "type": "Bool"
     },
-    {
-      "name": "safeHandling",
+    "safeHandling": {
       "type": "Bool"
     },
-    {
-      "name": "unstableCulture",
+    "unstableCulture": {
       "type": "Bool"
     },
-    {
-      "name": "sealedVial",
+    "sealedVial": {
       "type": "Bool"
     },
-    {
-      "name": "barbedSpores",
+    "barbedSpores": {
       "type": "Bool"
     },
-    {
-      "name": "livingBark",
+    "livingBark": {
       "type": "Bool"
     },
-    {
-      "name": "rootPassage",
+    "rootPassage": {
       "type": "Bool"
     },
-    {
-      "name": "firstThornsPoisonDamagePerTurn",
+    "firstThornsPoisonDamagePerTurn": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "bleedTickDrawChancePercent",
+    "bleedTickDrawChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "burnAttackDoubleChancePercent",
+    "burnAttackDoubleChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "burnDecaySlowVsBleedingPercent",
+    "burnDecaySlowVsBleedingPercent": {
       "type": "Double"
     },
-    {
-      "name": "bleedDurationFromCriticalBonus",
+    "bleedDurationFromCriticalBonus": {
       "type": "Int"
     },
-    {
-      "name": "bleedDurationVsPoisonedBonus",
+    "bleedDurationVsPoisonedBonus": {
       "type": "Int"
     },
-    {
-      "name": "burnAttackBleedChancePercent",
+    "burnAttackBleedChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "burnAttackBleedDamage",
+    "burnAttackBleedDamage": {
       "type": "Int"
     },
-    {
-      "name": "poisonPreventDecayChancePercent",
+    "poisonPreventDecayChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "poisonDamageVsStunnedMultiplier",
+    "poisonDamageVsStunnedMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "bleedDamageBelowHalfMultiplier",
+    "bleedDamageBelowHalfMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "onDamageBurnRetaliationChancePercent",
+    "onDamageBurnRetaliationChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "onDamageBurnRetaliationDamage",
+    "onDamageBurnRetaliationDamage": {
       "type": "Int"
     },
-    {
-      "name": "burnPreventDecayChancePercent",
+    "burnPreventDecayChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "bleedPoisonOncePerTurn",
+    "bleedPoisonOncePerTurn": {
       "type": "Bool",
       "affix_roll": {
         "reason": "Fixed per-turn activation limit."
       }
     },
-    {
-      "name": "enemyPoisonDecaySlowPercent",
+    "enemyPoisonDecaySlowPercent": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "enemyPoisonPreventDecayChancePercent",
+    "enemyPoisonPreventDecayChancePercent": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "enemyPoisonDecayIncreaseChance",
+    "enemyPoisonDecayIncreaseChance": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "enemyBurnDecaySlowPercent",
+    "enemyBurnDecaySlowPercent": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "enemyBurnDecaySlowVsBleedingPercent",
+    "enemyBurnDecaySlowVsBleedingPercent": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "enemyBurnPreventDecayChancePercent",
+    "enemyBurnPreventDecayChancePercent": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "burnDamageVsPoisonedFlat",
+    "burnDamageVsPoisonedFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 82
       }
     },
-    {
-      "name": "bleedDamageVsBurningFlat",
+    "bleedDamageVsBurningFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 83
       }
     },
-    {
-      "name": "bleedDamageVsPoisonedFlat",
+    "bleedDamageVsPoisonedFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 88
       }
     }
-  ]
+  }
 }

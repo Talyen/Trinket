@@ -1,587 +1,484 @@
 {
-  "fields": [
-    {
-      "name": "contagiousJoy",
+  "fields": {
+    "contagiousJoy": {
       "type": "Bool"
     },
-    {
-      "name": "livingArchive",
+    "livingArchive": {
       "type": "Bool"
     },
-    {
-      "name": "marrowmend",
+    "marrowmend": {
       "type": "Bool"
     },
-    {
-      "name": "wishspring",
+    "wishspring": {
       "type": "Bool"
     },
-    {
-      "name": "cleanseSelfHeal",
+    "cleanseSelfHeal": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 0
       }
     },
-    {
-      "name": "cleanseBonusHeal",
+    "cleanseBonusHeal": {
       "type": "Int"
     },
-    {
-      "name": "onceBelowHealthPercentHeal",
+    "onceBelowHealthPercentHeal": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 13
       }
     },
-    {
-      "name": "blockOnDeathsDoor",
+    "blockOnDeathsDoor": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 14
       }
     },
-    {
-      "name": "holyDamageHealFlat",
+    "holyDamageHealFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 18
       }
     },
-    {
-      "name": "healthRestoredPoisonPercent",
+    "healthRestoredPoisonPercent": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 46
       }
     },
-    {
-      "name": "healthPerTurn",
+    "healthPerTurn": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 49
       }
     },
-    {
-      "name": "overhealConvertsToBlock",
+    "overhealConvertsToBlock": {
       "type": "Bool"
     },
-    {
-      "name": "overhealConvertsToMaxHealth",
+    "overhealConvertsToMaxHealth": {
       "type": "Bool"
     },
-    {
-      "name": "overhealConvertsToMaxHealthCap",
+    "overhealConvertsToMaxHealthCap": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "overhealConvertsToMaxHealthPerEvent",
+    "overhealConvertsToMaxHealthPerEvent": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "overhealShieldCap",
+    "overhealShieldCap": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "leechOverhealTransfersToCompanion",
+    "leechOverhealTransfersToCompanion": {
       "type": "Bool"
     },
-    {
-      "name": "leechSharesToHeroPercent",
+    "leechSharesToHeroPercent": {
       "type": "Double"
     },
-    {
-      "name": "onCompanionLeechRestoreHeroMana",
+    "onCompanionLeechRestoreHeroMana": {
       "type": "Int"
     },
-    {
-      "name": "leechHealingVsAfflictedMultiplier",
+    "leechHealingVsAfflictedMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "leechPercentVsLowHealthEnemies",
+    "leechPercentVsLowHealthEnemies": {
       "type": "Double"
     },
-    {
-      "name": "leechBonusHealVsLowHealthEnemies",
+    "leechBonusHealVsLowHealthEnemies": {
       "type": "Int"
     },
-    {
-      "name": "leechChancePercent",
+    "leechChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "freezeDamageLeechChancePercent",
+    "freezeDamageLeechChancePercent": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 58
       }
     },
-    {
-      "name": "healingBelowHealthPercentThreshold",
+    "healingBelowHealthPercentThreshold": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "healingBelowHealthPercentMultiplier",
+    "healingBelowHealthPercentMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "healOverTimeOnHealTurns",
+    "healOverTimeOnHealTurns": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "healOverTimeOnHealAmount",
+    "healOverTimeOnHealAmount": {
       "type": "Int"
     },
-    {
-      "name": "onHealGrantBlock",
+    "onHealGrantBlock": {
       "type": "Int"
     },
-    {
-      "name": "onHealCleanseTargetChance",
+    "onHealCleanseTargetChance": {
       "type": "Double",
       "merge": "max",
-      "affix_roll": { "kind": "percent", "order": 64 }
+      "affix_roll": {
+        "kind": "percent",
+        "order": 64
+      }
     },
-    {
-      "name": "onHealRestoreCasterMana",
+    "onHealRestoreCasterMana": {
       "type": "Int"
     },
-    {
-      "name": "holyDamageHealLowestAllyFlat",
+    "holyDamageHealLowestAllyFlat": {
       "type": "Int"
     },
-    {
-      "name": "holyDamageHealHeroFlat",
+    "holyDamageHealHeroFlat": {
       "type": "Int"
     },
-    {
-      "name": "endTurnWithBlockHealFlat",
+    "endTurnWithBlockHealFlat": {
       "type": "Int"
     },
-    {
-      "name": "endOfTurnHealLowestAlly",
+    "endOfTurnHealLowestAlly": {
       "type": "Int"
     },
-    {
-      "name": "cardsPlayedHealPartyThreshold",
+    "cardsPlayedHealPartyThreshold": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "cardsPlayedHealPartyAmount",
+    "cardsPlayedHealPartyAmount": {
       "type": "Int"
     },
-    {
-      "name": "healthRegenFirstTurnsAmount",
+    "healthRegenFirstTurnsAmount": {
       "type": "Int"
     },
-    {
-      "name": "healthRegenFirstTurnsDuration",
+    "healthRegenFirstTurnsDuration": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "healthRegenAboveHalfHealth",
+    "healthRegenAboveHalfHealth": {
       "type": "Int"
     },
-    {
-      "name": "onBurnDamageHealLowestAllyFlat",
+    "onBurnDamageHealLowestAllyFlat": {
       "type": "Int"
     },
-    {
-      "name": "companionLeechSharePercent",
+    "companionLeechSharePercent": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 12
       }
     },
-    {
-      "name": "onLeechApplyPoison",
+    "onLeechApplyPoison": {
       "type": "Int"
     },
-    {
-      "name": "onLeechApplyBleed",
+    "onLeechApplyBleed": {
       "type": "Int"
     },
-    {
-      "name": "onLeechReduceEnemyStrength",
+    "onLeechReduceEnemyStrength": {
       "type": "Int"
     },
-    {
-      "name": "onLeechReduceEnemyStrengthTurns",
+    "onLeechReduceEnemyStrengthTurns": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "companionDamageLeechesToHeroPercent",
+    "companionDamageLeechesToHeroPercent": {
       "type": "Double"
     },
-    {
-      "name": "leechOnBlockDamage",
+    "leechOnBlockDamage": {
       "type": "Bool"
     },
-    {
-      "name": "partyRegenPerRound",
+    "partyRegenPerRound": {
       "type": "Int"
     },
-    {
-      "name": "purifyingWaters",
+    "purifyingWaters": {
       "type": "Bool"
     },
-    {
-      "name": "cleanSlate",
+    "cleanSlate": {
       "type": "Bool"
     },
-    {
-      "name": "fortifyingTonic",
+    "fortifyingTonic": {
       "type": "Bool"
     },
-    {
-      "name": "coolingSalve",
+    "coolingSalve": {
       "type": "Bool"
     },
-    {
-      "name": "sharedPrescription",
+    "sharedPrescription": {
       "type": "Bool"
     },
-    {
-      "name": "cleansingDew",
+    "cleansingDew": {
       "type": "Bool"
     },
-    {
-      "name": "onAttackBleedingEnemyHeal",
+    "onAttackBleedingEnemyHeal": {
       "type": "Int"
     },
-    {
-      "name": "overhealFirstBlockPerTurn",
+    "overhealFirstBlockPerTurn": {
       "type": "Int"
     },
-    {
-      "name": "leechBonusHealVsStunned",
+    "leechBonusHealVsStunned": {
       "type": "Int"
     },
-    {
-      "name": "onHealDealHoly",
+    "onHealDealHoly": {
       "type": "Int"
     },
-    {
-      "name": "bleedingEnemyHealingMultiplier",
+    "bleedingEnemyHealingMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "darkRecoveryMultiplier",
+    "darkRecoveryMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "leechToFullNextAttackBonus",
+    "leechToFullNextAttackBonus": {
       "type": "Int"
     },
-    {
-      "name": "leechBlockBelowHalf",
+    "leechBlockBelowHalf": {
       "type": "Bool"
     },
-    {
-      "name": "burningEnemyHealingMultiplier",
+    "burningEnemyHealingMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "healthRestoreDrawChancePercent",
+    "healthRestoreDrawChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "overhealToBlockPercent",
+    "overhealToBlockPercent": {
       "type": "Double"
     },
-    {
-      "name": "healthRestoreNextPoisonBonus",
+    "healthRestoreNextPoisonBonus": {
       "type": "Int"
     },
-    {
-      "name": "healthRestoreManaChancePercent",
+    "healthRestoreManaChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "springSapHealthBonus",
+    "springSapHealthBonus": {
       "type": "Int"
     },
-    {
-      "name": "pruningHealthRemoveEnemyThorns",
+    "pruningHealthRemoveEnemyThorns": {
       "type": "Int"
     },
-    {
-      "name": "shelterSeedBlock",
+    "shelterSeedBlock": {
       "type": "Int"
     },
-    {
-      "name": "sharedRootsHealPercent",
+    "sharedRootsHealPercent": {
       "type": "Double"
     },
-    {
-      "name": "returningBloomHeal",
+    "returningBloomHeal": {
       "type": "Int"
     },
-    {
-      "name": "excessLeechHealthToGold",
+    "excessLeechHealthToGold": {
       "type": "Bool"
     },
-    {
-      "name": "bleedAttackLeechBelowHealthThreshold",
+    "bleedAttackLeechBelowHealthThreshold": {
       "type": "Double"
     },
-    {
-      "name": "leechOverflowShareAlly",
+    "leechOverflowShareAlly": {
       "type": "Bool"
     },
-    {
-      "name": "leechCriticalAllyBlock",
+    "leechCriticalAllyBlock": {
       "type": "Int"
     },
-    {
-      "name": "enemyCannotLeechFromTarget",
+    "enemyCannotLeechFromTarget": {
       "type": "Bool"
     },
-    {
-      "name": "leechHealingVsBleedingMultiplier",
+    "leechHealingVsBleedingMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "allyAttackLeechChancePercent",
+    "allyAttackLeechChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "bleedCriticalHasLeech",
+    "bleedCriticalHasLeech": {
       "type": "Bool"
     },
-    {
-      "name": "healBelowHalfMultiplier",
+    "healBelowHalfMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "burnAttackHealLowestChancePercent",
+    "burnAttackHealLowestChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "burnAttackHealLowestAmount",
+    "burnAttackHealLowestAmount": {
       "type": "Int"
     },
-    {
-      "name": "overhealNextBurnBonus",
+    "overhealNextBurnBonus": {
       "type": "Int"
     },
-    {
-      "name": "firstHealthRestorationDrawBattle",
+    "firstHealthRestorationDrawBattle": {
       "type": "Bool"
     },
-    {
-      "name": "partyCritChanceWhileCompanionBelowHalf",
+    "partyCritChanceWhileCompanionBelowHalf": {
       "type": "Double"
     },
-    {
-      "name": "healthRestorationCleansesOne",
+    "healthRestorationCleansesOne": {
       "type": "Bool"
     },
-    {
-      "name": "excessHealthShareAlly",
+    "excessHealthShareAlly": {
       "type": "Bool"
     },
-    {
-      "name": "healthRestoreNextIncomingDamageMultiplier",
+    "healthRestoreNextIncomingDamageMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "healingMultiplier",
+    "healingMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "healthRestoreBlockChancePercent",
+    "healthRestoreBlockChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "healthOrManaRestoreDrawChancePercent",
+    "healthOrManaRestoreDrawChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "healthRestoreThornsChancePercent",
+    "healthRestoreThornsChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "healthRestoreThornsAmount",
+    "healthRestoreThornsAmount": {
       "type": "Int"
     },
-    {
-      "name": "excessHealthNextManaEmpowerFree",
+    "excessHealthNextManaEmpowerFree": {
       "type": "Bool"
     },
-    {
-      "name": "firstBelowHalfHealthHeal",
+    "firstBelowHalfHealthHeal": {
       "type": "Int"
     },
-    {
-      "name": "firstHealthRestorationBonusPerTurn",
+    "firstHealthRestorationBonusPerTurn": {
       "type": "Int"
     },
-    {
-      "name": "firstLeechRestorationShareAlly",
+    "firstLeechRestorationShareAlly": {
       "type": "Bool"
     },
-    {
-      "name": "healthRestorationRepeatNextTurnChancePercent",
+    "healthRestorationRepeatNextTurnChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "leechCriticalPoisonDamage",
+    "leechCriticalPoisonDamage": {
       "type": "Int"
     },
-    {
-      "name": "leechHealingVsLowEnemyHealthMultiplier",
+    "leechHealingVsLowEnemyHealthMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "leechHealingVsPoisonedMultiplier",
+    "leechHealingVsPoisonedMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "leechBlockChancePercent",
+    "leechBlockChancePercent": {
       "type": "Double",
-      "affix_roll": { "kind": "percent", "order": 62 }
+      "affix_roll": {
+        "kind": "percent",
+        "order": 62
+      }
     },
-    {
-      "name": "firstThornsDamageHealPerTurn",
+    "firstThornsDamageHealPerTurn": {
       "type": "Int",
-      "affix_roll": { "kind": "int", "order": 73 }
+      "affix_roll": {
+        "kind": "int",
+        "order": 73
+      }
     },
-    {
-      "name": "leechThornsWithoutThorns",
+    "leechThornsWithoutThorns": {
       "type": "Int",
-      "affix_roll": { "kind": "int", "order": 76 }
+      "affix_roll": {
+        "kind": "int",
+        "order": 76
+      }
     },
-    {
-      "name": "physicalAttackLeechBelowHalfHealth",
+    "physicalAttackLeechBelowHalfHealth": {
       "type": "Bool",
-      "affix_roll": { "reason": "On/off Leech rule with no rollable magnitude." }
+      "affix_roll": {
+        "reason": "On/off Leech rule with no rollable magnitude."
+      }
     },
-    {
-      "name": "leechStunBelowHalfHealth",
+    "leechStunBelowHalfHealth": {
       "type": "Int",
-      "affix_roll": { "kind": "int", "order": 77 }
+      "affix_roll": {
+        "kind": "int",
+        "order": 77
+      }
     },
-    {
-      "name": "attackLeechPercent",
+    "attackLeechPercent": {
       "type": "Double",
-      "affix_roll": { "reason": "Encounter-only attack rule, not an equipment roll." }
+      "affix_roll": {
+        "reason": "Encounter-only attack rule, not an equipment roll."
+      }
     },
-    {
-      "name": "excessLeechRestoresMana",
+    "excessLeechRestoresMana": {
       "type": "Bool"
     },
-    {
-      "name": "providedOverhealConvertsToBlock",
+    "providedOverhealConvertsToBlock": {
       "type": "Bool"
     },
-    {
-      "name": "providedOverhealToBlockPercent",
+    "providedOverhealToBlockPercent": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "healthRestoredNextPoisonDamagePercent",
+    "healthRestoredNextPoisonDamagePercent": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 84
       }
     },
-    {
-      "name": "firstHolyAttackHealPerTurn",
+    "firstHolyAttackHealPerTurn": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 85
       }
     },
-    {
-      "name": "leechHealVsStunnedBelowHalfFlat",
+    "leechHealVsStunnedBelowHalfFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 87
       }
     },
-    {
-      "name": "leechCriticalNextPoisonAttackBonus",
+    "leechCriticalNextPoisonAttackBonus": {
       "type": "Int"
     },
-    {
-      "name": "blockBrokenHealFlat",
+    "blockBrokenHealFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 97
       }
     },
-    {
-      "name": "allyAttackHealBelowHalfPercent",
+    "allyAttackHealBelowHalfPercent": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 99
       }
     },
-    {
-      "name": "healingWhileEnemyControlledBonus",
+    "healingWhileEnemyControlledBonus": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 108
       }
     },
-    {
-      "name": "healOnOpponentPoisonDamage",
+    "healOnOpponentPoisonDamage": {
       "type": "Int"
     },
-    {
-      "name": "healthAtTurnStart",
+    "healthAtTurnStart": {
       "type": "Int"
     },
-    {
-      "name": "cannotBeLeeched",
+    "cannotBeLeeched": {
       "type": "Bool"
     }
-  ]
+  }
 }

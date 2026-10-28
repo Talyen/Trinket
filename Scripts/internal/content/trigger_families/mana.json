@@ -1,413 +1,330 @@
 {
-  "fields": [
-    {
-      "name": "dragonPatronage",
+  "fields": {
+    "dragonPatronage": {
       "type": "Bool"
     },
-    {
-      "name": "prismaticScales",
+    "prismaticScales": {
       "type": "Bool"
     },
-    {
-      "name": "freezeEmpowermentBlockPerMana",
+    "freezeEmpowermentBlockPerMana": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "lastManaEmpowermentRepeatsDamage",
+    "lastManaEmpowermentRepeatsDamage": {
       "type": "Bool"
     },
-    {
-      "name": "spendManaBlockFlat",
+    "spendManaBlockFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 15
       }
     },
-    {
-      "name": "empoweredElementDrawOpposite",
+    "empoweredElementDrawOpposite": {
       "type": "Bool"
     },
-    {
-      "name": "spendManaRandomDoTFlat",
+    "spendManaRandomDoTFlat": {
       "type": "Int"
     },
-    {
-      "name": "gainManaBlockFlat",
+    "gainManaBlockFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 30
       }
     },
-    {
-      "name": "leechRestoreManaFlat",
+    "leechRestoreManaFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 29
       }
     },
-    {
-      "name": "drawOnSpendMana",
+    "drawOnSpendMana": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 42
       }
     },
-    {
-      "name": "repeatManaEmpowerment",
+    "repeatManaEmpowerment": {
       "type": "Bool",
       "affix_roll": {
         "reason": "On/off rule with no rollable magnitude."
       }
     },
-    {
-      "name": "unspentManaConvertsToBlock",
+    "unspentManaConvertsToBlock": {
       "type": "Bool"
     },
-    {
-      "name": "spendManaRemovesAfflictions",
+    "spendManaRemovesAfflictions": {
       "type": "Bool"
     },
-    {
-      "name": "spendManaEmpowerNextCardThreshold",
+    "spendManaEmpowerNextCardThreshold": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "nextCardEmpowerPercent",
+    "nextCardEmpowerPercent": {
       "type": "Double"
     },
-    {
-      "name": "startTurnFullManaDrawCards",
+    "startTurnFullManaDrawCards": {
       "type": "Int"
     },
-    {
-      "name": "onReachZeroManaRestoreMana",
+    "onReachZeroManaRestoreMana": {
       "type": "Int"
     },
-    {
-      "name": "spendManaRandomElementDamage",
+    "spendManaRandomElementDamage": {
       "type": "Bool"
     },
-    {
-      "name": "onGainManaHealFlat",
+    "onGainManaHealFlat": {
       "type": "Int"
     },
-    {
-      "name": "startBattleBonusMana",
+    "startBattleBonusMana": {
       "type": "Int"
     },
-    {
-      "name": "empowermentDamageBonus",
+    "empowermentDamageBonus": {
       "type": "Int"
     },
-    {
-      "name": "spendManaDamageBonusPerMana",
+    "spendManaDamageBonusPerMana": {
       "type": "Int"
     },
-    {
-      "name": "onHeroSpendManaGainBlock",
+    "onHeroSpendManaGainBlock": {
       "type": "Int"
     },
-    {
-      "name": "spendManaRefundChancePercent",
+    "spendManaRefundChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "firstEmpowermentCostReduction",
+    "firstEmpowermentCostReduction": {
       "type": "Int"
     },
-    {
-      "name": "empowermentCostReduction",
+    "empowermentCostReduction": {
       "type": "Int"
     },
-    {
-      "name": "healingEmpowermentCostReduction",
+    "healingEmpowermentCostReduction": {
       "type": "Int"
     },
-    {
-      "name": "bonusManaOnTurns",
+    "bonusManaOnTurns": {
       "type": "[Int]"
     },
-    {
-      "name": "spendManaGrantsEqualBlock",
+    "spendManaGrantsEqualBlock": {
       "type": "Bool"
     },
-    {
-      "name": "manaGainDoubleChancePercent",
+    "manaGainDoubleChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "spendManaThresholdAutoPlayCard",
+    "spendManaThresholdAutoPlayCard": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "onSpendManaBurnBurningEnemies",
+    "onSpendManaBurnBurningEnemies": {
       "type": "Int"
     },
-    {
-      "name": "onHeroSpendManaApplyRandomAffliction",
+    "onHeroSpendManaApplyRandomAffliction": {
       "type": "Bool"
     },
-    {
-      "name": "cardsPlayedManaThreshold",
+    "cardsPlayedManaThreshold": {
       "type": "Int",
       "merge": "max",
       "affix_roll": {
         "reason": "Threshold gates the condition, not the reward."
       }
     },
-    {
-      "name": "cardsPlayedManaFlat",
+    "cardsPlayedManaFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 47
       }
     },
-    {
-      "name": "onBurnDamageRestoreManaFlat",
+    "onBurnDamageRestoreManaFlat": {
       "type": "Int"
     },
-    {
-      "name": "drawEveryOtherTurn",
+    "drawEveryOtherTurn": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 38
       }
     },
-    {
-      "name": "healCompanionDrawsCompanionCard",
+    "healCompanionDrawsCompanionCard": {
       "type": "Bool",
       "affix_roll": {
         "reason": "On/off rule with no rollable magnitude."
       }
     },
-    {
-      "name": "forbiddenKnowledge",
+    "forbiddenKnowledge": {
       "type": "Bool",
       "affix_roll": {
         "reason": "On/off rule with no rollable magnitude."
       }
     },
-    {
-      "name": "drawOnHealthLoss",
+    "drawOnHealthLoss": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 39
       }
     },
-    {
-      "name": "companionCardsEveryOtherTurn",
+    "companionCardsEveryOtherTurn": {
       "type": "Int"
     },
-    {
-      "name": "companionCardsPerTurn",
+    "companionCardsPerTurn": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 50
       }
     },
-    {
-      "name": "onFreezeEnemyGainManaEqualBlock",
+    "onFreezeEnemyGainManaEqualBlock": {
       "type": "Bool"
     },
-    {
-      "name": "closedCircuit",
+    "closedCircuit": {
       "type": "Bool"
     },
-    {
-      "name": "eyeOfTheStorm",
+    "eyeOfTheStorm": {
       "type": "Bool"
     },
-    {
-      "name": "furnaceRhythm",
+    "furnaceRhythm": {
       "type": "Bool"
     },
-    {
-      "name": "temperCycle",
+    "temperCycle": {
       "type": "Bool"
     },
-    {
-      "name": "livingConduit",
+    "livingConduit": {
       "type": "Bool"
     },
-    {
-      "name": "deepRoots",
+    "deepRoots": {
       "type": "Bool"
     },
-    {
-      "name": "groveAccord",
+    "groveAccord": {
       "type": "Bool"
     },
-    {
-      "name": "onEmpowerBurnRestoreMana",
+    "onEmpowerBurnRestoreMana": {
       "type": "Int"
     },
-    {
-      "name": "empowerFreezeDamageBonus",
+    "empowerFreezeDamageBonus": {
       "type": "Int"
     },
-    {
-      "name": "empoweredSkillEchoes",
+    "empoweredSkillEchoes": {
       "type": "Bool"
     },
-    {
-      "name": "spendLastManaStunDamage",
+    "spendLastManaStunDamage": {
       "type": "Int"
     },
-    {
-      "name": "empowerBurnDamageBonus",
+    "empowerBurnDamageBonus": {
       "type": "Int"
     },
-    {
-      "name": "empowerBurnCostReduction",
+    "empowerBurnCostReduction": {
       "type": "Int"
     },
-    {
-      "name": "manaEmpowerNextAttackPercent",
+    "manaEmpowerNextAttackPercent": {
       "type": "Double"
     },
-    {
-      "name": "endTurnZeroManaCleanse",
+    "endTurnZeroManaCleanse": {
       "type": "Bool"
     },
-    {
-      "name": "spendLastManaDrawCard",
+    "spendLastManaDrawCard": {
       "type": "Bool"
     },
-    {
-      "name": "manaEmpoweredAttackDoubleChancePercent",
+    "manaEmpoweredAttackDoubleChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "freezeCriticalRestoreMana",
+    "freezeCriticalRestoreMana": {
       "type": "Int"
     },
-    {
-      "name": "healthLossManaGain",
+    "healthLossManaGain": {
       "type": "Int"
     },
-    {
-      "name": "manaEmpowerPurgeCount",
+    "manaEmpowerPurgeCount": {
       "type": "Int",
-      "affix_roll": { "kind": "int", "order": 66 }
+      "affix_roll": {
+        "kind": "int",
+        "order": 66
+      }
     },
-    {
-      "name": "healthCostEmpowerDiscount",
+    "healthCostEmpowerDiscount": {
       "type": "Int"
     },
-    {
-      "name": "manaEmpoweredCriticalMultiplier",
+    "manaEmpoweredCriticalMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "lastManaNextBurnPercent",
+    "lastManaNextBurnPercent": {
       "type": "Double"
     },
-    {
-      "name": "poisonExpiryManaRestore",
+    "poisonExpiryManaRestore": {
       "type": "Int"
     },
-    {
-      "name": "arcaneThornsOnManaRestore",
+    "arcaneThornsOnManaRestore": {
       "type": "Int"
     },
-    {
-      "name": "barkweaveOnEmpowerBlock",
+    "barkweaveOnEmpowerBlock": {
       "type": "Int"
     },
-    {
-      "name": "sharedCurrentCompanionNextAttackBonus",
+    "sharedCurrentCompanionNextAttackBonus": {
       "type": "Int"
     },
-    {
-      "name": "spendManaDrawChancePercent",
+    "spendManaDrawChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "excessManaRestorationBlock",
+    "excessManaRestorationBlock": {
       "type": "Bool"
     },
-    {
-      "name": "manaHeldDamageMultiplier",
+    "manaHeldDamageMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "manaEmpowerAllyBlock",
+    "manaEmpowerAllyBlock": {
       "type": "Int"
     },
-    {
-      "name": "burnCriticalRestoreMana",
+    "burnCriticalRestoreMana": {
       "type": "Int"
     },
-    {
-      "name": "firstManaSpendRefundPerTurn",
+    "firstManaSpendRefundPerTurn": {
       "type": "Int"
     },
-    {
-      "name": "manaEmpowerBurnFreezeDamageMultiplier",
+    "manaEmpowerBurnFreezeDamageMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "manaEmpowerDamageChancePercent",
+    "manaEmpowerDamageChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "manaEmpowerDamageMultiplier",
+    "manaEmpowerDamageMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "manaEmpowerFreezeBuildupMultiplier",
+    "manaEmpowerFreezeBuildupMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "manaRestorationDoubleChancePercent",
+    "manaRestorationDoubleChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "manaRestorationDrawChancePercent",
+    "manaRestorationDrawChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "selfManaSpendNextAttackBonus",
+    "selfManaSpendNextAttackBonus": {
       "type": "Int"
     },
-    {
-      "name": "threefoldElementalDamageManaChancePercent",
+    "threefoldElementalDamageManaChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "excessManaRestorationBlockPerMana",
+    "excessManaRestorationBlockPerMana": {
       "type": "Int",
       "default": "1",
       "merge": "max"
     },
-    {
-      "name": "stunManaIfNone",
+    "stunManaIfNone": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 94
       }
     }
-  ]
+  }
 }

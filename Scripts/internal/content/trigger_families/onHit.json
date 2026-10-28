@@ -1,37 +1,29 @@
 {
-  "fields": [
-    {
-      "name": "resonantShell",
+  "fields": {
+    "resonantShell": {
       "type": "Bool"
     },
-    {
-      "name": "onHitAttackerBurn",
+    "onHitAttackerBurn": {
       "type": "Int"
     },
-    {
-      "name": "onHitAttackerFreezeBuildup",
+    "onHitAttackerFreezeBuildup": {
       "type": "Int"
     },
-    {
-      "name": "onHitAttackerPoison",
+    "onHitAttackerPoison": {
       "type": "Int"
     },
-    {
-      "name": "onHitAttackerBleedPotency",
+    "onHitAttackerBleedPotency": {
       "type": "Int"
     },
-    {
-      "name": "onHitAttackerBleedTurns",
+    "onHitAttackerBleedTurns": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "onHitAttackerHoly",
+    "onHitAttackerHoly": {
       "type": "Int"
     },
-    {
-      "name": "onHitGainBlock",
+    "onHitGainBlock": {
       "type": "Int"
     }
-  ]
+  }
 }

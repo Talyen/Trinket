@@ -1,41 +1,32 @@
 {
-  "fields": [
-    {
-      "name": "negateFirstEnemyAttack",
+  "fields": {
+    "negateFirstEnemyAttack": {
       "type": "Bool"
     },
-    {
-      "name": "attackDelayEnemyTurnChancePercent",
+    "attackDelayEnemyTurnChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "bleedingEnemyActionSkipChancePercent",
+    "bleedingEnemyActionSkipChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "extraCardDrawWhileEnemyBleeding",
+    "extraCardDrawWhileEnemyBleeding": {
       "type": "Bool"
     },
-    {
-      "name": "extraCardDrawBelowEnemyHealthPercent",
+    "extraCardDrawBelowEnemyHealthPercent": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "ultimateAppliesBurnPotency",
+    "ultimateAppliesBurnPotency": {
       "type": "Int"
     },
-    {
-      "name": "onHeroHolyAbilityCompanionHolyDamage",
+    "onHeroHolyAbilityCompanionHolyDamage": {
       "type": "Int"
     },
-    {
-      "name": "onHolyDamageRestoreMana",
+    "onHolyDamageRestoreMana": {
       "type": "Int"
     },
-    {
-      "name": "burnReducesEnemyHealingAndLeechPercent",
+    "burnReducesEnemyHealingAndLeechPercent": {
       "type": "Double"
     }
-  ]
+  }
 }

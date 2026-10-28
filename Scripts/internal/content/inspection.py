@@ -34,9 +34,14 @@ def related_references(root: Path, records: list[tuple]) -> list[str]:
     schemas += [root / 'Scripts/internal/content/modifiers.json']
     for path in schemas:
         for number, line in enumerate(path.read_text().splitlines(), 1):
-            match = re.search(r'"(name|case)":\s*"([^"]+)"', line)
-            if match and match[2] in (trigger_fields if match[1] == 'name' else modifier_cases):
-                rows.append(f'Schema: {path.relative_to(root)}:{number} — {match[2]}')
+            if path.name == 'modifiers.json':
+                match = re.search(r'"case":\s*"([^"]+)"', line)
+                symbols_in_schema = modifier_cases
+            else:
+                match = re.search(r'^\s*"([^"]+)":\s*\{', line)
+                symbols_in_schema = trigger_fields
+            if match and match[1] in symbols_in_schema:
+                rows.append(f'Schema: {path.relative_to(root)}:{number} — {match[1]}')
     guide = root / 'Docs/AgentContext/battle-talents.md'
     if guide.exists():
         lines = guide.read_text().splitlines()

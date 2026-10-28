@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import functools
+import json
 import re
 
 from .content_codegen_modifiers import (
@@ -31,13 +32,36 @@ TRIGGER_TYPES = {
 }
 
 
+def _read_trigger_family(path: Path) -> dict:
+    def unique_keys(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError(f"Duplicate trigger schema key {key!r} in {path}")
+            result[key] = value
+        return result
+
+    try:
+        family = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_keys)
+    except json.JSONDecodeError as error:
+        raise json.JSONDecodeError(f"{path}: {error.msg}", error.doc, error.pos) from None
+    fields = family["fields"]
+    if not isinstance(fields, dict):
+        raise ValueError(f"Trigger fields must be keyed by name in {path}")
+    for name, attributes in fields.items():
+        if not isinstance(attributes, dict) or "name" in attributes:
+            raise ValueError(f"Invalid trigger attributes for {name!r} in {path}")
+    return {**family, "family": path.stem,
+            "fields": [{"name": name, **attributes} for name, attributes in fields.items()]}
+
+
 @functools.cache
 def _trigger_families() -> list:
     payload = read_json(TRIGGER_FAMILY_SCHEMA)
     names = payload["families"]
     if len(names) != len(set(names)) or any(Path(name).name != name or not name.endswith(".json") or name == "index.json" for name in names):
         raise ValueError("Trigger family index must contain unique JSON basenames")
-    families = [{**read_json(TRIGGER_FAMILY_SCHEMA.parent / name), "family": Path(name).stem} for name in names]
+    families = [_read_trigger_family(TRIGGER_FAMILY_SCHEMA.parent / name) for name in names]
     fields = [field["name"] for family in families for field in family["fields"]]
     if len(fields) != len(set(fields)):
         raise ValueError("Duplicate trigger field")

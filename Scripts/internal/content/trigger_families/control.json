@@ -1,289 +1,233 @@
 {
-  "fields": [
-    {
-      "name": "stunDamageAddsEnemyBlock",
+  "fields": {
+    "stunDamageAddsEnemyBlock": {
       "type": "Bool"
     },
-    {
-      "name": "stunRetainedBuildupPercent",
+    "stunRetainedBuildupPercent": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "freezeExtraActionSkips",
+    "freezeExtraActionSkips": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 51
       }
     },
-    {
-      "name": "freezeExtendChancePercent",
+    "freezeExtendChancePercent": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 57
       }
     },
-    {
-      "name": "stunExtendChancePercent",
+    "stunExtendChancePercent": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 56
       }
     },
-    {
-      "name": "physicalStunBuildupPercent",
+    "physicalStunBuildupPercent": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 40
       }
     },
-    {
-      "name": "holyStunBuildupPercent",
+    "holyStunBuildupPercent": {
       "type": "Double"
     },
-    {
-      "name": "holyTriggeredStunGoldFlat",
+    "holyTriggeredStunGoldFlat": {
       "type": "Int"
     },
-    {
-      "name": "frozenEnemyCannotBlockOrHeal",
+    "frozenEnemyCannotBlockOrHeal": {
       "type": "Bool"
     },
-    {
-      "name": "enemyStunExtraActionSkips",
+    "enemyStunExtraActionSkips": {
       "type": "Int"
     },
-    {
-      "name": "onEnemyStunRecoverDrawCard",
+    "onEnemyStunRecoverDrawCard": {
       "type": "Int"
     },
-    {
-      "name": "onEnemyStunRecoverApplyAfflictions",
+    "onEnemyStunRecoverApplyAfflictions": {
       "type": "Int"
     },
-    {
-      "name": "enemyStunThresholdReductionPercent",
+    "enemyStunThresholdReductionPercent": {
       "type": "Double"
     },
-    {
-      "name": "onStunEnemyApplyBurn",
+    "onStunEnemyApplyBurn": {
       "type": "Int"
     },
-    {
-      "name": "onceBelowHealthPercentStunAllEnemies",
+    "onceBelowHealthPercentStunAllEnemies": {
       "type": "Bool"
     },
-    {
-      "name": "freezeCardsPlayedThisTurnFreezeAll",
+    "freezeCardsPlayedThisTurnFreezeAll": {
       "type": "Int"
     },
-    {
-      "name": "flashFreeze",
+    "flashFreeze": {
       "type": "Bool"
     },
-    {
-      "name": "everyNTurnsFreezeAllEnemiesInterval",
+    "everyNTurnsFreezeAllEnemiesInterval": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "everyNTurnsFreezeAllEnemiesAmount",
+    "everyNTurnsFreezeAllEnemiesAmount": {
       "type": "Int"
     },
-    {
-      "name": "everyNTurnsStunBuildupInterval",
+    "everyNTurnsStunBuildupInterval": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "everyNTurnsStunBuildupAmount",
+    "everyNTurnsStunBuildupAmount": {
       "type": "Int"
     },
-    {
-      "name": "everyNTurnsTeamBlockAmount",
+    "everyNTurnsTeamBlockAmount": {
       "type": "Int"
     },
-    {
-      "name": "enemyStunnedApplyMarked",
+    "enemyStunnedApplyMarked": {
       "type": "Bool",
       "affix_roll": {
         "reason": "On/off rule with no rollable magnitude."
       }
     },
-    {
-      "name": "enemyStunnedPurgeCount",
+    "enemyStunnedPurgeCount": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 26
       }
     },
-    {
-      "name": "enemyStunnedPurgeAll",
+    "enemyStunnedPurgeAll": {
       "type": "Bool",
       "affix_roll": {
         "reason": "On/off rule with no rollable magnitude."
       }
     },
-    {
-      "name": "stunDealPhysicalFlat",
+    "stunDealPhysicalFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 22
       }
     },
-    {
-      "name": "dodgeDealStunFlat",
+    "dodgeDealStunFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 35
       }
     },
-    {
-      "name": "onDodgeAttackerStunBuildup",
+    "onDodgeAttackerStunBuildup": {
       "type": "Int"
     },
-    {
-      "name": "onceBelowHealthPercentThreshold",
+    "onceBelowHealthPercentThreshold": {
       "type": "Double",
       "merge": "max",
       "affix_roll": {
         "reason": "Threshold gates the condition, not the reward."
       }
     },
-    {
-      "name": "turnFreezeDamageAllEnemies",
+    "turnFreezeDamageAllEnemies": {
       "type": "Int"
     },
-    {
-      "name": "turnFreezeDamageAllEnemiesInterval",
+    "turnFreezeDamageAllEnemiesInterval": {
       "type": "Int",
       "default": "2",
       "merge": "max"
     },
-    {
-      "name": "stunPurgeDealHolyPerEffect",
+    "stunPurgeDealHolyPerEffect": {
       "type": "Int"
     },
-    {
-      "name": "lightningRod",
+    "lightningRod": {
       "type": "Bool"
     },
-    {
-      "name": "stunExtendVsBurning",
+    "stunExtendVsBurning": {
       "type": "Bool"
     },
-    {
-      "name": "dodgeDealFreezeFlat",
+    "dodgeDealFreezeFlat": {
       "type": "Int"
     },
-    {
-      "name": "freezeBuildupMultiplier",
+    "freezeBuildupMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "poisonedEnemyStunBuildupMultiplier",
+    "poisonedEnemyStunBuildupMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "firstStunAttackBonusPerTurn",
+    "firstStunAttackBonusPerTurn": {
       "type": "Int"
     },
-    {
-      "name": "stunBuildupBelowHalfMultiplier",
+    "stunBuildupBelowHalfMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "freezeAttackDrawChancePercent",
+    "freezeAttackDrawChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "onDamageFreezeRetaliationChancePercent",
+    "onDamageFreezeRetaliationChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "onDamageFreezeRetaliationDamage",
+    "onDamageFreezeRetaliationDamage": {
       "type": "Int"
     },
-    {
-      "name": "onFreezeEnemyRestoreMana",
+    "onFreezeEnemyRestoreMana": {
       "type": "Int"
     },
-    {
-      "name": "freezeCriticalBuildupMultiplier",
+    "freezeCriticalBuildupMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "onFreezeEnemyDrawCard",
+    "onFreezeEnemyDrawCard": {
       "type": "Bool"
     },
-    {
-      "name": "freezeCritEnemyNextAttackMissChance",
+    "freezeCritEnemyNextAttackMissChance": {
       "type": "Double"
     },
-    {
-      "name": "holyCritEnemyNextAttackMissChance",
+    "holyCritEnemyNextAttackMissChance": {
       "type": "Double"
     },
-    {
-      "name": "onFreezeBurningEnemyBurnDamage",
+    "onFreezeBurningEnemyBurnDamage": {
       "type": "Int"
     },
-    {
-      "name": "onFreezeEnemyGainBlock",
+    "onFreezeEnemyGainBlock": {
       "type": "Int"
     },
-    {
-      "name": "onStunExpirePoisonDamage",
+    "onStunExpirePoisonDamage": {
       "type": "Int"
     },
-    {
-      "name": "onStunNextAttackGuaranteedCritical",
+    "onStunNextAttackGuaranteedCritical": {
       "type": "Bool"
     },
-    {
-      "name": "stunBuildupMultiplier",
+    "stunBuildupMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "holyCriticalPreventsBlock",
+    "holyCriticalPreventsBlock": {
       "type": "Bool"
     },
-    {
-      "name": "dodgeNextStunAttackBonus",
+    "dodgeNextStunAttackBonus": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 89
       }
     },
-    {
-      "name": "dodgeNextFreezeAttackBonus",
+    "dodgeNextFreezeAttackBonus": {
       "type": "Int"
     },
-    {
-      "name": "freezeDealPhysicalFlat",
+    "freezeDealPhysicalFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 95
       }
     }
-  ]
+  }
 }

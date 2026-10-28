@@ -1,329 +1,256 @@
 {
-  "fields": [
-    {
-      "name": "wintersWake",
+  "fields": {
+    "wintersWake": {
       "type": "Bool"
     },
-    {
-      "name": "killingGrace",
+    "killingGrace": {
       "type": "Bool"
     },
-    {
-      "name": "dodgeNextHitPoisonAndBleedPercent",
+    "dodgeNextHitPoisonAndBleedPercent": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "dodgeSpendsHalfBlockAsPhysical",
+    "dodgeSpendsHalfBlockAsPhysical": {
       "type": "Bool"
     },
-    {
-      "name": "dodgeDrawPoisonAndReadyCritical",
+    "dodgeDrawPoisonAndReadyCritical": {
       "type": "Bool"
     },
-    {
-      "name": "dodgeChanceBonus",
+    "dodgeChanceBonus": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 36
       }
     },
-    {
-      "name": "dodgeBlockFlat",
+    "dodgeBlockFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 24
       }
     },
-    {
-      "name": "dodgeApplyPoison",
+    "dodgeApplyPoison": {
       "type": "Int"
     },
-    {
-      "name": "dodgeGoldFlat",
+    "dodgeGoldFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 19
       }
     },
-    {
-      "name": "dodgeHealFlat",
+    "dodgeHealFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 33
       }
     },
-    {
-      "name": "dodgeChanceAboveHalfHealthBonus",
+    "dodgeChanceAboveHalfHealthBonus": {
       "type": "Double"
     },
-    {
-      "name": "dodgeChanceBelowHealthPercentThreshold",
+    "dodgeChanceBelowHealthPercentThreshold": {
       "type": "Double",
       "merge": "max",
       "affix_roll": {
         "reason": "Threshold gates the condition, not the reward."
       }
     },
-    {
-      "name": "dodgeChanceBelowHealthPercentBonus",
+    "dodgeChanceBelowHealthPercentBonus": {
       "type": "Double",
       "affix_roll": {
         "kind": "percent",
         "order": 34
       }
     },
-    {
-      "name": "onDodgeDrawCardForHero",
+    "onDodgeDrawCardForHero": {
       "type": "Int"
     },
-    {
-      "name": "nextAttackDoubleAfterDodge",
+    "nextAttackDoubleAfterDodge": {
       "type": "Bool"
     },
-    {
-      "name": "onDodgeDelayAttackerTurn",
+    "onDodgeDelayAttackerTurn": {
       "type": "Bool"
     },
-    {
-      "name": "onDodgeGrantHeroBlock",
+    "onDodgeGrantHeroBlock": {
       "type": "Int"
     },
-    {
-      "name": "onDodgePartyMana",
+    "onDodgePartyMana": {
       "type": "Int"
     },
-    {
-      "name": "onDodgeCounterDamage",
+    "onDodgeCounterDamage": {
       "type": "Int"
     },
-    {
-      "name": "onDodgeCounterBasicAttack",
+    "onDodgeCounterBasicAttack": {
       "type": "Bool"
     },
-    {
-      "name": "critMultiplierPerDodge",
+    "critMultiplierPerDodge": {
       "type": "Double"
     },
-    {
-      "name": "onDodgeNextPartyHitGuaranteedCritical",
+    "onDodgeNextPartyHitGuaranteedCritical": {
       "type": "Bool"
     },
-    {
-      "name": "onCompanionDodgeGrantHeroDodgePercent",
+    "onCompanionDodgeGrantHeroDodgePercent": {
       "type": "Double"
     },
-    {
-      "name": "autoDodgeAfterFirstHitPerTurn",
+    "autoDodgeAfterFirstHitPerTurn": {
       "type": "Bool"
     },
-    {
-      "name": "nextAttackBleedAfterDodge",
+    "nextAttackBleedAfterDodge": {
       "type": "Int"
     },
-    {
-      "name": "onDodgeApplyPoisonOrBleed",
+    "onDodgeApplyPoisonOrBleed": {
       "type": "Int"
     },
-    {
-      "name": "onDodgePartyNextCardDamageBonus",
+    "onDodgePartyNextCardDamageBonus": {
       "type": "Int"
     },
-    {
-      "name": "onApplyBurnDodgeChanceUntilNextTurn",
+    "onApplyBurnDodgeChanceUntilNextTurn": {
       "type": "Double"
     },
-    {
-      "name": "dodgeChanceVsBleedingEnemiesBonus",
+    "dodgeChanceVsBleedingEnemiesBonus": {
       "type": "Double"
     },
-    {
-      "name": "firstAttackGuaranteedCritical",
+    "firstAttackGuaranteedCritical": {
       "type": "Bool"
     },
-    {
-      "name": "swapAndDodgeForHeroChance",
+    "swapAndDodgeForHeroChance": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "untargetableAboveHealthPercent",
+    "untargetableAboveHealthPercent": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "onDodgeDrawAndPlayCardChainOnCrit",
+    "onDodgeDrawAndPlayCardChainOnCrit": {
       "type": "Bool"
     },
-    {
-      "name": "phantomCounter",
+    "phantomCounter": {
       "type": "Bool"
     },
-    {
-      "name": "perfectTempo",
+    "perfectTempo": {
       "type": "Bool"
     },
-    {
-      "name": "passingLuck",
+    "passingLuck": {
       "type": "Bool"
     },
-    {
-      "name": "improvingOdds",
+    "improvingOdds": {
       "type": "Bool"
     },
-    {
-      "name": "blindSpot",
+    "blindSpot": {
       "type": "Bool"
     },
-    {
-      "name": "onDodgeNextAttackGuaranteedCritical",
+    "onDodgeNextAttackGuaranteedCritical": {
       "type": "Bool"
     },
-    {
-      "name": "dodgeFirstAttackEachCombat",
+    "dodgeFirstAttackEachCombat": {
       "type": "Bool"
     },
-    {
-      "name": "partyDodgeVsBurningBonus",
+    "partyDodgeVsBurningBonus": {
       "type": "Double"
     },
-    {
-      "name": "quietGroveDodgeAtFullHealth",
+    "quietGroveDodgeAtFullHealth": {
       "type": "Double"
     },
-    {
-      "name": "groveReserveCompanionDodgeBonus",
+    "groveReserveCompanionDodgeBonus": {
       "type": "Double"
     },
-    {
-      "name": "dodgeNextAttackCritBonus",
+    "dodgeNextAttackCritBonus": {
       "type": "Double"
     },
-    {
-      "name": "dodgeBelowHalfDrawCard",
+    "dodgeBelowHalfDrawCard": {
       "type": "Bool"
     },
-    {
-      "name": "dodgeBleedChancePercent",
+    "dodgeBleedChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "dodgeBleedDamage",
+    "dodgeBleedDamage": {
       "type": "Int"
     },
-    {
-      "name": "dodgeBurnChancePercent",
+    "dodgeBurnChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "dodgeBurnDamage",
+    "dodgeBurnDamage": {
       "type": "Int"
     },
-    {
-      "name": "firstDodgeDrawForAlly",
+    "firstDodgeDrawForAlly": {
       "type": "Bool"
     },
-    {
-      "name": "dodgeNextManaEmpowerFree",
+    "dodgeNextManaEmpowerFree": {
       "type": "Bool"
     },
-    {
-      "name": "dodgeNextFreezeIgnoreBlock",
+    "dodgeNextFreezeIgnoreBlock": {
       "type": "Bool"
     },
-    {
-      "name": "dodgeDealBleedFlat",
+    "dodgeDealBleedFlat": {
       "type": "Int"
     },
-    {
-      "name": "firstDodgeDoubleNextAttack",
+    "firstDodgeDoubleNextAttack": {
       "type": "Bool"
     },
-    {
-      "name": "dodgeNextAttackIgnoreBlock",
+    "dodgeNextAttackIgnoreBlock": {
       "type": "Bool"
     },
-    {
-      "name": "dodgeDrawChancePercent",
+    "dodgeDrawChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "dodgeAtFullHealthBonus",
+    "dodgeAtFullHealthBonus": {
       "type": "Double"
     },
-    {
-      "name": "belowHalfFirstDodgeHealPerTurn",
+    "belowHalfFirstDodgeHealPerTurn": {
       "type": "Int"
     },
-    {
-      "name": "dodgeAllyNextAttackCriticalBonus",
+    "dodgeAllyNextAttackCriticalBonus": {
       "type": "Double"
     },
-    {
-      "name": "dodgeNextBleedAttackMultiplier",
+    "dodgeNextBleedAttackMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "dodgeNextCriticalDamageMultiplier",
+    "dodgeNextCriticalDamageMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "dodgeNextPhysicalDamageMultiplier",
+    "dodgeNextPhysicalDamageMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "dodgePhysicalChancePercent",
+    "dodgePhysicalChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "dodgePhysicalDamage",
+    "dodgePhysicalDamage": {
       "type": "Int"
     },
-    {
-      "name": "dodgePoisonChancePercent",
+    "dodgePoisonChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "dodgePoisonDamage",
+    "dodgePoisonDamage": {
       "type": "Int"
     },
-    {
-      "name": "dodgeStunChancePercent",
+    "dodgeStunChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "dodgeStunDamage",
+    "dodgeStunDamage": {
       "type": "Int"
     },
-    {
-      "name": "firstDodgeAllyEvadeNextHit",
+    "firstDodgeAllyEvadeNextHit": {
       "type": "Bool"
     },
-    {
-      "name": "firstDodgeNextAttackBonusPerTurn",
+    "firstDodgeNextAttackBonusPerTurn": {
       "type": "Int"
     },
-    {
-      "name": "partyDodgeAtFullHealthBonus",
+    "partyDodgeAtFullHealthBonus": {
       "type": "Double"
     },
-    {
-      "name": "partyDodgeChanceBonus",
+    "partyDodgeChanceBonus": {
       "type": "Double"
     },
-    {
-      "name": "dodgeNextBleedAttackBonus",
+    "dodgeNextBleedAttackBonus": {
       "type": "Int"
     }
-  ]
+  }
 }

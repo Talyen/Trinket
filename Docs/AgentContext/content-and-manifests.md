@@ -74,7 +74,9 @@ These are literal hints, not a semantic consumer graph. `--reference-limit` and
 
 Trigger definitions live one family per JSON under `Scripts/internal/content/trigger_families/`;
 `index.json` preserves generation order; filenames identify families. Edit the relevant family, not the index,
-for a field change. `Scripts/internal/content/modifiers.json` owns modifier DSL
+for a field change. Each family's `fields` object maps field names to their typed
+rules; member order preserves generation order. Duplicate keys are rejected,
+including duplicate field names across families. `Scripts/internal/content/modifiers.json` owns modifier DSL
 names, Swift cases, numeric kinds and keyword arguments. It generates the
 `AffixModifier` enum and mechanical transforms; gameplay application, presentation,
 and magnitude bump policy remain authored. Preserve case names, associated-value

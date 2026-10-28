@@ -1,177 +1,150 @@
 {
-  "fields": [
-    {
-      "name": "interdict",
+  "fields": {
+    "interdict": {
       "type": "Bool"
     },
-    {
-      "name": "lessonLearned",
+    "lessonLearned": {
       "type": "Bool"
     },
-    {
-      "name": "cleanseBonusDraw",
+    "cleanseBonusDraw": {
       "type": "Int"
     },
-    {
-      "name": "holyDamageCleanseCount",
+    "holyDamageCleanseCount": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 17
       }
     },
-    {
-      "name": "holyDamagePurgeCount",
+    "holyDamagePurgeCount": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 25
       }
     },
-    {
-      "name": "holyDamagePurgeAll",
+    "holyDamagePurgeAll": {
       "type": "Bool"
     },
-    {
-      "name": "cleanseBlockPerStack",
+    "cleanseBlockPerStack": {
       "type": "Int"
     },
-    {
-      "name": "cleanseAffectsBothHeroAndCompanion",
+    "cleanseAffectsBothHeroAndCompanion": {
       "type": "Bool"
     },
-    {
-      "name": "cleanseReflectDebuffToEnemy",
+    "cleanseReflectDebuffToEnemy": {
       "type": "Bool"
     },
-    {
-      "name": "autoCleanseTeamPerTurn",
+    "autoCleanseTeamPerTurn": {
       "type": "Int"
     },
-    {
-      "name": "cleanseAlsoPurgesEnemyBuffs",
+    "cleanseAlsoPurgesEnemyBuffs": {
       "type": "Int"
     },
-    {
-      "name": "cleanseDodgeChanceBonus",
+    "cleanseDodgeChanceBonus": {
       "type": "Double"
     },
-    {
-      "name": "cleanseDodgeChanceBonusTurns",
+    "cleanseDodgeChanceBonusTurns": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "cleansePartyBlock",
+    "cleansePartyBlock": {
       "type": "Int"
     },
-    {
-      "name": "blockFirstDebuffPerTurn",
+    "blockFirstDebuffPerTurn": {
       "type": "Bool"
     },
-    {
-      "name": "partyDebuffDurationHalved",
+    "partyDebuffDurationHalved": {
       "type": "Bool"
     },
-    {
-      "name": "purifyingAura",
+    "purifyingAura": {
       "type": "Bool"
     },
-    {
-      "name": "onCleansePoisonDealDamagePerStack",
+    "onCleansePoisonDealDamagePerStack": {
       "type": "Int"
     },
-    {
-      "name": "crownfall",
+    "crownfall": {
       "type": "Bool"
     },
-    {
-      "name": "clearSolution",
+    "clearSolution": {
       "type": "Bool"
     },
-    {
-      "name": "freshBatch",
+    "freshBatch": {
       "type": "Bool"
     },
-    {
-      "name": "heatRecovery",
+    "heatRecovery": {
       "type": "Bool"
     },
-    {
-      "name": "antitoxinCoating",
+    "antitoxinCoating": {
       "type": "Bool"
     },
-    {
-      "name": "clearMind",
+    "clearMind": {
       "type": "Bool"
     },
-    {
-      "name": "cleanBreak",
+    "cleanBreak": {
       "type": "Bool"
     },
-    {
-      "name": "perfectPurity",
+    "perfectPurity": {
       "type": "Bool"
     },
-    {
-      "name": "purgePreparesDoubleHolyAttack",
+    "purgePreparesDoubleHolyAttack": {
       "type": "Bool"
     },
-    {
-      "name": "cleanseNextAttackCriticalBonus",
+    "cleanseNextAttackCriticalBonus": {
       "type": "Double"
     },
-    {
-      "name": "cleansePurgeChancePercent",
+    "cleansePurgeChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "cleanseRemovesFreezeBuildup",
+    "cleanseRemovesFreezeBuildup": {
       "type": "Bool"
     },
-    {
-      "name": "cleanseTargetBlockFlat",
+    "cleanseTargetBlockFlat": {
       "type": "Int"
     },
-    {
-      "name": "firstCleanseExtraRemovalPerTurn",
+    "firstCleanseExtraRemovalPerTurn": {
       "type": "Int"
     },
-    {
-      "name": "cleanseSelfBlockFlat",
+    "cleanseSelfBlockFlat": {
       "type": "Int",
-      "affix_roll": { "kind": "int", "order": 63 }
+      "affix_roll": {
+        "kind": "int",
+        "order": 63
+      }
     },
-    {
-      "name": "onCleanseRestoreMana",
+    "onCleanseRestoreMana": {
       "type": "Int",
-      "affix_roll": { "kind": "int", "order": 65 }
+      "affix_roll": {
+        "kind": "int",
+        "order": 65
+      }
     },
-    {
-      "name": "onPurgeGainBlock",
+    "onPurgeGainBlock": {
       "type": "Int",
-      "affix_roll": { "kind": "int", "order": 67 }
+      "affix_roll": {
+        "kind": "int",
+        "order": 67
+      }
     },
-    {
-      "name": "onPurgeDealHolyDamage",
+    "onPurgeDealHolyDamage": {
       "type": "Int",
-      "affix_roll": { "kind": "int", "order": 68 }
+      "affix_roll": {
+        "kind": "int",
+        "order": 68
+      }
     },
-    {
-      "name": "purgeDrawBelowHalf",
+    "purgeDrawBelowHalf": {
       "type": "Bool"
     },
-    {
-      "name": "cleanseHolyDamage",
+    "cleanseHolyDamage": {
       "type": "Int"
     },
-    {
-      "name": "purgeNextHolyAttackBonus",
+    "purgeNextHolyAttackBonus": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 90
       }
     }
-  ]
+  }
 }

@@ -1,323 +1,255 @@
 {
-  "fields": [
-    {
-      "name": "carrionClaim",
+  "fields": {
+    "carrionClaim": {
       "type": "Bool"
     },
-    {
-      "name": "lightFingered",
+    "lightFingered": {
       "type": "Bool"
     },
-    {
-      "name": "goldGainedNextHolyDamage",
+    "goldGainedNextHolyDamage": {
       "type": "Bool"
     },
-    {
-      "name": "gainGoldBonusHealSelf",
+    "gainGoldBonusHealSelf": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 1
       }
     },
-    {
-      "name": "defeatBleedingEnemyGold",
+    "defeatBleedingEnemyGold": {
       "type": "Int"
     },
-    {
-      "name": "defeatEnemyGoldFlat",
+    "defeatEnemyGoldFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 31
       }
     },
-    {
-      "name": "leechGoldFlat",
+    "leechGoldFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 32
       }
     },
-    {
-      "name": "goldPerTurn",
+    "goldPerTurn": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 45
       }
     },
-    {
-      "name": "victoryGoldFlat",
+    "victoryGoldFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 48
       }
     },
-    {
-      "name": "victoryGoldCoin",
+    "victoryGoldCoin": {
       "type": "Bool",
       "affix_roll": {
         "reason": "On/off rule with no rollable magnitude."
       }
     },
-    {
-      "name": "criticalGoldFlat",
+    "criticalGoldFlat": {
       "type": "Int"
     },
-    {
-      "name": "criticalActionGoldFlat",
+    "criticalActionGoldFlat": {
       "type": "Int",
       "affix_roll": {
         "kind": "int",
         "order": 28
       }
     },
-    {
-      "name": "startBattleBonusGold",
+    "startBattleBonusGold": {
       "type": "Int"
     },
-    {
-      "name": "onGainGoldHealParty",
+    "onGainGoldHealParty": {
       "type": "Int"
     },
-    {
-      "name": "goldEveryNTurnsInterval",
+    "goldEveryNTurnsInterval": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "goldEveryNTurnsAmount",
+    "goldEveryNTurnsAmount": {
       "type": "Int"
     },
-    {
-      "name": "onEnemyAbilityGold",
+    "onEnemyAbilityGold": {
       "type": "Int"
     },
-    {
-      "name": "criticalVsStunnedEnemyGold",
+    "criticalVsStunnedEnemyGold": {
       "type": "Int"
     },
-    {
-      "name": "critOnDefeatGold",
+    "critOnDefeatGold": {
       "type": "Int"
     },
-    {
-      "name": "partyGoldGainedPercent",
+    "partyGoldGainedPercent": {
       "type": "Double"
     },
-    {
-      "name": "firstGoldTheftHeal",
+    "firstGoldTheftHeal": {
       "type": "Int"
     },
-    {
-      "name": "goldDoubledWhileFullHealth",
+    "goldDoubledWhileFullHealth": {
       "type": "Bool"
     },
-    {
-      "name": "firstGoldTheftDraw",
+    "firstGoldTheftDraw": {
       "type": "Int"
     },
-    {
-      "name": "bountyBlade",
+    "bountyBlade": {
       "type": "Bool"
     },
-    {
-      "name": "blockedAttackFirstGold",
+    "blockedAttackFirstGold": {
       "type": "Int"
     },
-    {
-      "name": "stealGoldBonusVsPoisoned",
+    "stealGoldBonusVsPoisoned": {
       "type": "Int"
     },
-    {
-      "name": "gainGoldDrawThreshold",
+    "gainGoldDrawThreshold": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "stunCriticalStealGold",
+    "stunCriticalStealGold": {
       "type": "Int"
     },
-    {
-      "name": "dodgePreparesDoubleGoldSteal",
+    "dodgePreparesDoubleGoldSteal": {
       "type": "Bool"
     },
-    {
-      "name": "criticalGoldStealDrawCard",
+    "criticalGoldStealDrawCard": {
       "type": "Bool"
     },
-    {
-      "name": "goldStealNextPhysicalBonus",
+    "goldStealNextPhysicalBonus": {
       "type": "Int"
     },
-    {
-      "name": "goldStealNextAttackBonus",
+    "goldStealNextAttackBonus": {
       "type": "Int"
     },
-    {
-      "name": "goldGainHealChancePercent",
+    "goldGainHealChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "goldGainHealAmount",
+    "goldGainHealAmount": {
       "type": "Int"
     },
-    {
-      "name": "criticalGoldTheftBonus",
+    "criticalGoldTheftBonus": {
       "type": "Int"
     },
-    {
-      "name": "goldGainCleanseChancePercent",
+    "goldGainCleanseChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "goldGainBelowHalfDrawCard",
+    "goldGainBelowHalfDrawCard": {
       "type": "Bool"
     },
-    {
-      "name": "goldTheftDodgeBonus",
+    "goldTheftDodgeBonus": {
       "type": "Double"
     },
-    {
-      "name": "goldGainDrawChancePercent",
+    "goldGainDrawChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "goldTheftBlockChancePercent",
+    "goldTheftBlockChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "goldTheftBlockAmount",
+    "goldTheftBlockAmount": {
       "type": "Int"
     },
-    {
-      "name": "goldTheftDrawChancePercent",
+    "goldTheftDrawChancePercent": {
       "type": "Double",
       "affix_roll": {
         "reason": "Fixed Trinket draw chance, not a rolled magnitude."
       }
     },
-    {
-      "name": "goldStealFlatBonus",
+    "goldStealFlatBonus": {
       "type": "Int"
     },
-    {
-      "name": "goldTheftNextBlockMultiplier",
+    "goldTheftNextBlockMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "firstGoldTheftDrawBattle",
+    "firstGoldTheftDrawBattle": {
       "type": "Bool"
     },
-    {
-      "name": "allyCriticalChancePerCombatGold",
+    "allyCriticalChancePerCombatGold": {
       "type": "Double"
     },
-    {
-      "name": "blockBreakStealGoldFlat",
+    "blockBreakStealGoldFlat": {
       "type": "Int"
     },
-    {
-      "name": "goldTheftHealAllyFlat",
+    "goldTheftHealAllyFlat": {
       "type": "Int"
     },
-    {
-      "name": "attackGoldStealAmount",
+    "attackGoldStealAmount": {
       "type": "Int"
     },
-    {
-      "name": "attackGoldStealChancePercent",
+    "attackGoldStealChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "belowHalfFirstGoldGainHealPerTurn",
+    "belowHalfFirstGoldGainHealPerTurn": {
       "type": "Int"
     },
-    {
-      "name": "criticalGoldStealAmount",
+    "criticalGoldStealAmount": {
       "type": "Int"
     },
-    {
-      "name": "criticalGoldStealChancePercent",
+    "criticalGoldStealChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "dodgeGoldAmount",
+    "dodgeGoldAmount": {
       "type": "Int"
     },
-    {
-      "name": "dodgeGoldChancePercent",
+    "dodgeGoldChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "firstGoldTheftDoubleBattle",
+    "firstGoldTheftDoubleBattle": {
       "type": "Bool"
     },
-    {
-      "name": "goldTheftNextAttackCriticalBonus",
+    "goldTheftNextAttackCriticalBonus": {
       "type": "Double"
     },
-    {
-      "name": "goldTheftStealEnemyBlockChancePercent",
+    "goldTheftStealEnemyBlockChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "blockedAttackFirstRandomCard",
+    "blockedAttackFirstRandomCard": {
       "type": "Bool"
     },
-    {
-      "name": "victoryGoldBonusPercent",
+    "victoryGoldBonusPercent": {
       "type": "Int"
     },
-    {
-      "name": "goldTheftAllyBlock",
+    "goldTheftAllyBlock": {
       "type": "Bool"
     },
-    {
-      "name": "dodgeGoldIsTheft",
+    "dodgeGoldIsTheft": {
       "type": "Bool"
     },
-    {
-      "name": "firstGoldGainDrawCardPerTurn",
+    "firstGoldGainDrawCardPerTurn": {
       "type": "Bool"
     },
-    {
-      "name": "firstGoldTheftStealHalfBlockPerTurn",
+    "firstGoldTheftStealHalfBlockPerTurn": {
       "type": "Bool"
     },
-    {
-      "name": "leechGoldChancePercent",
+    "leechGoldChancePercent": {
       "type": "Double",
       "merge": "max",
       "affix_roll": {
         "reason": "Fixed Blood Price activation chance; only its Gold amount rolls."
       }
     },
-    {
-      "name": "bleedDamageGoldStealChancePercent",
+    "bleedDamageGoldStealChancePercent": {
       "type": "Double",
       "merge": "max",
       "affix_roll": {
         "reason": "Fixed Cutpurse Knife activation chance; theft scales with Bleed damage."
       }
     },
-    {
-      "name": "excessLeechHealthToGoldChancePercent",
+    "excessLeechHealthToGoldChancePercent": {
       "type": "Double",
       "merge": "max"
     },
-    {
-      "name": "victoryGoldPerDifferentCardCap",
+    "victoryGoldPerDifferentCardCap": {
       "type": "Int",
       "merge": "max",
       "affix_roll": {
         "reason": "Fixed Merchant's Favor victory cap; different card identities determine the payout."
       }
     }
-  ]
+  }
 }

@@ -11,17 +11,17 @@ from internal.content import content_codegen_triggers
 
 class CodegenTriggersTests(ScriptRegressionTestCase):
     def test_omitted_trigger_rules_preserve_neutral_values_and_explicit_exceptions(self) -> None:
-        fields = [
-            {"name": "damage", "type": "Int"},
-            {"name": "chance", "type": "Double"},
-            {"name": "enabled", "type": "Bool"},
-            {"name": "keyword", "type": "Keyword?"},
-            {"name": "turns", "type": "[Int]"},
-            {"name": "multiplier", "type": "Double", "default": "1", "merge": "mul"},
-            {"name": "threshold", "type": "Int", "default": "2", "merge": "max"},
-            {"name": "largest", "type": "Int", "merge": "max"},
-            {"name": "bonus", "type": "Int", "default": "2"},
-        ]
+        fields = {
+            "damage": {"type": "Int"},
+            "chance": {"type": "Double"},
+            "enabled": {"type": "Bool"},
+            "keyword": {"type": "Keyword?"},
+            "turns": {"type": "[Int]"},
+            "multiplier": {"type": "Double", "default": "1", "merge": "mul"},
+            "threshold": {"type": "Int", "default": "2", "merge": "max"},
+            "largest": {"type": "Int", "merge": "max"},
+            "bonus": {"type": "Int", "default": "2"},
+        }
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)
             index = folder / "index.json"
@@ -31,6 +31,7 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
                 content_codegen_triggers._trigger_families.cache_clear()
                 try:
                     expanded = content_codegen_triggers._trigger_families()[0]["fields"]
+                    self.assertEqual([field["name"] for field in expanded], list(fields))
                     self.assertEqual([(field["default"], field["merge"]) for field in expanded], [
                         ("0", "add"), ("0", "add"), ("false", "or"), ("nil", "coalesce"),
                         ("[]", "union"), ("1", "mul"), ("2", "max"), ("0", "max"), ("2", "add"),
@@ -42,32 +43,43 @@ class CodegenTriggersTests(ScriptRegressionTestCase):
         with tempfile.TemporaryDirectory() as directory:
             folder = Path(directory)
             index = folder / "index.json"
-            family = {"fields": [{"name": "bonus", "type": "Int", "default": "0", "merge": "add"}]}
+            family = {"fields": {"bonus": {"type": "Int", "default": "0", "merge": "add"}}}
             write_json(folder / "sample.json", family)
+            write_json(folder / "other.json", family)
             with patch.object(content_codegen_triggers, "TRIGGER_FAMILY_SCHEMA", index):
                 try:
-                    for names in (["../sample.json"], ["sample.json", "sample.json"]):
+                    for names in (["../sample.json"], ["sample.json", "sample.json"], ["sample.json", "other.json"]):
                         write_json(index, {"families": names})
                         content_codegen_triggers._trigger_families.cache_clear()
-                        with self.assertRaises(ValueError):
+                        with self.subTest(names=names), self.assertRaises(ValueError):
                             content_codegen_triggers._trigger_families()
                     write_json(index, {"families": ["sample.json"]})
-                    family["fields"].append(family["fields"][0])
-                    write_json(folder / "sample.json", family)
-                    content_codegen_triggers._trigger_families.cache_clear()
-                    with self.assertRaisesRegex(ValueError, "Duplicate"):
-                        content_codegen_triggers._trigger_families()
-                    family['fields'] = [family['fields'][0]]
                     for overrides in ({'type': 'Bool', 'merge': 'add'}, {'merge': 'coalesce'},
                                       {'default': 'many'}, {'type': 'Bool', 'merge': 'or', 'default': 'TRUE'},
-                                      {'name': 'invalid-name'}, {'defualt': '2'}, {'merg': 'max'}):
-                        broken = {**family, 'fields': [{**family['fields'][0], **overrides}]}
+                                      {'name': 'shadowed'}, {'defualt': '2'}, {'merg': 'max'}):
+                        broken = {'fields': {'bonus': {**family['fields']['bonus'], **overrides}}}
                         write_json(folder / 'sample.json', broken)
                         content_codegen_triggers._trigger_families.cache_clear()
                         with self.subTest(overrides=overrides), self.assertRaises(ValueError):
                             content_codegen_triggers._trigger_families()
+                    for fields in ({'invalid-name': {'type': 'Int'}}, {'bonus': 'Int'}, []):
+                        write_json(folder / 'sample.json', {'fields': fields})
+                        content_codegen_triggers._trigger_families.cache_clear()
+                        with self.subTest(fields=fields), self.assertRaises(ValueError):
+                            content_codegen_triggers._trigger_families()
                 finally:
                     content_codegen_triggers._trigger_families.cache_clear()
+
+    def test_keyed_schema_rejects_duplicate_names_and_rule_keys(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'sample.json'
+            for text in (
+                '{"fields":{"bonus":{"type":"Int"},"bonus":{"type":"Bool"}}}',
+                '{"fields":{"bonus":{"type":"Int","type":"Bool"}}}',
+            ):
+                path.write_text(text)
+                with self.subTest(text=text), self.assertRaisesRegex(ValueError, 'Duplicate trigger schema key'):
+                    content_codegen_triggers._read_trigger_family(path)
 
     def test_modifier_schema_rejects_ambiguous_names_and_unsupported_shapes(self) -> None:
         from internal.content.modifier_schema import modifier_definitions

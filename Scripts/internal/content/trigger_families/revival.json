@@ -1,107 +1,92 @@
 {
-  "fields": [
-    {
-      "name": "undyingEmber",
+  "fields": {
+    "undyingEmber": {
       "type": "Bool"
     },
-    {
-      "name": "borrowedLife",
+    "borrowedLife": {
       "type": "Bool"
     },
-    {
-      "name": "onceDeathReviveHealth",
+    "onceDeathReviveHealth": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "onceDeathReviveBlock",
+    "onceDeathReviveBlock": {
       "type": "Int"
     },
-    {
-      "name": "deathsDoorDurationBonusTurns",
+    "deathsDoorDurationBonusTurns": {
       "type": "Int"
     },
-    {
-      "name": "reviveDealBurnDamage",
+    "reviveDealBurnDamage": {
       "type": "Int"
     },
-    {
-      "name": "deathsDoorDodgeAndDebuffImmunity",
+    "deathsDoorDodgeAndDebuffImmunity": {
       "type": "Bool"
     },
-    {
-      "name": "onDeathDealPhysicalDamageAllEnemies",
+    "onDeathDealPhysicalDamageAllEnemies": {
       "type": "Int"
     },
-    {
-      "name": "guaranteedCritWhileOnDeathsDoor",
+    "guaranteedCritWhileOnDeathsDoor": {
       "type": "Bool"
     },
-    {
-      "name": "deathsDoorExpiredHealFlat",
+    "deathsDoorExpiredHealFlat": {
       "type": "Int",
       "merge": "max"
     },
-    {
-      "name": "holyDamageReviveCompanionChancePercent",
+    "holyDamageReviveCompanionChancePercent": {
       "type": "Double"
     },
-    {
-      "name": "surviveDeathsDoorPartyHealFlat",
+    "surviveDeathsDoorPartyHealFlat": {
       "type": "Int"
     },
-    {
-      "name": "onHeroFatalReviveHealth",
+    "onHeroFatalReviveHealth": {
       "type": "Int"
     },
-    {
-      "name": "enterDeathsDoorHeal",
+    "enterDeathsDoorHeal": {
       "type": "Int"
     },
-    {
-      "name": "enterDeathsDoorBurnDamage",
+    "enterDeathsDoorBurnDamage": {
       "type": "Int",
-      "affix_roll": { "kind": "int", "order": 69 }
+      "affix_roll": {
+        "kind": "int",
+        "order": 69
+      }
     },
-    {
-      "name": "surviveDeathsDoorNextAttackDouble",
+    "surviveDeathsDoorNextAttackDouble": {
       "type": "Bool"
     },
-    {
-      "name": "deathsDoorIncomingDamageMultiplier",
+    "deathsDoorIncomingDamageMultiplier": {
       "type": "Double",
       "default": "1",
       "merge": "mul"
     },
-    {
-      "name": "deathsDoorNegativeStatusImmune",
+    "deathsDoorNegativeStatusImmune": {
       "type": "Bool"
     },
-    {
-      "name": "onAllyDeathsDoorRestoreHealth",
+    "onAllyDeathsDoorRestoreHealth": {
       "type": "Int"
     },
-    {
-      "name": "firstAllyFatalIntercept",
+    "firstAllyFatalIntercept": {
       "type": "Bool"
     },
-    {
-      "name": "deathsDoorCriticalChanceBonus",
+    "deathsDoorCriticalChanceBonus": {
       "type": "Double",
-      "affix_roll": { "kind": "percent", "order": 70 }
+      "affix_roll": {
+        "kind": "percent",
+        "order": 70
+      }
     },
-    {
-      "name": "enterDeathsDoorDrawCard",
+    "enterDeathsDoorDrawCard": {
       "type": "Bool"
     },
-    {
-      "name": "surviveDeathsDoorPartyBlockFlat",
+    "surviveDeathsDoorPartyBlockFlat": {
       "type": "Int"
     },
-    {
-      "name": "affixDeathsDoorSurviveHealFlat",
+    "affixDeathsDoorSurviveHealFlat": {
       "type": "Int",
-      "affix_roll": { "kind": "int", "order": 71 }
+      "affix_roll": {
+        "kind": "int",
+        "order": 71
+      }
     }
-  ]
+  }
 }
