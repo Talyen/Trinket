@@ -82,12 +82,19 @@ class Bridge:
 
     def close(self):
         if self.process.poll() is None:
-            self.process.stdin.close()
+            try:
+                self.process.stdin.close()
+            except BrokenPipeError:
+                pass
             try:
                 self.process.wait(timeout=5)
             except subprocess.TimeoutExpired:
                 self.process.terminate()
-                self.process.wait(timeout=5)
+                try:
+                    self.process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    self.process.kill()
+                    self.process.wait(timeout=5)
 
 
 class Inspection:

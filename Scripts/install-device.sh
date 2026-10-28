@@ -35,8 +35,8 @@ Builds Trinket for a connected physical iOS device, installs it, and launches
 it in the foreground. Requires a paired device with Developer Mode enabled.
 
 Options:
-  --device, -d   Device name, UDID, or CoreDevice identifier (default: first
-                 available physical device)
+  --device, -d   Device name, UDID, or CoreDevice identifier (default: the only
+                 paired physical device; otherwise specify --device)
   --no-launch    Install without launching
   --release      Build optimized Release configuration for device performance checks
   --verbose, -v  Show xcodebuild output instead of quiet mode
@@ -53,22 +53,7 @@ source Scripts/lib/verification-policy.sh
 trinket_host_admit "$PWD/Scripts/install-device.sh" "${TRINKET_ENTRY_ARGS[@]+"${TRINKET_ENTRY_ARGS[@]}"}" || exit $?
 
 if [[ -z "$DEVICE" ]]; then
-  DEVICE="$(xcrun devicectl list devices -j - 2>/dev/null | python3 -c '
-import json, sys
-data = json.load(sys.stdin)
-for d in data.get("result", {}).get("devices", []):
-    props = d.get("properties", {})
-    hw = props.get("hardware", {})
-    conn = props.get("connection", {})
-    if hw.get("reality") == "physical" and conn.get("pairingState") == "paired":
-        print(d["identifier"])
-        sys.exit(0)
-sys.exit(1)
-' 2>/dev/null)" || {
-    echo "error: no paired physical device found" >&2
-    echo "  Connect an iPhone with Developer Mode enabled and trust this Mac." >&2
-    exit 1
-  }
+  DEVICE="$(python3 Scripts/internal/device_selection.py)" || exit 1
   echo "Auto-selected device: $DEVICE"
 fi
 

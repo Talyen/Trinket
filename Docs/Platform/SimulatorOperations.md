@@ -11,6 +11,10 @@
 - Erase is a recovery operation after a failed cold boot, not routine cleanup.
   If simulator recovery fails, the Xcode runner stops without retrying the old
   destination and preserves the failed attempt’s log and result bundle.
+  When recovery succeeds, the retry also retains the original log, result bundle
+  (when present), and failure manifest under `raw/retry-attempt-*` in the results
+  directory. Existing forensic upload policy applies; successful CI runs normally
+  upload structured reports only.
   Shutdown bounds both commands and polling; missing or unreadable device state
   fails recovery before erase or deletion. Preview reclamation uses simctl after
   confirmed shutdown rather than deleting Xcode’s backing directories directly.
@@ -100,7 +104,10 @@ A discovered capability does not prove an interaction succeeded. Uncertain start
 or failed closure retain
 `.DerivedData/Deliverables/Inspection/native-session.json` and a shared per-device
 reservation under the primary checkout's `.DerivedData/InspectionSessions/`.
-Confirmed closure removes them. Inspect the recovery record and Xcode before
+Confirmed closure removes them. Bridge shutdown waits for EOF, then escalates
+through termination and kill only for the controller's own unresponsive bridge;
+this does not confirm native-session closure or remove uncertain-session guards.
+Inspect the recovery record and Xcode before
 retrying; never delete the guard or start a replacement session beside an
 uncertain/controller-owned session.
 

@@ -245,10 +245,17 @@ FAKE_XCODE_STATE="$retry_state" FAKE_XCODE_MODE=retry \
     ensure_test_simulator_logged() { :; }
     retryable() { [[ "$1" -eq 70 ]]; }
     xcode_runner_prepare retry "$2"
+    mkdir -p "$XCODE_RUNNER_RESULT_BUNDLE_PATH"
+    touch "$XCODE_RUNNER_RESULT_BUNDLE_PATH/preserved"
     xcode_runner_run --label retry --result-bundle "$XCODE_RUNNER_RESULT_BUNDLE_PATH" \
       --log "$XCODE_RUNNER_LOG_PATH" --report-prefix "$XCODE_RUNNER_REPORT_PREFIX" \
       --quiet --retry-callback retryable -- "$3"
     [[ "$(<"$FAKE_XCODE_STATE")" -eq 2 ]]
+    retained=("$2"/raw/retry-attempt-1.*)
+    [[ "${#retained[@]}" == 1 && -f "${retained[0]}/attempt.xcresult/preserved" ]]
+    grep -q "Unable to boot simulator" "${retained[0]}/attempt.log"
+    grep -q "\"exit_code\":70" "${retained[0]}/attempt-invocation.json"
+    [[ ! -e "$XCODE_RUNNER_RESULT_BUNDLE_PATH" ]]
     manifest="$(find "$(dirname "$XCODE_RUNNER_RESULT_BUNDLE_PATH")" -maxdepth 1 -type f -name 'retry-*-invocation.json' | sort | tail -1)"
     grep -F -- "\"status\":\"passed\"" "$manifest"
     grep -F -- "\"diagnostics_json\":\"\"" "$manifest"

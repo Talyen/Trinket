@@ -25,28 +25,13 @@ import xml.etree.ElementTree as ET
 
 from internal.build_symbols import artifact_root, app_manifest, digest, preserve_profile_symbols, symbolicated_app_frames
 from internal.cli import primary_worktree_root
+from internal.device_selection import select_device
 from internal.profile_exports import BoundedLog, limit_export_file, measurement_exports
 from internal.shared_build_lease import shared_build_lease
 
 ROOT = Path(__file__).resolve().parents[1]
 BUNDLE = "com.ryanmcintire.Trinket"
 SCHEMAS = ("time-profile", "hitches-frame-lifetimes")
-
-
-def select_device(devices: list[dict], requested: str | None) -> dict:
-    candidates = []
-    for device in devices:
-        props = device.get("properties", {})
-        hardware = props.get("hardware", device.get("hardwareProperties", {}))
-        connection = props.get("connection", device.get("connectionProperties", {}))
-        state = props.get("state", device.get("deviceProperties", {}))
-        identities = (device.get("identifier"), hardware.get("udid"), state.get("name"))
-        if hardware.get("reality") == "physical" and connection.get("pairingState") == "paired":
-            if requested is None or requested in identities:
-                candidates.append(device)
-    if len(candidates) != 1:
-        raise ValueError("Select exactly one paired physical device with --device <UDID|name>.")
-    return candidates[0]
 
 
 def stop_owned(process: subprocess.Popen) -> None:
@@ -146,7 +131,15 @@ def run(command: list[str], log: Path, timeout: int | None = 60,
                         raise RuntimeError(f"Instruments reported a recording error; see {log}. Use --build or --app if debugging permission was denied.")
                 if time.monotonic() > deadline:
                     raise RuntimeError(f"Command stalled; retained diagnostics at {log}.")
-            status = process.wait()
+            # EOF is not process exit: a tool can close its output and stall.
+            deadline = began + timeout if timeout is not None else math.inf
+            if watchdog is not None:
+                deadline = watchdog.observe("", time.monotonic())
+            remaining = deadline - time.monotonic()
+            try:
+                status = process.wait(timeout=max(0, remaining) if math.isfinite(remaining) else None)
+            except subprocess.TimeoutExpired as error:
+                raise RuntimeError(f"Command stalled; retained diagnostics at {log}.") from error
         if status:
             hint = " Use --build or --app with a development-signed Release build." if "get-task-allow" in output else ""
             raise RuntimeError(f"Command failed ({status}); see {log}.{hint}")

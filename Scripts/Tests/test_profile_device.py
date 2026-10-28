@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import json
 import math
 from pathlib import Path
 import plistlib
@@ -11,6 +12,7 @@ import unittest
 from unittest import mock
 import xml.etree.ElementTree as ET
 
+from internal import device_selection
 from script_test_support import load_script
 
 module = load_script("profile_device", "profile-device.py")
@@ -30,6 +32,23 @@ class DeviceProfilingTests(unittest.TestCase):
             with self.subTest(requested=requested), self.assertRaises(ValueError):
                 module.select_device(devices, requested)
         self.assertEqual(module.select_device([phone, other], "other"), other)
+
+    def test_current_coredevice_inventory_and_ambiguous_selection(self):
+        phone = {"identifier": "phone", "hardwareProperties": {"reality": "physical", "udid": "UDID"},
+                 "connectionProperties": {"pairingState": "paired"}, "deviceProperties": {"name": "iPhone"}}
+        for requested in (None, "phone", "UDID", "iPhone"):
+            self.assertEqual(module.select_device([phone], requested), phone)
+        other = copy.deepcopy(phone)
+        other["identifier"] = "other"
+        with self.assertRaises(ValueError):
+            module.select_device([phone, other], None)
+        with mock.patch.object(device_selection.subprocess, "run") as run, \
+             mock.patch.object(Path, "read_text", return_value=json.dumps({"result": {"devices": [phone]}})), \
+             mock.patch('builtins.print') as output:
+            device_selection.main()
+        output.assert_called_once_with("phone")
+        self.assertIn("--json-output", run.call_args.args[0])
+        self.assertEqual(run.call_args.kwargs["timeout"], 40)
 
     def test_saved_partial_wrong_target_crash_and_empty_measurements_are_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -96,6 +115,11 @@ class DeviceProfilingTests(unittest.TestCase):
         finally:
             unrelated.terminate()
             unrelated.wait(timeout=5)
+
+    def test_tool_closing_output_still_obeys_its_deadline(self):
+        with tempfile.TemporaryDirectory() as directory, self.assertRaisesRegex(RuntimeError, "stalled"):
+            module.run([sys.executable, "-c", "import os, time; os.close(1); os.close(2); time.sleep(60)"],
+                       Path(directory) / "closed-output.log", timeout=1)
 
     def test_cleanup_permission_error_is_ignored_only_after_owned_process_exits(self):
         for status in (0, None):

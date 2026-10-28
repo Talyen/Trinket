@@ -271,7 +271,17 @@ xcode_runner_run() {
             done
           fi
         fi
-        rm -rf "$result_bundle"
+        # Keep the infrastructure failure that justified this retry. The next
+        # command reuses the original paths and would otherwise overwrite it.
+        local retry_evidence
+        mkdir -p "$(dirname "$result_bundle")/raw" || break
+        retry_evidence="$(mktemp -d "$(dirname "$result_bundle")/raw/retry-attempt-${attempt}.XXXXXX")" || break
+        if ! cp "$log_file" "$retry_evidence/attempt.log"; then break; fi
+        if [[ -e "$result_bundle" ]]; then
+          if ! mv "$result_bundle" "$retry_evidence/attempt.xcresult"; then break; fi
+        fi
+        xcode_runner_write_manifest "$retry_evidence/attempt.xcresult" "$report_prefix" "$xcode_exit" "$label" "$summary_json"
+        echo "Failed attempt retained: $retry_evidence" >&2
         attempt=$((attempt + 1))
         continue
       fi

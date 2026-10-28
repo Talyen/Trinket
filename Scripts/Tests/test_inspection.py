@@ -6,9 +6,10 @@ import io
 import json
 from pathlib import Path
 import plistlib
+import subprocess
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from internal.inspection import Inspection, Bridge, main
 
@@ -110,3 +111,20 @@ class InspectionTests(unittest.TestCase):
             with self.assertRaises(ValueError): bridge.tool('DeviceInteractionSynthesize', {'wrongKey': 'key'})
             with self.assertRaises(ValueError): bridge.tool('MissingTool', {})
             request.assert_not_called()
+
+    def test_unresponsive_bridge_is_reaped_even_when_stdin_is_broken(self):
+        for broken_pipe in (False, True):
+            with self.subTest(broken_pipe=broken_pipe):
+                bridge = Bridge.__new__(Bridge)
+                bridge.process = Mock()
+                bridge.process.poll.return_value = None
+                if broken_pipe:
+                    bridge.process.stdin.close.side_effect = BrokenPipeError
+                bridge.process.wait.side_effect = [
+                    subprocess.TimeoutExpired('bridge', 5),
+                    subprocess.TimeoutExpired('bridge', 5), 0,
+                ]
+                bridge.close()
+                bridge.process.terminate.assert_called_once_with()
+                bridge.process.kill.assert_called_once_with()
+                self.assertEqual(bridge.process.wait.call_count, 3)
