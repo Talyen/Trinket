@@ -12,11 +12,11 @@ completion is not required. Refresh is free before embarking.
 
 Each card reuses Chapter art, with difficulty above the location name, a distinct
 eligible reward modifier when possible, the shared Party picker, and Embark
-(`location.north.fill`). Tap destination artwork to inspect its possible enemy pool,
-guaranteed boss, encounter level for the current party, route counts, and completion
-rewards. Enemy and boss portraits open their combatant details; Embark is also
-available from the detail sheet. The route summary uses current recruit eligibility,
-and rewards resolve against current ownership. Refresh rerolls all three modifiers.
+(`location.north.fill`). Tap destination artwork to inspect its enemy pool and boss
+in a single artwork-only gallery, with the boss last. The shared offer reward appears
+on the destination artwork. Tapping enemy artwork opens the existing combatant detail
+within the sheet; inspection does not record a Bestiary discovery. Party selection and
+Embark remain on the board. Refresh rerolls all three modifiers.
 The Explore card and board hero use the compass-and-map Voyage artwork; the title is
 native UI text.
 

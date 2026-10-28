@@ -66,12 +66,31 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         let enemy = app.buttons.matching(NSPredicate(
             format: "identifier BEGINSWITH %@", AccessibilityID.Voyage.destinationEnemy(""),
         )).firstMatch
+        reveal(enemy)
         let enemyName = enemy.label
         tapWhenReady(enemy)
-        dismissSheet(AccessibilityID.CombatantDetail.header(name: enemyName))
+        assertExists(AccessibilityID.CombatantDetail.header(name: enemyName))
+        let back = app.buttons.matching(NSPredicate(format: "identifier == %@", "BackButton")).allElementsBoundByIndex.last
+        if let back {
+            back.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        } else {
+            XCTFail("The enemy detail must provide a native Back control")
+            return
+        }
         assertExists(AccessibilityID.Voyage.destinationSheet)
-        reveal(any(AccessibilityID.Voyage.destinationCompletion))
-        tapButton(AccessibilityID.Voyage.destinationEmbark)
+        XCTAssertTrue(enemy.isHittable, "Returning from enemy details should preserve the gallery position")
+        let grabber = app.buttons.matching(NSPredicate(format: "label == %@", "Sheet Grabber")).firstMatch
+        if grabber.exists, grabber.frame.minY < 10, app.frame.width > 430 {
+            // On the Duo the sheet is inset, while its grabber overlaps the top system edge.
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.005, dy: 0.5)).tap()
+            assertDoesNotExist(AccessibilityID.Voyage.destinationSheet)
+        } else {
+            dismissSheet(AccessibilityID.Voyage.destinationSheet)
+        }
+        let embark = app.buttons.matching(NSPredicate(
+            format: "identifier BEGINSWITH %@", AccessibilityID.Voyage.action(""),
+        )).firstMatch
+        tapWhenReady(embark)
         tapButton(AccessibilityID.Voyage.options)
         tapButton(AccessibilityID.Voyage.abandon)
         tapButton(AccessibilityID.Voyage.confirmAbandon)

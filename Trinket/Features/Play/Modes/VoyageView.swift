@@ -93,10 +93,8 @@ struct VoyageView: View {
             VoyageDestinationSheet.artworkNames(chapterID: selection.chapterID)
         }, content: { selection in
             if let offer = playerSave.voyage.offers.first(where: { $0.id == selection.id }) {
-                VoyageDestinationSheet(offer: offer, isEmbarkDisabled: !isReady) {
-                    embark(offer)
-                }
-                .trinketDetailSheet()
+                VoyageDestinationSheet(offer: offer)
+                    .trinketDetailSheet()
             }
         })
         .onChange(of: playerSave.voyage) { _, state in
