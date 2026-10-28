@@ -163,8 +163,9 @@ and simulator/guest ownership safeguards.
 Manual runs queue behind current branch verification without allocating a waiting
 runner. They reuse successful standard checks only for the exact commit and branch,
 with actual successful build/smoke, gate, and all unit jobs proving the full package
-portfolio in their successful test steps, plus an available product
-artifact. Skipped jobs, expired products, and unreadable evidence fall back to ordinary
+portfolio in their successful test steps, plus one available product artifact from
+the same commit and attempt as its successful producing build step. Skipped jobs,
+ambiguous or expired products, and unreadable evidence fall back to ordinary
 verification. Asset verification is reused only with its own successful job evidence;
 standard manual device Release compilation still runs. New pushes supersede obsolete branch runs.
 See [ci-reuse.py](../../Scripts/ci-reuse.py) for the proof contract. Exact shards, artifact contracts, cache inputs, and remaining advisory

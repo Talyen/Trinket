@@ -40,6 +40,7 @@ class CIEffortTests(unittest.TestCase):
         run = dict(id=10, head_sha='abc', head_branch='main', event='push', status='completed', conclusion='success')
         names = ['tests / CI OK', 'tests / gate / Generate and style', 'tests / Build and smoke UI']
         jobs = [dict(name=name, conclusion='success') for name in names]
+        jobs[-1].update(run_attempt=1, head_sha='abc', steps=[dict(name='Restore warm cache and build', conclusion='success')])
         jobs += [dict(name=f'tests / Unit tests ({shard})', conclusion='success',
                       steps=[dict(name=f'Test packages ({" ".join(packages)})', conclusion='success')])
                  for shard, packages in REUSE.SHARDS.items()]
@@ -76,9 +77,31 @@ class CIEffortTests(unittest.TestCase):
         with patch.object(REUSE, 'api', side_effect=[[{'workflow_runs': [run]}], [{'jobs': jobs}], [{'artifacts': artifacts}]]):
             self.assertEqual(REUSE.find_proof('owner/repo', 'abc', 'main', '20')['standard'], 'false')
 
+    def test_standard_reuse_binds_products_to_the_successful_producing_attempt(self):
+        run, jobs, artifacts = self.proof_fixture()
+        newer = dict(name='build-derived-data-10-2', expired=False)
+        self.assertEqual(REUSE.proof(run, jobs, artifacts + [newer], 'abc', 'main')['build-artifact'], artifacts[0]['name'])
+        self.assertIsNone(REUSE.proof(run, jobs, [newer], 'abc', 'main'))
+        self.assertIsNone(REUSE.proof(run, jobs, artifacts * 2, 'abc', 'main'))
+        build = next(job for job in jobs if job['name'] == 'tests / Build and smoke UI')
+        for changes in ({'head_sha': 'wrong'}, {'head_sha': None}, {'run_attempt': 2},
+                        {'steps': None}, {'steps': []},
+                        {'steps': [dict(name='Restore warm cache and build', conclusion='skipped')]}):
+            altered = [job if job is not build else {**build, **changes} for job in jobs]
+            self.assertIsNone(REUSE.proof(run, altered, artifacts, 'abc', 'main'))
+
+    def test_unreadable_run_does_not_hide_a_later_valid_proof(self):
+        run, jobs, artifacts = self.proof_fixture()
+        jobs = [{**job, 'id': index + 1} for index, job in enumerate(jobs)]
+        broken = {**run, 'id': 11}
+        responses = [[{'workflow_runs': [broken, run]}], [{'jobs': [None]}],
+                     [{'jobs': jobs}], [{'artifacts': artifacts}]]
+        with patch.object(REUSE, 'api', side_effect=responses):
+            self.assertEqual(REUSE.find_proof('owner/repo', 'abc', 'main', '20')['run-id'], '10')
+
     def test_product_transfer_does_not_require_or_certify_unrelated_checks(self):
         run, jobs, artifacts = self.proof_fixture()
-        build = dict(name='tests / Build and smoke UI', conclusion='success', run_attempt=1,
+        build = dict(name='tests / Build and smoke UI', conclusion='success', run_attempt=1, head_sha='abc',
                      steps=[dict(name='Restore warm cache and build', conclusion='success')])
         running = {**run, 'status': 'in_progress', 'conclusion': None}
         proof = REUSE.product_proof(running, [build], artifacts, 'abc', 'main')
@@ -91,10 +114,11 @@ class CIEffortTests(unittest.TestCase):
         for changed in ({'head_sha': 'old'}, {'head_branch': 'other'}, {'event': 'schedule'},
                         {'event': 'workflow_dispatch', 'display_title': 'Trinket CI (latest)'}):
             self.assertIsNone(REUSE.product_proof({**running, **changed}, [build], artifacts, 'abc', 'main'))
-        for changed in ({'steps': []}, {'steps': [dict(name='Restore warm cache and build', conclusion='failure')]},
-                        {'run_attempt': 2}, {'run_attempt': None}):
+        for changed in ({'steps': []}, {'steps': None}, {'steps': [dict(name='Restore warm cache and build', conclusion='failure')]},
+                        {'run_attempt': 2}, {'run_attempt': None}, {'head_sha': 'other'}):
             self.assertIsNone(REUSE.product_proof(running, [{**build, **changed}], artifacts, 'abc', 'main'))
         self.assertIsNone(REUSE.product_proof(running, [build], [{**artifacts[0], 'expired': True}], 'abc', 'main'))
+        self.assertIsNone(REUSE.product_proof(running, [build], artifacts * 2, 'abc', 'main'))
 
     def test_explicit_checkout_uses_source_revision_instead_of_workflow_revision(self):
         with tempfile.TemporaryDirectory() as directory:

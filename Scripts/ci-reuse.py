@@ -6,7 +6,6 @@ import json
 import argparse
 import os
 from pathlib import Path
-import re
 import subprocess
 
 from internal.cli import load_sibling
@@ -28,6 +27,20 @@ def matching_run(run: dict, sha: str, branch: str) -> bool:
     return all(run.get(key) == value for key, value in required.items())
 
 
+def build_artifact(run: dict, build: dict, artifacts: list[dict], sha: str) -> str | None:
+    """Bind one available archive to the build step that produced it."""
+    attempt, run_id, steps = build.get('run_attempt'), run.get('id'), build.get('steps')
+    if (type(attempt) is not int or attempt < 1 or type(run_id) is not int or run_id < 1
+            or build.get('head_sha') != sha or not isinstance(steps, list)
+            or not any(isinstance(step, dict) and step.get('name') == 'Restore warm cache and build'
+                       and step.get('conclusion') == 'success' for step in steps)):
+        return None
+    name = f'build-derived-data-{run_id}-{attempt}'
+    matching = [artifact for artifact in artifacts if isinstance(artifact, dict)
+                and artifact.get('name') == name and artifact.get('expired') is False]
+    return name if len(matching) == 1 else None
+
+
 def product_proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, branch: str) -> dict[str, str] | None:
     # Transferring exact-revision products never substitutes for another gate.
     # A path-filtered, still-running, or UI-failed workflow can have a valid archive.
@@ -38,17 +51,8 @@ def product_proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, 
     builds = [job for job in jobs if job.get('name') == 'tests / Build and smoke UI']
     if len(builds) != 1:
         return None
-    build = builds[0]
-    if not any(
-            step.get('name') == 'Restore warm cache and build' and step.get('conclusion') == 'success'
-            for step in build.get('steps', [])):
-        return None
-    # Never take an archive from a different build attempt, even when it is newer.
-    attempt = build.get('run_attempt')
-    if type(attempt) is not int or attempt < 1:
-        return None
-    name = f'build-derived-data-{int(run["id"])}-{attempt}'
-    if not any(item.get('name') == name and item.get('expired') is False for item in artifacts):
+    name = build_artifact(run, builds[0], artifacts, sha)
+    if not name:
         return None
     return {'products': 'true', 'standard': 'false', 'assets': 'false',
             'run-id': str(run['id']), 'build-artifact': name}
@@ -74,16 +78,15 @@ def proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, branch: 
             return None
     # A skipped build/unit suite cannot prove product verification. A missing or
     # expired artifact also forces the ordinary build+smoke path, not a false pass.
-    pattern = re.compile(rf"build-derived-data-{int(run['id'])}-(\d+)$")
-    candidates = [(int(match[1]), artifact["name"]) for artifact in artifacts
-                  if artifact.get("expired") is False and (match := pattern.fullmatch(artifact.get("name", "")))]
-    if not candidates:
+    build = successful.get('tests / Build and smoke UI') or successful.get('tests / Build for testing')
+    artifact = build_artifact(run, build, artifacts, sha)
+    if not artifact:
         return None
     return {
         "standard": "true",
         "assets": str("tests / Prepared asset integrity" in successful).lower(),
         "run-id": str(run["id"]),
-        "build-artifact": max(candidates)[1],
+        "build-artifact": artifact,
     }
 
 
@@ -94,22 +97,25 @@ def find_proof(repository: str, sha: str, branch: str, run_id: str, products_onl
     try:
         event = '' if products_only else 'event=push&'
         pages = api(f"repos/{repository}/actions/workflows/ci.yml/runs?{event}head_sha={sha}&per_page=20")
-        for run in (run for page in pages for run in page.get("workflow_runs", [])):
+        for run in (run for page in pages for run in page.get("workflow_runs", []) if isinstance(run, dict)):
             if (str(run.get("id")) == run_id or run.get('head_sha') != sha or run.get('head_branch') != branch
                     or (not products_only and not matching_run(run, sha, branch))):
                 continue
-            # filter=all retains successful jobs from previous attempts after a
-            # failed-job rerun. Select the latest conclusion for each job name.
-            pages = api(f"repos/{repository}/actions/runs/{run['id']}/jobs?filter=all&per_page=100")
-            jobs = sorted((job for page in pages for job in page.get("jobs", [])),
-                          key=lambda job: int(job.get("id", 0)))
-            latest = {job["name"]: job for job in jobs}
-            pages = api(f"repos/{repository}/actions/runs/{run['id']}/artifacts?per_page=100")
-            artifacts = [item for page in pages for item in page.get("artifacts", [])]
-            checker = product_proof if products_only else proof
-            candidate = checker(run, list(latest.values()), artifacts, sha, branch)
-            if candidate:
-                return candidate
+            try:
+                # filter=all retains successful jobs from previous attempts after a
+                # failed-job rerun. Select the latest conclusion for each job name.
+                pages = api(f"repos/{repository}/actions/runs/{run['id']}/jobs?filter=all&per_page=100")
+                jobs = sorted((job for page in pages for job in page.get("jobs", [])),
+                              key=lambda job: int(job.get("id", 0)))
+                latest = {job["name"]: job for job in jobs}
+                pages = api(f"repos/{repository}/actions/runs/{run['id']}/artifacts?per_page=100")
+                artifacts = [item for page in pages for item in page.get("artifacts", [])]
+                checker = product_proof if products_only else proof
+                candidate = checker(run, list(latest.values()), artifacts, sha, branch)
+                if candidate:
+                    return candidate
+            except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError, AttributeError) as error:
+                print(f"Cannot use verification run {run.get('id', 'unknown')}: {error}")
     except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError) as error:
         print(f"Cannot establish prior verification; running ordinary checks: {error}")
     return fallback
