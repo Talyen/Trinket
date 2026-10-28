@@ -97,11 +97,9 @@ public enum ShopStockPersistence {
         if incoming == existing {
             return !first.stock.purchasedOfferIDs.isSubset(of: priorIDs)
         }
-        let offersByID = Dictionary(uniqueKeysWithValues: second.stock.offers.lazy.map { ($0.id, $0) })
-        return first.stock.offers.contains { offer in
-            first.stock.purchasedOfferIDs.contains(offer.id) && !priorIDs.contains(offer.id)
-                && second.stock.purchasedOfferIDs.contains(offer.id) && offersByID[offer.id] == offer
-        }
+        return !first.matchingPurchases(in: second)
+            .intersection(first.stock.purchasedOfferIDs)
+            .subtracting(priorIDs).isEmpty
     }
 
     static func setPayload(_ data: Data, encounter: EncounterIdentity, save: inout PlayerSave) {

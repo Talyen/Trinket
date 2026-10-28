@@ -36,43 +36,36 @@ struct CorruptionAltarPickTests {
 
     @Test func `journey mystery resolve is stable and prefers authored`() throws {
         let context = MysteryEventPickContext.excludingCorruptionAltar
-        let stageID = "chapter-1-stage-5"
+        let stage = try #require(GameContent.stage(id: "chapter-1-stage-4"))
         let first = GameContent.resolveJourneyMysteryEvent(
-            stageID: stageID,
+            stage: stage,
             worldSeed: 11,
-            authored: nil,
             context: context,
         )
         let second = GameContent.resolveJourneyMysteryEvent(
-            stageID: stageID,
+            stage: stage,
             worldSeed: 11,
-            authored: nil,
             context: context,
         )
         #expect(first.id == second.id)
         #expect(first.id != GameContent.corruptionAltarEventID)
         #expect(
-            GameContent.encounterSeed(11, salt: "journey-mystery-\(stageID)")
-                != GameContent.encounterSeed(12, salt: "journey-mystery-\(stageID)"),
+            GameContent.encounterSeed(11, salt: "journey-mystery-\(stage.id)")
+                != GameContent.encounterSeed(12, salt: "journey-mystery-\(stage.id)"),
         )
 
-        let authored = try #require(GameContent.mysteryEvent(matching: "mana-berries"))
         let forced = GameContent.resolveJourneyMysteryEvent(
-            stageID: stageID,
+            stage: stage,
             worldSeed: 11,
-            authored: authored,
+            forcedEventID: "mana-berries",
             context: context,
         )
         #expect(forced.id == "mana-berries")
 
-        let pinned = GameContent.resolveJourneyMysteryEvent(
-            stageID: stageID,
-            worldSeed: 11,
-            authored: nil,
-            pinnedEventID: "mana-berries",
-            context: context,
-        )
-        #expect(pinned.id == "mana-berries")
+        let authoredStage = try #require(GameContent.stage(id: "chapter-1-stage-2"))
+        #expect(GameContent.resolveJourneyMysteryEvent(stage: authoredStage, worldSeed: 11).id == "recruit-bear")
+        #expect(GameContent.resolveJourneyMysteryEvent(stage: authoredStage, worldSeed: 11, forcedEventID: "mana-berries")
+            .id == "mana-berries")
 
         if let artID = first.artID {
             #expect(

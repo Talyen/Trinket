@@ -31,39 +31,15 @@ public extension GameContent {
         MysteryEventPool.pickMysteryEvent(context: context, using: &randomNumberGenerator)
     }
 
-    static func authoredMysteryOrRecruitEvent(
-        forcedEventID: String? = nil,
-        stage: Stage,
-    ) -> MysteryEvent? {
-        mysteryOrRecruitEvent(matching: forcedEventID) ?? stage.mysteryEvent
-    }
-
     static func resolveJourneyMysteryEvent(
-        stageID: String,
+        stage: Stage,
         worldSeed: UInt64,
-        authored: MysteryEvent?,
-        pinnedEventID: String? = nil,
+        forcedEventID: String? = nil,
         context: MysteryEventPickContext = .excludingCorruptionAltar,
     ) -> MysteryEvent {
         resolveSeededMysteryEvent(
-            authored: authored, pinnedEventID: pinnedEventID,
-            worldSeed: worldSeed, salt: "journey-mystery-\(stageID)", context: context,
-        )
-    }
-
-    static func resolveJourneyMysteryEvent(
-        stage: Stage,
-        worldSeed: UInt64,
-        forcedEventID: String? = nil,
-        pinnedEventID: String? = nil,
-        context: MysteryEventPickContext = .excludingCorruptionAltar,
-    ) -> MysteryEvent {
-        resolveJourneyMysteryEvent(
-            stageID: stage.id,
-            worldSeed: worldSeed,
-            authored: authoredMysteryOrRecruitEvent(forcedEventID: forcedEventID, stage: stage),
-            pinnedEventID: pinnedEventID,
-            context: context,
+            authored: mysteryOrRecruitEvent(matching: forcedEventID) ?? stage.mysteryEvent,
+            worldSeed: worldSeed, salt: "journey-mystery-\(stage.id)", context: context,
         )
     }
 
@@ -71,30 +47,12 @@ public extension GameContent {
         nodeID: String,
         worldSeed: UInt64,
         forcedEventID: String?,
-        pinnedEventID: String? = nil,
         context: MysteryEventPickContext = .excludingCorruptionAltar,
     ) -> MysteryEvent {
         resolveSeededMysteryEvent(
-            authored: mysteryOrRecruitEvent(matching: forcedEventID), pinnedEventID: pinnedEventID,
+            authored: mysteryOrRecruitEvent(matching: forcedEventID),
             worldSeed: worldSeed, salt: "labyrinth-mystery-\(nodeID)", context: context,
         )
-    }
-
-    static func eligibleRecruitEvents(
-        unlockedHeroIDs: Set<String>,
-        unlockedCompanionIDs: Set<String>,
-        role: Combatant.Role? = nil,
-        access: ContentAccessPolicy = .fullGame,
-    ) -> [MysteryEvent] {
-        recruitEvents.filter { event in
-            isEligibleRecruit(
-                event,
-                unlockedHeroIDs: unlockedHeroIDs,
-                unlockedCompanionIDs: unlockedCompanionIDs,
-                role: role,
-                access: access,
-            )
-        }
     }
 
     internal static func eligibleRecruitEventIDs(
@@ -155,19 +113,15 @@ public extension GameContent {
         eventID.flatMap { mysteryEvent(matching: $0) ?? recruitEvent(matching: $0) }
     }
 
-    /// Authored events win over saved picks; only an unresolved event consumes RNG.
+    /// Only an unresolved event consumes RNG. Saved pins are resolved by Persistence.
     private static func resolveSeededMysteryEvent(
         authored: MysteryEvent?,
-        pinnedEventID: String?,
         worldSeed: UInt64,
         salt: String,
         context: MysteryEventPickContext,
     ) -> MysteryEvent {
         if let authored {
             return authored
-        }
-        if let pinned = mysteryOrRecruitEvent(matching: pinnedEventID) {
-            return pinned
         }
         var randomNumberGenerator = SeededRandomNumberGenerator(seed: encounterSeed(worldSeed, salt: salt))
         return pickMysteryEvent(context: context, using: &randomNumberGenerator)

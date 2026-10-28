@@ -119,17 +119,10 @@ struct AppStateMysteryRecruitTests {
         #expect(!session.event.isRecruit)
         #expect(state.playerSave.journey.pinnedMysteryEventIDs[stage.id] == expected.id)
 
-        let pinned = GameContent.resolveJourneyMysteryEvent(
-            stage: stage,
-            worldSeed: state.playerSave.worldSeed,
-            pinnedEventID: expected.id,
-            context: .journey(
-                chapterNumber: 2,
-                inventory: state.playerSave.inventory,
-                corruptionAltarCooldownRemaining: 0,
-            ),
-        )
-        #expect(pinned.id == expected.id)
+        let encounter = EncounterIdentity(location: .journey(stageID: stage.id), save: state.playerSave.currentSave)
+        let otherID = expected.id == "mana-berries" ? "hidden-cache" : "mana-berries"
+        let pinned = encounter.mysteryEvent(in: state.playerSave.currentSave, forcedEventID: otherID)
+        #expect(pinned?.id == expected.id)
     }
 
     #if DEBUG
