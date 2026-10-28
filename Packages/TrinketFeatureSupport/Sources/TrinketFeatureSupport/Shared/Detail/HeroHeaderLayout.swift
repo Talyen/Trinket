@@ -18,7 +18,7 @@ public enum HeroHeaderLayout {
             case .cinematicLandscape:
                 min(max(width * 0.78, 288), 344, height * 0.45)
             case .talentTree:
-                min(max(width * 0.92, 336), 392, height * 0.45)
+                height * 0.30
             }
         }
     }

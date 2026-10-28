@@ -26,12 +26,14 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
     public init(
         title: String,
         heroHeightPolicy: HeroHeaderLayout.HeightPolicy = .portrait,
+        heroContainerSize: CGSize? = nil,
         hidesNavigationBar: Bool = false,
         @ViewBuilder header: @escaping (_ baseHeight: CGFloat) -> Header,
         @ViewBuilder bodyContent: @escaping () -> BodyContent,
     ) {
         self.title = title
         self.heroHeightPolicy = heroHeightPolicy
+        self.heroContainerSize = heroContainerSize
         self.hidesNavigationBar = hidesNavigationBar
         self.header = header
         self.bodyContent = bodyContent

@@ -78,7 +78,7 @@ public struct CombatantTalentsView: View {
 
     public var body: some View {
         GeometryReader { geometry in
-            DetailHeroScrollShell(title: tree.name, heroHeightPolicy: .talentTree) { baseHeight in
+            DetailHeroScrollShell(title: tree.name, heroHeightPolicy: .talentTree, heroContainerSize: geometry.size) { baseHeight in
                 DetailHeroHeader(
                     eyebrow: String(localized: L10n.ui_combatanttalentsview_talents_39430),
                     title: tree.name,

@@ -86,6 +86,7 @@ the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.
 `HeroHeaderLayout` and `DetailHeroScrollShell` share full-bleed detail heroes,
 overscroll, and scrim blending. Portrait, square, cinematic and talent-tree headers are bounded
 by usable viewport height so their summaries and following content remain visible.
+Talent-tree artwork uses 30% of the sheet height before the pinned inspector reserves space.
 The shell’s scroll geometry drives header height,
 pinned-title opacity, and artwork overscroll zoom even after the hero scrolls
 offscreen. Overscroll is supplied only to the header subtree. Artwork extension
