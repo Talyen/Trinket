@@ -20,7 +20,10 @@ from datetime import datetime, timezone
 
 
 def git(root: Path, *args: str) -> str:
-    return subprocess.check_output(["git", "-C", str(root), *args], text=True).rstrip("\n")
+    # A status check must not start a new fsmonitor daemon inside a checkout
+    # that cleanup is about to inspect and remove.
+    config = ['-c', 'core.fsmonitor=false'] if args and args[0] == 'status' else []
+    return subprocess.check_output(["git", "-C", str(root), *config, *args], text=True).rstrip("\n")
 
 
 def clean(root: Path) -> None:
@@ -296,7 +299,22 @@ def integration_lock(common: Path):
         yield
 
 
-def ensure_checkout_inactive(source: Path) -> None:
+def stop_checkout_fsmonitor(source: Path, pid: int) -> bool:
+    """Stop only Git's own monitor registered to this finished task checkout."""
+    command = subprocess.run(['ps', '-p', str(pid), '-o', 'command='], cwd='/',
+                             capture_output=True, text=True, timeout=10)
+    if command.returncode or not re.fullmatch(r'.*/git fsmonitor--daemon run --detach(?: .*)?', command.stdout.strip()):
+        return False
+    status = subprocess.run(['git', '-C', str(source), 'fsmonitor--daemon', 'status'],
+                            cwd='/', capture_output=True, text=True, timeout=10)
+    if status.returncode:
+        return False
+    stopped = subprocess.run(['git', '-C', str(source), 'fsmonitor--daemon', 'stop'],
+                             cwd='/', capture_output=True, text=True, timeout=10)
+    return stopped.returncode == 0
+
+
+def ensure_checkout_inactive(source: Path, *, stop_monitor: bool = True) -> None:
     """Allow this command's ancestors, but preserve foreign users of the checkout."""
     try:
         processes = subprocess.run(['ps', '-axo', 'pid=,ppid='], capture_output=True, text=True, timeout=10)
@@ -332,8 +350,15 @@ def ensure_checkout_inactive(source: Path) -> None:
         if not line.startswith('p') or not line[1:].isdigit():
             raise RuntimeError('Open-file inventory is incomplete; checkout retained')
         users.add(int(line[1:]))
-    if users - ancestors:
-        raise RuntimeError(f'Checkout has active processes {sorted(users - ancestors)}; checkout retained')
+    foreign = users - ancestors
+    if foreign:
+        if stop_monitor and len(foreign) == 1:
+            try:
+                if stop_checkout_fsmonitor(source, next(iter(foreign))):
+                    return ensure_checkout_inactive(source, stop_monitor=False)
+            except (OSError, subprocess.SubprocessError):
+                pass
+        raise RuntimeError(f'Checkout has active processes {sorted(foreign)}; checkout retained')
 
 
 def cleanup_locked(source: Path, target: Path) -> None:

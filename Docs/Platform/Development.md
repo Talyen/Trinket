@@ -128,6 +128,8 @@ deliverables again and removes only this clean, registered, integrated task work
 including ignored outputs; it retains the branch and never changes primary main.
 It refuses unmerged/dirty tasks, locked worktrees, submodules, unsafe registrations,
 foreign processes using the checkout, and unavailable process/open-file inventories.
+When the only remaining user is Git's verified monitor for this checkout, cleanup
+stops that monitor through Git and repeats the open-file check.
 It can run after main advances or while primary files are dirty. A cleanup failure
 does not roll back landing; inspect the reported path and retry cleanup.
 

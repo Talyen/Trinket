@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from unittest import mock
@@ -404,6 +405,9 @@ sys.exit(bool(failures))
     def test_final_landing_automatically_cleans_only_its_worktree(self) -> None:
         task = self.task('automatic')
         peer = self.task('peer')
+        if sys.platform == 'darwin':
+            self.git(task, 'config', 'core.fsmonitor', 'true')
+            self.git(task, 'fsmonitor--daemon', 'start')
         deliverables = task / '.DerivedData/Deliverables'
         deliverables.mkdir(parents=True)
         (deliverables / 'screen.png').write_bytes(b'visible evidence')
@@ -418,6 +422,19 @@ sys.exit(bool(failures))
                          b'visible evidence')
         self.assertTrue((evidence / 'routine-completion.json').is_file())
 
+    def test_clean_checkout_check_does_not_start_git_fsmonitor(self) -> None:
+        if sys.platform != 'darwin':
+            self.skipTest('Git fsmonitor daemon is not available on this platform')
+        module = load_script('agent_integrate_fsmonitor_test', 'agent-integrate.py')
+        self.git(self.root, 'config', 'core.fsmonitor', 'true')
+        subprocess.run(['/usr/bin/git', '-C', str(self.root), 'fsmonitor--daemon', 'stop'],
+                       env=self.env, capture_output=True)
+        module.clean(self.root)
+        status = subprocess.run(['/usr/bin/git', '-C', str(self.root), 'fsmonitor--daemon', 'status'],
+                                env=self.env, capture_output=True, text=True)
+        self.assertNotEqual(status.returncode, 0)
+        self.assertIn('not watching', status.stdout + status.stderr)
+
     def test_cleanup_rejects_foreign_or_unknown_open_file_inventory(self) -> None:
         module = load_script('agent_integrate_open_files_test', 'agent-integrate.py')
         own = os.getpid()
@@ -426,7 +443,8 @@ sys.exit(bool(failures))
         for opened in (subprocess.CompletedProcess([], 0, 'p999999\n', ''),
                        subprocess.CompletedProcess([], 2, '', 'inspection denied'),
                        subprocess.CompletedProcess([], 1, 'p999999\n', '')):
-            with mock.patch.object(module.subprocess, 'run', side_effect=[processes, opened]):
+            with mock.patch.object(module.subprocess, 'run', side_effect=[processes, opened]), \
+                 mock.patch.object(module, 'stop_checkout_fsmonitor', return_value=False):
                 with self.assertRaises(RuntimeError):
                     module.ensure_checkout_inactive(self.root)
         with mock.patch.object(module.subprocess, 'run', side_effect=[
