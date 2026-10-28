@@ -18,7 +18,7 @@ struct RewardItemRevealCard: View {
             showsAffixCount: false,
             presentation: .reveal,
         ) {
-            ItemArtwork(item: item)
+            ItemArtwork(item: $0)
         }
         .frame(width: artworkHeight * 3.0 / 4.0)
         .frame(maxWidth: .infinity)
