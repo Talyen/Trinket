@@ -66,7 +66,7 @@ struct HealingReductionTests {
             let outcome = battle.resolveHeal(HealRequest(
                 amount: 8, target: ally, sourceActorID: ally.id, logAs: .silent,
             ))
-            #expect(outcome.healthRestored == (ally.id == target.id ? 6 : 8))
+            #expect(outcome.healthRestored == (ally.id == target.id ? 4 : 8))
         }
     }
 
@@ -85,7 +85,7 @@ struct HealingReductionTests {
         let outcome = battle.resolveHeal(HealRequest(
             amount: 8, target: target, sourceActorID: target.id, logAs: .silent, skipFightPacing: true,
         ))
-        #expect(outcome.healthRestored == (recipient == .enemy ? 6 : 8))
+        #expect(outcome.healthRestored == (recipient == .enemy ? 4 : 8))
         if recipient == .enemy {
             #expect(battle.health(of: target) == afterAttack + outcome.healthRestored)
         }

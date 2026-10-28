@@ -150,10 +150,10 @@ public extension AbilityCatalog {
 
     static let serratedEdge = Ability(
         id: "serrated-edge", name: "Serrated Edge", tier: .skill,
-        description: "Deal 3 Bleed damage\nReduces Health restored by enemies by 25% for 3 turns",
+        description: "Deal 3 Bleed damage\nReduces Health restored by enemies by 50% for 3 turns",
         damageComponents: [DamageComponent(3, keyword: .bleed)],
         targetedEffects: [
-            TargetedEffect(.healingReductionPercent(0.25, 3), target: .enemy),
+            TargetedEffect(.healingReductionPercent(0.50, 3), target: .enemy),
         ],
     )
 

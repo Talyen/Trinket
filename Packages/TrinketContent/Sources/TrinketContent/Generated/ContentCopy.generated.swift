@@ -1821,8 +1821,8 @@ public enum ContentCopy {
             return (L10n.authored_6ea398d9f45b0877, [])
         case "Your Physical damage bonuses also strengthen Holy damage":
             return (L10n.authored_6ed460d0356d5e78, [])
-        case "Deal 3 Bleed damage\nReduces Health restored by enemies by 25% for 3 turns":
-            return (L10n.authored_6ee786aa7f7a23c9(3, 25, 3), [3, 25, 3])
+        case "Deal 3 Bleed damage\nReduces Health restored by enemies by 50% for 3 turns":
+            return (L10n.authored_6ee786aa7f7a23c9(3, 50, 3), [3, 50, 3])
         case "Drops a Weapon":
             return (L10n.authored_713ceb2c7a465edb, [])
         case "Drops a Unique item":
