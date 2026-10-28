@@ -159,24 +159,26 @@ trinket_sim_shutdown_wait() {
   local udid="$1"
   local device_set="${2:-}"
   local timeout_seconds="${TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS:-45}"
+  local wait_mode="${3:-bounded}"
 
-  # Bound the commands as well as polling: CoreSimulator can stall even in list.
-  python3 - "$udid" "$device_set" "$timeout_seconds" <<'PY_SHUTDOWN'
+  # Local cleanup bounds commands as well as polling; owned CI recovery waits
+  # for tool results and still requires an observed Shutdown state.
+  python3 - "$udid" "$device_set" "$timeout_seconds" "$wait_mode" <<'PY_SHUTDOWN' &
 import json
 import shlex
 import subprocess
 import sys
 import time
 
-udid, device_set, configured = sys.argv[1:]
+udid, device_set, configured, wait_mode = sys.argv[1:]
 seconds = int(configured) if configured.isascii() and configured.isdigit() else 45
 # Zero retains the explicit no-poll mode, with bounded command execution.
-deadline = time.monotonic() + (seconds or 45)
+deadline = None if wait_mode == "unbounded" else time.monotonic() + (seconds or 45)
 command = ["xcrun", "simctl", *shlex.split(device_set)]
 
 def run(*args, capture=False):
-    remaining = deadline - time.monotonic()
-    if remaining <= 0:
+    remaining = None if deadline is None else deadline - time.monotonic()
+    if remaining is not None and remaining <= 0:
         raise TimeoutError("shutdown deadline exhausted")
     return subprocess.run([*command, *args], timeout=remaining, text=True,
                           stdout=subprocess.PIPE if capture else subprocess.DEVNULL,
@@ -188,7 +190,7 @@ try:
     if udid != "all":
         run("spawn", udid, "launchctl", "stop", "com.apple.PosterBoard")
     run("shutdown", udid)
-    while seconds:
+    while seconds or deadline is None:
         result = run("list", "devices", udid if udid != "all" else "available", "-j", capture=True)
         if result.returncode:
             raise ValueError("simulator inventory failed")
@@ -205,11 +207,13 @@ try:
             raise ValueError("simulator identity missing or ambiguous")
         if all(device["state"] == "Shutdown" for device in selected):
             break
-        time.sleep(min(.25, max(0, deadline - time.monotonic())))
+        time.sleep(.25 if deadline is None else min(.25, max(0, deadline - time.monotonic())))
 except (OSError, ValueError, TimeoutError, subprocess.SubprocessError) as error:
-    print(f"warning: simulator did not reach Shutdown within {seconds}s (udid: {udid}): {error}", file=sys.stderr)
+    print(f"warning: simulator did not reach Shutdown (udid: {udid}): {error}", file=sys.stderr)
     sys.exit(1)
 PY_SHUTDOWN
+  # Waiting on a child lets the caller's cancellation traps stop its workers.
+  wait "$!"
 }
 
 trinket_preview_sims_reclaim() {

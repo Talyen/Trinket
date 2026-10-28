@@ -117,34 +117,102 @@ else:
                               'PATH': str(binaries) + os.pathsep + os.environ['PATH']}, expected=0)
             self.assertEqual(json.loads((root / 'created.json').read_text()), ['Trinket Run', phone, runtime])
 
-    def test_ci_simulator_recovery_admission_uses_the_selected_window(self) -> None:
+    def test_ci_simulator_boot_waits_for_tool_result_and_recovery_is_not_time_limited(self) -> None:
         script = r'''set -eu
 source "$1/Scripts/ensure-simulator.sh"
 SIMULATOR_UDID=owned
 simulator_matches_name() { return 0; }
-boot_simulator() { SECONDS=$((SECONDS + elapsed)); return 1; }
+boot_simulator() { SECONDS=$((SECONDS + 10000)); return 1; }
 erase_and_boot_simulator() { echo recovered; return 0; }
 resolve_or_create_simulator() { echo unexpected-recreate; return 1; }
-elapsed="$2"
 ensure_test_simulator
 '''
         environment = {key: value for key, value in os.environ.items()
                        if not key.startswith(('TRINKET_', 'SIMULATOR_'))}
-        for ci, elapsed, window, override, expected in [
-            ('true', '241', '', '', 1), ('true', '1', '', '', 0), ('false', '241', '', '', 0),
-            ('true', '241', '720', '', 0), ('true', '501', '720', '', 1),
-            ('true', '241', '', '60', 0),
-        ]:
-            with self.subTest(ci=ci, elapsed=elapsed):
-                result = run_captured(['bash', '-c', script, '_', str(ROOT), elapsed],
-                                      env={**environment, 'GITHUB_ACTIONS': ci,
-                                           'TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS': window,
-                                           'TRINKET_SIMULATOR_BOOT_TIMEOUT_SECONDS': override})
-                self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
-                self.assertEqual('recovered' in result.stdout, expected == 0)
-                self.assertNotIn('unexpected-recreate', result.stdout)
-                if expected:
-                    self.assertIn('exhausted its CI recovery window', result.stderr)
+        result = run_captured(['bash', '-c', script, '_', str(ROOT)],
+                              env={**environment, 'GITHUB_ACTIONS': 'true'}, expected=0)
+        self.assertIn('recovered', result.stdout)
+        self.assertNotIn('unexpected-recreate', result.stdout)
+
+        script = r'''source "$1/Scripts/ensure-simulator.sh"
+trinket_watch_agent_simulator() { :; }
+trinket_simctl_json() { cat >/dev/null; echo Shutdown; }
+xcrun() {
+  case "$2" in
+    list) echo '{}' ;;
+    bootstatus) sleep 2; return "$boot_status" ;;
+  esac
+}
+SIMULATOR_UDID=owned
+SIMULATOR_BOOT_TIMEOUT_SECONDS=1
+boot_status="$2"
+boot_simulator
+'''
+        for status in (0, 1):
+            with self.subTest(status=status):
+                result = run_captured(['bash', '-c', script, '_', str(ROOT), str(status)], timeout=5,
+                                      env={**environment, 'GITHUB_ACTIONS': 'true'})
+                self.assertEqual(result.returncode, status, result.stdout + result.stderr)
+                self.assertEqual('booted successfully' in result.stdout, status == 0)
+
+    def test_ci_owned_shutdown_waits_for_commands_and_requires_shutdown_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_executable(root / 'xcrun', """#!/usr/bin/env python3
+import json, os, sys, time
+if sys.argv[2] == 'shutdown': time.sleep(2)
+if sys.argv[2] == 'list':
+    records = [{'udid': 'owned', 'state': 'Shutdown'}] if os.environ['SHUTDOWN_CASE'] == 'complete' else []
+    print(json.dumps({'devices': {'runtime': records}}))
+""")
+            for mode in ('complete', 'missing'):
+                result = run_captured(['bash', '-c', 'source "$1/Scripts/lib/simctl.sh"; source "$1/Scripts/ensure-simulator.sh"; shutdown_and_wait_simulator owned', '_', str(ROOT)], timeout=5,
+                                      env={**os.environ, 'GITHUB_ACTIONS': 'true', 'SHUTDOWN_CASE': mode,
+                                           'PATH': str(root) + os.pathsep + os.environ['PATH'],
+                                           'TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS': '1'})
+                self.assertEqual(result.returncode, 0 if mode == 'complete' else 1, result.stderr)
+
+    def test_ci_simulator_waits_remain_cancellable(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_executable(root / 'xcrun', '''#!/bin/bash
+case "$2" in
+  list) echo '{}' ;;
+  bootstatus|shutdown) echo "$$" > "$MARKER"; exec sleep 60 ;;
+esac
+''')
+            script = r'''source "$1/Scripts/lib/lock.sh"
+source "$1/Scripts/lib/simctl.sh"
+source "$1/Scripts/ensure-simulator.sh"
+trinket_dir_lock_chain_trap ':'
+trinket_watch_agent_simulator() { :; }
+trinket_simctl_json() { cat >/dev/null; echo Shutdown; }
+SIMULATOR_UDID=owned
+if [[ "$2" == boot ]]; then boot_simulator; else shutdown_and_wait_simulator owned; fi
+'''
+            for phase in ('boot', 'shutdown'):
+                with self.subTest(phase=phase):
+                    marker = root / phase
+                    process = subprocess.Popen(['bash', '-c', script, '_', str(ROOT), phase], cwd=ROOT,
+                                               env={**os.environ, 'GITHUB_ACTIONS': 'true', 'MARKER': str(marker),
+                                                    'PATH': str(root) + os.pathsep + os.environ['PATH']},
+                                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                                               start_new_session=True)
+                    try:
+                        deadline = time.monotonic() + 5
+                        while not marker.exists() and time.monotonic() < deadline:
+                            time.sleep(.05)
+                        self.assertTrue(marker.exists(), 'simulator worker did not start')
+                        worker = int(marker.read_text())
+                        process.terminate()
+                        stdout, stderr = process.communicate(timeout=10)
+                        self.assertEqual(process.returncode, 143, stdout + stderr)
+                        with self.assertRaises(ProcessLookupError):
+                            os.kill(worker, 0)
+                    finally:
+                        if process.poll() is None:
+                            os.killpg(process.pid, signal.SIGKILL)
+                            process.communicate(timeout=5)
 
     def test_linked_worktrees_share_simulator_reservations_and_protect_active_caches(self) -> None:
         from internal import output_retention as retention

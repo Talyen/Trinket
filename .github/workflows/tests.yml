@@ -615,7 +615,6 @@ jobs:
       CI: true
       TRINKET_SIM_DEVICE_TYPE: com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro
       TRINKET_SIM_OS_VERSION: '26.2'
-      TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS: '720'
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
       - uses: ./.github/actions/setup-trinket

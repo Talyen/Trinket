@@ -23,7 +23,11 @@ SIMULATOR_BOOT_TIMEOUT_SECONDS="${TRINKET_SIMULATOR_BOOT_TIMEOUT_SECONDS:-150}"
 shutdown_and_wait_simulator() {
   local target_udid="$1"
   [[ -n "$target_udid" ]] || return 0
-  trinket_sim_shutdown_wait "$target_udid"
+  if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    trinket_sim_shutdown_wait "$target_udid" "" unbounded
+  else
+    trinket_sim_shutdown_wait "$target_udid"
+  fi
 }
 
 discard_simulator() {
@@ -205,6 +209,20 @@ boot_simulator() {
   fi
 
   echo "Booting $SIMULATOR_NAME ($SIMULATOR_UDID)..."
+  if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    # A background worker keeps the shell's cancellation traps responsive.
+    (
+      xcrun simctl boot "$SIMULATOR_UDID" 2>/dev/null || true
+      xcrun simctl bootstatus "$SIMULATOR_UDID" -b
+    ) &
+    local ci_boot_pid=$!
+    if ! wait "$ci_boot_pid"; then
+      echo "Error: Simulator boot failed" >&2
+      return 1
+    fi
+    echo "$SIMULATOR_NAME ($SIMULATOR_UDID) booted successfully."
+    return 0
+  fi
   # Both boot and bootstatus can stall in CoreSimulator. Supervise the whole
   # sequence so boot cannot prevent the timeout from starting.
   (
@@ -254,32 +272,12 @@ erase_and_boot_simulator() {
   boot_simulator
 }
 
-# Preserve the test budget before admitting another CI recovery boot.
-# Each admitted operation retains its own watchdog.
-simulator_recovery_has_time() {
-  if [[ -n "${simulator_setup_deadline:-}" ]] && (( SECONDS + SIMULATOR_BOOT_TIMEOUT_SECONDS > simulator_setup_deadline )); then
-    echo "Error: Simulator preparation exhausted its CI recovery window; retry on a healthy runner." >&2
-    return 1
-  fi
-}
-
 ensure_test_simulator() {
   local force="${1:-}"
   local attempt=1
   local max_attempts=2
-  local simulator_setup_deadline=""
   if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
     max_attempts=3
-    local setup_window="${TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS:-360}"
-    if [[ ! "$setup_window" =~ ^[1-9][0-9]*$ ]]; then
-      echo "Error: CI simulator setup window must be a positive number of seconds." >&2
-      return 1
-    fi
-    simulator_setup_deadline=$((SECONDS + setup_window))
-    # TRINKET_-prefixed knob controls SIMULATOR_BOOT_TIMEOUT_SECONDS (150 default -> 300 on CI).
-    if [[ "${TRINKET_SIMULATOR_BOOT_TIMEOUT_SECONDS:-}" == "" ]]; then
-      SIMULATOR_BOOT_TIMEOUT_SECONDS=300
-    fi
   fi
   local owned_name="${TRINKET_SIMULATOR_NAME:-Trinket Run}"
 
@@ -302,7 +300,6 @@ ensure_test_simulator() {
   fi
 
   while (( attempt <= max_attempts )); do
-    simulator_recovery_has_time || return 1
     if [[ -n "${SIMULATOR_UDID:-}" ]] && erase_and_boot_simulator; then
       SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
       echo "Simulator ready after erase: $SIMULATOR_DESTINATION"
@@ -311,7 +308,6 @@ ensure_test_simulator() {
     if [[ "${GITHUB_ACTIONS:-}" == "true" && "$attempt" -gt 1 ]]; then
       echo "::warning title=Simulator infrastructure retry::Cold boot failed; retrying after erase/recreate (attempt $attempt/$max_attempts)."
     fi
-    simulator_recovery_has_time || return 1
     if [[ -n "${SIMULATOR_UDID:-}" ]]; then discard_simulator || return 1; fi
     if resolve_or_create_simulator && boot_simulator; then
       SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"

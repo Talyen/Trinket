@@ -27,8 +27,6 @@ jobs:
     env:
       CI: true
       TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE: '0'
-      # The downloaded qualified runtime can need one cold-boot recovery.
-      TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS: '720'
       DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
       TRINKET_SIM_DEVICE_TYPE: com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro
       TRINKET_SIM_OS_VERSION: '26.2'
