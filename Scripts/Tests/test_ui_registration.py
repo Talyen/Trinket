@@ -16,6 +16,48 @@ REGISTRY = load_script('ui_registration', 'check-testplan-sync.py')
 
 
 class UIRegistrationTests(unittest.TestCase):
+    def test_discovery_handles_swift_declarations_and_ignores_non_classes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            tests = root / 'TrinketUITests'
+            (tests / 'Support').mkdir(parents=True)
+            (tests / 'Flows').mkdir()
+            (tests / 'Support' / 'Base.swift').write_text(
+                'class CustomBase: TrinketUITestCase {}\n'
+            )
+            source = tests / 'Flows' / 'Cases.swift'
+            source.write_text('''
+                class DirectTests: XCTest.XCTestCase {}
+                final class IndirectTests: CustomBase {}
+                @MainActor public final class AttributedTests:
+                    TrinketUITestCase {}
+                class NotATest: TrinketUITestCaseHelper {}
+                /* class BlockCommentTests: TrinketUITestCase {}
+                   /* class NestedCommentTests: XCTestCase {} */
+                */
+                let sample = #"""
+                class RawStringTests: TrinketUITestCase {}
+                """#
+                let interpolated = "\\(example(\"class StringTests: XCTestCase {}\"))"
+            ''')
+            rows = [{'suite': 'FullUI', 'name': name} for name in
+                    ('DirectTests', 'IndirectTests', 'AttributedTests')]
+            self.assertEqual(REGISTRY.registration_failures(root, rows), [])
+            for row in rows:
+                with self.subTest(missing=row['name']):
+                    failures = REGISTRY.registration_failures(root, [other for other in rows if other != row])
+                    self.assertTrue(any(f"missing=['{row['name']}']" in failure for failure in failures))
+
+    def test_discovery_rejects_unterminated_swift_comments_and_strings(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'TrinketUITests' / 'Fixture.swift'
+            source.parent.mkdir()
+            for text in ('/* unfinished', 'let sample = #"unfinished'):
+                source.write_text(text)
+                with self.subTest(text=text), self.assertRaisesRegex(ValueError, 'unterminated Swift'):
+                    REGISTRY.registration_failures(root, [])
+
     def test_registered_classes_reach_plans_filters_and_local_routing(self):
         rows = REGISTRY.registrations()
         for suite in REGISTRY.SUITES:

@@ -14,15 +14,117 @@ from internal.cli import ROOT, read_json
 from internal.ui_registration import REGISTRY, SUITES, registrations
 
 
+def swift_code(source: str) -> str:
+    """Mask comments and strings while retaining source positions and line breaks."""
+    masked = list(source)
+    length = len(source)
+    string_pattern = re.compile(r'(#*)("""|")')
+
+    def string_start(index: int) -> tuple[str, str] | None:
+        match = string_pattern.match(source, index) if source[index] in '#"' else None
+        return (match[1], match[2]) if match else None
+
+    def comment_end(index: int) -> int:
+        if source.startswith('//', index):
+            end = source.find('\n', index)
+            return length if end < 0 else end
+        depth = 1
+        index += 2
+        while index < length and depth:
+            if source.startswith('/*', index):
+                depth += 1
+                index += 2
+            elif source.startswith('*/', index):
+                depth -= 1
+                index += 2
+            else:
+                index += 1
+        if depth:
+            raise ValueError('unterminated Swift block comment')
+        return index
+
+    def interpolation_end(index: int) -> int:
+        depth = 1
+        while index < length:
+            if source.startswith(('//', '/*'), index):
+                index = comment_end(index)
+            elif string_start(index):
+                index = string_end(index)
+            elif source[index] == '(':
+                depth += 1
+                index += 1
+            elif source[index] == ')':
+                depth -= 1
+                index += 1
+                if depth == 0:
+                    return index
+            else:
+                index += 1
+        raise ValueError('unterminated Swift string interpolation')
+
+    def string_end(index: int) -> int:
+        hashes, quote = string_start(index)
+        index += len(hashes) + len(quote)
+        closing = quote + hashes
+        escape = '\\' + hashes
+        while index < length:
+            if source.startswith(closing, index):
+                return index + len(closing)
+            if source.startswith(escape, index):
+                index += len(escape)
+                if index < length and source[index] == '(':
+                    index = interpolation_end(index + 1)
+                else:
+                    index += 1
+            else:
+                index += 1
+        raise ValueError('unterminated Swift string')
+
+    index = 0
+    while index < length:
+        start = index
+        if source.startswith(('//', '/*'), index):
+            index = comment_end(index)
+        elif string_start(index):
+            index = string_end(index)
+        else:
+            index += 1
+            continue
+        for position in range(start, index):
+            if source[position] not in '\r\n':
+                masked[position] = ' '
+    return ''.join(masked)
+
+
 def registration_failures(root: Path, rows: list[dict]) -> list[str]:
     failures = []
     declarations = {suite: [] for suite in SUITES if any(row['suite'] == suite for row in rows)}
+    classes = []
+    parents = {}
+    pattern = re.compile(r'\bclass\s+(\w+)\s*:\s*([\w.]+)')
     for path in sorted((root / 'TrinketUITests').rglob('*.swift')):
         parts = path.relative_to(root).parts
-        if any(part in {'Performance', 'Support'} for part in parts):
-            continue
         suite = next((name for name in ('Smoke', 'Profiles', 'Soak') if name in parts), 'FullUI')
-        declarations.setdefault(suite, []).extend(re.findall(r'^[ \t]*(?:final\s+)?class\s+(\w+)\s*:\s*\w+UITestCase', path.read_text(), re.M))
+        eligible = not any(part in {'Performance', 'Support'} for part in parts)
+        try:
+            source = swift_code(path.read_text())
+        except ValueError as error:
+            raise ValueError(f'{path}: {error}') from error
+        for name, parent in pattern.findall(source):
+            parent = parent.rsplit('.', 1)[-1]
+            classes.append((name, parent, suite, eligible))
+            parents.setdefault(name, set()).add(parent)
+
+    def is_test_case(name: str, seen: set[str]) -> bool:
+        if name == 'XCTestCase' or name.endswith('UITestCase'):
+            return True
+        if name in seen:
+            return False
+        return any(is_test_case(parent, seen | {name}) for parent in parents.get(name, ()))
+
+    for name, parent, suite, eligible in classes:
+        if eligible and is_test_case(parent, set()):
+            declarations.setdefault(suite, []).append(name)
     for suite, declared in declarations.items():
         registered = {row['name'] for row in rows if row['suite'] == suite}
         if set(declared) != registered:
