@@ -30,7 +30,10 @@ let package = Package(
                 "TrinketFeatureSupport",
                 .product(name: "TrinketFeatureContracts", package: "TrinketFeatureSupport"),
             ],
-            resources: [.process("Resources")],
+            resources: [
+                .process("Resources/Localizable.xcstrings"),
+                .copy("Resources/BossIdles"),
+            ],
         ),
         .testTarget(
             name: "TrinketBattleFeatureTests",

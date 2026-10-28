@@ -29,6 +29,8 @@ extension View {
 
 struct BattleCombatantPane: View {
     @Environment(\.displayScale) private var displayScale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
     let combatant: Combatant
     let presentation: BattlePresentationState
     let health: Int
@@ -138,6 +140,15 @@ struct BattleCombatantPane: View {
 
     private var artworkLayer: some View {
         CombatantArtwork(combatant: combatant, variant: .battle)
+            .overlay {
+                if recoilDirection == .up, !isDefeated, !reduceMotion,
+                   let clips = BossIdleCatalog.clips(for: combatant.id) {
+                    BossIdleArtwork(clips: clips, isActive: scenePhase == .active)
+                        .id(combatant.id)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                }
+            }
     }
 
     private var resourceBars: some View {
