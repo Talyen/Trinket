@@ -7,7 +7,7 @@ public extension LabyrinthMapPresentation {
         for cluster: LabyrinthCluster,
         in state: PlayerLabyrinthState,
     ) -> [LabyrinthNode] {
-        cluster.nodeIDs.compactMap { state.nodes[$0] }.sorted {
+        cluster.nodeIDs.lazy.compactMap { state.nodes[$0] }.sorted {
             LabyrinthGridPosition.isOrderedBefore(
                 $0.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0),
                 $1.gridPosition ?? LabyrinthGridPosition(row: 0, column: 0),

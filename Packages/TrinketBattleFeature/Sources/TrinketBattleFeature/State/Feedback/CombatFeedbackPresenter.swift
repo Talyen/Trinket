@@ -172,7 +172,7 @@ enum CombatFeedbackPresenter {
                 if !payoffs.isEmpty {
                     let total = payoffs.reduce(0) { SaturatedArithmetic.saturatingAdd($0, $1.event.amount) }
                     label = .reactionPayoff(reaction, total)
-                    source.sourceEventIDs += payoffs.flatMap(\.sourceEventIDs)
+                    source.sourceEventIDs.append(contentsOf: payoffs.lazy.flatMap(\.sourceEventIDs))
                     for duplicate in sources where duplicate.event.id != source.event.id
                         && duplicate.event.kind == .reaction(reaction) && duplicate.event.targetID == source.event.targetID
                         && duplicate.event.feedbackGroupID == source.event.feedbackGroupID {

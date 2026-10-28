@@ -6,13 +6,21 @@ public extension Keyword {
         var seen = Set<String>()
         var unique: [(String, Self)] = []
         for keyword in allCases {
-            let terms = [keyword.rawValue] + [keyword.statusAlias].compactMap(\.self) + keyword.inflections
+            var terms = [keyword.rawValue]
+            if let alias = keyword.statusAlias {
+                terms.append(alias)
+            }
+            terms.append(contentsOf: keyword.inflections)
             for term in terms {
+                if seen.insert(term.lowercased()).inserted {
+                    unique.append((term, keyword))
+                }
+                guard term.contains("'") || term.contains("’") else { continue }
                 let alternate = term.contains("'")
                     ? term.replacingOccurrences(of: "'", with: "’")
                     : term.replacingOccurrences(of: "’", with: "'")
-                for spelling in [term, alternate] where seen.insert(spelling.lowercased()).inserted {
-                    unique.append((spelling, keyword))
+                if seen.insert(alternate.lowercased()).inserted {
+                    unique.append((alternate, keyword))
                 }
             }
         }

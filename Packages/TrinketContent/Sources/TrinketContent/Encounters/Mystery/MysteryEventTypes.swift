@@ -61,6 +61,8 @@ public struct MysteryEvent: Identifiable, Hashable, Sendable {
 
     public func narrative(for offers: [MysteryOffer]) -> String {
         choices.enumerated().reduce(narrative) { text, entry in
+            let marker = "{\(entry.offset == 0 ? "A" : "B")}"
+            guard text.contains(marker) else { return text }
             let item = offers.first { $0.choiceID == entry.element.id }?.item
             let base = item?.baseType
                 ?? entry.element.itemPool.flatMap { GameContent.itemBaseType(matching: $0.baseTypeID) }
@@ -74,7 +76,6 @@ public struct MysteryEvent: Identifiable, Hashable, Sendable {
                 let article = "aeiou".contains(name.prefix(1).lowercased()) ? "an" : "a"
                 phrase = "\(article) \(name)"
             }
-            let marker = "{\(entry.offset == 0 ? "A" : "B")}"
             let sentenceName = phrase.prefix(1).uppercased() + phrase.dropFirst()
             var result = text.replacingOccurrences(of: ". \(marker)", with: ". \(sentenceName)")
             if result.hasPrefix(marker) {

@@ -69,19 +69,22 @@ public struct HomesteadEffects: Equatable, Hashable, Sendable {
         _ amounts: [ResourceAmount], remainders: inout HomesteadRewardRemainders,
     ) -> [ResourceAmount] {
         guard gemsFindBonus != 0 || gemsFindPercent > 0 else { return amounts }
-        let gems = amounts.lazy.filter { $0.resource == .gems && $0.quantity > 0 }
-            .reduce(0) { SaturatedArithmetic.saturatingAdd($0, $1.quantity) }
-        guard gems > 0 else { return amounts }
+        var gems = 0
+        var firstGemIndex: Int?
+        for index in amounts.indices where amounts[index].resource == .gems && amounts[index].quantity > 0 {
+            if firstGemIndex == nil {
+                firstGemIndex = index
+            }
+            gems = SaturatedArithmetic.saturatingAdd(gems, amounts[index].quantity)
+        }
+        guard let index = firstGemIndex else { return amounts }
         let bonus = SaturatedArithmetic.saturatingAdd(
             gemsFindBonus, remainders.bonus(for: .gems, amount: gems, percent: gemsFindPercent),
         )
         guard bonus != 0 else { return amounts }
-        var applied = false
-        return amounts.map { amount in
-            guard amount.resource == .gems, amount.quantity > 0, !applied else { return amount }
-            applied = true
-            return ResourceAmount(.gems, SaturatedArithmetic.saturatingAdd(amount.quantity, bonus))
-        }
+        var adjusted = amounts
+        adjusted[index] = ResourceAmount(.gems, SaturatedArithmetic.saturatingAdd(amounts[index].quantity, bonus))
+        return adjusted
     }
 
     public func adjustedGold(_ amount: Int) -> Int {

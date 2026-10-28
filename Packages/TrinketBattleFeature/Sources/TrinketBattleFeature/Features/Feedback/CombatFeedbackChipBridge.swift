@@ -346,7 +346,7 @@ final class CombatFeedbackChipBridge {
     }
 
     var debugItemIDs: Set<Int> {
-        Set(itemsByTarget.values.flatMap(\.keys)).subtracting(evictedIDs)
+        Set(itemsByTarget.values.lazy.flatMap(\.keys)).subtracting(evictedIDs)
     }
 
     var debugNextAvailabilityDate: Date? {

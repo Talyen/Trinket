@@ -45,11 +45,11 @@ package extension BattleState {
         let protectedEffects = talents.turn.purgedEffectProtection
         let purgedBuffs: [LocalizedStringResource]
         if protectedEffects.count <= 1 {
-            purgedBuffs = protectedEffects.first.flatMap(purgedBuffName).map { [$0] } ?? []
+            purgedBuffs = protectedEffects.first.flatMap(Self.purgedBuffName).map { [$0] } ?? []
         } else {
             let canonicalLocale = Locale(identifier: "en")
-            purgedBuffs = protectedEffects.compactMap { kind in
-                purgedBuffName(kind).map { (resource: $0, sortKey: LocalizedGameText($0, locale: canonicalLocale).text) }
+            purgedBuffs = protectedEffects.lazy.compactMap { kind in
+                Self.purgedBuffName(kind).map { (resource: $0, sortKey: LocalizedGameText($0, locale: canonicalLocale).text) }
             }.sorted { $0.sortKey < $1.sortKey }.map(\.resource)
         }
         if !purgedBuffs.isEmpty {
@@ -74,7 +74,7 @@ package extension BattleState {
         return summaries
     }
 
-    private func purgedBuffName(_ kind: EffectKind) -> LocalizedStringResource? {
+    private static func purgedBuffName(_ kind: EffectKind) -> LocalizedStringResource? {
         switch kind {
         case .shield: L10n.summary_battlestate_effectsummaries_211d0bb8cf4f
         case .thorns: L10n.summary_battlestate_effectsummaries_d20c5a45f302

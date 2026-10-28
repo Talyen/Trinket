@@ -6,7 +6,7 @@ public enum NodeModifierCatalog {
     private static let originalCombatIDs: Set<NodeModifierID> = Set([
         "ironPressure", "ashTithe", "bloodMarket", "serpentBloom", "rimeTax", "sunTithe", "concussionToll",
         "bulwarkBargain", "vampiricLedger", "wardedFlesh", "frostboundWard",
-    ].map { NodeModifierID($0) })
+    ].lazy.map { NodeModifierID($0) })
 
     private static func combat(_ id: String, _ title: String, _ effect: NodeModifierEffect) -> NodeModifierDefinition {
         NodeModifierDefinition(id: NodeModifierID(id), title: title, effect: effect, nodeTypes: [.battle, .boss])
