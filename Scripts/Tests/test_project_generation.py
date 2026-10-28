@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -227,6 +228,39 @@ printf cached > "$cache"
         self.write('Scripts/tool-versions.env', 'XCODEGEN_WRAPPER_REV=2\n')
         self.git('commit', '-qm', 'tool revision')
         self.assertEqual((self.root / 'calls').read_text(), 'called\n')
+
+    def test_staged_check_drains_archive_padding_before_rejecting_mixed_tools(self):
+        self.write('Scripts/tool-versions.env', 'XCODEGEN_WRAPPER_REV=2\n')
+        self.git('add', 'Scripts/tool-versions.env')
+        self.write('Scripts/tool-versions.env', 'XCODEGEN_WRAPPER_REV=3\n')
+        index = (self.root / '.git/index').read_bytes()
+        git = shlex.quote(shutil.which('git'))
+        self.write('bin/git', '#!/bin/bash\n'
+                   'if [[ "$1" == archive ]]; then\n'
+                   f'  {git} "$@" || exit $?\n'
+                   '  exec /bin/dd if=/dev/zero bs=65536 count=128 2>/dev/null\n'
+                   'fi\n'
+                   f'exec {git} "$@"\n', executable=True)
+        self.env['PATH'] = str(self.root / 'bin') + os.pathsep + self.env['PATH']
+        result = self.run_command('bash', '.githooks/pre-commit', expected=1)
+        self.assertIn('staged/unstaged tool', result.stderr)
+        self.assertEqual((self.root / '.git/index').read_bytes(), index)
+        self.assertFalse((self.root / 'calls').exists())
+
+    def test_staged_check_rejects_failed_archive(self):
+        self.write('project.yml', 'changed\n')
+        self.git('add', 'project.yml')
+        index = (self.root / '.git/index').read_bytes()
+        git = shlex.quote(shutil.which('git'))
+        self.write('bin/git', '#!/bin/bash\n'
+                   '[[ "$1" != archive ]] || exit 7\n'
+                   f'exec {git} "$@"\n', executable=True)
+        self.env['PATH'] = str(self.root / 'bin') + os.pathsep + self.env['PATH']
+        result = subprocess.run(['bash', '.githooks/pre-commit'], cwd=self.root, env=self.env,
+                                stdin=subprocess.DEVNULL, capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual((self.root / '.git/index').read_bytes(), index)
+        self.assertFalse((self.root / 'calls').exists())
 
     def test_uncached_generation_repairs_output_and_tracks_input(self):
         for initial, spec in ((None, 'canonical\n'), ('damaged\n', 'canonical\n'),

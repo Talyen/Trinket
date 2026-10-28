@@ -33,7 +33,11 @@ export GIT_INDEX_FILE="$snapshot/index"
 # file membership and partially staged inputs, independently of working-tree edits.
 tree="$(git write-tree)"
 mkdir "$snapshot/repo"
-git archive "$tree" | tar -x -C "$snapshot/repo"
+git archive "$tree" | {
+  tar -x -C "$snapshot/repo"
+  # tar may stop at the end-of-archive marker before the writer emits its padding.
+  cat >/dev/null
+}
 
 # Compare tool and hook files directly with the staged tree. A content comparison
 # avoids trusting stale index stat metadata when a same-sized file changes quickly.
