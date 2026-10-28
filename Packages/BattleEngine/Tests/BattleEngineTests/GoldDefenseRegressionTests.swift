@@ -43,6 +43,7 @@ struct GoldDefenseRegressionTests {
             try play(.slash, owner: .hero, in: &battle)
         }
         try play(.feint, owner: .hero, in: &battle)
+        battle.insertEffect(.evadeNextHit, to: battle.hero, sourceID: battle.hero.id, remainingTurns: 0)
         let events = battle.performTestAction(.slash, from: .enemy, to: .hero)
         #expect(events.contains { $0.effectKind == .dodgeApplied })
         let held = battle.hand.cards + battle.hand.buffer

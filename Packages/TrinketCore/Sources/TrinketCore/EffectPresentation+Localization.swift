@@ -61,6 +61,9 @@ public enum EffectPresentation {
         case let .partyDamageBonus(amount):
             resource = L10n.effect_party_damage(amount); values = ["damage": amount]
         case .evadeNextHit: resource = L10n.effect_evade
+        case let .dodgeChanceUntilNextTurn(percent):
+            let amount = CombatRounding.rounded(percent * 100)
+            resource = L10n.effect_dodge_until_next_turn(amount); values = ["chance": amount]
         case .convertManaToBlock: resource = L10n.effect_mana_block
         case .shieldFromMana: resource = L10n.effect_block_mana
         case .shieldFromHalfMana: resource = L10n.effect_block_half_mana

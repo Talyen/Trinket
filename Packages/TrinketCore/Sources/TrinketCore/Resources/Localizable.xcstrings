@@ -575,6 +575,20 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "一次引爆所有剩餘%1$@，造成<value id=\"factor\">%2$lld</value>倍傷害"}}
       }
     },
+    "effect.dodge_until_next_turn": {
+      "comment": "Increase Dodge chance until the next turn. Preserve the chance value and Dodge keyword.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Erhalte bis zu deinem nächsten Zug +<value id=\"chance\">%1$lld</value>%% <keyword id=\"dodge\">Ausweichen</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Gain +<value id=\"chance\">%1$lld</value>%% <keyword id=\"dodge\">Dodge</keyword> until your next turn"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Obtienes +<value id=\"chance\">%1$lld</value>%% de <keyword id=\"dodge\">esquiva</keyword> hasta tu próximo turno"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Gagne +<value id=\"chance\">%1$lld</value>%% d’<keyword id=\"dodge\">Esquive</keyword> jusqu’à ton prochain tour"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "次のターンまで<keyword id=\"dodge\">回避</keyword>率が+<value id=\"chance\">%1$lld</value>%%増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "다음 턴까지 <keyword id=\"dodge\">회피</keyword> 확률 +<value id=\"chance\">%1$lld</value>%% 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Recebe +<value id=\"chance\">%1$lld</value>%% de <keyword id=\"dodge\">Esquiva</keyword> até seu próximo turno"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "直到你的下一回合，<keyword id=\"dodge\">閃避</keyword>機率提高 +<value id=\"chance\">%1$lld</value>%%"}}
+      }
+    },
     "effect.draw": {
       "comment": "Complete effect rule. Placeholder values correspond to their semantic <value id> labels; string arguments are already localized keyword names. Preserve rule mechanics and token identities.",
       "extractionState": "manual",

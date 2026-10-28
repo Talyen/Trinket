@@ -39,7 +39,39 @@ struct DrawAndPlayRegressionTests {
         #expect(!events.contains { $0.abilityID == Ability.slash.id })
         #expect(battle.health(of: battle.enemy) == enemyHealth)
         #expect(battle.companionDeck.abilities.first?.id == Ability.slash.id)
-        #expect(battle.activeEffects(of: battle.hero).contains { $0.effect == .evadeNextHit })
+        #expect(battle.roster.hero.talents.dodgeChanceBonus(atTurn: battle.turnCount) == 0.5)
+    }
+
+    @Test func `feint draws a manual card and grants Dodge until the next turn`() {
+        var context = BattleStateTestFactory.makeBattleWithAbilities(
+            heroMaxHealth: 100, enemyMaxHealth: 100, dealOpeningHand: false, appliesFightPacing: false,
+        )
+        context.heroDeck = CombatDeck(abilities: [.slash])
+        let enemyBefore = context.health(of: context.enemy)
+
+        let feintEvents = context.performTestAction(AbilityCatalog.feint)
+        #expect(!feintEvents.contains { $0.abilityID == Ability.slash.id && $0.kind == .abilityDamage })
+        #expect(context.health(of: context.enemy) == enemyBefore)
+        #expect(context.heroDeck.isEmpty)
+        #expect(context.hand.cards.map(\.ability.id) == [Ability.slash.id])
+        #expect(!context.activeEffects(of: context.hero).contains { $0.effect == .evadeNextHit })
+        #expect(DamagePipeline.dodgeChance(for: context.hero, attackerID: context.enemy.id, in: context) == 0.6)
+        #expect(context.effectSummaries(of: context.hero).contains { $0.keyword == .dodge && $0.text.contains("+50%") })
+
+        let enemyAttack = Ability(
+            id: "enemy-attack",
+            name: "Enemy Attack",
+            tier: .basic,
+            directDamage: 4,
+            damageKeyword: .physical,
+            criticalChanceBonus: -1,
+        )
+        _ = context.performTestAction(enemyAttack, from: .enemy, to: .hero)
+        #expect(DamagePipeline.dodgeChance(for: context.hero, attackerID: context.enemy.id, in: context) == 0.6)
+        context.roster.mutateRuntime(for: context.hero) { $0.talents.grantDodgeUntilNextTurn(0.2) }
+        #expect(DamagePipeline.dodgeChance(for: context.hero, attackerID: context.enemy.id, in: context) == 0.75)
+        _ = context.endTurn()
+        #expect(DamagePipeline.dodgeChance(for: context.hero, attackerID: context.enemy.id, in: context) == 0.1)
     }
 
     @Test(arguments: [1, 2])

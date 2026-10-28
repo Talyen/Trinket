@@ -29,6 +29,7 @@ public enum EffectKind: Hashable, CaseIterable, Sendable {
     case playNextCardTwice
     case nextBurnBonus
     case evadeNextHit
+    case dodgeChanceUntilNextTurn
     case convertManaToBlock
     case shieldFromMana
     case shieldFromHalfMana
@@ -116,7 +117,7 @@ public extension EffectKind {
              .purge, .purgeRandom, .halveShield,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold,
              .thornsFromBlockFraction,
-             .multiplyControlMeter, .multiplyDoT, .detonateDoT, .revive, .blessedAegis:
+             .multiplyControlMeter, .multiplyDoT, .detonateDoT, .revive, .blessedAegis, .dodgeChanceUntilNextTurn:
             [.instant]
         case .deathsDoor:
             [.advancesEachTurn]
@@ -168,6 +169,7 @@ public extension Effect {
         case .playNextCardTwice: .playNextCardTwice
         case .nextBurnBonus: .nextBurnBonus
         case .evadeNextHit: .evadeNextHit
+        case .dodgeChanceUntilNextTurn: .dodgeChanceUntilNextTurn
         case .convertManaToBlock: .convertManaToBlock
         case .shieldFromMana: .shieldFromMana
         case .shieldFromHalfMana: .shieldFromHalfMana
@@ -251,6 +253,7 @@ public extension Effect {
              .cleanse, .cleanseHealPerDebuff, .panacea, .cleanseRandom, .purge, .purgeRandom,
              .halveShield, .deathsDoor, .thorns, .thornsFromBlockFraction, .marked, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .nextBurnBonus, .evadeNextHit,
+             .dodgeChanceUntilNextTurn,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold,
              .maximumManaBonus, .nextStrikeCritical, .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .partyDamageBonus,
              .freezeNextAttacker, .onHitDamage, .multiplyControlMeter, .blessedAegis, .revive, .damageReductionPercent,

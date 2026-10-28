@@ -108,6 +108,7 @@ public enum Effect: Hashable, Sendable {
     case playNextCardTwice
     case nextBurnBonus(Int)
     case evadeNextHit
+    case dodgeChanceUntilNextTurn(Double)
     case convertManaToBlock
     case shieldFromMana
     case shieldFromHalfMana
@@ -174,7 +175,7 @@ public enum Effect: Hashable, Sendable {
         case .nextHolyStrike: .holy
         case .nextStrikeDouble, .playNextCardTwice: .physical
         case .nextBurnBonus: .burn
-        case .evadeNextHit: .dodge
+        case .evadeNextHit, .dodgeChanceUntilNextTurn: .dodge
         case .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold: .block
         case .maximumManaBonus: .mana
         case .nextStrikeCritical: .physical
@@ -248,7 +249,7 @@ public enum Effect: Hashable, Sendable {
         case .burn, .poison, .instantHeal, .resourceGain, .drawCards, .drawAndPlayCards, .cleanse, .cleanseRandom,
              .purge, .purgeRandom, .halveShield, .controlMeter, .deathsDoor,
              .shield, .thorns, .thornsFromBlockFraction, .nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .nextBurnBonus,
-             .evadeNextHit,
+             .evadeNextHit, .dodgeChanceUntilNextTurn,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
              .nextStrikeCritical, .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .partyDamageBonus,
              .freezeNextAttacker, .onHitDamage,
@@ -301,6 +302,7 @@ public enum Effect: Hashable, Sendable {
              .cleanseHealPerDebuff, .panacea,
              .deathsDoor, .thorns, .thornsFromBlockFraction, .criticalChanceBonus, .restoreManaOnHit,
              .damageKeywordOverride, .nextHolyStrike, .nextStrikeDouble, .playNextCardTwice, .nextBurnBonus, .evadeNextHit,
+             .dodgeChanceUntilNextTurn,
              .convertManaToBlock, .shieldFromMana, .shieldFromHalfMana, .shieldFromGold, .maximumManaBonus,
              .nextStrikeCritical, .nextStrikeLeech, .nextStrikeDamageKeywordOverride, .partyDamageBonus,
              .freezeNextAttacker, .onHitDamage,

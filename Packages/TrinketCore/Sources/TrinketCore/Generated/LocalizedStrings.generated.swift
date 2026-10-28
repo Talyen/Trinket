@@ -166,6 +166,10 @@ enum L10n {
         LocalizedStringResource("effect.detonate_dot", defaultValue: "Detonate all remaining \(value1) at once with ×<value id=\"factor\">\(value2)</value> damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static func effect_dodge_until_next_turn(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("effect.dodge_until_next_turn", defaultValue: "Gain +<value id=\"chance\">\(value1)</value>% <keyword id=\"dodge\">Dodge</keyword> until your next turn", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static func effect_draw(_ value1: Int) -> LocalizedStringResource {
         LocalizedStringResource("effect.draw", defaultValue: "Draw <value id=\"cards\">\(value1)</value> cards", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }

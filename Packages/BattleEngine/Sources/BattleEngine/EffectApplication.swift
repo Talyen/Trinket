@@ -71,6 +71,12 @@ struct EffectApplication {
         case .resourceGain: return EffectApplyOutcome(didApply: false)
         case .drawCards: return applyDrawCards(in: &context)
         case .drawAndPlayCards: return await applyDrawAndPlayCards(in: &context)
+        case let .dodgeChanceUntilNextTurn(amount):
+            guard amount.isFinite, amount > 0, target.role != .enemy, context.health(of: target) > 0 else {
+                return EffectApplyOutcome(didApply: false)
+            }
+            context.roster.mutateRuntime(for: target) { $0.talents.grantDodgeUntilNextTurn(amount) }
+            return EffectApplyOutcome(didApply: true)
         case let .cleanse(keyword):
             return await EffectRemovalOperation.resolveCleanse(
                 .all(keyword), source: source, target: target, abilityID: ability.id, abilityName: ability.name,
