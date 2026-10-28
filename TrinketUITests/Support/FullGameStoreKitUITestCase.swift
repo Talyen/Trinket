@@ -44,7 +44,7 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
         assertPurchaseProductLoaded()
     }
 
-    func assertFullGameAccess(_ expected: Bool) {
+    func assertFullGameAccess(_ expected: Bool, file: StaticString = #filePath, line: UInt = #line) {
         let matched = trinketWaitUntil(timeout: Self.defaultTimeout) {
             do { return try self.coverageReport()["fullGameAccess"] as? Bool == expected }
             catch { return false }
@@ -53,7 +53,11 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
         let transactions = storeSession?.allTransactions().map {
             "id=\($0.identifier) product=\($0.productIdentifier) state=\($0.state.rawValue) pending=\($0.pendingAskToBuyConfirmation) cancelled=\($0.cancelDate != nil)"
         } ?? []
-        XCTFail("Full Game access must become \(expected); diagnostics: \((try? coverageReport()) ?? [:]); transactions: \(transactions)")
+        XCTFail(
+            "Full Game access must become \(expected); diagnostics: \((try? coverageReport()) ?? [:]); transactions: \(transactions)",
+            file: file,
+            line: line,
+        )
     }
 
     func assertWarlockAccessible() {

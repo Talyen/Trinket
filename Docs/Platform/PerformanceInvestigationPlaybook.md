@@ -413,11 +413,23 @@ During capture, reproduce the exact interaction under the [evidence contract](#e
 
 ### Device qualification
 
-The active [iPhone performance campaign](../Plans/IPhonePerformance.md) owns
-recorded investigation results, remaining device evidence and restoration duties.
-Resume measurements under the investigation loop above; recheck capture
-availability, matching binaries/symbols and the actual device/build before reuse.
-Historical successes or closed experiments do not establish current readiness.
+Device performance qualification still requires a named shipping-build baseline,
+attributed hitch traces and an extended-session memory comparison under the
+investigation loop above. Recheck capture availability, matching binaries/symbols
+and the actual device/build before reuse. Historical successes or closed
+experiments do not establish current readiness. Do not start speculative cache or
+artwork changes before measurement identifies a player-impacting problem.
+
+The October performance and resource campaigns were retired without completing
+these device gates. Their evidence inventories remain in Git at
+`ba6aa1277:Docs/Plans/IPhonePerformance.md` and
+`ba6aa1277:Docs/Plans/ResourceEfficiency.md`; retained release artifacts and captures
+remain protected under the output-retention policy.
+
+Outstanding restoration note: the October 12 iPhone 14 Pro session temporarily
+disabled Auto-Brightness and set Auto-Lock to Never. At the next explicitly
+authorized device session, check current settings before restoring Auto-Brightness
+on and Auto-Lock to 30 seconds. Do not change the phone merely to close a plan.
 
 ## Memory and energy
 
