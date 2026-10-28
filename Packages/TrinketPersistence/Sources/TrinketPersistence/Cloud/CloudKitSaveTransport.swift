@@ -20,7 +20,13 @@ actor CloudKitSaveTransport: CloudSaveTransport {
         switch try await container.accountStatus() {
         case .available:
             let user = try await container.userRecordID()
-            return SHA256.hash(data: Data("\(scope)|\(user.recordName)".utf8)).map { String(format: "%02x", $0) }.joined()
+            let digest = SHA256.hash(data: Data("\(scope)|\(user.recordName)".utf8))
+            var identifier = ""
+            identifier.reserveCapacity(SHA256.byteCount * 2)
+            for byte in digest {
+                identifier += String(format: "%02x", byte)
+            }
+            return identifier
         case .noAccount, .restricted:
             preparedAccount = nil
             return nil

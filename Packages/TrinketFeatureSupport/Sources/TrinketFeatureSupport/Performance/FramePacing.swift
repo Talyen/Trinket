@@ -107,10 +107,10 @@ public enum FramePacingAnalyzer {
             guard interval > 0, interval.isFinite, expected > 0, expected.isFinite else { return nil }
             return (interval, expected)
         }
-        let expectedFrameDuration = median(samples.map(\.expected))
+        let expectedFrameDuration = median(samples.lazy.map(\.expected))
         guard expectedFrameDuration > 0 else { return .empty }
 
-        let sorted = samples.map(\.interval).sorted()
+        let sorted = samples.lazy.map(\.interval).sorted()
         guard !sorted.isEmpty else { return .empty }
 
         var totalDuration = 0.0
@@ -156,9 +156,9 @@ public enum FramePacingAnalyzer {
         return sorted[index]
     }
 
-    private static func median(_ values: [CFTimeInterval]) -> CFTimeInterval {
-        guard !values.isEmpty else { return 0 }
+    private static func median(_ values: some Sequence<CFTimeInterval>) -> CFTimeInterval {
         let sorted = values.sorted()
+        guard !sorted.isEmpty else { return 0 }
         let midpoint = sorted.count / 2
         if sorted.count.isMultiple(of: 2) {
             return (sorted[midpoint - 1] + sorted[midpoint]) / 2

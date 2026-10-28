@@ -3,9 +3,8 @@ import TrinketCore
 
 public extension GameContent {
     static let trinketItems: [InventoryItem] = itemBaseTypes
-        .filter { $0.slot == .trinket }
         .compactMap { base in
-            guard let definition = itemAffixDefinition(matching: base.id) else {
+            guard base.slot == .trinket, let definition = itemAffixDefinition(matching: base.id) else {
                 return nil
             }
             return InventoryItem(
@@ -18,10 +17,10 @@ public extension GameContent {
             )
         }
 
-    static let sampleInventoryItems: [InventoryItem] = itemBaseTypes
+    static let sampleInventoryItems: [InventoryItem] = itemBaseTypes.lazy
         .filter { $0.slot != .trinket }
         .flatMap { base in
-            Rarity.allCases
+            Rarity.allCases.lazy
                 .filter { $0 != .unique }
                 .map { rarity in
                     var randomNumberGenerator = SeededRandomNumberGenerator(

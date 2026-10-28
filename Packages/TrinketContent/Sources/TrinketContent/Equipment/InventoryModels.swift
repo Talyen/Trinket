@@ -225,7 +225,7 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         excluding destination: ItemSlot,
         inventory: [InventoryItem],
     ) -> Bool {
-        guard baseType.slot == .trinket else { return true }
+        guard baseType.slot == .trinket, !itemIDsBySlot.isEmpty else { return true }
         return ItemSlot.allCases.allSatisfy { slot in
             guard slot != destination,
                   slot.baseItemSlot == destination.baseItemSlot,
@@ -251,7 +251,8 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
     }
 
     public func itemIDs(inFamilyOf slot: ItemSlot) -> Set<String> {
-        Set(ItemSlot.allCases.lazy.compactMap { candidate in
+        guard !itemIDsBySlot.isEmpty else { return [] }
+        return Set(ItemSlot.allCases.lazy.compactMap { candidate in
             guard candidate.baseItemSlot == slot.baseItemSlot else { return nil }
             return itemIDsBySlot[candidate]
         })

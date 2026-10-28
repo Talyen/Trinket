@@ -17,6 +17,10 @@ public extension EquipmentLoadout {
         var unique: [String: EquipmentLoadout] = [:]
         for combatantID in orderedIDs {
             guard let loadout = loadouts[combatantID] else { continue }
+            guard !loadout.itemIDsBySlot.isEmpty else {
+                unique[combatantID] = loadout
+                continue
+            }
             var slots: [ItemSlot: String] = [:]
             for slot in ItemSlot.allCases {
                 guard let itemID = loadout.itemID(for: slot), claimedItemIDs.insert(itemID).inserted else { continue }

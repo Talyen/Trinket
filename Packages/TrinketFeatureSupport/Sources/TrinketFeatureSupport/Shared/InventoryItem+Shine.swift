@@ -30,7 +30,7 @@ public extension InventoryItem {
             return .itemText(colors: Shine.uniqueBorderColors)
         }
         guard isTrinket || rarity == .astral else { return .none }
-        let described = Set(displayedAffixes.flatMap { Keyword.referenced(in: $0.description) })
+        let described = Set(displayedAffixes.lazy.flatMap { Keyword.referenced(in: $0.description) })
         let ordered = described.sorted { $0.rawValue < $1.rawValue }
         let preferred = ordered.filter { baseType.keywordAffinities.contains($0) }
         let remaining = ordered.filter { !baseType.keywordAffinities.contains($0) }
