@@ -147,11 +147,12 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
                element.frame.minY >= visibleFrame.minY, element.frame.maxY <= visibleFrame.maxY {
                 return
             }
-            if element.exists, element.frame.midY < container.frame.midY {
-                container.swipeDown()
-            } else {
-                container.swipeUp()
-            }
+            // Full swipes can jump a large-text row from below the screen to
+            // above it, repeatedly overshooting the safe tap region.
+            let scrollDown = !element.exists || element.frame.midY >= container.frame.midY
+            let start = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: scrollDown ? 0.65 : 0.35))
+            let end = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: scrollDown ? 0.35 : 0.65))
+            start.press(forDuration: 0.05, thenDragTo: end)
         }
         throw NativeSettingsFailure(
             description: "Requested native setting is not reachable. Settings hierarchy: \(settings.debugDescription.suffix(10000))",
