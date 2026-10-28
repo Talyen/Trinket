@@ -4,6 +4,24 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BattleOutcomeBranchTests {
+    @Test(arguments: [Keyword.bleed, .poison])
+    func `caustic jab resolves one damage type without halving Block`(keyword: Keyword) throws {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            enemyMaxHealth: 500, heroModifiers: .withTriggers { $0.criticalChanceBonus = -1 },
+            dealOpeningHand: false, appliesFightPacing: false,
+        )
+        DefensePoolEngine.set(10, on: battle.enemy, in: &battle)
+        battle.rng = try BattleTestFixtures.rngSelectingOutcome(.causticJab, in: battle) {
+            $0.damageComponents.contains { $0.keyword == keyword }
+        }
+        let events = battle.performTestAction(.causticJab)
+        let hits = events.filter { $0.kind == .abilityDamage }
+        #expect(hits.count == 1)
+        #expect(hits.first?.keyword == keyword)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.enemy, in: battle) == 9)
+        #expect(!events.contains { $0.effectKind == .shieldHalved })
+    }
+
     @Test func `ordinary abilities preserve their definition and random state`() {
         var battle = BattleStateTestFactory.makeMinimalBattle(rngSeed: 7, appliesFightPacing: false)
         let initialRNG = battle.rng

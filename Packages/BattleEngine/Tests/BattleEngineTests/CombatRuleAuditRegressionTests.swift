@@ -50,6 +50,7 @@ struct CombatRuleAuditRegressionTests {
     }
 
     @Test func `Volatile Remedy waits for the next attack after Poison Dagger Leech`() throws {
+        let poisonAttack = Ability(id: "test-poison", name: "Poison", tier: .basic, directDamage: 1, damageKeyword: .poison)
         var profile = CombatantTalentCatalog.profile(for: ["alchemist_health_t3_2"])
         profile.triggers.poisonAttackLeech = true
         profile.triggers.criticalChanceBonus = -1
@@ -59,8 +60,8 @@ struct CombatRuleAuditRegressionTests {
         battle.roster.hero.currentHealth = 10
         let dagger = try play(.poisonDagger, in: &battle)
         #expect(dagger.filter { $0.kind == .abilityDamage && $0.abilityID == Ability.poisonDagger.id }.map(\.amount) == [1, 1])
-        let next = try play(.causticJab, in: &battle)
-        #expect(next.filter { $0.kind == .abilityDamage && $0.abilityID == Ability.causticJab.id }.map(\.amount) == [3])
+        let next = try play(poisonAttack, in: &battle)
+        #expect(next.filter { $0.kind == .abilityDamage && $0.abilityID == poisonAttack.id }.map(\.amount) == [3])
     }
 
     @Test func `Denouncing prepares a later Holy attack while Meteor finishes its Mana empowerment`() throws {

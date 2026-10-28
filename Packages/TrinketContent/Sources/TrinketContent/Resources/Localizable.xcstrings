@@ -12307,6 +12307,20 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "打破外殼"}}
       }
     },
+    "authored.c080d90520506e89": {
+      "comment": "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+Basic.swift: description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Füge <value id=\"quantity_1\">%1$lld</value> Schaden durch <keyword id=\"bleed\">Blutung</keyword> oder <keyword id=\"poison\">Gift</keyword> zu"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"bleed\">Bleed</keyword> or <keyword id=\"poison\">Poison</keyword> damage"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño por <keyword id=\"bleed\">Sangrado</keyword> o <keyword id=\"poison\">Veneno</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Inflige des dégâts de <keyword id=\"bleed\">Saignement</keyword> ou de <keyword id=\"poison\">Poison</keyword> à hauteur de <value id=\"quantity_1\">%1$lld</value>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">出血</keyword>または<keyword id=\"poison\">毒</keyword>によるダメージを<value id=\"quantity_1\">%1$lld</value>与える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"bleed\">출혈</keyword> 또는 <keyword id=\"poison\">독</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 줍니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cause <value id=\"quantity_1\">%1$lld</value> de dano de <keyword id=\"bleed\">Sangramento</keyword> ou <keyword id=\"poison\">Veneno</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "造成 <value id=\"quantity_1\">%1$lld</value> 點<keyword id=\"bleed\">流血</keyword>或<keyword id=\"poison\">中毒</keyword>傷害"}}
+      }
+    },
     "authored.c1c75f2574d8fb56": {
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+Skill.swift: description",
       "extractionState": "manual",

@@ -28,9 +28,10 @@ public extension AbilityCatalog {
 
     static let causticJab = Ability(
         id: "caustic-jab", name: "Caustic Jab", tier: .basic,
-        damageComponents: [DamageComponent(1, keyword: .poison)],
-        targetedEffects: [
-            TargetedEffect(.halveShield(.block), target: .enemy),
+        description: "Deal 1 Bleed or Poison damage",
+        outcomeBranches: [
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(1, keyword: .bleed)]),
+            AbilityOutcomeBranch(damageComponents: [DamageComponent(1, keyword: .poison)]),
         ],
     )
 

@@ -2085,6 +2085,8 @@ public enum ContentCopy {
             return (L10n.authored_bf6f3c7374c3a797, [])
         case "Break Shell":
             return (L10n.authored_bf941ca144d16e86, [])
+        case "Deal 1 Bleed or Poison damage":
+            return (L10n.authored_c080d90520506e89(1), [1])
         case "Halve enemy Block\nDeal 4 Physical damage":
             return (L10n.authored_c1c75f2574d8fb56(4), [4])
         case "Increased Leech":
@@ -5109,6 +5111,7 @@ public enum ContentCopy {
         NumericTemplate(prefix: "When empowering a Freeze ", regex: try? NSRegularExpression(pattern: "^When\\ empowering\\ a\\ Freeze\\ cards?,\\ spend\\ ([0-9]+)\\ Block\\ per\\ missing\\ Mana$"), count: 1, make: { values in L10n.authored_84db54a03c7a660e(values[0]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ to\\ ([0-9]+)\\ Burn\\ damage$"), count: 2, make: { values in L10n.authored_a54f62394e652e95(values[0], values[1]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Physical\\ damage\\\nDraw\\ a\\ cards?\\ from\\ your\\ ally's\\ deck\\\nIf\\ unavailable,\\ draw\\ from\\ your\\ deck$"), count: 1, make: { values in L10n.authored_afae16a3cf881d1d(values[0]) }),
+        NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Bleed\\ or\\ Poison\\ damage$"), count: 1, make: { values in L10n.authored_c080d90520506e89(values[0]) }),
         NumericTemplate(prefix: "Halve enemy Block\nDeal ", regex: try? NSRegularExpression(pattern: "^Halve\\ enemy\\ Block\\\nDeal\\ ([0-9]+)\\ Physical\\ damage$"), count: 1, make: { values in L10n.authored_c1c75f2574d8fb56(values[0]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Bleed\\ damage\\\nYour\\ next\\ attack\\ has\\ Leech$"), count: 1, make: { values in L10n.authored_c5ec2efd91341d6c(values[0]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Bleed\\ damage\\\nDeal\\ Stun\\ instead\\ against\\ enemies\\ with\\ Block$"), count: 1, make: { values in L10n.authored_c73204111b3bec52(values[0]) }),

@@ -75,6 +75,7 @@ extension TalentCatalogRoundTripTests {
     }
 
     @Test func `unstable culture rewards natural enemy poison expiry without accumulating multipliers`() throws {
+        let poisonAttack = Ability(id: "test-poison", name: "Poison", tier: .basic, directDamage: 1, damageKeyword: .poison)
         var profile = CombatantTalentCatalog.profile(for: ["alchemist_poison_t3_2"])
         profile.triggers.criticalChanceBonus = -1
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
@@ -86,20 +87,20 @@ extension TalentCatalogRoundTripTests {
             seedHeroTalentEffect(.poison(1), on: .enemy, in: &battle)
             CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
         }
-        try playHeroTalentCard(.causticJab, in: &battle)
+        try playHeroTalentCard(poisonAttack, in: &battle)
         #expect(talentPoints(.poison, on: .enemy, in: battle) == 2)
-        try playHeroTalentCard(.causticJab, in: &battle)
+        try playHeroTalentCard(poisonAttack, in: &battle)
         #expect(talentPoints(.poison, on: .enemy, in: battle) == 3)
         let cleanseEnemy = Ability(id: "enemy-cleanse", name: "Cleanse Enemy", tier: .skill, targetedEffects: [
             TargetedEffect(.cleanse(.poison), target: .enemy),
         ])
         try playHeroTalentCard(cleanseEnemy, in: &battle)
-        try playHeroTalentCard(.causticJab, in: &battle)
+        try playHeroTalentCard(poisonAttack, in: &battle)
         #expect(talentPoints(.poison, on: .enemy, in: battle) == 1)
         ActiveEffectMutation.removeMatching(from: battle.enemy, in: &battle) { $0.kind == .poison }
         seedHeroTalentEffect(.poison(1), on: .hero, in: &battle)
         CombatExecutor.run { await EffectTurnEngine.advanceAll(context: &battle) }
-        try playHeroTalentCard(.causticJab, in: &battle)
+        try playHeroTalentCard(poisonAttack, in: &battle)
         #expect(talentPoints(.poison, on: .enemy, in: battle) == 1)
     }
 }

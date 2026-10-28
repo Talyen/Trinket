@@ -3518,6 +3518,10 @@ enum L10n {
         LocalizedStringResource("authored.bf941ca144d16e86", defaultValue: "Break Shell", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
+    static func authored_c080d90520506e89(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("authored.c080d90520506e89", defaultValue: "Deal <value id=\"quantity_1\">\(value1)</value> <keyword id=\"bleed\">Bleed</keyword> or <keyword id=\"poison\">Poison</keyword> damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
     static func authored_c1c75f2574d8fb56(_ value1: Int) -> LocalizedStringResource {
         LocalizedStringResource("authored.c1c75f2574d8fb56", defaultValue: "Halve enemy <keyword id=\"block\">Block</keyword>\nDeal <value id=\"quantity_1\">\(value1)</value> <keyword id=\"physical\">Physical</keyword> damage", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
