@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+TRINKET_ENTRY_ARGS=("$@")
 cd "$(dirname "$0")/.."
 mode="${1:-}"
 case "$mode" in
@@ -13,6 +14,7 @@ case "$mode" in
 esac
 source Scripts/lib/verification-policy.sh
 trinket_require_heavy_verification 'Player coverage profiles and soak' || exit $?
+trinket_host_admit "$PWD/Scripts/player-coverage.sh" "${TRINKET_ENTRY_ARGS[@]+"${TRINKET_ENTRY_ARGS[@]}"}" || exit $?
 export TRINKET_ISOLATE=1
 source Scripts/run-env.sh
 source Scripts/ensure-simulator.sh

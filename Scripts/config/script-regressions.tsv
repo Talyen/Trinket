@@ -181,7 +181,7 @@ Scripts/lib/verification-policy.sh	test_package_diagnostics.py,test_ui_policy.py
 Scripts/lib/xcode-manifest.sh	test-xcode-runner.sh,test_ci_build_scripts.py,test_ci_session_scripts.py
 Scripts/lib/xcode-watchdog.sh	test-xcode-runner.sh,test_ci_build_scripts.py,test_ci_improvements.py,test_ci_session_scripts.py
 Scripts/lib/xcodebuild-infra.sh	test-xcode-runner.sh,test_ci_build_scripts.py,test_ci_session_scripts.py
-Scripts/lint-analyze.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_process.py,test_ci_build_scripts.py
+Scripts/lint-analyze.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_process.py,test_ci_build_scripts.py,test_verification_policy.py
 Scripts/lint.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_process.py,test_ci_build_scripts.py
 Scripts/native-test-results.py	test_ci_improvements.py
 Scripts/new-plan.sh	test_documentation.py
@@ -191,7 +191,7 @@ Scripts/performance.sh	test_aggregate_performance.py,test_compare_performance.py
 Scripts/performance_environment.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py,test_tooling_evidence.py
 Scripts/phase-timing.py	test_build_process.py,test_ci_build_scripts.py,test_output_retention.py,test_package_diagnostics.py,test_tooling_evidence.py
 Scripts/profile-device.py	test_profile_device.py,test_profile_exports.py,test_shared_build_lease.py
-Scripts/player-coverage.sh	test_player_coverage.py
+Scripts/player-coverage.sh	test_player_coverage.py,test_verification_policy.py
 Scripts/playthrough-sweep.sh	test_ci_session_scripts.py,test_playthrough_sweep.py,test_verification_policy.py
 Scripts/playthrough_sweep.py	test_ci_session_scripts.py,test_playthrough_sweep.py
 Scripts/pre-push-paths.py	test_ci_gate_scripts.py,test_pre_push.py,test_project_generation.py
@@ -200,7 +200,7 @@ Scripts/prepare-art-assets.sh	test_ci_build_scripts.py,test_media_asset_scripts.
 Scripts/prepare-assets.sh	test_asset_library.py,test_ci_build_scripts.py,test_media_asset_scripts.py
 Scripts/prepare-audio-assets.sh	test_asset_library.py,test_ci_build_scripts.py,test_media_asset_scripts.py
 Scripts/prepare-media.py	test_asset_library.py,test_ci_build_scripts.py,test_media_asset_scripts.py
-Scripts/promote.sh	test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py
+Scripts/promote.sh	test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py,test_verification_policy.py
 Scripts/prune-derived-data-cache.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_process.py,test_ci_build_scripts.py
 Scripts/record-time-profiler.sh	test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py
 Scripts/release-notes-user.py	test_release_notes_user.py

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+TRINKET_ENTRY_ARGS=("$@")
 
 cd "$(dirname "$0")/.."
 
@@ -27,6 +28,7 @@ fi
 
 source Scripts/lib/verification-policy.sh
 trinket_require_heavy_verification "Performance measurements" || exit $?
+trinket_host_admit "$PWD/Scripts/performance.sh" "${TRINKET_ENTRY_ARGS[@]+"${TRINKET_ENTRY_ARGS[@]}"}" || exit $?
 
 mkdir -p .DerivedData "$(dirname "$OUTPUT_DIR")"
 # shellcheck source=lib/lock.sh

@@ -15,7 +15,7 @@ from internal.cli import write_json_atomic
 
 
 def identity(pid):
-    result = subprocess.run(["ps", "-p", str(pid), "-o", "lstart="], capture_output=True, text=True, check=False)
+    result = subprocess.run(["ps", "-p", str(pid), "-o", "lstart="], capture_output=True, text=True, check=False, timeout=15)
     if result.returncode not in (0, 1) or result.returncode == 1 and (result.stderr.strip() or result.stdout.strip()):
         raise RuntimeError("Could not verify simulator owner")
     started = result.stdout.strip()
@@ -105,7 +105,7 @@ def cleanup(record):
         if not device or device["name"] != record["name"] or device["state"] == "Shutdown":
             return True
         # A foreign XCTest guest is not permission to shut down its device.
-        processes = subprocess.check_output(["ps", "-axo", "pid=,ppid=,command="], text=True)
+        processes = subprocess.check_output(["ps", "-axo", "pid=,ppid=,command="], text=True, timeout=15)
         rows = [line.strip().split(None, 2) for line in processes.splitlines()]
         parents = {row[0] for row in rows if len(row) == 3 and "launchd_sim" in row[2] and f"/Devices/{record['udid']}/" in row[2]}
         if any(len(row) == 3 and row[1] in parents and ("/Agents/xctest" in row[2] or "TrinketUITests-Runner" in row[2]) for row in rows):

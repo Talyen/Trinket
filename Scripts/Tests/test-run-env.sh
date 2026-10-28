@@ -40,6 +40,7 @@ set -euo pipefail
 # Preview device-set commands: list / shutdown / delete.
 if [[ "$#" -ge 4 && "$1" == "simctl" && "$2" == "--set" && "$3" == "previews" ]]; then
   if [[ "$4" == "list" ]]; then
+    if [[ -f "$FAKE_PREVIEW_LOG" ]] && grep -Fxq shutdown "$FAKE_PREVIEW_LOG"; then FAKE_PREVIEW_DEVICES=shutdown; fi
     # Banner mirrors real simctl --set previews list -j (JSON follows).
     echo "Using Previews Device Set: '/tmp/fake-previews'"
     case "${FAKE_PREVIEW_DEVICES:-empty}" in
@@ -569,12 +570,12 @@ bash -c '
   source Scripts/run-env.sh
   # Fake device list keeps agent-1 Booted forever, so the wait must hit its cap.
   started=$SECONDS
-  warning="$(TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS=1 trinket_sim_shutdown_wait agent-1 2>&1)"
+  if warning="$(TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS=1 trinket_sim_shutdown_wait agent-1 2>&1)"; then exit 1; fi
   elapsed=$(( SECONDS - started ))
   (( elapsed >= 1 ))
   (( elapsed <= 3 ))
   [[ "$warning" == *"did not reach Shutdown within 1s"* ]]
-  # A device that reports Shutdown (or an unknown udid) returns without waiting.
+  # Only an observed Shutdown proves completion.
   TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS=10 trinket_sim_shutdown_wait ci-1 >/dev/null
   TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS=0 trinket_sim_shutdown_wait agent-1 >/dev/null
 ' _ "$REPO" "$FAKE_BIN"

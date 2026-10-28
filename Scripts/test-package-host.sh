@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Native pure-logic verification; iOS comparators remain in manual/nightly CI.
 set -euo pipefail
+TRINKET_ENTRY_ARGS=("$@")
 cd "$(dirname "$0")/.."
 compare=false
 if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
@@ -14,6 +15,7 @@ for package in "$@"; do
 done
 source Scripts/lib/verification-policy.sh
 trinket_require_heavy_verification "Native package verification"
+trinket_host_admit "$PWD/Scripts/test-package-host.sh" "${TRINKET_ENTRY_ARGS[@]+"${TRINKET_ENTRY_ARGS[@]}"}" || exit $?
 source Scripts/build-freshness.sh
 source Scripts/run-env.sh
 trinket_run_env_init

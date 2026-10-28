@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Explicit clean-build analysis of the app and its production dependencies.
 set -euo pipefail
+TRINKET_ENTRY_ARGS=("$@")
 
 cd "$(dirname "$0")/.."
 if [[ "${1:-}" == --help || "${1:-}" == -h ]]; then
@@ -11,6 +12,10 @@ fi
 for path in "$@"; do
   [[ "$path" != -* && -e "$path" ]] || { echo "Expected an existing Swift file or directory: $path" >&2; exit 1; }
 done
+
+source Scripts/lib/verification-policy.sh
+trinket_require_heavy_verification "Clean analyzer build" || exit $?
+trinket_host_admit "$PWD/Scripts/lint-analyze.sh" "${TRINKET_ENTRY_ARGS[@]+"${TRINKET_ENTRY_ARGS[@]}"}" || exit $?
 
 # shellcheck source=lib/tools.sh
 source Scripts/lib/tools.sh

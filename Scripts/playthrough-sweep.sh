@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+TRINKET_ENTRY_ARGS=("$@")
 cd "$(dirname "$0")/.."
 for argument in "$@"; do
   if [[ "$argument" == "--help" || "$argument" == "-h" ]]; then
@@ -10,6 +11,7 @@ for argument in "$@"; do
 done
 source Scripts/lib/verification-policy.sh
 trinket_require_heavy_verification "Simulator playthrough sweeps" || exit $?
+trinket_host_admit "$PWD/Scripts/playthrough-sweep.sh" "${TRINKET_ENTRY_ARGS[@]+"${TRINKET_ENTRY_ARGS[@]}"}" || exit $?
 export TRINKET_ISOLATE=1
 source Scripts/run-env.sh
 source Scripts/ensure-simulator.sh

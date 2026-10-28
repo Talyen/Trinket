@@ -23,6 +23,57 @@ import signal
 import select
 
 class CISessionScriptTests(ScriptRegressionTestCase):
+    def test_shutdown_requires_evidence_and_bounds_stalled_commands(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            write_executable(root / 'xcrun', """#!/usr/bin/env python3
+import json, os, sys, time
+mode = os.environ['SHUTDOWN_CASE']
+args = sys.argv[1:]
+if (mode == 'stalled-shutdown' and args[1] == 'shutdown') or (mode == 'stalled-list' and args[1] == 'list'):
+    time.sleep(20)
+if args[1] == 'list':
+    if mode == 'failed-list': raise SystemExit(1)
+    if mode == 'invalid-list': print('invalid'); raise SystemExit(0)
+    records = [] if mode == 'missing' else [{'udid': 'owned', 'state': 'Shutdown'}]
+    print(json.dumps({'devices': {'runtime': records}}))
+""")
+            for mode in ('complete', 'missing', 'failed-list', 'invalid-list', 'stalled-shutdown', 'stalled-list'):
+                with self.subTest(mode=mode):
+                    result = run_captured(['bash', '-c', 'source "$1/Scripts/lib/simctl.sh"; trinket_sim_shutdown_wait owned',
+                                          '_', str(ROOT)], timeout=5,
+                        env={**os.environ, 'PATH': str(root) + os.pathsep + os.environ['PATH'],
+                             'SHUTDOWN_CASE': mode, 'TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS': '1'})
+                    self.assertEqual(result.returncode, 0 if mode == 'complete' else 1, result.stderr)
+
+    def test_failed_shutdown_prevents_erase_and_delete_even_in_conditionals(self) -> None:
+        script = r'''source "$1/Scripts/ensure-simulator.sh"
+SIMULATOR_UDID=owned
+shutdown_and_wait_simulator() { return 1; }
+xcrun() { echo unexpected-mutation; }
+boot_simulator() { echo unexpected-boot; }
+if erase_and_boot_simulator; then exit 91; fi
+if discard_simulator; then exit 92; fi
+[[ "$SIMULATOR_UDID" == owned ]]
+shutdown_and_wait_simulator() { return 0; }
+xcrun() { return 1; }
+if discard_simulator; then exit 93; fi
+[[ "$SIMULATOR_UDID" == owned ]]
+'''
+        result = run_captured(['bash', '-c', script, '_', str(ROOT)], expected=0)
+        self.assertNotIn('unexpected-', result.stdout)
+
+    def test_preview_reclaim_does_not_delete_after_failed_shutdown(self) -> None:
+        script = r'''source "$1/Scripts/lib/simctl.sh"
+TRINKET_CLEANUP_PREVIEW_SIMS=1
+xcrun() { if [[ "$*" == *list* ]]; then echo '{}'; else echo unexpected-delete; fi; }
+trinket_simctl_json() { cat >/dev/null; printf '1\t1\n'; }
+trinket_sim_shutdown_wait() { return 1; }
+trinket_preview_sims_reclaim
+'''
+        result = run_captured(['bash', '-c', script, '_', str(ROOT)], expected=0)
+        self.assertNotIn('unexpected-delete', result.stdout)
+
     def test_default_simulator_uses_newest_runtime_supporting_preferred_phone(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -991,7 +1042,8 @@ else:
 ''')
             env = {key: value for key, value in os.environ.items()
                    if not key.startswith("TRINKET_") and key not in {"DERIVED_DATA_PATH", "RESULTS_DIR", "GITHUB_ACTIONS"}}
-            env.update(PATH=f"{fake}:{env['PATH']}", MIRROR_CALLS=str(calls))
+            env.update(PATH=f"{fake}:{env['PATH']}", MIRROR_CALLS=str(calls),
+                       TRINKET_ALLOW_HEAVY_LOCAL="1", RYAN_HEAVY_LANE_ACTIVE="fixture")
             for build_status, install_status, product in ((0, 0, True), (65, 0, True), (0, 1, True), (0, 0, False)):
                 with self.subTest(build=build_status, install=install_status, product=product):
                     if not product:

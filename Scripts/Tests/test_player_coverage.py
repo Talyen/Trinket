@@ -230,7 +230,7 @@ class PlayerCoverageTests(unittest.TestCase):
             scripts = root / 'Scripts'
             (scripts / 'lib').mkdir(parents=True)
             (scripts / 'player-coverage.sh').write_text((ROOT / 'Scripts/player-coverage.sh').read_text())
-            (scripts / 'lib/verification-policy.sh').write_text('trinket_require_heavy_verification() { return 0; }\n')
+            (scripts / 'lib/verification-policy.sh').write_text('trinket_require_heavy_verification() { return 0; }\ntrinket_host_admit() { :; }\n')
             (scripts / 'run-env.sh').write_text('''trinket_run_env_init() { export DERIVED_DATA_PATH="$PWD/data" RESULTS_DIR="$PWD/data/TestResults" SIMULATOR_UDID=owned SIMULATOR_DESTINATION=fixture; }
 trinket_sim_slot_ensure() { :; }
 trinket_run_env_install_self_clean() { :; }
@@ -257,7 +257,7 @@ trinket_run_env_install_self_clean() { :; }
             scripts = root / 'Scripts'
             (scripts / 'lib').mkdir(parents=True)
             (scripts / 'player-coverage.sh').write_text((ROOT / 'Scripts/player-coverage.sh').read_text())
-            (scripts / 'lib/verification-policy.sh').write_text('trinket_require_heavy_verification() { return 0; }\n')
+            (scripts / 'lib/verification-policy.sh').write_text('trinket_require_heavy_verification() { return 0; }\ntrinket_host_admit() { :; }\n')
             (scripts / 'run-env.sh').write_text('''trinket_run_env_init() { export DERIVED_DATA_PATH="$PWD/data" RESULTS_DIR="$PWD/data/TestResults" SIMULATOR_UDID=owned SIMULATOR_DESTINATION=fixture-ios18; }
 trinket_sim_slot_ensure() { :; }
 trinket_run_env_install_self_clean() { :; }
@@ -367,7 +367,7 @@ if [ "$1" = "$FAILED_JOURNEY" ]; then exit 1; fi
             scripts = root / 'Scripts'
             (scripts / 'lib').mkdir(parents=True)
             (scripts / 'player-coverage.sh').write_text((ROOT / 'Scripts/player-coverage.sh').read_text())
-            (scripts / 'lib/verification-policy.sh').write_text('trinket_require_heavy_verification() { return 0; }\n')
+            (scripts / 'lib/verification-policy.sh').write_text('trinket_require_heavy_verification() { return 0; }\ntrinket_host_admit() { :; }\n')
             (scripts / 'run-env.sh').write_text('''trinket_run_env_init() { export DERIVED_DATA_PATH="$PWD/data" RESULTS_DIR="$PWD/data/TestResults" SIMULATOR_UDID=owned; }
 trinket_sim_slot_ensure() { :; }
 trinket_run_env_install_self_clean() { :; }

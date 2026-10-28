@@ -160,49 +160,56 @@ trinket_sim_shutdown_wait() {
   local device_set="${2:-}"
   local timeout_seconds="${TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS:-45}"
 
-  if [[ -n "$udid" && "$udid" != "all" ]]; then
-    if [[ -n "$device_set" ]]; then
-      xcrun simctl $device_set spawn "$udid" launchctl stop com.apple.PosterBoard >/dev/null 2>&1 || true
-      xcrun simctl $device_set shutdown "$udid" >/dev/null 2>&1 || true
-    else
-      xcrun simctl spawn "$udid" launchctl stop com.apple.PosterBoard >/dev/null 2>&1 || true
-      xcrun simctl shutdown "$udid" >/dev/null 2>&1 || true
-    fi
-  elif [[ "$udid" == "all" ]]; then
-    if [[ -n "$device_set" ]]; then
-      xcrun simctl $device_set shutdown all >/dev/null 2>&1 || true
-    else
-      xcrun simctl shutdown all >/dev/null 2>&1 || true
-    fi
-  fi
+  # Bound the commands as well as polling: CoreSimulator can stall even in list.
+  python3 - "$udid" "$device_set" "$timeout_seconds" <<'PY_SHUTDOWN'
+import json
+import shlex
+import subprocess
+import sys
+import time
 
-  [[ "$timeout_seconds" =~ ^[0-9]+$ ]] || timeout_seconds=45
-  (( timeout_seconds > 0 )) || return 0
+udid, device_set, configured = sys.argv[1:]
+seconds = int(configured) if configured.isascii() and configured.isdigit() else 45
+# Zero retains the explicit no-poll mode, with bounded command execution.
+deadline = time.monotonic() + (seconds or 45)
+command = ["xcrun", "simctl", *shlex.split(device_set)]
 
-  local deadline=$((SECONDS + timeout_seconds))
-  while (( SECONDS < deadline )); do
-    local state=""
-    if [[ -n "$udid" && "$udid" != "all" ]]; then
-      local sim_cmd=("xcrun" "simctl")
-      [[ -n "$device_set" ]] && sim_cmd+=($device_set)
-      sim_cmd+=("list" "devices" "$udid" "-j")
-      state="$("${sim_cmd[@]}" 2>/dev/null | trinket_simctl_json state-for-udid "${udid}" 2>/dev/null || true)"
-      if [[ "$state" == "Shutdown" || -z "$state" ]]; then
-        return 0
-      fi
-    else
-      local sim_cmd=("xcrun" "simctl")
-      [[ -n "$device_set" ]] && sim_cmd+=($device_set)
-      sim_cmd+=("list" "devices" "available" "-j")
-      local booted_count=0
-      booted_count="$("${sim_cmd[@]}" 2>/dev/null | trinket_simctl_json count-booted 2>/dev/null || echo 0)"
-      if (( booted_count == 0 )); then
-        return 0
-      fi
-    fi
-    sleep 0.25
-  done
-  echo "warning: simulator did not reach Shutdown within ${timeout_seconds}s (udid: $udid)" >&2
+def run(*args, capture=False):
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise TimeoutError("shutdown deadline exhausted")
+    return subprocess.run([*command, *args], timeout=remaining, text=True,
+                          stdout=subprocess.PIPE if capture else subprocess.DEVNULL,
+                          stderr=subprocess.DEVNULL, check=False)
+
+try:
+    if not udid:
+        raise ValueError("missing simulator UDID")
+    if udid != "all":
+        run("spawn", udid, "launchctl", "stop", "com.apple.PosterBoard")
+    run("shutdown", udid)
+    while seconds:
+        result = run("list", "devices", udid if udid != "all" else "available", "-j", capture=True)
+        if result.returncode:
+            raise ValueError("simulator inventory failed")
+        # Preview device sets can print a banner before their JSON object.
+        payload = json.loads(result.stdout[result.stdout.index("{"):])
+        groups = payload.get("devices")
+        if not isinstance(groups, dict) or not all(isinstance(group, list) for group in groups.values()):
+            raise ValueError("invalid simulator inventory")
+        devices = [device for group in groups.values() for device in group]
+        if not all(isinstance(device, dict) and device.get("udid") and device.get("state") for device in devices):
+            raise ValueError("incomplete simulator identity")
+        selected = devices if udid == "all" else [device for device in devices if device["udid"] == udid]
+        if udid != "all" and len(selected) != 1:
+            raise ValueError("simulator identity missing or ambiguous")
+        if all(device["state"] == "Shutdown" for device in selected):
+            break
+        time.sleep(min(.25, max(0, deadline - time.monotonic())))
+except (OSError, ValueError, TimeoutError, subprocess.SubprocessError) as error:
+    print(f"warning: simulator did not reach Shutdown within {seconds}s (udid: {udid}): {error}", file=sys.stderr)
+    sys.exit(1)
+PY_SHUTDOWN
 }
 
 trinket_preview_sims_reclaim() {
@@ -212,16 +219,6 @@ trinket_preview_sims_reclaim() {
   fi
   local enabled="${TRINKET_CLEANUP_PREVIEW_SIMS:-$default_cleanup}"
   [[ "$enabled" == "1" ]] || return 0
-
-  local previews_root="${HOME}/Library/Developer/Xcode/UserData/Previews"
-  local dir
-  for dir in \
-    "${previews_root}/Simulator Devices" \
-    "${previews_root}/Simulator%20Devices"
-  do
-    [[ -d "$dir" ]] || continue
-    find "$dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + >/dev/null 2>&1 || true
-  done
 
   local preview_counts=""
   if preview_counts="$(
@@ -243,7 +240,7 @@ trinket_preview_sims_reclaim() {
   if (( preview_total > 0 )); then
     echo "Simulator cleanup: reclaiming Xcode Preview devices (${preview_total} device(s), ${preview_booted} Booted)."
     if (( preview_booted > 0 )); then
-      trinket_sim_shutdown_wait "all" "--set previews"
+      trinket_sim_shutdown_wait "all" "--set previews" || return 0
     fi
     xcrun simctl --set previews delete all >/dev/null 2>&1 || true
   fi
@@ -332,7 +329,7 @@ trinket_simulator_enforce_single_warm_booted() {
         continue
       fi
       trinket_simulator_is_leased_name "${managed_names[$index]}" && continue
-      trinket_sim_shutdown_wait "${managed_udids[$index]}"
+      trinket_sim_shutdown_wait "${managed_udids[$index]}" || true
     done
 
     trinket_sim_cleanup_lock_release "$shared_root"
@@ -386,7 +383,7 @@ trinket_simulator_enforce_single_warm_booted() {
         continue
       fi
       trinket_simulator_is_leased_name "${agent_names[$index]}" && continue
-      trinket_sim_shutdown_wait "${agent_udids[$index]}"
+      trinket_sim_shutdown_wait "${agent_udids[$index]}" || true
     done
   fi
 
@@ -415,7 +412,7 @@ trinket_simulator_enforce_single_warm_booted() {
         continue
       fi
       trinket_simulator_is_leased_name "${run_names[$index]}" && continue
-      trinket_sim_shutdown_wait "${run_udids[$index]}"
+      trinket_sim_shutdown_wait "${run_udids[$index]}" || true
     done
   fi
 

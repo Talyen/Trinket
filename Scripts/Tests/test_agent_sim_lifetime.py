@@ -68,6 +68,21 @@ class AgentSimulatorLifetimeTests(unittest.TestCase):
             with patch.object(MODULE.subprocess, "run", return_value=result), self.assertRaises(RuntimeError):
                 MODULE.identity(100)
 
+    def test_stalled_process_queries_are_bounded_and_preserve_ownership(self):
+        with patch.object(MODULE.subprocess, "run", side_effect=subprocess.TimeoutExpired("ps", 15)) as run:
+            with self.assertRaises(subprocess.TimeoutExpired):
+                MODULE.identity(100)
+            self.assertEqual(run.call_args.kwargs["timeout"], 15)
+        commands, _ = self.commands()
+        with commands as run, patch.object(MODULE.subprocess, "check_output",
+                side_effect=subprocess.TimeoutExpired("ps", 15)) as snapshot:
+            with self.assertRaises(subprocess.TimeoutExpired):
+                MODULE.cleanup(self.record)
+            self.assertEqual(snapshot.call_args.kwargs["timeout"], 15)
+            self.assertEqual(run.call_count, 1, "Unknown guests must prevent shutdown")
+        self.assertFalse(self.slot.exists())
+        self.assertFalse((self.slot.parent / ".sim-lifecycle.lock").exists())
+
     def test_lease_deleted_during_notification_setup_is_a_release(self):
         with patch.object(Path, "read_text", side_effect=FileNotFoundError):
             self.assertFalse(MODULE.lease_active(self.record))

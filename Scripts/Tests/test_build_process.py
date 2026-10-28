@@ -229,6 +229,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
             for output, status, build_status, expected in cases:
                 with self.subTest(output=output, build_status=build_status, status=status):
                     env = {**os.environ, "PATH": f"{root}:{os.environ['PATH']}",
+                           "TRINKET_ALLOW_HEAVY_LOCAL": "1",
                            "ANALYZE_OUTPUT": output, "ANALYZE_STATUS": status, "BUILD_STATUS": build_status,
                            "ANALYZE_ARGUMENTS": str(root / "analyze-arguments")}
                     result = run_captured([str(scripts / "lint-analyze.sh"), "Probe.swift"], env=env)

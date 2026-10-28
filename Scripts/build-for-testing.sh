@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+TRINKET_ENTRY_ARGS=("$@")
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR/.."
@@ -43,6 +44,7 @@ done
 
 source Scripts/lib/verification-policy.sh
 trinket_require_heavy_verification "Build for testing" || exit $?
+trinket_host_admit "$PWD/Scripts/build-for-testing.sh" "${TRINKET_ENTRY_ARGS[@]+"${TRINKET_ENTRY_ARGS[@]}"}" || exit $?
 
 trinket_run_env_init
 trinket_run_env_print

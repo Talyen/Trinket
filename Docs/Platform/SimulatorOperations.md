@@ -11,6 +11,9 @@
 - Erase is a recovery operation after a failed cold boot, not routine cleanup.
   If simulator recovery fails, the Xcode runner stops without retrying the old
   destination and preserves the failed attempt’s log and result bundle.
+  Shutdown bounds both commands and polling; missing or unreadable device state
+  fails recovery before erase or deletion. Preview reclamation uses simctl after
+  confirmed shutdown rather than deleting Xcode’s backing directories directly.
   Quiet and verbose Xcode runs use the same wall-clock and post-result idle
   watchdogs; verbose output does not disable timeout protection.
 

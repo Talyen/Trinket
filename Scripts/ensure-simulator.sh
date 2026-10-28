@@ -29,8 +29,8 @@ shutdown_and_wait_simulator() {
 discard_simulator() {
   local target_udid="${1:-${SIMULATOR_UDID:-}}"
   [[ -n "$target_udid" ]] || return 0
-  shutdown_and_wait_simulator "$target_udid"
-  xcrun simctl delete "$target_udid" 2>/dev/null || true
+  shutdown_and_wait_simulator "$target_udid" || return 1
+  xcrun simctl delete "$target_udid" 2>/dev/null || return 1
   SIMULATOR_UDID=""
 }
 
@@ -65,7 +65,7 @@ resolve_or_create_simulator() {
       [[ -n "${TRINKET_SIM_SLOT_PATH:-}" && "${TRINKET_ISOLATE:-}" == "1" ]] || {
         echo "Explicit profile replacement requires a managed isolated lease." >&2; return 1;
       }
-      discard_simulator "$owned_existing"
+      discard_simulator "$owned_existing" || return 1
     fi
     SIMULATOR_UDID="$(xcrun simctl create "$SIMULATOR_NAME" "$profile_type" "$profile_runtime")" || return 1
     return 0
@@ -246,7 +246,7 @@ simulator_matches_name() {
 # swallowed into a silent recreate cascade.
 erase_and_boot_simulator() {
   echo "Erasing simulator as recovery: $SIMULATOR_NAME ($SIMULATOR_UDID)"
-  shutdown_and_wait_simulator "$SIMULATOR_UDID"
+  shutdown_and_wait_simulator "$SIMULATOR_UDID" || return 1
   if ! xcrun simctl erase "$SIMULATOR_UDID"; then
     echo "warning: simctl erase failed for $SIMULATOR_UDID; falling back to recreate" >&2
     return 1
@@ -312,7 +312,7 @@ ensure_test_simulator() {
       echo "::warning title=Simulator infrastructure retry::Cold boot failed; retrying after erase/recreate (attempt $attempt/$max_attempts)."
     fi
     simulator_recovery_has_time || return 1
-    [[ -n "${SIMULATOR_UDID:-}" ]] && discard_simulator
+    if [[ -n "${SIMULATOR_UDID:-}" ]]; then discard_simulator || return 1; fi
     if resolve_or_create_simulator && boot_simulator; then
       SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
       echo "Simulator ready: $SIMULATOR_DESTINATION"

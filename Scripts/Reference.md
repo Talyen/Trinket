@@ -186,7 +186,7 @@ maintenance pointers, not additional workflow steps. Helpers without dedicated h
 | `ci-diagnostics.sh --stage-artifacts <RESULTS_DIR> <ARTIFACT_DIR>` | Structured evidence outside source results and ancestors; `--stage-gate-artifacts` adds bounded gate/script logs |
 | `check-staged-project.sh`, `agent-push-gate.sh`, `validate-commit-msg.sh` | Git hooks; push gate is automatic, never a manual post-commit step |
 | `run-env.sh`, `xcode-runner.sh`, `build-freshness.sh`, `ensure-simulator.sh` | Build/test isolation, execution, freshness and stamps |
-| `lint-analyze.sh [SwiftPath ...]` | Optional clean app analysis; unused imports and zero analyzed files fail; outside CI/handoff/style |
+| `lint-analyze.sh [SwiftPath ...]` | Explicit heavy local clean app analysis through host admission; unused imports and zero analyzed files fail; outside handoff/style |
 
 All helper paths are under `Scripts/`. `verify.py --dry-run --paths …` exposes
 handoff's structured plan; `build-metadata.py --help` describes build identity.

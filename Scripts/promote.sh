@@ -3,6 +3,7 @@
 # Extracted from handoff.sh --mirror; handoff --mirror execs this script.
 # Install-only by default; never updates another agent simulator.
 set -euo pipefail
+TRINKET_ENTRY_ARGS=("$@")
 
 cd "$(dirname "$0")/.."
 
@@ -22,6 +23,10 @@ if [[ "${GITHUB_ACTIONS:-}" == "true" || "${TRINKET_PROMOTE_SKIP:-0}" == "1" ]];
   echo "Mirror skipped by environment."
   exit 0
 fi
+
+source Scripts/lib/verification-policy.sh
+trinket_require_heavy_verification "Simulator mirror build" || exit $?
+trinket_host_admit "$PWD/Scripts/promote.sh" "${TRINKET_ENTRY_ARGS[@]+"${TRINKET_ENTRY_ARGS[@]}"}" || exit $?
 
 export TRINKET_ISOLATE=1
 source Scripts/run-env.sh

@@ -20,7 +20,7 @@ class VerificationPolicyTests(ScriptRegressionTestCase):
             (scripts / 'run-env.sh').write_text('trinket_run_env_init() { echo prepared > preparation; return 99; }\n')
             (scripts / 'ensure-simulator.sh').write_text('')
             for settings, expected in (({}, 2), ({'GITHUB_ACTIONS': 'true'}, 99),
-                                       ({'TRINKET_ALLOW_HEAVY_LOCAL': '1'}, 99)):
+                                       ({'TRINKET_ALLOW_HEAVY_LOCAL': '1', 'RYAN_HEAVY_LANE_ACTIVE': 'fixture'}, 99)):
                 with self.subTest(settings=settings):
                     prepared = root / 'preparation'
                     prepared.unlink(missing_ok=True)
@@ -31,6 +31,8 @@ class VerificationPolicyTests(ScriptRegressionTestCase):
     def test_heavy_entrypoints_refuse_local_work_before_preparation(self):
         for command in (
             ['Scripts/build.sh'],
+            ['Scripts/lint-analyze.sh'],
+            ['Scripts/promote.sh'],
             ['Scripts/build.sh', '--release-device'],
             ['Scripts/test.sh', 'smoke', 'SmokeBattleTests'],
             ['Scripts/test.sh', 'ui', 'BattleFlowUITests'],
@@ -87,7 +89,8 @@ class VerificationPolicyTests(ScriptRegressionTestCase):
             root = Path(directory)
             scripts = root / 'Scripts'
             (scripts / 'lib').mkdir(parents=True)
-            for name in ('build.sh', 'test.sh', 'test-package.sh', 'run-simulator.sh', 'install-device.sh',
+            for name in ('build.sh', 'test.sh', 'test-package.sh', 'run-simulator.sh', 'install-device.sh', 'build-for-testing.sh', 'player-coverage.sh',
+                         'playthrough-sweep.sh', 'test-package-host.sh', 'lint-analyze.sh', 'promote.sh', 'performance.sh',
                          'lib/verification-policy.sh', 'lib/args.sh'):
                 (scripts / name).write_text((ROOT / 'Scripts' / name).read_text())
             (scripts / 'run-env.sh').write_text(
@@ -108,6 +111,13 @@ class VerificationPolicyTests(ScriptRegressionTestCase):
             (tools / 'python3').symlink_to(sys.executable)
             env['PATH'] = str(tools) + ':' + env['PATH']
             for name, args in (('build.sh', ['--release-device']),
+                               ('build-for-testing.sh', ['--app-only', '--reuse']),
+                               ('player-coverage.sh', ['soak']),
+                               ('playthrough-sweep.sh', ['--seed', '101']),
+                               ('test-package-host.sh', ['--compare-ios', 'TrinketCore']),
+                               ('lint-analyze.sh', []),
+                               ('promote.sh', ['--quiet']),
+                               ('performance.sh', ['--scenario', 'battle']),
                                ('test.sh', ['smoke', 'ExampleTests/testMethod']),
                                ('test-package.sh', ['--only-suite', 'ExampleTests', 'TrinketCore']),
                                ('run-simulator.sh', ['--isolate', '--unlocked', '--', '-launch-screen', 'battle']),
