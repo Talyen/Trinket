@@ -3,7 +3,8 @@
 # Both normal generation and the staged-project gate use this pinned entrypoint.
 trinket_generate_project() (
   set -euo pipefail
-  local tool_root="$1" project_root="$2" cache_dir
+  local tool_root="$1" project_root="$2" cache_dir output relative
+  local saved_outputs=()
   source "$tool_root/Scripts/lib/tools.sh"
   trinket_require_pinned_tools "$tool_root"
   export LC_ALL=C LANG=C
@@ -14,6 +15,16 @@ trinket_generate_project() (
   # shellcheck source=tempdir.sh
   source "$tool_root/Scripts/lib/tempdir.sh"
   trinket_mktemp_dir cache_dir trinket-xcodegen
+  # XcodeGen rewrites identical project/scheme files. Preserve their mtimes only
+  # after successful generation and final scheme patching agree byte-for-byte.
+  for output in "$project_root/Trinket.xcodeproj/project.pbxproj" \
+    "$project_root"/Trinket.xcodeproj/xcshareddata/xcschemes/*.xcscheme; do
+    [[ -f "$output" && ! -L "$output" ]] || continue
+    relative="${output#"$project_root"/}"
+    mkdir -p "$cache_dir/previous/$(dirname "$relative")"
+    cp -p "$output" "$cache_dir/previous/$relative"
+    saved_outputs+=("$relative")
+  done
   python3 "$tool_root/Scripts/check-testplan-sync.py" --generate --root "$project_root"
   "$tool_root/.tools/xcodegen" generate --spec "$project_root/project.yml" \
     --cache-path "$cache_dir/cache"
@@ -21,6 +32,12 @@ trinket_generate_project() (
   # leave the app and UI tests without the test store. Pin the authored paths
   # into the generated schemes deterministically (idempotent no-op otherwise).
   python3 "$tool_root/Scripts/apply-scheme-storekit.py" --project-root "$project_root"
+  for relative in "${saved_outputs[@]+"${saved_outputs[@]}"}"; do
+    output="$project_root/$relative"
+    if [[ -f "$output" && ! -L "$output" ]] && cmp -s "$cache_dir/previous/$relative" "$output"; then
+      touch -r "$cache_dir/previous/$relative" "$output"
+    fi
+  done
 )
 
 # Code inside synchronized source folders does not change project membership.

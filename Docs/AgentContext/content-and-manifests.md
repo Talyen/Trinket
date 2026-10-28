@@ -186,6 +186,9 @@ Project consistency and staged commit validation follow
 [Verification.md](../Platform/Verification.md#generated-project-consistency).
 
 Use `./Scripts/generate.sh` for project inputs; XcodeGen always runs uncached.
+After successful generation and scheme patching, byte-identical project and shared
+scheme files retain their previous modification times to avoid needless build
+input invalidation. Changed and repaired outputs keep their new timestamps.
 
 ## Generation tooling
 

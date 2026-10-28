@@ -245,6 +245,27 @@ printf cached > "$cache"
                 self.assertEqual(project.read_text(), spec)
         self.assertEqual((self.root / 'calls').read_text(), 'called\n' * 4)
 
+    def test_generation_preserves_only_unchanged_output_timestamps(self):
+        project = self.root / 'Trinket.xcodeproj/project.pbxproj'
+        old = 1_600_000_000_000_000_000
+        os.utime(project, ns=(old, old))
+        scheme = self.root / 'Trinket.xcodeproj/xcshareddata/xcschemes/Trinket Development.xcscheme'
+        self.write(str(scheme.relative_to(self.root)), 'scheme\n')
+        os.utime(scheme, ns=(old, old))
+        with (self.root / '.tools/xcodegen').open('a') as stream:
+            stream.write('printf "scheme\\n" > "$root/Trinket.xcodeproj/xcshareddata/xcschemes/Trinket Development.xcscheme"\n')
+        command = 'source Scripts/lib/project-generation.sh; trinket_generate_project "$PWD" "$PWD"'
+        self.run_command('bash', '-ec', command)
+        self.assertEqual(project.stat().st_mtime_ns, old)
+        self.assertEqual(scheme.stat().st_mtime_ns, old)
+        self.write('project.yml', 'changed\n')
+        self.run_command('bash', '-ec', command)
+        self.assertEqual(project.read_text(), 'changed\n')
+        self.assertNotEqual(project.stat().st_mtime_ns, old)
+        project.unlink()
+        self.run_command('bash', '-ec', command)
+        self.assertEqual(project.read_text(), 'changed\n')
+
     def test_push_hook_keeps_commit_completeness_for_project_changes(self):
         for relative in ('.githooks/pre-push', 'Scripts/pre-push-paths.py', 'Scripts/agent-push-gate.sh',
                          'Scripts/assert-generated-output.sh', 'Scripts/internal/change_routing.py',
