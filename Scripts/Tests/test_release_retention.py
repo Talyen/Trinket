@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 from contextlib import ExitStack
+import base64
 import json
 import os
 from pathlib import Path
@@ -14,6 +15,7 @@ import zipfile
 
 from internal import build_symbols as symbols
 from internal import output_retention as retention
+from internal import resource_lease
 from internal import release_retention as releases
 import test_build_symbols
 
@@ -76,6 +78,22 @@ class ReleaseRetentionTests(unittest.TestCase):
         preserved, _ = symbols.verified_release(self.receipt)
         self.assertTrue((preserved / 'Trinket.ipa').is_file())
         self.assertEqual(self.clean()[0], 0)
+
+    def test_unrelated_scoped_producer_does_not_block_verified_release_duplicates(self):
+        task = self.root / '.worktrees/other'
+        task.mkdir(parents=True)
+        (task / '.DerivedData').mkdir()
+        data = {'version': 1, 'pid': 123, 'started': 'start', 'checkout': str(task),
+                'paths': [[str(task), str(task)], [str(task / '.DerivedData'), str(task / '.DerivedData')]]}
+        token = resource_lease.PREFIX + base64.urlsafe_b64encode(json.dumps(data).encode()).decode()
+        slot = self.root / '.DerivedData/.active-build/other.slot'
+        slot.parent.mkdir(parents=True)
+        slot.write_text(f'123 build {token}\n')
+        with mock.patch.object(resource_lease, 'worktree_roots', return_value=(self.root, task)):
+            self.assertEqual(self.clean(False)[0], 3)
+            self.assertEqual(self.clean()[0], 3)
+        self.assertTrue(self.receipt_path.exists())
+        self.assertTrue(symbols.verified_release(self.receipt)[0].is_dir())
 
     def test_exported_working_copies_expire_only_with_verified_resume_backup(self):
         self.receipt['stage'] = 'exported'

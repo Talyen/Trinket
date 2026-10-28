@@ -90,10 +90,17 @@ trinket_bind_agent_slot() {
   fi
 }
 
+trinket_resource_scope() {
+  local owner="$1" root="${TRINKET_REPO_ROOT:-}"
+  [[ -n "$root" && -f "$root/Scripts/resource-lease.py" ]] || return 1
+  python3 "$root/Scripts/resource-lease.py" "$owner" "$root" \
+    "${DERIVED_DATA_PATH:-}" "${RESULTS_DIR:-}" "${TRINKET_PACKAGE_OUTPUT_ROOT:-}" "${TMPDIR:-}"
+}
+
 # Shared build consumers publish a lease under the same lifecycle lock used by
 # retention. Nested shells get their own marker; no live owner is reclaimed.
 trinket_build_lease_acquire() {
-  local owner lock_owner token state lock path cleanup
+  local owner lock_owner token state lock path cleanup scope
   lock_owner="${BASHPID:-}"
   [[ -n "$lock_owner" ]] || lock_owner="$(exec /bin/sh -c 'echo "$PPID"')"
   trinket_slot_owner_token token
@@ -114,7 +121,8 @@ trinket_build_lease_acquire() {
   fi
   mkdir -p "$state"
   path="$state/$owner-${RANDOM:-0}.slot"
-  if ! trinket_lock_claim_file "$path" "$owner build"; then
+  scope="$(trinket_resource_scope "$owner" 2>/dev/null || true)"
+  if ! trinket_lock_claim_file "$path" "$owner build $scope"; then
     trinket_dir_lock_release "$lock" "$lock_owner"
     return 1
   fi
@@ -140,9 +148,10 @@ trinket_sim_slot_acquire() {
 trinket_sim_slot_acquire_locked() {
   local max="${TRINKET_MAX_AGENT_SIMS:-1}"
   local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_simulator_state_root)/.active-sim}"
-  local n slot_path owner_pid owner_token
+  local n slot_path owner_pid owner_token scope
   owner_pid="${BASHPID:-$$}"
   trinket_slot_owner_token owner_token
+  scope="$(trinket_resource_scope "$owner_pid" 2>/dev/null || true)"
   mkdir -p "$active_dir"
   trinket_sim_slot_reap
 
@@ -156,7 +165,7 @@ trinket_sim_slot_acquire_locked() {
     if [[ -e "$slot_path" ]]; then
       continue
     fi
-    if trinket_lock_claim_file "$slot_path" "$owner_pid ${TRINKET_RUN_ID:-shared} $(date -u +%Y-%m-%dT%H:%M:%SZ)"; then
+    if trinket_lock_claim_file "$slot_path" "$owner_pid ${TRINKET_RUN_ID:-shared} $(date -u +%Y-%m-%dT%H:%M:%SZ) $scope"; then
       TRINKET_SIM_SLOT_PATH="$slot_path"
       TRINKET_SIM_SLOT_OWNER_PID="$owner_token"
       export TRINKET_SIM_SLOT_PATH
@@ -187,8 +196,21 @@ trinket_sim_slot_ensure() {
 }
 
 trinket_shared_sim_lease_acquire() {
+  local state="${TRINKET_SIM_STATE_ROOT:-$(trinket_run_env_simulator_state_root)}"
+  local lock="$state/.active-sim/.sim-lifecycle.lock" owner="${BASHPID:-}" result=0
+  [[ -n "$owner" ]] || owner="$(exec /bin/sh -c 'echo "$PPID"')"
+  [[ ! -L "$state" && ! -L "$state/.active-sim" ]] || return 1
+  trinket_dir_lock_acquire "$lock" 10 || return 1
+  trinket_shared_sim_lease_acquire_locked || result=$?
+  trinket_dir_lock_release "$lock" "$owner"
+  return "$result"
+}
+
+trinket_shared_sim_lease_acquire_locked() {
   local active_dir="${TRINKET_SIM_ACTIVE_DIR:-$(trinket_run_env_simulator_state_root)/.active-sim}"
   local path="$active_dir/run.slot"
+  local scope
+  scope="$(trinket_resource_scope "${BASHPID:-$$}" 2>/dev/null || true)"
   mkdir -p "$active_dir"
   trinket_sim_slot_reap
   if [[ -e "$path" ]]; then
@@ -196,7 +218,7 @@ trinket_shared_sim_lease_acquire() {
     echo "Options: wait for the active run to finish, or use --isolate for an agent-slot run. Linked worktrees share this lease." >&2
     return 1
   fi
-  if ! trinket_lock_claim_file "$path" "${BASHPID:-$$} ${TRINKET_RUN_ID:-shared} $(date -u +%Y-%m-%dT%H:%M:%SZ)"; then
+  if ! trinket_lock_claim_file "$path" "${BASHPID:-$$} ${TRINKET_RUN_ID:-shared} $(date -u +%Y-%m-%dT%H:%M:%SZ) $scope"; then
     echo "Trinket Run is busy: another run claimed the shared simulator lease." >&2
     echo "Options: wait for the active run to finish, or use --isolate for an agent-slot run. Linked worktrees share this lease." >&2
     return 1
@@ -208,11 +230,23 @@ trinket_shared_sim_lease_acquire() {
 }
 
 trinket_ui_slot_acquire() {
+  local state="${TRINKET_SIM_STATE_ROOT:-$(trinket_run_env_simulator_state_root)}"
+  local lock="$state/.active-sim/.sim-lifecycle.lock" owner="${BASHPID:-}" result=0
+  [[ -n "$owner" ]] || owner="$(exec /bin/sh -c 'echo "$PPID"')"
+  [[ ! -L "$state" && ! -L "$state/.active-sim" ]] || return 1
+  trinket_dir_lock_acquire "$lock" 10 || return 1
+  trinket_ui_slot_acquire_locked || result=$?
+  trinket_dir_lock_release "$lock" "$owner"
+  return "$result"
+}
+
+trinket_ui_slot_acquire_locked() {
   local max="${TRINKET_MAX_CONCURRENT_UI:-2}"
   local active_dir="${TRINKET_UI_ACTIVE_DIR:-$(trinket_run_env_simulator_state_root)/.active-ui}"
-  local slot_name count lock_path owner_pid owner_token
+  local slot_name count lock_path owner_pid owner_token scope
   owner_pid="${BASHPID:-$$}"
   trinket_slot_owner_token owner_token
+  scope="$(trinket_resource_scope "$owner_pid" 2>/dev/null || true)"
   mkdir -p "$active_dir"
   trinket_ui_slot_reap
 
@@ -235,7 +269,7 @@ trinket_ui_slot_acquire() {
 
   slot_name="${TRINKET_RUN_ID:-shared}-$owner_pid-${RANDOM:-0}-$(date -u +%Y%m%dT%H%M%SZ).slot"
   TRINKET_UI_SLOT_PATH="$active_dir/$slot_name"
-  if ! printf '%s %s %s\n' "$owner_pid" "${TRINKET_RUN_ID:-shared}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$TRINKET_UI_SLOT_PATH"; then
+  if ! printf '%s %s %s %s\n' "$owner_pid" "${TRINKET_RUN_ID:-shared}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$scope" > "$TRINKET_UI_SLOT_PATH"; then
     rm -f "$lock_path"
     return 1
   fi

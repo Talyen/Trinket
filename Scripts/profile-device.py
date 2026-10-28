@@ -257,7 +257,13 @@ def main() -> int:
                                  "policy": "explicit investigation pin" if args.retain_exports else "temporary; removed when command exits"}}
     lease = None
     try:
-        guard = shared_build_lease(ROOT)
+        app_path = args.app.resolve() if args.app else None
+        app_scope = (app_path.parents[2] if app_path and len(app_path.parents) > 2 and app_path.parents[2].suffix == '.xcarchive'
+                     else app_path.parent if app_path else None)
+        app_input = Path(os.path.abspath(args.app)) if args.app else None
+        symbol_input = Path(os.path.abspath(args.symbols)) if args.symbols else None
+        paths = tuple(path for path in (output, app_input, app_scope, symbol_input) if path is not None)
+        guard = shared_build_lease(ROOT, paths=paths)
         guard.__enter__()
         lease = guard
         developer = os.environ.get("DEVELOPER_DIR") or subprocess.check_output(

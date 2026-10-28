@@ -2,6 +2,7 @@
 from contextlib import contextmanager
 import os
 from pathlib import Path
+import subprocess
 import time
 import uuid
 
@@ -10,7 +11,7 @@ from internal.output_retention import safe_path
 
 
 @contextmanager
-def shared_build_lease(root: Path):
+def shared_build_lease(root: Path, *, paths: tuple[Path, ...] = ()):
     primary = primary_worktree_root(root)
     derived = primary / '.DerivedData'
     lock = derived / '.active-sim/.sim-lifecycle.lock'
@@ -34,8 +35,13 @@ def shared_build_lease(root: Path):
             raise ValueError('Unsafe shared build lease state')
         state.mkdir(parents=True, exist_ok=True)
         marker = state / f'{os.getpid()}-{uuid.uuid4().hex}.slot'
+        try:
+            from internal.resource_lease import make_scope
+            scope = make_scope(os.getpid(), root, [str(path) for path in paths])
+        except (ImportError, OSError, ValueError, RuntimeError, subprocess.SubprocessError):
+            scope = ''  # Legacy-wide protection is safer than an incomplete scope.
         with marker.open('x') as stream:
-            stream.write(f'{os.getpid()} build\n')
+            stream.write(f'{os.getpid()} build {scope}\n')
     finally:
         (lock / 'pid').unlink(missing_ok=True)
         lock.rmdir()

@@ -12,9 +12,10 @@ class StorageReportTests(ScriptRegressionTestCase):
     def test_unavailable_status_is_not_called_clean(self):
         listing = subprocess.CompletedProcess([], 0, 'worktree /main\0HEAD a\0\0worktree /task\0HEAD b\0', '')
         ancestor = subprocess.CompletedProcess([], 0, '', '')
-        with mock.patch.object(report, 'command', side_effect=[(listing, ''), (ancestor, ''), (None, 'timeout')]), \
+        with mock.patch.object(report, 'command', side_effect=[(listing, ''), (ancestor, ''), (None, 'timeout')]) as command, \
              mock.patch('builtins.print') as output:
             report.worktree_inventory(Path('/main'))
+        self.assertIn('core.fsmonitor=false', command.call_args_list[2].args[0])
         self.assertIn('status unknown', str(output.call_args_list))
         self.assertIn('activity and ignored files not assessed', str(output.call_args_list))
 

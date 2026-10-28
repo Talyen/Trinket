@@ -135,7 +135,7 @@ def retire_interrupted(run: Path, receipt_path: Path, receipt: dict, preserved: 
                     or {p.name for p in retired.iterdir()} - {'retired.json', 'contents'}):
                 continue
             newest, size = retention.metadata(retired)
-            if newest > now - MAX_AGE or retention.protection(retired, root, processes):
+            if newest > now - MAX_AGE or retention.protection(retired, root, processes, scoped=True):
                 continue
             opened = subprocess.run(['lsof', '-n', '-P', '+D', str(retired)], capture_output=True, text=True, timeout=30)
             if opened.returncode != 1 or opened.stdout.strip() or opened.stderr.strip():
@@ -153,9 +153,12 @@ def retire_interrupted(run: Path, receipt_path: Path, receipt: dict, preserved: 
                         continue
             if apply:
                 symbols.verified_release(receipt)
+                final_open = subprocess.run(['lsof', '-n', '-P', '+D', str(retired)],
+                                            capture_output=True, text=True, timeout=30)
                 if (json.loads(receipt_path.read_text()) != receipt
-                        or retention.protection(retired, root, retention.process_snapshot())
-                        or retention.metadata(retired)[0] > now - MAX_AGE):
+                        or retention.protection(retired, root, retention.process_snapshot(), scoped=True)
+                        or retention.metadata(retired)[0] > now - MAX_AGE
+                        or final_open.returncode != 1 or final_open.stdout.strip() or final_open.stderr.strip()):
                     continue
                 finish_retired_copy(retired)
             count += 1
@@ -185,7 +188,7 @@ def cleanup(root: Path, *, apply: bool, now: float | None = None, verbose: bool 
                 receipt = json.loads(receipt_path.read_text())
                 if receipt.get('schema') != 1 or receipt.get('stage') not in ('ready', 'exported'):
                     raise ValueError('Deployment is unfinished or has unknown state')
-                reason = retention.protection(run, root, processes)
+                reason = retention.protection(run, root, processes, scoped=True)
                 if reason:
                     raise ValueError(reason)
                 pending = run / '.retired-copies'
@@ -204,8 +207,12 @@ def cleanup(root: Path, *, apply: bool, now: float | None = None, verbose: bool 
                      f'allocatedBytes={retention.metadata(preserved)[1]}; no expiry')
                 if now < eligible_at:
                     raise ValueError(f'Duplicate grace period ends at {eligible_at:.0f}')
-                count, size = retire_interrupted(run, receipt_path, receipt, preserved, manifest,
-                                                 root, now, apply, processes, emit)
+                with retention.lifecycle_guard(root, apply=apply) as admitted:
+                    if not admitted:
+                        emit(f'SKIP {run}: simulator slot allocation is busy')
+                        continue
+                    count, size = retire_interrupted(run, receipt_path, receipt, preserved, manifest,
+                                                     root, now, apply, processes, emit)
                 removed += count
                 allocated += size
                 expanded = None
@@ -216,7 +223,7 @@ def cleanup(root: Path, *, apply: bool, now: float | None = None, verbose: bool 
                     newest, size = retention.metadata(path)
                     current = retention.process_snapshot() if apply else processes
                     current.pop(os.getpid(), None)
-                    reason = retention.protection(path, root, current)
+                    reason = retention.protection(path, root, current, scoped=True)
                     if reason or newest > now - MAX_AGE:
                         emit(f'SKIP {path}: {reason or "recent writes"}; allocatedBytes={size}')
                         continue
@@ -237,16 +244,23 @@ def cleanup(root: Path, *, apply: bool, now: float | None = None, verbose: bool 
                         emit(f'SKIP {path}: working copy differs from preserved release; allocatedBytes={size}')
                         continue
                     if apply:
-                        # Revalidate durable recovery immediately before each removal.
-                        symbols.verified_release(receipt)
-                        final_processes = retention.process_snapshot()
-                        final_processes.pop(os.getpid(), None)
-                        if (json.loads(receipt_path.read_text()) != receipt
-                                or retention.protection(path, root, final_processes)
-                                or retention.metadata(path)[0] > now - MAX_AGE):
-                            emit(f'SKIP {path}: receipt or owner changed')
-                            continue
-                        retire_working_copy(path, run, kind, receipt, root)
+                        with retention.lifecycle_guard(root, apply=True) as admitted:
+                            if not admitted:
+                                emit(f'SKIP {path}: simulator slot allocation is busy')
+                                continue
+                            # Revalidate durable recovery and ownership under the producer lock.
+                            symbols.verified_release(receipt)
+                            final_processes = retention.process_snapshot()
+                            final_processes.pop(os.getpid(), None)
+                            final_open = subprocess.run(['lsof', '-n', '-P', '+D' if path.is_dir() else '--', str(path)],
+                                                        capture_output=True, text=True, timeout=30)
+                            if (json.loads(receipt_path.read_text()) != receipt
+                                    or retention.protection(path, root, final_processes, scoped=True)
+                                    or retention.metadata(path)[0] > now - MAX_AGE
+                                    or final_open.returncode != 1 or final_open.stdout.strip() or final_open.stderr.strip()):
+                                emit(f'SKIP {path}: receipt, owner or open-file state changed')
+                                continue
+                            retire_working_copy(path, run, kind, receipt, root)
                     if decisions is not None:
                         decisions.append({'path': str(path), 'allocated_bytes': size,
                                           'action': 'removed' if apply else 'eligible',

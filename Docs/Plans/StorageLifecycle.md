@@ -10,45 +10,45 @@ expires: 2026-11-10
 
 ## Objective and boundaries
 
-Complete the storage workflow requested in this task without deleting active or
-unknown work, unique evidence, artwork masters, release archives, symbols or
-provenance. Pushes and player-resource changes remain outside this task.
+Finish safe storage cleanup without deleting active or unknown work, unique
+retained evidence, artwork masters, release archives, symbols or provenance.
+Pushes and player-resource changes remain outside this task.
 
 ## Completed locally
 
-- Final integration removes its checkout after preserving evidence; explicit
-  `--keep-worktree` retains intermediate work. Unknown ignored files stop automatic
-  removal and a failed cleanup does not undo landing.
-- New evidence manifests record hashes and unchanged files may clone prior verified
-  snapshot bytes. Bounded evidence compaction resumes across invocations and may
-  clone exact native-bundle files without changing their contents or paths.
-- A read-only storage report summarizes worktrees, evidence, derived data and
-  protected cleanup decisions. Guarded cleanup and compaction were run; the live
-  lease and unknown or explicitly kept items remained protected.
-- A recursive comparison of two `tech-stack-improvements` soak result snapshots
-  found only a different `.DS_Store`; that is one sample, not a complete duplicate
-  inventory or evidence that the underlying APFS blocks are independent.
+- Final integration preserves deliverables and removes its checkout when idle;
+  `--keep-worktree` retains intermediate work. Unknown ignored files or active
+  processes stop removal. Verified task-owned Git monitors stop through Git.
+- Evidence snapshots record hashes and clone verified unchanged files when possible.
+  Bounded compaction resumes between passes and does not convert native bundles.
+- Simulator, UI, build and device producers record their checkout and explicit
+  output paths when possible. Scoped cleanup rechecks owner identity and serializes
+  final removal with producer lease acquisition. Legacy, malformed, uninspectable
+  or retargeted-path leases remain global. TestFlight keeps its deployment lock.
+- A read-only audit classified 64,226 evidence files and compared duplicate bytes;
+  11,849 groups contained approximately 8.10 billion duplicate logical bytes.
+  Shared APFS extents, open-file ownership and metadata were not measured. Nearly
+  all duplicate members were recent or in registered worktrees; unique evidence
+  and keep markers were preserved. The full JSON and cleanup decisions are in the
+  retained `codex/storage-audit-scoping` task evidence.
+- Guarded cleanup removed six independently verified TestFlight working copies,
+  3,292,307,456 reported allocated bytes. Both authoritative backups and receipts
+  were reverified after removal. Volume free space rose by 3,996,434,432 bytes
+  during the observation window; other host activity makes attribution uncertain.
 
-## Remaining work
+## Remaining protected state
 
-- [ ] Establish resource-specific ownership for every simulator, UI, build and
-  release producer before narrowing broad lease protection. Existing lease slots
-  record process identity but not authoritative output roots; `DERIVED_DATA_PATH`
-  can be overridden. Unknown and legacy leases must continue to fail closed, and
-  a new owner must not race the final removal check. Validate concurrent producers,
-  open files, stale markers, custom paths and failed process inspection.
-- [ ] Re-run release duplicate inventory after active leases finish. Inspect old
-  unfinished or unknown release receipts and retain authoritative archives,
-  matching symbols and unique evidence. Review exact unique-evidence batches
-  before changing their retention; do not infer disposability from age.
-- [ ] Extend the read-only evidence inventory to classify artifact types and
-  identify byte-verified duplicate groups and their protection reasons. The
-  current report supplies task-level sizes, not a complete duplicate audit.
-- [ ] Assess integrated old worktrees individually when inactivity and ownership
-  are provable; clean Git status alone is insufficient. Preserve other chats and
-  ignored work. Re-run inventory and measure actual free-space changes.
+- [ ] Review the 29 unfinished or unknown deployment receipts when their owners or
+  state can be established. Build 42 is exported but has no registered authoritative
+  backup; retain its archive, IPA and inspection data. Do not replace unique evidence.
+- [ ] Assess old integrated worktrees only when their owners have finished and
+  inactivity is provable. A clean tree and ancestor relationship do not establish
+  that a retained checkout is no longer needed; do not poll or alter other chats.
+- [ ] Revisit eligible duplicate evidence after its retention window and once no
+  active or explicitly kept owner remains. Byte equality alone does not establish
+  physical savings or authorize deletion of unique evidence.
 
 Use [the isolated workflow](../../AGENTS.md#route-and-read),
 [output retention](../../Scripts/Reference.md#output-retention) and
-[verification policy](../Platform/Verification.md). Retain this plan until its
-remaining ownership and cleanup work is finished.
+[verification policy](../Platform/Verification.md). Retain this plan until the
+remaining ownership and release-state questions are resolved.

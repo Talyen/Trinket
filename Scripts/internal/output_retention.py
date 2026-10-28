@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from contextlib import contextmanager, nullcontext
 import fcntl
 import json
 import os
@@ -159,7 +160,7 @@ def process_alive(pid: int) -> bool:
         return True
 
 
-def protection(path: Path, root: Path, processes: dict[int, tuple[str, str]]) -> str:
+def protection(path: Path, root: Path, processes: dict[int, tuple[str, str]], *, scoped: bool = False) -> str:
     if not safe_path(path, root):
         return 'symlink or escaping path'
     original_path = str(path)
@@ -202,7 +203,9 @@ def protection(path: Path, root: Path, processes: dict[int, tuple[str, str]]) ->
     # Existing tenant slots and directory locks remain authoritative; PID reuse
     # conservatively preserves output rather than reclaiming a foreign job.
     derived = root / '.DerivedData'
-    runtime_output = path.is_relative_to(derived) or (path.name == '.build' and path.parent.parent == root / 'Packages')
+    runtime_output = (path.is_relative_to(derived)
+                      or (path.name == '.build' and path.parent.parent == root / 'Packages')
+                      or any(path.is_relative_to(root / name) for name in ('BalanceSweepReports', 'PlaythroughReports')))
     legacy_owner = legacy_runtime_owner(root, ('.active-sim', '.active-ui', '.active-build', '.simulator-cleanup.lock'))
     if legacy_owner is not None and runtime_output:
         return f'active or unknown legacy lease {legacy_owner}'
@@ -212,17 +215,31 @@ def protection(path: Path, root: Path, processes: dict[int, tuple[str, str]]) ->
     if (lease_state / '.active-build').is_symlink():
         return 'unknown build lease state'
     for directory in (lease_state / '.active-sim', lease_state / '.active-ui', lease_state / '.active-build'):
+        if directory.is_symlink():
+            return 'unknown lease state'
         if safe_path(directory, lease_root) and directory.is_dir():
-            slots.extend(p for p in directory.glob("*.slot") if p.is_file())
+            for entry in directory.glob('*.slot'):
+                if entry.is_symlink() or not entry.is_file():
+                    return 'unknown lease state'
+                slots.append((entry, True))
     for lock in (derived / '.performance.lock', derived / '.generate.lock', derived / 'testflight/.deploy.lock'):
         if lock.exists():
-            slots.append(lock / 'pid')
-    for slot in slots:
+            slots.append((lock / 'pid', False))
+    for slot, scope_allowed in slots:
         try:
             pid = int(slot.read_text().split()[0])
         except (OSError, ValueError, IndexError):
             return 'unknown lease or lock owner'
         if pid != os.getpid() and (pid in processes or process_alive(pid)) and runtime_output:
+            if scoped and scope_allowed:
+                try:
+                    if 'scope-v1:' in slot.read_text():
+                        from internal.resource_lease import overlaps, scope_for
+                        scopes = scope_for(slot, pid, processes, lease_root)
+                        if scopes is not None and not overlaps(path, scopes):
+                            continue
+                except (OSError, ImportError):
+                    pass  # Incomplete upgrades and unreadable markers remain global.
             return f'active lease or lock {pid}'
     return ''
 
@@ -417,6 +434,31 @@ def finish(path: Path, root: Path, pid: int, status: int, *, comparison: bool = 
         remove(path)
 
 
+@contextmanager
+def lifecycle_guard(root: Path, *, apply: bool):
+    """Serialize destructive retention with every managed lease acquisition."""
+    if not apply:
+        yield True
+        return
+    lease_root = primary_worktree_root(root)
+    lock = lease_root / '.DerivedData/.active-sim/.sim-lifecycle.lock'
+    if not safe_path(lock, lease_root):
+        yield False
+        return
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        lock.mkdir()
+    except FileExistsError:
+        yield False
+        return
+    try:
+        (lock / 'pid').write_text(str(os.getpid()) + '\n')
+        yield True
+    finally:
+        (lock / 'pid').unlink(missing_ok=True)
+        lock.rmdir()
+
+
 def expire_run_caches(root: Path, *, apply: bool, now: float, processes: dict,
                       verbose: bool, max_age: float, intermediates_only: bool = False,
                       products: bool = False,
@@ -428,28 +470,13 @@ def expire_run_caches(root: Path, *, apply: bool, now: float, processes: dict,
         return 0, 0
     def expire():
         return expire_paths(paths, root, apply=apply, now=now, processes=processes,
-                            verbose=verbose, max_age=max_age, check_open=True, decisions=decisions)
-    if not apply:
-        return expire()
-    # Slot allocation uses this same directory lock. A newly allocated agent
-    # cannot start writing a run cache between the last protection check and removal.
-    lease_root = primary_worktree_root(root)
-    lock = lease_root / '.DerivedData/.active-sim/.sim-lifecycle.lock'
-    if not safe_path(lock, lease_root):
-        return 0, 0
-    lock.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        lock.mkdir()
-    except FileExistsError:
+                            verbose=verbose, max_age=max_age, check_open=True, decisions=decisions, scoped=True)
+    with lifecycle_guard(root, apply=apply) as admitted:
+        if admitted:
+            return expire()
         if verbose:
             print('SKIP run cache expiry: simulator slot allocation is busy')
         return 0, 0
-    try:
-        (lock / 'pid').write_text(str(os.getpid()) + '\n')
-        return expire()
-    finally:
-        (lock / 'pid').unlink(missing_ok=True)
-        lock.rmdir()
 
 
 def prepare_cleanup_receipt(path: Path, root: Path) -> None:
@@ -517,7 +544,8 @@ def cleanup(root: Path, *, apply: bool, experiments: bool = False,
     inside = [p for p in paths if p.is_relative_to(root)]
     outside = [p for p in paths if not p.is_relative_to(root)]
     immediate = {root / '.DerivedData' / name for name in EXPERIMENTS} if experiments else set()
-    a, b = expire_paths(inside, root, apply=apply, now=now, processes=processes, verbose=verbose, immediate=immediate)
+    a, b = expire_paths(inside, root, apply=apply, now=now, processes=processes,
+                        verbose=verbose, immediate=immediate, scoped=True, guard_each=True)
     c, d = expire_paths(outside, temporary, apply=apply, now=now, processes=processes, verbose=verbose)
     emit(f'{"Removed" if apply else "Eligible"}: {a + c + e} outputs, {b + d + f} allocated bytes ({(b + d + f) / 1024**3:.2f} GiB).')
     return a + c + e, b + d + f
@@ -526,7 +554,8 @@ def cleanup(root: Path, *, apply: bool, experiments: bool = False,
 def expire_paths(paths: list[Path], boundary: Path, *, apply: bool, now: float | None = None,
                  processes: dict[int, tuple[str, str]] | None = None, verbose: bool = True,
                  immediate: set[Path] | None = None, max_age: float | None = None,
-                 check_open: bool = False, decisions: list | None = None) -> tuple[int, int]:
+                 check_open: bool = False, decisions: list | None = None, scoped: bool = False,
+                 guard_each: bool = False) -> tuple[int, int]:
     now = time.time() if now is None else now
     processes = process_snapshot() if processes is None else processes
     emit = print if verbose else lambda *args: None
@@ -536,12 +565,17 @@ def expire_paths(paths: list[Path], boundary: Path, *, apply: bool, now: float |
     for path in sorted(set(paths)):
         if not path.exists() and not path.is_symlink():
             continue
-        reason = protection(path, boundary, processes)
+        reason = protection(path, boundary, processes, scoped=scoped)
         if reason:
             emit(f'SKIP {path}: {reason}')
             continue
         if path.name in {'timing-log.jsonl', 'phase-timing.jsonl'}:
-            removed = update_timing(path, apply=apply, now=now)
+            guard = lifecycle_guard(boundary, apply=True) if apply and guard_each else nullcontext(True)
+            with guard as admitted:
+                if not admitted or (apply and protection(path, boundary, process_snapshot(), scoped=scoped)):
+                    emit(f'SKIP {path}: lease changed or lifecycle is busy')
+                    continue
+                removed = update_timing(path, apply=apply, now=now)
             if removed:
                 emit(f'{"PRUNE" if apply else "WOULD PRUNE"} {path}: {removed} expired timing entries')
             continue
@@ -560,7 +594,7 @@ def expire_paths(paths: list[Path], boundary: Path, *, apply: bool, now: float |
             continue
         # Recheck before mutation: new keep controls or owners invalidate a candidate.
         if apply:
-            reason = protection(path, boundary, process_snapshot())
+            reason = protection(path, boundary, process_snapshot(), scoped=scoped)
             if reason:
                 emit(f'SKIP {path}: {reason}')
                 continue
@@ -576,23 +610,25 @@ def expire_paths(paths: list[Path], boundary: Path, *, apply: bool, now: float |
                 emit(f'SKIP {path}: exact device binaries and symbols are not independently verified')
                 continue
         if apply:
-            if (not path.exists() or (path not in immediate and metadata(path)[0] > now - max_age)
-                    or (shared and unmanaged_build_active())
-                    or (device_products and not verified_device_products(path))):
-                continue
-            if shared and (unmanaged_build_active() or protection(path, boundary, process_snapshot())):
-                continue
-            if shared:
+            guard = lifecycle_guard(boundary, apply=True) if guard_each else nullcontext(True)
+            with guard as admitted:
+                if (not admitted or not path.exists()
+                        or protection(path, boundary, process_snapshot(), scoped=scoped)
+                        or (path not in immediate and metadata(path)[0] > now - max_age)
+                        or (shared and unmanaged_build_active())
+                        or (device_products and not verified_device_products(path))):
+                    continue
                 reopened = subprocess.run(['lsof', '-n', '-P', '+D', str(path)],
-                                          capture_output=True, text=True, timeout=30)
+                                          capture_output=True, text=True, timeout=30) if path.is_dir() else subprocess.run(
+                                              ['lsof', '-n', '-P', '--', str(path)], capture_output=True, text=True, timeout=30)
                 if reopened.returncode != 1 or reopened.stdout.strip() or reopened.stderr.strip():
                     continue
-            if shared or (path.name == 'Products' and path.is_relative_to(boundary / '.DerivedData/runs')):
-                remove_products(path, boundary)
-            elif path.parent == boundary / '.DerivedData/Retention/retired-products':
-                finish_retired_products(path)
-            else:
-                remove(path)
+                if shared or (path.name == 'Products' and path.is_relative_to(boundary / '.DerivedData/runs')):
+                    remove_products(path, boundary)
+                elif path.parent == boundary / '.DerivedData/Retention/retired-products':
+                    finish_retired_products(path)
+                else:
+                    remove(path)
         if decisions is not None:
             purpose = ('Rebuildable agent products' if path.name == 'Products'
                        else 'Compiler intermediates; products, logs, releases and package sources excluded')

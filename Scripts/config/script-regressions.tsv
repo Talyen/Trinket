@@ -111,6 +111,10 @@ Scripts/internal/agent_tasks.py	test_agent_context.py,test_agent_investigate.py,
 Scripts/internal/build_symbols.py	test_profile_inventory.py,test_build_symbols.py,test_profile_device.py,test_testflight.py,test_release_retention.py,test_device_product_retention.py
 Scripts/internal/device_product_retention.py	test_device_product_retention.py,test_output_retention.py
 Scripts/internal/release_retention.py	test_release_retention.py
+Scripts/internal/resource_lease.py	test_resource_lease.py,test_shared_build_lease.py,test_release_retention.py
+Scripts/resource-lease.py	test_resource_lease.py
+Scripts/report-evidence.py	test_evidence_audit.py
+Scripts/report-storage.py	test_storage_report.py
 Scripts/report-build-size.py	test_build_size.py
 Scripts/report-cache-footprint.py	test_cache_footprint.py,test_ci_improvements.py
 Scripts/report-profile-inventory.py	test_profile_inventory.py
@@ -142,7 +146,7 @@ Scripts/internal/markdown.py	test_agent_read.py,test_agent_search.py,test_conten
 Scripts/internal/mechanical_policy.py	test_swift_invariants.py,test_ui_policy.py
 Scripts/internal/media_templates/*	test_asset_library.py,test_media_asset_scripts.py
 Scripts/internal/module_policy.py	test_policy_scripts.py
-Scripts/internal/output_retention.py	test_cache_footprint.py,test_agent_read.py,test_agent_sim_lifetime.py,test_balance_report_retention.py,test_build_process.py,test_ci_session_scripts.py,test_documentation.py,test_failure_diagnostics.py,test_output_retention.py,test_performance_scenarios.py,test_playthrough_sweep.py,test_test_timing.py,test_testflight.py,test_release_retention.py,test_build_size.py,test_shared_build_lease.py,test_device_product_retention.py
+Scripts/internal/output_retention.py	test_cache_footprint.py,test_agent_read.py,test_agent_sim_lifetime.py,test_balance_report_retention.py,test_build_process.py,test_ci_session_scripts.py,test_documentation.py,test_failure_diagnostics.py,test_output_retention.py,test_performance_scenarios.py,test_playthrough_sweep.py,test_test_timing.py,test_testflight.py,test_release_retention.py,test_build_size.py,test_shared_build_lease.py,test_device_product_retention.py,test_resource_lease.py
 Scripts/internal/performance/performance_model.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py,test_tooling_evidence.py
 Scripts/internal/playthrough_report.py	test_playthrough_sweep.py
 Scripts/internal/policy_scan.py	test_policy_scripts.py,test_swift_invariants.py,test_swift_style_policy.py,test_ui_policy.py,test_ci_build_scripts.py
@@ -166,7 +170,7 @@ Scripts/lib/output-retention.sh	test_agent_read.py,test_balance_report_retention
 Scripts/lib/project-generation.sh	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py
 Scripts/lib/promote.sh	test_ci_build_scripts.py,test_ci_session_scripts.py,test_release_notes_user.py
 Scripts/lib/simctl.sh	test-run-env.sh,test_agent_sim_lifetime.py,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py
-Scripts/lib/slots.sh	test-run-env.sh,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py,test_shared_build_lease.py
+Scripts/lib/slots.sh	test-run-env.sh,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py,test_shared_build_lease.py,test_resource_lease.py
 Scripts/lib/tempdir.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_process.py,test_ci_build_scripts.py
 Scripts/lib/test-helpers.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_metadata.py,test_build_process.py,test_ci_build_scripts.py
 Scripts/lib/test-style.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_process.py,test_ci_build_scripts.py,test_policy_scripts.py

@@ -289,6 +289,10 @@ Git state and guarded cleanup summaries without mutation. Add `--details` for
 individual cleanup decisions or `--evidence-details` for task-level evidence sizes.
 Clean status and ancestry do not prove inactivity;
 APFS allocation estimates may share extents and are not reclaimable-space promises.
+`python3 Scripts/report-evidence.py` emits a read-only JSON inventory of retained
+evidence, artifact classes, byte-compared duplicate groups, protection markers and
+read errors. The comparison is a point-in-time audit; open-file ownership, native
+metadata and shared APFS extents are not determined by matching bytes.
 
 This matrix owns artifact lifetimes and cleanup eligibility. The executable owners
 are [output retention](internal/output_retention.py),
@@ -316,8 +320,14 @@ producing hosted workflows. Age alone never proves that an artifact is disposabl
 All local removal preserves live or unknown owners, leases, locks, keep markers
 and unavailable process/open-file inventories. Symlinks are never followed.
 Shared Xcode/host/device caches, pinned tools, generated freshness state and
-arbitrary legacy build directories are outside ordinary expiry. Process queries
-inspect only this invocation/direct owner and scoped open files. Cleanup is
+arbitrary legacy build directories are outside ordinary expiry. Managed simulator,
+UI and build leases record their checkout and explicit output paths, with PID/start
+identity. Cleanup can disregard a valid disjoint lease only while serializing its
+final mutation with the same lifecycle lock used by producers. Legacy, malformed,
+uninspectable, missing-path, user-replaceable symlink and retargeted-path leases
+remain globally protective; deployment
+locks remain independent. Process queries inspect this invocation/direct owner,
+exact recorded lease PIDs and scoped open files. Cleanup is
 explicit or opportunistic through existing tools, with no background job.
 
 `python3 Scripts/cleanup-outputs.py --dry-run` lists known candidates, protection

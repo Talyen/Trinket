@@ -49,7 +49,9 @@ def worktree_inventory(root):
             print('  unknown worktree registration; preserve')
             continue
         ancestor, _ = command(['git', '-C', str(root), 'merge-base', '--is-ancestor', head, 'main'], timeout=10)
-        status, _ = command(['git', '-C', path, 'status', '--porcelain', '--untracked-files=normal'], timeout=10)
+        # A read-only inventory should not start a persistent monitor in each checkout.
+        status, _ = command(['git', '-c', 'core.fsmonitor=false', '-C', path,
+                             'status', '--porcelain', '--untracked-files=normal'], timeout=10)
         relation = 'ancestor of main' if ancestor is not None and ancestor.returncode == 0 else (
             'not an ancestor' if ancestor is not None and ancestor.returncode == 1 else 'ancestry unknown')
         state = 'status unknown' if status is None or status.returncode else ('dirty' if status.stdout else 'clean tracked and untracked files')
