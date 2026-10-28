@@ -46,6 +46,66 @@ def namespace(bundle: Path, log: Path | None, exit_code: int, prefix: Path) -> S
 
 
 class ReporterTests(unittest.TestCase):
+    def test_specific_assertions_cannot_be_downgraded_when_sources_are_merged(self):
+        observations = [
+            REPORTER.IssueObservation('test-failure', 'Test', 'failed to launch', test='Suite/test'),
+            REPORTER.IssueObservation('simulator-infrastructure', 'Simulator', 'failed to launch', test='Suite/test'),
+        ]
+        for order in (observations, list(reversed(observations))):
+            with self.subTest(order=order):
+                accumulator = REPORTER.IssueAccumulator()
+                for observation in order:
+                    accumulator.add(observation)
+                issues = accumulator.finalize()
+                self.assertEqual(len(issues), 1)
+                self.assertEqual(issues[0].kind, 'test-failure')
+        accumulator = REPORTER.IssueAccumulator()
+        accumulator.add(observations[1])
+        accumulator.add(REPORTER.IssueObservation('test-failure', 'Test', 'Test reported Failed', test='Suite/test'))
+        self.assertEqual(accumulator.finalize()[0].kind, 'simulator-infrastructure')
+
+    def test_compiler_errors_naming_xctest_apis_remain_build_failures(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            log = Path(temporary) / 'build.log'
+            log.write_text("Tests/Example.swift:12: error: cannot find 'XCTAssertEqual' in scope\n")
+            self.assertEqual(REPORTER.parse_log(log, 65)[0].kind, 'build-failure')
+            build = {'errors': [{'message': "cannot find 'XCTAssertEqual' in scope",
+                                 'fileName': 'Tests/Example.swift', 'lineNumber': 12}]}
+            self.assertEqual(REPORTER.parse_build_results(build)[0].kind, 'build-failure')
+
+    def test_bounded_log_keeps_assertions_between_infrastructure_noise(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            log = Path(temporary) / 'test.log'
+            before = [f'Simulator boot timed out before attempt {index}' for index in range(20)]
+            after = [f'Simulator boot timed out after attempt {index}' for index in range(20)]
+            log.write_text('\n'.join([*before, 'XCTAssertEqual failed: actual != expected', *after]))
+            observations = REPORTER.parse_log(log, 65)
+            self.assertTrue(any(item.kind == 'test-failure' for item in observations))
+            report = REPORTER.build_report(namespace(Path(temporary) / 'missing.xcresult', log, 65, Path(temporary) / 'report'))
+            self.assertEqual(report.classification, 'test-failure')
+
+    def test_report_limit_keeps_highest_precedence_failure(self):
+        issues = [REPORTER.DiagnosticIssue.from_observation(
+            REPORTER.IssueObservation('build-failure', 'Build', f'error {index}', file=f'File{index}.swift')
+        ) for index in range(20)]
+        issues.append(REPORTER.DiagnosticIssue.from_observation(
+            REPORTER.IssueObservation('test-failure', 'Test', 'Expectation failed: reward', test='Suite/test')
+        ))
+        selected = REPORTER._prioritize_issues(issues)
+        self.assertEqual(selected[0].kind, 'test-failure')
+        self.assertTrue(any(issue.kind == 'test-failure' for issue in selected))
+
+    def test_source_file_urls_decode_escaped_paths_after_location_fragments(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / 'Battle #1.swift'
+            source.touch()
+            parsed = REPORTER.parse_summary({'testFailures': [{
+                'testIdentifierString': 'Suite/test', 'failureText': 'Expectation failed',
+                'sourceURL': source.as_uri() + '#StartingLineNumber=6',
+            }]})[0]
+            self.assertEqual(parsed.file, str(source.resolve()))
+            self.assertEqual(parsed.line, 7)
+
     def test_unidentified_failures_with_the_same_message_keep_their_classifications(self):
         accumulator = REPORTER.IssueAccumulator()
         accumulator.add(REPORTER.IssueObservation("simulator-infrastructure", "Simulator", "Connection lost"))

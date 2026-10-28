@@ -7,6 +7,7 @@ import os
 import re
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote
 
 from .xcresult_diagnostics import walk_test_nodes
 
@@ -105,16 +106,16 @@ def _display_path(path: str) -> str:
 
 
 def _issue_priority(issue: DiagnosticIssue) -> tuple[int, int, int, int]:
-    """Rank actionable source failures before generic/tooling noise."""
+    """Keep higher-priority failure kinds, then prefer actionable source locations."""
     kind_rank = (
         CLASSIFICATION_PRECEDENCE.index(issue.kind)
         if issue.kind in CLASSIFICATION_PRECEDENCE
         else len(CLASSIFICATION_PRECEDENCE)
     )
     return (
+        kind_rank,
         0 if issue.file else 1,
         0 if not issue.generic else 1,
-        kind_rank,
         0 if issue.test else 1,
     )
 
@@ -150,7 +151,8 @@ _TOOLING_PATTERNS = (
 
 def _classify_text(text: str, default: str, *, source_diagnostic: bool = False) -> str:
     lowered = text.lower()
-    if re.search(r"xctassert|xctfail|assertion failed|expectation failed", lowered):
+    if (re.search(r"xctassert\w*\s+failed|xctfail(?:ed|\s*\()|assertion failed|expectation failed", lowered)
+            or (not source_diagnostic and re.search(r"xctassert|xctfail", lowered))):
         return "test-failure"
     # Canonical vocabulary shared with the bash retry/rerun matchers; see
     # Scripts/config/infrastructure-patterns.env. A source compiler diagnostic
@@ -203,7 +205,8 @@ def _extract_location(value: Any) -> tuple[str, int | None]:
     source_url = _text(value.get("sourceURL")) or _text(value.get("documentLocation"))
     if not source_url and isinstance(value.get("documentLocationInCreatingWorkspace"), dict):
         source_url = _text(value["documentLocationInCreatingWorkspace"].get("url"))
-    if source_url.startswith("file://"):
+    is_file_url = source_url.startswith("file://")
+    if is_file_url:
         source_url = source_url[7:]
     if "#" in source_url:
         source_url, fragment = source_url.split("#", 1)
@@ -212,6 +215,8 @@ def _extract_location(value: Any) -> tuple[str, int | None]:
             line_number = int(match.group("line"))
             if match.group("key") == "StartingLineNumber":
                 line_number += 1
+    if is_file_url:
+        source_url = unquote(source_url)
     return (_display_path(source_url) if source_url else ""), line_number
 
 
@@ -457,7 +462,13 @@ def parse_log(log_path: Path, exit_code: int) -> list[IssueObservation]:
                 if identity in observations:
                     continue
                 if len(observations) == MAX_ISSUES:
-                    observations.popitem()
+                    worst = max(observations, key=lambda key: _issue_priority(
+                        DiagnosticIssue.from_observation(observations[key])))
+                    if _issue_priority(DiagnosticIssue.from_observation(observation)) > _issue_priority(
+                        DiagnosticIssue.from_observation(observations[worst])
+                    ):
+                        continue
+                    observations.pop(worst)
                 observations[identity] = observation
     finally:
         stream.close()

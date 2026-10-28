@@ -121,6 +121,7 @@ class DiagnosticIssue:
 
     def enrich(self, observation: IssueObservation) -> None:
         item = observation.normalized()
+        was_generic = self.generic
         self.test_aliases.update(item.test_aliases)
         if not self.test and item.test:
             self.test = item.test
@@ -134,7 +135,8 @@ class DiagnosticIssue:
             self.line = item.line
         if self.title in {"", "Test failure"} and item.title:
             self.title = item.title
-        if self.kind == "test-failure" and item.kind != "test-failure":
+        if (not item.generic and (was_generic
+                or CLASSIFICATION_PRECEDENCE.index(item.kind) < CLASSIFICATION_PRECEDENCE.index(self.kind))):
             self.kind = item.kind
 
     def to_dict(self) -> dict[str, Any]:
