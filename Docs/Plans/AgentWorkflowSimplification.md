@@ -27,7 +27,7 @@ removing mechanisms. Do not push or publish as part of this plan without authori
 1. **Diagnostic policy reconciled.**
    [Verification](../Platform/Verification.md#single-focused-local-diagnostic)
    and automatic admission now match the supplied shared-machine instructions:
-   up to 900 seconds for admission, a 30-second focused execution limit, and
+   up to 900 seconds for admission, a five-minute focused execution limit, and
    retrying a timeout under the same limits. Admission wait is not execution time.
 2. **Make the ordinary path easier to follow end to end.** A task uses worktree
    creation, path briefing, handoff, review, commit, protected integration and
@@ -49,7 +49,7 @@ removing mechanisms. Do not push or publish as part of this plan without authori
    is broken or that a repository-only fix exists.
 5. **Make the verification decision executable.** A focused diagnostic requires
    agents to combine a concrete selector, a local opt-in, single-worker settings,
-   a 30-second execution deadline, a separate admission wait and an outer host-lane
+   a five-minute execution deadline, a separate admission wait and an outer host-lane
    wrapper. The visual route has different authorization and evidence requirements.
    [Verification](../Platform/Verification.md#confidence-ladder) explains these,
    but the agent still assembles the command and interprets multiple layers of
@@ -74,7 +74,7 @@ removing mechanisms. Do not push or publish as part of this plan without authori
 - [x] **P0 — Establish one resource-policy answer.** Reconcile focused-test retry,
   admission wait, execution deadline, and authorization across the supplied
   machine instructions, shared coordination guidance, and Trinket verification
-  owner. Preserve the 30-second focused execution limit and one worker. Identify
+  owner. Preserve the focused execution limit and one worker. Identify
   the owner of cross-repository rules and coordinate changes there; do not silently
   weaken those rules in Trinket. Add a short decision table and ensure command
   examples and failure messages match the resulting policy.
@@ -137,7 +137,7 @@ end-to-end elapsed time or all manual lookups. Missing timing is unknown, not ze
 For future samples, capture brief elapsed timings and concrete detours in the
 task's existing deliverables when readily available. For a timed-out focused
 diagnostic, record its selector, per-attempt outcome and whether a retry answered
-the original question, separately from queue wait. Preserve the 30-second limit
+the original question, separately from queue wait. Preserve the five-minute limit
 and current retry policy; do not infer a failure rate from one historical case.
 
 ## Status and blockers

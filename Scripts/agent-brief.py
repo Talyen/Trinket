@@ -100,12 +100,12 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
             else:
                 helper = os.environ.get('CODEX_HEAVY_LANE_HELPER') or str(Path.home() / 'Developer/.coordination/heavy_lane.py')
                 lane = ['python3', helper,
-                        '--owner', owner, '--wait', '900', '--timeout', '30' if args.diagnostic_package else '300', '--']
+                        '--owner', owner, '--wait', '900', '--timeout', '300', '--']
                 if args.diagnostic_package:
                     command = [*lane, 'env', 'TRINKET_ALLOW_HEAVY_LOCAL=1', 'TRINKET_ISOLATE=1',
                                'TRINKET_PACKAGE_TEST_JOBS=1', 'TRINKET_SERIAL_TESTS=1',
                                './Scripts/test-package.sh', '--only-suite', args.diagnostic_suite, args.diagnostic_package]
-                    label = 'Focused diagnostic (one concrete unresolved question; 30 seconds per attempt, retry timeout)'
+                    label = 'Focused diagnostic (one concrete unresolved question; five minutes per attempt, retry timeout)'
                 else:
                     command = [*lane, './Scripts/handoff.sh', '--route', 'visual',
                                *(['--base', args.base] if args.base else ['--working-tree'] if args.working_tree else ['--paths', *paths])]

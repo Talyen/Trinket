@@ -267,7 +267,7 @@ class AgentContextTests(ScriptRegressionTestCase):
                                 '--diagnostic-suite', 'Target/ExampleTests', '--owner', 'thread 1')
         line = next(line.strip() for line in diagnostic.splitlines() if 'heavy_lane.py' in line)
         command = shlex.split(line)
-        self.assertEqual(command[2:9], ['--owner', 'thread 1', '--wait', '900', '--timeout', '30', '--'])
+        self.assertEqual(command[2:9], ['--owner', 'thread 1', '--wait', '900', '--timeout', '300', '--'])
         self.assertEqual(command[-3:], ['--only-suite', 'Target/ExampleTests', 'TrinketCore'])
         self.assertIn('TRINKET_PACKAGE_TEST_JOBS=1', command)
         self.assertIn('preview is not verification evidence', diagnostic)

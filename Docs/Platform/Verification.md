@@ -51,9 +51,8 @@ the visual completion gate below.
 
 Wrap the outermost authorized local build, compiled test, or simulator/rendered
 inspection command with the shared host admission helper, including when invoking
-handoff or another wrapper. Use `--wait 900 --timeout 300` by default; the focused
-diagnostic example below uses its shorter limit. For an essential physical-device
-build or performance investigation, a justified limit up to 900 seconds is allowed;
+handoff or another wrapper. Use `--wait 900 --timeout 300` by default. For an
+essential physical-device build or performance investigation, a justified limit up to 900 seconds is allowed;
 investigate a timeout before extending it. Run heavy evidence before acquiring the
 integration lock. The shared host policy at
 `/Users/ryanmcintire/Developer/.coordination/README.md` owns admission and recovery.
@@ -70,7 +69,7 @@ command to five minutes.
 
 | Authorized local work | Admission wait | Execution deadline |
 |---|---|---|
-| Single focused diagnostic | Up to 900 seconds | 30 seconds per attempt; retry a timeout under the same limits |
+| Single focused diagnostic | Up to 900 seconds | Five minutes per attempt; retry a timeout under the same limits |
 | Essential build or simulator inspection | Up to 900 seconds | Five minutes by default; applicable device exceptions follow the shared host policy |
 
 Before landing, follow [review and integration](Development.md#landing-and-review).
@@ -220,8 +219,8 @@ The visual completion gate and interactive play retain their bounded build/launc
 exceptions. Bare FullUI additionally requires
 `TRINKET_ALLOW_FULL_UI=1`. Never forge `CI`/`GITHUB_ACTIONS` or use flags to bypass
 resource policy. Stubbed script fixtures may simulate these environments without
-starting real builds or simulators. Focused regressions use one worker and a
-30-second deadline per attempt; set `TRINKET_SCRIPT_TEST_JOBS=1` for script
+starting real builds or simulators. Focused regressions use one worker and the
+five-minute default deadline; set `TRINKET_SCRIPT_TEST_JOBS=1` for script
 regressions. Other authorized local script runs use at most two workers.
 
 ### Single focused local diagnostic
@@ -232,15 +231,15 @@ test method or one small, directly relevant test suite/file; an entire package,
 unfiltered UI plan, performance sweep or release suite does not qualify.
 
 Wrap the outermost command with the shared host admission helper using
-`--wait 900 --timeout 30`. Admission wait and execution time are separate: the
-30-second execution budget includes generation, compilation, simulator setup and
+`--wait 900 --timeout 300`. Admission wait and execution time are separate: the
+five-minute execution budget includes generation, compilation, simulator setup and
 the test itself. Use one worker and the existing
 isolated checkout and managed simulator lease. Set `TRINKET_ALLOW_HEAVY_LOCAL=1`
 only on that command; the flag does not grant broader authorization. For example:
 
 ```sh
 python3 /Users/ryanmcintire/Developer/.coordination/heavy_lane.py \
-  --owner "$CODEX_THREAD_ID" --wait 900 --timeout 30 -- \
+  --owner "$CODEX_THREAD_ID" --wait 900 --timeout 300 -- \
   env TRINKET_ALLOW_HEAVY_LOCAL=1 TRINKET_ISOLATE=1 \
   TRINKET_PACKAGE_TEST_JOBS=1 TRINKET_SERIAL_TESTS=1 \
   ./Scripts/test-package.sh --only-suite LabyrinthVictoryCompletionTests TrinketAppState
