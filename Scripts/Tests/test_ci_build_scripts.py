@@ -164,16 +164,18 @@ xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUND
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("must include Trinket/**", result.stderr)
 
-            lines = live.splitlines(keepends=True)
-            nonsource_index = next(i for i, line in enumerate(lines) if "nonsource=" in line)
-            self.assertNotIn("Scripts/**", lines[nonsource_index])
-            lines[nonsource_index] = lines[nonsource_index].replace(
-                "hashFiles(", "hashFiles('Scripts/**', ", 1
-            )
-            action.write_text("".join(lines), encoding="utf-8")
-            result = run_checker()
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn("must not include Scripts/**", result.stderr)
+            for glob in ('Scripts/**', 'ContentManifest/**', 'Localization/**'):
+                with self.subTest(glob=glob):
+                    lines = live.splitlines(keepends=True)
+                    nonsource_index = next(i for i, line in enumerate(lines) if "nonsource=" in line)
+                    self.assertNotIn(glob, lines[nonsource_index])
+                    lines[nonsource_index] = lines[nonsource_index].replace(
+                        "hashFiles(", f"hashFiles('{glob}', ", 1
+                    )
+                    action.write_text("".join(lines), encoding="utf-8")
+                    result = run_checker()
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn(f"must not include {glob}", result.stderr)
 
     def test_release_compile_is_required_only_for_nightly_and_manual_runs(self):
         workflow = (ROOT / ".github/workflows/tests.yml").read_text()

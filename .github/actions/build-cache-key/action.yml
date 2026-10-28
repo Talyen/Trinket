@@ -2,7 +2,7 @@ name: Build cache key
 description: >
   Compose the two-tier DerivedData cache key used by tests.yml.
   nonsource covers toolchain/assets/build-config plus tool-versions.env;
-  full adds app/package/test sources and Scripts/**. Script-only CI edits
+  full adds app/package/test sources and Scripts/**. Content, localization, and script-only CI edits
   prefix-restore. Path lists for hashFiles live only here so workflows cannot
   drift. Scripts/check-build-cache-paths.sh guards required shared roots against
   Scripts/build-freshness.sh (intentional differences documented there).
@@ -34,10 +34,12 @@ runs:
         # nonsource: toolchain/assets/build-config. Scripts/** stays off this
         # prefix so lint/CI script edits prefix-restore; tool-versions.env is
         # the one script that must cold-rebuild. full adds sources + Scripts/**.
+        # Content/localization edits reuse compiler state; full still invalidates
+        # the exact key and Xcode rebuilds changed generated sources/resources.
         # The committed receipt binds prepared asset bytes and selection/settings.
         # AssetSources masters are omitted from sparse build jobs and build-cache keys.
         toolchain="$(printf 'Xcode %s\nBuild version %s\n' "${XCODE_VERSION:?setup-trinket must select Xcode}" "${XCODE_BUILD:?setup-trinket must select Xcode}" | shasum -a 256 | awk '{print $1}')"
-        nonsource="${{ runner.os }}-${{ runner.arch }}-${toolchain}-${{ hashFiles('StoreKit/**', 'ContentManifest/**', 'Localization/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json', 'Scripts/tool-versions.env', 'project.yml', '*.xctestplan') }}"
+        nonsource="${{ runner.os }}-${{ runner.arch }}-${toolchain}-${{ hashFiles('StoreKit/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json', 'Scripts/tool-versions.env', 'project.yml', '*.xctestplan') }}"
         full="${{ hashFiles('StoreKit/**', 'Trinket/**', 'TrinketUITests/**', 'Packages/**', 'ContentManifest/**', 'Localization/**', 'ArtManifest/**', 'MusicManifest/**', 'SoundManifest/**', 'Packages/TrinketContent/Sources/TrinketContent/Generated/PreparedAssets.generated.json', 'Scripts/**', 'project.yml', '*.xctestplan') }}"
         echo "cache-key=build-v2-${nonsource}-${full}" >> "$GITHUB_OUTPUT"
         echo "cache-restore-prefix=build-v2-${nonsource}-" >> "$GITHUB_OUTPUT"

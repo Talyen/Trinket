@@ -43,6 +43,29 @@ class BuildSourceTimesTests(unittest.TestCase):
             self.assertEqual(changed.read_text(), 'let value = 2\n')
             self.assertEqual(added.stat().st_mtime_ns, added_time)
 
+    def test_resources_and_schemes_restore_only_identical_inputs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.fixture(root)
+            paths = [root / name for name in (
+                'Localization/Generated/Regions/en.lproj/InfoPlist.strings',
+                'StoreKit/Trinket.storekit',
+                'Trinket.xcodeproj/xcshareddata/xcschemes/Trinket.xcscheme',
+            )]
+            old, fresh = 1700000000000000000, 1700000010000000000
+            for path in paths:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text('original')
+                os.utime(path, ns=(old, old))
+            subprocess.run(['git', '-C', str(root), 'add', '.'], check=True)
+            TIMES.process(root, 'record')
+            paths[1].write_text('modified')
+            for path in paths:
+                os.utime(path, ns=(fresh, fresh))
+            TIMES.process(root, 'restore')
+            self.assertEqual([path.stat().st_mtime_ns for path in paths], [old, fresh, old])
+            self.assertEqual(paths[1].read_text(), 'modified')
+
     def test_missing_corrupt_foreign_and_escape_metadata_never_changes_other_inputs(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

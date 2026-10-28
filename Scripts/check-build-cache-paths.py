@@ -26,14 +26,14 @@ def main() -> int:
         findings.extend(f'Missing package tenant in shared build inputs: Packages/{package}'
                         for package in args.packages if f'Packages/{package}' not in args.inputs)
         for key, required, forbidden in (
-            ('full', ('Trinket/**', 'Packages/**'), ()),
-            ('nonsource', ('Scripts/tool-versions.env',), ('Scripts/**',)),
+            ('full', ('Trinket/**', 'Packages/**', 'ContentManifest/**', 'Localization/**'), ()),
+            ('nonsource', ('Scripts/tool-versions.env',), ('Scripts/**', 'ContentManifest/**', 'Localization/**')),
         ):
             line = next((line for line in source.splitlines() if key + '=' in line), None)
             if line is None:
                 raise ValueError(f'missing {key}= hashFiles line in build-cache-key')
             findings.extend(f'build-cache-key {key} hashFiles must include {glob}' for glob in required if glob not in line)
-            findings.extend(f'{key} hashFiles must not include {glob}; script-only edits should prefix-restore.'
+            findings.extend(f'{key} hashFiles must not include {glob}; these edits should prefix-restore.'
                             for glob in forbidden if glob in line)
         return report(findings, 'check-build-cache-paths: path-list drift detected', 'Build input / cache-key shared roots aligned.')
     except (OSError, ValueError) as error:
