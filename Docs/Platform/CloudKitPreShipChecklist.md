@@ -48,6 +48,17 @@ Reassess other completed scenarios against the candidate's actual changes rather
 than assuming all past evidence is absent. Record any reused evidence and its
 environment alongside the candidate's remaining checks.
 
+On October 27, an iPhone 14 Pro ran explicitly cloud-enabled Development builds
+for launch and fresh-restore timing. The `codex/cloud-launch-timing` evidence at
+`ba81da0dc` records ten completed launch samples, five with sync enabled, and one
+fresh-restore sample. The `codex/faster-cloud-restore` evidence at `02f04d881`
+records three completed fresh-restore timing samples after the transport change.
+Their retained `measurements.jsonl`, `fresh-restore.jsonl`, and `fresh-after.jsonl`
+include launch and CloudKit operation markers. These are completed physical-device
+Development observations, not evidence of every two-device reconciliation or
+Production/TestFlight scenario. Find the records in Git's shared
+`trinket-evidence/codex/` store; retain the accompanying build and save backups.
+
 Resume when test accounts, controllable devices, and a named cloud-enabled build
 are available, or before changing the distributed default or submitting with sync.
 The validation scenarios below include the outstanding account, failure, upgrade,
