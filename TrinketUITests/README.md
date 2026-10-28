@@ -11,11 +11,17 @@ for coverage and retirement decisions.
 | Area | Path | When |
 |------|------|------|
 | Smoke | `Smoke/` sources; `Smoke.xctestplan` at repo root | CI `test.sh smoke` (registry-defined classes); runs on the build runner without a product transfer |
-| Exhaustive | `Play/`, `Collection/`, `Battle/` | Advisory nightly/dispatch CI, runs all registered classes on one runner; includes StoreKit recovery; deliberate local diagnostics follow [Verification.md](../Docs/Platform/Verification.md#local-simulator-budget) |
+| Exhaustive | `Play/`, `Collection/`, `Battle/` | Advisory nightly/dispatch CI, runs registered classes across ordinary and qualified StoreKit runners; deliberate local diagnostics follow [Verification.md](../Docs/Platform/Verification.md#local-simulator-budget) |
 | Performance | `Performance/`, `BattlePerformance.xctestplan` (repo root) | Manual CI `performance.yml` / `performance.sh` investigations; outside routine smoke |
 | Profiles | `Profiles/`; generated `Profiles.xctestplan` | Nightly/manual compact iOS 26 phone, portrait iOS 27 iPad, iOS 27.1+ Duo, and the iOS 18 compatibility phone; three settings configurations per device |
 | Soak | `Soak/`; generated `Soak.xctestplan` | Weekly/manual audio-enabled twenty-Contract career; outside routine FullUI |
 | Support | `Support/` | Shared launch and StoreKit fixtures; shared journeys (`PlayScreen`, `BattleScreen`, `TabBar`, …) |
+
+Exhaustive CI runs `FullGamePurchaseUITests` as a separate fresh shard on iOS 26.2
+(23C54), while the other FullUI classes use the ordinary newer runtime. Both shards
+must pass for the exhaustive summary. iOS 27 StoreKitTest can expose a declined Ask
+to Buy transaction as a verified entitlement; see [release qualification](../Docs/Platform/Release.md#testflight-troubleshooting)
+and its retained standalone reproduction before requalifying a newer runtime.
 
 Author smoke and exhaustive membership once in `Scripts/config/ui-tests.tsv`.
 Each row supplies suite, smoke routing key (empty for other suites), and class.

@@ -240,7 +240,7 @@ xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUND
 
         inline_condition = inline.split('if: ', 1)[1].splitlines()[0]
         smoke_condition = required_smoke.split('if: ', 1)[1].splitlines()[0]
-        summary_condition = exhaustive.split('if: >-\n', 1)[1].split('    continue-on-error:', 1)[0].strip()
+        summary_condition = exhaustive.split('if: >-\n', 1)[1].split('    runs-on:', 1)[0].strip()
         self.assertIn('always()', inline_condition)
         self.assertIn('always()', summary_condition)
         for products, smoke_outcome, cancelled, requested, reused in (
