@@ -55,12 +55,14 @@ the same claim path without an alert or another tap.
 ## Boss idle artwork
 
 Boss battles use the bundled Alchemy idle clips, centered and filled within the
-existing enemy frame. The battle card owns playback: it loads metadata for every
-clip and queues a shuffled round at entry, avoids adjacent repeats, and pauses
-outside the active scene. Static prepared artwork remains beneath the player and is used for
-Reduce Motion, missing media, and the defeated enemy slice. Lyrics and resource
-bars remain above the artwork. The supplied MP4s are finished authored resources
-in the BattleFeature bundle.
+existing enemy frame. The battle card owns a bounded cache of the selected boss's
+compressed clips and prepares two players; it keeps the outgoing frame until the
+next frame is ready, then crossfades. Shuffled rounds avoid adjacent repeats.
+Backgrounding or retiring the card cancels loading and releases playback; a memory
+warning falls back to static art for that card. Static prepared artwork also covers
+loading, Reduce Motion, missing or failed media, and the defeated enemy slice.
+Lyrics and resource bars remain above the artwork. The supplied MP4s are finished
+authored resources in the BattleFeature bundle.
 
 ## Continuous card input
 
