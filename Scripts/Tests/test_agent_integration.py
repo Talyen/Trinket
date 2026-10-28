@@ -17,6 +17,23 @@ from script_test_support import ROOT, ScriptRegressionTestCase, load_script, run
 
 
 class AgentIntegrationTests(ScriptRegressionTestCase):
+    def test_keep_reason_requires_explicit_retention(self):
+        result = run_captured(['node', str(ROOT / 'Scripts/agent-worktree.mjs'),
+                               'integrate', '--keep-reason', 'waiting for review'], timeout=10)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('--keep-reason requires --keep-worktree', result.stderr)
+
+    def test_checkout_intent_records_retained_or_pending_without_removal(self):
+        module = load_script('agent_checkout_state_test', 'agent-integrate.py')
+        evidence = self.root / '.git/trinket-evidence/codex/example'
+        evidence.mkdir(parents=True)
+        with mock.patch.object(module, 'evidence_directory', return_value=evidence):
+            module.record_checkout_state(self.root, 'codex/example', 'abc', 'retained', 'ongoing work requested')
+            record = json.loads((evidence / 'checkout-state.json').read_text())
+            self.assertEqual((record['state'], record['head'], record['checkout']), ('retained', 'abc', str(self.root)))
+            module.record_checkout_state(self.root, 'codex/example', 'def', 'cleanup-pending', 'final integration')
+            self.assertEqual(json.loads((evidence / 'checkout-state.json').read_text())['state'], 'cleanup-pending')
+
     def test_legacy_routine_expiry_requires_integrated_provenance_and_keeps_other_evidence(self):
         module = load_script('legacy_evidence_expiry_test', 'agent-integrate.py')
         head = self.git(self.root, 'rev-parse', 'HEAD')
@@ -421,6 +438,7 @@ sys.exit(bool(failures))
         self.assertEqual(next(evidence.glob('*/files/.DerivedData/Deliverables/screen.png')).read_bytes(),
                          b'visible evidence')
         self.assertTrue((evidence / 'routine-completion.json').is_file())
+        self.assertEqual(json.loads((evidence / 'checkout-state.json').read_text())['state'], 'removed')
 
     def test_clean_checkout_check_does_not_start_git_fsmonitor(self) -> None:
         if sys.platform != 'darwin':
@@ -484,6 +502,8 @@ sys.exit(bool(failures))
         self.assertIn('Landing succeeded, but cleanup failed', result.stderr)
         self.assertTrue(task.exists())
         self.assertEqual(self.git(self.root, 'rev-parse', 'main'), self.git(task, 'rev-parse', 'HEAD'))
+        record = self.root / '.git/trinket-evidence/codex/locked/checkout-state.json'
+        self.assertEqual(json.loads(record.read_text())['state'], 'cleanup-pending')
         self.git(self.root, 'worktree', 'unlock', str(task))
         self.assertEqual(self.helper(task, 'cleanup').returncode, 0)
         self.assertFalse(task.exists())
@@ -560,11 +580,13 @@ sys.exit(bool(failures))
         write_executable(task / 'Scripts/handoff.sh', '#!/bin/sh\necho checked >> "$(git rev-parse --git-common-dir)/checks"\n')
         self.commit(task)
         head = self.git(task, 'rev-parse', 'HEAD')
-        result = self.helper(task, 'integrate', '--keep-worktree')
+        result = self.helper(task, 'integrate', '--keep-worktree', '--keep-reason', 'awaiting visual review')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertTrue(task.exists())
         self.assertEqual((self.root / '.git/checks').read_text(), 'checked\n')
         evidence = self.root / '.git/trinket-evidence/codex/task'
+        record = json.loads((evidence / 'checkout-state.json').read_text())
+        self.assertEqual((record['state'], record['reason']), ('retained', 'awaiting visual review'))
         saved = list(evidence.glob('*/files/.DerivedData/Deliverables/screen.png'))
         self.assertTrue(saved)
         self.assertTrue(all(path.read_bytes() == b'fixture capture' for path in saved))

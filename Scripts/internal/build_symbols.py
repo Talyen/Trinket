@@ -107,7 +107,7 @@ def tree_hashes(root: Path) -> dict[str, str]:
             for path in sorted(root.rglob("*")) if path.is_symlink() or path.is_file()}
 
 
-def backup_archive(archive: Path, ipa: Path | None, receipt: dict, root: Path | None = None) -> dict:
+def backup_archive(archive: Path, ipa: Path | None, receipt: dict, root: Path | None = None, *, write_receipt: bool = True) -> dict:
     archive = archive.resolve(strict=True)
     apps = list((archive / "Products/Applications").glob("*.app"))
     if len(apps) != 1:
@@ -148,20 +148,21 @@ def backup_archive(archive: Path, ipa: Path | None, receipt: dict, root: Path | 
             try:
                 staging.rename(destination)
             except FileExistsError:
-                return backup_archive(archive, ipa, receipt, root)
+                return backup_archive(archive, ipa, receipt, root, write_receipt=write_receipt)
         finally:
             if staging.exists():
                 shutil.rmtree(staging)
-    write_json_atomic(destination / "receipt.json", receipt)
+    if write_receipt:
+        write_json_atomic(destination / "receipt.json", receipt)
     return {"status": "verified", "path": str(destination), "manifestSHA256": digest(destination / "symbol-manifest.json"),
             "binaries": manifest["binaries"]}
 
 
-def verified_release(receipt: dict) -> tuple[Path, dict]:
+def verified_release(receipt: dict, root: Path | None = None) -> tuple[Path, dict]:
     """Revalidate durable bytes and native identity before retiring working copies."""
     saved = receipt['symbol_artifacts']
     destination = Path(saved['path'])
-    releases = artifact_root() / 'releases'
+    releases = (root or artifact_root()) / 'releases'
     if (saved.get('status') != 'verified' or destination.parent != releases
             or destination.is_symlink() or destination.resolve() != destination
             or not destination.is_dir()):
@@ -244,15 +245,79 @@ def preserve_profile_symbols(samples: Path, roots: list[Path], destination: Path
     return result
 
 
+def link_backup(archive: Path | None, ipa: Path | None, receipt_path: Path, root: Path, backup_root: Path | None = None) -> dict:
+    """Backfill the receipt under the deployment lock after verifying recovery bytes."""
+    from internal import output_retention, release_retention
+    backup_root = backup_root.expanduser().resolve() if backup_root else None
+    state = root / '.DerivedData/testflight'
+    if (not receipt_path.is_absolute() or not receipt_path.is_relative_to(state)
+            or receipt_path.name != 'receipt.json' or not output_retention.safe_path(receipt_path, root)):
+        raise ValueError('Linking requires a safe receipt in the primary TestFlight directory')
+    with release_retention.deployment_lock(root, True):
+        before = receipt_path.read_bytes()
+        receipt = json.loads(before)
+        if receipt.get('schema') != 1 or receipt.get('stage') not in ('exported', 'ready'):
+            raise ValueError('Only exported or ready receipts can be linked')
+        if receipt.get('symbol_artifacts'):
+            verified_release(receipt, backup_root)
+            return receipt['symbol_artifacts']
+        if archive is not None and ipa is not None:
+            if Path(receipt['archive']) != archive or Path(receipt['ipa']) != ipa:
+                raise ValueError('Archive and IPA must match the original receipt paths')
+            saved = backup_archive(archive, ipa, receipt, backup_root, write_receipt=False)
+        elif archive is None and ipa is None:
+            releases = (backup_root or artifact_root()) / 'releases'
+            matches = []
+            for manifest_path in releases.glob('*/symbol-manifest.json'):
+                if manifest_path.is_symlink() or manifest_path.parent.is_symlink():
+                    continue
+                try:
+                    manifest = json.loads(manifest_path.read_text())
+                    keys = (('bundleIdentifier', 'bundle_id'), ('version', 'version'), ('build', 'build'),
+                            ('commit', 'commit'), ('xcode', 'xcode'), ('ipaSHA256', 'ipa_sha256'))
+                    if all(str(manifest[a]) == str(receipt[b]) for a, b in keys):
+                        matches.append({'status': 'verified', 'path': str(manifest_path.parent),
+                                        'manifestSHA256': digest(manifest_path), 'binaries': manifest['binaries']})
+                except (OSError, ValueError, KeyError, TypeError):
+                    raise ValueError(f'Uninspectable release manifest: {manifest_path}')
+            if len(matches) != 1:
+                raise ValueError(f'Expected one matching release backup, found {len(matches)}')
+            saved = matches[0]
+        else:
+            raise ValueError('Supply both archive and IPA, or neither to find an existing backup')
+        linked = dict(receipt, symbol_artifacts=saved)
+        verified_release(linked, backup_root)
+        backup_receipt = Path(saved['path']) / 'receipt.json'
+        if backup_receipt.is_symlink():
+            raise ValueError('Backup receipt cannot be a symlink')
+        if backup_receipt.exists():
+            previous = json.loads(backup_receipt.read_text())
+            for key in ('build', 'commit', 'ipa_sha256', 'bundle_id', 'version', 'xcode'):
+                if previous.get(key) != receipt.get(key):
+                    raise ValueError(f'Backup receipt identity differs: {key}')
+        if receipt_path.read_bytes() != before:
+            raise ValueError('Receipt changed while linking; original retained')
+        write_json_atomic(backup_receipt, linked)
+        write_json_atomic(receipt_path, linked)
+        return saved
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate and back up an exact release archive and its symbols")
-    parser.add_argument("--archive", type=Path, required=True)
+    parser.add_argument("--archive", type=Path)
     parser.add_argument("--ipa", type=Path)
     parser.add_argument("--receipt", type=Path, required=True)
     parser.add_argument("--backup-root", type=Path)
+    parser.add_argument("--link", action="store_true", help="verify and link the backup to the deployment receipt")
     args = parser.parse_args()
     try:
-        result = backup_archive(args.archive, args.ipa, json.loads(args.receipt.read_text()), args.backup_root)
+        if args.link:
+            from internal.cli import ROOT, primary_worktree_root
+            result = link_backup(args.archive, args.ipa, args.receipt, primary_worktree_root(ROOT), args.backup_root)
+        else:
+            if not args.archive:
+                raise ValueError("--archive is required unless linking an existing backup")
+            result = backup_archive(args.archive, args.ipa, json.loads(args.receipt.read_text()), args.backup_root)
         print(json.dumps(result))
         return 0
     except (OSError, ValueError, KeyError, subprocess.SubprocessError, zipfile.BadZipFile) as error:

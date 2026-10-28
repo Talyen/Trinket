@@ -361,6 +361,17 @@ def ensure_checkout_inactive(source: Path, *, stop_monitor: bool = True) -> None
         raise RuntimeError(f'Checkout has active processes {sorted(foreign)}; checkout retained')
 
 
+def record_checkout_state(source: Path, branch: str, head: str, state: str, reason: str) -> None:
+    """Record landing intent, not permission to remove a checkout later."""
+    from internal.cli import write_json_atomic
+    path = evidence_directory(source) / 'checkout-state.json'
+    if path.is_symlink():
+        raise RuntimeError('Checkout state cannot follow a symlink')
+    write_json_atomic(path, {'schema': 1, 'branch': branch, 'head': head, 'checkout': str(source),
+                             'state': state, 'reason': reason,
+                             'recorded_at': datetime.now(timezone.utc).isoformat()})
+
+
 def cleanup_locked(source: Path, target: Path) -> None:
     branch = git(source, 'branch', '--show-current')
     if not branch.startswith('codex/') or git(target, 'branch', '--show-current') != 'main':
@@ -374,6 +385,11 @@ def cleanup_locked(source: Path, target: Path) -> None:
     evidence = evidence_directory(source)
     from internal.cli import write_json_atomic
     remove_integrated_worktree(source, target, branch, head, main_head=main_head)
+    write_json_atomic(evidence / 'checkout-state.json', {
+        'schema': 1, 'branch': branch, 'head': head, 'checkout': str(source),
+        'state': 'removed', 'reason': 'completed cleanup',
+        'recorded_at': datetime.now(timezone.utc).isoformat(),
+    })
     write_json_atomic(evidence / 'routine-completion.json', {
         'schema': 1, 'branch': branch, 'head': head,
         'completed_at': datetime.now(timezone.utc).isoformat(),
@@ -595,7 +611,9 @@ class ReviewRequired(RuntimeError):
 
 
 def integrate(source: Path, *, reviewed_main: str | None = None, keep_plan: bool = False,
-              keep_worktree: bool = False) -> None:
+              keep_worktree: bool = False, keep_reason: str | None = None) -> None:
+    if keep_reason is not None and (not keep_worktree or not keep_reason.strip() or len(keep_reason) > 240):
+        raise ValueError("--keep-reason requires --keep-worktree and a short nonempty reason")
     common, target = checkout_context(source)
     with integration_lock(common):
         if git(target, "branch", "--show-current") != "main":
@@ -620,6 +638,8 @@ def integrate(source: Path, *, reviewed_main: str | None = None, keep_plan: bool
         head = git(source, "rev-parse", "HEAD")
         if head == base:
             print("Task already integrated; main unchanged.")
+            record_checkout_state(source, branch, head, "retained" if keep_worktree else "cleanup-pending",
+                                  (keep_reason or "ongoing work requested") if keep_worktree else "final integration")
             if keep_worktree:
                 preserve_default_evidence(source)
                 print('Task checkout retained; use node Scripts/agent-worktree.mjs cleanup when finished.')
@@ -671,6 +691,8 @@ def integrate(source: Path, *, reviewed_main: str | None = None, keep_plan: bool
             # Keep prior snapshot and its hashes immutable when the landing report changes.
             preserve_default_evidence(source)
         print(f"Integrated {branch} into local main at {head}. Nothing pushed; hosted checks remain pending.")
+        record_checkout_state(source, branch, head, "retained" if keep_worktree else "cleanup-pending",
+                              (keep_reason or "ongoing work requested") if keep_worktree else "final integration")
         if keep_worktree:
             print('Task checkout retained. Finish any remaining work, then run node Scripts/agent-worktree.mjs cleanup.')
         else:
@@ -698,11 +720,12 @@ if __name__ == "__main__":
             import argparse
             parser = argparse.ArgumentParser(description='Land reviewed task work and clean the finished checkout.')
             parser.add_argument('--keep-worktree', action='store_true', help='retain the checkout for unfinished work')
+            parser.add_argument('--keep-reason', help='short reason for retaining the checkout')
             parser.add_argument('--reviewed-main', help='full main commit ID already reviewed against this task')
             parser.add_argument('--keep-plan', action='store_true', help='retain intentionally unfinished plans; still validate their metadata and links')
             arguments = parser.parse_args()
             integrate(source, reviewed_main=arguments.reviewed_main, keep_plan=arguments.keep_plan,
-                      keep_worktree=arguments.keep_worktree)
+                      keep_worktree=arguments.keep_worktree, keep_reason=arguments.keep_reason)
     except ReviewRequired as error:
         print(str(error), file=sys.stderr)
         sys.exit(3)

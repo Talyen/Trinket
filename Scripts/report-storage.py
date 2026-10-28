@@ -2,6 +2,9 @@
 """Report Trinket storage and guarded cleanup candidates without changing files."""
 from collections import Counter
 import argparse
+from datetime import datetime
+import json
+import re
 import os
 from pathlib import Path
 import shutil
@@ -35,7 +38,29 @@ def size(value):
     return 'unavailable' if value is None else f'{value / 1024**3:.2f} GiB'
 
 
-def worktree_inventory(root):
+def checkout_state(root, path, branch, head, *, details=False, common=None):
+    if not branch.startswith('refs/heads/codex/') or '..' in Path(branch).parts:
+        return 'completion intent unknown'
+    name = branch.removeprefix('refs/heads/')
+    common = common or root / '.git'
+    record = common / 'trinket-evidence' / name / 'checkout-state.json'
+    try:
+        if record.is_symlink() or any(p.is_symlink() for p in record.parents if p.is_relative_to(common)):
+            return 'completion intent unknown'
+        data = json.loads(record.read_text())
+        if (data['schema'] != 1 or data['branch'] != name or data['head'] != head
+                or data['checkout'] != path or data['state'] not in ('retained', 'cleanup-pending')):
+            return 'completion intent unknown'
+        reason = data.get('reason')
+        if not isinstance(reason, str) or not reason.strip() or len(reason) > 240:
+            return 'completion intent unknown'
+        state = 'intentionally retained' if data['state'] == 'retained' else 'final cleanup pending'
+        return f'{state} ({reason})' if details else state
+    except (OSError, ValueError, KeyError, TypeError):
+        return 'completion intent unknown'
+
+
+def worktree_inventory(root, common=None):
     result, error = command(['git', '-C', str(root), 'worktree', 'list', '--porcelain', '-z'], timeout=10)
     if result is None or result.returncode:
         print(f'Worktree inventory unavailable: {error}')
@@ -56,7 +81,25 @@ def worktree_inventory(root):
             'not an ancestor' if ancestor is not None and ancestor.returncode == 1 else 'ancestry unknown')
         state = 'status unknown' if status is None or status.returncode else ('dirty' if status.stdout else 'clean tracked and untracked files')
         locked = ', locked' if any(item.startswith('locked') for item in fields) else ''
-        print(f'  {path}: {relation}, {state}{locked}; activity and ignored files not assessed')
+        branch = next((item[7:] for item in fields if item.startswith('branch refs/heads/')), '')
+        intent = checkout_state(root, path, branch, head, details=True, common=common)
+        print(f'  {path}: {relation}, {state}{locked}; {intent}; activity and ignored files not assessed')
+
+
+def worktree_intents(root, common=None):
+    result, error = command(['git', '-C', str(root), 'worktree', 'list', '--porcelain', '-z'], timeout=10)
+    if result is None or result.returncode:
+        print(f'Worktree intent unavailable: {error}')
+        return
+    counts = Counter()
+    for record in result.stdout.rstrip('\0').split('\0\0')[1:]:
+        fields = record.split('\0')
+        path = next((x[9:] for x in fields if x.startswith('worktree ')), '')
+        head = next((x[5:] for x in fields if x.startswith('HEAD ')), '')
+        branch = next((x[7:] for x in fields if x.startswith('branch refs/heads/')), '')
+        counts[checkout_state(root, path, branch, head, common=common)] += 1
+    print('Worktree intent: ' + ', '.join(f'{n} {state}' for state, n in sorted(counts.items()))
+          + '; activity is not assessed.')
 
 
 def main():
@@ -92,8 +135,10 @@ def main():
                         print(f'  {Path(path).name}: {size(int(amount) * 1024)}')
                     except ValueError:
                         print(f'  Unreadable size: {line}')
-    print('\nWorktrees:')
-    worktree_inventory(root)
+    worktree_intents(root, common)
+    if args.details:
+        print('\nWorktrees:')
+        worktree_inventory(root, common)
     print('\nGuarded cleanup inventory:')
     result, error = command([sys.executable, str(ROOT / 'Scripts/cleanup-outputs.py'),
                              '--dry-run', '--resources', '--primary'], timeout=180)
@@ -106,12 +151,41 @@ def main():
     else:
         reasons = Counter(line.split(': ', 1)[1].split('; allocatedBytes=', 1)[0]
                           for line in lines if line.startswith('SKIP ') and ': ' in line)
+        dates = []
+        for reason in reasons:
+            match = re.search(r'Duplicate grace period ends at ([0-9]+)', reason)
+            if match:
+                dates.append(int(match.group(1)))
+        candidates = [line for line in lines if line.startswith(('WOULD ', 'REVIEW '))]
         for line in lines:
-            if line.startswith(('Eligible:', 'Eligible release duplicates:', 'WOULD ', 'REVIEW ')):
+            if line.startswith(('Eligible:', 'Eligible release duplicates:')):
                 print(line)
-        for reason, count in reasons.most_common():
-            print(f'  {count} protected: {reason}')
-        print('Use --details for individual paths and reasons.')
+        for line in candidates[:3]:
+            print(line)
+        if len(candidates) > 3:
+            print(f'  {len(candidates) - 3} more decisions; use --details.')
+        if dates:
+            print('Next release review: ' + datetime.fromtimestamp(min(dates)).astimezone().strftime('%Y-%m-%d %H:%M %Z'))
+        print(f'Protected decisions: {sum(reasons.values())}')
+        for reason, count in reasons.most_common(3):
+            if not reason.startswith('Duplicate grace period ends at '):
+                print(f'  {count}: {reason}')
+        print('Use --details for all paths and reasons.')
+    caches, cache_error = command([sys.executable, str(ROOT / 'Scripts/cleanup-outputs.py'),
+                                   '--dry-run', '--intermediates-only', '--products', '--worktrees'], timeout=180)
+    if caches is None or caches.returncode:
+        print(f'Worktree cache inventory incomplete: {cache_error or "command failed"}')
+        return 1
+    if args.details:
+        print(caches.stdout, end='')
+    else:
+        cache_lines = caches.stdout.splitlines()
+        for line in cache_lines:
+            if line.startswith('Eligible worktree cache roots:'):
+                print(line)
+        skipped = [line for line in cache_lines if line.startswith('SKIP ')]
+        if skipped:
+            print(f'Protected worktree cache roots: {len(skipped)}; use --details for reasons.')
     print('Dry run only. Clean status or ancestry alone does not establish an inactive worktree.')
     return 0
 

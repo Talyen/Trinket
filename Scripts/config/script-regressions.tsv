@@ -73,7 +73,7 @@ Scripts/ci-reuse.py	test_ci_effort.py
 Scripts/deploy-verification.py	test_deploy_verification.py
 Scripts/ci-run-budget.py	test_ci_gate_scripts.py,test_ci_improvements.py
 Scripts/ci_ui_retry.py	test_ci_effort.py,test_deploy_verification.py
-Scripts/cleanup-outputs.py	test_output_retention.py,test_release_retention.py
+Scripts/cleanup-outputs.py	test_output_retention.py,test_release_retention.py,test_worktree_retention.py
 Scripts/compact-evidence.py	test_evidence_compaction.py
 Scripts/collect-performance-results.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py,test_tooling_evidence.py
 Scripts/compare-performance.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py
@@ -256,3 +256,4 @@ Scripts/internal/source_ownership.py	test_agent_context.py,test_ci_effort.py,tes
 .github/workflows/balance-sweep.yml	test_ci_balance_sweep.py
 Scripts/ci-balance-sweep.sh	test_ci_balance_sweep.py
 Scripts/internal/device_selection.py	test_profile_device.py
+Scripts/internal/worktree_retention.py	test_worktree_retention.py

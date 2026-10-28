@@ -142,7 +142,7 @@ doctor and dry-run need no opt-in.
 | `./Scripts/performance.sh --list` | List the manual performance matrix; scenario/group selection and measurements follow the [playbook](../Docs/Platform/PerformanceInvestigationPlaybook.md) |
 | `./Scripts/record-time-profiler.sh --output <path.trace> --time-limit 8s` | Host process Time Profiler; all-process capture is opt-in, never `xctrace --device` |
 | `python3 Scripts/profile-device.py --device <UDID> --duration 30` | Physical CPU/hitch capture with retained matching symbols; [profiling](../Docs/Platform/PerformanceInvestigationPlaybook.md#physical-device-profiling-over-wi-fi) owns build/install and interpretation |
-| `python3 Scripts/build-symbols.py --archive PATH --ipa PATH --receipt PATH` | Validate symbol UUIDs/payload and preserve a complete release backup |
+| `python3 Scripts/build-symbols.py --link --archive PATH --ipa PATH --receipt PATH` | Validate symbol UUIDs/payload and preserve a complete release backup |
 | `./Scripts/testflight.sh --verify-symbols BUILD` | Read-only Apple symbol-status check; success requires confirmation |
 | `./Scripts/agent-watch-ci.sh --sha <commit>` | Follow hosted checks and report failures; does not authorize a push |
 | `./Scripts/ci-diagnostics.sh <RESULTS_DIR>` | Aggregate diagnostics; `--cleanup --keep` deliberately retains output. [Retention](#output-retention) owns expiry |
@@ -284,9 +284,9 @@ the required toolchain.
 
 ### Output retention
 
-`python3 Scripts/report-storage.py` reports primary checkout storage, worktree
-Git state and guarded cleanup summaries without mutation. Add `--details` for
-individual cleanup decisions or `--evidence-details` for task-level evidence sizes.
+`python3 Scripts/report-storage.py` reports free space, guarded cleanup summaries,
+protected reasons and the next release review without mutation. Add `--details` for
+individual decisions and checkout state, or `--evidence-details` for task-level sizes.
 Clean status and ancestry do not prove inactivity;
 APFS allocation estimates may share extents and are not reclaimable-space promises.
 `python3 Scripts/report-evidence.py` emits a read-only JSON inventory of retained
@@ -341,7 +341,10 @@ still apply rather than trusting directory timestamps.
 For compiler scratch only, use `--dry-run --primary --intermediates-only
 --receipt PATH`; the compact receipt records `.DerivedData/Retention/` decisions.
 Add `--products` to include known agent app, package and host products. Task
-creation performs that bounded maintenance automatically.
+creation performs that bounded maintenance automatically. For all registered, unlocked
+task checkouts, use `--dry-run --worktrees --intermediates-only --products`, then
+`--apply` with the same scope. Each checkout is rechecked and the same lease, age,
+keep and open-file guards apply; source and evidence are not candidates.
 `--release-duplicates-only` verifies at most one backed-up ready or exported run per
 call; add `--all-release-duplicates` for all candidates. Before a local
 TestFlight deployment takes its lock, it automatically runs that full verified

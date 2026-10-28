@@ -122,6 +122,12 @@ separately. Save visual artifacts in Deliverables. For other task-local evidence
 use `node Scripts/agent-worktree.mjs evidence <paths...>`; without paths it prints
 the durable directory. Evidence provenance still comes from the capture/build record.
 
+Landing records whether a checkout was intentionally retained for ongoing work or
+final cleanup was pending; successful removal records completion. The storage
+report shows this intent only while the recorded branch, path and commit still
+match. Supply `--keep-reason "reason"` with `--keep-worktree` to record a specific
+reason. The record is not proof of inactivity or permission to remove another checkout.
+
 When a kept checkout is no longer needed, or automatic cleanup failed, run
 `cleanup` there. It preserves
 deliverables again and removes only this clean, registered, integrated task worktree,

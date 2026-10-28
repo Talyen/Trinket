@@ -50,7 +50,7 @@ def completed_time(receipt: dict, path: Path) -> float:
     parsed = datetime.fromisoformat(value)
     if parsed.tzinfo is None:
         raise ValueError('Completion time lacks a timezone')
-    return parsed.timestamp()
+    return max(parsed.timestamp(), path.stat().st_mtime)
 
 
 def extracted_hashes(ipa: Path) -> dict[str, str]:

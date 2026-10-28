@@ -36,6 +36,11 @@ Pushes and player-resource changes remain outside this task.
   were reverified after removal. Volume free space rose by 3,996,434,432 bytes
   during the observation window; other host activity makes attribution uncertain.
 
+- Release backfills can link a verified existing or new backup under the deployment
+  lock. Registered task caches have one guarded cross-worktree cleanup command.
+- Landing records retained versus final-cleanup intent; the concise storage report
+  surfaces cleanup decisions and release review dates. Records are advisory.
+
 ## Remaining protected state
 
 - [ ] Recheck build 42's duplicate working files after the 24-hour grace period

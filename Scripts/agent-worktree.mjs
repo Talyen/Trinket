@@ -13,7 +13,7 @@ function git(args, cwd = source) {
 function usage() {
   console.log(`Usage:
   node Scripts/agent-worktree.mjs create --task <slug> [--base <ref>] [--full-assets]
-  node Scripts/agent-worktree.mjs integrate [--reviewed-main <commit>] [--keep-plan] [--keep-worktree]
+  node Scripts/agent-worktree.mjs integrate [--reviewed-main <commit>] [--keep-plan] [--keep-worktree [--keep-reason <reason>]]
   node Scripts/agent-worktree.mjs cleanup
   node Scripts/agent-worktree.mjs evidence [path...]
   node Scripts/agent-worktree.mjs remove --task <slug>
@@ -35,10 +35,12 @@ try {
       const seen = new Set();
       for (let index = 0; index < args.length; index++) {
         const option = args[index];
-        if (!["--keep-worktree", "--reviewed-main", "--keep-plan"].includes(option) || seen.has(option)) throw new Error(`Invalid integration option: ${option}`);
+        if (!["--keep-worktree", "--keep-reason", "--reviewed-main", "--keep-plan"].includes(option) || seen.has(option)) throw new Error(`Invalid integration option: ${option}`);
         seen.add(option);
         if (option === "--reviewed-main" && (!args[++index] || !/^[a-f0-9]{40}$/.test(args[index]))) throw new Error("--reviewed-main requires the full reviewed commit ID");
+        if (option === "--keep-reason" && (!args[++index]?.trim() || args[index].startsWith("--") || args[index].length > 240)) throw new Error("--keep-reason requires a short reason");
       }
+      if (seen.has("--keep-reason") && !seen.has("--keep-worktree")) throw new Error("--keep-reason requires --keep-worktree");
     }
     if (command === "cleanup" && args.length) throw new Error("cleanup takes no arguments");
     const result = spawnSync("python3", [path.join(source, "Scripts/agent-integrate.py"), ...(command === "integrate" ? [] : [`--${command}`]), ...args], { cwd: source, stdio: "inherit" });

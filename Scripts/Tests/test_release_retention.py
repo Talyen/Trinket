@@ -58,6 +58,12 @@ class ReleaseRetentionTests(unittest.TestCase):
     def clean(self, apply=True):
         return releases.cleanup(self.root, apply=apply, now=self.now, verbose=False)
 
+    def test_recent_receipt_write_extends_grace_even_with_old_completion(self):
+        self.receipt['completed_at'] = datetime.fromtimestamp(self.now - 3 * releases.MAX_AGE, timezone.utc).isoformat()
+        self.save()
+        self.assertEqual(self.clean()[0], 0)
+        self.assertTrue(self.archive.exists())
+
     def test_bounded_pass_skips_already_retired_receipts(self):
         retired = self.run.parent / '00-already-retired'
         retired.mkdir()

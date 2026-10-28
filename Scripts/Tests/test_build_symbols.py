@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from contextlib import nullcontext
 from pathlib import Path
 import plistlib
 import shutil
@@ -90,6 +91,43 @@ class BuildSymbolTests(unittest.TestCase):
             restored = destination / "Trinket.xcarchive"
             self.assertEqual(symbols.app_manifest(restored / "Products/Applications/Trinket.app", restored / "dSYMs")["build"], "7")
             self.assertEqual(json.loads((destination / "receipt.json").read_text())["commit"], "commit")
+
+    def test_backfill_links_only_a_verified_exact_backup(self):
+        with tempfile.TemporaryDirectory() as directory, mock.patch.object(symbols, 'uuids', self.identities):
+            from internal import release_retention
+            root = Path(directory).resolve()
+            run = root / '.DerivedData/testflight/run'
+            run.mkdir(parents=True)
+            archive, _, _, ipa = self.fixture(run)
+            receipt_path = run / 'receipt.json'
+            receipt = {'schema': 1, 'stage': 'exported', 'bundle_id': 'com.example.Trinket',
+                       'version': '1.0', 'build': 7, 'commit': 'commit', 'xcode': 'Xcode',
+                       'archive': str(archive), 'ipa': str(ipa), 'ipa_sha256': symbols.digest(ipa)}
+            receipt_path.write_text(json.dumps(receipt))
+            with mock.patch.object(release_retention, 'deployment_lock', return_value=nullcontext()):
+                with self.assertRaisesRegex(ValueError, 'must match'):
+                    symbols.link_backup(archive, root / 'wrong.ipa', receipt_path, root, root / 'durable')
+                self.assertEqual(json.loads(receipt_path.read_text()), receipt)
+                saved = symbols.link_backup(archive, ipa, receipt_path, root, root / 'durable')
+                linked = json.loads(receipt_path.read_text())
+                self.assertEqual(linked['symbol_artifacts'], saved)
+                self.assertEqual(json.loads((Path(saved['path']) / 'receipt.json').read_text()), linked)
+                symbols.verified_release(linked, root / 'durable')
+                receipt_path.write_text(json.dumps(receipt))
+                shutil.rmtree(archive)
+                ipa.unlink()
+                duplicate = Path(saved['path']).parent / 'duplicate'
+                shutil.copytree(Path(saved['path']), duplicate)
+                with self.assertRaisesRegex(ValueError, 'found 2'):
+                    symbols.link_backup(None, None, receipt_path, root, root / 'durable')
+                self.assertEqual(json.loads(receipt_path.read_text()), receipt)
+                shutil.rmtree(duplicate)
+                self.assertEqual(symbols.link_backup(None, None, receipt_path, root, root / 'durable'), saved)
+                linked = json.loads(receipt_path.read_text())
+                (Path(saved['path']) / 'Trinket.ipa').write_text('damaged')
+                with self.assertRaises(ValueError):
+                    symbols.link_backup(None, None, receipt_path, root, root / 'durable')
+                self.assertEqual(json.loads(receipt_path.read_text()), linked)
 
     def test_profile_matches_recorded_uuid_and_preserves_original_dsym(self):
         with tempfile.TemporaryDirectory() as directory, mock.patch.object(symbols, "uuids", self.identities):

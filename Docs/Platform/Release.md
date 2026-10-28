@@ -285,10 +285,14 @@ without uploading or distributing anything:
 ./Scripts/testflight.sh --verify-symbols 39
 ```
 
-Backfill a retained archive using its original receipt and exported IPA:
+Backfill a retained archive using its original receipt and exported IPA. `--link`
+verifies the recovery copy and writes each receipt atomically under the
+deployment lock; it does not upload or change the deployment stage. If the
+working files are gone, omit `--archive` and `--ipa` to find exactly one matching
+existing backup; missing, ambiguous or damaged backups remain untouched:
 
 ```sh
-python3 Scripts/build-symbols.py --archive /absolute/path/Trinket.xcarchive --ipa /absolute/path/Trinket.ipa --receipt /absolute/path/receipt.json
+python3 Scripts/build-symbols.py --link --archive /absolute/path/Trinket.xcarchive --ipa /absolute/path/Trinket.ipa --receipt /absolute/path/receipt.json
 ```
 
 Resume keeps passed phases only while their source and build identity remain

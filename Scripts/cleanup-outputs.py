@@ -32,13 +32,20 @@ def main() -> None:
     parser.add_argument('--products', action='store_true', help='also expire idle agent build products with --intermediates-only')
     parser.add_argument('--receipt', type=Path, help='write a compact cleanup/dry-run receipt')
     parser.add_argument('--primary', action='store_true', help='inspect/clean the primary checkout rather than this task checkout')
+    parser.add_argument('--worktrees', action='store_true', help='scan registered task checkouts for idle compiler caches')
     args = parser.parse_args()
     if args.all_release_duplicates and not args.release_duplicates_only:
         parser.error('--all-release-duplicates requires --release-duplicates-only')
+    if args.worktrees and (not args.intermediates_only or args.receipt or args.resources or args.experiments or args.release_duplicates_only or not (args.dry_run or args.apply)):
+        parser.error('--worktrees requires --dry-run or --apply and --intermediates-only; it cannot combine with other scopes')
     if args.products and not args.intermediates_only:
         parser.error('--products requires --intermediates-only')
     try:
         root = primary_worktree_root(ROOT) if args.primary else ROOT
+        if args.worktrees:
+            from internal import worktree_retention
+            worktree_retention.cleanup(primary_worktree_root(ROOT), apply=args.apply, products=args.products)
+            return
         path = args.keep or args.release or args.begin or args.finish
         if path is not None:
             if '..' in path.parts:
