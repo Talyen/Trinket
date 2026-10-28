@@ -13,7 +13,7 @@ completion is not required. Refresh is free before embarking.
 Each card reuses Chapter art, with difficulty above the location name, a distinct
 eligible reward modifier when possible, the shared Party picker, and Embark
 (`location.north.fill`). Tap destination artwork to inspect its enemy pool and boss
-in a single artwork-only gallery, with the boss last. The shared offer reward appears
+in a two-column artwork-only gallery, with the boss last. The shared offer reward appears
 on the destination artwork. Tapping enemy artwork opens the existing combatant detail
 within the sheet; inspection does not record a Bestiary discovery. Party selection and
 Embark remain on the board. Refresh rerolls all three modifiers.

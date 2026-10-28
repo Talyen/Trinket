@@ -50,6 +50,7 @@ struct VoyageDestinationSheet: View {
                     eyebrow: offer.difficulty.title,
                     title: GameContent.chapter(id: offer.chapterID)?.title ?? "",
                     baseHeight: height,
+                    footerSpacing: TrinketDesign.Spacing.small,
                 ) {
                     if let art = ArtCatalog.backgroundArtByID[offer.chapterID] {
                         FocalBackgroundArtwork(art: art)
@@ -62,17 +63,22 @@ struct VoyageDestinationSheet: View {
                     Text(L10n.voyage_destination_enemies)
                         .trinketTypography(.sectionTitle)
                         .accessibilityIdentifier(AccessibilityID.Voyage.destinationSheet)
-                    ForEach(enemies) { enemy in
-                        Button {
-                            requestedEnemy = makePlayEnemyDetail(combatant: enemy.combatant, level: level)
-                        } label: {
-                            CombatantArtwork(combatant: enemy.combatant, variant: .card)
-                                .aspectRatio(1200.0 / 896, contentMode: .fit)
-                                .clipShape(TrinketDesign.cardShape)
+                    LazyVGrid(
+                        columns: Array(repeating: GridItem(.flexible(), spacing: TrinketDesign.Spacing.small), count: 2),
+                        spacing: TrinketDesign.Spacing.small,
+                    ) {
+                        ForEach(enemies) { enemy in
+                            Button {
+                                requestedEnemy = makePlayEnemyDetail(combatant: enemy.combatant, level: level)
+                            } label: {
+                                CombatantArtwork(combatant: enemy.combatant, variant: .card)
+                                    .aspectRatio(1200.0 / 896, contentMode: .fit)
+                                    .clipShape(TrinketDesign.cardShape)
+                            }
+                            .trinketArtworkCardButtonStyle()
+                            .accessibilityLabel(ContentCopy.localized(enemy.name, locale: locale))
+                            .accessibilityIdentifier(AccessibilityID.Voyage.destinationEnemy(enemy.id))
                         }
-                        .trinketArtworkCardButtonStyle()
-                        .accessibilityLabel(ContentCopy.localized(enemy.name, locale: locale))
-                        .accessibilityIdentifier(AccessibilityID.Voyage.destinationEnemy(enemy.id))
                     }
                 }
                 .padding(TrinketDesign.Layout.contentMargin)

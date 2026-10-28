@@ -14,6 +14,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     let baseHeight: CGFloat
     var horizontalPadding: CGFloat
     var bottomPadding: CGFloat
+    var footerSpacing: CGFloat?
     var singleLineTitle = false
     var titleScale: CGFloat = 1
     var eyebrowScale: CGFloat = 1
@@ -29,6 +30,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         baseHeight: CGFloat,
         horizontalPadding: CGFloat = TrinketDesign.Spacing.large,
         bottomPadding: CGFloat = TrinketDesign.Spacing.large,
+        footerSpacing: CGFloat? = nil,
         singleLineTitle: Bool = false,
         titleScale: CGFloat = 1,
         eyebrowScale: CGFloat = 1,
@@ -43,6 +45,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         self.baseHeight = baseHeight
         self.horizontalPadding = horizontalPadding
         self.bottomPadding = bottomPadding
+        self.footerSpacing = footerSpacing
         self.singleLineTitle = singleLineTitle
         self.titleScale = titleScale
         self.eyebrowScale = eyebrowScale
@@ -68,7 +71,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
                     .allowsHitTesting(false)
             }
             .overlay(alignment: .bottomLeading) {
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: footerSpacing) {
                     titleBlock
                     footer()
                 }
@@ -80,7 +83,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
     }
 
     private var expandingHeader: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: footerSpacing) {
             titleBlock
             footer()
         }

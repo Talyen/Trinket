@@ -63,10 +63,18 @@ final class PlayModeNavigationUITests: TrinketUITestCase {
         )).firstMatch
         tapWhenReady(artwork)
         assertExists(AccessibilityID.Voyage.destinationSheet)
-        let enemy = app.buttons.matching(NSPredicate(
+        let enemyButtons = app.buttons.matching(NSPredicate(
             format: "identifier BEGINSWITH %@", AccessibilityID.Voyage.destinationEnemy(""),
-        )).firstMatch
+        ))
+        let enemy = enemyButtons.element(boundBy: 0)
         reveal(enemy)
+        let secondEnemy = enemyButtons.element(boundBy: 1)
+        XCTAssertTrue(secondEnemy.waitForExistence(timeout: 5))
+        let firstFrame = enemy.frame
+        let secondFrame = secondEnemy.frame
+        XCTAssertEqual(firstFrame.minY, secondFrame.minY, accuracy: 2, "Enemy artwork should share a row")
+        XCTAssertLessThan(firstFrame.maxX, secondFrame.minX)
+        XCTAssertEqual(firstFrame.width / firstFrame.height, 1200.0 / 896, accuracy: 0.03)
         let enemyName = enemy.label
         tapWhenReady(enemy)
         assertExists(AccessibilityID.CombatantDetail.header(name: enemyName))
