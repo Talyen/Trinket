@@ -99,6 +99,26 @@ class CIEffortTests(unittest.TestCase):
         with patch.object(REUSE, 'api', side_effect=responses):
             self.assertEqual(REUSE.find_proof('owner/repo', 'abc', 'main', '20')['run-id'], '10')
 
+    def test_partial_rerun_can_reuse_the_original_verified_producer(self):
+        run, jobs, artifacts = self.proof_fixture()
+        jobs = [{**job, 'id': index + 1} for index, job in enumerate(jobs)]
+        original = next(job for job in jobs if job['name'] == 'tests / Build and smoke UI')
+        cloned = {**original, 'id': 100, 'run_attempt': 2}
+        history = [*jobs, cloned]
+        responses = [[{'workflow_runs': [run]}], [{'jobs': history}], [{'artifacts': artifacts}]]
+        for products_only in (False, True):
+            with self.subTest(products_only=products_only), patch.object(REUSE, 'api', side_effect=responses):
+                proof = REUSE.find_proof('owner/repo', 'abc', 'main', '20', products_only)
+                self.assertEqual(proof['build-artifact'], 'build-derived-data-10-1')
+        bad_history = [job if job is not original else {**job, 'head_sha': 'old'} for job in history]
+        with patch.object(REUSE, 'api', side_effect=[[{'workflow_runs': [run]}], [{'jobs': bad_history}], [{'artifacts': artifacts}]]):
+            self.assertEqual(REUSE.find_proof('owner/repo', 'abc', 'main', '20')['standard'], 'false')
+        for changes in ({'head_sha': 'old'}, {'steps': []}):
+            latest = [job if job['name'] != original['name'] else {**cloned, **changes} for job in jobs]
+            self.assertIsNone(REUSE.proof(run, latest, artifacts, 'abc', 'main', history=history))
+        latest = [job if job['name'] != original['name'] else {**cloned, 'head_sha': 'old'} for job in jobs]
+        self.assertIsNone(REUSE.product_proof(run, latest, artifacts, 'abc', 'main', history=history))
+
     def test_product_transfer_does_not_require_or_certify_unrelated_checks(self):
         run, jobs, artifacts = self.proof_fixture()
         build = dict(name='tests / Build and smoke UI', conclusion='success', run_attempt=1, head_sha='abc',
@@ -163,6 +183,7 @@ class CIEffortTests(unittest.TestCase):
                               {**evidence, 'expected_tests': [None]}):
                 self.assertEqual(RETRY.failed_cases(original, report, malformed, ['BattleTests']), [])
             self.assertEqual(RETRY.failed_cases(original, report, evidence, []), [])
+            self.assertEqual(RETRY.failed_cases(original, report, evidence, ['BattleTests']), [])
 
     def test_recovery_requires_matching_successful_retry_and_keeps_original_failure(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -179,6 +200,9 @@ class CIEffortTests(unittest.TestCase):
                 original_evidence=evidence, retry_evidence=dict(summary=dict(passed=1, failed=0, skipped=0),
                     tests=[dict(id='BattleTests/testLaunch()', result='Passed')]))
             self.assertTrue(RETRY.recovery_valid(original, report))
+            write_json(retry_path, {**retry, 'result_bundle': original['result_bundle']})
+            self.assertFalse(RETRY.recovery_valid(original, report))
+            write_json(retry_path, retry)
             self.assertEqual(original['exit_code'], 65)
             retry_summary = original['infrastructure_recovery']['retry_evidence']['summary']
             retry_summary['skipped'] = 1

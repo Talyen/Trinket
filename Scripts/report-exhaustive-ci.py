@@ -9,23 +9,33 @@ import os
 from pathlib import Path
 
 
+def job_outcome(job: dict) -> str:
+    if job.get('status') != 'completed':
+        return f"{job.get('status') or 'unknown'} (not completed)"
+    return job.get('conclusion') or 'unknown'
+
+
 def report(pages: list[dict]) -> tuple[str, list[str]]:
+    if not isinstance(pages, list) or any(not isinstance(page, dict) or not isinstance(page.get('jobs'), list)
+                                          or any(not isinstance(job, dict) or not isinstance(job.get('name'), str)
+                                                 for job in page['jobs']) for page in pages):
+        raise ValueError('Missing or unreadable job records')
     jobs = [job for page in pages for job in page['jobs'] if 'Exhaustive UI (' in job['name']]
     warnings = []
     if not jobs:
         warnings.append('No exhaustive UI shards found; advisory status is unknown.')
     for job in jobs:
-        outcome = job.get('conclusion') or job['status']
+        outcome = job_outcome(job)
         if outcome not in ('success', 'skipped'):
             warnings.append(f"Advisory exhaustive shard: {job['name']} — {outcome}")
-    skipped = sum(job.get('conclusion') == 'skipped' for job in jobs)
+    skipped = sum(job.get('status') == 'completed' and job.get('conclusion') == 'skipped' for job in jobs)
     title = 'attention required' if warnings else (
         'not run' if skipped == len(jobs) else 'incomplete' if skipped else 'passed'
     )
     lines = [f'### Exhaustive UI: {title} (advisory)', '',
              '| Shard | Result |', '|---|---|']
     for job in jobs:
-        outcome = job.get('conclusion') or job['status']
+        outcome = job_outcome(job)
         name = job['name'].replace('|', '\\|').replace('\n', ' ')
         lines.append(f"| [{name}]({job['html_url']}) | {outcome} |")
     lines += ['', *warnings]

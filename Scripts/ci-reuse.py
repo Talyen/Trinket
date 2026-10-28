@@ -27,13 +27,18 @@ def matching_run(run: dict, sha: str, branch: str) -> bool:
     return all(run.get(key) == value for key, value in required.items())
 
 
+def successful_build_step(build: dict, sha: str) -> bool:
+    attempt, steps = build.get('run_attempt'), build.get('steps')
+    return (type(attempt) is int and attempt > 0 and build.get('head_sha') == sha
+            and isinstance(steps, list)
+            and any(isinstance(step, dict) and step.get('name') == 'Restore warm cache and build'
+                    and step.get('conclusion') == 'success' for step in steps))
+
+
 def build_artifact(run: dict, build: dict, artifacts: list[dict], sha: str) -> str | None:
     """Bind one available archive to the build step that produced it."""
-    attempt, run_id, steps = build.get('run_attempt'), run.get('id'), build.get('steps')
-    if (type(attempt) is not int or attempt < 1 or type(run_id) is not int or run_id < 1
-            or build.get('head_sha') != sha or not isinstance(steps, list)
-            or not any(isinstance(step, dict) and step.get('name') == 'Restore warm cache and build'
-                       and step.get('conclusion') == 'success' for step in steps)):
+    attempt, run_id = build.get('run_attempt'), run.get('id')
+    if type(run_id) is not int or run_id < 1 or not successful_build_step(build, sha):
         return None
     name = f'build-derived-data-{run_id}-{attempt}'
     matching = [artifact for artifact in artifacts if isinstance(artifact, dict)
@@ -41,7 +46,25 @@ def build_artifact(run: dict, build: dict, artifacts: list[dict], sha: str) -> s
     return name if len(matching) == 1 else None
 
 
-def product_proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, branch: str) -> dict[str, str] | None:
+def producing_artifact(run: dict, builds: list[dict], artifacts: list[dict], sha: str) -> str | None:
+    # Partial reruns can repeat a successful job without republishing its
+    # archive. Find an unambiguous original producer, newest attempt first.
+    by_attempt: dict[int, list[dict]] = {}
+    for build in builds:
+        attempt = build.get('run_attempt')
+        if type(attempt) is int and attempt > 0:
+            by_attempt.setdefault(attempt, []).append(build)
+    for attempt in sorted(by_attempt, reverse=True):
+        producers = by_attempt[attempt]
+        if len(producers) == 1:
+            name = build_artifact(run, producers[0], artifacts, sha)
+            if name:
+                return name
+    return None
+
+
+def product_proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, branch: str,
+                  *, history: list[dict] | None = None) -> dict[str, str] | None:
     # Transferring exact-revision products never substitutes for another gate.
     # A path-filtered, still-running, or UI-failed workflow can have a valid archive.
     qualified = run.get('event') == 'push' or (
@@ -49,16 +72,19 @@ def product_proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, 
     if not qualified or run.get('head_sha') != sha or run.get('head_branch') != branch:
         return None
     builds = [job for job in jobs if job.get('name') == 'tests / Build and smoke UI']
-    if len(builds) != 1:
+    if len(builds) != 1 or builds[0].get('head_sha') != sha:
         return None
-    name = build_artifact(run, builds[0], artifacts, sha)
+    producers = [job for job in (history if history is not None else jobs)
+                 if job.get('name') == builds[0]['name']]
+    name = producing_artifact(run, producers, artifacts, sha)
     if not name:
         return None
     return {'products': 'true', 'standard': 'false', 'assets': 'false',
             'run-id': str(run['id']), 'build-artifact': name}
 
 
-def proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, branch: str) -> dict[str, str] | None:
+def proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, branch: str,
+          *, history: list[dict] | None = None) -> dict[str, str] | None:
     if not matching_run(run, sha, branch):
         return None
     successful = {job.get("name"): job for job in jobs if job.get("conclusion") == "success"}
@@ -79,7 +105,11 @@ def proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, branch: 
     # A skipped build/unit suite cannot prove product verification. A missing or
     # expired artifact also forces the ordinary build+smoke path, not a false pass.
     build = successful.get('tests / Build and smoke UI') or successful.get('tests / Build for testing')
-    artifact = build_artifact(run, build, artifacts, sha)
+    if not successful_build_step(build, sha):
+        return None
+    producers = [job for job in (history if history is not None else jobs)
+                 if job.get('name') == build['name']]
+    artifact = producing_artifact(run, producers, artifacts, sha)
     if not artifact:
         return None
     return {
@@ -111,7 +141,7 @@ def find_proof(repository: str, sha: str, branch: str, run_id: str, products_onl
                 pages = api(f"repos/{repository}/actions/runs/{run['id']}/artifacts?per_page=100")
                 artifacts = [item for page in pages for item in page.get("artifacts", [])]
                 checker = product_proof if products_only else proof
-                candidate = checker(run, list(latest.values()), artifacts, sha, branch)
+                candidate = checker(run, list(latest.values()), artifacts, sha, branch, history=jobs)
                 if candidate:
                     return candidate
             except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError, AttributeError) as error:

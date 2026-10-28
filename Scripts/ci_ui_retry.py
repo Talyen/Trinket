@@ -86,6 +86,9 @@ def failed_cases(manifest: dict, report: dict, evidence: dict, targets: list[str
         return []
     target_names = {identifier(target) for target in targets}
     if any(not any(name == target or name.startswith(target + "/") or target == "TrinketUITests"
+                   for target in target_names) for name in results):
+        return []
+    if any(not any(name == target or name.startswith(target + "/") or target == "TrinketUITests"
                    for name in results) for target in target_names):
         return []
     failed = {name for name, result in results.items() if result == "Failed"}
@@ -111,6 +114,7 @@ def recovery_valid(manifest: dict, report: dict) -> bool:
         retry_results = test_results(recovery["retry_evidence"])
         return bool(failed) and (
             Path(manifest["result_bundle"], "Info.plist").is_file()
+            and Path(manifest["result_bundle"]).resolve() != Path(retry["result_bundle"]).resolve()
             and bool(manifest.get("session_id"))
             and retry.get("status") == "passed" and type(retry.get("exit_code")) is int and retry["exit_code"] == 0
             and retry.get("session_id") == manifest.get("session_id")
