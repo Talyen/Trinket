@@ -87,14 +87,38 @@ public extension GameContent {
         access: ContentAccessPolicy = .fullGame,
     ) -> [MysteryEvent] {
         recruitEvents.filter { event in
-            guard let combatantID = event.unlockCombatantID,
-                  access.allowsCombatant(combatantID),
-                  !unlockedHeroIDs.contains(combatantID),
-                  !unlockedCompanionIDs.contains(combatantID)
-            else { return false }
-            guard let role else { return true }
-            return Self.combatant(matching: combatantID)?.role == role
+            isEligibleRecruit(
+                event,
+                unlockedHeroIDs: unlockedHeroIDs,
+                unlockedCompanionIDs: unlockedCompanionIDs,
+                role: role,
+                access: access,
+            )
         }
+    }
+
+    internal static func eligibleRecruitEventIDs(
+        unlockedHeroIDs: Set<String>, unlockedCompanionIDs: Set<String>, access: ContentAccessPolicy,
+    ) -> [String] {
+        Array(recruitEvents.lazy.filter {
+            isEligibleRecruit($0, unlockedHeroIDs: unlockedHeroIDs, unlockedCompanionIDs: unlockedCompanionIDs, role: nil, access: access)
+        }.map(\.id))
+    }
+
+    private static func isEligibleRecruit(
+        _ event: MysteryEvent,
+        unlockedHeroIDs: Set<String>,
+        unlockedCompanionIDs: Set<String>,
+        role: Combatant.Role?,
+        access: ContentAccessPolicy,
+    ) -> Bool {
+        guard let combatantID = event.unlockCombatantID,
+              access.allowsCombatant(combatantID),
+              !unlockedHeroIDs.contains(combatantID),
+              !unlockedCompanionIDs.contains(combatantID)
+        else { return false }
+        guard let role else { return true }
+        return Self.combatant(matching: combatantID)?.role == role
     }
 
     static func resolveRecruitEncounter(
@@ -107,17 +131,17 @@ public extension GameContent {
     ) -> RecruitEncounterResolution {
         let roleFilter: Combatant.Role? =
             configuredEventID == StageEncounter.randomCompanionRecruitID ? .companion : nil
-        let eligible = eligibleRecruitEvents(
-            unlockedHeroIDs: unlockedHeroIDs,
-            unlockedCompanionIDs: unlockedCompanionIDs,
-            role: roleFilter,
-            access: access,
-        )
-        if let configured = configuredEventID.flatMap({ recruitEvent(matching: $0) }),
-           eligible.contains(configured) {
-            return .recruit(configured)
+        let configured = configuredEventID.flatMap { recruitEvent(matching: $0) }
+        var eligible: [MysteryEvent] = []
+        for event in recruitEvents where isEligibleRecruit(
+            event, unlockedHeroIDs: unlockedHeroIDs, unlockedCompanionIDs: unlockedCompanionIDs,
+            role: roleFilter, access: access,
+        ) {
+            if event == configured {
+                return .recruit(event)
+            }
+            eligible.append(event)
         }
-
         var randomNumberGenerator = SeededRandomNumberGenerator(
             seed: encounterSeed(worldSeed, salt: "recruit-resolution-\(encounterID)"),
         )

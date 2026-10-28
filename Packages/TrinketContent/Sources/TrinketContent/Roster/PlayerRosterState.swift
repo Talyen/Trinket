@@ -346,9 +346,9 @@ public struct PlayerRosterState: Equatable, Sendable {
 
 public extension PlayerRosterState {
     func eligibleRecruitEventIDs(access: ContentAccessPolicy) -> [String] {
-        GameContent.eligibleRecruitEvents(
+        GameContent.eligibleRecruitEventIDs(
             unlockedHeroIDs: unlockedHeroIDs, unlockedCompanionIDs: unlockedCompanionIDs, access: access,
-        ).map(\.id)
+        )
     }
 
     // MARK: - Talents
