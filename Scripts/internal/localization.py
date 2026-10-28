@@ -75,27 +75,46 @@ def placeholders(text: str) -> Counter:
         raise ValueError('Unsupported or unescaped percent format; use %% for a literal percent')
     result = Counter()
     consumed = 0
+    styles = set()
     for match in FORMAT.finditer(text):
         position, kind = match.groups()
         if kind == '%':
+            if match[0] != '%%':
+                raise ValueError('A literal percent must use %% without a position or formatting flags')
             continue
+        if position is not None and int(position) == 0:
+            raise ValueError('Placeholder positions start at 1')
+        styles.add('positional' if position is not None else 'implicit')
+        if len(styles) > 1:
+            raise ValueError('Cannot mix positional and implicit placeholders')
         consumed += 1
         result[(int(position) if position else consumed, kind)] += 1
     return result
 
 
 def units(localization: dict) -> dict[str, str]:
+    if not isinstance(localization, dict):
+        raise ValueError('Localization must be an object')
     if set(localization) - {'stringUnit', 'variations'} or ('stringUnit' in localization and 'variations' in localization):
         raise ValueError('Unsupported catalog extraction pattern; extend the typed resource generator')
     if 'stringUnit' in localization:
         unit = localization['stringUnit']
-        if not isinstance(unit.get('value'), str):
+        if not isinstance(unit, dict) or not isinstance(unit.get('value'), str):
             raise ValueError('stringUnit.value must be text')
         return {'value': unit['value']}
     variants = localization.get('variations', {})
-    if set(variants) != {'plural'}:
+    if not isinstance(variants, dict) or set(variants) != {'plural'}:
         raise ValueError('Expected a stringUnit or plural variations; unsupported variation cannot be skipped')
-    return {form: units(item)['value'] for form, item in variants['plural'].items()}
+    plural = variants['plural']
+    if not isinstance(plural, dict) or not plural:
+        raise ValueError('Plural variations must be a non-empty object')
+    result = {}
+    for form, item in plural.items():
+        value = units(item)
+        if set(value) != {'value'}:
+            raise ValueError('Nested plural variations are unsupported')
+        result[form] = value['value']
+    return result
 
 
 def localized(value: dict[str, str]) -> dict:
@@ -118,7 +137,7 @@ def semantic_values(text: str) -> dict:
     for token in re.finditer(r'<(/?)(keyword|value)(?: id="([a-z0-9_]+)")?>', text):
         closing, kind, identifier = token.groups()
         if closing:
-            if not stack or stack[-1][0] != kind:
+            if identifier or not stack or stack[-1][0] != kind:
                 raise ValueError('Unbalanced semantic markup')
             _, identity, start = stack.pop()
             if kind == 'value':
@@ -211,8 +230,15 @@ def string_units(localization: dict):
 def enforce_glossary(entry: dict, value: dict, locale: str, identifier: str) -> None:
     for term, definition in entry['glossary'].items():
         required = definition.get('translations', {}).get(locale)
-        if required and definition.get('enforce', False) and not any(required.casefold() in text.casefold() for text in value.values()):
-            raise ValueError(f'{identifier}/{locale}: missing required glossary term {required}')
+        if not required or not definition.get('enforce', False):
+            continue
+        source = entry['source']
+        fallback = source.get('other', next(iter(source.values())))
+        pattern = r'(?<!\w)' + re.escape(term) + r'(?!\w)'
+        for form, text in value.items():
+            if (re.search(pattern, source.get(form, fallback), re.IGNORECASE)
+                    and required.casefold() not in text.casefold()):
+                raise ValueError(f'{identifier}/{locale}/{form}: missing required glossary term {required}')
 
 
 def plan(root: Path) -> dict:

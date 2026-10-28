@@ -352,6 +352,48 @@ output.write_text(json.dumps({'translations': results}))
         with self.assertRaisesRegex(ValueError, 'placeholder'):
             validate_translation(source, {'one': '%1$@ Karte', 'other': '%1$@ Karten'}, 'de', 'cards')
 
+    def test_format_contract_rejects_mixed_or_invalid_percent_specifiers(self):
+        from internal.localization import placeholders
+        source = {'value': '%1$lld damage for %2$lld turns'}
+        with self.assertRaisesRegex(ValueError, 'mix positional'):
+            validate_translation(source, {'value': '%1$lld Schaden für %lld Runden'}, 'de', 'damage')
+        for invalid in ('%1$%', '%05%', '%0$lld'):
+            with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+                placeholders(invalid)
+        self.assertEqual(placeholders('%2$lld / %1$lld (%%)'), {(2, 'lld'): 1, (1, 'lld'): 1})
+
+    def test_enforced_glossary_terms_are_checked_in_each_applicable_plural(self):
+        from internal.localization import enforce_glossary
+        entry = {'source': {'one': '%1$lld Burn', 'other': '%1$lld Burn stacks'},
+                 'glossary': {'Burn': {'enforce': True, 'translations': {'de': 'Brand'}}}}
+        with self.assertRaisesRegex(ValueError, 'other.*glossary'):
+            enforce_glossary(entry, {'one': '%1$lld Brand', 'other': '%1$lld Stapel'}, 'de', 'burn')
+        enforce_glossary(entry, {'one': '%1$lld Brand', 'other': '%1$lld Brandstapel'}, 'de', 'burn')
+        entry['source']['one'] = '%1$lld stack'
+        enforce_glossary(entry, {'one': '%1$lld Stapel', 'other': '%1$lld Brandstapel'}, 'de', 'burn')
+
+    def test_malformed_localization_shapes_are_rejected_as_validation_errors(self):
+        from internal.localization import units
+        for value in ([], {'stringUnit': []}, {'variations': []}, {'variations': {'plural': []}},
+                      {'variations': {'plural': {'one': {'variations': {'plural': {'other': {'stringUnit': {'value': 'x'}}}}}}}}):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                units(value)
+
+    def test_planning_rejects_malformed_existing_translation_without_modifying_it(self):
+        apply(self.root, self.response())
+        catalog = json.loads((self.root / self.name).read_text())
+        catalog['strings']['deal.burn']['localizations']['ja'] = {'stringUnit': ['broken']}
+        self.write(self.name, catalog)
+        before = (self.root / self.name).read_bytes()
+        with self.assertRaisesRegex(ValueError, 'stringUnit.value'):
+            plan(self.root)
+        self.assertEqual((self.root / self.name).read_bytes(), before)
+
+    def test_semantic_closing_tags_cannot_carry_identities(self):
+        malformed = '<keyword id="burn">Burn</keyword id="burn">'
+        with self.assertRaisesRegex(ValueError, 'semantic markup'):
+            validate_translation({'value': malformed}, {'value': malformed}, 'de', 'burn')
+
     def test_review_and_translation_edits_cannot_silently_pass(self):
         response = self.response()
         response['translations'][0]['review']['checks'].remove('mechanics')

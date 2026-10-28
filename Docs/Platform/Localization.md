@@ -94,6 +94,10 @@ Use complete sentence templates, positional typed placeholders, native plurals,
 and translator comments. Never assemble a translated sentence by joining English
 fragments, force translated casing, or change raw enum/save/artwork identifiers.
 Literal percent signs in catalog format strings use `%%`.
+Do not mix positional and implicit format arguments. Enforced glossary terms
+must appear in every translated plural form whose English source uses that term.
+Malformed catalog structures and semantic tags fail validation without rewriting
+the existing translations or review evidence.
 
 Resolve content arguments before passing them into a translated sentence; translating
 “Build %1$@” or “%1$@, locked” does not translate the inserted building or character
