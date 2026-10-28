@@ -392,7 +392,7 @@ private extension CombatantTalentsView {
 
                 KeywordDescriptionText(text: selectedNode.description)
                     .trinketTypography(.body)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
                     .id(selectedNode.id)
                     .transition(.opacity)
