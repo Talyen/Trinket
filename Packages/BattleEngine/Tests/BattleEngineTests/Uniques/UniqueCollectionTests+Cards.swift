@@ -28,14 +28,7 @@ extension UniqueCollectionTests {
         UniqueCombatEngine.startTurn(in: &context)
         #expect(context.roster[owner].uniques.wrenflightDodge == 0)
         #expect(context.roster[owner].uniques.cardsPlayed == 0)
-        // The Returning Gale third-card rule is retired; Dodge-triggered returns are covered
-        // by ReturningGaleRegressionTests (ordinary vs automatic, non-damaging, FIFO, no duplicates).
     }
-
-    // The Returning Flight turn-start recovery rule is retired (replaced by immediate
-    // first-Physical return). Coverage survives in ReturningGaleRegressionTests
-    // (`flight returns first physical once and moves without deck cycle`,
-    // `gale and flight together do not duplicate`).
 
     @Test(
         arguments: [
