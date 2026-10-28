@@ -136,7 +136,7 @@ doctor and dry-run need no opt-in.
 
 | Example | Purpose |
 |---|---|
-| `python3 Scripts/test-timing.py report` | Suite timing/hotspots; `show --last 10` lists runs, `record` imports a result and `assert-budget` enforces configured limits |
+| `python3 Scripts/test-timing.py report` | Suite timing/hotspots; `show --last 10` lists runs, `record` imports a result and `assert-budget --mode <mode> --max-wall <seconds>` checks recorded wall time |
 | `./Scripts/performance.sh --list` | List the manual performance matrix; scenario/group selection and measurements follow the [playbook](../Docs/Platform/PerformanceInvestigationPlaybook.md) |
 | `./Scripts/record-time-profiler.sh --output <path.trace> --time-limit 8s` | Host process Time Profiler; all-process capture is opt-in, never `xctrace --device` |
 | `python3 Scripts/profile-device.py --device <UDID> --duration 30` | Physical CPU/hitch capture with retained matching symbols; [profiling](../Docs/Platform/PerformanceInvestigationPlaybook.md#physical-device-profiling-over-wi-fi) owns build/install and interpretation |

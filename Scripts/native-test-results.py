@@ -132,6 +132,8 @@ def compare(native: dict, rows: list[dict], commit: str) -> dict:
     if len(candidates) != 1:
         raise ValueError('Parity requires exactly one iOS comparator invocation')
     ios = candidates[0]
+    if ios.get('scope_validated', True) is not True:
+        raise ValueError('iOS comparator has rejected suite-filter evidence')
     summary, tests = ios.get('summary', {}), ios.get('tests', [])
     ids = [test['id'] for test in tests]
     ios_cases = {test['id']: len(test['arguments']) for test in tests if test.get('arguments')}
@@ -158,7 +160,8 @@ def ios_transfer(package: str, rows: list[dict], identity: dict) -> dict:
         raise ValueError('Transfer requires exactly one iOS comparator invocation')
     row = candidates[0]
     summary, tests = row.get('summary', {}), row.get('tests', [])
-    if (row.get('commit') != identity['commit'] or row.get('execution_identity') != identity
+    if (row.get('scope_validated', True) is not True
+            or row.get('commit') != identity['commit'] or row.get('execution_identity') != identity
             or summary.get('result') != 'Passed' or type(summary.get('passed')) is not int
             or not tests or summary['passed'] != len(tests)
             or any(type(summary.get(key)) is not int or summary[key] != 0 for key in ('failed', 'skipped'))

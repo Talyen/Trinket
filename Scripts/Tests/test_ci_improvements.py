@@ -286,6 +286,8 @@ class CIImprovementsTests(unittest.TestCase):
                          tests=[dict(id=proof['executed_tests'][0], result='Passed', arguments=['Passed'])])]
             self.assertEqual(NATIVE.compare(native, rows, 'sha')['matched_tests'], 1)
             for altered in ([{**rows[0], 'commit': 'older-sha'}],
+                            [{**rows[0], 'scope_validated': False}],
+                            [{**rows[0], 'scope_validated': 'true'}],
                             [{**rows[0], 'tests': [dict(id='Other/test()', result='Passed', arguments=['Passed'])]}],
                             [{**rows[0], 'tests': [dict(id=proof['executed_tests'][0], result='Passed', arguments=[])]}],
                             [{**rows[0], 'summary': {**rows[0]['summary'], 'skipped': 1}}]):
@@ -318,6 +320,8 @@ class CIImprovementsTests(unittest.TestCase):
                     with self.assertRaises(ValueError):
                         NATIVE.ios_transfer('TrinketCore', [{**row, 'execution_identity': wrong}], identity)
             for altered in ([], [row, row], [{**row, 'tests': []}],
+                            [{**row, 'scope_validated': False}],
+                            [{**row, 'scope_validated': 'true'}],
                             [{**row, 'summary': {**row['summary'], 'skipped': 1}}],
                             [{**row, 'tests': [{**row['tests'][0], 'arguments': ['Not Run']}]}]):
                 with self.assertRaises(ValueError):

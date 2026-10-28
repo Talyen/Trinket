@@ -68,6 +68,8 @@ def valid_entry(entry: object) -> bool:
         return False
     if "no_build" in entry and not isinstance(entry["no_build"], bool):
         return False
+    if "scope_validated" in entry and not isinstance(entry["scope_validated"], bool):
+        return False
     return True
 
 
@@ -222,22 +224,36 @@ def record(results_dir: Path, log_path: Path, args: list[str]) -> None:
                 pass
         parsed = parse_xcresult(path, manifest)
         recorded_xcresult = str(path)
-    commit = current_commit()
-    append_entry(results_dir, log_path, {"recorded_at": datetime.now(timezone.utc).isoformat(), "commit": commit,
-                                       "execution_identity": execution_identity(commit),
-                                       "run": run, "mode": mode, "targets": values["targets"],
-                                       "no_build": bool(values.get("no_build")), "wall_seconds": wall_seconds,
-                                       "xcresult": recorded_xcresult, **parsed})
     suite = values.get("only_suite") or values.get("skip_suite")
+    scope_error = None
     if suite:
         tests = parsed["tests"]
+        summary = parsed["summary"]
         if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", suite) or not tests:
-            raise SystemExit("Package suite filter lacks executed case evidence")
-        selected = [test for test in tests if test["id"].startswith(suite + "/")]
-        if values.get("only_suite") and (len(selected) != len(tests) or any(test.get("result") != "Passed" for test in selected)):
-            raise SystemExit(f"Package only-suite filter was not fully executed: {suite}")
-        if values.get("skip_suite") and selected:
-            raise SystemExit(f"Package skip-suite filter was not applied: {suite}")
+            scope_error = "Package suite filter lacks executed case evidence"
+        elif (summary.get("result") != "Passed" or type(summary.get("passed")) is not int
+              or summary["passed"] != len(tests) or any(type(summary.get(key)) is not int or summary[key] != 0
+                                                         for key in ("failed", "skipped"))
+              or any(test.get("result") != "Passed" or not isinstance(test.get("arguments"), list)
+                     or any(result != "Passed" for result in test["arguments"]) for test in tests)
+              or len({test["id"] for test in tests}) != len(tests)):
+            scope_error = "Package suite filter lacks complete successful case evidence"
+        else:
+            selected = [test for test in tests if test["id"].startswith(suite + "/")]
+            if values.get("only_suite") and len(selected) != len(tests):
+                scope_error = f"Package only-suite filter was not fully executed: {suite}"
+            if values.get("skip_suite") and selected:
+                scope_error = f"Package skip-suite filter was not applied: {suite}"
+    commit = current_commit()
+    entry = {"recorded_at": datetime.now(timezone.utc).isoformat(), "commit": commit,
+             "execution_identity": execution_identity(commit), "run": run, "mode": mode,
+             "targets": values["targets"], "no_build": bool(values.get("no_build")),
+             "wall_seconds": wall_seconds, "xcresult": recorded_xcresult, **parsed}
+    if suite:
+        entry["scope_validated"] = scope_error is None
+    append_entry(results_dir, log_path, entry)
+    if scope_error:
+        raise SystemExit(scope_error)
     # Quiet test runs print nothing on success; this single line is the
     # terminal-visible proof that tests executed and their outcome.
     summary = parsed["summary"]
@@ -360,11 +376,8 @@ def assert_budget(log_path: Path, args: list[str]) -> None:
             return
         raise SystemExit(f"No timing entries for mode '{mode}' in {log_path}")
     latest = entries[-1]
-    duration = latest.get("summary", {}).get("xcresult_seconds")
-    source = "xcresult"
-    if duration is None:
-        duration = latest.get("wall_seconds")
-        source = "wall"
+    duration = latest.get("wall_seconds")
+    source = "wall"
     if duration is None:
         raise SystemExit(f"Latest '{mode}' timing entry has no measurable duration")
     duration = finite_nonnegative(duration, "latest duration")

@@ -34,7 +34,7 @@ class TestTimingTests(unittest.TestCase):
     def test_filtered_package_records_require_disjoint_executed_scope(self) -> None:
         timing = load_script("filtered_package_timing", "test-timing.py")
         def case(suite, result='Passed'):
-            return dict(id=suite + '/example()', name='example', seconds=0, result=result)
+            return dict(id=suite + '/example()', name='example', seconds=0, result=result, arguments=[])
         for flag, cases, valid in (
             ('--only-suite', [case('Store')], True),
             ('--only-suite', [case('Store'), case('Other')], False),
@@ -43,6 +43,7 @@ class TestTimingTests(unittest.TestCase):
             ('--only-suite', [], False),
             ('--skip-suite', [case('Other')], True),
             ('--skip-suite', [case('Store'), case('Other')], False),
+            ('--skip-suite', [case('Other', 'Skipped')], False),
             ('--skip-suite', [], False),
         ):
             with self.subTest(flag=flag, cases=cases), tempfile.TemporaryDirectory() as directory:
@@ -51,7 +52,7 @@ class TestTimingTests(unittest.TestCase):
                 bundle.mkdir()
                 (bundle / 'Info.plist').touch()
                 log = root / 'timing-log.jsonl'
-                payload = dict(summary=dict(passed=len(cases), failed=0, skipped=0), tests=cases)
+                payload = dict(summary=dict(result='Passed', passed=len(cases), failed=0, skipped=0), tests=cases)
                 with patch.object(timing, 'parse_xcresult', return_value=payload):
                     args = ['--mode', 'package:State', '--run', 'filtered', '--xcresult', str(bundle), flag, 'Store']
                     if valid:
@@ -60,7 +61,47 @@ class TestTimingTests(unittest.TestCase):
                         with self.assertRaises(SystemExit):
                             timing.record(root, log, args)
                 # A rejected filter still retains its actual cases for diagnosis.
-                self.assertEqual(json.loads(log.read_text())['tests'], cases)
+                entry = json.loads(log.read_text())
+                self.assertEqual(entry['tests'], cases)
+                self.assertIs(entry['scope_validated'], valid)
+
+    def test_filtered_scope_rejects_partial_summary_and_failing_parameters(self) -> None:
+        timing = load_script("filtered_package_evidence", "test-timing.py")
+        case = dict(id='Store/example()', name='example', seconds=0, result='Passed', arguments=['Passed'])
+        summary = dict(result='Passed', passed=1, failed=0, skipped=0)
+        for payload in (
+            dict(summary={**summary, 'passed': 2}, tests=[case]),
+            dict(summary={**summary, 'skipped': 1}, tests=[case]),
+            dict(summary=summary, tests=[{**case, 'arguments': ['Passed', 'Failed']}]),
+            dict(summary=summary, tests=[{**case, 'arguments': ['Skipped']}]),
+            dict(summary=summary, tests=[case, case]),
+        ):
+            with self.subTest(payload=payload), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                bundle = root / 'cases.xcresult'
+                bundle.mkdir()
+                (bundle / 'Info.plist').touch()
+                log = root / 'timing-log.jsonl'
+                with patch.object(timing, 'parse_xcresult', return_value=payload):
+                    with self.assertRaisesRegex(SystemExit, 'complete successful case evidence'):
+                        timing.record(root, log, ['--mode', 'package:State', '--run', 'filtered',
+                                                  '--xcresult', str(bundle), '--only-suite', 'Store'])
+                self.assertIs(json.loads(log.read_text())['scope_validated'], False)
+
+    def test_wall_budget_checks_wall_time_not_the_shorter_test_bundle(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            entry = {'mode': 'unit', 'wall_seconds': 45,
+                     'summary': {'passed': 1, 'failed': 0, 'skipped': 0, 'xcresult_seconds': 10}, 'tests': []}
+            (root / 'timing-log.jsonl').write_text(json.dumps(entry) + '\n')
+            result = self.run_script(root, 'assert-budget', '--mode', 'unit', '--max-wall', '30')
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('45.0s (wall)', result.stderr)
+            entry['wall_seconds'] = None
+            (root / 'timing-log.jsonl').write_text(json.dumps(entry) + '\n')
+            result = self.run_script(root, 'assert-budget', '--mode', 'unit', '--max-wall', '30')
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('no measurable duration', result.stderr)
 
     def test_timing_history_survives_successful_artifact_cleanup(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
