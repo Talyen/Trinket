@@ -9,7 +9,7 @@ from unittest.mock import patch
 import subprocess
 import sys
 
-from script_test_support import load_script, write_json
+from script_test_support import ROOT, load_script, write_json
 
 REUSE = load_script('ci_reuse_test', 'ci-reuse.py')
 RETRY = load_script('ci_retry_test', 'ci_ui_retry.py')
@@ -18,6 +18,55 @@ from internal import cli
 
 
 class CIEffortTests(unittest.TestCase):
+    def test_retry_discovery_covers_the_registered_ui_suites(self):
+        from internal.ui_registration import registrations
+        suites = [row['name'] for row in registrations(ROOT) if row['suite'] in {'Smoke', 'FullUI'}]
+        cases = RETRY.expected_cases(suites, ROOT / 'TrinketUITests')
+        self.assertEqual({case.split('/')[0] for case in cases}, set(suites))
+
+    def test_retry_discovery_includes_inherited_attributed_and_reindented_cases(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            support = root / 'Support'
+            support.mkdir()
+            (support / 'Base.swift').write_text('''
+                class SharedBase: XCTestCase {
+                  func testInherited() {}
+                }
+            ''')
+            (root / 'Cases.swift').write_text('''
+                @MainActor final class FlowTests: SharedBase {
+                  @MainActor func testAttributed() {}
+                  func testTwoSpaces() {}
+                  func `testEscaped`() {}
+                  func testHelper(value: Int) {}
+                  func helper() { func testNested() {} }
+                  /*\nclass Fake: XCTestCase {\n    func testGhost() {}\n}\n*/
+                  let example = "class Fake { func testString() {} }"
+                }
+                extension FlowTests {
+                    func testExtension() {}
+                }
+            ''')
+            cases = RETRY.expected_cases(['FlowTests'], root)
+            self.assertEqual(cases, ['FlowTests/testAttributed', 'FlowTests/testEscaped', 'FlowTests/testExtension',
+                                     'FlowTests/testInherited', 'FlowTests/testTwoSpaces'])
+            self.assertEqual(RETRY.expected_cases(['FlowTests/testInherited'], root), ['FlowTests/testInherited'])
+
+    def test_retry_discovery_fails_closed_for_unknown_inheritance_and_conditionals(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'Cases.swift'
+            for content in (
+                'class FlowTests: ExternalBase { func testCase() {} }',
+                'class FlowTests: XCTestCase {\n#if DEBUG\n func testCase() {}\n#endif\n}',
+                '#if DEBUG\nclass FlowTests: XCTestCase { func testCase() {} }\n#endif',
+                'class FlowTests: XCTestCase { @objc(testDynamic) func renamed() {} func testCase() {} }',
+            ):
+                source.write_text(content)
+                with self.subTest(content=content):
+                    self.assertEqual(RETRY.expected_cases(['FlowTests'], root), [])
+
     def test_worktree_inventory_retries_only_timeout_and_never_caches_missing_ownership(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -179,6 +228,10 @@ class CIEffortTests(unittest.TestCase):
             incomplete = copy.deepcopy(evidence)
             incomplete['tests'][1]['result'] = 'Not Run'
             self.assertEqual(RETRY.failed_cases(original, report, incomplete, ['BattleTests']), [])
+            for arguments in (['Failed'], ['Skipped'], ['Passed', 'Failed']):
+                contradictory = copy.deepcopy(evidence)
+                contradictory['tests'][1]['arguments'] = arguments
+                self.assertEqual(RETRY.failed_cases(original, report, contradictory, ['BattleTests', 'OtherTests']), [])
             for malformed in ({**evidence, 'tests': [None]}, {**evidence, 'summary': []},
                               {**evidence, 'expected_tests': [None]}):
                 self.assertEqual(RETRY.failed_cases(original, report, malformed, ['BattleTests']), [])
@@ -200,6 +253,9 @@ class CIEffortTests(unittest.TestCase):
                 original_evidence=evidence, retry_evidence=dict(summary=dict(passed=1, failed=0, skipped=0),
                     tests=[dict(id='BattleTests/testLaunch()', result='Passed')]))
             self.assertTrue(RETRY.recovery_valid(original, report))
+            original['infrastructure_recovery']['retry_evidence']['tests'][0]['arguments'] = ['Failed']
+            self.assertFalse(RETRY.recovery_valid(original, report))
+            original['infrastructure_recovery']['retry_evidence']['tests'][0]['arguments'] = ['Passed']
             write_json(retry_path, {**retry, 'result_bundle': original['result_bundle']})
             self.assertFalse(RETRY.recovery_valid(original, report))
             write_json(retry_path, retry)

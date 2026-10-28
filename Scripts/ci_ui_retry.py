@@ -27,23 +27,74 @@ def identifier(value: str) -> str:
 
 
 def expected_cases(targets: list[str], root: Path = Path("TrinketUITests")) -> list[str]:
-    # Routine XCTest classes declare named methods directly. Unsupported dynamic,
-    # inherited, or conditional discovery cannot authorize a partial-suite pass.
-    declared: dict[str, set[str]] = {}
+    # A recovery can only pass when every statically discoverable case is accounted for.
+    scanner = load_sibling('retry_swift_scanner', 'check-testplan-sync.py')
+    methods: dict[str, set[str]] = {}
+    parents: dict[str, set[str]] = {}
+    conditional: set[str] = set()
     for path in root.rglob("*.swift"):
-        if any(part in {"Support", "Performance"} for part in path.parts):
+        if "Performance" in path.relative_to(root).parts:
             continue
-        text = path.read_text()
-        blocks = list(re.finditer(r"^(?:final )?(?:class|extension) (\w+)[^\n]*\{", text, re.M))
-        for index, block in enumerate(blocks):
-            finish = blocks[index + 1].start() if index + 1 < len(blocks) else len(text)
-            methods = re.findall(r"^    func (test\w+)\(", text[block.end():finish], re.M)
-            declared.setdefault(block[1], set()).update(f"{block[1]}/{method}" for method in methods)
+        try:
+            source = scanner.swift_code(path.read_text())
+            for name, parent in scanner.swift_classes(source):
+                bases = parents.setdefault(name, set())
+                if parent:
+                    bases.add(parent)
+        except (OSError, ValueError):
+            return []
+        depth = 0
+        depths = []
+        for character in source:
+            depths.append(depth)
+            depth += (character == '{') - (character == '}')
+            if depth < 0:
+                return []
+        if depth:
+            return []
+        conditional_file = any(depths[match.start()] == 0 for match in
+                               re.finditer(r'(?m)^\s*#(?:if|elseif|else|endif)\b', source))
+        for block in re.finditer(r'\b(?:class|extension)\s+(`?\w+`?)', source):
+            if depths[block.start()] != 0:
+                continue
+            opening = source.find('{', block.end())
+            if opening < 0:
+                return []
+            finish = next((index for index in range(opening + 1, len(source))
+                           if source[index] == '}' and depths[index] == 1), None)
+            if finish is None:
+                return []
+            name = block[1].strip('`')
+            methods.setdefault(name, set())
+            body = source[opening + 1:finish]
+            if (conditional_file or re.search(r'(?m)^\s*#(?:if|elseif|else|endif)\b', body)
+                    or re.search(r'@(?:objc|Test|Suite)\b', body)):
+                conditional.add(name)
+            for match in re.finditer(r'\bfunc\s+(`?test\w+`?)\s*\(\s*\)', body):
+                if depths[opening + 1 + match.start()] == 1:
+                    methods[name].add(match[1].strip('`'))
+
+    def cases_for(name: str, seen: set[str]) -> set[str] | None:
+        if name == 'XCTestCase':
+            return None if name in conditional else set(methods.get(name, ()))
+        if name in seen or name in conditional or name not in parents:
+            return None
+        cases = set(methods.get(name, ()))
+        for parent in parents[name]:
+            inherited = cases_for(parent, seen | {name})
+            if inherited is None:
+                return None
+            cases.update(inherited)
+        return cases
+
     selected = set()
     for target in targets:
         name = identifier(target)
         suite = name.split("/", 1)[0]
-        cases = declared.get(suite, set())
+        discovered = cases_for(suite, set())
+        if discovered is None:
+            return []
+        cases = {f'{suite}/{method}' for method in discovered}
         matching = {case for case in cases if name == suite or name == case}
         if not matching:
             return []
@@ -61,8 +112,12 @@ def test_results(evidence: dict) -> dict[str, str] | None:
         if not isinstance(test, dict) or not isinstance(test.get("id"), str):
             return None
         name = identifier(test["id"])
+        arguments = test.get("arguments", [])
         if (not re.fullmatch(r"\w+/\w+", name) or name in results
-                or test.get("result") not in ("Passed", "Failed")):
+                or test.get("result") not in ("Passed", "Failed")
+                or not isinstance(arguments, list)
+                or any(result not in ("Passed", "Failed") for result in arguments)
+                or (arguments and ("Failed" in arguments) != (test["result"] == "Failed"))):
             return None
         results[name] = test["result"]
     summary = evidence.get("summary")
