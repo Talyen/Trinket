@@ -152,7 +152,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
             let scrollDown = !element.exists || element.frame.midY >= container.frame.midY
             let start = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: scrollDown ? 0.65 : 0.35))
             let end = container.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: scrollDown ? 0.35 : 0.65))
-            start.press(forDuration: 0.05, thenDragTo: end)
+            start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.1)
         }
         throw NativeSettingsFailure(
             description: "Requested native setting is not reachable. Settings hierarchy: \(settings.debugDescription.suffix(10000))",
