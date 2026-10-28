@@ -179,14 +179,40 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         if slot.baseItemSlot == .armor || slot.baseItemSlot == .accessory {
             return inventory.filter { $0.baseType.canEquip(in: slot) }
         }
-        // Compatibility consults only worn items; keep those scans independent of inventory size.
-        let equippedIDs = Set(itemIDsBySlot.values)
-        if equippedIDs.isEmpty {
+        if itemIDsBySlot.isEmpty {
             return inventory.filter { $0.baseType.canEquip(in: slot) && (slot != .secondaryWeapon || !$0.baseType.isQuiver) }
         }
-        let equippedItems = inventory.filter { equippedIDs.contains($0.id) }
-        return inventory.filter {
-            canEquip(baseType: $0.baseType, candidateID: $0.id, in: slot, inventory: equippedItems)
+        if slot == .weapon {
+            let secondaryIsQuiver = equippedItem(in: .secondaryWeapon, inventory: inventory)?.baseType.isQuiver == true
+            return inventory.filter { item in
+                if item.isTrinket {
+                    return canEquip(item, in: slot, inventory: inventory)
+                }
+                return item.baseType.canEquip(in: slot) && (item.baseType.isRanged || !secondaryIsQuiver)
+            }
+        }
+        if slot == .secondaryWeapon {
+            let primary = equippedItem(in: .weapon, inventory: inventory)?.baseType
+            return inventory.filter { item in
+                if item.isTrinket {
+                    return canEquip(item, in: slot, inventory: inventory)
+                }
+                guard item.baseType.canEquip(in: slot) else { return false }
+                guard let primary else { return !item.baseType.isQuiver }
+                return Self.secondaryWeaponAllows(primary: primary, secondary: item.baseType)
+            }
+        }
+        let siblingSlots = ItemSlot.allCases.filter { $0 != slot && $0.baseItemSlot == slot.baseItemSlot }
+        let siblings = siblingSlots.compactMap { sibling -> InventoryItem? in
+            equippedItem(in: sibling, inventory: inventory)
+        }
+        if siblings.isEmpty {
+            return inventory.filter { $0.baseType.canEquip(in: slot) }
+        }
+        return inventory.filter { item in
+            item.baseType.canEquip(in: slot) && siblings.allSatisfy {
+                $0.id == item.id || $0.baseType.id != item.baseType.id
+            }
         }
     }
 

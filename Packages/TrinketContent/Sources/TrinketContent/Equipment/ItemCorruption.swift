@@ -245,7 +245,7 @@ public enum ItemCorruption {
             using: &randomNumberGenerator,
         )
         var direction: ItemAffixPowerBumpDirection = ticket <= bumpUpChancePercent ? .up : .down
-        if !power.hasBumpableField(direction: direction) {
+        if direction == .down, !power.hasBumpableField(direction: .down) {
             direction = .up
         }
         guard let target = power.bumpCandidates(direction: direction)

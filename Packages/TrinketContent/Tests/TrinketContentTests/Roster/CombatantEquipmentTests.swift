@@ -5,10 +5,21 @@ import TrinketCore
 
 struct CombatantEquipmentTests {
     @Test func `batch eligibility matches individual checks for every slot`() throws {
-        let inventory = try ["longsword", "kite_shield", "leather_armor", "ruby_ring", "quiver"].map {
+        var inventory = try ["longsword", "kite_shield", "leather_armor", "ruby_ring", "quiver", "crossbow", "maul"].map {
             try ItemFixtures.makeBareItem($0)
         }
-        let loadouts = [EquipmentLoadout(), EquipmentLoadout(itemIDsBySlot: [.weapon: inventory[0].id, .accessory: inventory[3].id])]
+        let unusualBase = ItemBaseType(id: "unusual", name: "Unusual", slot: .trinket, weaponKind: .oneHanded, keywordAffinities: [])
+        inventory += ["unusual-a", "unusual-b"].map {
+            InventoryItem(id: $0, baseType: unusualBase, rarity: .basic, displayName: "Unusual", affixes: [])
+        }
+        let loadouts = [
+            EquipmentLoadout(),
+            EquipmentLoadout(itemIDsBySlot: [.weapon: inventory[0].id, .accessory: inventory[3].id]),
+            EquipmentLoadout(itemIDsBySlot: [.weapon: inventory[5].id, .secondaryWeapon: inventory[4].id]),
+            EquipmentLoadout(itemIDsBySlot: [.weapon: inventory[6].id]),
+            EquipmentLoadout(itemIDsBySlot: [.weapon: "missing", .secondaryWeapon: "missing"]),
+            EquipmentLoadout(itemIDsBySlot: [.weapon: inventory[7].id, .secondaryWeapon: inventory[8].id]),
+        ]
         for loadout in loadouts {
             for slot in ItemSlot.allCases {
                 #expect(loadout.equippableItems(in: slot, inventory: inventory) == inventory.filter {

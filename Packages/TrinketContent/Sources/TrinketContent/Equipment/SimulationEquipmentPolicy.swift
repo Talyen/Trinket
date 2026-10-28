@@ -104,6 +104,7 @@ public enum SimulationEquipmentPolicy {
     }
 
     private struct Scorer {
+        private static let emptyTriggers = CombatTraitTriggers()
         let combatant: Combatant
         let keywords: Set<Keyword>
         let inventory: [InventoryItem]
@@ -184,7 +185,7 @@ public enum SimulationEquipmentPolicy {
             if triggers.burnAndBleedShareDamageBonuses {
                 return keywords.contains(.burn) || keywords.contains(.bleed)
             }
-            return !triggers.populatedFields.isEmpty && legacyAlignment(affix)
+            return triggers != Self.emptyTriggers && legacyAlignment(affix)
         }
 
         private func legacyAlignment(_ affix: ItemAffix) -> Bool {

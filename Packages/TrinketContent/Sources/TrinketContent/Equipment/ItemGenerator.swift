@@ -123,7 +123,7 @@ public struct ItemGenerator: Sendable {
         let hasPartyBias = !partyBias.isEmpty
         var pool = definitions.map { definition in
             let baseWeight = adjustedWeight(for: definition, keywordBias: keywordBias)
-            let weight = hasPartyBias ? baseWeight * partyBias.weight(for: definition.keywords) : baseWeight
+            let weight = hasPartyBias && baseWeight > 0 ? baseWeight * partyBias.weight(for: definition.keywords) : baseWeight
             totalWeight += weight
             return (definition: definition, weight: weight)
         }

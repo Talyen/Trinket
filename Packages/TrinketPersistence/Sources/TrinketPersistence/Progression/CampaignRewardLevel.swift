@@ -6,9 +6,11 @@ enum CampaignRewardLevel {
             .filter { save.journey.completedStageIDs.contains($0.id) && $0.encounter.isCombat }
             .map { EncounterLevelResolver.journeyEnemyLevel(for: $0, in: chapters) }.max() ?? 0
         let clearedSpires = save.spires.highestClearedFloorOverall * 2
+        let knownMaximum = max(1, save.contracts.highestWonEncounterLevel, completedCampaign, clearedSpires)
+        guard knownMaximum < 40 else { return 40 }
         let clearedLabyrinth = save.labyrinth.nodes.values.lazy
             .filter { $0.isCleared && $0.type.isCombat }
             .map { EncounterLevelResolver.labyrinthEnemyLevel(for: $0) }.max() ?? 0
-        return min(40, max(1, save.contracts.highestWonEncounterLevel, completedCampaign, clearedSpires, clearedLabyrinth))
+        return min(40, max(knownMaximum, clearedLabyrinth))
     }
 }
