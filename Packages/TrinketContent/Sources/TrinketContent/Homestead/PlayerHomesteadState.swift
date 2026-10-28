@@ -117,7 +117,7 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
     }
 
     private func collectibleAmounts(gold: Int) -> [ResourceAmount] {
-        pendingProduction.compactMap { resource, amount in
+        pendingProduction.lazy.compactMap { resource, amount in
             let quantity = collectibleQuantity(for: resource, pending: amount, gold: gold)
             return quantity > 0 ? ResourceAmount(resource, quantity) : nil
         }.sorted { $0.resource.rawValue < $1.resource.rawValue }

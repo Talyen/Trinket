@@ -5,6 +5,31 @@ import TrinketCore
 @testable import BattleEngine
 
 struct BlockCombatTests {
+    @Test(arguments: [false, true], [0, 1, 3])
+    func `conditional Block cost controls admission and exact payment`(enemyHasBlock: Bool, block: Int) throws {
+        let ability = Ability(
+            id: "conditional-block", name: "Conditional Block", tier: .basic,
+            damageComponents: [DamageComponent(1)],
+            conditionalOutcome: AbilityConditionalOutcome(
+                condition: .enemyHasBlock, operations: [.damage(DamageComponent(1))], blockCost: 1,
+            ),
+            blockCost: 3,
+        )
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
+        DefensePoolEngine.set(block, on: battle.hero, in: &battle)
+        DefensePoolEngine.set(enemyHasBlock ? 1 : 0, on: battle.enemy, in: &battle)
+        let card = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
+        let cost = enemyHasBlock ? 1 : 3
+        if block < cost {
+            #expect(throws: BattlePlayError.insufficientBlock) { try battle.playCard(cardID: card.id) }
+            #expect(battle.hand.card(id: card.id) != nil)
+            #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == block)
+        } else {
+            _ = try battle.playCard(cardID: card.id)
+            #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.hero)) == block - cost)
+        }
+    }
+
     @Test(arguments: [(3, 0, 3), (5, 0, 5), (3, 2, 5), (5, Int.max, Int.max)])
     func `intercepted attacks refund only paid Block while preserving nested gains`(
         startingBlock: Int,

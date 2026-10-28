@@ -291,11 +291,13 @@ enum CombatFeedbackPresenter {
         }
         var result: Set<Int> = []
         for entries in candidates.values {
-            let hitsAndHeals = entries.filter(\.isHitOrHeal)
-            if hitsAndHeals.isEmpty, let first = entries.map(\.operation).min() {
+            var hasHitOrHeal = false
+            for entry in entries where entry.isHitOrHeal {
+                hasHitOrHeal = true
+                result.insert(entry.event.id)
+            }
+            if !hasHitOrHeal, let first = entries.lazy.map(\.operation).min() {
                 result.formUnion(entries.lazy.filter { $0.operation == first }.map(\.event.id))
-            } else {
-                result.formUnion(hitsAndHeals.map(\.event.id))
             }
         }
         return result

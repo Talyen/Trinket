@@ -19,11 +19,12 @@ extension RosterModel {
     }
 
     private func updateUnlockedCombatants(from roster: PlayerRosterState, context: ModelContext?) {
-        let unlockedValues = roster.unlockedHeroIDs.sorted().map {
+        var unlockedValues = roster.unlockedHeroIDs.sorted().map {
             (combatantID: $0, role: Self.heroRole)
-        } + roster.unlockedCompanionIDs.sorted().map {
-            (combatantID: $0, role: Self.companionRole)
         }
+        unlockedValues.append(contentsOf: roster.unlockedCompanionIDs.sorted().lazy.map {
+            (combatantID: $0, role: Self.companionRole)
+        })
         unlockedCombatants = reconcileModels(
             existing: unlockedCombatants ?? [],
             values: unlockedValues,

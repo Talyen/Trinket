@@ -25,8 +25,9 @@ enum ItemLootPolicy {
         collectibleChancePercent: Int = 100,
     ) -> [Double] {
         if bossContent {
-            let collectibles = availableTiers.intersection([.trinket, .unique])
-            if collectibles.count == 2 {
+            let hasTrinket = availableTiers.contains(.trinket)
+            let hasUnique = availableTiers.contains(.unique)
+            if hasTrinket, hasUnique {
                 let uniqueChance = 0.05 + 0.45 * progress(level: level)
                 return ItemDropTier.allCases.map { tier in
                     switch tier {
@@ -36,16 +37,14 @@ enum ItemLootPolicy {
                     }
                 }
             }
-            let targets: Set<ItemDropTier> = if !collectibles.isEmpty {
-                collectibles
-            } else if availableTiers.contains(.astral) {
-                [.astral]
-            } else {
-                availableTiers
-            }
-            precondition(!targets.isEmpty, "Item rewards require an eligible category.")
+            let collectible: ItemDropTier? = hasTrinket ? .trinket : hasUnique ? .unique : nil
+            let guaranteed = collectible ?? (availableTiers.contains(.astral) ? .astral : nil)
+            precondition(!availableTiers.isEmpty, "Item rewards require an eligible category.")
             return ItemDropTier.allCases.map { tier in
-                targets.contains(tier) ? 1 / Double(targets.count) : 0
+                if let guaranteed {
+                    return tier == guaranteed ? 1 : 0
+                }
+                return availableTiers.contains(tier) ? 1 / Double(availableTiers.count) : 0
             }
         }
         let t = progress(level: level)

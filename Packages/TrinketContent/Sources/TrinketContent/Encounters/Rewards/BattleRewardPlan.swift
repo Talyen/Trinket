@@ -124,13 +124,14 @@ public struct BattleRewardPlan: Equatable, Sendable {
         materials: [ResourceAmount]? = nil,
     ) -> BattleRewardSettlement {
         let resolved = resolve(battleGold: battleGold, materials: materials, rewardRemainders: inputs.rewardRemainders)
+        let goldGained = resolved.goldGained
         let overflow = RewardSettlementPolicy.goldOverflow(
-            gains: resolved.goldGained, spending: battleGold.spent, capacity: inputs.goldCapacity,
+            gains: goldGained, spending: battleGold.spent, capacity: inputs.goldCapacity,
         )
-        let grantedGold = SaturatedArithmetic.saturatingSub(resolved.goldGained, overflow)
+        let grantedGold = SaturatedArithmetic.saturatingSub(goldGained, overflow)
         let grantedStageGold = min(resolved.stageGold, grantedGold)
         let compensation = RewardSettlementPolicy.overflowExperience(
-            goldOverflowExperience, overflow: overflow, gains: resolved.goldGained,
+            goldOverflowExperience, overflow: overflow, gains: goldGained,
         )
         let award = BattleRewardAward(
             stageGold: grantedStageGold,

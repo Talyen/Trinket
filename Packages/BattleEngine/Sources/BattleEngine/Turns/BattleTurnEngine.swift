@@ -229,7 +229,8 @@ package enum BattleTurnEngine {
         let tier = preferredTier(for: turnNumber)
         return actor.abilityLoadout.ability(for: tier)
             ?? actor.abilityLoadout.basic
-            ?? actor.abilities.first
+            ?? actor.abilityLoadout.skill
+            ?? actor.abilityLoadout.ultimate
     }
 
     package static func preferredTier(for turnNumber: Int) -> AbilityTier {

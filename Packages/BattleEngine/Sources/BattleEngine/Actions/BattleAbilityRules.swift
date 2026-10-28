@@ -54,15 +54,19 @@ enum BattleAbilityRules {
     }
 
     static func canPayBlockCost(_ ability: Ability, actor: Combatant, in context: BattleState) -> Bool {
-        canPayBlockCost(ability, action: BattleActionContext(actor: actor, in: context), in: context)
+        guard ability.conditionalOutcome != nil || ability.blockCost > 0 else { return true }
+        return canPayBlockCost(ability, action: BattleActionContext(actor: actor, in: context), in: context)
     }
 
     static func canPayBlockCost(_ ability: Ability, action: BattleActionContext, in context: BattleState) -> Bool {
         // Random branches change operations, not Block cost. Only conditional
         // outcomes need selection before quoting this payment.
-        let cost = ability.conditionalOutcome == nil
-            ? ability.blockCost
-            : possibleOutcomes(ability, action: action, in: context).ability.blockCost
+        let cost = if let conditional = ability.conditionalOutcome,
+                      BattleConditionEvaluator.isMet(conditional.condition, action: action, in: context) {
+            conditional.blockCost
+        } else {
+            ability.blockCost
+        }
         guard cost > 0 else { return true }
         let balance = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: action.actor))
         return balance >= cost
@@ -81,7 +85,8 @@ enum BattleAbilityRules {
     }
 
     static func healthCost(_ operations: [AbilityOperation], action: BattleActionContext, in context: BattleState) -> Int {
-        let attacks = action.actor.role == .enemy && operations.contains { operation in
+        let attackHealthCost = action.actor.role == .enemy ? max(0, context.enemyModifiers.triggers.attackHealthCost) : 0
+        let attacks = attackHealthCost > 0 && operations.contains { operation in
             switch operation {
             case let .damage(component):
                 component.target != .actor && component.hasPotentialDamage
@@ -89,7 +94,7 @@ enum BattleAbilityRules {
             case .effect: operation.damageKeyword != nil
             }
         }
-        let attackCost = attacks ? max(0, context.enemyModifiers.triggers.attackHealthCost) : 0
+        let attackCost = attacks ? attackHealthCost : 0
         return operations.reduce(attackCost) { total, operation in
             guard case let .damage(component) = operation,
                   action.target(component.target, in: context).id == action.actor.id,

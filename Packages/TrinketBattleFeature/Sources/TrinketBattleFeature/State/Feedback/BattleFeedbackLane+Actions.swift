@@ -206,7 +206,7 @@ extension BattleFeedbackLane {
             (action: Optional(action), events: action.eventIDs.compactMap { eventsByID[$0] })
         }
         let changedEventIDs = Set(playback.combatantChanges.lazy.map(\.eventID))
-        let remaining = playback.events.filter {
+        let remaining = playback.events.lazy.filter {
             !assignedIDs.contains($0.id) && ($0.milestone == nil || changedEventIDs.contains($0.id))
         }
         for group in Dictionary(grouping: remaining, by: \.feedbackGroupID).values {
