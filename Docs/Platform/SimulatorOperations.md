@@ -47,6 +47,8 @@ only their own leases. Cancellation stops owned child processes before EXIT
 cleanup releases locks and leases (process safety: [AGENTS.md](../../AGENTS.md#protect-the-workspace)). A lease
 left by a crashed run is reaped when its pid is dead. Age alone never revokes
 a live owner’s lease; an ambiguous lease remains reserved for inspection.
+Process-probe permission errors preserve the owner; only confirmed process absence
+authorizes stale-lock recovery.
 
 Stale lock recovery is serialized by an adjacent `.reclaim` directory in
 [`Scripts/lib/lock.sh`](../../Scripts/lib/lock.sh). Missing or malformed cleanup
@@ -81,6 +83,9 @@ ownership evidence preserves the session and records the reason. This opt-in
 host policy is separate from the short agent lease-release grace period.
 
 ## Inspection lease and capture
+
+Explicit runtime/profile inventory and settings commands each have a 30-second
+deadline, including queries made before the boot watchdog starts.
 
 Follow the [simulator skill](../../.agents/skills/ios-simulator/SKILL.md) for
 launch, runtime selection, terminal commands, input and capture. The launcher

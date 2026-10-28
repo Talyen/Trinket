@@ -1,6 +1,7 @@
 """Resolve an unambiguous paired physical device from CoreDevice inventories."""
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 import subprocess
@@ -23,12 +24,15 @@ def select_device(devices: list[dict], requested: str | None) -> dict:
     return candidates[0]
 
 
-def main():
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--device")
+    args = parser.parse_args(argv)
     with tempfile.TemporaryDirectory(prefix="trinket-devices-") as directory:
         inventory = Path(directory) / "devices.json"
         subprocess.run(["xcrun", "devicectl", "list", "devices", "--quiet", "--timeout", "30",
                         "--json-output", str(inventory)], check=True, timeout=40)
-        device = select_device(json.loads(inventory.read_text())["result"]["devices"], None)
+        device = select_device(json.loads(inventory.read_text())["result"]["devices"], args.device)
         identifier = device.get("identifier")
         if not isinstance(identifier, str) or not identifier:
             raise ValueError("Selected device has no CoreDevice identifier")

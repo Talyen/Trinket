@@ -55,7 +55,7 @@ def select_profile(runtimes, device_types, type_id, major, version=None):
 
 
 def simctl(*arguments):
-    return subprocess.check_output(['xcrun', 'simctl', *arguments], text=True).strip()
+    return subprocess.check_output(['xcrun', 'simctl', *arguments], text=True, timeout=30).strip()
 
 
 @contextmanager

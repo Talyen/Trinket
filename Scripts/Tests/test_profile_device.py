@@ -45,10 +45,25 @@ class DeviceProfilingTests(unittest.TestCase):
         with mock.patch.object(device_selection.subprocess, "run") as run, \
              mock.patch.object(Path, "read_text", return_value=json.dumps({"result": {"devices": [phone]}})), \
              mock.patch('builtins.print') as output:
-            device_selection.main()
+            device_selection.main([])
         output.assert_called_once_with("phone")
         self.assertIn("--json-output", run.call_args.args[0])
         self.assertEqual(run.call_args.kwargs["timeout"], 40)
+
+    def test_explicit_device_is_resolved_before_installation(self):
+        phone = {"identifier": "phone-id", "hardwareProperties": {"reality": "physical", "udid": "UDID"},
+                 "connectionProperties": {"pairingState": "paired"}, "deviceProperties": {"name": "My Phone"}}
+        for requested in ("phone-id", "UDID", "My Phone", "missing"):
+            with self.subTest(requested=requested), mock.patch.object(device_selection.subprocess, "run"), \
+                 mock.patch.object(Path, "read_text", return_value=json.dumps({"result": {"devices": [phone]}})), \
+                 mock.patch('builtins.print') as output:
+                if requested == "missing":
+                    with self.assertRaises(ValueError):
+                        device_selection.main(["--device", requested])
+                    output.assert_not_called()
+                else:
+                    device_selection.main(["--device", requested])
+                    output.assert_called_once_with("phone-id")
 
     def test_saved_partial_wrong_target_crash_and_empty_measurements_are_rejected(self):
         with tempfile.TemporaryDirectory() as directory:

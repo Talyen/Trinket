@@ -14,6 +14,25 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class BuildProcessTests(unittest.TestCase):
+    def test_lock_recovery_requires_confirmed_process_absence(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "sitecustomize.py").write_text(
+                'import os\n'
+                'def probe(pid, signal):\n'
+                '    case = os.environ["PROBE_CASE"]\n'
+                '    if case == "missing": raise ProcessLookupError()\n'
+                '    if case == "denied": raise PermissionError()\n'
+                '    if case == "unknown": raise OSError()\n'
+                'os.kill = probe\n'
+            )
+            for case, pid, expected in (("missing", "123", 0), ("alive", "123", 1),
+                                        ("denied", "123", 1), ("unknown", "123", 1),
+                                        ("missing", "0", 1), ("missing", "invalid", 1)):
+                with self.subTest(case=case, pid=pid):
+                    run_captured(["bash", "-c", 'source Scripts/lib/lock.sh; trinket_lock_pid_is_stale "$1"', "_", pid],
+                                 cwd=ROOT, env={**os.environ, "PYTHONPATH": str(root), "PROBE_CASE": case}, expected=expected)
+
     def test_architecture_selection_preserves_ci_release_and_device_defaults(self):
         for host in ("arm64", "x86_64"):
             for sdk, configuration, ci, github, narrowed in (
@@ -189,6 +208,11 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                 ("xcrun", 'printf "%s\\n" "$@" > installed\n'),
             ):
                 write_executable(root / name, '#!/bin/bash\n' + body)
+            (scripts / "internal/device_selection.py").write_text(
+                'import os, sys\n'
+                'assert sys.argv[1:] == ["--device", "fixture"]\n'
+                'sys.exit(3) if os.environ.get("SELECTION_FAIL") else print("resolved-device")\n'
+            )
             # Exercise the actual shared runner around the fake compiler and installer.
             shutil.copy2(ROOT / "Scripts/xcode-runner.sh", runner)
             env.update(TRINKET_XCODE_WALL_TIMEOUT_SECONDS="0", TRINKET_XCODE_IDLE_TIMEOUT_SECONDS="0")
@@ -202,8 +226,15 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                     self.assertNotIn("CODE_SIGNING_ALLOWED=NO", args)
                     self.assertEqual(args[args.index("-configuration") + 1], configuration)
                     self.assertIn(f"{products}/{configuration}-iphoneos/Trinket.app", (root / "installed").read_text())
+                    self.assertIn("resolved-device", (root / "installed").read_text())
 
+            (root / "arguments").unlink()
             (root / "installed").unlink()
+            run_captured([str(scripts / "install-device.sh"), "--device", "fixture", "--no-launch"],
+                         env={**env, "SELECTION_FAIL": "1"}, expected=1)
+            self.assertFalse((root / "arguments").exists())
+            self.assertFalse((root / "installed").exists())
+
             write_executable(root / "xcodebuild", '#!/bin/bash\necho "error: fixture compiler failure"\nexit 65\n')
             for flags in ([], ["--verbose"]):
                 result = run_captured([str(scripts / "install-device.sh"), "--device", "fixture", "--no-launch", *flags], env=env)

@@ -52,10 +52,10 @@ done
 source Scripts/lib/verification-policy.sh
 trinket_host_admit "$PWD/Scripts/install-device.sh" "${TRINKET_ENTRY_ARGS[@]+"${TRINKET_ENTRY_ARGS[@]}"}" || exit $?
 
-if [[ -z "$DEVICE" ]]; then
-  DEVICE="$(python3 Scripts/internal/device_selection.py)" || exit 1
-  echo "Auto-selected device: $DEVICE"
-fi
+DEVICE_SELECTION_ARGS=()
+if [[ -n "$DEVICE" ]]; then DEVICE_SELECTION_ARGS=(--device "$DEVICE"); fi
+DEVICE="$(python3 Scripts/internal/device_selection.py ${DEVICE_SELECTION_ARGS[@]+"${DEVICE_SELECTION_ARGS[@]}"})" || exit 1
+echo "Selected physical device: $DEVICE"
 
 DERIVED_DATA="$PWD/.DerivedData/Device"
 mkdir -p "$DERIVED_DATA"

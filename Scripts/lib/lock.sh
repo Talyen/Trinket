@@ -73,7 +73,23 @@ trinket_dir_lock_chain_trap() {
 # True when <pid> is a numeric pid with no live process. A missing or
 # non-numeric pid is NOT stale here: preserve locks whose owner is unknown.
 trinket_lock_pid_is_stale() {
-  [[ "${1:-}" =~ ^[0-9]+$ ]] && ! kill -0 "$1" 2>/dev/null
+  [[ "${1:-}" =~ ^[0-9]+$ ]] || return 1
+  python3 - "$1" <<'PY_OWNER'
+import os
+import sys
+
+try:
+    pid = int(sys.argv[1])
+    if pid <= 0:
+        sys.exit(1)
+    os.kill(pid, 0)
+except ProcessLookupError:
+    sys.exit(0)
+except (OSError, ValueError, OverflowError):
+    pass
+# Permission denial and invalid/unknown identities never authorize reclamation.
+sys.exit(1)
+PY_OWNER
 }
 
 # Reclaim a stale file lock, or a directory lock with a separate pid file.
