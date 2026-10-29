@@ -91,7 +91,7 @@ struct ShadowstepRepeatTests {
 
         let events = try battle.playCard(cardID: feint.id).events
 
-        #expect(events.filter { $0.effectKind == .cardsDrawn }.map(\.amount) == [1, 1])
+        #expect(events.filter { $0.effectKind == .cardsDrawn }.map(\.amount) == [2])
         #expect(battle.hand.cards.map(\.ability.id) == [Ability.block.id, Ability.apple.id])
         #expect(!hasRepeat(on: battle.hero, in: battle))
     }

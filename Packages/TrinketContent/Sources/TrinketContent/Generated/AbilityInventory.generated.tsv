@@ -27,7 +27,7 @@ cinderbloom	Cinderbloom	skill	Deal 3 Burn or Poison damage at random
 cleanse	Cleanse	skill	Cleanse a debuff\nRestore 3 Health
 cold-snap	Cold Snap	skill	Deal 1 Freeze damage\nDraw a card if the enemy is Frozen
 dark-pact	Dark Pact	skill	Deal 1 Burn damage\nLose 1 Health\nDraw 2 cards
-feint	Feint	skill	Gain +50% Dodge until your next turn\nDraw 1 card
+feint	Feint	skill	Gain +20% Dodge until your next turn\nDraw 2 cards
 fireball	Fireball	skill	Deal 2 to 6 Burn damage
 frostbolt	Frostbolt	skill	Deal 4 Freeze damage
 glacial-ward	Glacial Ward	skill	Gain 2 Block\nDeal 2 Freeze damage next time you are hit
@@ -41,7 +41,7 @@ serrated-edge	Serrated Edge	skill	Deal 3 Bleed damage\nReduces Health restored b
 smite	Smite	skill	Deal 4 Holy damage\nPurge a buff from the enemy
 spiked-shield	Spiked Shield	skill	Deal 2 Physical damage\nGain 3 Block or Thorns at random
 steal	Steal	skill	Deal 3 Physical damage\nSteal 1 Gold
-stoneskin-potion	Stoneskin Potion	skill	Gain 4 Block
+stoneskin-potion	Stoneskin Potion	skill	Gain 5 Block
 sunder	Sunder	skill	Halve enemy Block\nDeal 4 Physical damage
 tithe	Tithe	skill	Deal 2 Holy damage\n10% chance to steal 4 Gold
 venom-fangs	Venom Fangs	skill	Deal 2 Poison damage\nLeech

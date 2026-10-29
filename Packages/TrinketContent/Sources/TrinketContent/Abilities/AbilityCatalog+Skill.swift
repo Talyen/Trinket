@@ -71,8 +71,8 @@ public extension AbilityCatalog {
     static let feint = Ability(
         id: "feint", name: "Feint", tier: .skill,
         targetedEffects: [
-            TargetedEffect(.dodgeChanceUntilNextTurn(0.50), target: .actor),
-            TargetedEffect(.drawCards(1), target: .actor),
+            TargetedEffect(.dodgeChanceUntilNextTurn(0.20), target: .actor),
+            TargetedEffect(.drawCards(2), target: .actor),
         ],
     )
 
@@ -188,7 +188,7 @@ public extension AbilityCatalog {
 
     static let stoneskinPotion = Ability(
         id: "stoneskin-potion", name: "Stoneskin Potion", tier: .skill,
-        effects: [.shield(.block, 4)],
+        effects: [.shield(.block, 5)],
     )
 
     static let sunder = Ability(
