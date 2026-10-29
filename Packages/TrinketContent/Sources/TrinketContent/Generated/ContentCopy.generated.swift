@@ -4897,8 +4897,8 @@ public enum ContentCopy {
             return (L10n.traits_profane_name, [])
         case "Burn hits deal 1 additional damage", "Burn hits deal 1 additional damage.":
             return (L10n.traits_pyromancy_description(1), [1])
-        case "Deals 1 Holy damage every other turn", "Deals 1 Holy damage every other turn.":
-            return (L10n.traits_radiant_judgment_description(1), [1])
+        case "Deals 2 Holy damage to both allies every other turn", "Deals 2 Holy damage to both allies every other turn.":
+            return (L10n.traits_radiant_judgment_description(2), [2])
         case "Radiant Judgment":
             return (L10n.traits_radiant_judgment_name, [])
         case "Reckless":
@@ -5488,7 +5488,7 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Restores ", regex: try? NSRegularExpression(pattern: "^Restores\\ ([0-9]+)\\ Health\\ whenever\\ an\\ opponent\\ takes\\ Poison\\ damage$"), count: 1, make: { values in L10n.traits_plague_mask_description(values[0]) }),
         NumericTemplate(prefix: "Holy damage taken increased by ", regex: try? NSRegularExpression(pattern: "^Holy\\ damage\\ taken\\ increased\\ by\\ ([0-9]+)%$"), count: 1, make: { values in L10n.traits_profane_description(values[0]) }),
         NumericTemplate(prefix: "Burn hits deal ", regex: try? NSRegularExpression(pattern: "^Burn\\ hits\\ deal\\ ([0-9]+)\\ additional\\ damage$"), count: 1, make: { values in L10n.traits_pyromancy_description(values[0]) }),
-        NumericTemplate(prefix: "Deals ", regex: try? NSRegularExpression(pattern: "^Deals\\ ([0-9]+)\\ Holy\\ damage\\ every\\ other\\ turns?$"), count: 1, make: { values in L10n.traits_radiant_judgment_description(values[0]) }),
+        NumericTemplate(prefix: "Deals ", regex: try? NSRegularExpression(pattern: "^Deals\\ ([0-9]+)\\ Holy\\ damage\\ to\\ both\\ allies\\ every\\ other\\ turns?$"), count: 1, make: { values in L10n.traits_radiant_judgment_description(values[0]) }),
         NumericTemplate(prefix: "Restore ", regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ Health\\ at\\ the\\ start\\ of\\ each\\ turns?$"), count: 1, make: { values in L10n.traits_reform_description(values[0]) }),
         NumericTemplate(prefix: "Holy hits restore ", regex: try? NSRegularExpression(pattern: "^Holy\\ hits\\ restore\\ ([0-9]+)\\ Health$"), count: 1, make: { values in L10n.traits_restoring_light_description(values[0]) }),
         NumericTemplate(prefix: "Holy and Stun hits grant ", regex: try? NSRegularExpression(pattern: "^Holy\\ and\\ Stun\\ hits\\ grant\\ ([0-9]+)\\ Block$"), count: 1, make: { values in L10n.traits_righteous_guard_description(values[0]) }),

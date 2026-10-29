@@ -71,7 +71,7 @@ public extension AbilityCatalog {
     static let feint = Ability(
         id: "feint", name: "Feint", tier: .skill,
         targetedEffects: [
-            TargetedEffect(.dodgeChanceUntilNextTurn(0.20), target: .actor),
+            TargetedEffect(.dodgeChanceUntilNextTurn(0.40), target: .actor),
             TargetedEffect(.drawCards(2), target: .actor),
         ],
     )

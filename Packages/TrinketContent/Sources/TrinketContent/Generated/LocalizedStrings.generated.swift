@@ -10023,7 +10023,7 @@ enum L10n {
     }
 
     static func traits_radiant_judgment_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("traits.radiant_judgment.description", defaultValue: "Deals <value id=\"quantity_1\">\(value1)</value> <keyword id=\"holy\">Holy</keyword> damage every other turn.", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("traits.radiant_judgment.description", defaultValue: "Deals <value id=\"quantity_1\">\(value1)</value> <keyword id=\"holy\">Holy</keyword> damage to both allies every other turn.", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var traits_radiant_judgment_name: LocalizedStringResource {

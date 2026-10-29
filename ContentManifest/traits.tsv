@@ -24,7 +24,7 @@ furnace_pulse	Furnace Pulse	Deals 1 Stun or Burn damage every other turn.		turn_
 winters_grasp	Winter’s Grasp	Deals 1 Freeze damage every other turn.		turn_freeze_all_enemies:1|turn_freeze_damage_all_enemies_interval:2	positive
 thunderous_tremor	Thunderous Tremor	Deals 1 Physical or Stun damage every other turn.		turn_random_damage_all_enemies:physical:stun:1|turn_random_damage_all_enemies_interval:2	positive
 crimson_pulse	Crimson Pulse	Deals 1 Bleed damage every other turn.		turn_random_damage_all_enemies:bleed:bleed:1|turn_random_damage_all_enemies_interval:2	positive
-radiant_judgment	Radiant Judgment	Deals 1 Holy damage every other turn.		turn_random_damage_all_enemies:holy:holy:1|turn_random_damage_all_enemies_interval:2	positive
+radiant_judgment	Radiant Judgment	Deals 2 Holy damage to both allies every other turn.		turn_random_damage_all_enemies:holy:holy:2|turn_random_damage_all_enemies_interval:2	positive
 seismic_pulse	Seismic Pulse	Deals 1 Physical damage every other turn.		turn_random_damage_all_enemies:physical:physical:1|turn_random_damage_all_enemies_interval:2	positive
 gelatinous_body	Gelatinous Body	Physical damage taken reduced by 20%	damage_taken_percent:physical:0.20		positive
 incorporeal	Incorporeal	Physical damage taken reduced by 30%	damage_taken_percent:physical:0.30		positive

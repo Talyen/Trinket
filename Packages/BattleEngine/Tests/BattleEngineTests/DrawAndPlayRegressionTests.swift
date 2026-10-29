@@ -39,7 +39,7 @@ struct DrawAndPlayRegressionTests {
         #expect(!events.contains { $0.abilityID == Ability.slash.id })
         #expect(battle.health(of: battle.enemy) == enemyHealth)
         #expect(battle.companionDeck.abilities.first?.id == Ability.slash.id)
-        #expect(battle.roster.hero.talents.dodgeChanceBonus(atTurn: battle.turnCount) == 0.2)
+        #expect(battle.roster.hero.talents.dodgeChanceBonus(atTurn: battle.turnCount) == 0.4)
     }
 
     @Test func `feint draws two manual cards and grants Dodge until the next turn`() {
@@ -55,8 +55,8 @@ struct DrawAndPlayRegressionTests {
         #expect(context.heroDeck.isEmpty)
         #expect(context.hand.cards.map(\.ability.id) == [Ability.slash.id, Ability.block.id])
         #expect(!context.activeEffects(of: context.hero).contains { $0.effect == .evadeNextHit })
-        #expect(DamagePipeline.dodgeChance(for: context.hero, attackerID: context.enemy.id, in: context) == 0.1 + 0.2)
-        #expect(context.effectSummaries(of: context.hero).contains { $0.keyword == .dodge && $0.text.contains("+20%") })
+        #expect(DamagePipeline.dodgeChance(for: context.hero, attackerID: context.enemy.id, in: context) == 0.1 + 0.4)
+        #expect(context.effectSummaries(of: context.hero).contains { $0.keyword == .dodge && $0.text.contains("+40%") })
 
         let enemyAttack = Ability(
             id: "enemy-attack",
@@ -67,7 +67,7 @@ struct DrawAndPlayRegressionTests {
             criticalChanceBonus: -1,
         )
         _ = context.performTestAction(enemyAttack, from: .enemy, to: .hero)
-        #expect(DamagePipeline.dodgeChance(for: context.hero, attackerID: context.enemy.id, in: context) == 0.1 + 0.2)
+        #expect(DamagePipeline.dodgeChance(for: context.hero, attackerID: context.enemy.id, in: context) == 0.1 + 0.4)
         context.roster.mutateRuntime(for: context.hero) { $0.talents.grantDodgeUntilNextTurn(0.5) }
         #expect(DamagePipeline.dodgeChance(for: context.hero, attackerID: context.enemy.id, in: context) == 0.75)
         _ = context.endTurn()

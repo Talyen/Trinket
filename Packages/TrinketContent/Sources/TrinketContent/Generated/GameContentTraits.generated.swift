@@ -210,12 +210,12 @@ enum GameContentTraitsGenerated {
         list.append(CombatantTraitDefinition(
             id: "radiant_judgment",
             name: "Radiant Judgment",
-            description: "Deals 1 Holy damage every other turn.",
+            description: "Deals 2 Holy damage to both allies every other turn.",
             polarity: .positive,
             triggers: CombatTraitTriggers {
                 $0.turnRandomDamageAllEnemiesKeywordA = .holy
                 $0.turnRandomDamageAllEnemiesKeywordB = .holy
-                $0.turnRandomDamageAllEnemiesAmount = 1
+                $0.turnRandomDamageAllEnemiesAmount = 2
                 $0.turnRandomDamageAllEnemiesInterval = 2
             }
         ))

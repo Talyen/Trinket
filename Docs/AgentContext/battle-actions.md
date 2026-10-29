@@ -197,7 +197,7 @@ Pack Tactics deals Physical damage, then draws a manual card from the caster's
 ally's deck. It falls back to the caster's deck when the ally is defeated, blocked
 from drawing, or has no card to draw. Health-cost affordability is checked when
 the drawn card is played, rather than when it is drawn.
-Feint grants +20% Dodge chance until the next turn and draws two manual cards from
+Feint grants +40% Dodge chance until the next turn and draws two manual cards from
 the caster's deck; a missing card does not borrow the partner's. Dodge bonuses
 are additive and the usual 75% chance cap applies. Shadowstep deals Physical damage, then draws
 from the caster's deck, without Dodge or repeat preparation. Current card text

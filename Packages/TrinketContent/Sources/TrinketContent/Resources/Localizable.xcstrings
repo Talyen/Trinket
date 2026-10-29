@@ -35075,14 +35075,14 @@
       "comment": "ContentManifest/traits.tsv: radiant_judgment, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> Schaden vom Typ <keyword id=\"holy\">Heilig</keyword>."}},
-        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"holy\">Holy</keyword> damage every other turn."}},
-        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"holy\">Sagrado</keyword> cada dos turnos."}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de dégâts de type <keyword id=\"holy\">Sacré</keyword> un tour sur deux."}},
-        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに<keyword id=\"holy\">聖</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える。"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 <keyword id=\"holy\">신성</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 준다."}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"holy\">Sagrado</keyword> a cada dois turnos."}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"holy\">神聖</keyword>傷害。"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Verursacht jeden zweiten Zug bei beiden Verbündeten jeweils <value id=\"quantity_1\">%1$lld</value> Schaden vom Typ <keyword id=\"holy\">Heilig</keyword>."}},
+        "en": {"stringUnit": {"state": "translated", "value": "Deals <value id=\"quantity_1\">%1$lld</value> <keyword id=\"holy\">Holy</keyword> damage to both allies every other turn."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"holy\">Sagrado</keyword> a cada uno de los dos aliados cada dos turnos."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de dégâts de type <keyword id=\"holy\">Sacré</keyword> à chacun des deux alliés, un tour sur deux."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに味方2人それぞれに<keyword id=\"holy\">聖</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>与える。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 아군 둘에게 각각 <keyword id=\"holy\">신성</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value> 준다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Causa <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"holy\">Sagrado</keyword> a cada um dos dois aliados a cada dois turnos."}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合對兩名盟友各造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"holy\">神聖</keyword>傷害。"}}
       }
     },
     "traits.radiant_judgment.name": {
