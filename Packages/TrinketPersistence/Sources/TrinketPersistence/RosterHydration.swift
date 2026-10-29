@@ -62,6 +62,8 @@ enum RosterHydration {
                     "cinderbloom"
                 } else if combatantID == "risen_skeleton", tier == .basic, id == "block" {
                     "shield-bash"
+                } else if combatantID == "library_owl", tier == .basic, id == "block" {
+                    "ray-of-frost"
                 } else {
                     id == "sap-arrow" ? "bounty-shot" : id
                 }
