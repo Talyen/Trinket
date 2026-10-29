@@ -95,12 +95,11 @@ public extension AbilityCatalog {
 
     static let luckPotion = Ability(
         id: "luck-potion", name: "Luck Potion", tier: .ultimate,
-        description: "Roll a 12-sided die\nGain that much Block, Thorns, or Health\nAt full party Health, roll Block or Thorns\nDraw 1 card",
+        description: "Roll a 12-sided die\nGain that much Block or Thorns\nDraw a card",
         outcomeBranches: (1 ... 12).flatMap { amount in
-            [Effect.shield(.block, amount), .thorns(amount), .instantHeal(.health, amount)].map { effect in
+            [Effect.shield(.block, amount), .thorns(amount)].map { effect in
                 AbilityOutcomeBranch(
                     targetedEffects: [TargetedEffect(effect), TargetedEffect(.drawCards(1), target: .actor)],
-                    condition: effect.keyword == .health ? .allyMissingHealth : nil,
                 )
             }
         },

@@ -5,19 +5,15 @@ import TrinketCore
 struct AbilityCatalogTests {
     @Test func `luck potion covers every die face and combat outcome`() throws {
         let branches = try #require(Ability.luckPotion.outcomeBranches)
-        #expect(branches.count == 36)
+        #expect(branches.count == 24)
         var thornsAmounts: [Int] = []
         var blockAmounts: [Int] = []
-        var healthAmounts: [Int] = []
         for targeted in branches.flatMap(\.targetedEffects) {
             switch targeted.effect {
             case let .thorns(amount):
                 thornsAmounts.append(amount)
             case let .shield(.block, amount):
                 blockAmounts.append(amount)
-            case let .instantHeal(.health, amount):
-                #expect(targeted.target == .lowestHealthAlly)
-                healthAmounts.append(amount)
             case .drawCards(1):
                 #expect(targeted.target == .actor)
             default:
@@ -26,7 +22,6 @@ struct AbilityCatalogTests {
         }
         #expect(thornsAmounts.sorted() == Array(1 ... 12))
         #expect(blockAmounts.sorted() == Array(1 ... 12))
-        #expect(healthAmounts.sorted() == Array(1 ... 12))
     }
 
     @Test func `catalog I ds are unique and unknown lookup returns nil`() throws {

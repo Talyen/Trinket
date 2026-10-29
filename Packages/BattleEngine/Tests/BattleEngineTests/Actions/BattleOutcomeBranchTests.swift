@@ -30,7 +30,7 @@ struct BattleOutcomeBranchTests {
         #expect(battle.rng == initialRNG)
     }
 
-    @Test(arguments: [Keyword.block, .thorns, .health])
+    @Test(arguments: [Keyword.block, .thorns])
     func `luck potion resolves one seeded combat gain`(keyword: Keyword) throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.slash], companionAbilities: [.slash], enemyMaxHealth: 500,
@@ -52,24 +52,19 @@ struct BattleOutcomeBranchTests {
             #expect(battle.activeEffects(of: battle.hero).contains { $0.effect == .thorns(gain.amount) })
         case .block:
             #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == gain.amount)
-        case .health:
-            #expect(battle.roster.companion.currentHealth == 1 + gain.amount)
-            #expect(battle.roster.hero.currentHealth == battle.roster.hero.maxHealth)
         default:
             Issue.record("Unexpected Luck Potion branch")
         }
     }
 
-    @Test(arguments: [false, true])
-    func `full Health luck potion excludes healing even with a defeated ally`(companionDefeated: Bool) {
+    @Test(arguments: [0, 1, 100])
+    func `luck potion offers both defenses at any ally Health`(companionHealth: Int) {
         var battle = BattleStateTestFactory.makeMinimalBattle(rngSeed: 7, appliesFightPacing: false)
-        if companionDefeated {
-            battle.roster.companion.currentHealth = 0
-        }
+        battle.roster.companion.currentHealth = min(companionHealth, battle.roster.companion.maxHealth)
         let outcomes = BattleAbilityRules.possibleOutcomes(
             .luckPotion, action: BattleActionContext(actor: battle.hero, in: battle), in: battle,
         )
-        #expect(!outcomes.branches.isEmpty)
+        #expect(outcomes.branches.count == 24)
         for branch in outcomes.branches {
             #expect(!branch.operations.contains { $0.keyword == .health })
             #expect(branch.operations.contains { $0.targetedEffect?.effect == .drawCards(1) })
@@ -77,20 +72,6 @@ struct BattleOutcomeBranchTests {
         let selected = BattleAbilityRules.resolveOutcome(.luckPotion, actor: battle.hero, in: &battle)
         #expect(!selected.targetedEffects.contains { $0.effect.keyword == .health })
         #expect(selected.targetedEffects.contains { $0.effect == .drawCards(1) })
-    }
-
-    @Test func `luck potion heals an injured ally over a full Health ally with lower maximum Health`() throws {
-        var battle = BattleStateTestFactory.makeBattleWithAbilities(
-            heroMaxHealth: 5, companionMaxHealth: 100, dealOpeningHand: false, appliesFightPacing: false,
-        )
-        battle.roster.companion.currentHealth = 50
-        battle.rng = try BattleTestFixtures.rngSelectingOutcome(.luckPotion, in: battle) {
-            $0.targetedEffects.contains { $0.effect.keyword == .health }
-        }
-        let events = battle.performTestAction(.luckPotion)
-        let healed = try #require(events.first { $0.effectKind == .instantHeal && $0.keyword == .health })
-        #expect(healed.targetID == battle.companion.id)
-        #expect(battle.health(of: battle.companion) > 50)
     }
 
     @Test func `seeded luck potion replay resolves the same combat outcome`() {

@@ -2350,8 +2350,8 @@ enum L10n {
         LocalizedStringResource("authored.32d3d52154e28806", defaultValue: "Blood Offering", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func authored_33ae3045806f0c59(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
-        LocalizedStringResource("authored.33ae3045806f0c59", defaultValue: "Roll a <value id=\"quantity_1\">\(value1)</value>-sided die\nGain that much <keyword id=\"block\">Block</keyword>, <keyword id=\"thorns\">Thorns</keyword>, or <keyword id=\"health\">Health</keyword>\nAt full party <keyword id=\"health\">Health</keyword>, roll <keyword id=\"block\">Block</keyword> or <keyword id=\"thorns\">Thorns</keyword>\nDraw <value id=\"quantity_2\">\(value2)</value> card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static func authored_33ae3045806f0c59(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("authored.33ae3045806f0c59", defaultValue: "Roll a <value id=\"quantity_1\">\(value1)</value>-sided die\nGain that much <keyword id=\"block\">Block</keyword> or <keyword id=\"thorns\">Thorns</keyword>\nDraw a card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func authored_340d09c98a84db17(_ value1: String, _ value2: String) -> LocalizedStringResource {

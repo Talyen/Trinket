@@ -152,7 +152,7 @@ Verdant Renewal retains its saved `healthPerTurn` trigger field and restores
 
 Blessed Aegis grants the caster 4 Block, restores 5 Health to the lowest-Health
 living ally, then deals 5 Holy damage. Each operation uses the ordinary gain or
-damage pipeline. Luck Potion's Health outcome uses the same lowest-Health target.
+damage pipeline.
 
 Steelsong readies a flat bonus after its wearer's attack card finishes. It refreshes
 rather than accumulating and is spent only by a later successful base Block grant,

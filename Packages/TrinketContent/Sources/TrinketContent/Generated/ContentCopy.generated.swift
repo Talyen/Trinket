@@ -1635,8 +1635,8 @@ public enum ContentCopy {
             return (L10n.authored_31f730a52db51c68, [])
         case "Leave":
             return (L10n.authored_3271d589dd662bf2, [])
-        case "Roll a 12-sided die\nGain that much Block, Thorns, or Health\nAt full party Health, roll Block or Thorns\nDraw 1 card":
-            return (L10n.authored_33ae3045806f0c59(12, 1), [12, 1])
+        case "Roll a 12-sided die\nGain that much Block or Thorns\nDraw a card":
+            return (L10n.authored_33ae3045806f0c59(12), [12])
         case "Increased Burn Damage":
             return (L10n.authored_346df12519cf9ef7, [])
         case "Drops Block items":
@@ -5089,7 +5089,7 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Freeze\\ damage\\\nDoubled\\ against\\ Frozen\\ enemies$"), count: 1, make: { values in L10n.authored_1d9a045f72b4811e(values[0]) }),
         NumericTemplate(prefix: "Your next Poison attack gains bonus damage equal to ", regex: try? NSRegularExpression(pattern: "^Your\\ next\\ Poison\\ attack\\ gains\\ bonus\\ damage\\ equal\\ to\\ ([0-9]+)%\\ of\\ your\\ latest\\ healing\\ received$"), count: 1, make: { values in L10n.authored_2342c42e3288a7fd(values[0]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Burn\\ damage\\\nDoubled\\ if\\ enemy\\ was\\ not\\ Burning$"), count: 1, make: { values in L10n.authored_28d1d781324c2c4f(values[0]) }),
-        NumericTemplate(prefix: "Roll a ", regex: try? NSRegularExpression(pattern: "^Roll\\ a\\ ([0-9]+)\\-sided\\ die\\\nGain\\ that\\ much\\ Block,\\ Thorns,\\ or\\ Health\\\nAt\\ full\\ party\\ Health,\\ roll\\ Block\\ or\\ Thorns\\\nDraw\\ ([0-9]+)\\ cards?$"), count: 2, make: { values in L10n.authored_33ae3045806f0c59(values[0], values[1]) }),
+        NumericTemplate(prefix: "Roll a ", regex: try? NSRegularExpression(pattern: "^Roll\\ a\\ ([0-9]+)\\-sided\\ die\\\nGain\\ that\\ much\\ Block\\ or\\ Thorns\\\nDraw\\ a\\ cards?$"), count: 1, make: { values in L10n.authored_33ae3045806f0c59(values[0]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Burn\\ or\\ Poison\\ damage\\ at\\ random$"), count: 1, make: { values in L10n.authored_396d8d761b8ce3b3(values[0]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Physical\\ damage\\\nCritically\\ Hit\\ enemies\\ at\\ full\\ Health$"), count: 1, make: { values in L10n.authored_42ebbca84976791e(values[0]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Holy\\ or\\ Burn\\ damage\\\nRestore\\ ([0-9]+)\\ Health\\ to\\ each\\ ally$"), count: 2, make: { values in L10n.authored_449ef1fc60522bc9(values[0], values[1]) }),
