@@ -15,14 +15,34 @@ import TrinketCore
 ///   removed keyword cannot brick a whole payload (synthesized
 ///   `Set<Keyword>` decoding would throw on the first unknown raw value).
 /// - Unknown rarity strings: fall back to `.basic`.
-/// - Stored affixes otherwise round-trip verbatim (title/description kept),
+/// - The retired Cascading affix is removed with its matching stored power.
+///   Other stored affixes round-trip verbatim (title/description kept),
 ///   including bespoke unique signatures which live outside the generic
 ///   affix catalog and must never be stripped by a catalog lookup.
 /// - Trinket catalog hits are authoritative: base/rarity/display/affixes come
 ///   from the catalog and stored affix powers are dropped (powers are
 ///   index-aligned with affixes, so keeping stored powers would describe the
-///   wrong affixes). Offer/cloud codecs intentionally stay verbatim.
+///   wrong affixes). Offer/cloud codecs otherwise retain stored values.
 enum ItemResolution {
+    static func removingRetiredAffixes(from item: InventoryItem) -> InventoryItem {
+        let removed = item.affixes.indices.filter { item.affixes[$0].id == "cascading" }
+        guard !removed.isEmpty else { return item }
+        let removedIndices = Set(removed)
+        let inscription = item.inscribedAffixIndex.flatMap { index in
+            removedIndices.contains(index) ? nil : index - removed.count(where: { $0 < index })
+        }
+        return InventoryItem(
+            id: item.id, templateID: item.templateID, baseType: item.baseType,
+            rarity: item.rarity, displayName: item.displayName,
+            affixes: item.affixes.enumerated().compactMap { removedIndices.contains($0.offset) ? nil : $0.element },
+            isCorrupted: item.isCorrupted,
+            affixPowers: item.affixPowers.map { powers in
+                powers.enumerated().compactMap { removedIndices.contains($0.offset) ? nil : $0.element }
+            },
+            inscribedAffixIndex: inscription,
+        )
+    }
+
     static func baseType(matching id: String, itemID: String) -> ItemBaseType? {
         guard let base = GameContent.itemBaseType(matching: id) else {
             inventoryMappingLogger.error(

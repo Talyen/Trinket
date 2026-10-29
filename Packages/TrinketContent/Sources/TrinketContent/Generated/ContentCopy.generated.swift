@@ -869,12 +869,6 @@ public enum ContentCopy {
             return (L10n.affixes_bulwark_basic_description(2), [2])
         case "Bulwark":
             return (L10n.affixes_bulwark_title, [])
-        case "Gain 2 Block when your Block is broken":
-            return (L10n.affixes_cascading_astral_description(2), [2])
-        case "Gain 1 Block when your Block is broken":
-            return (L10n.affixes_cascading_basic_description(1), [1])
-        case "Cascading":
-            return (L10n.affixes_cascading_title, [])
         case "Attacks gain 5 damage against enemies with both Burn and Poison":
             return (L10n.affixes_catalytic_astral_description(5), [5])
         case "Attacks gain 3 damage against enemies with both Burn and Poison":
@@ -2101,8 +2095,6 @@ public enum ContentCopy {
             return (L10n.authored_c73204111b3bec52(3), [3])
         case "Relic Seeker":
             return (L10n.authored_ca0d24eb5f6bccf9, [])
-        case "Deal 1 Poison damage, twice":
-            return (L10n.authored_cbcfca8a3e0a92b1(1), [1])
         case "Toxicology":
             return (L10n.authored_cc8c0da5e2515c26, [])
         case "Viper’s Courtesy":
@@ -4999,7 +4991,6 @@ public enum ContentCopy {
         NumericTemplate(prefix: "When your Block is broken, gain ", regex: try? NSRegularExpression(pattern: "^When\\ your\\ Block\\ is\\ broken,\\ gain\\ ([0-9]+)\\ Thorns$"), count: 1, make: { values in L10n.affixes_briarward_astral_description(values[0]) }),
         NumericTemplate(prefix: "Increase Thorns damage by ", regex: try? NSRegularExpression(pattern: "^Increase\\ Thorns\\ damage\\ by\\ ([0-9]+)\\ while\\ you\\ have\\ Block$"), count: 1, make: { values in L10n.affixes_bristling_astral_description(values[0]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ additional\\ Block$"), count: 1, make: { values in L10n.affixes_bulwark_astral_description(values[0]) }),
-        NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Block\\ when\\ your\\ Block\\ is\\ broken$"), count: 1, make: { values in L10n.affixes_cascading_astral_description(values[0]) }),
         NumericTemplate(prefix: "Attacks gain ", regex: try? NSRegularExpression(pattern: "^Attacks\\ gain\\ ([0-9]+)\\ damage\\ against\\ enemies\\ with\\ both\\ Burn\\ and\\ Poison$"), count: 1, make: { values in L10n.affixes_catalytic_astral_description(values[0]) }),
         NumericTemplate(prefix: "Your Bleed deals ", regex: try? NSRegularExpression(pattern: "^Your\\ Bleed\\ deals\\ ([0-9]+)\\ additional\\ damage\\ to\\ Burning\\ enemies$"), count: 1, make: { values in L10n.affixes_cauterize_astral_description(values[0]) }),
         NumericTemplate(prefix: "Increase Maximum Mana by ", regex: try? NSRegularExpression(pattern: "^Increase\\ Maximum\\ Mana\\ by\\ ([0-9]+)$"), count: 1, make: { values in L10n.affixes_channeled_astral_description(values[0]) }),
@@ -5115,7 +5106,6 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Halve enemy Block\nDeal ", regex: try? NSRegularExpression(pattern: "^Halve\\ enemy\\ Block\\\nDeal\\ ([0-9]+)\\ Physical\\ damage$"), count: 1, make: { values in L10n.authored_c1c75f2574d8fb56(values[0]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Bleed\\ damage\\\nYour\\ next\\ attack\\ has\\ Leech$"), count: 1, make: { values in L10n.authored_c5ec2efd91341d6c(values[0]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Bleed\\ damage\\\nDeal\\ Stun\\ instead\\ against\\ enemies\\ with\\ Block$"), count: 1, make: { values in L10n.authored_c73204111b3bec52(values[0]) }),
-        NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ Poison\\ damage,\\ twice$"), count: 1, make: { values in L10n.authored_cbcfca8a3e0a92b1(values[0]) }),
         NumericTemplate(prefix: "Lose ", regex: try? NSRegularExpression(pattern: "^Lose\\ ([0-9]+)\\ Health\\\nDeal\\ ([0-9]+)\\ Bleed\\ damage\\\nDraw\\ a\\ cards?$"), count: 2, make: { values in L10n.authored_d81ccd40d340713a(values[0], values[1]) }),
         NumericTemplate(prefix: "Cleanse the ally with the most ", regex: try? NSRegularExpression(pattern: "^Cleanse\\ the\\ ally\\ with\\ the\\ most\\ debuffs?\\\nRestore\\ ([0-9]+)\\ Health\\\nDraw\\ ([0-9]+)\\ cards?$"), count: 2, make: { values in L10n.authored_d81e4149c4b3b5dd(values[0], values[1]) }),
         NumericTemplate(prefix: "Holy damage causes Stun build-up and steals ", regex: try? NSRegularExpression(pattern: "^Holy\\ damage\\ causes\\ Stun\\ build\\-up\\ and\\ steals\\ ([0-9]+)\\ Gold\\ when\\ it\\ Stuns\\ an\\ enemy$"), count: 1, make: { values in L10n.authored_d8dc8b523964f2d6(values[0]) }),

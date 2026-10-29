@@ -43,8 +43,9 @@ struct ItemAffixAdditionsTests {
         #expect(before - battle.health(of: battle.enemy) == 3)
     }
 
-    @Test func `Block break rewards repeat in the same turn with Cascading and do not share Saintfall allowances`() throws {
-        var profile = try profile(["resolute", "reactive", "cascading"])
+    @Test func `Block break rewards repeat in the same turn and do not share Saintfall allowances`() throws {
+        var profile = try profile(["resolute", "reactive"])
+        profile.triggers.blockBrokenBlockFlat = 1
         profile.triggers.blockBrokenSaintfallPower = 1
         var battle = BattleTestFixtures.makeAffixBattle(
             heroHealth: 10,

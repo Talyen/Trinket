@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import Testing
 import TrinketContent
 import TrinketCore
@@ -6,8 +7,50 @@ import TrinketCore
 
 /// Degradation policy shared by the three item codecs (see
 /// `ItemResolution`): unknown bases drop the item, unknown keywords are
-/// stripped, unknown rarities fall back to basic. Pure in-memory coverage.
+/// stripped, unknown rarities fall back to basic, and retired affixes are removed.
 struct ItemResolutionTests {
+    @Test(arguments: [nil, 0, 1, 2])
+    func `retired cascading is removed from saved offers without misaligning powers`(inscription: Int?) throws {
+        let item = try Self.itemWithCascading(inscription: inscription)
+        let data = try JSONEncoder().encode(StoredInventoryItem(item))
+        let restored = try #require(JSONDecoder().decode(StoredInventoryItem.self, from: data).resolved())
+        #expect(restored.affixes.map(\.id) == ["keep-first", "keep-last"])
+        #expect(restored.affixPowers?.map(\.description) == ["first power", "last power"])
+        #expect(restored.inscribedAffixIndex == (inscription == 2 ? 1 : inscription == 0 ? 0 : nil))
+        #expect(restored.id == item.id && restored.templateID == item.templateID && restored.isCorrupted)
+    }
+
+    @Test @MainActor func `retired cascading is removed from an existing save across reloads`() throws {
+        let context = try PersistenceTestContext()
+        let item = try Self.itemWithCascading(inscription: 2)
+        var save = PlayerSave.testSeed
+        save.inventory.items = [item]
+        let restored = try context.seedAndReload(save)
+        let expected = try #require(restored.inventory.items.first)
+        #expect(expected.affixes.map(\.id) == ["keep-first", "keep-last"])
+        #expect(expected.affixPowers?.map(\.description) == ["first power", "last power"])
+        #expect(expected.inscribedAffixIndex == 1)
+        let sideContext = try context.makeSideContext()
+        let root = try #require(sideContext.fetch(FetchDescriptor<PlayerSaveRoot>()).first)
+        #expect(root.toPlayerSave().inventory.items == [expected])
+        #expect(try context.makeReloadedStore().inventory.items == [expected])
+    }
+
+    private static func itemWithCascading(inscription: Int?) throws -> InventoryItem {
+        let base = try #require(GameContent.itemBaseType(matching: "leather_armor"))
+        let ids = ["keep-first", "cascading", "keep-last"]
+        return InventoryItem(
+            id: "old-armor", templateID: "old-template", baseType: base, rarity: .basic,
+            displayName: "Old Armor",
+            affixes: ids.map { ItemAffix(id: $0, title: $0, description: $0, keywords: []) },
+            isCorrupted: true,
+            affixPowers: ["first power", "retired power", "last power"].map {
+                ItemAffixPower(description: $0, modifiers: [])
+            },
+            inscribedAffixIndex: inscription,
+        )
+    }
+
     private static func storedItem(
         baseTypeID: String = "longsword",
         rarityID: String = Rarity.basic.rawValue,

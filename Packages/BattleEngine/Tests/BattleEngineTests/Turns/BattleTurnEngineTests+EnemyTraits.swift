@@ -54,7 +54,7 @@ extension BattleTurnEngineTests {
         })
     }
 
-    @Test func `enemy poison dagger resolves two poison hits on its original target`() throws {
+    @Test func `enemy poison dagger resolves one poison hit on its original target`() throws {
         var context = try enemyTraitContext("plague_doctor")
         let enemy = context.enemy
         context.roster.mutateRuntime(for: context.companion) { $0.currentHealth = 39 }
@@ -65,7 +65,7 @@ extension BattleTurnEngineTests {
         ) }
 
         let hits = events.filter { $0.kind == .abilityDamage }
-        #expect(hits.map(\.keyword) == [.poison, .poison])
+        #expect(hits.map(\.keyword) == [.poison])
         #expect(hits.allSatisfy { $0.targetID == target.id })
         #expect(context.roster.companion.currentHealth == 39)
         #expect(!context.roster.hasAffliction(.poison, on: enemy))

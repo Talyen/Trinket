@@ -5,7 +5,7 @@ import TrinketCore
 enum ItemAffixCatalogGenerated {
     static let definitions: [ItemAffixDefinition] = {
         var list = [ItemAffixDefinition]()
-        list.reserveCapacity(137)
+        list.reserveCapacity(136)
         list.append(contentsOf: chunk0())
         list.append(contentsOf: chunk1())
         list.append(contentsOf: chunk2())
@@ -379,15 +379,6 @@ enum ItemAffixCatalogGenerated {
             astral: ItemAffixPower(description: "Deal 8 additional damage on your next attack after Dodging", modifiers: [], triggers: CombatTraitTriggers { $0.damageAfterDodgeBonus = 8 })
         ),
         ItemAffixCatalog.affix(
-            id: "cascading",
-            title: "Cascading",
-            slot: .armor,
-            keywords: [.block],
-            weight: 8,
-            basic: ItemAffixPower(description: "Gain 1 Block when your Block is broken", modifiers: [], triggers: CombatTraitTriggers { $0.blockBrokenBlockFlat = 1 }),
-            astral: ItemAffixPower(description: "Gain 2 Block when your Block is broken", modifiers: [], triggers: CombatTraitTriggers { $0.blockBrokenBlockFlat = 2 })
-        ),
-        ItemAffixCatalog.affix(
             id: "symbiosis",
             title: "Symbiosis",
             slot: .accessory,
@@ -473,12 +464,7 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Your first Holy attack that deals Health damage each turn restores 2 Health to the lowest-Health ally", modifiers: [], triggers: CombatTraitTriggers { $0.firstHolyAttackHealPerTurn = 2 }),
             astral: ItemAffixPower(description: "Your first Holy attack that deals Health damage each turn restores 6 Health to the lowest-Health ally", modifiers: [], triggers: CombatTraitTriggers { $0.firstHolyAttackHealPerTurn = 6 })
-        )
-        ]
-    }
-
-    private static func chunk3() -> [ItemAffixDefinition] {
-        [
+        ),
         ItemAffixCatalog.affix(
             id: "windfall",
             title: "Windfall",
@@ -487,7 +473,12 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Restore 1 Health when you gain Gold", modifiers: [], triggers: CombatTraitTriggers { $0.gainGoldBonusHealSelf = 1 }),
             astral: ItemAffixPower(description: "Restore 2 Health when you gain Gold", modifiers: [], triggers: CombatTraitTriggers { $0.gainGoldBonusHealSelf = 2 })
-        ),
+        )
+        ]
+    }
+
+    private static func chunk3() -> [ItemAffixDefinition] {
+        [
         ItemAffixCatalog.affix(
             id: "payday",
             title: "Payday",
@@ -622,12 +613,7 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Increase Gold gained by 10%", modifiers: [.goldGainedPercent(0.10)], triggers: CombatTraitTriggers()),
             astral: ItemAffixPower(description: "Increase Gold gained by 20%", modifiers: [.goldGainedPercent(0.20)], triggers: CombatTraitTriggers())
-        )
-        ]
-    }
-
-    private static func chunk4() -> [ItemAffixDefinition] {
-        [
+        ),
         ItemAffixCatalog.affix(
             id: "bounty",
             title: "Bounty",
@@ -636,7 +622,12 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Gain 4 Gold when you defeat an enemy", modifiers: [], triggers: CombatTraitTriggers { $0.defeatEnemyGoldFlat = 4 }),
             astral: ItemAffixPower(description: "Gain 8 Gold when you defeat an enemy", modifiers: [], triggers: CombatTraitTriggers { $0.defeatEnemyGoldFlat = 8 })
-        ),
+        )
+        ]
+    }
+
+    private static func chunk4() -> [ItemAffixDefinition] {
+        [
         ItemAffixCatalog.affix(
             id: "blood_price",
             title: "Blood Price",
@@ -789,12 +780,7 @@ enum ItemAffixCatalogGenerated {
             weight: 1,
             basic: ItemAffixPower(description: "Burn cards can spend additional Mana to deal more damage", modifiers: [], triggers: CombatTraitTriggers { $0.repeatManaEmpowerment = true }),
             astral: ItemAffixPower(description: "Burn cards can spend additional Mana to deal more damage", modifiers: [], triggers: CombatTraitTriggers { $0.repeatManaEmpowerment = true })
-        )
-        ]
-    }
-
-    private static func chunk5() -> [ItemAffixDefinition] {
-        [
+        ),
         ItemAffixCatalog.affix(
             id: "mortar_and_pestle",
             title: "Toxic Remedy",
@@ -803,7 +789,12 @@ enum ItemAffixCatalogGenerated {
             weight: 1,
             basic: ItemAffixPower(description: "Your next Poison attack gains bonus damage equal to half your latest healing received", modifiers: [], triggers: CombatTraitTriggers { $0.healthRestoredNextPoisonDamagePercent = 0.50 }),
             astral: ItemAffixPower(description: "Your next Poison attack gains bonus damage equal to half your latest healing received", modifiers: [], triggers: CombatTraitTriggers { $0.healthRestoredNextPoisonDamagePercent = 0.50 })
-        ),
+        )
+        ]
+    }
+
+    private static func chunk5() -> [ItemAffixDefinition] {
+        [
         ItemAffixCatalog.affix(
             id: "obsidian_hammer",
             title: "Concussive Force",
@@ -944,12 +935,7 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Increase Thorns damage by 1", modifiers: [], triggers: CombatTraitTriggers { $0.thornsDamageFlat = 1 }),
             astral: ItemAffixPower(description: "Increase Thorns damage by 3", modifiers: [], triggers: CombatTraitTriggers { $0.thornsDamageFlat = 3 })
-        )
-        ]
-    }
-
-    private static func chunk6() -> [ItemAffixDefinition] {
-        [
+        ),
         ItemAffixCatalog.affix(
             id: "briarward",
             title: "Briarward",
@@ -958,7 +944,12 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "When your Block is broken, gain 2 Thorns", modifiers: [], triggers: CombatTraitTriggers { $0.blockBrokenThornsFlat = 2 }),
             astral: ItemAffixPower(description: "When your Block is broken, gain 3 Thorns", modifiers: [], triggers: CombatTraitTriggers { $0.blockBrokenThornsFlat = 3 })
-        ),
+        )
+        ]
+    }
+
+    private static func chunk6() -> [ItemAffixDefinition] {
+        [
         ItemAffixCatalog.affix(
             id: "bloodward",
             title: "Bloodward",
@@ -1093,12 +1084,7 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Your Thorns deal 1 additional damage to Poisoned enemies", modifiers: [], triggers: CombatTraitTriggers { $0.thornsDamageVsPoisonedFlat = 1 }),
             astral: ItemAffixPower(description: "Your Thorns deal 3 additional damage to Poisoned enemies", modifiers: [], triggers: CombatTraitTriggers { $0.thornsDamageVsPoisonedFlat = 3 })
-        )
-        ]
-    }
-
-    private static func chunk7() -> [ItemAffixDefinition] {
-        [
+        ),
         ItemAffixCatalog.affix(
             id: "bloodroot",
             title: "Bloodroot",
@@ -1107,7 +1093,12 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "When Leech restores Health while you have no Thorns, gain 1 Thorns", modifiers: [], triggers: CombatTraitTriggers { $0.leechThornsWithoutThorns = 1 }),
             astral: ItemAffixPower(description: "When Leech restores Health while you have no Thorns, gain 3 Thorns", modifiers: [], triggers: CombatTraitTriggers { $0.leechThornsWithoutThorns = 3 })
-        ),
+        )
+        ]
+    }
+
+    private static func chunk7() -> [ItemAffixDefinition] {
+        [
         ItemAffixCatalog.affix(
             id: "heartshock",
             title: "Heartshock",
@@ -1242,12 +1233,7 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Playing an attack adds 2 damage to your ally's next attack", modifiers: [], triggers: CombatTraitTriggers { $0.attackPreparesAllyDamage = 2 }, triggerRollRanges: [.attackPreparesAllyDamage: 1 ... 2]),
             astral: ItemAffixPower(description: "Playing an attack adds 4 damage to your ally's next attack", modifiers: [], triggers: CombatTraitTriggers { $0.attackPreparesAllyDamage = 4 }, triggerRollRanges: [.attackPreparesAllyDamage: 3 ... 4])
-        )
-        ]
-    }
-
-    private static func chunk8() -> [ItemAffixDefinition] {
-        [
+        ),
         ItemAffixCatalog.affix(
             id: "prismatic",
             title: "Prismatic",
@@ -1256,7 +1242,12 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Attacks gain 2 damage when their type differs from your previous attack", modifiers: [], triggers: CombatTraitTriggers { $0.alternatingAttackDamageBonus = 2 }, triggerRollRanges: [.alternatingAttackDamageBonus: 1 ... 2]),
             astral: ItemAffixPower(description: "Attacks gain 4 damage when their type differs from your previous attack", modifiers: [], triggers: CombatTraitTriggers { $0.alternatingAttackDamageBonus = 4 }, triggerRollRanges: [.alternatingAttackDamageBonus: 3 ... 4])
-        ),
+        )
+        ]
+    }
+
+    private static func chunk8() -> [ItemAffixDefinition] {
+        [
         ItemAffixCatalog.affix(
             id: "measured",
             title: "Measured",

@@ -574,18 +574,6 @@ enum L10n {
         LocalizedStringResource("affixes.bulwark.title", defaultValue: "Bulwark", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func affixes_cascading_astral_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.cascading.astral_description", defaultValue: "Gain <value id=\"quantity_1\">\(value1)</value> <keyword id=\"block\">Block</keyword> when your <keyword id=\"block\">Block</keyword> is broken", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
-    }
-
-    static func affixes_cascading_basic_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.cascading.basic_description", defaultValue: "Gain <value id=\"quantity_1\">\(value1)</value> <keyword id=\"block\">Block</keyword> when your <keyword id=\"block\">Block</keyword> is broken", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
-    }
-
-    static var affixes_cascading_title: LocalizedStringResource {
-        LocalizedStringResource("affixes.cascading.title", defaultValue: "Cascading", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
-    }
-
     static func affixes_catalytic_astral_description(_ value1: Int) -> LocalizedStringResource {
         LocalizedStringResource("affixes.catalytic.astral_description", defaultValue: "Attacks gain <value id=\"quantity_1\">\(value1)</value> damage against enemies with both <keyword id=\"burn\">Burn</keyword> and <keyword id=\"poison\">Poison</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
@@ -3584,10 +3572,6 @@ enum L10n {
 
     static var authored_cb21240dcd2a3239: LocalizedStringResource {
         LocalizedStringResource("authored.cb21240dcd2a3239", defaultValue: "<keyword id=\"block\">Block</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
-    }
-
-    static func authored_cbcfca8a3e0a92b1(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("authored.cbcfca8a3e0a92b1", defaultValue: "Deal <value id=\"quantity_1\">\(value1)</value> <keyword id=\"poison\">Poison</keyword> damage, twice", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var authored_cc3e60bbbd2c05e9: LocalizedStringResource {

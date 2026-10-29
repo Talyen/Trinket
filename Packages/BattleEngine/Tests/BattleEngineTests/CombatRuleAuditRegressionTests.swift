@@ -49,8 +49,12 @@ struct CombatRuleAuditRegressionTests {
         #expect(loss.actorID == battle.companion.id && loss.targetID == battle.enemy.id)
     }
 
-    @Test func `Volatile Remedy waits for the next attack after Poison Dagger Leech`() throws {
+    @Test func `Volatile Remedy waits for the next attack after multi-hit Poison Leech`() throws {
         let poisonAttack = Ability(id: "test-poison", name: "Poison", tier: .basic, directDamage: 1, damageKeyword: .poison)
+        let poisonFlurry = Ability(
+            id: "test-poison-flurry", name: "Poison Flurry", tier: .skill,
+            damageComponents: [DamageComponent(1, keyword: .poison), DamageComponent(1, keyword: .poison)],
+        )
         var profile = CombatantTalentCatalog.profile(for: ["alchemist_health_t3_2"])
         profile.triggers.poisonAttackLeech = true
         profile.triggers.criticalChanceBonus = -1
@@ -58,8 +62,8 @@ struct CombatRuleAuditRegressionTests {
             heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
         )
         battle.roster.hero.currentHealth = 10
-        let dagger = try play(.poisonDagger, in: &battle)
-        #expect(dagger.filter { $0.kind == .abilityDamage && $0.abilityID == Ability.poisonDagger.id }.map(\.amount) == [1, 1])
+        let flurry = try play(poisonFlurry, in: &battle)
+        #expect(flurry.filter { $0.kind == .abilityDamage && $0.abilityID == poisonFlurry.id }.map(\.amount) == [1, 1])
         let next = try play(poisonAttack, in: &battle)
         #expect(next.filter { $0.kind == .abilityDamage && $0.abilityID == poisonAttack.id }.map(\.amount) == [3])
     }

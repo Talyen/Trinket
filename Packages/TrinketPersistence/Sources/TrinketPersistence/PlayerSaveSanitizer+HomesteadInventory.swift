@@ -39,6 +39,6 @@ extension PlayerSaveSanitizer {
             logger
                 .notice("Sanitized inventory: dropped \(inventory.items.count - uniqueItems.count, privacy: .public) duplicate items")
         }
-        return PlayerInventoryState(items: uniqueItems)
+        return PlayerInventoryState(items: uniqueItems.map(ItemResolution.removingRetiredAffixes(from:)))
     }
 }

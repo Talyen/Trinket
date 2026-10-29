@@ -2003,48 +2003,6 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "壁壘"}}
       }
     },
-    "affixes.cascading.astral_description": {
-      "comment": "ContentManifest/affixes.tsv: cascading, astral_description",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>, wenn dein <keyword id=\"block\">Block</keyword> durchbrochen wird"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> when your <keyword id=\"block\">Block</keyword> is broken"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> cuando se rompe tu <keyword id=\"block\">Bloqueo</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword> lorsque votre <keyword id=\"block\">Blocage</keyword> est brisé"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "自分の<keyword id=\"block\">ブロック</keyword>が崩れると<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "내 <keyword id=\"block\">방어도</keyword>가 깨지면 <keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> quando seu <keyword id=\"block\">Bloqueio</keyword> for quebrado"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "自身<keyword id=\"block\">格擋</keyword>被擊破時，獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
-      }
-    },
-    "affixes.cascading.basic_description": {
-      "comment": "ContentManifest/affixes.tsv: cascading, basic_description",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Erhalte <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>, wenn dein <keyword id=\"block\">Block</keyword> durchbrochen wird"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Gain <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> when your <keyword id=\"block\">Block</keyword> is broken"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Obtén <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> cuando se rompe tu <keyword id=\"block\">Bloqueo</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Gagnez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Blocage</keyword> lorsque votre <keyword id=\"block\">Blocage</keyword> est brisé"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "自分の<keyword id=\"block\">ブロック</keyword>が崩れると<keyword id=\"block\">ブロック</keyword>を<value id=\"quantity_1\">%1$lld</value>獲得"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "내 <keyword id=\"block\">방어도</keyword>가 깨지면 <keyword id=\"block\">방어도</keyword> <value id=\"quantity_1\">%1$lld</value> 획득"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ganhe <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> quando seu <keyword id=\"block\">Bloqueio</keyword> for quebrado"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "自身<keyword id=\"block\">格擋</keyword>被擊破時，獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
-      }
-    },
-    "affixes.cascading.title": {
-      "comment": "ContentManifest/affixes.tsv: cascading, title",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Kaskade"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Cascading"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Cascada"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Cascade"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "連鎖"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "연쇄"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cascata"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "連鎖"}}
-      }
-    },
     "affixes.catalytic.astral_description": {
       "comment": "ContentManifest/affixes.tsv: catalytic, astral_description",
       "extractionState": "manual",
@@ -12543,20 +12501,6 @@
         "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">방어도</keyword>"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">Bloqueio</keyword>"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">格擋</keyword>"}}
-      }
-    },
-    "authored.cbcfca8a3e0a92b1": {
-      "comment": "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+Skill.swift: description",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verursache zweimal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Gift</keyword>schaden"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Deal <value id=\"quantity_1\">%1$lld</value> <keyword id=\"poison\">Poison</keyword> damage, twice"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño de <keyword id=\"poison\">Veneno</keyword>, dos veces"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Infligez <value id=\"quantity_1\">%1$lld</value> dégâts de <keyword id=\"poison\">Poison</keyword>, deux fois"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"poison\">毒</keyword>ダメージを<value id=\"quantity_1\">%1$lld</value>ずつ2回与える"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"poison\">독</keyword> 피해 <value id=\"quantity_1\">%1$lld</value>, 두 번"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cause <value id=\"quantity_1\">%1$lld</value> de dano de <keyword id=\"poison\">Veneno</keyword>, duas vezes"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"poison\">中毒</keyword>傷害兩次"}}
       }
     },
     "authored.cc3e60bbbd2c05e9": {

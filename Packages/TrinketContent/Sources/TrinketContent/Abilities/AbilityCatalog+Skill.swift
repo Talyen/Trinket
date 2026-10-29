@@ -124,11 +124,7 @@ public extension AbilityCatalog {
 
     static let poisonDagger = Ability(
         id: "poison-dagger", name: "Poison Dagger", tier: .skill,
-        description: "Deal 1 Poison damage, twice",
-        damageComponents: [
-            DamageComponent(1, keyword: .poison),
-            DamageComponent(1, keyword: .poison),
-        ],
+        directDamage: 2, damageKeyword: .poison,
     )
 
     static let pounce = Ability(

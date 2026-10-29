@@ -170,14 +170,14 @@ extension AbilityEffectIntegrationTests {
         }
     }
 
-    @Test func `poison dagger resolves two poison hits`() {
+    @Test func `poison dagger resolves one poison hit`() {
         var context = BattleStateTestFactory.makeBattleWithAbilities(dealOpeningHand: false, appliesFightPacing: false)
         let before = context.health(of: context.enemy)
 
         let events = context.performTestAction(.poisonDagger)
 
         let damage = events.filter { $0.kind == .abilityDamage }
-        #expect(damage.map(\.amount) == [1, 1])
+        #expect(damage.map(\.amount) == [2])
         #expect(damage.allSatisfy { $0.keyword == .poison })
         #expect(context.health(of: context.enemy) == before - 2)
     }

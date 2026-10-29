@@ -4,9 +4,8 @@ import TrinketCore
 /// Codable snapshot of an inventory item embedded in offer-payload blobs
 /// (shop stock, mystery offers) and CloudKit save snapshots.
 ///
-/// Payloads round-trip verbatim (rarity/powers preserved, unknown base drops
-/// the offer or item) so a saved offer resolves identically on claim and cloud
-/// sync survives removed content gracefully. Supports decoding both `powers`
+/// Payloads retain saved rarity and powers except for retired affixes; an
+/// unknown base drops the offer or item. Supports decoding both `powers`
 /// (legacy offer payloads) and `affixPowers` (cloud wire) keys for complete
 /// backward compatibility.
 public struct StoredInventoryItem: Codable, Equatable, Sendable {
@@ -73,10 +72,10 @@ public struct StoredInventoryItem: Codable, Equatable, Sendable {
     /// options and keep the surviving items.
     public func resolved() -> InventoryItem? {
         guard let base = ItemResolution.baseType(matching: baseTypeID, itemID: id) else { return nil }
-        return InventoryItem(
+        return ItemResolution.removingRetiredAffixes(from: InventoryItem(
             id: id, templateID: templateID, baseType: base, rarity: rarity, displayName: displayName,
             affixes: affixes.map(\.resolved), isCorrupted: isCorrupted, affixPowers: affixPowers, inscribedAffixIndex: inscribedAffixIndex,
-        )
+        ))
     }
 
     public struct StoredAffix: Codable, Equatable, Sendable {
