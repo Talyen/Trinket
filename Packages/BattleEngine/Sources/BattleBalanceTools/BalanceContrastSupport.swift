@@ -149,15 +149,54 @@ enum BalanceContrastSupport {
         )
     }
 
-    /// Shared pair-setup preamble: partner pick, round-robin enemy, and both
-    /// loadouts, sampled from `pairSeed` in this exact order. Keep the order:
-    /// reseeds change every contrast sample downstream.
+    /// Sample the party together. Ability comparisons must satisfy the same
+    /// damage guideline on both sides while keeping the other cards shared.
+    static func sampleContrastLoadouts(
+        owner: Combatant,
+        partner: Combatant,
+        abilityPair: (Ability, Ability)? = nil,
+        using rng: inout some RandomNumberGenerator,
+    ) -> (owner: AbilityLoadout, partner: AbilityLoadout) {
+        func damageCount(_ ownerLoadout: AbilityLoadout, _ partnerLoadout: AbilityLoadout) -> Int {
+            let partnerCount = partnerLoadout.abilities.count(where: \.dealsCombatDamage)
+            guard let (focus, sibling) = abilityPair else {
+                return partnerCount + ownerLoadout.abilities.count(where: \.dealsCombatDamage)
+            }
+            return partnerCount + min(
+                ownerLoadout.selecting(focus).abilities.count(where: \.dealsCombatDamage),
+                ownerLoadout.selecting(sibling).abilities.count(where: \.dealsCombatDamage),
+            )
+        }
+
+        for _ in 0 ..< 64 {
+            let ownerLoadout = SimulationMatchupBuilder.sampleLoadout(for: owner, using: &rng)
+            let partnerLoadout = SimulationMatchupBuilder.sampleLoadout(for: partner, using: &rng)
+            if damageCount(ownerLoadout, partnerLoadout) >= SimulationMatchupBuilder.minimumPartyDamagingAbilities {
+                return (ownerLoadout, partnerLoadout)
+            }
+        }
+
+        /// If random attempts miss a rare combination, use the strongest legal
+        /// damage count. This also handles rosters unable to reach the guideline.
+        func mostDamagingLoadout(_ combatant: Combatant) -> AbilityLoadout {
+            func choice(_ tier: AbilityTier) -> Ability? {
+                let choices = combatant.abilityChoices.abilities(for: tier)
+                return choices.first(where: \.dealsCombatDamage) ?? choices.first
+            }
+            return AbilityLoadout(basic: choice(.basic), skill: choice(.skill), ultimate: choice(.ultimate))
+        }
+        return (mostDamagingLoadout(owner), mostDamagingLoadout(partner))
+    }
+
+    /// Shared pair-setup preamble: partner pick, round-robin enemy, party
+    /// loadouts, and independently seeded talents.
     static func sampleBasePair(
         owner: Combatant,
         pairIndex: Int,
         context: BalanceContrastContext,
         tier: SimulationPowerTier,
         pairSeed: UInt64,
+        abilityPair: (Ability, Ability)? = nil,
     ) -> ContrastMatchupBase {
         var rng = SeededRandomNumberGenerator(seed: pairSeed)
         let partners = owner.role == .hero ? context.companions : context.heroes
@@ -165,8 +204,7 @@ enum BalanceContrastSupport {
             preconditionFailure("Contrast partner pool empty after roster guard")
         }
         let enemy = context.enemies[pairIndex % context.enemies.count]
-        let ownerLoadout = SimulationMatchupBuilder.sampleLoadout(for: owner, using: &rng)
-        let partnerLoadout = SimulationMatchupBuilder.sampleLoadout(for: partner, using: &rng)
+        let loadouts = sampleContrastLoadouts(owner: owner, partner: partner, abilityPair: abilityPair, using: &rng)
         var talentRNG = SeededRandomNumberGenerator(seed: pairSeed &+ 29)
         let ownerTalents = context.config.usesTierTalents
             ? SimulationMatchupBuilder.legalTalentKit(for: owner.id, level: tier.level, using: &talentRNG) : []
@@ -176,8 +214,8 @@ enum BalanceContrastSupport {
             owner: owner,
             partner: partner,
             enemy: enemy,
-            ownerLoadout: ownerLoadout,
-            partnerLoadout: partnerLoadout,
+            ownerLoadout: loadouts.owner,
+            partnerLoadout: loadouts.partner,
             ownerGear: nil,
             partnerGear: nil,
             ownerTalents: ownerTalents,

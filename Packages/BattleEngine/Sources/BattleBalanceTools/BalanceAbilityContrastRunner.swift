@@ -86,9 +86,10 @@ enum BalanceAbilityContrastRunner {
             context: context,
             tier: tier,
             pairSeed: pairSeed,
+            abilityPair: (focus.focus, focus.sibling),
         )
         let siblingLoadout = base.ownerLoadout.selecting(focus.sibling)
-        // Both variants wear gear aligned to the focus loadout; keep historical sampling.
+        // Both variants wear gear aligned to the focus loadout.
         base.ownerLoadout = base.ownerLoadout.selecting(focus.focus)
         base.prepareSharedGear()
         return (

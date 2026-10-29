@@ -140,6 +140,17 @@ than bypassing concurrency checks on a shared collection.
 
 ### Reading sweep evidence
 
+Identity, progression, and paired contrast sampling use a party-wide guideline
+of at least three damage-dealing abilities across the six selected cards. Either
+character may be entirely support-focused. Ability contrasts apply the guideline
+to both variants while sharing the other cards, talents, gear, and battle seed.
+Contrast sampling retries up to 64 times, then selects the highest available
+damage count if necessary; an inherently low-damage roster can fall below the
+guideline. This card-count heuristic does not measure actual damage, talent or
+gear contributions, or play quality, so investigate stalls even in eligible
+parties. These sampling changes alter seeded contrast builds; compare reports
+produced by the same sampling revision.
+
 Identity runs use the same rotating Hero/Companion schedule for every enemy.
 Both rosters cycle evenly before repeated pairings shift to cover filtered rosters
 with shared divisors. The default screen represents every Hero and Companion;

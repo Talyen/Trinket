@@ -170,6 +170,56 @@ struct BalanceSweepOrchestrationTests {
         #expect(!foci.isEmpty)
     }
 
+    @Test func `contrast parties have damage on both sides of every ability comparison`() {
+        let foci = BalanceAbilityContrastRunner.foci(
+            heroes: GameContent.heroes, companions: GameContent.companions, focusIDs: [],
+        )
+        for focus in foci {
+            let partners = focus.owner.role == .hero ? GameContent.companions : GameContent.heroes
+            for partner in partners {
+                var rng = SeededRandomNumberGenerator(seed: 11)
+                let loadouts = BalanceContrastSupport.sampleContrastLoadouts(
+                    owner: focus.owner, partner: partner,
+                    abilityPair: (focus.focus, focus.sibling), using: &rng,
+                )
+                for ability in [focus.focus, focus.sibling] {
+                    let count = SimulationMatchupBuilder.damagingAbilityCount(
+                        hero: loadouts.owner.selecting(ability), companion: loadouts.partner,
+                    )
+                    #expect(
+                        count >= SimulationMatchupBuilder.minimumPartyDamagingAbilities,
+                        "\(focus.owner.id)+\(partner.id): \(focus.focus.id)/\(focus.sibling.id)",
+                    )
+                }
+            }
+        }
+    }
+
+    @Test func `contrast sampling allows an all support companion with a damaging hero`() throws {
+        let owner = try #require(GameContent.companions.first { $0.id == "frost_whelp" })
+        let partner = try #require(GameContent.heroes.first { $0.id == "knight" })
+        let focus = try #require(owner.abilityChoices.skills.first { $0.id == Ability.manaShield.id })
+        let sibling = try #require(owner.abilityChoices.skills.first { $0.id == Ability.glacialWard.id })
+        var foundSupportKit = false
+        for seed in 0 ..< 512 {
+            var rng = SeededRandomNumberGenerator(seed: UInt64(seed))
+            let loadouts = BalanceContrastSupport.sampleContrastLoadouts(
+                owner: owner, partner: partner, abilityPair: (focus, sibling), using: &rng,
+            )
+            let focusLoadout = loadouts.owner.selecting(focus)
+            let siblingLoadout = loadouts.owner.selecting(sibling)
+            if focusLoadout.abilities.allSatisfy({ !$0.dealsCombatDamage }),
+               siblingLoadout.abilities.allSatisfy({ !$0.dealsCombatDamage }) {
+                foundSupportKit = true
+                #expect(loadouts.partner.abilities.count(where: \.dealsCombatDamage) == 3)
+                #expect(focusLoadout.basic == siblingLoadout.basic)
+                #expect(focusLoadout.ultimate == siblingLoadout.ultimate)
+                break
+            }
+        }
+        #expect(foundSupportKit)
+    }
+
     @Test func `affix contrast work plan includes starter gear`() {
         var config = BalanceSweepConfig(
             mode: .affixContrast, battlesPerTier: 10, tiers: SimulationPowerTier.allCases,
