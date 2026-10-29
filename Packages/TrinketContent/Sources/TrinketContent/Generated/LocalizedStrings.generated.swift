@@ -7054,8 +7054,8 @@ enum L10n {
         LocalizedStringResource("talents.golden_retriever_block_t2_1.name", defaultValue: "Shield Bond", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static var talents_golden_retriever_block_t2_2_description: LocalizedStringResource {
-        LocalizedStringResource("talents.golden_retriever_block_t2_2.description", defaultValue: "<keyword id=\"dodge\">Dodge</keyword> the first enemy attack each combat without spending <keyword id=\"block\">Block</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static func talents_golden_retriever_block_t2_2_description(_ value1: Int) -> LocalizedStringResource {
+        LocalizedStringResource("talents.golden_retriever_block_t2_2.description", defaultValue: "Allies with <keyword id=\"block\">Block</keyword> gain +<value id=\"quantity_1\">\(value1)</value>% <keyword id=\"dodge\">Dodge</keyword>", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var talents_golden_retriever_block_t2_2_name: LocalizedStringResource {

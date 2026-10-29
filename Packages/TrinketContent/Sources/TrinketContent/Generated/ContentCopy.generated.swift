@@ -3469,8 +3469,8 @@ public enum ContentCopy {
             return (L10n.talents_golden_retriever_block_t2_1_description, [])
         case "Shield Bond":
             return (L10n.talents_golden_retriever_block_t2_1_name, [])
-        case "Dodge the first enemy attack each combat without spending Block":
-            return (L10n.talents_golden_retriever_block_t2_2_description, [])
+        case "Allies with Block gain +20% Dodge":
+            return (L10n.talents_golden_retriever_block_t2_2_description(20), [20])
         case "Warning Bark":
             return (L10n.talents_golden_retriever_block_t2_2_name, [])
         case "Your Block also absorbs damage dealt to your ally":
@@ -5236,6 +5236,7 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Mana empowerment costs ", regex: try? NSRegularExpression(pattern: "^Mana\\ empowerment\\ costs\\ ([0-9]+)\\ less\\ Mana$"), count: 1, make: { values in L10n.talents_frost_whelp_mana_t3_2_description(values[0]) }),
         NumericTemplate(prefix: "Mana empowerment grants your ally ", regex: try? NSRegularExpression(pattern: "^Mana\\ empowerment\\ grants\\ your\\ ally\\ ([0-9]+)\\ Block$"), count: 1, make: { values in L10n.talents_frost_whelp_mana_t4_1_description(values[0]) }),
         NumericTemplate(prefix: "Grant your ally ", regex: try? NSRegularExpression(pattern: "^Grant\\ your\\ ally\\ ([0-9]+)\\ Block\\ before\\ their\\ first\\ incoming\\ attack$"), count: 1, make: { values in L10n.talents_golden_retriever_block_t1_1_description(values[0]) }),
+        NumericTemplate(prefix: "Allies with Block gain +", regex: try? NSRegularExpression(pattern: "^Allies\\ with\\ Block\\ gain\\ \\+([0-9]+)%\\ Dodge$"), count: 1, make: { values in L10n.talents_golden_retriever_block_t2_2_description(values[0]) }),
         NumericTemplate(prefix: "When your Block breaks, your ally gains ", regex: try? NSRegularExpression(pattern: "^When\\ your\\ Block\\ breaks,\\ your\\ ally\\ gains\\ ([0-9]+)\\ Block$"), count: 1, make: { values in L10n.talents_golden_retriever_block_t4_1_description(values[0]) }),
         NumericTemplate(prefix: "Defeating an enemy grants ", regex: try? NSRegularExpression(pattern: "^Defeating\\ an\\ enemy\\ grants\\ ([0-9]+)\\ Gold$"), count: 1, make: { values in L10n.talents_golden_retriever_gold_t1_1_description(values[0]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)%\\ more\\ Gold\\ on\\ victory$"), count: 1, make: { values in L10n.talents_golden_retriever_gold_t1_2_description(values[0]) }),

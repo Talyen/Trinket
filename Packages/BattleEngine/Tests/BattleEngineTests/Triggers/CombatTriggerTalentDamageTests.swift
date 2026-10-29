@@ -5,6 +5,29 @@ import TrinketCore
 @testable import TrinketContent
 
 struct CombatTriggerTalentDamageTests {
+    @Test func `warning bark grants dodge only to allies with block while the retriever lives`() {
+        let profile = CombatantTalentCatalog.profile(for: ["golden_retriever_block_t2_2"])
+        #expect(!profile.triggers.negateFirstEnemyAttack)
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            companionModifiers: profile, dealOpeningHand: false,
+        )
+        func chance(_ target: Combatant) -> Double {
+            DamagePipeline.dodgeChance(for: target, attackerID: battle.enemy.id, in: battle)
+        }
+        #expect(abs(chance(battle.hero) - 0.10) < 0.0001)
+        #expect(abs(chance(battle.companion) - 0.10) < 0.0001)
+        DefensePoolEngine.set(3, on: battle.hero, in: &battle)
+        #expect(abs(chance(battle.hero) - 0.30) < 0.0001)
+        #expect(abs(chance(battle.companion) - 0.10) < 0.0001)
+        DefensePoolEngine.set(2, on: battle.companion, in: &battle)
+        #expect(abs(chance(battle.companion) - 0.30) < 0.0001)
+        DefensePoolEngine.set(0, on: battle.hero, in: &battle)
+        #expect(abs(chance(battle.hero) - 0.10) < 0.0001)
+        battle.roster.mutateRuntime(for: battle.companion) { $0.currentHealth = 0 }
+        DefensePoolEngine.set(3, on: battle.hero, in: &battle)
+        #expect(abs(chance(battle.hero) - 0.10) < 0.0001)
+    }
+
     @Test(arguments: [9, 10, 11])
     func `high altitude only adds dodge above half health`(health: Int) {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(

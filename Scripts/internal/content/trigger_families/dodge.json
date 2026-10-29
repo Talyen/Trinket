@@ -249,6 +249,9 @@
     "partyDodgeChanceBonus": {
       "type": "Double"
     },
+    "partyDodgeWhileBlockedBonus": {
+      "type": "Double"
+    },
     "dodgeNextBleedAttackBonus": {
       "type": "Int"
     }

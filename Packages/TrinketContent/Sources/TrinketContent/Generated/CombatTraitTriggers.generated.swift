@@ -573,6 +573,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case firstDodgeNextAttackBonusPerTurn
     case partyDodgeAtFullHealthBonus
     case partyDodgeChanceBonus
+    case partyDodgeWhileBlockedBonus
     case dodgeNextBleedAttackBonus
     case dragonPatronage
     case prismaticScales
@@ -1505,6 +1506,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var firstDodgeNextAttackBonusPerTurn: Int = 0
         public var partyDodgeAtFullHealthBonus: Double = 0
         public var partyDodgeChanceBonus: Double = 0
+        public var partyDodgeWhileBlockedBonus: Double = 0
         public var dodgeNextBleedAttackBonus: Int = 0
         public var dragonPatronage: Bool = false
         public var prismaticScales: Bool = false
@@ -2440,6 +2442,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.firstDodgeNextAttackBonusPerTurn, .firstDodgeNextAttackBonusPerTurn, default: 0, merging: .add),
         .init(\.partyDodgeAtFullHealthBonus, .partyDodgeAtFullHealthBonus, default: 0, merging: .add),
         .init(\.partyDodgeChanceBonus, .partyDodgeChanceBonus, default: 0, merging: .add),
+        .init(\.partyDodgeWhileBlockedBonus, .partyDodgeWhileBlockedBonus, default: 0, merging: .add),
         .init(\.dodgeNextBleedAttackBonus, .dodgeNextBleedAttackBonus, default: 0, merging: .add),
         .init(\.dragonPatronage, .dragonPatronage, default: false, merging: .or),
         .init(\.prismaticScales, .prismaticScales, default: false, merging: .or),

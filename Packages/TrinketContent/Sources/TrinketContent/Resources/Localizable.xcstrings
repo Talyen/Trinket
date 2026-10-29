@@ -24687,14 +24687,14 @@
       "comment": "ContentManifest/talents.tsv: golden_retriever_block_t2_2, description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">Weiche</keyword> dem ersten gegnerischen Angriff in jedem Kampf aus, ohne <keyword id=\"block\">Block</keyword> zu verbrauchen"}},
-        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">Dodge</keyword> the first enemy attack each combat without spending <keyword id=\"block\">Block</keyword>"}},
-        "es": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">Esquiva</keyword> el primer ataque enemigo de cada combate sin gastar <keyword id=\"block\">Bloqueo</keyword>"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">Esquive</keyword> de la première attaque ennemie de chaque combat sans dépenser de <keyword id=\"block\">Blocage</keyword>"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "各戦闘で最初の敵の攻撃を、<keyword id=\"block\">ブロック</keyword>を消費せずに<keyword id=\"dodge\">回避</keyword>"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "매 전투 적의 첫 공격을 <keyword id=\"block\">방어도</keyword> 소모 없이 <keyword id=\"dodge\">회피</keyword>"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "<keyword id=\"dodge\">Esquive</keyword> do primeiro ataque inimigo de cada combate sem gastar <keyword id=\"block\">Bloqueio</keyword>"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每場戰鬥<keyword id=\"dodge\">閃避</keyword>敵人首次攻擊，且不消耗<keyword id=\"block\">格擋</keyword>"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Verbündete mit <keyword id=\"block\">Block</keyword> erhalten +<value id=\"quantity_1\">%1$lld</value>%% <keyword id=\"dodge\">Ausweichen</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Allies with <keyword id=\"block\">Block</keyword> gain +<value id=\"quantity_1\">%1$lld</value>%% <keyword id=\"dodge\">Dodge</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Los aliados con <keyword id=\"block\">Bloqueo</keyword> obtienen +<value id=\"quantity_1\">%1$lld</value>%% de <keyword id=\"dodge\">Esquiva</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les alliés ayant du <keyword id=\"block\">Blocage</keyword> gagnent +<value id=\"quantity_1\">%1$lld</value>%% d’<keyword id=\"dodge\">Esquive</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">ブロック</keyword>を持つ味方は<keyword id=\"dodge\">回避</keyword>が+<value id=\"quantity_1\">%1$lld</value>%%増加"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"block\">방어도</keyword>가 있는 아군의 <keyword id=\"dodge\">회피</keyword>가 +<value id=\"quantity_1\">%1$lld</value>%% 증가"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Aliados com <keyword id=\"block\">Bloqueio</keyword> recebem +<value id=\"quantity_1\">%1$lld</value>%% de <keyword id=\"dodge\">Esquiva</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "擁有<keyword id=\"block\">格擋</keyword>的盟友獲得+<value id=\"quantity_1\">%1$lld</value>%%<keyword id=\"dodge\">閃避</keyword>"}}
       }
     },
     "talents.golden_retriever_block_t2_2.name": {

@@ -532,10 +532,9 @@ attack each combat. Ongoing damage and Dodged attacks do not consume it.
 
 ### Warning Bark
 
-Warning Bark preserves one enemy attack per combat (including multi-hit),
-routed through Dodge feedback and ordinary Dodge reactions for the protected
-target. Claim the combat allowance before resolving reactions. The dodged
-attack still advances the enemy's ability cadence.
+While the Retriever is alive, Warning Bark adds 20 percentage points of Dodge
+chance to each ally with positive Block. Check the target's current Block when
+resolving Dodge; use the normal Dodge cap and feedback, with no recurring event.
 
 ### Dense Bones
 

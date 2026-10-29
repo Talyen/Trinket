@@ -129,6 +129,10 @@ package extension DamagePipeline {
         if context.roster.companion.isAlive {
             let companion = context.companionModifiers.triggers
             chance += companion.partyDodgeChanceBonus
+            if companion.partyDodgeWhileBlockedBonus > 0,
+               DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: combatant)) > 0 {
+                chance += companion.partyDodgeWhileBlockedBonus
+            }
             if isFullHealth {
                 chance += companion.partyDodgeAtFullHealthBonus
             }

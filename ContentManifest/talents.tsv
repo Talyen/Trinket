@@ -206,7 +206,7 @@ golden_retriever_gold_t3_2	Treasure Hoard	sf:circle.circle.fill	Gaining Gold has
 golden_retriever_block_t1_1	Guardian	sf:shield.fill	Grant your ally 5 Block before their first incoming attack		guardianHeroBlockFlat:5
 golden_retriever_block_t1_2	Watchful Eye	sf:eye.fill	Start combat with 3 Block		startBattleBlock:3
 golden_retriever_block_t2_1	Shield Bond	sf:link	Your first Block gain each turn is shared with your ally		companionBlockSharesToHeroPercent:1
-golden_retriever_block_t2_2	Warning Bark	sf:waveform	Dodge the first enemy attack each combat without spending Block		negateFirstEnemyAttack:true
+golden_retriever_block_t2_2	Warning Bark	sf:waveform	Allies with Block gain +20% Dodge		partyDodgeWhileBlockedBonus:0.20
 golden_retriever_block_t3_1	Sacrificial Guard	sf:heart.fill	Your Block also absorbs damage dealt to your ally		companionBlockAbsorbsHeroDamage:true
 golden_retriever_block_t3_2	Steadfast	sf:lock.shield.fill	While you have Block, prevent Stun and Freeze build-up		blockedControlPrevention:true
 golden_retriever_health_t1_1	Cheer Up	sf:face.smiling.fill	Your first Health restoration each combat draws a card		firstHealthRestorationDrawBattle:true

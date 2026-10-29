@@ -1943,8 +1943,8 @@ public extension CombatantTalentCatalog {
             "golden_retriever_block_t2_2": CombatantTalentEffect(
                 name: "Warning Bark",
                 iconID: "sf:waveform",
-                description: "Dodge the first enemy attack each combat without spending Block",
-                triggers: CombatTraitTriggers { $0.negateFirstEnemyAttack = true }
+                description: "Allies with Block gain +20% Dodge",
+                triggers: CombatTraitTriggers { $0.partyDodgeWhileBlockedBonus = 0.20 }
             ),
             "golden_retriever_block_t3_1": CombatantTalentEffect(
                 name: "Sacrificial Guard",
