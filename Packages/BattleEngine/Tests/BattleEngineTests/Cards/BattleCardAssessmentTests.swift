@@ -32,7 +32,7 @@ struct BattleCardAssessmentTests {
         let card = deal(.blessedAegis, in: &state)
         let targets = state.assessCard(card).targets
         #expect(targets.contains {
-            $0.combatantID == state.hero.id && $0.intent == .effect(.shield(.block, 5))
+            $0.combatantID == state.hero.id && $0.intent == .effect(.shield(.block, 4))
         })
         #expect(targets.contains {
             $0.combatantID == state.enemy.id && $0.intent == .damage(.holy)

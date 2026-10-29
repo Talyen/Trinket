@@ -150,7 +150,7 @@ Cleanse reactions such as Fresh Batch have changed Health.
 Verdant Renewal retains its saved `healthPerTurn` trigger field and restores
 2 Health on alternate player turns beginning on turn 1.
 
-Blessed Aegis grants the caster 5 Block, restores 5 Health to the lowest-Health
+Blessed Aegis grants the caster 4 Block, restores 5 Health to the lowest-Health
 living ally, then deals 5 Holy damage. Each operation uses the ordinary gain or
 damage pipeline. Luck Potion's Health outcome uses the same lowest-Health target.
 

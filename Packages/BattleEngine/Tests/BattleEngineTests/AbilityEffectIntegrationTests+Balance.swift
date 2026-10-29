@@ -71,7 +71,7 @@ extension AbilityEffectIntegrationTests {
 
         battle.performTestAction(.blessedAegis)
 
-        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 5)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 4)
         #expect(battle.health(of: battle.companion) == 15)
         #expect(battle.health(of: battle.hero) == battle.hero.maxHealth)
         #expect(enemyBefore - battle.health(of: battle.enemy) == 5)
@@ -84,7 +84,7 @@ extension AbilityEffectIntegrationTests {
         DefensePoolEngine.set(8, on: battle.hero, in: &battle)
         let before = battle.health(of: battle.enemy)
         battle.performTestAction(.blessedAegis)
-        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 13)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 12)
         #expect(before - battle.health(of: battle.enemy) == 5)
     }
 

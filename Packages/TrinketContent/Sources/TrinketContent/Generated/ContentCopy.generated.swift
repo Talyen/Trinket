@@ -2155,8 +2155,8 @@ public enum ContentCopy {
             return (L10n.authored_e1848aeb08aa125f, [])
         case "Read the Notes":
             return (L10n.authored_e1890123b84952fa, [])
-        case "Gain 5 Block\nRestore 5 Health to the lowest-Health ally\nDeal 5 Holy damage":
-            return (L10n.authored_e490f38a43edadca(5, 5, 5), [5, 5, 5])
+        case "Gain 4 Block\nRestore 5 Health to the lowest-Health ally\nDeal 5 Holy damage":
+            return (L10n.authored_e490f38a43edadca(4, 5, 5), [4, 5, 5])
         case "Bonus XP":
             return (L10n.authored_e597157f439209e2, [])
         case "Anima":
