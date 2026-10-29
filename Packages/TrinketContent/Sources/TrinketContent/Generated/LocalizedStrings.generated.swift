@@ -2351,7 +2351,7 @@ enum L10n {
     }
 
     static func authored_33ae3045806f0c59(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("authored.33ae3045806f0c59", defaultValue: "Roll a <value id=\"quantity_1\">\(value1)</value>-sided die\nGain that much <keyword id=\"block\">Block</keyword> or <keyword id=\"thorns\">Thorns</keyword>\nDraw a card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("authored.33ae3045806f0c59", defaultValue: "Roll an <value id=\"quantity_1\">\(value1)</value>-sided die\nGain that much <keyword id=\"block\">Block</keyword> and <keyword id=\"thorns\">Thorns</keyword>\nDraw a card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func authored_340d09c98a84db17(_ value1: String, _ value2: String) -> LocalizedStringResource {

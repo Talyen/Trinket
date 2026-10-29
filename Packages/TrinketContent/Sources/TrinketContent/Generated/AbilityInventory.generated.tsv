@@ -55,7 +55,7 @@ earthquake	Earthquake	ultimate	Deal 6 Stun damage this turn and next
 faustian-bargain	Faustian Bargain	ultimate	Lose 2 Health\nDeal 4 Burn damage\nDraw 1 card
 golden-plate	Golden Plate	ultimate	Gain 8 Block\nGain 4 more if you gained Gold this turn
 hemorrhage	Hemorrhage	ultimate	Deal 6 Bleed damage\nDetonate all Bleed
-luck-potion	Luck Potion	ultimate	Roll a 12-sided die\nGain that much Block or Thorns\nDraw a card
+luck-potion	Luck Potion	ultimate	Roll an 8-sided die\nGain that much Block and Thorns\nDraw a card
 meteor	Meteor	ultimate	Deal 6 Burn damage\nSpend additional Mana to increase Burn damage
 molten-bulwark	Molten Bulwark	ultimate	Deal 3 Burn damage\nGain 4 Block and Thorns
 pack-tactics	Pack Tactics	ultimate	Deal 5 Physical damage\nDraw a card from your ally's deck\nIf unavailable, draw from your deck

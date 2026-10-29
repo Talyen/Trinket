@@ -30,8 +30,8 @@ struct BattleOutcomeBranchTests {
         #expect(battle.rng == initialRNG)
     }
 
-    @Test(arguments: [Keyword.block, .thorns])
-    func `luck potion resolves one seeded combat gain`(keyword: Keyword) throws {
+    @Test(arguments: [1, 4, 8])
+    func `luck potion grants both defenses using the same roll`(amount: Int) throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.slash], companionAbilities: [.slash], enemyMaxHealth: 500,
             heroModifiers: .withTriggers { $0.criticalChanceBonus = -1 },
@@ -39,22 +39,13 @@ struct BattleOutcomeBranchTests {
         )
         battle.roster.companion.currentHealth = 1
         battle.rng = try BattleTestFixtures.rngSelectingOutcome(.luckPotion, in: battle) {
-            $0.targetedEffects.contains { $0.effect.keyword == keyword }
+            $0.targetedEffects.contains { $0.effect == .shield(.block, amount) }
         }
         let events = battle.performTestAction(.luckPotion)
         #expect(!events.contains { $0.kind == .abilityDamage })
         #expect(battle.hand.cards.count == 1)
-        let gain = try #require(events.first { $0.effectKind != nil })
-        #expect(gain.keyword == keyword)
-        #expect((1 ... 12).contains(gain.amount))
-        switch keyword {
-        case .thorns:
-            #expect(battle.activeEffects(of: battle.hero).contains { $0.effect == .thorns(gain.amount) })
-        case .block:
-            #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == gain.amount)
-        default:
-            Issue.record("Unexpected Luck Potion branch")
-        }
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == amount)
+        #expect(battle.activeEffects(of: battle.hero).contains { $0.effect == .thorns(amount) })
     }
 
     @Test(arguments: [0, 1, 100])
@@ -64,7 +55,7 @@ struct BattleOutcomeBranchTests {
         let outcomes = BattleAbilityRules.possibleOutcomes(
             .luckPotion, action: BattleActionContext(actor: battle.hero, in: battle), in: battle,
         )
-        #expect(outcomes.branches.count == 24)
+        #expect(outcomes.branches.count == 8)
         for branch in outcomes.branches {
             #expect(!branch.operations.contains { $0.keyword == .health })
             #expect(branch.operations.contains { $0.targetedEffect?.effect == .drawCards(1) })

@@ -85,7 +85,7 @@ existing Stun and Stun newly caused by that hit both qualify.
 Paid in Full banks one bonus after theft for the next attack of any damage type;
 Bounty Blade retains its separate Physical-only bonus. Repeated theft refreshes
 these pending bonuses without stacking them; ongoing damage does not consume them.
-Luck Potion rolls 1–12 for either Block or Thorns and draws one caster card after
+Luck Potion rolls 1–8 for both Block and Thorns and draws one caster card after
 its gain. Conditional guaranteed criticals snapshot their
 eligibility at preparation. `BattleActionContext`
 binds the selected target for an action and resolves allies/opponents relative to

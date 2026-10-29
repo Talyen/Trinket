@@ -8223,14 +8223,14 @@
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Abilities/AbilityCatalog+Ultimate.swift: description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Wirf einen <value id=\"quantity_1\">%1$lld</value>-seitigen Würfel\nErhalte entsprechend viel <keyword id=\"block\">Block</keyword> oder <keyword id=\"thorns\">Dornen</keyword>\nZiehe eine Karte"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Roll a <value id=\"quantity_1\">%1$lld</value>-sided die\nGain that much <keyword id=\"block\">Block</keyword> or <keyword id=\"thorns\">Thorns</keyword>\nDraw a card"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Lanza un dado de <value id=\"quantity_1\">%1$lld</value> caras\nObtén esa cantidad de <keyword id=\"block\">Bloqueo</keyword> o <keyword id=\"thorns\">Espinas</keyword>\nRoba una carta"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Lancez un dé à <value id=\"quantity_1\">%1$lld</value> faces\nGagnez autant de <keyword id=\"block\">Blocage</keyword> ou d’<keyword id=\"thorns\">Épines</keyword>\nPiochez une carte"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "<value id=\"quantity_1\">%1$lld</value>面ダイスを振る\n出目と同量の<keyword id=\"block\">ブロック</keyword>または<keyword id=\"thorns\">棘</keyword>を獲得\nカードを1枚引く"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "<value id=\"quantity_1\">%1$lld</value>면 주사위 굴리기\n나온 수만큼 <keyword id=\"block\">방어도</keyword> 또는 <keyword id=\"thorns\">가시</keyword> 획득\n카드 1장 뽑기"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Role um dado de <value id=\"quantity_1\">%1$lld</value> lados\nGanhe essa quantidade de <keyword id=\"block\">Bloqueio</keyword> ou <keyword id=\"thorns\">Espinhos</keyword>\nCompre uma carta"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "擲一顆<value id=\"quantity_1\">%1$lld</value>面骰\n獲得等同點數的<keyword id=\"block\">格擋</keyword>或<keyword id=\"thorns\">荊棘</keyword>\n抽一張牌"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Wirf einen <value id=\"quantity_1\">%1$lld</value>-seitigen Würfel\nErhalte entsprechend viel <keyword id=\"block\">Block</keyword> und <keyword id=\"thorns\">Dornen</keyword>\nZiehe eine Karte"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Roll an <value id=\"quantity_1\">%1$lld</value>-sided die\nGain that much <keyword id=\"block\">Block</keyword> and <keyword id=\"thorns\">Thorns</keyword>\nDraw a card"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Lanza un dado de <value id=\"quantity_1\">%1$lld</value> caras\nObtén esa cantidad de <keyword id=\"block\">Bloqueo</keyword> y <keyword id=\"thorns\">Espinas</keyword>\nRoba una carta"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Lancez un dé à <value id=\"quantity_1\">%1$lld</value> faces\nGagnez autant de <keyword id=\"block\">Blocage</keyword> et d’<keyword id=\"thorns\">Épines</keyword>\nPiochez une carte"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<value id=\"quantity_1\">%1$lld</value>面ダイスを振る\n出目と同量の<keyword id=\"block\">ブロック</keyword>と<keyword id=\"thorns\">棘</keyword>を獲得\nカードを1枚引く"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<value id=\"quantity_1\">%1$lld</value>면 주사위 굴리기\n나온 수만큼 <keyword id=\"block\">방어도</keyword>와 <keyword id=\"thorns\">가시</keyword> 획득\n카드 1장 뽑기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Role um dado de <value id=\"quantity_1\">%1$lld</value> lados\nGanhe essa quantidade de <keyword id=\"block\">Bloqueio</keyword> e <keyword id=\"thorns\">Espinhos</keyword>\nCompre uma carta"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "擲一顆<value id=\"quantity_1\">%1$lld</value>面骰\n獲得等同點數的<keyword id=\"block\">格擋</keyword>和<keyword id=\"thorns\">荊棘</keyword>\n抽一張牌"}}
       }
     },
     "authored.340d09c98a84db17": {
