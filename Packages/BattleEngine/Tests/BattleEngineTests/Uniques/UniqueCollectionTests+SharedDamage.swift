@@ -370,10 +370,10 @@ extension UniqueCollectionTests {
         battle.grantGoldEvent(1, to: battle.hero, abilityName: "Steal", isTheft: true)
 
         try play(attack(.holy, amount: 20), in: &battle)
-        #expect(battle.health(of: battle.enemy) == 1977)
+        #expect(battle.health(of: battle.enemy) == 1975)
         #expect(battle.roster.hero.talents.pending.nextPhysicalDamageBonus == nil)
         try play(attack(.physical, amount: 20), in: &battle)
-        #expect(battle.health(of: battle.enemy) == 1957)
+        #expect(battle.health(of: battle.enemy) == 1953)
     }
 
     @Test func `bloodember shares Soul Burns prepared bonus with the next Bleed attack`() throws {

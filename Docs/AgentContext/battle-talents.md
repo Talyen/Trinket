@@ -21,6 +21,8 @@ trigger limits, conversions and compatibility rules.
 
 ### Victory Gold and theft
 
+Bounty Blade adds its flat Physical damage to each attack hit, including shared
+Physical damage, while its separate theft bonus prepares only the next attack.
 Lucky Break draws a card on its owner's first positive actual Gold gain each turn,
 including theft. Zero or rejected grants do not spend its turn allowance.
 

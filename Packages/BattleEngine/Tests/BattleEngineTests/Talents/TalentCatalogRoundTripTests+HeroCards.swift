@@ -25,11 +25,12 @@ extension TalentCatalogRoundTripTests {
         let paidInFull = talentID == "wildcard_physical_t4_1"
         let physicalBonus = profile.triggers.goldStealNextPhysicalBonus
         let expectedBonus = paidInFull ? profile.triggers.goldStealNextAttackBonus : (keyword == .physical ? physicalBonus : 0)
-        #expect(before - battle.health(of: battle.enemy) == 4 + expectedBonus)
+        let attackBonus = !paidInFull && keyword == .physical ? 4 : 0
+        #expect(before - battle.health(of: battle.enemy) == 4 + expectedBonus + attackBonus)
         let after = battle.health(of: battle.enemy)
         _ = battle.performTestAction(.slash)
         let remainingBonus = !paidInFull && keyword != .physical ? physicalBonus : 0
-        #expect(after - battle.health(of: battle.enemy) == 3 + remainingBonus)
+        #expect(after - battle.health(of: battle.enemy) == 3 + remainingBonus + (paidInFull ? 0 : 2))
     }
 
     @Test func `grove accord rewards the pair once per turn`() throws {

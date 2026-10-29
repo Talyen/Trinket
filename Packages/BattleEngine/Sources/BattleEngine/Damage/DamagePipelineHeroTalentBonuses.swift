@@ -179,6 +179,9 @@ package extension DamagePipeline {
     ) {
         guard let source = context.roster.combatant(for: sourceActorID)?.combatant else { return }
         let keywords = DamageKeywords(keyword, triggers: triggers)
+        if keywords.contains(.physical), state.options.isAttackHit, triggers.physicalAttackDamageFlat > 0 {
+            state.remaining = SaturatedArithmetic.saturatingAdd(state.remaining, triggers.physicalAttackDamageFlat)
+        }
         let needsBlock = (keywords.contains(.physical) && triggers.physicalDamageFromBlockPercent > 0)
             || (keyword == .stun && triggers.lightningRod)
             || (keyword == .holy && triggers.holyDamageWhileBlockedMultiplier > 1)

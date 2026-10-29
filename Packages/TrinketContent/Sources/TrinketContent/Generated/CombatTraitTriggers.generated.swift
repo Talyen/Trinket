@@ -219,6 +219,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case dazingSwipeStunBuildup
     case burnAttackDamageVsBleedingMultiplier
     case physicalAttackDamageVsBurningOrFrozenFlat
+    case physicalAttackDamageFlat
     case prismaticEdge
     case physicalAttackBleedChancePercent
     case attackPreparesAllyDamage
@@ -1152,6 +1153,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var dazingSwipeStunBuildup: Int = 0
         public var burnAttackDamageVsBleedingMultiplier: Double = 1
         public var physicalAttackDamageVsBurningOrFrozenFlat: Int = 0
+        public var physicalAttackDamageFlat: Int = 0
         public var prismaticEdge: Bool = false
         public var physicalAttackBleedChancePercent: Double = 0
         public var attackPreparesAllyDamage: Int = 0
@@ -2088,6 +2090,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.dazingSwipeStunBuildup, .dazingSwipeStunBuildup, default: 0, merging: .add),
         .init(\.burnAttackDamageVsBleedingMultiplier, .burnAttackDamageVsBleedingMultiplier, default: 1, merging: .max),
         .init(\.physicalAttackDamageVsBurningOrFrozenFlat, .physicalAttackDamageVsBurningOrFrozenFlat, default: 0, merging: .add),
+        .init(\.physicalAttackDamageFlat, .physicalAttackDamageFlat, default: 0, merging: .add),
         .init(\.prismaticEdge, .prismaticEdge, default: false, merging: .or),
         .init(\.physicalAttackBleedChancePercent, .physicalAttackBleedChancePercent, default: 0, merging: .add),
         .init(\.attackPreparesAllyDamage, .attackPreparesAllyDamage, default: 0, merging: .add),

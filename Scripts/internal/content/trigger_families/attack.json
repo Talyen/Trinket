@@ -396,6 +396,9 @@
     "physicalAttackDamageVsBurningOrFrozenFlat": {
       "type": "Int"
     },
+    "physicalAttackDamageFlat": {
+      "type": "Int"
+    },
     "prismaticEdge": {
       "type": "Bool"
     },

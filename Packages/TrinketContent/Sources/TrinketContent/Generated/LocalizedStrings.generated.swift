@@ -8822,8 +8822,8 @@ enum L10n {
         LocalizedStringResource("talents.rogue_gold_t3_2.name", defaultValue: "Quick Fingers", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func talents_rogue_gold_t4_1_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("talents.rogue_gold_t4_1.description", defaultValue: "Stealing <keyword id=\"gold\">Gold</keyword> adds <value id=\"quantity_1\">\(value1)</value> damage to your next <keyword id=\"physical\">Physical</keyword> attack", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static func talents_rogue_gold_t4_1_description(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
+        LocalizedStringResource("talents.rogue_gold_t4_1.description", defaultValue: "<keyword id=\"physical\">Physical</keyword> attacks deal <value id=\"quantity_1\">\(value1)</value> extra damage. Stealing <keyword id=\"gold\">Gold</keyword> adds <value id=\"quantity_2\">\(value2)</value> damage to your next <keyword id=\"physical\">Physical</keyword> attack", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var talents_rogue_gold_t4_1_name: LocalizedStringResource {

@@ -5,6 +5,22 @@ import TrinketCore
 @testable import BattleEngine
 
 struct TypedNextAttackPreparationTests {
+    @Test func `Bounty Blade boosts every Physical attack without boosting periodic damage`() {
+        var profile = CombatantTalentCatalog.profile(for: ["rogue_gold_t4_1"])
+        profile.triggers.criticalChanceBonus = -1
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            enemyMaxHealth: 200, heroModifiers: profile, dealOpeningHand: false, appliesFightPacing: false,
+        )
+        let before = battle.health(of: battle.enemy)
+        _ = battle.resolveDamage(.doTTick(amount: 1, target: battle.enemy, keyword: .physical, sourceActorID: battle.hero.id))
+        #expect(before - battle.health(of: battle.enemy) == 1)
+        for _ in 0 ..< 2 {
+            let health = battle.health(of: battle.enemy)
+            _ = battle.performTestAction(.slash)
+            #expect(health - battle.health(of: battle.enemy) == 5)
+        }
+    }
+
     @Test(arguments: [0, 5])
     func `Bounty Blade reserves the strongest theft bonus beyond the creating card repeat`(existingBonus: Int) throws {
         let fixtures = UniqueCollectionTests()
@@ -23,13 +39,13 @@ struct TypedNextAttackPreparationTests {
 
         let events = try fixtures.play(ability, in: &battle)
         let hits = events.filter { $0.kind == .abilityDamage && $0.abilityID == ability.id }
-        #expect(hits.map(\.amount) == [3, 3])
+        #expect(hits.map(\.amount) == [5, 5])
         #expect(battle.gold == 2)
         let bonus = max(3, existingBonus)
         #expect(battle.roster.hero.talents.pending.nextPhysicalDamageBonus?.value == bonus)
 
         let next = try fixtures.play(.slash, in: &battle)
-        #expect(next.first { $0.kind == .abilityDamage && $0.abilityID == Ability.slash.id }?.amount == 3 + bonus)
+        #expect(next.first { $0.kind == .abilityDamage && $0.abilityID == Ability.slash.id }?.amount == 5 + bonus)
         #expect(battle.roster.hero.talents.pending.nextPhysicalDamageBonus == nil)
     }
 

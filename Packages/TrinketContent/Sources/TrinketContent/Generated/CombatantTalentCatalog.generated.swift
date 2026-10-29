@@ -376,8 +376,11 @@ public extension CombatantTalentCatalog {
             "rogue_gold_t4_1": CombatantTalentEffect(
                 name: "Bounty Blade",
                 iconID: "sf:burst.fill",
-                description: "Stealing Gold adds 3 damage to your next Physical attack",
-                triggers: CombatTraitTriggers { $0.goldStealNextPhysicalBonus = 3 }
+                description: "Physical attacks deal 2 extra damage. Stealing Gold adds 3 damage to your next Physical attack",
+                triggers: CombatTraitTriggers {
+                    $0.physicalAttackDamageFlat = 2
+                    $0.goldStealNextPhysicalBonus = 3
+                }
             ),
             "rogue_poison_t4_1": CombatantTalentEffect(
                 name: "Nerve Agent",

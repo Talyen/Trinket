@@ -333,7 +333,7 @@ library_owl_holy_t4_1	Interdict	sf:nosign	Holy Critical Hits prevent enemy Block
 shield_scarab_holy_t4_1	Crownfall	sf:crown.fill	Your first Holy hit each turn deals 50% more damage		firstHolyHitDamageMultiplierPerTurn:1.5
 ranger_poison_t4_1	Toxic Transfusion	sf:eyedropper	Companion Critical Hits double your next Poison attack		toxicTransfusion:true
 risen_skeleton_physical_t4_1	Pressure Point	sf:scope	Physical Critical Hits deal 50% more damage to Poisoned enemies		physicalCriticalDamageVsPoisonedMultiplier:1.5
-rogue_gold_t4_1	Bounty Blade	sf:burst.fill	Stealing Gold adds 3 damage to your next Physical attack		goldStealNextPhysicalBonus:3
+rogue_gold_t4_1	Bounty Blade	sf:burst.fill	Physical attacks deal 2 extra damage. Stealing Gold adds 3 damage to your next Physical attack		physicalAttackDamageFlat:2|goldStealNextPhysicalBonus:3
 golden_retriever_gold_t4_1	War Chest	sf:circle.circle.fill	Gold stolen grants equal Block to your Hero		goldTheftAllyBlock:true
 wizard_mana_t4_1	Frost Circuit	sf:bolt.horizontal.fill	Freeze Critical Hits restore 1 Mana		freezeCriticalRestoreMana:1
 warlock_mana_t4_1	Void Focus	sf:moon.stars.fill	At 0 Mana, Burn damage is increased by 25%		zeroManaBurnMultiplier:1.25

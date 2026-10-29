@@ -4331,8 +4331,8 @@ public enum ContentCopy {
             return (L10n.talents_rogue_gold_t3_2_description, [])
         case "Quick Fingers":
             return (L10n.talents_rogue_gold_t3_2_name, [])
-        case "Stealing Gold adds 3 damage to your next Physical attack":
-            return (L10n.talents_rogue_gold_t4_1_description(3), [3])
+        case "Physical attacks deal 2 extra damage\nStealing Gold adds 3 damage to your next Physical attack", "Physical attacks deal 2 extra damage. Stealing Gold adds 3 damage to your next Physical attack":
+            return (L10n.talents_rogue_gold_t4_1_description(2, 3), [2, 3])
         case "Bounty Blade":
             return (L10n.talents_rogue_gold_t4_1_name, [])
         case "Bleeding enemies take 25% increased Poison damage":
@@ -5373,7 +5373,7 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Bleed lasts ", regex: try? NSRegularExpression(pattern: "^Bleed\\ lasts\\ ([0-9]+)\\ extra\\ turns?\\ on\\ Poisoned\\ enemies$"), count: 1, make: { values in L10n.talents_rogue_bleed_t4_1_description(values[0]) }),
         NumericTemplate(prefix: "Stun Critical Hits steal ", regex: try? NSRegularExpression(pattern: "^Stun\\ Critical\\ Hits\\ steal\\ ([0-9]+)\\ Gold$"), count: 1, make: { values in L10n.talents_rogue_gold_t2_1_description(values[0]) }),
         NumericTemplate(prefix: "Defeating an enemy with a Critical Hit grants ", regex: try? NSRegularExpression(pattern: "^Defeating\\ an\\ enemy\\ with\\ a\\ Critical\\ Hit\\ grants\\ ([0-9]+)\\ Gold$"), count: 1, make: { values in L10n.talents_rogue_gold_t3_1_description(values[0]) }),
-        NumericTemplate(prefix: "Stealing Gold adds ", regex: try? NSRegularExpression(pattern: "^Stealing\\ Gold\\ adds\\ ([0-9]+)\\ damage\\ to\\ your\\ next\\ Physical\\ attack$"), count: 1, make: { values in L10n.talents_rogue_gold_t4_1_description(values[0]) }),
+        NumericTemplate(prefix: "Physical attacks deal ", regex: try? NSRegularExpression(pattern: "^Physical\\ attacks\\ deal\\ ([0-9]+)\\ extra\\ damage\\\nStealing\\ Gold\\ adds\\ ([0-9]+)\\ damage\\ to\\ your\\ next\\ Physical\\ attack$"), count: 2, make: { values in L10n.talents_rogue_gold_t4_1_description(values[0], values[1]) }),
         NumericTemplate(prefix: "Bleeding enemies take ", regex: try? NSRegularExpression(pattern: "^Bleeding\\ enemies\\ take\\ ([0-9]+)%\\ increased\\ Poison\\ damage$"), count: 1, make: { values in L10n.talents_rogue_poison_t1_1_description(values[0]) }),
         NumericTemplate(prefix: "Enemy Poison fades ", regex: try? NSRegularExpression(pattern: "^Enemy\\ Poison\\ fades\\ ([0-9]+)%\\ slower$"), count: 1, make: { values in L10n.talents_rogue_poison_t1_2_description(values[0]) }),
         NumericTemplate(prefix: "Poisoned enemies deal ", regex: try? NSRegularExpression(pattern: "^Poisoned\\ enemies\\ deal\\ ([0-9]+)%\\ less\\ damage$"), count: 1, make: { values in L10n.talents_rogue_poison_t2_2_description(values[0]) }),
