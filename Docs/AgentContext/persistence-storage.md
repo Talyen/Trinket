@@ -43,8 +43,9 @@ Roster hydration maps retired `sap-arrow` selections to `bounty-shot` before
 unknown-ID fallback, preserving the Stun-and-Gold choice in local and cloud saves. Rogue
 Venom Fangs Skill selections migrate to Feint before fallback; other combatants
 retain Venom Fangs. Alchemist Mana Potion Skill selections migrate to Cinderbloom;
-other combatants retain Mana Potion. Local save reads and cloud restoration use
-these mappings.
+other combatants retain Mana Potion. Pixie Heal Skill selections migrate to
+Cinderbloom; other combatants retain Heal. Local save reads and cloud restoration
+use these mappings.
 
 Inventory admission and repair share ownership keys: physical item ID, Trinket
 template for Trinkets, and Unique template for Unique items. Repair retains the

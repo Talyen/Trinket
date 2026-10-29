@@ -58,6 +58,8 @@ enum RosterHydration {
                     "feint"
                 } else if combatantID == "alchemist", tier == .skill, id == "mana-potion" {
                     "cinderbloom"
+                } else if combatantID == "pixie", tier == .skill, id == "heal" {
+                    "cinderbloom"
                 } else if combatantID == "risen_skeleton", tier == .basic, id == "block" {
                     "shield-bash"
                 } else {

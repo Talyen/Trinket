@@ -226,7 +226,7 @@ enum GameContentRosterGenerated {
             maxMana: 7,
             abilityChoices: AbilityChoices(
                 basics: [.pixieDust, .manaBerries, .apple, .stargaze],
-                skills: [.cleanse, .heal, .tithe, .manaPotion],
+                skills: [.cleanse, .cinderbloom, .tithe, .manaPotion],
                 ultimates: [.sunburst, .panaceaPotion, .meteor, .luckPotion]
             )
         ))
