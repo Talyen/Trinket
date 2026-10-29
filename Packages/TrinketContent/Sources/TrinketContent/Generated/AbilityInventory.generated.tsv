@@ -33,7 +33,7 @@ frostbolt	Frostbolt	skill	Deal 4 Freeze damage
 glacial-ward	Glacial Ward	skill	Gain 2 Block\nDeal 2 Freeze damage next time you are hit
 heal	Heal	skill	Restore 6 Health
 mana-potion	Mana Potion	skill	Restore 3 Mana\nDraw 1 card
-mana-shield	Mana Shield	skill	Gain 1 Block\nConvert all Mana into Block
+mana-shield	Mana Shield	skill	Gain 1 Block\nGain Block equal to half your Mana
 poison-dagger	Poison Dagger	skill	Deal 2 Poison damage
 pounce	Pounce	skill	Deal 3 Stun damage, doubled on the first combat turn
 predators-focus	Predator's Focus	skill	Deal 1 Bleed damage\nYour next attack has Leech

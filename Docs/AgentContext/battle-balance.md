@@ -236,8 +236,9 @@ Bounty Shot deals 3 Stun damage and has a 30% chance to steal 1 Gold.
 Its base expected Gold remains 0.3 per play; theft-triggered Talents activate more often.
 
 Wizard's Mana Shield talent grants base Block equal to unspent Mana, capped at
-six per turn, without spending Mana. Ordinary Block gain modifiers still apply;
-the Mana Shield card retains its separate Mana-payment rule.
+six per turn, without spending Mana. The Mana Shield card grants 1 Block plus
+half the actor's Mana as Block, rounded down, without spending Mana. Ordinary
+Block gain modifiers still apply to each grant.
 
 Progression simulations keep each mode's steps, cursor, and loss count together
 in `InterleavingPlayerController`. Selection and advancement share that state.

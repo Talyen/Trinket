@@ -118,7 +118,7 @@ public extension AbilityCatalog {
         id: "mana-shield", name: "Mana Shield", tier: .skill,
         operations: [
             .effect(TargetedEffect(.shield(.block, 1))),
-            .effect(TargetedEffect(.convertManaToBlock)),
+            .effect(TargetedEffect(.shieldFromHalfMana)),
         ],
     )
 

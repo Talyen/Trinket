@@ -251,7 +251,11 @@ struct BattleCardAssessmentTests {
 
     @Test func `mana conversion after Block gain stays uncertain while an unempowered attack remains playable`() throws {
         var state = battle(heroMana: 5)
-        let conversion = deal(.manaShield, in: &state)
+        let ability = Ability(
+            id: "mana-conversion", name: "Mana Conversion", tier: .skill,
+            effects: [.shield(.block, 1), .convertManaToBlock],
+        )
+        let conversion = deal(ability, in: &state)
         let manaUse = try #require(state.assessCard(conversion).resources.first { $0.keyword == .mana })
         #expect(manaUse.amount == nil)
         _ = try state.playCard(cardID: conversion.id)

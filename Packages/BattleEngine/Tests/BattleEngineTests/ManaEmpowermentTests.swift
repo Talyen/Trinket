@@ -233,7 +233,7 @@ struct ManaEmpowermentTests {
         try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 2)
     }
 
-    @Test func `mana shield spends remaining mana after empower`() throws {
+    @Test func `mana shield retains remaining mana after empower`() throws {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             heroAbilities: [.kindling, .manaShield],
             companionAbilities: [.bash],
@@ -252,11 +252,25 @@ struct ManaEmpowermentTests {
         let manaBeforeShield = battle.mana(of: battle.hero)
         let events = try battle.playCard(cardID: shieldCard.id).events
 
-        try #expect(battle.mana(of: battle.hero) == 0)
+        #expect(battle.mana(of: battle.hero) == manaBeforeShield)
         try #expect(events.contains {
-            $0.effectKind == .shieldApplied && $0.abilityName == Ability.manaShield.name && $0.amount == manaBeforeShield
+            $0.effectKind == .shieldApplied && $0.abilityName == Ability.manaShield.name && $0.amount == manaBeforeShield / 2
         })
-        try #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == manaBeforeShield + 1)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == manaBeforeShield / 2 + 1)
+    }
+
+    @Test(arguments: [0, 1, 3, 4, 5])
+    func `mana shield rounds down and does not spend mana`(mana: Int) throws {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(
+            heroAbilities: [.manaShield], heroMaxMana: 5, heroMana: mana,
+            heroModifiers: .withTriggers { $0.spendManaBlockFlat = 2 }, appliesFightPacing: false,
+        )
+        let card = try #require(battle.hand.cards.first { $0.ability.id == Ability.manaShield.id })
+        #expect(!battle.assessCard(card).resources.contains { $0.keyword == .mana })
+        let events = try battle.playCard(cardID: card.id).events
+        #expect(battle.mana(of: battle.hero) == mana)
+        #expect(BattleTestFixtures.shieldPoints(for: battle.hero, in: battle) == 1 + mana / 2)
+        #expect(!events.contains { $0.abilityName == "Aetherward" })
     }
 }
 
