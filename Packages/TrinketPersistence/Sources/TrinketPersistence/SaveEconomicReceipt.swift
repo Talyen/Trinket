@@ -22,6 +22,24 @@ struct SaveEconomicReceipt: Codable, Equatable, Sendable {
             item = StoredInventoryItem(offer.item)
             price = offer.price
         }
+
+        func matches(_ other: Self) -> Bool {
+            guard offerID == other.offerID, price == other.price else {
+                return false
+            }
+            if item == other.item {
+                return true
+            }
+            guard item.affixes.contains(where: { $0.id == "cascading" })
+                || other.item.affixes.contains(where: { $0.id == "cascading" })
+            else {
+                return false
+            }
+            guard let first = item.resolved(), let second = other.item.resolved() else {
+                return false
+            }
+            return first == second
+        }
     }
 
     struct Collection: Codable, Equatable, Sendable {
@@ -116,7 +134,7 @@ struct SaveEconomicReceipt: Codable, Equatable, Sendable {
             do {
                 guard let stock = try ShopStockPersistence.stock(encounter: current, save: save) else { return false }
                 return stock.purchasedOfferIDs.contains(offer.offerID) && stock.offers.contains {
-                    $0.id == offer.offerID && $0.price == offer.price && StoredInventoryItem($0.item) == offer.item
+                    offer.matches(ShopPurchase($0))
                 }
             } catch {
                 return false
@@ -129,7 +147,7 @@ struct SaveEconomicReceipt: Codable, Equatable, Sendable {
         switch (kind, other.kind) {
         case (.reward, .reward): effects.claim != nil && effects.claim == other.effects.claim
         case let (.shop(first, offer), .shop(second, peer)):
-            first.location == second.location && first.worldSeed == second.worldSeed && offer == peer
+            first.location == second.location && first.worldSeed == second.worldSeed && offer.matches(peer)
         case let (.upgrade(first, tier), .upgrade(second, peer)): first == second && tier == peer
         default: false
         }

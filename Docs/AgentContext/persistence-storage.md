@@ -45,7 +45,7 @@ Venom Fangs Skill selections migrate to Feint before fallback; other combatants
 retain Venom Fangs. Alchemist Mana Potion Skill selections migrate to Cinderbloom;
 other combatants retain Mana Potion. Pixie Heal Skill selections migrate to
 Cinderbloom; other combatants retain Heal. Local save reads and cloud restoration
-use these mappings.
+use these mappings. Library Owl Block Basic selections migrate to Ray of Frost.
 
 Inventory admission and repair share ownership keys: physical item ID, Trinket
 template for Trinkets, and Unique template for Unique items. Repair retains the
@@ -333,9 +333,10 @@ Replay ownership is explicit:
 | Historical snapshot/economy/receipt records | Their existing version-specific reconciliation, without inventing missing action boundaries. |
 
 Mystery records its choice and encounter completion as one action under the same
-claim. Shop actions retain the pinned item and price. Distinct claims in one
-transaction stay separate. Duplicate salvage and salvage after a shared purchase
-retain retirement identity even after the original Inventory row disappears.
+claim. Shop actions retain the pinned item and price. Receipt comparisons remove
+retired Cascading affixes before matching old and migrated pinned items. Distinct
+claims in one transaction stay separate. Duplicate salvage and salvage after a
+shared purchase retain retirement identity even after the original Inventory row disappears.
 
 #### Homestead production identity
 

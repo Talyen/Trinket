@@ -5,6 +5,37 @@ import TrinketCore
 @testable import TrinketPersistence
 
 struct CloudEconomicActionTests {
+    @Test func `retired affix does not make a historical Shop purchase charge twice`() throws {
+        var save = PlayerSave.testSeed
+        save.inventory.items = []
+        let encounter = EncounterIdentity(location: .journey(stageID: ShopOfferGenerator.starterShopStageID), save: save)
+        let base = try #require(GameContent.itemBaseType(matching: "leather_armor"))
+        let item = InventoryItem(
+            id: "old-offer", templateID: "old-armor", baseType: base, rarity: .basic, displayName: "Old Armor",
+            affixes: [ItemAffix(id: "cascading", title: "Cascading", description: "Old power", keywords: [])],
+            affixPowers: [ItemAffixPower(description: "Old power", modifiers: [])],
+        )
+        let oldOffer = ShopOffer(id: "old-offer", item: item, price: 20)
+        let payload = try ShopStockPersistence.encode(
+            ShopStock(offers: [oldOffer], purchasedOfferIDs: [oldOffer.id]), encounter: encounter,
+        )
+        ShopStockPersistence.setPayload(payload, encounter: encounter, save: &save)
+        let oldReceipt = SaveEconomicReceipt(kind: .shop(encounter, .init(oldOffer)), effects: .committed(gold: -20))
+        let receipt = try JSONDecoder().decode(SaveEconomicReceipt.self, from: JSONEncoder().encode(oldReceipt))
+        let loadedStock = try ShopStockPersistence.stock(encounter: encounter, save: save)
+        let stock = try #require(loadedStock)
+        let migratedOffer = try #require(stock.offers.first)
+        #expect(migratedOffer.item.affixes.isEmpty)
+        let migratedReceipt = SaveEconomicReceipt(kind: .shop(encounter, .init(migratedOffer)), effects: .committed(gold: -20))
+        #expect(receipt.isDuplicate(in: save, since: save))
+        #expect(receipt.sharesClaim(with: migratedReceipt))
+        #expect(migratedReceipt.sharesClaim(with: receipt))
+
+        let differentPrice = ShopOffer(id: oldOffer.id, item: migratedOffer.item, price: 21)
+        let differentReceipt = SaveEconomicReceipt(kind: .shop(encounter, .init(differentPrice)), effects: .committed(gold: -21))
+        #expect(!receipt.sharesClaim(with: differentReceipt))
+    }
+
     @Test func `economic replay preserves fractional rewards and spending after another branch pays the carry`() throws {
         var base = PlayerSave.fresh
         base.roster.gold = 100
