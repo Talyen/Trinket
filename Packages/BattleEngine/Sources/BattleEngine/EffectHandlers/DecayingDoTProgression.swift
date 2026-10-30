@@ -110,6 +110,7 @@ enum DecayingDoTDetonation {
                     sourceActorID: sourceActorID,
                     provenance: provenance,
                     operation: .resolvedPeriodic,
+                    isDetonation: true,
                     in: &context,
                 )
             }

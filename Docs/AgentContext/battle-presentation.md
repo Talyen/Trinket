@@ -205,6 +205,11 @@ and aggregation, so costs and triggered benefits remain secondary and cannot mer
 into the primary result. Multi-recipient results of the chosen operation share that
 emphasis. A direct Health cost stays in the setback region.
 
+Consumed-DoT detonations share a same-type direct hit's central total only within
+the same resolved action and recipient. Ordinary ticks, elemental reaction payoffs,
+and separate actions remain independent. Detonation totals do not merge into later
+bursts; the engine retains the original receipts for damage and sound.
+
 Elemental reaction names share one announcement with their actual typed payoff,
 separate from the triggering hit and other reaction types. Carry reaction identity
 from resolution; do not infer it from a keyword or displayed name. If no payoff is
