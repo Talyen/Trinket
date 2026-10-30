@@ -55,8 +55,33 @@ struct BalancedFeedbackMotionTests {
             )
         }
         #expect(lane.activeItems.count == 40)
-        #expect(lane.activeItems.allSatisfy { $0.availableAt.timeIntervalSince(start) <= 0.180001 })
+        #expect(lane.activeItems.allSatisfy { $0.availableAt.timeIntervalSince(start) <= 0.640001 })
         #expect(lane.activeItems.allSatisfy { abs($0.expiresAt.timeIntervalSince($0.availableAt) - 1.6) < 0.000001 })
+    }
+
+    @Test @MainActor func `repeated reactions keep order without delaying another recipient`() throws {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        let start = Date.now.addingTimeInterval(10)
+        for id in 1 ... 4 {
+            lane.record(
+                [BattleSessionTestSupport.makeActionEvent(id: id, kind: .reaction(.frostfire), amount: 0, keyword: .burn)],
+                at: start,
+            )
+        }
+        let first = try #require(lane.activeItems.first)
+        lane.record([
+            BattleSessionTestSupport.makeActionEvent(
+                id: 5, kind: .reaction(.venomflash), amount: 0, keyword: .burn, targetID: "hero",
+            ),
+        ], at: start.addingTimeInterval(0.14))
+        let enemy = lane.activeItems.filter { $0.targetID == first.targetID }
+        #expect(enemy.map(\.id) == [1, 2, 3, 4])
+        for (item, delay) in zip(enemy, [0.0, 0.32, 0.64, 0.64]) {
+            #expect(abs(item.availableAt.timeIntervalSince(start) - delay) < 0.000001)
+        }
+        #expect(lane.activeItems.first == first)
+        #expect(lane.activeItems.last?.availableAt == start.addingTimeInterval(0.14))
     }
 
     @Test @MainActor func `dense close impacts receive distinct routes without moving the first`() throws {
@@ -91,7 +116,7 @@ struct BalancedFeedbackMotionTests {
         #expect(numbers.allSatisfy { $0.availableAt == start })
     }
 
-    @Test @MainActor func `reaction payoffs and health costs appear at impact`() {
+    @Test @MainActor func `reaction payoffs have separate bounded beats while health costs appear at impact`() throws {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
         let start = Date.now.addingTimeInterval(10)
@@ -112,8 +137,9 @@ struct BalancedFeedbackMotionTests {
                 false
             }
         }
-        #expect(payoffs.count == 2)
-        #expect(payoffs.allSatisfy { $0.availableAt == start })
+        try #require(payoffs.count == 2)
+        #expect(payoffs[0].availableAt == start)
+        #expect(abs(payoffs[1].availableAt.timeIntervalSince(start) - 0.32) < 0.000001)
 
         let first = BattleSessionTestSupport.makeActionEvent(
             id: 5, kind: .abilityDamage, amount: 4, keyword: .health, targetID: "hero", authoredCardOperation: 0,

@@ -143,9 +143,10 @@ feedback. Backgrounding cancels playback. The existing
 Balanced retains native font/icon assets and portrait-capped 52-point travel.
 Central motion peaks at 1.85× after 85 ms, settles to 1.55× by 170 ms, starts
 rising at 240 ms, and fades over its final 280 ms of a 1.05-second lifetime.
-Impact numbers, reaction payoffs, and direct Health costs launch at contact; other
-feedback prefers an 80 ms stagger and launches within 180 ms of arrival. Raster paths seek 6 points of clearance. New
-numeric flights compare measured footprints before choosing a fixed center or
+Impact numbers and direct Health costs launch at contact; other ordinary feedback
+prefers an 80 ms stagger and launches within 180 ms of arrival. Reaction pairs
+follow primary results in 320 ms beats, with a 640 ms maximum wait. Raster paths
+seek 6 points of clearance. New numeric flights compare measured footprints before choosing a fixed center or
 diagonal path, with extra vertical separation on wider paths. Complete masking
 is strongly penalized in either direction: a small arrival cannot hide inside an
 older pop, and a new pop cannot completely cover an older result. Damage and

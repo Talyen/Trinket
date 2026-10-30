@@ -19,10 +19,10 @@ enum CombatFeedbackPresenter {
 
     private static func priority(label: CombatFeedbackChipLabel, feedbackClass: CombatFeedbackClass) -> Int {
         if case .reaction = label {
-            return -1
+            return 5
         }
         if case .reactionPayoff = label {
-            return -1
+            return 5
         }
         return displayPriority(for: feedbackClass)
     }
@@ -85,8 +85,8 @@ enum CombatFeedbackPresenter {
 
         return groupOrder.flatMap { key -> [CombatFeedbackItem] in
             let sorted = (grouped[key] ?? []).sorted { lhs, rhs in
-                let lhsPriority = priority(label: lhs.label, feedbackClass: lhs.feedbackClass)
-                let rhsPriority = priority(label: rhs.label, feedbackClass: rhs.feedbackClass)
+                let lhsPriority = lhs.source.isPrimary ? 0 : priority(label: lhs.label, feedbackClass: lhs.feedbackClass)
+                let rhsPriority = rhs.source.isPrimary ? 0 : priority(label: rhs.label, feedbackClass: rhs.feedbackClass)
                 if lhsPriority == rhsPriority {
                     return lhs.source.originalOrder < rhs.source.originalOrder
                 }
