@@ -227,7 +227,9 @@ renderer and layout use the same region-specific peak bounds.
 New arrivals never move or evict older flights. Impact numbers and direct Health
 costs launch at the impact cue; other ordinary feedback prefers an 80 ms stagger with a hard 180 ms arrival-to-launch limit.
 Reaction announcements reserve space after primary results and launch in resolution
-order with a 320 ms gap, bounded to 640 ms from arrival. New paths compare measured
+order with a 320 ms gap. An announcement accompanying its own impact waits for
+the numbers to finish; that queue is bounded to 1.37 seconds from arrival.
+Other reaction announcements are bounded to 640 ms. New paths compare measured
 projected footprints throughout their lifetimes, strongly penalizing complete
 covering in either direction. Diagonal paths and fixed rows preserve visible space when the
 queue deadline forces concurrent launches. The host clamps the path to the

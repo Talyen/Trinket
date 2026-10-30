@@ -116,6 +116,30 @@ struct BalancedFeedbackMotionTests {
         #expect(numbers.allSatisfy { $0.availableAt == start })
     }
 
+    @Test @MainActor func `reaction names wait for their own impact and keep their order`() throws {
+        let lane = BattleFeedbackLane()
+        defer { lane.release() }
+        let start = Date.now.addingTimeInterval(10)
+        for index in 0 ..< 2 {
+            let date = start.addingTimeInterval(Double(index) * 0.14)
+            lane.record([
+                BattleSessionTestSupport.makeActionEvent(
+                    id: index * 2 + 1, kind: .reaction(.frostfire), amount: 0, keyword: .burn, actionID: index + 1,
+                ),
+                BattleSessionTestSupport.makeActionEvent(
+                    id: index * 2 + 2, kind: .abilityDamage, amount: 12, keyword: .burn, actionID: index + 1,
+                ),
+            ], at: date)
+        }
+        let impacts = lane.activeItems.filter { $0.region == .impact }
+        let names = lane.activeItems.filter { $0.region == .announcement }
+        try #require(impacts.count == 1 && names.count == 2)
+        #expect(impacts[0].availableAt == start)
+        #expect(abs(names[0].availableAt.timeIntervalSince(start) - 1.05) < 0.000001)
+        #expect(abs(names[1].availableAt.timeIntervalSince(start) - 1.37) < 0.000001)
+        #expect(names.allSatisfy { abs($0.expiresAt.timeIntervalSince($0.availableAt) - 1.6) < 0.000001 })
+    }
+
     @Test @MainActor func `reaction payoffs have separate bounded beats while health costs appear at impact`() throws {
         let lane = BattleFeedbackLane()
         defer { lane.release() }
