@@ -12,6 +12,7 @@ struct AuthoredAffixRangeTests {
             ("shattering", \.freezeDealPhysicalFlat, 2 ... 3, 4 ... 5),
             ("resolute", \.blockBrokenHealFlat, 1 ... 1, 1 ... 2),
             ("reactive", \.blockBrokenStunFlat, 1 ... 1, 1 ... 2),
+            ("prismatic", \.alternatingAttackDamageBonus, 1 ... 1, 2 ... 3),
         ]
         for (id, keyPath, basic, astral) in cases {
             let definition = try #require(GameContent.itemAffixDefinition(matching: id))

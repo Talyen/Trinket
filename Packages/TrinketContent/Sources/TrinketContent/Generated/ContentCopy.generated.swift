@@ -1183,10 +1183,10 @@ public enum ContentCopy {
             return (L10n.affixes_plague_doctors_mask_astral_description(50), [50])
         case "Plagueward":
             return (L10n.affixes_plague_doctors_mask_title, [])
-        case "Attacks gain 4 damage when their type differs from your previous attack":
-            return (L10n.affixes_prismatic_astral_description(4), [4])
-        case "Attacks gain 2 damage when their type differs from your previous attack":
-            return (L10n.affixes_prismatic_basic_description(2), [2])
+        case "Attacks gain 3 damage when their type differs from your previous attack":
+            return (L10n.affixes_prismatic_astral_description(3), [3])
+        case "Attacks gain 1 damage when their type differs from your previous attack":
+            return (L10n.affixes_prismatic_basic_description(1), [1])
         case "Prismatic":
             return (L10n.affixes_prismatic_title, [])
         case "When your Block breaks, deal 2 Stun damage to the attacker":

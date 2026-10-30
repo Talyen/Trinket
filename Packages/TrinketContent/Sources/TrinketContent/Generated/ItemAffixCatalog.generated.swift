@@ -1240,8 +1240,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.physical, .holy, .poison, .burn, .freeze, .stun, .bleed],
             weight: 8,
-            basic: ItemAffixPower(description: "Attacks gain 2 damage when their type differs from your previous attack", modifiers: [], triggers: CombatTraitTriggers { $0.alternatingAttackDamageBonus = 2 }, triggerRollRanges: [.alternatingAttackDamageBonus: 1 ... 2]),
-            astral: ItemAffixPower(description: "Attacks gain 4 damage when their type differs from your previous attack", modifiers: [], triggers: CombatTraitTriggers { $0.alternatingAttackDamageBonus = 4 }, triggerRollRanges: [.alternatingAttackDamageBonus: 3 ... 4])
+            basic: ItemAffixPower(description: "Attacks gain 1 damage when their type differs from your previous attack", modifiers: [], triggers: CombatTraitTriggers { $0.alternatingAttackDamageBonus = 1 }, triggerRollRanges: [.alternatingAttackDamageBonus: 1 ... 1]),
+            astral: ItemAffixPower(description: "Attacks gain 3 damage when their type differs from your previous attack", modifiers: [], triggers: CombatTraitTriggers { $0.alternatingAttackDamageBonus = 3 }, triggerRollRanges: [.alternatingAttackDamageBonus: 2 ... 3])
         )
         ]
     }
