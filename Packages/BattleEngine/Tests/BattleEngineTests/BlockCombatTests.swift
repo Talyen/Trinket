@@ -43,12 +43,12 @@ struct BlockCombatTests {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(
             enemyAbilities: [attack],
             heroModifiers: .withTriggers { $0.onDodgeDrawAndPlayCardChainOnCrit = nestedBlock > 0 },
-            companionModifiers: CombatantTalentCatalog.profile(for: ["golden_retriever_block_t2_2"]),
+            companionModifiers: .withTriggers { $0.negateFirstEnemyAttack = true },
             dealOpeningHand: false, appliesFightPacing: false,
         )
         DefensePoolEngine.set(startingBlock, on: battle.enemy, in: &battle)
         if nestedBlock > 0 {
-            // A supported automatic support card grants Block during Warning Bark's Dodge reactions.
+            // A supported automatic support card grants Block during the interception Dodge reactions.
             battle.heroDeck = CombatDeck(abilities: [Ability(
                 id: "interception-block", name: "Interception Block", tier: .basic,
                 targetedEffects: [TargetedEffect(.shield(.block, nestedBlock), target: .enemy)],
@@ -61,7 +61,7 @@ struct BlockCombatTests {
 
         #expect(DefensePoolEngine.blockPoints(in: battle.activeEffects(of: battle.enemy)) == expectedBlock)
         #expect(battle.health(of: battle.hero) == battle.hero.maxHealth)
-        #expect(events.contains { $0.abilityName == "Warning Bark" && $0.effectKind == .dodgeApplied })
+        #expect(events.contains { $0.effectKind == .dodgeApplied && $0.targetID == battle.hero.id })
         #expect(!events.contains { $0.effectKind == .blockSpent })
         if nestedBlock > 0 {
             #expect(events.contains { $0.abilityID == "interception-block" })
