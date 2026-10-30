@@ -1231,8 +1231,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.physical, .holy, .poison, .burn, .freeze, .stun, .bleed],
             weight: 8,
-            basic: ItemAffixPower(description: "Playing an attack adds 2 damage to your ally's next attack", modifiers: [], triggers: CombatTraitTriggers { $0.attackPreparesAllyDamage = 2 }, triggerRollRanges: [.attackPreparesAllyDamage: 1 ... 2]),
-            astral: ItemAffixPower(description: "Playing an attack adds 4 damage to your ally's next attack", modifiers: [], triggers: CombatTraitTriggers { $0.attackPreparesAllyDamage = 4 }, triggerRollRanges: [.attackPreparesAllyDamage: 3 ... 4])
+            basic: ItemAffixPower(description: "Playing an attack adds 1 damage to your ally's next attack", modifiers: [], triggers: CombatTraitTriggers { $0.attackPreparesAllyDamage = 1 }, triggerRollRanges: [.attackPreparesAllyDamage: 1 ... 1]),
+            astral: ItemAffixPower(description: "Playing an attack adds 3 damage to your ally's next attack", modifiers: [], triggers: CombatTraitTriggers { $0.attackPreparesAllyDamage = 3 }, triggerRollRanges: [.attackPreparesAllyDamage: 2 ... 3])
         ),
         ItemAffixCatalog.affix(
             id: "prismatic",

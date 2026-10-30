@@ -1201,10 +1201,10 @@ public enum ContentCopy {
             return (L10n.affixes_rekindled_basic_description(3), [3])
         case "Rekindled":
             return (L10n.affixes_rekindled_title, [])
-        case "Playing an attack adds 4 damage to your ally's next attack":
-            return (L10n.affixes_relay_astral_description(4), [4])
-        case "Playing an attack adds 2 damage to your ally's next attack":
-            return (L10n.affixes_relay_basic_description(2), [2])
+        case "Playing an attack adds 3 damage to your ally's next attack":
+            return (L10n.affixes_relay_astral_description(3), [3])
+        case "Playing an attack adds 1 damage to your ally's next attack":
+            return (L10n.affixes_relay_basic_description(1), [1])
         case "Relay":
             return (L10n.affixes_relay_title, [])
         case "Restore 2 Health when your Block breaks":
