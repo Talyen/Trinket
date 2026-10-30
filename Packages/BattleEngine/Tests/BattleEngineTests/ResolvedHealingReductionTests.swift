@@ -5,7 +5,7 @@ import TrinketCore
 @testable import BattleEngine
 
 struct ResolvedHealingReductionTests {
-    @Test(arguments: [(0.65, 65, 9), (1.25, 100, 14), (Double.greatestFiniteMagnitude, 100, 14)])
+    @Test(arguments: [(0.65, 65, 6), (1.25, 100, 9), (Double.greatestFiniteMagnitude, 100, 9)])
     func `Companion Symbiosis shares actual Leech without repeating healer bonuses`(
         savedShare: Double, displayedPercent: Int, restoredShare: Int,
     ) throws {
@@ -33,6 +33,7 @@ struct ResolvedHealingReductionTests {
             companionModifiers: profile, appliesFightPacing: false,
         )
         _ = battle.performTestAction(.serratedEdge, from: .enemy, to: .hero)
+        #expect(battle.activeEffects(of: battle.hero).contains { $0.effect == .healingReductionPercent(0.5, 3) })
         battle.roster.hero.currentHealth = 10
         battle.roster.companion.currentHealth = 10
 
@@ -67,6 +68,8 @@ struct ResolvedHealingReductionTests {
                 ability: .serratedEdge, actor: battle.enemy, abilityTarget: target, context: &battle,
             )
         }
+        #expect(battle.activeEffects(of: battle.companion).contains { $0.effect == .healingReductionPercent(0.5, 3) })
+        #expect(battle.activeEffects(of: battle.hero).contains { $0.effect == .healingReductionPercent(0.5, 3) } == heroSapped)
         battle.roster.hero.currentHealth = 10
         battle.roster.companion.currentHealth = 10
 
@@ -74,8 +77,8 @@ struct ResolvedHealingReductionTests {
             16, sourceActorID: context.hero.id, target: context.enemy, abilityHasLeech: true, in: &context,
         ) }
 
-        let expectedHeroRestoration = heroSapped ? 14 : 18
-        let expectedCompanionShare = heroSapped ? 5 : 7
+        let expectedHeroRestoration = heroSapped ? 9 : 18
+        let expectedCompanionShare = heroSapped ? 3 : 5
         #expect(result.value.healthRestored == expectedHeroRestoration)
         #expect(battle.health(of: battle.hero) == 10 + expectedHeroRestoration)
         #expect(battle.health(of: battle.companion) == 10 + expectedCompanionShare)
