@@ -50,7 +50,9 @@ struct BattleFeedbackLaneTests {
             makeEvent(id: 3, kind: .abilityDamage, amount: 3, keyword: .burn),
         ])
         #expect(lane.hitReactionsByTargetID["enemy"]?.kind == .damage)
-        #expect(lane.activeItems.first?.label == .amount(-5))
+        #expect(lane.activeItems.count == 2)
+        #expect(lane.activeItems.contains { $0.sourceEventIDs == [2] && $0.label == .amount(-2) })
+        #expect(lane.activeItems.contains { $0.sourceEventIDs == [3] && $0.label == .amount(-3) })
     }
 
     @Test @MainActor func `periodic critical emphasis does not upgrade an ordinary direct hit`() {
@@ -63,7 +65,8 @@ struct BattleFeedbackLaneTests {
             targetID: "enemy", keyword: .burn, impact: .landed(blocked: 0, healthLost: 3), isCritical: false,
         )])
         #expect(lane.hitReactionsByTargetID["enemy"]?.kind == .damage)
-        #expect(lane.activeItems.first?.isCritical == true)
+        #expect(lane.activeItems.contains { $0.sourceEventIDs == [1] && $0.isCritical })
+        #expect(lane.activeItems.contains { $0.sourceEventIDs == [2] && !$0.isCritical })
     }
 
     /// Test-domain default: events share action 1 (one feedback group)
