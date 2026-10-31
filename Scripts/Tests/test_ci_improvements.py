@@ -86,8 +86,10 @@ class CIImprovementsTests(unittest.TestCase):
         os.chdir(ROOT)
         try:
             with patch.object(DIAGNOSTIC.subprocess, 'check_output', return_value='SmokeShopTests'):
-                self.assertEqual(DIAGNOSTIC.selections('smoke', 'SmokeShopTests'),
-                                 ['SmokeShopTests/testMerchantPurchasePaysAndReturnsToPlay'])
+                self.assertEqual(DIAGNOSTIC.selections('smoke', 'SmokeShopTests'), [
+                    'SmokeShopTests/testMerchantPurchasePaysAndReturnsToPlay',
+                    'SmokeShopTests/testTerminalPurchaseFailureOffersRetryWithoutSpendingGold',
+                ])
                 for value in ('SmokeShopTests/testMissing', 'SmokeShopTests; echo unsafe', '',
                               'FullGamePurchaseSmokeTests'):
                     with self.assertRaises(ValueError):
