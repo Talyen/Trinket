@@ -74,24 +74,21 @@ private struct TrinketWalletGridLayout: Layout {
         let availableWidth = proposal.width.flatMap { $0.isFinite ? max(0, $0) : nil }
         // Flexible wallets wrap before compressing; fixed wallets keep their column count as balances grow.
         var columns = max(1, min(columnCount, itemCount))
-        while wrapsToFit, columns > 1, let availableWidth {
-            var widths = Array(repeating: CGFloat.zero, count: columns)
+        var idealColumnWidths: [CGFloat]
+        while true {
+            idealColumnWidths = Array(repeating: CGFloat.zero, count: columns)
             for index in 0 ..< itemCount {
-                widths[index % columns] = max(widths[index % columns], idealSizes[index].width.rounded(.up))
+                let column = index % columns
+                idealColumnWidths[column] = max(idealColumnWidths[column], idealSizes[index].width.rounded(.up))
             }
-            if widths.reduce(0, +) + horizontalSpacing * CGFloat(columns - 1) <= availableWidth {
+            guard wrapsToFit, columns > 1, let availableWidth else { break }
+            if idealColumnWidths.reduce(0, +) + horizontalSpacing * CGFloat(columns - 1) <= availableWidth {
                 break
             }
             columns -= 1
         }
         let rows = (itemCount + columns - 1) / columns
         let columnGaps = horizontalSpacing * CGFloat(columns - 1)
-
-        var idealColumnWidths = Array(repeating: CGFloat(0), count: columns)
-        for index in 0 ..< itemCount {
-            let column = index % columns
-            idealColumnWidths[column] = max(idealColumnWidths[column], idealSizes[index].width.rounded(.up))
-        }
 
         let idealWidth = idealColumnWidths.reduce(0, +) + columnGaps
         let columnWidths: [CGFloat] = if let availableWidth, !wrapsToFit || availableWidth < idealWidth {
