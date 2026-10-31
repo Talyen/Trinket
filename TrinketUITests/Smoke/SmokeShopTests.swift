@@ -2,7 +2,6 @@ import TrinketFeatureSupport
 import XCTest
 
 final class SmokeShopTests: TrinketUITestCase {
-    #if DEBUG
     func testTerminalPurchaseFailureOffersRetryWithoutSpendingGold() throws {
         launchApp(arguments: TestLaunchArg.allForScreen("shop")
             + ["-development-unlocked", "-terminal-shop-save-failure", "-starting-gold", "200"])
@@ -25,7 +24,6 @@ final class SmokeShopTests: TrinketUITestCase {
         assertDoesNotExist(AccessibilityID.Shop.detailBuyButton)
         waitUntil("A successful retry must debit its price") { (try? self.integer(in: gold)) == goldBefore - price }
     }
-    #endif
 
     func testMerchantPurchasePaysAndReturnsToPlay() throws {
         launchApp(arguments: TestLaunchArg.allForScreen("shop")

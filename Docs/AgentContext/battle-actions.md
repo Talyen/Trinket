@@ -117,7 +117,8 @@ resolved action identity so nested actions do not combine their totals. Packets
 precede their summary. `BattleLogProjection` consumes append-only history once,
 retaining unmatched packets across updates and releasing them at each summary;
 complete replay uses that same projection. Truncated history resets the projection;
-same-length replacement requires `rebuildFromScratch`. Named damage without an
+same-length replacement requires a fresh projection (or `releaseLogProjection`
+before `syncLog` on a battle). Named damage without an
 ability ID, including unique repeats and boss pulses, logs immediately rather than
 waiting for an action summary. Leech logs actual restored Health for its recipient;
 unspent healing overflow does not inflate that restoration.

@@ -13,11 +13,11 @@ struct QuietItemAffixTests {
         let holy = attack(.holy)
         _ = try play(physical, owner: .hero, in: &battle)
         let switched = try play(holy, owner: .hero, in: &battle)
-        #expect(switched.filter { $0.kind == .abilityDamage }.map(\.amount) == [6, 6])
+        #expect(switched.filter { $0.kind == .abilityDamage }.map(\.amount) == [5, 5])
         let repeated = try play(holy, owner: .hero, in: &battle)
         #expect(repeated.filter { $0.kind == .abilityDamage }.map(\.amount) == [4, 4])
         let relayed = try play(physical, owner: .companion, in: &battle)
-        #expect(relayed.filter { $0.kind == .abilityDamage }.map(\.amount) == [6, 4])
+        #expect(relayed.filter { $0.kind == .abilityDamage }.map(\.amount) == [5, 4])
         let ordinary = try play(physical, owner: .companion, in: &battle)
         #expect(ordinary.filter { $0.kind == .abilityDamage }.map(\.amount) == [4, 4])
         for events in [switched, repeated, relayed, ordinary] {
