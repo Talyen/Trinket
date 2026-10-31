@@ -105,7 +105,6 @@ struct CardActivationRequest: Equatable, Identifiable {
     let scale: CGFloat
     let perspective: CGFloat
     let keywords: [Keyword]
-    let particles: [CardActivationParticle]
 
     func completionDate(scheduledCast: BattleRecordedCardCast?) -> Date {
         guard let scheduledCast else {
@@ -141,7 +140,6 @@ struct CardActivationRequest: Equatable, Identifiable {
             result.append(keyword)
         }
         self.keywords = uniqueKeywords.isEmpty ? [.physical] : uniqueKeywords
-        particles = CardActivationParticle.castParticles
     }
 
     static func restingRequest(
@@ -221,7 +219,7 @@ struct CardCastEffectsLayer: View {
             progress: progress,
             keywords: request.keywords,
             size: request.size,
-            particles: request.particles,
+            particles: CardActivationParticle.castParticles,
             configuration: configuration,
         ) {
             BattleAbilityCardFace(artworkName: request.artworkName)
