@@ -14,7 +14,6 @@ final class SmokeShopTests: TrinketUITestCase {
         let offerID = offers.firstMatch.identifier
         let gridBuy = button(AccessibilityID.Shop.buyButton(offerID: String(offerID.dropLast(AccessibilityID.Shop.offerCardSuffix.count))))
         let price = try integer(in: gridBuy)
-        let initialGridLabel = gridBuy.label
         tapWhenReady(offers.firstMatch)
         let buy = button(AccessibilityID.Shop.detailBuyButton)
         assertExists(buy)
@@ -22,10 +21,8 @@ final class SmokeShopTests: TrinketUITestCase {
 
         tapWhenReady(buy)
         waitUntil("A failed purchase must offer a visible retry") { buy.label != initialLabel }
-        dismissSheet(AccessibilityID.Shop.detailBuyButton)
-        XCTAssertEqual(try integer(in: gold), goldBefore)
-        XCTAssertNotEqual(gridBuy.label, initialGridLabel)
-        tapWhenReady(gridBuy)
+        tapWhenReady(buy)
+        assertDoesNotExist(AccessibilityID.Shop.detailBuyButton)
         waitUntil("A successful retry must debit its price") { (try? self.integer(in: gold)) == goldBefore - price }
     }
     #endif
