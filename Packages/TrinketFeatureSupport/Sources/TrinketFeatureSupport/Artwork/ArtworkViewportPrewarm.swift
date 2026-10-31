@@ -16,26 +16,17 @@ public enum ArtworkViewportPrewarm {
         prefetchRows: Int = defaultPrefetchRows,
         estimatedColumns: Int = collectionEstimatedColumns,
     ) async where Item.ID: Hashable {
-        await prewarm(hasVisibleIDs: !visibleIDs.isEmpty) {
-            let latestIDs: Set<Item.ID> = currentVisibleIDs?() ?? visibleIDs
-            return windowNames(
-                orderedItems: orderedItems,
-                visibleIDs: latestIDs,
-                thumbnailName: thumbnailName,
-                prefetchRows: prefetchRows,
-                estimatedColumns: estimatedColumns,
-            )
-        }
-    }
-
-    /// Debounce, re-read the visible IDs, then prepare.
-    @MainActor
-    private static func prewarm(hasVisibleIDs: Bool, names: () -> [String]) async {
-        if hasVisibleIDs {
+        if !visibleIDs.isEmpty {
             try? await Task.sleep(for: viewportDebounceInterval)
         }
         guard !Task.isCancelled else { return }
-        let resolved = names()
+        let resolved = windowNames(
+            orderedItems: orderedItems,
+            visibleIDs: currentVisibleIDs?() ?? visibleIDs,
+            thumbnailName: thumbnailName,
+            prefetchRows: prefetchRows,
+            estimatedColumns: estimatedColumns,
+        )
         guard !resolved.isEmpty else { return }
         await PreparedArtworkCache.shared.prepare(names: resolved)
     }

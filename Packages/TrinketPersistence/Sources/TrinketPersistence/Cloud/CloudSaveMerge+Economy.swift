@@ -48,8 +48,8 @@ extension CloudSaveMerge {
         }
         merged.homestead.lastProductionAt = max(incoming.homestead.lastProductionAt, existing.homestead.lastProductionAt)
         mergePendingProduction(
-            into: &merged, incoming: incoming, existing: existing,
-            base: base, overlappingProduction: overlappingProduction, collectedResources: collections?.collected ?? [],
+            into: &merged, branches: branches, overlappingProduction: overlappingProduction,
+            collectedResources: collections?.collected ?? [],
         )
     }
 
@@ -142,9 +142,12 @@ extension CloudSaveMerge {
     }
 
     private static func mergePendingProduction(
-        into merged: inout PlayerSave, incoming: PlayerSave, existing: PlayerSave,
-        base: PlayerSave?, overlappingProduction: Bool, collectedResources: Set<HomesteadResource>,
+        into merged: inout PlayerSave, branches: Branches,
+        overlappingProduction: Bool, collectedResources: Set<HomesteadResource>,
     ) {
+        let incoming = branches.incoming
+        let existing = branches.existing
+        let base = branches.base
         var incomingProduction = incoming.homestead
         var existingProduction = existing.homestead
         if overlappingProduction {
@@ -161,9 +164,9 @@ extension CloudSaveMerge {
         for resource in HomesteadResource.allCases {
             let current = incomingProduction.pendingProduction[resource, default: 0]
             let amount = existingProduction.pendingProduction[resource, default: 0]
-            let baseBalance = resource == .gold ? base?.roster.gold : base?.homestead.resources[resource, default: 0]
-            let incomingBalance = resource == .gold ? incoming.roster.gold : incoming.homestead.resources[resource, default: 0]
-            let existingBalance = resource == .gold ? existing.roster.gold : existing.homestead.resources[resource, default: 0]
+            let baseBalance = base.map { $0.homestead.balance(for: resource, gold: $0.roster.gold) }
+            let incomingBalance = incoming.homestead.balance(for: resource, gold: incoming.roster.gold)
+            let existingBalance = existing.homestead.balance(for: resource, gold: existing.roster.gold)
             let collected = collectedResources.contains(resource) || overlappingProduction && baseBalance.map {
                 incomingBalance > $0 || existingBalance > $0
             } == true
