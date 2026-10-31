@@ -68,6 +68,28 @@ struct CombatTriggerTalentControlTests {
     }
 
     @Test(arguments: [false, true])
+    func `holy weakening requires its attacker to survive block retaliation`(survives: Bool) {
+        var battle = BattleStateTestFactory.makeMinimalBattle(
+            hero: CombatantFixtures.passiveHero(maxHealth: 30),
+            enemy: CombatantFixtures.passiveEnemy(maxHealth: 100),
+            heroHealth: survives ? 2 : 1,
+            heroModifiers: .withTriggers { $0.blindingLight = true },
+            enemyModifiers: .withTriggers { $0.onBlockHitDealHoly = 1 }, appliesFightPacing: false,
+        )
+        battle.roster.hero.hasConsumedDeathsDoor = true
+        DefensePoolEngine.set(10, on: battle.enemy, in: &battle)
+
+        let outcome = battle.resolveTestDamage(
+            2, keyword: .holy,
+            options: .attack(scaling: .flat, accuracy: .unavoidable, abilityCriticalChanceBonus: -1),
+        )
+
+        #expect(outcome.healthLost == 0)
+        #expect(battle.roster.hero.isAlive == survives)
+        #expect(battle.roster.enemy.talents.history.blindingReduction == (survives ? 1 : 0))
+    }
+
+    @Test(arguments: [false, true])
     func `pinning strike and paralytic poison require living owner`(heroAlive: Bool) {
         var pin = BattleStateTestFactory.makeBattle(
             hero: CombatantFixtures.passiveHero(maxHealth: 50),

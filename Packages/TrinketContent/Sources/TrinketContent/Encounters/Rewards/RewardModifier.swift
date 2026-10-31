@@ -229,10 +229,8 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
     }
 
     public static func eligible(ownedTrinketIDs: Set<String>, ownedUniqueIDs: Set<String>) -> [Self] {
-        let hasTrinket = ownedTrinketIDs.isEmpty ? !GameContent.trinketItems.isEmpty
-            : GameContent.trinketItems.contains { !ownedTrinketIDs.contains($0.templateID) }
-        let hasUnique = ownedUniqueIDs.isEmpty ? !GameContent.uniqueItems.isEmpty
-            : GameContent.uniqueItems.contains { !ownedUniqueIDs.contains($0.templateID) }
+        let hasTrinket = hasUnowned(GameContent.trinketItems, ownedIDs: ownedTrinketIDs)
+        let hasUnique = hasUnowned(GameContent.uniqueItems, ownedIDs: ownedUniqueIDs)
         if hasTrinket, hasUnique {
             return allCases
         }
@@ -248,16 +246,16 @@ public enum RewardModifier: Hashable, Codable, CaseIterable, Sendable, RawRepres
     private func isEligible(ownedTrinketIDs: Set<String>, ownedUniqueIDs: Set<String>) -> Bool {
         switch self {
         case .trinket, .trinketHoard:
-            ownedTrinketIDs.isEmpty ? !GameContent.trinketItems.isEmpty
-                : GameContent.trinketItems.contains { !ownedTrinketIDs.contains($0.templateID) }
+            Self.hasUnowned(GameContent.trinketItems, ownedIDs: ownedTrinketIDs)
         case .unique, .uniqueHoard:
-            ownedUniqueIDs.isEmpty ? !GameContent.uniqueItems.isEmpty
-                : GameContent.uniqueItems.contains { !ownedUniqueIDs.contains($0.templateID) }
-        // Gear-base catalog invariant (ItemRewardGenerator preconditions a
-        // non-Trinket base) keeps every hoard family non-empty.
-        case .armsHoard, .armorHoard, .ringHoard, .amuletHoard: true
+            Self.hasUnowned(GameContent.uniqueItems, ownedIDs: ownedUniqueIDs)
+        // Gear-base catalog invariants keep the remaining hoard families available.
         default: true
         }
+    }
+
+    private static func hasUnowned(_ items: [InventoryItem], ownedIDs: Set<String>) -> Bool {
+        ownedIDs.isEmpty ? !items.isEmpty : items.contains { !ownedIDs.contains($0.templateID) }
     }
 
     public func resolved(ownedTrinketIDs: Set<String>, ownedUniqueIDs: Set<String>) -> Self {
