@@ -6,6 +6,27 @@ import TrinketCore
 @testable import TrinketContent
 
 struct ManaArithmeticBoundaryTests {
+    @Test func `uncapped Burn Mana restoration saturates its turn counter`() {
+        var profile = CombatModifierProfile(maximumManaBonus: Int.max)
+        profile.triggers.onBurnDamageRestoreManaFlat = Int.max
+        var battle = makeBattle(heroModifiers: profile)
+
+        CombatExecutor.run {
+            await CombatTriggerEngine.restoreManaFromBurnDamage(
+                sourceActorID: battle.hero.id, sourceTriggers: profile.triggers, in: &battle,
+            )
+        }
+        _ = battle.payMana(1, for: battle.hero)
+        CombatExecutor.run {
+            await CombatTriggerEngine.restoreManaFromBurnDamage(
+                sourceActorID: battle.hero.id, sourceTriggers: profile.triggers, in: &battle,
+            )
+        }
+
+        #expect(battle.mana(of: battle.hero) == Int.max)
+        #expect(battle.turnCadence.burnManaRestored[.hero] == Int.max)
+    }
+
     @Test(arguments: [false, true], [3, Int.max])
     func `Mana Absorption preserves saved conversion and saturates overflow Block`(updated: Bool, amount: Int) throws {
         let saved = updated

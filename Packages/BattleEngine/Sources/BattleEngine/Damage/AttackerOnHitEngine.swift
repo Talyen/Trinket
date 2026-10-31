@@ -53,7 +53,7 @@ enum AttackerOnHitEngine {
         }
 
         if hit.keyword == .holy {
-            if hit.triggers.blindingLight, state.options.isPrimaryAttack,
+            if hit.triggers.blindingLight, state.options.isPrimaryAttack, context.health(of: hit.source) > 0,
                state.combatant.role == .enemy {
                 let reduction = CombatRounding.scaled(state.healthLost + state.blockedAmount, multiplier: 0.5)
                 let current = context.roster.runtime(for: state.combatant)?.talents.history.blindingReduction ?? 0
@@ -296,7 +296,7 @@ extension AttackerOnHitEngine {
     ) async {
         let triggers = hit.triggers
         let target = state.combatant
-        if triggers.attacksApplyPoison > 0, state.options.isAttackHit,
+        if triggers.attacksApplyPoison > 0,
            context.roster.health(for: target) > 0 {
             await context.applyDecayingDoT(
                 keyword: .poison,
@@ -457,7 +457,7 @@ extension AttackerOnHitEngine {
             await appendTargetBleed(potency: 1, state: state, context: &context)
         }
         if triggers.dazingSwipeChancePercent > 0, triggers.dazingSwipeStunBuildup > 0,
-           state.options.isAttackHit, state.damageKeyword == .physical,
+           state.damageKeyword == .physical,
            !state.options.isRetaliation, context.roster.health(for: target) > 0,
            context.claimTalentAbility(.dazingSwipe, actorID: hit.sourceActorID),
            BattleChance.succeeds(probability: triggers.dazingSwipeChancePercent, using: &context.rng) {
@@ -469,7 +469,7 @@ extension AttackerOnHitEngine {
                 in: &context,
             )
         }
-        if triggers.attackApplyBleed > 0, state.options.isAttackHit,
+        if triggers.attackApplyBleed > 0,
            context.roster.health(for: target) > 0 {
             await appendTargetBleed(potency: triggers.attackApplyBleed, state: state, context: &context)
         }

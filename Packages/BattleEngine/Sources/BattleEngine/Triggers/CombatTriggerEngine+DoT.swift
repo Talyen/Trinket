@@ -118,7 +118,7 @@ package extension CombatTriggerEngine {
         let restored = context.restoreMana(toRestore, to: caster.combatant, maximumGain: cap > 0 ? cap - already : nil)
         consumeManaOverflowTalents(for: caster.combatant, restoredMana: restored > 0, in: &context)
         guard restored > 0 else { return }
-        context.turnCadence.burnManaRestored[participant, default: 0] += restored
+        context.turnCadence.burnManaRestored[participant] = SaturatedArithmetic.saturatingAdd(already, restored)
         context.nextEvent(
             kind: .effect(.resourceGain),
             source: .init(caster),
