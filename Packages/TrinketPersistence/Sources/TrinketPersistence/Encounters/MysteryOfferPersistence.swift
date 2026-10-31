@@ -85,6 +85,7 @@ public enum MysteryOfferPersistence {
         encounter: EncounterIdentity,
         save: inout PlayerSave,
         at date: Date = Date(),
+        access: ContentAccessPolicy = .fullGame,
     ) -> MysteryEffectResult {
         guard encounter.isPlayable(in: save),
               let payload = payload(encounter: encounter, save: save) else { return MysteryEffectResult() }
@@ -114,7 +115,7 @@ public enum MysteryOfferPersistence {
         guard result.grantedItems.count == 1 || InventoryDuplicatePolicy.containsDuplicate(of: offer.item, in: candidate.inventory.items)
         else { return result }
         guard NonCombatEncounterCompletion.complete(
-            encounter: encounter, grantingEncounterRewards: false, save: &candidate,
+            encounter: encounter, grantingEncounterRewards: false, save: &candidate, access: access,
         ) == .completed else { return MysteryEffectResult() }
         clear(encounter: encounter, save: &candidate)
         ItemCorruptionApplier.noteMysteryCompleted(save: &candidate)

@@ -12,18 +12,10 @@ public enum ShopStockPersistence {
         encounter: EncounterIdentity,
         save: inout PlayerSave,
     ) -> Result<ShopStock, ShopPurchaseFailure> {
-        guard encounter.isPlayable(in: save) else { return .failure(.invalidOffer) }
+        guard encounter.isPlayable(in: save), isShop(encounter: encounter, save: save) else { return .failure(.invalidOffer) }
         do {
             if let stock = try stock(encounter: encounter, save: save) {
                 return .success(stock)
-            }
-            if case let .journey(stageID) = encounter.location {
-                guard let stage = GameContent.stage(id: stageID), case .shop = stage.encounter else { return .failure(.invalidOffer) }
-            } else if let nodeID = encounter.labyrinthNodeID {
-                guard save.labyrinth.nodes[nodeID]?.type == .shop else { return .failure(.invalidOffer) }
-            }
-            if case let .voyage(runID, nodeID) = encounter.location {
-                guard save.voyage.node(runID: runID, nodeID: nodeID)?.type == .shop else { return .failure(.invalidOffer) }
             }
             guard let rewardLevel = encounter.rewardLevel(in: save) else { return .failure(.invalidOffer) }
             let effects = encounter.modifierEffects(in: save)
@@ -45,8 +37,18 @@ public enum ShopStockPersistence {
         }
     }
 
+    static func isShop(encounter: EncounterIdentity, save: PlayerSave) -> Bool {
+        switch encounter.location {
+        case let .journey(stageID):
+            guard let stage = GameContent.stage(id: stageID), case .shop = stage.encounter else { return false }
+            return true
+        case let .labyrinth(nodeID): return save.labyrinth.nodes[nodeID]?.type == .shop
+        case let .voyage(runID, nodeID): return save.voyage.node(runID: runID, nodeID: nodeID)?.type == .shop
+        }
+    }
+
     public static func stock(encounter: EncounterIdentity, save: PlayerSave) throws -> ShopStock? {
-        guard encounter.isCurrent(in: save) else { throw ShopPurchaseFailure.invalidOffer }
+        guard encounter.isCurrent(in: save), isShop(encounter: encounter, save: save) else { throw ShopPurchaseFailure.invalidOffer }
         let data: Data? = switch encounter.location {
         case let .journey(stageID): save.journey.shopPayloads[stageID]
         case let .labyrinth(nodeID): save.labyrinth.nodes[nodeID]?.shopPayload

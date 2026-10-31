@@ -34,9 +34,10 @@ public enum MysteryEncounterResolution {
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
         at date: Date = Date(),
+        access: ContentAccessPolicy = .fullGame,
     ) -> Result<MysteryChoiceOutcome, MysteryChoiceFailure> {
         guard request.encounter.isPlayable(in: save),
-              let event = request.encounter.mysteryEvent(in: save), event.id == request.eventID,
+              let event = request.encounter.mysteryEvent(in: save, access: access), event.id == request.eventID,
               let choice = choiceID
               .flatMap({ id in event.choices.first { $0.id == id } }) ?? (choiceID == nil ? event.choices.first : nil)
         else { return .failure(.unavailable) }
@@ -45,11 +46,13 @@ public enum MysteryEncounterResolution {
                 .contains(where: ItemCorruption.isEligibleTarget) ? .failure(.unavailable) : .success(.selectCorruptItem)
         }
         if choice.effects.contains(.leave) {
-            guard complete(request, event: event, save: &save) else { return .failure(.unavailable) }
+            guard complete(request, event: event, save: &save, access: access) else { return .failure(.unavailable) }
             return .success(.dismiss)
         }
         if choice.itemPool != nil {
-            return resolveOffer(event: event, choice: choice, request: request, save: &save, using: &randomNumberGenerator, at: date)
+            return resolveOffer(
+                event: event, choice: choice, request: request, save: &save, using: &randomNumberGenerator, at: date, access: access,
+            )
         }
         guard let rewardLevel = request.encounter.rewardLevel(in: save),
               let encounterLevel = request.encounter.encounterLevel(in: save) else { return .failure(.unavailable) }
@@ -74,7 +77,7 @@ public enum MysteryEncounterResolution {
         }
         guard result.grantedItems.count == requiredItems, result.unlockedCombatantIDs.count == requiredUnlocks,
               !result.isEmpty else { return .failure(.unavailable) }
-        guard complete(request, event: event, save: &candidate) else { return .failure(.unavailable) }
+        guard complete(request, event: event, save: &candidate, access: access) else { return .failure(.unavailable) }
         save = candidate
         if let unlocked = result.unlockedCombatantIDs.first {
             return .success(.reveal(unlockedCombatantID: unlocked))
@@ -87,9 +90,10 @@ public enum MysteryEncounterResolution {
         request: MysteryEncounterRequest,
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
+        access: ContentAccessPolicy = .fullGame,
     ) -> Result<MysteryChoiceOutcome, MysteryChoiceFailure> {
         guard request.encounter.isPlayable(in: save),
-              let event = request.encounter.mysteryEvent(in: save), event.id == request.eventID,
+              let event = request.encounter.mysteryEvent(in: save, access: access), event.id == request.eventID,
               event.choices.contains(where: { $0.effects.contains(.corruptItem) }) else {
             return .failure(.unavailable)
         }
@@ -98,7 +102,7 @@ public enum MysteryEncounterResolution {
         else {
             return .failure(.unavailable)
         }
-        guard complete(request, event: event, save: &candidate) else { return .failure(.unavailable) }
+        guard complete(request, event: event, save: &candidate, access: access) else { return .failure(.unavailable) }
         save = candidate
         return .success(.corruptionReveal(result))
     }
@@ -110,6 +114,7 @@ public enum MysteryEncounterResolution {
         save: inout PlayerSave,
         using randomNumberGenerator: inout some RandomNumberGenerator,
         at date: Date = Date(),
+        access: ContentAccessPolicy,
     ) -> Result<MysteryChoiceOutcome, MysteryChoiceFailure> {
         do {
             var candidate = save
@@ -124,7 +129,7 @@ public enum MysteryEncounterResolution {
             guard let offer = prepared.first(where: { $0.choiceID == choice.id }) else { return .failure(.unavailable) }
             let result = MysteryOfferPersistence.claim(
                 offer, encounter: request.encounter,
-                save: &candidate, at: date,
+                save: &candidate, at: date, access: access,
             )
             guard result.grantedItems.count == 1
                 || InventoryDuplicatePolicy.containsDuplicate(of: offer.item, in: candidate.inventory.items)
@@ -136,8 +141,10 @@ public enum MysteryEncounterResolution {
         }
     }
 
-    private static func complete(_ request: MysteryEncounterRequest, event: MysteryEvent, save: inout PlayerSave) -> Bool {
-        guard NonCombatEncounterCompletion.complete(encounter: request.encounter, save: &save) == .completed
+    private static func complete(
+        _ request: MysteryEncounterRequest, event: MysteryEvent, save: inout PlayerSave, access: ContentAccessPolicy,
+    ) -> Bool {
+        guard NonCombatEncounterCompletion.complete(encounter: request.encounter, save: &save, access: access) == .completed
         else { return false }
         if request.eventID == GameContent.corruptionAltarEventID || event.choices
             .contains(where: { $0.effects.contains(.corruptItem) }) {

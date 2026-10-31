@@ -6,6 +6,59 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct ShopPurchaseApplierTests {
+    @Test @MainActor func `leaving a shop cannot complete a Mystery encounter`() throws {
+        let context = try PersistenceTestContext()
+        let store = try context.makeSaveStore()
+        let encounter = EncounterIdentity(location: .journey(stageID: "chapter-1-stage-4"), save: store.currentSave)
+        let before = store.currentSave
+        guard case .rejected(.unavailable) = store.finishShop(encounter: encounter) else {
+            Issue.record("Expected a non-shop encounter to be rejected")
+            return
+        }
+        #expect(store.currentSave == before)
+        #expect(try context.makeReloadedStore().currentSave == before)
+    }
+
+    @Test func `saved shop stock cannot authorize a purchase at a Mystery`() throws {
+        var save = SaveTestSupport.makeSave(gold: 100)
+        let encounter = EncounterIdentity(location: .journey(stageID: "chapter-1-stage-4"), save: save)
+        let offer = try makeOffer(price: 20)
+        save.journey.shopPayloads["chapter-1-stage-4"] = try ShopStockPersistence.encode(
+            ShopStock(offers: [offer]), encounter: encounter,
+        )
+        let before = save
+        #expect(ShopPurchaseApplier.availability(offerID: offer.id, encounter: encounter, save: save) == .unavailable(.invalidOffer))
+        #expect(ShopPurchaseApplier.purchase(offerID: offer.id, encounter: encounter, save: &save) == .failure(.invalidOffer))
+        #expect(save == before)
+    }
+
+    @Test func `Mystery resolution retains the caller's content access`() throws {
+        let stage = try #require(GameContent.chapters.flatMap(\.stages).first {
+            if case .recruit(eventID: "recruit-phoenix") = $0.encounter {
+                true
+            } else {
+                false
+            }
+        })
+        var save = SaveTestSupport.makeSave()
+        save.roster.unlockedHeroIDs.formUnion(ContentAccessPolicy.freeHeroIDs)
+        save.roster.unlockedCompanionIDs.formUnion(ContentAccessPolicy.freeCompanionIDs)
+        save.roster.unlockedHeroIDs.remove("wizard")
+        save.roster.unlockedCompanionIDs.remove("phoenix")
+        let encounter = EncounterIdentity(location: .journey(stageID: stage.id), save: save)
+        let event = try #require(encounter.mysteryEvent(in: save, access: .free))
+        #expect(event.unlockCombatantID == "wizard")
+        #expect(encounter.mysteryEvent(in: save, access: .fullGame)?.unlockCombatantID == "phoenix")
+        var random = SeededRandomNumberGenerator(seed: 1)
+        let result = MysteryEncounterResolution.resolve(
+            choiceID: nil, request: MysteryEncounterRequest(encounter: encounter, eventID: event.id, displayedOffers: []),
+            save: &save, using: &random, access: .free,
+        )
+        guard case .success = result else { Issue.record("Expected the accessible recruit to resolve"); return }
+        #expect(save.roster.isHeroUnlocked("wizard"))
+        #expect(save.journey.completedStageIDs.contains(stage.id))
+    }
+
     @Test func `pinned stock survives an imported session generation`() throws {
         var save = SaveTestSupport.makeSave(modifiedAt: .now, gold: 100)
         let offer = try makeOffer(price: 28)

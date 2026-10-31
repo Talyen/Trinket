@@ -39,7 +39,7 @@ public extension PlayerSaveStore {
 
     func finishShop(encounter: EncounterIdentity) -> SaveTransactionResult<Void, EncounterCompletionFailure> {
         persistAction(claim: encounter.economicClaim, logging: "Failed to leave shop") { save in
-            guard NonCombatEncounterCompletion.complete(
+            guard ShopStockPersistence.isShop(encounter: encounter, save: save), NonCombatEncounterCompletion.complete(
                 encounter: encounter, save: &save, access: contentAccess,
             ) == .completed else { return .failure(.unavailable) }
             return .success(())
@@ -87,9 +87,11 @@ public extension PlayerSaveStore {
             else { return .failure(.unavailable) }
             return switch action {
             case let .choice(id):
-                MysteryEncounterResolution.resolve(choiceID: id, request: request, save: &save, using: &random, at: date)
+                MysteryEncounterResolution.resolve(
+                    choiceID: id, request: request, save: &save, using: &random, at: date, access: contentAccess,
+                )
             case let .corruptItem(id):
-                MysteryEncounterResolution.corrupt(itemID: id, request: request, save: &save, using: &random)
+                MysteryEncounterResolution.corrupt(itemID: id, request: request, save: &save, using: &random, access: contentAccess)
             }
         }
     }
