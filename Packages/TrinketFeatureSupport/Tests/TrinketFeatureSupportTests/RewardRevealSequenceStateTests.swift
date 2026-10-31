@@ -15,6 +15,12 @@ struct RewardRevealSequenceStateTests {
             #expect(await waitUntil { clock.isSleeping })
         }
         state.updateWalletCount(3)
+        if beforeReveal {
+            #expect(!state.areItemsVisible)
+            #expect(state.visibleWalletRewardCount == 0)
+        } else {
+            #expect(state.visibleWalletRewardCount == 3)
+        }
         clock.advance()
         if beforeReveal {
             #expect(await waitUntil { clock.isSleeping })

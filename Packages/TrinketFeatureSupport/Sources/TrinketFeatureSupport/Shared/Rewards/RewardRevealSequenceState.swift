@@ -86,7 +86,7 @@ public final class RewardRevealSequenceState {
 
     public func updateWalletCount(_ count: Int) {
         latestWalletCount = count
-        guard phase != .ready, count > visibleWalletRewardCount else { return }
+        guard areItemsVisible, count > visibleWalletRewardCount else { return }
         withAnimation(TrinketMotion.Reward.lootReveal) {
             visibleWalletRewardCount = count
         }

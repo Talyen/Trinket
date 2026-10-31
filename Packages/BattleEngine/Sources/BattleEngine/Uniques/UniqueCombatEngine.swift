@@ -17,13 +17,10 @@ package enum UniqueCombatEngine {
         let triggers = context.modifiers(for: actor.id).triggers
         var owner = context.roster[card.owner].uniques
         owner.turn.cardsPlayed += 1
-        let play = UniqueBattleState.CardPlay(owner: card.owner, originalCopyID: card.deckCopyID)
+        var play = UniqueBattleState.CardPlay(owner: card.owner, originalCopyID: card.deckCopyID)
         if triggers.secondCardDrawAndDodgePercent > 0, owner.turn.cardsPlayed == 2 {
             owner.turn.wrenflightDodge = triggers.secondCardDrawAndDodgePercent
-            var mutablePlay = play
-            mutablePlay.draws.append("Wrenflight")
-            context.roster[card.owner].uniques = owner
-            return mutablePlay
+            play.draws.append("Wrenflight")
         }
         context.roster[card.owner].uniques = owner
         return play
