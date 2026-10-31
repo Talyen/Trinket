@@ -49,12 +49,12 @@ extension BattleFeedbackLane {
                 swingAt.addingTimeInterval(actorID == nil ? 0 : timing.swing),
                 previousImpact?.addingTimeInterval(timing.swing) ?? date,
             )
+            let revealedImpactAt = max(impactAt, revealAt.addingTimeInterval(BattleMotion.automaticCardRevealDuration))
             let castCard = card ?? departure?.card
             let castID = castCard.map {
                 cardPlayback.append(
                     $0, at: departure == nil ? revealAt : startAt,
-                    activationAt: actorID == nil
-                        ? max(impactAt, revealAt.addingTimeInterval(BattleMotion.automaticCardRevealDuration)) : swingAt,
+                    activationAt: actorID == nil ? revealedImpactAt : swingAt,
                     id: departure?.id ?? UUID(), isHandDeparture: departure != nil,
                 )
             }
@@ -63,8 +63,7 @@ extension BattleFeedbackLane {
                     id: id, actorID: actorID, events: group.events, damage: action?.damage ?? [], castID: castID,
                     swingDuration: timing.swing, recoveryDuration: timing.recovery, preparationCap: timing.preparationCap,
                     startAt: startAt, swingAt: swingAt,
-                    impactAt: actorID == nil && card != nil
-                        ? max(impactAt, revealAt.addingTimeInterval(BattleMotion.automaticCardRevealDuration)) : impactAt,
+                    impactAt: actorID == nil && card != nil ? revealedImpactAt : impactAt,
                     nextCue: actorID == nil ? .impact : (isPrepared ? .swing : .windUp), present: present,
                 )
             }
@@ -86,24 +85,17 @@ extension BattleFeedbackLane {
             let action = due.action
             let cue = due.cue
             switch cue {
-            case .windUp:
+            case .windUp, .swing:
                 if let actorID = action.actorID {
                     attackOwners[actorID] = action.id
+                    let isWindUp = cue == .windUp
+                    let startedAt = isWindUp ? action.startAt : action.swingAt
+                    let endsAt = isWindUp ? action.swingAt : action.impactAt
                     publishAttack(
-                        .windUp,
+                        isWindUp ? .windUp : .swing,
                         for: actorID,
-                        at: action.startAt,
-                        duration: action.swingAt.timeIntervalSince(action.startAt),
-                    )
-                }
-            case .swing:
-                if let actorID = action.actorID {
-                    attackOwners[actorID] = action.id
-                    publishAttack(
-                        .swing,
-                        for: actorID,
-                        at: action.swingAt,
-                        duration: action.impactAt.timeIntervalSince(action.swingAt),
+                        at: startedAt,
+                        duration: endsAt.timeIntervalSince(startedAt),
                     )
                 }
             case .impact:
