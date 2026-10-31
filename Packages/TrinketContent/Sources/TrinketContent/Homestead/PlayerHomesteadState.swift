@@ -234,7 +234,11 @@ public struct PlayerHomesteadState: Codable, Equatable, Hashable, Sendable {
         }
         let days = elapsed / Self.secondsPerDay
         for production in production {
-            let pending = pendingProduction[production.resource, default: 0]
+            let stored = pendingProduction[production.resource, default: 0]
+            let pending = stored.isFinite ? max(0, stored) : 0
+            if !stored.isFinite || stored < 0 {
+                pendingProduction.removeValue(forKey: production.resource)
+            }
             let generated = min(Double.greatestFiniteMagnitude, Double(production.quantity) * days)
             if production.resource == .gold {
                 let capacity = Double(GoldBalance.maximum)
@@ -262,15 +266,23 @@ public extension PlayerHomesteadState {
     }
 
     func canAfford(cost: [ResourceAmount], gold: Int) -> Bool {
-        cost.allSatisfy { balance(for: $0.resource, gold: gold) >= $0.quantity }
+        var remaining: [HomesteadResource: Int] = [:]
+        for amount in cost {
+            let available = remaining[amount.resource] ?? balance(for: amount.resource, gold: gold)
+            guard amount.quantity >= 0, available >= amount.quantity else { return false }
+            remaining[amount.resource] = available - amount.quantity
+        }
+        return true
     }
 
     mutating func deductCost(_ cost: [ResourceAmount], gold: inout Int) {
         for amount in cost {
+            guard amount.quantity > 0 else { continue }
             if amount.resource == .gold {
-                gold = GoldBalance.clamped(gold - amount.quantity)
+                gold = GoldBalance.clamped(SaturatedArithmetic.saturatingSub(gold, amount.quantity))
             } else {
-                resources[amount.resource, default: 0] -= amount.quantity
+                let current = resources[amount.resource, default: 0]
+                resources[amount.resource] = max(0, SaturatedArithmetic.saturatingSub(current, amount.quantity))
             }
         }
     }

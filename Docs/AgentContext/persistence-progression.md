@@ -191,6 +191,9 @@ The shared Persistence mutation resolves the canonical Content definition on eac
 attempt, for both local commands and legacy cloud production actions. Callers
 cannot supply prices or tier definitions; affordability, deduction, and receipts
 use that same resolved tier.
+Affordability rejects negative quantities and accounts for repeated resources;
+deduction ignores nonpositive amounts and cannot underflow. Production discards
+invalid pending credit for an active resource before adding its new production.
 The Homestead value's Codable fields and the SwiftData graph remain unchanged.
 
 Homestead collection and build/upgrade commands are asynchronous. Linked cloud

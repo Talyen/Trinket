@@ -4,6 +4,31 @@ import TrinketContent
 import TrinketCore
 
 struct HomesteadStateTests {
+    @Test func `costs reject negative or repeated amounts beyond the balance`() {
+        var state = PlayerHomesteadState(resources: [.wood: 5, .stone: Int.min], nodeTiers: [:])
+        var gold = 4
+        #expect(!state.canAfford(cost: [ResourceAmount(.wood, -1)], gold: gold))
+        #expect(!state.canAfford(cost: [ResourceAmount(.wood, 3), ResourceAmount(.wood, 3)], gold: gold))
+        #expect(state.canAfford(cost: [ResourceAmount(.wood, 3), ResourceAmount(.wood, 2)], gold: gold))
+
+        state.deductCost([ResourceAmount(.wood, -1), ResourceAmount(.stone, 1)], gold: &gold)
+        #expect(state.resources[.wood] == 5)
+        #expect(state.resources[.stone] == 0)
+        #expect(gold == 4)
+    }
+
+    @Test func `invalid pending production does not inflate newly generated resources`() {
+        let start = Date(timeIntervalSince1970: 1000)
+        var state = PlayerHomesteadState(
+            resources: [:], nodeTiers: [.wheatField: 1],
+            pendingProduction: [.food: .nan], lastProductionAt: start,
+        )
+
+        state.settleProduction(at: start.addingTimeInterval(PlayerHomesteadState.secondsPerDay), gold: 0)
+
+        #expect(state.pendingProduction[.food] == 1)
+    }
+
     @Test func `collecting maximum material credit retains the last owed unit across reload`() throws {
         let date = Date(timeIntervalSince1970: 1000)
         var state = PlayerHomesteadState(
