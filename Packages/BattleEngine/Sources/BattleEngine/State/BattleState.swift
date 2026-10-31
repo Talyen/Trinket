@@ -186,9 +186,7 @@ public struct BattleState {
         }
 
         if tracksLog {
-            var projection = BattleLogProjection()
-            projection.sync(events: events)
-            logProjection = projection
+            syncLog()
         }
     }
 
@@ -287,12 +285,9 @@ public struct BattleState {
 
     public mutating func syncLog() {
         if logProjection == nil {
-            var projection = BattleLogProjection()
-            projection.rebuildFromScratch(events: events)
-            logProjection = projection
-        } else {
-            logProjection?.sync(events: events)
+            logProjection = BattleLogProjection()
         }
+        logProjection?.sync(events: events)
     }
 
     public mutating func releaseLogProjection() {

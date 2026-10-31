@@ -47,11 +47,6 @@ public struct BattleLogProjection {
         loggedEventCount = events.count
     }
 
-    public mutating func rebuildFromScratch(events: [ActionEvent]) {
-        self = Self()
-        sync(events: events)
-    }
-
     private static func isVisible(_ event: ActionEvent) -> Bool {
         switch event.kind {
         case .milestone, .ability:

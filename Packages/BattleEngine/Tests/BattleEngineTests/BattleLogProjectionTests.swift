@@ -50,9 +50,29 @@ struct BattleLogProjectionTests {
         #expect(projection.entries.isEmpty)
         projection.sync(events: events)
         #expect(projection.entries.map { $0.localizedText(locale: english) } == expected)
-        projection.rebuildFromScratch(events: Array(events.suffix(1)))
+        projection = BattleLogProjection()
+        projection.sync(events: Array(events.suffix(1)))
         #expect(projection.entries
             .map { $0.localizedText(locale: english) } == ["Hero uses Strike.\nHero deals 9 Physical damage to Enemy (Strike)."])
+    }
+
+    @Test(arguments: [false, true])
+    func `battle log is restored from retained events after release`(tracksLog: Bool) {
+        var battle = BattleStateTestFactory.makeBattle(tracksLog: tracksLog, dealOpeningHand: false, appliesFightPacing: false)
+        let initialLog = BattleLogProjection.entries(from: battle.events)
+        #expect(!initialLog.isEmpty)
+        #expect(battle.log == (tracksLog ? initialLog : []))
+
+        _ = battle.performTestAction(.heal)
+        battle.syncLog()
+        let expected = BattleLogProjection.entries(from: battle.events)
+        #expect(battle.log == expected)
+        battle.releaseLogProjection()
+        #expect(battle.log.isEmpty)
+        battle.syncLog()
+        #expect(battle.log == expected)
+        battle.syncLog()
+        #expect(battle.log == expected)
     }
 
     @Test func `saturated damage and Health cost totals remain readable`() {
