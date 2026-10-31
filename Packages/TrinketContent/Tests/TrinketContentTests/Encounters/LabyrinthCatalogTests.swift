@@ -65,12 +65,13 @@ struct LabyrinthCatalogTests {
     }
 
     @Test func `single reward ownership matches general modifier resolution`() {
+        let trinkets = GameContent.trinketItems.map(\.templateID)
+        let uniques = GameContent.uniqueItems.map(\.templateID)
         let owners = [
             RewardOwnership(),
-            RewardOwnership(
-                ownedTrinketIDs: Set(GameContent.trinketItems.lazy.map(\.templateID)),
-                ownedUniqueIDs: Set(GameContent.uniqueItems.lazy.map(\.templateID)),
-            ),
+            RewardOwnership(ownedTrinketIDs: Set(trinkets), ownedUniqueIDs: Set(uniques)),
+            RewardOwnership(ownedTrinketIDs: Set(trinkets.dropLast()), ownedUniqueIDs: Set(uniques)),
+            RewardOwnership(ownedTrinketIDs: Set(trinkets), ownedUniqueIDs: Set(uniques.dropLast())),
         ]
         let ids = NodeModifierCatalog.modifiers.map(\.id) + [NodeModifierID("unknown")]
         for owner in owners {
