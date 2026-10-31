@@ -11,29 +11,27 @@ public enum CombatantLevelScaler {
         } else {
             combatant.maxMana
         }
-        return Combatant(
-            id: combatant.id,
-            name: combatant.name,
-            role: combatant.role,
-            maxHealth: scaledHealth,
-            maxMana: scaledMana,
-            actionIntervalTurns: combatant.actionIntervalTurns,
-            abilityChoices: combatant.abilityChoices,
-        )
+        return combatant.withScaledStats(health: scaledHealth, mana: scaledMana)
     }
 
     public static func scale(enemy: Enemy, level: Int, profile: EnemyPowerCurve.Profile = .standard) -> Combatant {
         let base = enemy.combatant
         let healthMultiplier = EnemyPowerCurve.health(level: level, isBoss: enemy.isBoss, profile: profile)
         let scaledHealth = max(1, CombatRounding.scaled(base.maxHealth, multiplier: healthMultiplier))
-        return Combatant(
-            id: base.id,
-            name: base.name,
-            role: base.role,
-            maxHealth: scaledHealth,
-            maxMana: base.maxMana,
-            actionIntervalTurns: base.actionIntervalTurns,
-            abilityChoices: base.abilityChoices,
+        return base.withScaledStats(health: scaledHealth, mana: base.maxMana)
+    }
+}
+
+private extension Combatant {
+    func withScaledStats(health: Int, mana: Int) -> Self {
+        Self(
+            id: id,
+            name: name,
+            role: role,
+            maxHealth: health,
+            maxMana: mana,
+            actionIntervalTurns: actionIntervalTurns,
+            abilityChoices: abilityChoices,
         )
     }
 }

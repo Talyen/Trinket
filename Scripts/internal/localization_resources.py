@@ -22,6 +22,7 @@ def swift_resources(name: str, catalog: dict, resource_arguments: dict | None = 
         source = units(entry['localizations']['en'])
         text = source.get('other', source.get('value'))
         kinds = {}
+        positions = []
         ordinal = 0
         for match in FORMAT.finditer(text):
             position, kind = match.groups()
@@ -31,12 +32,12 @@ def swift_resources(name: str, catalog: dict, resource_arguments: dict | None = 
                 raise ValueError(f'{name}/{key}: unsupported native argument %{kind}; extend the typed resource contract before adding this format')
             ordinal += 1
             index = int(position) if position else ordinal
-            kinds[index] = 'String' if kind == '@' else 'Double' if kind in {'f', 'g'} else 'Int'
+            positions.append(index)
+            kinds[index] = 'String' if kind == '@' else 'Int'
             if index in (resource_arguments or {}).get(name + '::' + key, []):
                 if kind != '@':
                     raise ValueError(f'{name}/{key}: resource arguments require %@ placeholders')
                 kinds[index] = 'LocalizedStringResource'
-        positions = [int(match[1]) if match[1] else ordinal for ordinal, match in enumerate((match for match in FORMAT.finditer(text) if match[2] != '%'), 1)]
         if positions != list(range(1, len(positions) + 1)):
             raise ValueError(f'{name}/{key}: English arguments must occur once in source order; use a separate typed argument for repeated values')
         if kinds and set(kinds) != set(range(1, len(kinds) + 1)):

@@ -158,12 +158,13 @@ public enum StageEncounter: Hashable, Sendable {
     }
 
     public var eventID: String? {
-        mysteryEventID ?? {
-            guard let recruitEventID else { return nil }
-            return recruitEventID.isEmpty || recruitEventID == Self.randomCompanionRecruitID
-                ? nil
-                : recruitEventID
-        }()
+        if let mysteryEventID {
+            return mysteryEventID
+        }
+        guard let recruitEventID, !recruitEventID.isEmpty, recruitEventID != Self.randomCompanionRecruitID else {
+            return nil
+        }
+        return recruitEventID
     }
 }
 
