@@ -26,9 +26,9 @@ struct BattleVictorySummaryTests {
 
         #expect(session.spectacle.outcomePresentation.isVictoryPresented)
         let summary = try #require(session.spectacle.outcomePresentation.victorySummaryIfAvailable)
-        #expect(summary.experience == 17)
-        #expect(summary.companionExperience == 9)
-        #expect(summary.stageGold == 12)
+        #expect(summary.settlement.award.heroExperience == 17)
+        #expect(summary.settlement.award.companionExperience == 9)
+        #expect(summary.settlement.award.stageGold == 12)
     }
 
     @Test func `restart without presentation clears prior rewards`() throws {
@@ -45,9 +45,9 @@ struct BattleVictorySummaryTests {
         _ = session.activate(first.configuration, presentation: first.presentation)
         session.presentLaunchVictory()
         let original = try #require(session.spectacle.outcomePresentation.victorySummaryIfAvailable)
-        #expect(original.stageGold == 12)
-        #expect(original.experience == 17)
-        #expect(original.companionExperience == 9)
+        #expect(original.settlement.award.stageGold == 12)
+        #expect(original.settlement.award.heroExperience == 17)
+        #expect(original.settlement.award.companionExperience == 9)
 
         let second = BattleRunConfigurationTestSupport.make(
             rngSeed: CombatantFixtures.deterministicBattleSeedVariant(1),
@@ -58,9 +58,9 @@ struct BattleVictorySummaryTests {
         #expect(session.restart(second.configuration))
         session.presentLaunchVictory()
         let restarted = try #require(session.spectacle.outcomePresentation.victorySummaryIfAvailable)
-        #expect(restarted.stageGold == 0)
-        #expect(restarted.experience == 0)
-        #expect(restarted.companionExperience == 0)
+        #expect(restarted.settlement.award.stageGold == 0)
+        #expect(restarted.settlement.award.heroExperience == 0)
+        #expect(restarted.settlement.award.companionExperience == 0)
     }
 
     enum BakedVictoryAwardCase: String, CaseIterable {
@@ -121,20 +121,20 @@ struct BattleVictorySummaryTests {
             ],
         )
         let summary = try makeDrivenVictorySummary(configuration: configuration, context: context)
-        #expect(summary.stageGold == 12)
-        #expect(summary.battleGold == summary.goldFlow.net)
-        #expect(summary.totalGold == 12 + summary.goldFlow.net)
-        #expect(summary.experience == 2)
-        #expect(summary.companionExperience == 1)
+        #expect(summary.settlement.award.stageGold == 12)
+        #expect(summary.settlement.award.battleGold == summary.settlement.award.goldFlow.net)
+        #expect(summary.settlement.award.goldDelta == 12 + summary.settlement.award.goldFlow.net)
+        #expect(summary.settlement.award.heroExperience == 2)
+        #expect(summary.settlement.award.companionExperience == 1)
         #expect(summary.heroName == hero.name)
         #expect(summary.companionName == companion.name)
         #expect(summary.heroArtworkName == hero.artReference?.thumbnailImageName)
         #expect(summary.companionArtworkName == companion.artReference?.thumbnailImageName)
-        #expect(summary.rewardItems == [lootItem])
-        #expect(summary.materialRewards.count == 2)
-        #expect(summary.heroProgressionBefore.level == 2)
-        #expect(summary.heroProgressionAfter.currentXP == 3)
-        #expect(summary.companionProgressionAfter.currentXP == 1)
+        #expect(summary.settlement.award.items == [lootItem])
+        #expect(summary.settlement.award.materials.count == 2)
+        #expect(summary.settlement.inputs.heroProgression.level == 2)
+        #expect(summary.settlement.heroProgressionAfter.currentXP == 3)
+        #expect(summary.settlement.companionProgressionAfter.currentXP == 1)
     }
 
     private func assertCompanionOnlyAwardSummary() throws {
@@ -152,11 +152,11 @@ struct BattleVictorySummaryTests {
             companionExperienceAward: 2,
         )
         let summary = try makeDrivenVictorySummary(configuration: configuration, context: context)
-        #expect(summary.experience == 0)
-        #expect(summary.companionExperience == 2)
+        #expect(summary.settlement.award.heroExperience == 0)
+        #expect(summary.settlement.award.companionExperience == 2)
         #expect(summary.hasExperienceAwards == true)
-        #expect(summary.rewardItems.isEmpty)
-        #expect(summary.companionProgressionAfter.currentXP == 2)
+        #expect(summary.settlement.award.items.isEmpty)
+        #expect(summary.settlement.companionProgressionAfter.currentXP == 2)
     }
 
     private func assertBakedAwardsIgnoreExperienceBonus() throws {
@@ -186,9 +186,9 @@ struct BattleVictorySummaryTests {
             companionExperienceAward: 4,
         )
         let summary = try makeDrivenVictorySummary(configuration: configuration, context: context)
-        #expect(summary.experience == 4)
-        #expect(summary.companionExperience == 4)
-        #expect(summary.rewardItems == [pendingItem])
+        #expect(summary.settlement.award.heroExperience == 4)
+        #expect(summary.settlement.award.companionExperience == 4)
+        #expect(summary.settlement.award.items == [pendingItem])
     }
 
     private func makeDrivenVictorySummary(
@@ -238,16 +238,16 @@ struct BattleVictorySummaryTests {
             goldFindPercent: context.rewardPlan.goldFindPercent,
         ).adjustedGold(100 + earnedGold)
         #expect(context.rewardPlan.goldFindPercent > 0)
-        #expect(summary.goldFlow.net == earnedGold)
-        #expect(summary.totalGold == expectedTotal)
-        #expect(summary.battleGold == expectedTotal - 100)
+        #expect(summary.settlement.award.goldFlow.net == earnedGold)
+        #expect(summary.settlement.award.goldDelta == expectedTotal)
+        #expect(summary.settlement.award.battleGold == expectedTotal - 100)
         #expect(
             HomesteadEffects(
                 heroModifiers: [],
                 companionModifiers: [],
                 astralChanceBonusPercent: 0,
                 goldFindPercent: context.rewardPlan.goldFindPercent,
-            ).adjustedGold(100 + summary.battleGold) > expectedTotal,
+            ).adjustedGold(100 + summary.settlement.award.battleGold) > expectedTotal,
         )
     }
 }

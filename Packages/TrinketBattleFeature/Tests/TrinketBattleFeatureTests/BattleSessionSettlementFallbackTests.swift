@@ -38,7 +38,7 @@ struct BattleSessionSettlementFallbackTests {
         #expect(!session.isShowingAutoBattlePauseNotice)
         #expect(session.spectacle.outcomePresentation.isVictoryPresented)
         #expect(summary.settlement == expected)
-        #expect(summary.experience > 0)
+        #expect(summary.settlement.award.heroExperience > 0)
     }
 
     @Test(arguments: [false, true], [false, true])

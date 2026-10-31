@@ -35,13 +35,13 @@ struct BattleGemRewardIntegrationTests {
         let startingGems = state.playerSave.homestead.resources[.gems, default: 0]
         battle.presentLaunchVictory()
         let summary = try #require(battle.spectacle.outcomePresentation.victorySummaryIfAvailable)
-        let awardedGems = try #require(summary.materialRewards.first { $0.resource == .gems }).quantity
+        let awardedGems = try #require(summary.settlement.award.materials.first { $0.resource == .gems }).quantity
         #expect(awardedGems == baseGems + 1)
 
         let didClaim = if passesDisplayedMaterialsAsOverride {
             state.completeActiveBattle(
-                configuration, battleGold: summary.goldFlow,
-                materialRewards: summary.materialRewards, settlement: summary.settlement,
+                configuration, battleGold: summary.settlement.award.goldFlow,
+                materialRewards: summary.settlement.award.materials, settlement: summary.settlement,
                 defersPresentationExit: true,
             ).didComplete
         } else {

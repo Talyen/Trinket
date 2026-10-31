@@ -22,7 +22,7 @@ public extension BattleSession {
         guard let configuration = activeBattle, configuration.id == configurationID,
               let progression else { return false }
         let result = progression.completeActiveBattle(
-            configuration, battleGold: summary.goldFlow, materialRewards: nil,
+            configuration, battleGold: summary.settlement.award.goldFlow, materialRewards: nil,
             settlement: summary.settlement, defersPresentationExit: defersPresentationExit,
         )
         applyCompletionResult(result, for: configuration)
