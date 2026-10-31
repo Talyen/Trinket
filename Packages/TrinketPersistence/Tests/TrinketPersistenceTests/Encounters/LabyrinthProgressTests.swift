@@ -239,20 +239,21 @@ struct LabyrinthProgressTests {
     }
 
     @Test func `map update preserves prior payload when reencoding same state`() throws {
-        let model = LabyrinthProgressModel()
-        var state = PlayerLabyrinthState.freshStart
-        state.ensureMap(seed: 77)
-        try model.update(from: state)
+        let root = PlayerSaveRoot()
+        var save = PlayerSave.fresh
+        save.labyrinth.ensureMap(seed: 77)
+        try root.update(from: save)
+        let model = try #require(root.labyrinth)
         let firstPayload = try #require(model.mapPayload)
 
-        try model.update(from: state)
+        try root.update(from: save)
         let secondPayload = try #require(model.mapPayload)
         let firstMap = try JSONDecoder().decode(LabyrinthMapPayload.self, from: firstPayload)
         let secondMap = try JSONDecoder().decode(LabyrinthMapPayload.self, from: secondPayload)
         #expect(secondMap == firstMap)
 
         let reloaded = model.toPlayerLabyrinthState()
-        #expect(reloaded.nodes.count == state.nodes.count)
+        #expect(reloaded.nodes.count == save.labyrinth.nodes.count)
         #expect(reloaded.worldSeed == 77)
     }
 
@@ -344,7 +345,9 @@ extension LabyrinthProgressTests {
 
 extension LabyrinthProgressTests {
     @Test func `corrupt map payload heals on sanitize rebuild`() throws {
+        let root = PlayerSaveRoot()
         let model = LabyrinthProgressModel()
+        root.labyrinth = model
         model.worldSeed = 55
         model.hasEntered = true
         let corruptBlob = Data("{not-valid-labyrinth-json".utf8)
@@ -362,9 +365,36 @@ extension LabyrinthProgressTests {
         #expect(!sanitized.isMapPayloadUnreadable)
         #expect(sanitized.worldSeed == 55)
 
-        try model.update(from: sanitized)
+        var save = PlayerSave.fresh
+        save.labyrinth = sanitized
+        try root.update(from: save)
         #expect(model.mapPayload != corruptBlob)
         #expect(!model.toPlayerLabyrinthState().isMapPayloadUnreadable)
+    }
+
+    @Test func `unreadable payload is preserved and compensation restores exact bytes`() throws {
+        let root = PlayerSaveRoot()
+        let model = LabyrinthProgressModel()
+        root.labyrinth = model
+        let opaque = Data("unreadable map".utf8)
+        model.mapPayload = opaque
+        var save = PlayerSave.fresh
+        save.labyrinth = model.toPlayerLabyrinthState()
+        let restore = PlayerSaveGraphWrite(restoring: save, slices: .labyrinth, root: root)
+
+        let write = try PlayerSaveGraphWrite(save: save, slices: .labyrinth)
+        root.apply(write)
+        #expect(model.mapPayload == opaque)
+
+        model.mapPayload = Data("replacement".utf8)
+        root.apply(restore)
+        #expect(model.mapPayload == opaque)
+
+        model.mapPayload = nil
+        let restoreEmpty = PlayerSaveGraphWrite(restoring: save, slices: .labyrinth, root: root)
+        model.mapPayload = opaque
+        root.apply(restoreEmpty)
+        #expect(model.mapPayload == nil)
     }
 
     @Test func `sanitize preserves current map progress and pinned mystery`() throws {

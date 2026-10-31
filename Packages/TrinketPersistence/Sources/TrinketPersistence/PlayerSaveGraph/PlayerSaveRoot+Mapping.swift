@@ -73,7 +73,7 @@ extension PlayerSaveRoot {
                 model.root = self
             case .labyrinth:
                 let model = labyrinth ?? LabyrinthProgressModel()
-                model.apply(save.labyrinth, payload: write.labyrinthPayload, preservingPayload: write.preservesLabyrinthPayload)
+                model.apply(save.labyrinth, payload: write.labyrinthPayload)
                 labyrinth = model
                 model.root = self
             case .contracts:

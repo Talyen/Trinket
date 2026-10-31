@@ -4,10 +4,14 @@ import TrinketContent
 /// Prepares every fallible payload before any SwiftData mutation. Applying or
 /// compensating a prepared write performs no serialization.
 struct PlayerSaveGraphWrite {
+    enum LabyrinthPayload {
+        case preserve
+        case replace(Data?)
+    }
+
     let save: PlayerSave
     let slices: PlayerSaveSlice
-    let labyrinthPayload: Data?
-    let preservesLabyrinthPayload: Bool
+    let labyrinthPayload: LabyrinthPayload
     let contractsPayload: Data?
     let voyagePayload: Data?
     let libraryPayload: Data?
@@ -16,8 +20,14 @@ struct PlayerSaveGraphWrite {
     init(save: PlayerSave, slices: PlayerSaveSlice) throws {
         self.save = save
         self.slices = slices
-        preservesLabyrinthPayload = save.labyrinth.isMapPayloadUnreadable
-        labyrinthPayload = slices.contains(.labyrinth) ? try Self.encodeLabyrinth(save.labyrinth) : nil
+        if slices.contains(.labyrinth), !save.labyrinth.isMapPayloadUnreadable {
+            labyrinthPayload = try .replace(JSONEncoder().encode(LabyrinthMapPayload(
+                clusters: save.labyrinth.clusters,
+                nodes: save.labyrinth.nodes.values.sorted { $0.id < $1.id },
+            )))
+        } else {
+            labyrinthPayload = .preserve
+        }
         let encoder = JSONEncoder()
         encoder.outputFormatting = .sortedKeys
         contractsPayload = slices.contains(.contracts) ? try encoder.encode(save.contracts) : nil
@@ -43,8 +53,7 @@ struct PlayerSaveGraphWrite {
     init(restoring save: PlayerSave, slices: PlayerSaveSlice, root: PlayerSaveRoot) {
         self.save = save
         self.slices = slices
-        preservesLabyrinthPayload = false
-        labyrinthPayload = slices.contains(.labyrinth) ? root.labyrinth?.mapPayload : nil
+        labyrinthPayload = slices.contains(.labyrinth) ? .replace(root.labyrinth?.mapPayload) : .preserve
         contractsPayload = slices.contains(.contracts) ? root.contractsPayload : nil
         voyagePayload = slices.contains(.voyage) ? root.voyagePayload : nil
         libraryPayload = slices.contains(.library) ? root.libraryPayload : nil
@@ -55,13 +64,5 @@ struct PlayerSaveGraphWrite {
             }
         }
         itemPowerPayloads = powers
-    }
-
-    static func encodeLabyrinth(_ state: PlayerLabyrinthState) throws -> Data? {
-        guard !state.isMapPayloadUnreadable else { return nil }
-        return try JSONEncoder().encode(LabyrinthMapPayload(
-            clusters: state.clusters,
-            nodes: state.nodes.values.sorted { $0.id < $1.id },
-        ))
     }
 }
