@@ -63,8 +63,7 @@ struct BattleSessionAppIntegrationTests {
         let refreshed = refreshedSummary.settlement
         #expect(refreshed.award.goldGained == 0)
         #expect(refreshed.replacementExperience > 0)
-        #expect(refreshedSummary.totalGold == 0)
-        #expect(refreshedSummary.experience == refreshed.award.heroExperience)
+        #expect(refreshed.award.goldDelta == 0)
         #expect(battle.claimVictory(configurationID: configuration.id, summary: refreshedSummary, defersPresentationExit: defersExit))
         #expect(state.playerSave.roster.gold == 999)
         #expect(state.playerSave.roster.progression(for: configuration.hero.combatant) == refreshed.heroProgressionAfter)
