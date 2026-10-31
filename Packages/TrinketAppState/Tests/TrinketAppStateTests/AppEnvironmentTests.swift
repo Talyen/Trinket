@@ -48,6 +48,18 @@ struct AppEnvironmentTests {
         #expect(!Self.parse(arguments: []).developmentUnlocked)
     }
 
+    @Test func `terminal Shop failure fixture requires an isolated development save`() {
+        let flag = "-terminal-shop-save-failure"
+        #expect(!Self.parse(arguments: [flag]).terminalShopFailureFixture)
+        let environment = Self.parse(arguments: ["-development-unlocked", flag, "-enable-cloud-sync"])
+        #if DEBUG
+        #expect(environment.terminalShopFailureFixture)
+        #expect(environment.disableCloudSync)
+        #else
+        #expect(!environment.terminalShopFailureFixture)
+        #endif
+    }
+
     private static let emptyEnvironment: [String: String] = [:]
 
     private static func parse(

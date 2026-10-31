@@ -83,6 +83,11 @@ extension AppState {
             play.startLaunchBattle()
         case .shop:
             play.startLaunchShop()
+            #if DEBUG
+            if environment.terminalShopFailureFixture, play.encounters.activeShopEncounter != nil {
+                playerSave.nextSaveFailure = .invalidSave("Terminal Shop failure fixture")
+            }
+            #endif
         case .mystery:
             play.startLaunchMystery(recruitEventID: environment.mysteryRecruitEventID)
         case .heroDetail, .companionDetail, .itemDetail, .options, .labyrinth, .labyrinthMap, .none:

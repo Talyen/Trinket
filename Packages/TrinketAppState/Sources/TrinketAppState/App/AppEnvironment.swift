@@ -10,6 +10,7 @@ public struct AppEnvironment: Sendable {
     public let seedTestProgress: Bool
     let developmentUnlocked: Bool
     let equipmentPickerFixture: Bool
+    let terminalShopFailureFixture: Bool
     public let skipStarterSelection: Bool
     public let disableCloudSync: Bool
     public let disableAudio: Bool
@@ -93,6 +94,7 @@ public struct AppEnvironment: Sendable {
             seedTestProgress: arguments.contains("-seed-test-progress"),
             developmentUnlocked: developmentUnlocked,
             equipmentPickerFixture: equipmentPickerFixture,
+            terminalShopFailureFixture: developmentUnlocked && arguments.contains("-terminal-shop-save-failure"),
             skipStarterSelection: arguments.contains("-skip-starter-selection"),
             disableCloudSync: disableCloudSync,
             disableAudio: arguments.contains("-disable-audio"),
