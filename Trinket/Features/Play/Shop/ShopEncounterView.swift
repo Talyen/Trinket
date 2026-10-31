@@ -22,6 +22,7 @@ struct ShopEncounterView: View {
     @State private var purchaseFeedbackTrigger = 0
     @State private var offerPurchaseTriggers: [String: Int] = [:]
     @State private var purchaseErrorFeedbackTrigger = 0
+    @State private var rejectedOfferID: String?
 
     private let columns = TrinketDesign.Layout.collectionGridItems
 
@@ -83,7 +84,8 @@ struct ShopEncounterView: View {
                     purchasePrice: offer.price,
                     canAfford: playerSave.roster.gold >= offer.price,
                     isPurchaseDisabled: playerSave.isRetryingSaveAction || session.isPurchasing || !availability(offer).canPurchase,
-                    purchaseButtonTitleOverride: isSoldOut(offer) ? String(localized: L10n.ui_shopencounterview_sold_out_5b92d) : nil,
+                    purchaseButtonTitleOverride: isSoldOut(offer) ? String(localized: L10n.ui_shopencounterview_sold_out_5b92d)
+                        : rejectedOfferID == offer.id ? String(localized: L10n.ui_trinketapp_retry_94208) : nil,
                     onPurchase: {
                         attemptPurchase(offerID: offer.id, dismissDetail: true)
                     },
@@ -174,7 +176,7 @@ struct ShopEncounterView: View {
             if soldOut {
                 Text(L10n.ui_shopencounterview_sold_b870b)
             } else {
-                Text(L10n.ui_shopencounterview_buy_64e3c)
+                Text(rejectedOfferID == offer.id ? L10n.ui_trinketapp_retry_94208 : L10n.ui_shopencounterview_buy_64e3c)
                 HomesteadResourceArtwork(resource: .gold)
                     .frame(
                         width: TrinketDesign.Layout.compactResourceArtworkSize * 0.8,
@@ -203,12 +205,14 @@ struct ShopEncounterView: View {
     }
 
     private func attemptPurchase(offerID: String, dismissDetail: Bool) {
+        rejectedOfferID = nil
         switch encounters.purchaseShopOffer(session: session, offerID: offerID) {
         case .committed:
             if dismissDetail {
                 selectedOffer = nil
             }
         case .rejected:
+            rejectedOfferID = offerID
             purchaseErrorFeedbackTrigger += 1
         case .retrying:
             break

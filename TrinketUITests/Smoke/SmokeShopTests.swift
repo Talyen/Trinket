@@ -2,6 +2,34 @@ import TrinketFeatureSupport
 import XCTest
 
 final class SmokeShopTests: TrinketUITestCase {
+    #if DEBUG
+    func testTerminalPurchaseFailureOffersRetryWithoutSpendingGold() throws {
+        launchApp(arguments: TestLaunchArg.allForScreen("shop")
+            + ["-development-unlocked", "-terminal-shop-save-failure", "-starting-gold", "200"])
+        let offers = app.buttons.matching(NSPredicate(format: "identifier ENDSWITH %@", AccessibilityID.Shop.offerCardSuffix))
+        let gold = app.descendants(matching: .any).matching(identifier: AccessibilityID.Shop.goldBalance).firstMatch
+        assertExists(gold)
+        let goldBefore = try integer(in: gold)
+        XCTAssertTrue(app.scrollUntilVisible(offers.firstMatch, swipingUp: true, requireHittable: true))
+        let offerID = offers.firstMatch.identifier
+        let gridBuy = button(AccessibilityID.Shop.buyButton(offerID: String(offerID.dropLast(AccessibilityID.Shop.offerCardSuffix.count))))
+        let price = try integer(in: gridBuy)
+        let initialGridLabel = gridBuy.label
+        tapWhenReady(offers.firstMatch)
+        let buy = button(AccessibilityID.Shop.detailBuyButton)
+        assertExists(buy)
+        let initialLabel = buy.label
+
+        tapWhenReady(buy)
+        waitUntil("A failed purchase must offer a visible retry") { buy.label != initialLabel }
+        dismissSheet(AccessibilityID.Shop.detailBuyButton)
+        XCTAssertEqual(try integer(in: gold), goldBefore)
+        XCTAssertNotEqual(gridBuy.label, initialGridLabel)
+        tapWhenReady(gridBuy)
+        waitUntil("A successful retry must debit its price") { (try? self.integer(in: gold)) == goldBefore - price }
+    }
+    #endif
+
     func testMerchantPurchasePaysAndReturnsToPlay() throws {
         launchApp(arguments: TestLaunchArg.allForScreen("shop")
             + TestLaunchArg.completedStages((1 ... 7).map { "chapter-2-stage-\($0)" })
