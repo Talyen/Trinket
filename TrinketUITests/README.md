@@ -55,6 +55,10 @@ remain available in the hosted diagnostics artifact after successful recovery.
 Common screen-entry arguments are `-launch-screen` and `-selectedTab`; state
 seeding uses `-completed-stages`, `-starting-gold`, and the reset/cloud-sync
 flags. Performance-only frame metrics are opt-in and never belong to smoke.
+For an isolated debug Shop failure, launch with `--unlocked -- -launch-screen shop
+-starting-gold 100000 -terminal-shop-save-failure` through `run-simulator.sh`.
+The first purchase fails without changing the save; the next can succeed. The
+fixture requires the separate development save and is unavailable in release builds.
 
 Keep default launch args unless testing persistence. Prefer `AccessibilityID`
 selectors and assert with `assertExists`; use visible text only when it is the
