@@ -71,6 +71,21 @@ struct VoyagePersistenceTests {
         #expect(save.voyage.activeRun?.earnedGold == Int.max)
         #expect(save.voyage.activeRun?.earnedMaterials[.wood] == Int.max)
         #expect(save.contracts.highestWonEncounterLevel == 12)
+
+        let clearedBattle = try #require(battles.first)
+        let hero = save.roster.activeHero
+        let companion = save.roster.activeCompanion
+        let settled = plan.settle(
+            battleGold: .init(),
+            inputs: RewardSettlementInputs(save: save, hero: hero, companion: companion),
+            materials: [],
+        )
+        let claimed = save
+        #expect(VoyageCompletion.completeBattle(
+            runID: run.id, nodeID: clearedBattle.id, party: (hero, companion),
+            rewards: (settled: settled, earned: earned, encounterLevel: 12), save: &save, access: .free,
+        ) == .alreadyCompleted)
+        #expect(save == claimed)
     }
 
     @Test func `board access and run lifecycle`() throws {

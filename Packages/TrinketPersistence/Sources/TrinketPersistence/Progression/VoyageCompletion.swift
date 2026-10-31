@@ -16,6 +16,12 @@ enum VoyageCompletion {
         save: inout PlayerSave, access: ContentAccessPolicy,
     ) -> EncounterCompletion {
         let (hero, companion) = party
+        if save.voyage.completedRunIDs?.contains(runID) == true {
+            return .alreadyCompleted
+        }
+        if let node = save.voyage.node(runID: runID, nodeID: nodeID), node.type.isCombat, node.isCleared {
+            return .alreadyCompleted
+        }
         guard save.voyage.isPlayable(runID: runID, nodeID: nodeID),
               let node = save.voyage.node(runID: runID, nodeID: nodeID), node.type.isCombat else { return .unavailable }
         let earned = rewards.earned

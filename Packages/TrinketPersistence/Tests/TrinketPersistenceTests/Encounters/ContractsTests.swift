@@ -112,6 +112,12 @@ struct ContractBoardTests {
                 battleGold: .init(gained: 5), loot: loot, enemyEncounterLevel: level,
             )), save: &save,
         ) == .alreadyCompleted)
+        #expect(ContractsCompletion.complete(
+            offerID: "unrecognized-contract-offer", hero: hero, companion: companion,
+            rewards: .unsettled(.init(
+                battleGold: .init(gained: 5), loot: loot, enemyEncounterLevel: level,
+            )), save: &save,
+        ) == .unavailable)
         #expect(save == claimed)
     }
 

@@ -116,6 +116,27 @@ struct EncounterLootTests {
         #expect(raised.gold > atDepth.gold)
     }
 
+    @Test func `labyrinth boss node retains boss loot scaling for non-standard enemy`() throws {
+        let nonBossEnemy = try #require(GameContent.enemies.first { !$0.isBoss })
+        let bossNode = LabyrinthNode(
+            id: "boss-node",
+            type: .boss,
+            enemyID: nonBossEnemy.id,
+            depth: 5,
+            clusterID: "cluster",
+        )
+        let battleNode = LabyrinthNode(
+            id: "battle-node",
+            type: .battle,
+            enemyID: nonBossEnemy.id,
+            depth: 5,
+            clusterID: "cluster",
+        )
+        let bossLoot = try #require(BattleLootContext(worldSeed: 42).labyrinth(for: bossNode, effects: .zero, encounterLevel: 10))
+        let battleLoot = try #require(BattleLootContext(worldSeed: 42).labyrinth(for: battleNode, effects: .zero, encounterLevel: 10))
+        #expect(bossLoot.gold == 2 * battleLoot.gold)
+    }
+
     private func modeLoot(modifier: RewardModifier, ownership: RewardOwnership) throws -> [BattleLootResult] {
         let enemy = try #require(GameContent.enemies.first { !$0.isBoss })
         let ids = [NodeModifierCatalog.rewardID(modifier)]
