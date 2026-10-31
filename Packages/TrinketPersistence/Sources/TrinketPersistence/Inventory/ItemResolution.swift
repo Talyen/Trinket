@@ -65,11 +65,6 @@ enum ItemResolution {
         return Set(values.lazy.compactMap(Keyword.init(rawValue:)))
     }
 
-    static func decodeKeywordSet(_ decoder: Decoder) throws -> Set<Keyword> {
-        let values = try [String](from: decoder)
-        return Set(values.lazy.compactMap(Keyword.init(rawValue:)))
-    }
-
     /// Trinket-authoritative overwrite for the SwiftData codec. Returns the
     /// catalog item (preserving stored corruption) with powers dropped when
     /// the affix list is replaced, or nil when no overwrite applies.

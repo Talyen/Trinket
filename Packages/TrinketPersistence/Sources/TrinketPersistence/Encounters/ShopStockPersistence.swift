@@ -99,9 +99,9 @@ public enum ShopStockPersistence {
         if incoming == existing {
             return !first.stock.purchasedOfferIDs.isSubset(of: priorIDs)
         }
-        return !first.matchingPurchases(in: second)
-            .intersection(first.stock.purchasedOfferIDs)
-            .subtracting(priorIDs).isEmpty
+        return first.matchingPurchases(in: second).contains {
+            first.stock.purchasedOfferIDs.contains($0) && !priorIDs.contains($0)
+        }
     }
 
     static func setPayload(_ data: Data, encounter: EncounterIdentity, save: inout PlayerSave) {
