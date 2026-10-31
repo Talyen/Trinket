@@ -69,6 +69,9 @@ public extension ItemAffixPower {
             triggerRollRanges: rangeMultiplier == 1 ? triggerRollRanges : triggerRollRanges.mapValues {
                 ($0.lowerBound * Double(rangeMultiplier)) ... ($0.upperBound * Double(rangeMultiplier))
             },
+            modifierRollRanges: rangeMultiplier == 1 ? modifierRollRanges : modifierRollRanges.mapValues {
+                ($0.lowerBound * Double(rangeMultiplier)) ... ($0.upperBound * Double(rangeMultiplier))
+            },
         )
     }
 
@@ -140,8 +143,11 @@ public extension ItemAffixPower {
     }
 
     private func explicitRange(for target: BumpTarget) -> ClosedRange<Double>? {
-        guard case let .trigger(index) = target else { return nil }
-        guard let range = triggerRollRanges[CombatTraitTriggers.affixMagnitudeFields[index].field],
+        let range: ClosedRange<Double>? = switch target {
+        case let .modifier(index): modifierRollRanges[index]
+        case let .trigger(index): triggerRollRanges[CombatTraitTriggers.affixMagnitudeFields[index].field]
+        }
+        guard let range,
               range.lowerBound.isFinite, range.upperBound.isFinite,
               range.lowerBound > 0, range.upperBound < Double(Int.max) / 100 else { return nil }
         return range

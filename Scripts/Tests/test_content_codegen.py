@@ -84,6 +84,21 @@ class ContentCodegenTests(ScriptRegressionTestCase):
             with self.subTest(bounds=bounds), self.assertRaises(ValueError):
                 validate_affix_rows([replace(row, basic_roll_ranges=bounds)])
 
+    def test_affix_modifier_ranges_validate_and_render(self) -> None:
+        from dataclasses import replace
+        from internal.content.items import AffixRow, roll_ranges_swift, validate_affix_rows
+
+        row = AffixRow("test", "Test", "weapon", "bleed", "8", "Basic", "Astral",
+                       "bleed_duration:1", "bleed_duration:2", "", "",
+                       "modifier0:1:1", "modifier0:1:2")
+        validate_affix_rows([row])
+        self.assertEqual(roll_ranges_swift(row.astral_roll_ranges), ", modifierRollRanges: [0: 1 ... 2]")
+        for bounds in ("modifier1:1:2", "modifier0:1.5:2", "modifier0:2:3", "modifier01:1:2"):
+            with self.subTest(bounds=bounds), self.assertRaises(ValueError):
+                validate_affix_rows([replace(row, basic_roll_ranges=bounds)])
+        with self.assertRaisesRegex(ValueError, "integer modifier"):
+            validate_affix_rows([replace(row, basic_modifiers="leech_gained_percent:0.1", basic_roll_ranges="modifier0:1:2")])
+
     def test_item_manifests_reject_unusable_catalog_entries(self) -> None:
         from dataclasses import replace
         from internal.content.items import ItemBaseRow, validate_item_base_rows

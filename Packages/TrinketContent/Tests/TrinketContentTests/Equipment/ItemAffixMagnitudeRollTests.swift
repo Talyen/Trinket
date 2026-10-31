@@ -1,9 +1,97 @@
+import Foundation
 import Testing
-import TrinketContent
 import TrinketContentTestSupport
 import TrinketCore
+@testable import TrinketContent
 
 struct ItemAffixMagnitudeRollTests {
+    @Test func `Lingering rolls within its authored modifier ranges and retains saved bounds`() throws {
+        let lingering = try #require(GameContent.itemAffixDefinition(matching: "lingering"))
+        var rng = SeededRandomNumberGenerator(seed: 53)
+        let basic = Set((0 ..< 50).map { _ in lingering.basic.rolled(using: &rng).modifiers })
+        let astral = Set((0 ..< 50).map { _ in lingering.astral.rolled(using: &rng).modifiers })
+        #expect(basic == [[.bleedDuration(1)]])
+        #expect(astral == [[.bleedDuration(1)], [.bleedDuration(2)]])
+        #expect(lingering.astral.rolledMin().modifiers == [.bleedDuration(1)])
+        #expect(lingering.astral.rolledMax().modifiers == [.bleedDuration(2)])
+        #expect(lingering.astral.scaled(by: 2).rolledMax().modifiers == [.bleedDuration(4)])
+        let restored = try #require(ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([lingering.astral])).first)
+        #expect(restored == lingering.astral)
+        #expect(restored.rolledMax().modifiers == [.bleedDuration(2)])
+
+        let old = ItemAffixPower(description: "Bleed lasts 3 additional turns", modifiers: [.bleedDuration(3)])
+        let oldPowers = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([old]))
+        let savedItem = try ItemFixtures.makeBareItem("crossbow", affixes: [lingering.resolved(for: .astral)], affixPowers: oldPowers)
+        #expect(savedItem.resolvedPower(at: 0)?.modifiers == [.bleedDuration(6)])
+        #expect(savedItem.affixPowers == oldPowers)
+    }
+
+    @Test func `saved modifier ranges follow surviving modifiers when an unknown case is discarded`() throws {
+        let lingering = try #require(GameContent.itemAffixDefinition(matching: "lingering"))
+        let encoded = try ItemAffixPowerCoding.encode([lingering.astral])
+        var powers = try #require(JSONSerialization.jsonObject(with: encoded) as? [[String: Any]])
+        var modifiers = try #require(powers[0]["modifiers"] as? [Any])
+        modifiers.insert(["futureModifier": ["_0": 1]], at: 0)
+        powers[0]["modifiers"] = modifiers
+        var ranges = try #require(powers[0]["modifierRollRanges"] as? [String: Any])
+        ranges["1"] = ranges.removeValue(forKey: "0")
+        powers[0]["modifierRollRanges"] = ranges
+        let restored = try #require(ItemAffixPowerCoding.decode(JSONSerialization.data(withJSONObject: powers)).first)
+        #expect(restored.modifiers == [.bleedDuration(2)])
+        #expect(restored.rolledMax().modifiers == [.bleedDuration(2)])
+    }
+
+    @Test(arguments: [(Rarity.basic, "dagger", 1), (.astral, "crossbow", 4)])
+    func `saved Shredding gains damage without changing its stored bypass roll`(
+        rarity: Rarity, baseID: String, expectedDamage: Int,
+    ) throws {
+        let definition = try #require(GameContent.itemAffixDefinition(matching: "shredding"))
+        let old = ItemAffixPower(
+            description: "Old Shredding", modifiers: [.maximumHealth(3)],
+            triggers: CombatTraitTriggers { $0.ignoreEnemyMitigationPercent = 0.12 },
+        )
+        let oldPowers = try ItemAffixPowerCoding.decode(ItemAffixPowerCoding.encode([old]))
+        let item = try ItemFixtures.makeBareItem(
+            baseID,
+            rarity: rarity,
+            affixes: [definition.resolved(for: rarity)],
+            affixPowers: oldPowers,
+        )
+        let power = try #require(item.resolvedPower(at: 0))
+        let multiplier = item.baseType.affixPowerMultiplier
+        let unscaledDamage = rarity == .basic ? 1 : 2
+        #expect(item.unscaledPower(at: 0)?
+            .description == "Deal \(unscaledDamage) bonus Physical damage\nYour Physical damage ignores 12% of enemy damage reduction")
+        #expect(power.modifiers.contains(.damageDealt(.physical, expectedDamage)))
+        #expect(power.modifiers.contains(.maximumHealth(3 * multiplier)))
+        #expect(power.triggers.physicalIgnoreMitigationPercent == 0.12 * Double(multiplier))
+        #expect(power.triggers.ignoreEnemyMitigationPercent == 0)
+        #expect(power
+            .description ==
+            "Deal \(expectedDamage) bonus Physical damage\nYour Physical damage ignores \(12 * multiplier)% of enemy damage reduction")
+        #expect(item.affixPowers == oldPowers)
+    }
+
+    @Test func `new Shredding rolls its damage and retains it on equipped items`() throws {
+        let definition = try #require(GameContent.itemAffixDefinition(matching: "shredding"))
+        #expect(definition.basic.rolledMin().modifiers == [.damageDealt(.physical, 1)])
+        #expect(definition.basic.rolledMax().modifiers == [.damageDealt(.physical, 2)])
+        #expect(definition.astral.rolledMin().modifiers == [.damageDealt(.physical, 1)])
+        #expect(definition.astral.rolledMax().modifiers == [.damageDealt(.physical, 3)])
+        let item = try ItemFixtures.makeBareItem(
+            "crossbow", rarity: .astral, affixes: [definition.resolved(for: .astral)], affixPowers: [definition.astral.rolledMax()],
+        )
+        let power = try #require(item.resolvedPower(at: 0))
+        #expect(power.modifiers == [.damageDealt(.physical, 6)])
+        #expect(power.triggers.physicalIgnoreMitigationPercent == 0.6)
+        #expect(power.description == "Deal 6 bonus Physical damage\nYour Physical damage ignores 60% of enemy damage reduction")
+        let english = ContentCopy.description(power.description, locale: Locale(identifier: "en"))
+        let japanese = ContentCopy.description(power.description, locale: Locale(identifier: "ja"))
+        #expect(english.values == ["quantity_1": 6, "quantity_2": 60])
+        #expect(japanese.values == english.values)
+        #expect(japanese.text != english.text)
+    }
+
     @Test func `percentage roll bounds match the selectable values`() throws {
         for points in Array(stride(from: 1, through: 500, by: 7)) + [3999, 4000, 40000] {
             let magnitude = Double(points) / 100

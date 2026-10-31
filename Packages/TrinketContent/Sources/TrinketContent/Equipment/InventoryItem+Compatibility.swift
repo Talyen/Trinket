@@ -1,10 +1,31 @@
 import TrinketCore
 
 extension InventoryItem {
+    static func migratedShreddingPower(_ power: ItemAffixPower, affixID: String, rarity: Rarity) -> ItemAffixPower {
+        guard affixID == "shredding", !power.modifiers.contains(where: {
+            if case .damageDealt(.physical, _) = $0 {
+                return true
+            }
+            return false
+        }) else { return power }
+        let amount = rarity == .basic ? 1 : 2
+        let migrated = power.replacing(description: power.description, modifiers: power.modifiers + [.damageDealt(.physical, amount)])
+        return normalizedRulePower(migrated, affixID: affixID)
+    }
+
     /// Typed adapter required by the localization inventory for compatibility
     /// descriptions; the rounding itself lives in `CombatRounding.wholePercent`.
     private static func wholePercent(_ fraction: Double) -> Int {
         CombatRounding.wholePercent(fraction)
+    }
+
+    private static func shreddingValues(_ power: ItemAffixPower) -> (damage: Int, bypass: Double)? {
+        let bypass = max(power.triggers.ignoreEnemyMitigationPercent, power.triggers.physicalIgnoreMitigationPercent)
+        guard bypass > 0 else { return nil }
+        for case let .damageDealt(.physical, amount) in power.modifiers {
+            return (amount, bypass)
+        }
+        return nil
     }
 
     static func normalizedPower(_ original: ItemAffixPower, affixID: String) -> ItemAffixPower {
@@ -46,13 +67,12 @@ extension InventoryItem {
         case "beastbond":
             return Self.normalizedBeastbond(original)
         case "shredding":
-            let actual = max(triggers.ignoreEnemyMitigationPercent, triggers.physicalIgnoreMitigationPercent)
-            guard actual > 0 else { return original }
-            description = "Your Physical damage ignores \(Self.wholePercent(actual))% of enemy damage reduction"
+            guard let (actual, bypass) = Self.shreddingValues(original) else { return original }
+            description = "Deal \(actual) bonus Physical damage\nYour Physical damage ignores \(Self.wholePercent(bypass))% of enemy damage reduction"
             if triggers.physicalIgnoreMitigationPercent >= triggers.ignoreEnemyMitigationPercent, original.description == description {
                 return original
             }
-            triggers.physicalIgnoreMitigationPercent = actual
+            triggers.physicalIgnoreMitigationPercent = bypass
             triggers.ignoreEnemyMitigationPercent = 0
         case "groves_favor":
             guard triggers.healthPerTurn > 0 else { return original }
@@ -225,7 +245,7 @@ private extension ItemAffixPower {
     ) -> Self {
         Self(
             description: description, modifiers: modifiers ?? self.modifiers,
-            triggers: triggers ?? self.triggers, triggerRollRanges: triggerRollRanges,
+            triggers: triggers ?? self.triggers, triggerRollRanges: triggerRollRanges, modifierRollRanges: modifierRollRanges,
         )
     }
 }

@@ -61,7 +61,9 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
     /// Stored rolls take precedence; older items can fall back to the catalog.
     func unscaledPower(at affixIndex: Int) -> ItemAffixPower? {
         if let affixPowers, affixPowers.indices.contains(affixIndex) {
-            return affixPowers[affixIndex]
+            let power = affixPowers[affixIndex]
+            guard affixes.indices.contains(affixIndex) else { return power }
+            return Self.migratedShreddingPower(power, affixID: affixes[affixIndex].id, rarity: rarity)
         }
         guard affixes.indices.contains(affixIndex) else { return nil }
         return GameContent.itemAffixDefinition(matching: affixes[affixIndex].id)?.power(for: rarity)
@@ -110,7 +112,8 @@ public struct InventoryItem: Identifiable, Equatable, Hashable, Sendable {
         else {
             return false
         }
-        let power = Self.normalizedPower(storedPowers[index], affixID: affixes[index].id)
+        guard let unscaled = unscaledPower(at: index) else { return false }
+        let power = Self.normalizedPower(unscaled, affixID: affixes[index].id)
         return power.isAtOrAboveRollMax(of: definition.power(for: rarity))
     }
 

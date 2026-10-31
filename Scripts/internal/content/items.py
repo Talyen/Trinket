@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
+import re
 
 from internal.content.common import (
     AFFIX_REQUIRED_COLUMNS,
@@ -22,8 +23,10 @@ from internal.content.common import (
 )
 from internal.content.content_codegen_modifiers import VALID_KEYWORDS
 from internal.content.content_codegen_modifiers import modifiers_swift
+from internal.content.content_codegen_modifiers import parse_modifier_tokens
 from internal.content.content_codegen_triggers import triggers_swift
 from internal.content.affix_rolling import validate_affix_rolling
+from internal.content.modifier_schema import modifier_definitions
 
 
 VALID_SLOTS = frozenset({"weapon", "armor", "accessory", "trinket"})
@@ -122,11 +125,26 @@ def parse_roll_ranges(raw: str) -> dict[str, tuple[Decimal, Decimal]]:
     return ranges
 
 
-def validate_roll_ranges(raw: str, triggers: str, row_id: str) -> None:
+def validate_roll_ranges(raw: str, modifiers: str, triggers: str, row_id: str) -> None:
     from internal.content.content_codegen_triggers import _trigger_families, parse_trigger_values
     fields = {field['name']: field for family in _trigger_families() for field in family['fields']}
     populated = parse_trigger_values(triggers, row_id)
+    modifier_tokens = parse_modifier_tokens(modifiers)
+    modifier_types = {definition['token']: definition['type'] for definition in modifier_definitions()}
     for name, (lower, upper) in parse_roll_ranges(raw).items():
+        modifier = re.fullmatch(r'modifier(0|[1-9][0-9]*)', name)
+        if modifier:
+            index = int(modifier.group(1))
+            if index >= len(modifier_tokens):
+                raise ValueError(f"{row_id}: roll range needs a populated modifier: {name}")
+            token = modifier_tokens[index]
+            if modifier_types[token.split(':', 1)[0]] != 'Int':
+                raise ValueError(f"{row_id}: modifier roll bounds require an integer modifier: {name}")
+            if any(value != value.to_integral_value() for value in (lower, upper)):
+                raise ValueError(f"{row_id}: modifier roll bounds must be whole numbers: {name}")
+            if not lower <= Decimal(token.rsplit(':', 1)[-1]) <= upper:
+                raise ValueError(f"{row_id}: catalog magnitude falls outside roll range: {name}")
+            continue
         policy = fields.get(name, {}).get('affix_roll', {})
         if name not in populated or 'kind' not in policy:
             raise ValueError(f"{row_id}: roll range needs a populated rollable field: {name}")
@@ -139,10 +157,16 @@ def validate_roll_ranges(raw: str, triggers: str, row_id: str) -> None:
 
 def roll_ranges_swift(raw: str) -> str:
     ranges = parse_roll_ranges(raw)
-    if not ranges:
-        return ""
-    entries = ", ".join(f".{name}: {lower} ... {upper}" for name, (lower, upper) in ranges.items())
-    return f", triggerRollRanges: [{entries}]"
+    triggers = [(name, bounds) for name, bounds in ranges.items() if not re.fullmatch(r'modifier(0|[1-9][0-9]*)', name)]
+    modifiers = [(name[8:], bounds) for name, bounds in ranges.items() if re.fullmatch(r'modifier(0|[1-9][0-9]*)', name)]
+    result = ""
+    if triggers:
+        entries = ", ".join(f".{name}: {lower} ... {upper}" for name, (lower, upper) in triggers)
+        result += f", triggerRollRanges: [{entries}]"
+    if modifiers:
+        entries = ", ".join(f"{index}: {lower} ... {upper}" for index, (lower, upper) in modifiers)
+        result += f", modifierRollRanges: [{entries}]"
+    return result
 
 
 def parse_keywords(raw: str) -> str:
@@ -168,7 +192,7 @@ def validate_affix_rows(rows: list[AffixRow]) -> None:
             modifiers_swift(modifiers, row.id)
             # Rolling validation also parses and type-checks every trigger.
             validate_affix_rolling(triggers, row.id)
-            validate_roll_ranges(ranges, triggers, row.id)
+            validate_roll_ranges(ranges, modifiers, triggers, row.id)
 
 
 def validate_item_base_rows(rows: list[ItemBaseRow]) -> None:

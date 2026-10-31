@@ -1522,12 +1522,12 @@ enum L10n {
         LocalizedStringResource("affixes.shattering.title", defaultValue: "Shattering", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func affixes_shredding_astral_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.shredding.astral_description", defaultValue: "Your <keyword id=\"physical\">Physical</keyword> damage ignores <value id=\"quantity_1\">\(value1)</value>% of enemy damage reduction", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static func affixes_shredding_astral_description(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
+        LocalizedStringResource("affixes.shredding.astral_description", defaultValue: "Deal <value id=\"quantity_1\">\(value1)</value> bonus <keyword id=\"physical\">Physical</keyword> damage. Your <keyword id=\"physical\">Physical</keyword> damage ignores <value id=\"quantity_2\">\(value2)</value>% of enemy damage reduction", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func affixes_shredding_basic_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.shredding.basic_description", defaultValue: "Your <keyword id=\"physical\">Physical</keyword> damage ignores <value id=\"quantity_1\">\(value1)</value>% of enemy damage reduction", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static func affixes_shredding_basic_description(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
+        LocalizedStringResource("affixes.shredding.basic_description", defaultValue: "Deal <value id=\"quantity_1\">\(value1)</value> bonus <keyword id=\"physical\">Physical</keyword> damage. Your <keyword id=\"physical\">Physical</keyword> damage ignores <value id=\"quantity_2\">\(value2)</value>% of enemy damage reduction", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var affixes_shredding_title: LocalizedStringResource {
@@ -3810,8 +3810,8 @@ enum L10n {
         LocalizedStringResource("authored.ea47cfb1b4c62e70", defaultValue: "Feint", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static func authored_ed3d3375c0b3d283(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("authored.ed3d3375c0b3d283", defaultValue: "Your <keyword id=\"physical\">Physical</keyword> damage ignores <value id=\"quantity_1\">\(value1)</value>% of enemy damage reduction", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    static func authored_ed3d3375c0b3d283(_ value1: Int, _ value2: Int) -> LocalizedStringResource {
+        LocalizedStringResource("authored.ed3d3375c0b3d283", defaultValue: "Deal <value id=\"quantity_1\">\(value1)</value> bonus <keyword id=\"physical\">Physical</keyword> damage\nYour <keyword id=\"physical\">Physical</keyword> damage ignores <value id=\"quantity_2\">\(value2)</value>% of enemy damage reduction", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var authored_edcdd353607a7598: LocalizedStringResource {

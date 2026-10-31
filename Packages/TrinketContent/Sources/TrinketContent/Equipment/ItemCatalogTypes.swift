@@ -98,6 +98,7 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
     public let modifiers: [AffixModifier]
     public var triggers: CombatTraitTriggers
     let triggerRollRanges: [CombatTriggerField: ClosedRange<Double>]
+    let modifierRollRanges: [Int: ClosedRange<Double>]
 
     public init(
         description: String,
@@ -105,10 +106,27 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
         triggers: CombatTraitTriggers = CombatTraitTriggers(),
         triggerRollRanges: [CombatTriggerField: ClosedRange<Double>] = [:],
     ) {
+        self.init(
+            description: description,
+            modifiers: modifiers,
+            triggers: triggers,
+            triggerRollRanges: triggerRollRanges,
+            modifierRollRanges: [:],
+        )
+    }
+
+    init(
+        description: String,
+        modifiers: [AffixModifier] = [],
+        triggers: CombatTraitTriggers = CombatTraitTriggers(),
+        triggerRollRanges: [CombatTriggerField: ClosedRange<Double>] = [:],
+        modifierRollRanges: [Int: ClosedRange<Double>],
+    ) {
         self.description = description
         self.modifiers = modifiers
         self.triggers = triggers
         self.triggerRollRanges = triggerRollRanges
+        self.modifierRollRanges = modifierRollRanges
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -116,6 +134,7 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
         case modifiers
         case triggers
         case triggerRollRanges
+        case modifierRollRanges
     }
 
     public init(from decoder: Decoder) throws {
@@ -127,12 +146,26 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
                 value = try? AffixModifier(from: decoder)
             }
         }
-        // Unknown cases are discarded individually; non-array payloads have no modifiers.
-        modifiers = (try? container.decode([Failable].self, forKey: .modifiers))?.compactMap(\.value) ?? []
+        // Unknown cases are discarded individually; keep range indices aligned with surviving modifiers.
+        let decodedModifiers = (try? container.decode([Failable].self, forKey: .modifiers)) ?? []
+        var survivingIndices: [Int: Int] = [:]
+        var survivingModifiers: [AffixModifier] = []
+        for (index, decoded) in decodedModifiers.enumerated() {
+            guard let value = decoded.value else { continue }
+            survivingIndices[index] = survivingModifiers.count
+            survivingModifiers.append(value)
+        }
+        modifiers = survivingModifiers
         triggers = try container.decode(CombatTraitTriggers.self, forKey: .triggers)
         let ranges = try container.decodeIfPresent([String: ClosedRange<Double>].self, forKey: .triggerRollRanges) ?? [:]
         triggerRollRanges = Dictionary(uniqueKeysWithValues: ranges.lazy.compactMap { key, range in
             CombatTriggerField(rawValue: key).map { ($0, range) }
+        })
+        let modifierRanges = try container.decodeIfPresent([String: ClosedRange<Double>].self, forKey: .modifierRollRanges) ?? [:]
+        modifierRollRanges = Dictionary(uniqueKeysWithValues: modifierRanges.lazy.compactMap { key, range in
+            guard let index = Int(key), index >= 0, String(index) == key,
+                  let survivingIndex = survivingIndices[index] else { return nil }
+            return (survivingIndex, range)
         })
     }
 
@@ -144,6 +177,10 @@ public struct ItemAffixPower: Codable, Equatable, Hashable, Sendable {
         if !triggerRollRanges.isEmpty {
             let ranges = Dictionary(uniqueKeysWithValues: triggerRollRanges.lazy.map { ($0.key.rawValue, $0.value) })
             try container.encode(ranges, forKey: .triggerRollRanges)
+        }
+        if !modifierRollRanges.isEmpty {
+            let ranges = Dictionary(uniqueKeysWithValues: modifierRollRanges.lazy.map { (String($0.key), $0.value) })
+            try container.encode(ranges, forKey: .modifierRollRanges)
         }
     }
 }

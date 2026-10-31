@@ -5325,28 +5325,28 @@
       "comment": "ContentManifest/affixes.tsv: shredding, astral_description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Dein <keyword id=\"physical\">physischer</keyword> Schaden ignoriert <value id=\"quantity_1\">%1$lld</value>%% der gegnerischen Schadensreduktion"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Your <keyword id=\"physical\">Physical</keyword> damage ignores <value id=\"quantity_1\">%1$lld</value>%% of enemy damage reduction"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Tu daño <keyword id=\"physical\">físico</keyword> ignora un <value id=\"quantity_1\">%1$lld</value>%% de la reducción de daño del enemigo"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Vos dégâts de type <keyword id=\"physical\">Physique</keyword> ignorent <value id=\"quantity_1\">%1$lld</value>%% de la réduction des dégâts ennemie"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "自分の<keyword id=\"physical\">物理</keyword>ダメージが敵のダメージ軽減を<value id=\"quantity_1\">%1$lld</value>%%無視"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "내 <keyword id=\"physical\">물리</keyword> 피해가 적의 피해 감소 <value id=\"quantity_1\">%1$lld</value>%% 무시"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Seu dano <keyword id=\"physical\">Físico</keyword> ignora <value id=\"quantity_1\">%1$lld</value>%% da redução de dano inimiga"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "自身<keyword id=\"physical\">物理</keyword>傷害無視敵人<value id=\"quantity_1\">%1$lld</value>%%的傷害減免"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Verursache <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"physical\">physischen</keyword> Schaden. Dein <keyword id=\"physical\">physischer</keyword> Schaden ignoriert <value id=\"quantity_2\">%2$lld</value>%% der gegnerischen Schadensreduktion"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Deal <value id=\"quantity_1\">%1$lld</value> bonus <keyword id=\"physical\">Physical</keyword> damage. Your <keyword id=\"physical\">Physical</keyword> damage ignores <value id=\"quantity_2\">%2$lld</value>%% of enemy damage reduction"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"physical\">físico</keyword> adicional. Tu daño <keyword id=\"physical\">físico</keyword> ignora un <value id=\"quantity_2\">%2$lld</value>%% de la reducción de daño del enemigo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Infligez des dégâts supplémentaires de type <keyword id=\"physical\">Physique</keyword> : <value id=\"quantity_1\">%1$lld</value>. Vos dégâts de type <keyword id=\"physical\">Physique</keyword> ignorent <value id=\"quantity_2\">%2$lld</value>%% de la réduction des dégâts des ennemis"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "追加で<value id=\"quantity_1\">%1$lld</value>の<keyword id=\"physical\">物理</keyword>ダメージを与える。自分の<keyword id=\"physical\">物理</keyword>ダメージは敵のダメージ軽減を<value id=\"quantity_2\">%2$lld</value>%%無視する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">물리</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value>만큼 추가로 줍니다. 내 <keyword id=\"physical\">물리</keyword> 피해가 적의 피해 감소를 <value id=\"quantity_2\">%2$lld</value>%% 무시합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cause <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"physical\">Físico</keyword> adicional. Seu dano <keyword id=\"physical\">Físico</keyword> ignora <value id=\"quantity_2\">%2$lld</value>%% da redução de dano inimiga"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "額外造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"physical\">物理</keyword>傷害。自身<keyword id=\"physical\">物理</keyword>傷害無視敵人<value id=\"quantity_2\">%2$lld</value>%%的傷害減免"}}
       }
     },
     "affixes.shredding.basic_description": {
       "comment": "ContentManifest/affixes.tsv: shredding, basic_description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Dein <keyword id=\"physical\">physischer</keyword> Schaden ignoriert <value id=\"quantity_1\">%1$lld</value>%% der gegnerischen Schadensreduktion"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Your <keyword id=\"physical\">Physical</keyword> damage ignores <value id=\"quantity_1\">%1$lld</value>%% of enemy damage reduction"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Tu daño <keyword id=\"physical\">físico</keyword> ignora un <value id=\"quantity_1\">%1$lld</value>%% de la reducción de daño del enemigo"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Vos dégâts de type <keyword id=\"physical\">Physique</keyword> ignorent <value id=\"quantity_1\">%1$lld</value>%% de la réduction des dégâts ennemie"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "自分の<keyword id=\"physical\">物理</keyword>ダメージが敵のダメージ軽減を<value id=\"quantity_1\">%1$lld</value>%%無視"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "내 <keyword id=\"physical\">물리</keyword> 피해가 적의 피해 감소 <value id=\"quantity_1\">%1$lld</value>%% 무시"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Seu dano <keyword id=\"physical\">Físico</keyword> ignora <value id=\"quantity_1\">%1$lld</value>%% da redução de dano inimiga"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "自身<keyword id=\"physical\">物理</keyword>傷害無視敵人<value id=\"quantity_1\">%1$lld</value>%%的傷害減免"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Verursache <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"physical\">physischen</keyword> Schaden. Dein <keyword id=\"physical\">physischer</keyword> Schaden ignoriert <value id=\"quantity_2\">%2$lld</value>%% der gegnerischen Schadensreduktion"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Deal <value id=\"quantity_1\">%1$lld</value> bonus <keyword id=\"physical\">Physical</keyword> damage. Your <keyword id=\"physical\">Physical</keyword> damage ignores <value id=\"quantity_2\">%2$lld</value>%% of enemy damage reduction"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"physical\">físico</keyword> adicional. Tu daño <keyword id=\"physical\">físico</keyword> ignora un <value id=\"quantity_2\">%2$lld</value>%% de la reducción de daño del enemigo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Infligez des dégâts supplémentaires de type <keyword id=\"physical\">Physique</keyword> : <value id=\"quantity_1\">%1$lld</value>. Vos dégâts de type <keyword id=\"physical\">Physique</keyword> ignorent <value id=\"quantity_2\">%2$lld</value>%% de la réduction des dégâts des ennemis"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "追加で<value id=\"quantity_1\">%1$lld</value>の<keyword id=\"physical\">物理</keyword>ダメージを与える。自分の<keyword id=\"physical\">物理</keyword>ダメージは敵のダメージ軽減を<value id=\"quantity_2\">%2$lld</value>%%無視する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">물리</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value>만큼 추가로 줍니다. 내 <keyword id=\"physical\">물리</keyword> 피해가 적의 피해 감소를 <value id=\"quantity_2\">%2$lld</value>%% 무시합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cause <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"physical\">Físico</keyword> adicional. Seu dano <keyword id=\"physical\">Físico</keyword> ignora <value id=\"quantity_2\">%2$lld</value>%% da redução de dano inimiga"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "額外造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"physical\">物理</keyword>傷害。自身<keyword id=\"physical\">物理</keyword>傷害無視敵人<value id=\"quantity_2\">%2$lld</value>%%的傷害減免"}}
       }
     },
     "affixes.shredding.title": {
@@ -13333,14 +13333,14 @@
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Equipment/InventoryItem+Compatibility.swift: canonical numeric compatibility description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Dein <keyword id=\"physical\">physischer</keyword> Schaden ignoriert <value id=\"quantity_1\">%1$lld</value>%% der gegnerischen Schadensreduktion"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Your <keyword id=\"physical\">Physical</keyword> damage ignores <value id=\"quantity_1\">%1$lld</value>%% of enemy damage reduction"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Tu daño <keyword id=\"physical\">físico</keyword> ignora un <value id=\"quantity_1\">%1$lld</value>%% de la reducción de daño del enemigo"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Vos dégâts de type <keyword id=\"physical\">Physique</keyword> ignorent <value id=\"quantity_1\">%1$lld</value>%% de la réduction des dégâts des ennemis"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "自分の<keyword id=\"physical\">物理</keyword>ダメージは敵のダメージ軽減を<value id=\"quantity_1\">%1$lld</value>%%無視"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "내 <keyword id=\"physical\">물리</keyword> 피해가 적의 피해 감소 <value id=\"quantity_1\">%1$lld</value>%% 무시"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Seu dano <keyword id=\"physical\">Físico</keyword> ignora <value id=\"quantity_1\">%1$lld</value>%% da redução de dano inimiga"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你造成的<keyword id=\"physical\">物理</keyword>傷害無視敵人<value id=\"quantity_1\">%1$lld</value>%%的傷害減免"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Verursache <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"physical\">physischen</keyword> Schaden\nDein <keyword id=\"physical\">physischer</keyword> Schaden ignoriert <value id=\"quantity_2\">%2$lld</value>%% der gegnerischen Schadensreduktion"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Deal <value id=\"quantity_1\">%1$lld</value> bonus <keyword id=\"physical\">Physical</keyword> damage\nYour <keyword id=\"physical\">Physical</keyword> damage ignores <value id=\"quantity_2\">%2$lld</value>%% of enemy damage reduction"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Inflige <value id=\"quantity_1\">%1$lld</value> de daño <keyword id=\"physical\">físico</keyword> adicional\nTu daño <keyword id=\"physical\">físico</keyword> ignora un <value id=\"quantity_2\">%2$lld</value>%% de la reducción de daño del enemigo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Infligez des dégâts supplémentaires de type <keyword id=\"physical\">Physique</keyword> : <value id=\"quantity_1\">%1$lld</value>\nVos dégâts de type <keyword id=\"physical\">Physique</keyword> ignorent <value id=\"quantity_2\">%2$lld</value>%% de la réduction des dégâts des ennemis"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "追加で<value id=\"quantity_1\">%1$lld</value>の<keyword id=\"physical\">物理</keyword>ダメージを与える\n自分の<keyword id=\"physical\">物理</keyword>ダメージは敵のダメージ軽減を<value id=\"quantity_2\">%2$lld</value>%%無視する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"physical\">물리</keyword> 피해를 <value id=\"quantity_1\">%1$lld</value>만큼 추가로 줍니다\n내 <keyword id=\"physical\">물리</keyword> 피해가 적의 피해 감소를 <value id=\"quantity_2\">%2$lld</value>%% 무시합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cause <value id=\"quantity_1\">%1$lld</value> de dano <keyword id=\"physical\">Físico</keyword> adicional\nSeu dano <keyword id=\"physical\">Físico</keyword> ignora <value id=\"quantity_2\">%2$lld</value>%% da redução de dano inimiga"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "額外造成<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"physical\">物理</keyword>傷害\n你造成的<keyword id=\"physical\">物理</keyword>傷害無視敵人<value id=\"quantity_2\">%2$lld</value>%%的傷害減免"}}
       }
     },
     "authored.edcdd353607a7598": {

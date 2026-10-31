@@ -1287,10 +1287,10 @@ public enum ContentCopy {
             return (L10n.affixes_shattering_basic_description(3), [3])
         case "Shattering":
             return (L10n.affixes_shattering_title, [])
-        case "Your Physical damage ignores 25% of enemy damage reduction":
-            return (L10n.affixes_shredding_astral_description(25), [25])
-        case "Your Physical damage ignores 10% of enemy damage reduction":
-            return (L10n.affixes_shredding_basic_description(10), [10])
+        case "Deal 2 bonus Physical damage\nYour Physical damage ignores 25% of enemy damage reduction", "Deal 2 bonus Physical damage. Your Physical damage ignores 25% of enemy damage reduction":
+            return (L10n.affixes_shredding_astral_description(2, 25), [2, 25])
+        case "Deal 1 bonus Physical damage\nYour Physical damage ignores 10% of enemy damage reduction", "Deal 1 bonus Physical damage. Your Physical damage ignores 10% of enemy damage reduction":
+            return (L10n.affixes_shredding_basic_description(1, 10), [1, 10])
         case "Shredding":
             return (L10n.affixes_shredding_title, [])
         case "Restore 3 Health when you Dodge":
@@ -2175,8 +2175,8 @@ public enum ContentCopy {
             return (L10n.authored_e933707d1971c6aa, [])
         case "Deal 7 Burn, Freeze, or Bleed damage":
             return (L10n.authored_e98d4de60587bae6(7), [7])
-        case "Your Physical damage ignores 1% of enemy damage reduction":
-            return (L10n.authored_ed3d3375c0b3d283(1), [1])
+        case "Deal 1 bonus Physical damage\nYour Physical damage ignores 1% of enemy damage reduction":
+            return (L10n.authored_ed3d3375c0b3d283(1, 1), [1, 1])
         case "Learn Melody":
             return (L10n.authored_edcdd353607a7598, [])
         case "Shop Closed":
@@ -5053,7 +5053,7 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Increase Bleed damage by ", regex: try? NSRegularExpression(pattern: "^Increase\\ Bleed\\ damage\\ by\\ ([0-9]+)$"), count: 1, make: { values in L10n.affixes_serrated_astral_description(values[0]) }),
         NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ additional\\ damage\\ while\\ the\\ enemy\\ is\\ Frozen$"), count: 1, make: { values in L10n.affixes_shatter_astral_description(values[0]) }),
         NumericTemplate(prefix: "Freezing an enemy deals ", regex: try? NSRegularExpression(pattern: "^Freezing\\ an\\ enemy\\ deals\\ ([0-9]+)\\ Physical\\ damage$"), count: 1, make: { values in L10n.affixes_shattering_astral_description(values[0]) }),
-        NumericTemplate(prefix: "Your Physical damage ignores ", regex: try? NSRegularExpression(pattern: "^Your\\ Physical\\ damage\\ ignores\\ ([0-9]+)%\\ of\\ enemy\\ damage\\ reduction$"), count: 1, make: { values in L10n.affixes_shredding_astral_description(values[0]) }),
+        NumericTemplate(prefix: "Deal ", regex: try? NSRegularExpression(pattern: "^Deal\\ ([0-9]+)\\ bonus\\ Physical\\ damage\\\nYour\\ Physical\\ damage\\ ignores\\ ([0-9]+)%\\ of\\ enemy\\ damage\\ reduction$"), count: 2, make: { values in L10n.affixes_shredding_astral_description(values[0], values[1]) }),
         NumericTemplate(prefix: "Restore ", regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ Health\\ when\\ you\\ Dodge$"), count: 1, make: { values in L10n.affixes_sidestep_astral_description(values[0]) }),
         NumericTemplate(prefix: "Restore ", regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ Health\\ when\\ you\\ remove\\ ([0-9]+)\\ debuffs?$"), count: 2, make: { values in L10n.affixes_sin_eaters_lantern_astral_description(values[0], values[1]) }),
         NumericTemplate(prefix: "Restore ", regex: try? NSRegularExpression(pattern: "^Restore\\ ([0-9]+)\\ Mana\\ when\\ you\\ Leech$"), count: 1, make: { values in L10n.affixes_siphoning_astral_description(values[0]) }),

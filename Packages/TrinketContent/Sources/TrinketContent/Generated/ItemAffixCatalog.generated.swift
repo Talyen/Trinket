@@ -98,8 +98,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.bleed],
             weight: 8,
-            basic: ItemAffixPower(description: "Bleed lasts 1 additional turn", modifiers: [.bleedDuration(1)], triggers: CombatTraitTriggers()),
-            astral: ItemAffixPower(description: "Bleed lasts 2 additional turns", modifiers: [.bleedDuration(2)], triggers: CombatTraitTriggers())
+            basic: ItemAffixPower(description: "Bleed lasts 1 additional turn", modifiers: [.bleedDuration(1)], triggers: CombatTraitTriggers(), modifierRollRanges: [0: 1 ... 1]),
+            astral: ItemAffixPower(description: "Bleed lasts 2 additional turns", modifiers: [.bleedDuration(2)], triggers: CombatTraitTriggers(), modifierRollRanges: [0: 1 ... 2])
         ),
         ItemAffixCatalog.affix(
             id: "sentinel",
@@ -512,8 +512,8 @@ enum ItemAffixCatalogGenerated {
             slot: .weapon,
             keywords: [.physical],
             weight: 8,
-            basic: ItemAffixPower(description: "Your Physical damage ignores 10% of enemy damage reduction", modifiers: [], triggers: CombatTraitTriggers { $0.physicalIgnoreMitigationPercent = 0.10 }),
-            astral: ItemAffixPower(description: "Your Physical damage ignores 25% of enemy damage reduction", modifiers: [], triggers: CombatTraitTriggers { $0.physicalIgnoreMitigationPercent = 0.25 })
+            basic: ItemAffixPower(description: "Deal 1 bonus Physical damage. Your Physical damage ignores 10% of enemy damage reduction", modifiers: [.damageDealt(.physical, 1)], triggers: CombatTraitTriggers { $0.physicalIgnoreMitigationPercent = 0.10 }),
+            astral: ItemAffixPower(description: "Deal 2 bonus Physical damage. Your Physical damage ignores 25% of enemy damage reduction", modifiers: [.damageDealt(.physical, 2)], triggers: CombatTraitTriggers { $0.physicalIgnoreMitigationPercent = 0.25 })
         ),
         ItemAffixCatalog.affix(
             id: "knockout",
