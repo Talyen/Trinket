@@ -389,6 +389,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case damagePerBurnPotencyPercent
     case burnIncreaseChancePercent
     case poisonThresholdStunAmount
+    case burnDamageDrawChancePercent
     case poisonDamageLeechChancePercent
     case onCritDoubleBleedDuration
     case criticalOnBleedingDetonateBleed
@@ -1323,6 +1324,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var damagePerBurnPotencyPercent: Double = 0
         public var burnIncreaseChancePercent: Double = 0
         public var poisonThresholdStunAmount: Int = 0
+        public var burnDamageDrawChancePercent: Double = 0
         public var poisonDamageLeechChancePercent: Double = 0
         public var onCritDoubleBleedDuration: Bool = false
         public var criticalOnBleedingDetonateBleed: Bool = false
@@ -2260,6 +2262,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.damagePerBurnPotencyPercent, .damagePerBurnPotencyPercent, default: 0, merging: .add),
         .init(\.burnIncreaseChancePercent, .burnIncreaseChancePercent, default: 0, merging: .add),
         .init(\.poisonThresholdStunAmount, .poisonThresholdStunAmount, default: 0, merging: .max),
+        .init(\.burnDamageDrawChancePercent, .burnDamageDrawChancePercent, default: 0, merging: .max),
         .init(\.poisonDamageLeechChancePercent, .poisonDamageLeechChancePercent, default: 0, merging: .add),
         .init(\.onCritDoubleBleedDuration, .onCritDoubleBleedDuration, default: false, merging: .or),
         .init(\.criticalOnBleedingDetonateBleed, .criticalOnBleedingDetonateBleed, default: false, merging: .or),

@@ -361,3 +361,10 @@ only positive Health overflow from the hit that exhausts the enemy's own Block;
 it cannot amplify a fully blocked hit, bypassed Block, or later unblocked hits.
 Resolved attack repeats check their own fresh Block absorption, without repeating
 outgoing damage bonuses.
+
+Tattered Pages rolls once for each committed Burn packet against an enemy from a
+living party source, including Block absorbed, using the same packet boundary as
+Cutpurse Knife. Direct hits, periodic damage, detonations and ordinary copied or
+triggered damage can qualify. Elemental-reaction damage takes its separate
+no-riders path; zero packets and dodges do not roll. A successful roll draws for
+the source through the normal hand and deck rules, with no turn limit.

@@ -55,7 +55,7 @@ enum GameContentItemBasesGenerated {
         list.append(ItemBaseType(id: "sin_eaters_lantern", name: "Sin-Eater's Lantern", slot: .trinket, weaponKind: nil, keywordAffinities: [.holy, .health]))
         list.append(ItemBaseType(id: "smugglers_map", name: "Smuggler's Map", slot: .trinket, weaponKind: nil, keywordAffinities: [.gold]))
         list.append(ItemBaseType(id: "sundering_charm", name: "Sundering Charm", slot: .trinket, weaponKind: nil, keywordAffinities: [.physical, .block]))
-        list.append(ItemBaseType(id: "tattered_pages", name: "Tattered Pages", slot: .trinket, weaponKind: nil, keywordAffinities: [.mana]))
+        list.append(ItemBaseType(id: "tattered_pages", name: "Tattered Pages", slot: .trinket, weaponKind: nil, keywordAffinities: [.burn]))
         list.append(ItemBaseType(id: "thunderstone", name: "Thunderstone", slot: .trinket, weaponKind: nil, keywordAffinities: [.physical, .stun]))
         list.append(ItemBaseType(id: "vanguards_crest", name: "Vanguard's Crest", slot: .trinket, weaponKind: nil, keywordAffinities: [.physical, .block]))
         list.append(ItemBaseType(id: "wishing_well_coin", name: "Wishing Well Coin", slot: .trinket, weaponKind: nil, keywordAffinities: [.gold]))

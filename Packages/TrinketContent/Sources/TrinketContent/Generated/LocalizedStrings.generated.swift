@@ -1715,11 +1715,11 @@ enum L10n {
     }
 
     static func affixes_tattered_pages_astral_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.tattered_pages.astral_description", defaultValue: "Every other turn, lose <value id=\"quantity_1\">\(value1)</value> <keyword id=\"health\">Health</keyword> and draw a card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("affixes.tattered_pages.astral_description", defaultValue: "<keyword id=\"burn\">Burn</keyword> damage has a <value id=\"quantity_1\">\(value1)</value>% chance to draw a card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func affixes_tattered_pages_basic_description(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("affixes.tattered_pages.basic_description", defaultValue: "Every other turn, lose <value id=\"quantity_1\">\(value1)</value> <keyword id=\"health\">Health</keyword> and draw a card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("affixes.tattered_pages.basic_description", defaultValue: "<keyword id=\"burn\">Burn</keyword> damage has a <value id=\"quantity_1\">\(value1)</value>% chance to draw a card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var affixes_tattered_pages_title: LocalizedStringResource {
@@ -2859,7 +2859,7 @@ enum L10n {
     }
 
     static func authored_6ff43388c95c88b3(_ value1: Int) -> LocalizedStringResource {
-        LocalizedStringResource("authored.6ff43388c95c88b3", defaultValue: "Every other turn, lose <value id=\"quantity_1\">\(value1)</value> <keyword id=\"health\">Health</keyword> and draw a card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("authored.6ff43388c95c88b3", defaultValue: "<keyword id=\"burn\">Burn</keyword> damage has a <value id=\"quantity_1\">\(value1)</value>% chance to draw a card", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var authored_713ceb2c7a465edb: LocalizedStringResource {

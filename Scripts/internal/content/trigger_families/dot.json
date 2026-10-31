@@ -108,6 +108,13 @@
       "type": "Int",
       "merge": "max"
     },
+    "burnDamageDrawChancePercent": {
+      "type": "Double",
+      "merge": "max",
+      "affix_roll": {
+        "reason": "Fixed Tattered Pages activation chance."
+      }
+    },
     "poisonDamageLeechChancePercent": {
       "type": "Double"
     },

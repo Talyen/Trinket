@@ -42,6 +42,15 @@ enum AttackerOnHitEngine {
             )
         }
 
+        // Match Cutpurse: one roll per committed packet, including Block absorbed.
+        if hit.keyword == .burn, state.combatant.role == .enemy,
+           SaturatedArithmetic.saturatingAdd(state.remaining, state.blockedAmount) > 0,
+           context.roster.health(for: hit.source) > 0,
+           let owner = context.roster.participant(for: hit.source),
+           BattleChance.succeeds(probability: hit.triggers.burnDamageDrawChancePercent, using: &context.rng) {
+            CombatTriggerEngine.drawCards(1, for: owner, actor: hit.source, abilityName: "Tattered Pages", in: &context)
+        }
+
         if state.healthLost > 0, state.combatant.role == .enemy,
            hit.triggers.carrionClaim, hit.keyword == .poison || hit.keyword == .bleed {
             _ = await context.grantGold(

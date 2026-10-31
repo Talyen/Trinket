@@ -877,10 +877,10 @@ enum ItemAffixCatalogGenerated {
             id: "tattered_pages",
             title: "Forbidden Knowledge",
             slot: .trinket,
-            keywords: [.mana],
+            keywords: [.burn],
             weight: 1,
-            basic: ItemAffixPower(description: "Every other turn, lose 1 Health and draw a card", modifiers: [], triggers: CombatTraitTriggers { $0.forbiddenKnowledge = true }),
-            astral: ItemAffixPower(description: "Every other turn, lose 1 Health and draw a card", modifiers: [], triggers: CombatTraitTriggers { $0.forbiddenKnowledge = true })
+            basic: ItemAffixPower(description: "Burn damage has a 10% chance to draw a card", modifiers: [], triggers: CombatTraitTriggers { $0.burnDamageDrawChancePercent = 0.10 }),
+            astral: ItemAffixPower(description: "Burn damage has a 10% chance to draw a card", modifiers: [], triggers: CombatTraitTriggers { $0.burnDamageDrawChancePercent = 0.10 })
         ),
         ItemAffixCatalog.affix(
             id: "thunderstone",

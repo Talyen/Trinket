@@ -125,6 +125,7 @@ extension CombatTraitTriggers {
         .sunderingBlockMultiplier: "Word-described magnitude has no patchable number in the card text.",
         .attackBlockRemoval: "Encounter-only attack rule, not an equipment roll.",
         .blockBreakDrawBelowHalf: "Boolean card-draw signature with no magnitude roll.",
+        .burnDamageDrawChancePercent: "Fixed Tattered Pages activation chance.",
         .poisonAttackLeech: "On/off rule with no rollable magnitude.",
         .bleedPoisonOncePerTurn: "Fixed per-turn activation limit.",
         .enemyStunnedApplyMarked: "On/off rule with no rollable magnitude.",
