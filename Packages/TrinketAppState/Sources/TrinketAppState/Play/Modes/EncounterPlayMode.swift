@@ -134,10 +134,15 @@ public final class EncounterPlayMode {
                     sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
                     return SaveActionAttempt(.rejected)
                 case let .persistFailed(error):
+                    shopSession.markPurchaseFinished()
+                    guard error.isRetryable else {
+                        guard owns(shopSession) else { return SaveActionAttempt(.rejected, failure: error) }
+                        sfxPlayer.play(SFXID.uiDeny, volume: options.effectsVolume)
+                        return SaveActionAttempt(.rejected, failure: error)
+                    }
                     // The mutation rolled back and the store retries silently, so this
                     // attempt is accepted rather than failed; the board is already
                     // disabled while `isRetryingSaveAction`.
-                    shopSession.markPurchaseFinished()
                     return SaveActionAttempt(.retrying, failure: error)
                 }
             }
