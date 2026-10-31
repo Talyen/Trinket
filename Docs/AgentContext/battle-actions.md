@@ -9,6 +9,8 @@ state explicitly behind copy-on-write storage. `CombatResolution` owns action-sc
 empowerment so nested actions restore their parent flags and completed actions cannot
 amplify later reactions. Turn start clears only turn state
 and expired timed bonuses; pending effects survive until their consuming operation.
+Unique equipment likewise groups turn-limited allowances in `CombatantUniqueState.turn`;
+prepared powers and banked damage outside that group survive turn start.
 Card/action-scoped readied bonuses keep their value and provenance together in
 `PreparedTalentBonus`; `consumeTalentPreparation` checks provenance and clears the
 whole preparation. `prepareTalentBonus` captures the creating card and, for action-scoped

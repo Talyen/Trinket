@@ -5,6 +5,37 @@ import TrinketCore
 @testable import BattleEngine
 
 extension UniqueCollectionTests {
+    @Test func `turn start resets unique allowances but preserves prepared powers and snapshots`() throws {
+        var context = try battle([])
+        for owner in BattleParticipant.party {
+            context.roster[owner].uniques.turn.cardsPlayed = 2
+            context.roster[owner].uniques.turn.repeatedCritical = true
+            context.roster[owner].uniques.turn.answeredBlock = true
+            context.roster[owner].uniques.turn.usedFinalSpark = true
+            context.roster[owner].uniques.turn.lastOrdinaryAttackCopyID = 42
+            context.roster[owner].uniques.turn.returnedGaleThisTurn = true
+            context.roster[owner].uniques.turn.returnedFlightThisTurn = true
+            context.roster[owner].uniques.turn.hasAttacked = true
+            context.roster[owner].uniques.turn.wrenflightDodge = 0.1
+            context.roster[owner].uniques.patientEdgeReady = true
+            context.roster[owner].uniques.viperReady = true
+            context.roster[owner].uniques.wildheartReady = true
+            context.roster[owner].uniques.goldDamage = 5
+        }
+        let snapshot = context.roster.hero
+
+        UniqueCombatEngine.startTurn(in: &context)
+
+        for owner in BattleParticipant.party {
+            let state = context.roster[owner].uniques
+            #expect(state.turn == .init())
+            #expect(state.patientEdgeReady && state.viperReady && state.wildheartReady)
+            #expect(state.goldDamage == 5)
+        }
+        #expect(snapshot.uniques.turn.cardsPlayed == 2)
+        #expect(snapshot.uniques.turn.lastOrdinaryAttackCopyID == 42)
+    }
+
     @Test(arguments: [BattleParticipant.hero, .companion])
     func `wrenflight counts only wearers ordinary cards`(owner: BattleParticipant) throws {
         var context = try battle(["wrenflight"], owner: owner)
@@ -19,15 +50,15 @@ extension UniqueCollectionTests {
         try play(attack(id: "other"), owner: other, in: &context)
         let second = try play(attack(id: "second"), owner: owner, in: &context)
         #expect(second.contains { $0.abilityName == "Wrenflight" && $0.effectKind == .cardsDrawn })
-        #expect(context.roster[owner].uniques.wrenflightDodge == 0.1)
+        #expect(context.roster[owner].uniques.turn.wrenflightDodge == 0.1)
         _ = try context.withAutomaticPlay { context in
             try play(attack(id: "automatic"), owner: owner, in: &context)
         }
         // Automatic plays do not advance the wearer's ordinary card count.
-        try #expect(context.roster[owner].uniques.cardsPlayed == 2)
+        try #expect(context.roster[owner].uniques.turn.cardsPlayed == 2)
         UniqueCombatEngine.startTurn(in: &context)
-        #expect(context.roster[owner].uniques.wrenflightDodge == 0)
-        #expect(context.roster[owner].uniques.cardsPlayed == 0)
+        #expect(context.roster[owner].uniques.turn.wrenflightDodge == 0)
+        #expect(context.roster[owner].uniques.turn.cardsPlayed == 0)
     }
 
     @Test(
@@ -58,7 +89,7 @@ extension UniqueCollectionTests {
         context.heroDeck = CombatDeck(abilities: [attack(.holy, id: "auto")])
         let ability = Ability(id: "draw", name: "draw", tier: .basic, effects: [.drawAndPlayCards(1)])
         try play(ability, in: &context)
-        #expect(context.roster[.hero].uniques.cardsPlayed == 1)
+        #expect(context.roster[.hero].uniques.turn.cardsPlayed == 1)
         #expect(context.hand.isEmpty)
     }
 
@@ -143,7 +174,7 @@ extension UniqueCollectionTests {
         )
         // 1. Play an ordinary card (goes to deck bottom, tracked as last ordinary).
         try galePlay(galeAttack(id: "played"), owner: .hero, in: &context)
-        try #require(context.roster[.hero].uniques.lastOrdinaryAttackCopyID == context.heroDeck.discarded.last?.copyID)
+        try #require(context.roster[.hero].uniques.turn.lastOrdinaryAttackCopyID == context.heroDeck.discarded.last?.copyID)
         // 2. Force the wearer to Dodge during the enemy turn.
         context.insertEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0, at: 0)
         let heroDeckBefore = context.heroDeck.abilities.map(\.id)
@@ -211,7 +242,7 @@ extension UniqueCollectionTests {
         // Already held -> do nothing (no duplicate).
         context = try galeBattle(["the_returning_gale"], heroDeck: [galeAttack(id: "played")])
         try galePlay(galeAttack(id: "played"), owner: .hero, in: &context)
-        let trackedCopyID = try #require(context.roster[.hero].uniques.lastOrdinaryAttackCopyID)
+        let trackedCopyID = try #require(context.roster[.hero].uniques.turn.lastOrdinaryAttackCopyID)
         _ = BattleCardCombatEngine.recoverCard(copyID: trackedCopyID, owner: .hero, context: &context)
         let totalBefore = context.hand.totalCount + context.heroDeck.count
         context.insertEffect(.evadeNextHit, to: context.hero, sourceID: context.hero.id, remainingTurns: 0, at: 0)
@@ -256,7 +287,7 @@ extension UniqueCollectionTests {
         #expect((context.hand.cards + context.hand.buffer).contains { $0.ability.id == "played" })
         #expect(!context.heroDeck.abilities.contains { $0.id == "played" })
         #expect(context.heroDeck.count == deckBefore)
-        #expect(context.roster[.hero].uniques.returnedFlightThisTurn == true)
+        #expect(context.roster[.hero].uniques.turn.returnedFlightThisTurn == true)
         // Replaying cannot repeatedly return (allowance claimed).
         let returnedCard = try #require((context.hand.cards + context.hand.buffer).first { $0.ability.id == "played" })
         _ = try CombatExecutor.run { try await BattleCardCombatEngine.resolveDrawnCard(returnedCard, context: &context) }
@@ -272,14 +303,16 @@ extension UniqueCollectionTests {
         )
         try galePlay(galeAttack(id: "tracked"), owner: .hero, in: &context)
         try galePlay(galeSupport(id: "support"), owner: .hero, in: &context)
-        #expect(context.roster[.hero].uniques.lastOrdinaryAttackCopyID == context.heroDeck.discarded.first { $0.ability.id == "tracked" }?
+        #expect(context.roster[.hero].uniques.turn.lastOrdinaryAttackCopyID == context.heroDeck.discarded
+            .first { $0.ability.id == "tracked" }?
             .copyID)
         // Automatic abilities do not replace tracked ordinary card.
         _ = try context.withAutomaticPlay { context in
             let card = BattleCardCombatEngine.deal(galeAttack(id: "auto"), owner: .hero, context: &context)
             return try CombatExecutor.run { try await BattleCardCombatEngine.resolveDrawnCard(card, context: &context) }
         }
-        #expect(context.roster[.hero].uniques.lastOrdinaryAttackCopyID == context.heroDeck.discarded.first { $0.ability.id == "tracked" }?
+        #expect(context.roster[.hero].uniques.turn.lastOrdinaryAttackCopyID == context.heroDeck.discarded
+            .first { $0.ability.id == "tracked" }?
             .copyID)
     }
 

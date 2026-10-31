@@ -16,10 +16,10 @@ package enum UniqueCombatEngine {
         let actor = context.roster[card.owner].combatant
         let triggers = context.modifiers(for: actor.id).triggers
         var owner = context.roster[card.owner].uniques
-        owner.cardsPlayed += 1
+        owner.turn.cardsPlayed += 1
         let play = UniqueBattleState.CardPlay(owner: card.owner, originalCopyID: card.deckCopyID)
-        if triggers.secondCardDrawAndDodgePercent > 0, owner.cardsPlayed == 2 {
-            owner.wrenflightDodge = triggers.secondCardDrawAndDodgePercent
+        if triggers.secondCardDrawAndDodgePercent > 0, owner.turn.cardsPlayed == 2 {
+            owner.turn.wrenflightDodge = triggers.secondCardDrawAndDodgePercent
             var mutablePlay = play
             mutablePlay.draws.append("Wrenflight")
             context.roster[card.owner].uniques = owner
@@ -40,7 +40,7 @@ package enum UniqueCombatEngine {
         }
         // Support cards preserve the last ordinary attack for The Returning Gale.
         if triggers.thirdCardReturnsToHand, !facts.damageKeywords.isEmpty {
-            owner.lastOrdinaryAttackCopyID = play.originalCopyID
+            owner.turn.lastOrdinaryAttackCopyID = play.originalCopyID
         }
         if triggers.dodgeDrawPoisonAndReadyCritical,
            owner.wildheartReady, facts.damageKeywords.contains(.poison) {
@@ -49,17 +49,17 @@ package enum UniqueCombatEngine {
         }
         // The Returning Flight returns the first Physical card each turn.
         if triggers.recoverLastAttackCardEachTurn,
-           !owner.returnedFlightThisTurn,
+           !owner.turn.returnedFlightThisTurn,
            facts.damageKeywords.contains(.physical) {
-            owner.returnedFlightThisTurn = true
+            owner.turn.returnedFlightThisTurn = true
             play.returnName = play.returnName ?? "The Returning Flight"
         }
         guard !facts.damageKeywords.isEmpty else { return }
         let partner: BattleParticipant = play.owner == .hero ? .companion : .hero
-        if !owner.hasAttacked, context.roster[partner].uniques.cardsPlayed > 0 {
+        if !owner.turn.hasAttacked, context.roster[partner].uniques.turn.cardsPlayed > 0 {
             play.attackBonus = triggers.partnerFirstAttackDamage
         }
-        owner.hasAttacked = true
+        owner.turn.hasAttacked = true
     }
 
     static func finishCardDraws(in context: inout BattleState) {
@@ -93,7 +93,7 @@ package enum UniqueCombatEngine {
             context.uniques.retainedStunByEffectID = context.uniques.retainedStunByEffectID.filter { activeIDs.contains($0.key) }
         }
         for owner in BattleParticipant.party {
-            context.roster[owner].uniques.resetTurn()
+            context.roster[owner].uniques.turn = .init()
         }
         context.uniques.pendingBlockAnswerOwners = []
         context.uniques.pendingCounterAttacks = []

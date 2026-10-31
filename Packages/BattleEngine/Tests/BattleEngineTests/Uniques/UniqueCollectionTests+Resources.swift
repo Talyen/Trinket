@@ -17,7 +17,7 @@ extension UniqueCollectionTests {
         #expect(blockAmount(owner, in: context) == 2)
         #expect(context.roster.enemy.currentHealth == 1978)
         #expect(events.count(where: { $0.abilityName == "The Final Spark" }) == 1)
-        #expect(context.roster[owner].uniques.answeredBlock != true)
+        #expect(context.roster[owner].uniques.turn.answeredBlock != true)
     }
 
     @Test func `block only empowerment does not spend mana allowances or draw opposite element`() throws {
@@ -34,7 +34,7 @@ extension UniqueCollectionTests {
         #expect(context.roster.enemy.currentHealth == 1989)
         #expect(context.hand.isEmpty)
         #expect(!events.contains { $0.abilityName == "The Final Spark" })
-        #expect(context.roster[.hero].uniques.usedFinalSpark != true)
+        #expect(context.roster[.hero].uniques.turn.usedFinalSpark != true)
         #expect(context.turnCadence.spendManaDrawOwners.isEmpty)
     }
 
@@ -48,7 +48,7 @@ extension UniqueCollectionTests {
         #expect(context.roster.hero.currentMana == 2)
         #expect(blockAmount(.hero, in: context) == before)
         #expect(context.roster.enemy.currentHealth == 1990)
-        #expect(context.roster[.hero].uniques.usedFinalSpark != true)
+        #expect(context.roster[.hero].uniques.turn.usedFinalSpark != true)
     }
 
     @Test func `final spark qualifies before refunds and does not repeat utility`() throws {
@@ -118,7 +118,7 @@ extension UniqueCollectionTests {
         #expect(context.roster.hero.currentMana == 3)
         #expect(blockAmount(.hero, in: context) == 0)
         #expect(context.roster.enemy.currentHealth == 1989)
-        #expect(context.roster[.hero].uniques.usedFinalSpark != true)
+        #expect(context.roster[.hero].uniques.turn.usedFinalSpark != true)
     }
 
     @Test func `final spark and everkeen do not recursively repeat`() throws {

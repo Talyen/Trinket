@@ -125,7 +125,7 @@ package extension BattleState {
         guard let runtime = roster.runtime(for: combatant) else { return [] }
         let state = runtime.uniques
         var summaries: [EffectSummary] = []
-        summaries.appendPercent(.dodge, state.wrenflightDodge, resource: L10n.summary_battlestate_effectsummaries_67548e4830cc)
+        summaries.appendPercent(.dodge, state.turn.wrenflightDodge, resource: L10n.summary_battlestate_effectsummaries_67548e4830cc)
         summaries.append(
             .physical,
             when: state.patientEdgeReady,

@@ -45,8 +45,8 @@ extension UniqueCombatEngine {
             }
         }
         guard damage.isCritical, damage.damageKeyword == .physical else { return }
-        if triggers.firstCriticalHitRepeatsPerTurn, context.roster[owner].uniques.repeatedCritical != true {
-            context.roster[owner].uniques.repeatedCritical = true
+        if triggers.firstCriticalHitRepeatsPerTurn, context.roster[owner].uniques.turn.repeatedCritical != true {
+            context.roster[owner].uniques.turn.repeatedCritical = true
             let options = damage.options.repeated(origin: .criticalRepeat, scaling: .resolved, guaranteedCritical: true)
             await repeatHit(
                 DamageRequest(
@@ -101,9 +101,9 @@ extension UniqueCombatEngine {
         for actor in damage.blockAbsorbingOwners {
             guard let owner = context.roster.participant(for: actor), owner.isPartyMember,
                   context.modifiers(for: actor.id).triggers.blockedAttackBasicOncePerTurn,
-                  context.roster[owner].uniques.answeredBlock != true
+                  context.roster[owner].uniques.turn.answeredBlock != true
             else { continue }
-            context.roster[owner].uniques.answeredBlock = true
+            context.roster[owner].uniques.turn.answeredBlock = true
             // Never nest a full Basic inside damage resolution; CombatResolver drains queued answers after damage completes.
             if !context.uniques.pendingBlockAnswerOwners.contains(owner) {
                 context.uniques.pendingBlockAnswerOwners.append(owner)
@@ -231,13 +231,13 @@ extension UniqueCombatEngine {
         in context: inout BattleState,
     ) {
         guard context.modifiers(for: actor.id).triggers.thirdCardReturnsToHand,
-              !context.roster[owner].uniques.returnedGaleThisTurn,
-              let copyID = context.roster[owner].uniques.lastOrdinaryAttackCopyID,
+              !context.roster[owner].uniques.turn.returnedGaleThisTurn,
+              let copyID = context.roster[owner].uniques.turn.lastOrdinaryAttackCopyID,
               !context.isBattleOver,
               BattleCardCombatEngine.canDrawFromDeck(for: owner, in: context)
         else { return }
         guard BattleCardCombatEngine.recoverCard(copyID: copyID, owner: owner, context: &context) != nil else { return }
-        context.roster[owner].uniques.returnedGaleThisTurn = true
+        context.roster[owner].uniques.turn.returnedGaleThisTurn = true
         context.nextEvent(
             kind: .effect(.cardsDrawn),
             source: .init(actor),
@@ -307,8 +307,8 @@ extension UniqueCombatEngine {
            triggers.lastManaEmpowermentRepeatsDamage,
            isOrdinaryAction(actorID: actor.id, in: context),
            let owner = context.roster.participant(for: actor),
-           context.roster[owner].uniques.usedFinalSpark != true {
-            context.roster[owner].uniques.usedFinalSpark = true
+           context.roster[owner].uniques.turn.usedFinalSpark != true {
+            context.roster[owner].uniques.turn.usedFinalSpark = true
             context.uniques.card?.repeatDamage = true
         }
     }

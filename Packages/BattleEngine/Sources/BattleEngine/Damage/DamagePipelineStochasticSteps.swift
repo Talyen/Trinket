@@ -97,7 +97,7 @@ package extension DamagePipeline {
             }
         }
         if let owner = context.roster.participant(for: combatant) {
-            chance += context.roster[owner].uniques.wrenflightDodge
+            chance += context.roster[owner].uniques.turn.wrenflightDodge
         }
         chance += context.roster.runtime(for: combatant)?.talents.dodgeChanceBonus(atTurn: context.turnCount) ?? 0
         if context.roster.runtime(for: combatant)?.talents.turn.subzeroMistActive == true {
