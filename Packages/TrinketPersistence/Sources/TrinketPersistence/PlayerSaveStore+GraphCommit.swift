@@ -50,6 +50,10 @@ extension PlayerSaveStore {
             root.apply(graphWrite, context: context)
             do {
                 #if DEBUG
+                if let failure = nextSaveFailure {
+                    nextSaveFailure = nil
+                    throw failure
+                }
                 if forcesNextSaveFailure {
                     forcesNextSaveFailure = false
                     throw PlayerSavePersistenceError.writeFailed

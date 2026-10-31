@@ -273,6 +273,24 @@ struct AppStateShopEncounterTests {
         #expect(session.lastPurchasedOfferID == offer.id)
     }
 
+    @Test func `terminal purchase save failure is rejected without scheduling a retry`() throws {
+        let playerSave = try SaveTestSupport.makeSaveStore(directoryURL: context.directoryURL)
+        let state = try context.makePlaySession(arguments: ["-reset-state"], playerSave: playerSave)
+        let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))
+        #expect(state.journey.handleStagePrimaryAction(for: stage) == nil)
+        let session = try #require(state.encounters.activeShopEncounter)
+        let offer = try #require(session.offers.first)
+        try playerSave.performFixtureMutation { $0.roster.gold = offer.price * 3 }
+        let before = playerSave.currentSave
+
+        playerSave.nextSaveFailure = .invalidSave("test failure")
+        #expect(state.encounters.purchaseShopOffer(session: session, offerID: offer.id) == .rejected)
+        #expect(!playerSave.isRetryingSaveAction)
+        #expect(!session.isPurchasing)
+        #expect(session.lastPurchasedOfferID == nil)
+        #expect(playerSave.currentSave == before)
+    }
+
     @Test func `busy shop rejection cannot reuse an unrelated write failure`() throws {
         let state = try context.makePlaySession(arguments: ["-reset-state"])
         let stage = try #require(GameContent.stage(id: "chapter-2-stage-8"))

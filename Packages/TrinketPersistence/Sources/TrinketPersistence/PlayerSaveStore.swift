@@ -74,6 +74,8 @@ public final class PlayerSaveStore {
     /// Total-write failure: throws before any durable write (no pending file,
     /// no primary write). Tests `persistBatch == false` / `performSaveAction`.
     public var forcesNextSaveFailure = false
+    /// Injects a typed graph-write failure for cross-package transaction tests.
+    var nextSaveFailure: PlayerSavePersistenceError?
     /// Primary-only failure: `context.save()` throws, but the pending recovery
     /// file still preserves the candidate (`persistBatch == true`, degraded).
     /// Tests recovery, relaunch survival, and background retry.
