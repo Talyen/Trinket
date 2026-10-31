@@ -119,14 +119,14 @@ struct EncounterLootTests {
     @Test func `labyrinth boss node retains boss loot scaling for non-standard enemy`() throws {
         let nonBossEnemy = try #require(GameContent.enemies.first { !$0.isBoss })
         let bossNode = LabyrinthNode(
-            id: "boss-node",
+            id: "same-node",
             type: .boss,
             enemyID: nonBossEnemy.id,
             depth: 5,
             clusterID: "cluster",
         )
         let battleNode = LabyrinthNode(
-            id: "battle-node",
+            id: "same-node",
             type: .battle,
             enemyID: nonBossEnemy.id,
             depth: 5,
