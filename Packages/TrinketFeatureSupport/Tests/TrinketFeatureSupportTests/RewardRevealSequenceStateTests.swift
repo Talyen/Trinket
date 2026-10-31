@@ -45,6 +45,24 @@ struct RewardRevealSequenceStateTests {
         #expect(state.visibleWalletRewardCount == 2)
     }
 
+    @Test func `cancel before start leaves the sequence available and completed cancellation is idempotent`() async {
+        let clock = ControlledRewardRevealClock()
+        let state = RewardRevealSequenceState(clock: clock)
+        state.cancel(walletCount: 5)
+        #expect(!state.areItemsVisible)
+        #expect(!state.isSequenceComplete)
+
+        state.start(walletCount: 2)
+        #expect(await waitUntil { clock.isSleeping })
+        state.cancel(walletCount: 2)
+        clock.advance()
+        state.cancel(walletCount: 5)
+        state.start(walletCount: 5)
+        #expect(state.areItemsVisible)
+        #expect(state.isSequenceComplete)
+        #expect(state.visibleWalletRewardCount == 2)
+    }
+
     @Test func `loot reveals together and starts only once without XP callbacks`() async {
         let walletCount = 3
         let clock = ControlledRewardRevealClock()
