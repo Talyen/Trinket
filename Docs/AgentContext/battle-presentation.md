@@ -205,6 +205,11 @@ and aggregation, so costs and triggered benefits remain secondary and cannot mer
 into the primary result. Multi-recipient results of the chosen operation share that
 emphasis. A direct Health cost stays in the setback region.
 
+Consumed-DoT detonations share a same-type direct hit's central total only within
+the same resolved action and recipient. Ordinary ticks, elemental reaction payoffs,
+and separate actions remain independent. Detonation totals do not merge into later
+bursts; the engine retains the original receipts for damage and sound.
+
 Elemental reaction names share one announcement with their actual typed payoff,
 separate from the triggering hit and other reaction types. Carry reaction identity
 from resolution; do not infer it from a keyword or displayed name. If no payoff is
@@ -219,11 +224,14 @@ width, with an 8-point center gap, 8-point outer margins, and clearance above th
 resource bars. Keep centers fixed through animation and numeric growth. The
 renderer and layout use the same region-specific peak bounds.
 
-New arrivals never move or evict older flights. Impact numbers, reaction payoffs,
-and direct Health costs launch at the impact cue; other feedback prefers an 80 ms
-stagger with a hard 180 ms arrival-to-launch limit. New paths compare measured projected footprints throughout their lifetimes,
-strongly penalizing complete covering in
-either direction. Diagonal paths and fixed rows preserve visible space when the
+New arrivals never move or evict older flights. Impact numbers and direct Health
+costs launch at the impact cue; other ordinary feedback prefers an 80 ms stagger with a hard 180 ms arrival-to-launch limit.
+Reaction announcements reserve space after primary results and launch in resolution
+order with a 320 ms gap. An announcement accompanying its own impact waits for
+the numbers to finish; that queue is bounded to 1.37 seconds from arrival.
+Other reaction announcements are bounded to 640 ms. New paths compare measured
+projected footprints throughout their lifetimes, strongly penalizing complete
+covering in either direction. Diagonal paths and fixed rows preserve visible space when the
 queue deadline forces concurrent launches. The host clamps the path to the
 portrait's peak footprint; spatial-edge fading cannot prematurely evict a flight.
 

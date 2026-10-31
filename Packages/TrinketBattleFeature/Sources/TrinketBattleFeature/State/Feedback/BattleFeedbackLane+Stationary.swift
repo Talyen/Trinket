@@ -8,7 +8,8 @@ extension BattleFeedbackLane {
             if date.timeIntervalSince(existing.lastReceivedAt) > 0.25 {
                 continue
             }
-            guard existing.effectKind == item.effectKind, item.effectKind != .controlTriggered,
+            guard !existing.containsDetonation, !item.containsDetonation,
+                  existing.effectKind == item.effectKind, item.effectKind != .controlTriggered,
                   date < existing.expiresAt.addingTimeInterval(-CombatFeedbackMotionSampler.fadeDuration),
                   let merged = mergedLabel(existing, with: item)
             else { continue }
@@ -62,6 +63,7 @@ struct CombatFeedbackMergeCandidates {
         let feedbackClass: CombatFeedbackClass
         let visualRole: CombatFeedbackVisualRole
         let isPrimaryCardResult: Bool
+        let isStatusDamage: Bool
 
         init(_ item: CombatFeedbackItem) {
             targetID = item.targetID
@@ -70,6 +72,7 @@ struct CombatFeedbackMergeCandidates {
             feedbackClass = item.feedbackClass
             visualRole = item.visualRole
             isPrimaryCardResult = item.isPrimaryCardResult
+            isStatusDamage = item.isStatusDamage
         }
     }
 

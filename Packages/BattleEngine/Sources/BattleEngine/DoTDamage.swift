@@ -10,6 +10,7 @@ package enum DoTDamage {
         guaranteedCritical: Bool = false,
         provenance: DamageProvenance? = nil,
         operation: DamageOperation = .periodic,
+        isDetonation: Bool = false,
         in context: inout BattleState,
     ) async -> CombatOutcome {
         guard basePotency > 0 else { return .empty }
@@ -34,6 +35,7 @@ package enum DoTDamage {
             amount: damageOutcome.healthLost,
             keyword: keyword,
             isCritical: damageOutcome.isCritical,
+            isDetonation: isDetonation,
         )
         return damageOutcome
     }

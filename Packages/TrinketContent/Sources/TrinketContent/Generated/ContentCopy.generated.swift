@@ -1371,8 +1371,8 @@ public enum ContentCopy {
             return (L10n.affixes_symbiosis_basic_description(50), [50])
         case "Symbiosis":
             return (L10n.affixes_symbiosis_title, [])
-        case "Every other turn, lose 1 Health and draw a card":
-            return (L10n.affixes_tattered_pages_astral_description(1), [1])
+        case "Burn damage has a 10% chance to draw a card":
+            return (L10n.affixes_tattered_pages_astral_description(10), [10])
         case "Forbidden Knowledge":
             return (L10n.affixes_tattered_pages_title, [])
         case "Take 25% less Bleed damage":
@@ -5068,7 +5068,7 @@ public enum ContentCopy {
         NumericTemplate(prefix: "Stun has a ", regex: try? NSRegularExpression(pattern: "^Stun\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ last\\ an\\ additional\\ turns?$"), count: 1, make: { values in L10n.affixes_stunned_pocketwatch_astral_description(values[0]) }),
         NumericTemplate(prefix: "Increase Physical damage by ", regex: try? NSRegularExpression(pattern: "^Increase\\ Physical\\ damage\\ by\\ ([0-9]+)\\\nPhysical\\ and\\ Stun\\ damage\\ remove\\ twice\\ as\\ much\\ Block$"), count: 1, make: { values in L10n.affixes_sundering_charm_astral_description(values[0]) }),
         NumericTemplate(prefix: "Your ally receives ", regex: try? NSRegularExpression(pattern: "^Your\\ ally\\ receives\\ ([0-9]+)%\\ of\\ the\\ Health\\ you\\ restore\\ with\\ Leech$"), count: 1, make: { values in L10n.affixes_symbiosis_astral_description(values[0]) }),
-        NumericTemplate(prefix: "Every other ", regex: try? NSRegularExpression(pattern: "^Every\\ other\\ turns?,\\ lose\\ ([0-9]+)\\ Health\\ and\\ draw\\ a\\ cards?$"), count: 1, make: { values in L10n.affixes_tattered_pages_astral_description(values[0]) }),
+        NumericTemplate(prefix: "Burn damage has a ", regex: try? NSRegularExpression(pattern: "^Burn\\ damage\\ has\\ a\\ ([0-9]+)%\\ chance\\ to\\ draw\\ a\\ cards?$"), count: 1, make: { values in L10n.affixes_tattered_pages_astral_description(values[0]) }),
         NumericTemplate(prefix: "Take ", regex: try? NSRegularExpression(pattern: "^Take\\ ([0-9]+)%\\ less\\ Bleed\\ damage$"), count: 1, make: { values in L10n.affixes_thick_skinned_astral_description(values[0]) }),
         NumericTemplate(prefix: "Gain ", regex: try? NSRegularExpression(pattern: "^Gain\\ ([0-9]+)\\ Thorns\\ at\\ the\\ start\\ of\\ combat$"), count: 1, make: { values in L10n.affixes_thornwrought_astral_description(values[0]) }),
         NumericTemplate(prefix: "Attacks deal ", regex: try? NSRegularExpression(pattern: "^Attacks\\ deal\\ ([0-9]+)%\\ more\\ damage\\ while\\ you\\ have\\ no\\ debuffs?$"), count: 1, make: { values in L10n.affixes_unburdened_astral_description(values[0]) }),

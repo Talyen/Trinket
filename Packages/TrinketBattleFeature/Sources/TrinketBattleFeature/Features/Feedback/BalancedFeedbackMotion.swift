@@ -5,6 +5,9 @@ import TrinketDesignSystem
 /// Bounded independent feedback shared by battles and debug replays.
 enum BalancedFeedbackMotion {
     static let maximumQueueDelay: TimeInterval = 0.18
+    static let reactionQueueDelay: TimeInterval = 0.64
+    static let reactionLaunchGap: TimeInterval = 0.32
+    static let reactionImpactQueueDelay: TimeInterval = 1.37
     static let nearbyWindow: TimeInterval = 0.36
     static func state(for item: CombatFeedbackItem, at date: Date) -> CombatFeedbackAnimationState {
         if item.region != .impact {
@@ -31,16 +34,27 @@ enum BalancedFeedbackMotion {
         let relevant = previous.filter {
             $0.targetID == incoming.targetID
         }
-        let deadline = date.addingTimeInterval(maximumQueueDelay)
         var launch = date
-        let requiresImpactTiming: Bool = switch incoming.label {
-        case .reactionPayoff: true
-        default: incoming.region == .impact || incoming.isCardHealthCost
+        if incoming.region == .announcement {
+            let last = relevant.last { $0.region == .announcement }
+            let impact = relevant.last {
+                $0.region == .impact && $0.actionGroupID == incoming.actionGroupID && $0.expiresAt > date
+            }
+            if let impact {
+                launch = max(launch, impact.expiresAt)
+            }
+            if let last {
+                launch = max(launch, last.availableAt.addingTimeInterval(reactionLaunchGap))
+            }
+            let hasDelayedPredecessor = last.map { $0.availableAt > date.addingTimeInterval(reactionQueueDelay) } ?? false
+            let delay = impact != nil || hasDelayedPredecessor ? reactionImpactQueueDelay : reactionQueueDelay
+            launch = min(launch, date.addingTimeInterval(delay))
+        } else if incoming.region != .impact, !incoming.isCardHealthCost {
+            if let last = relevant.last(where: { $0.region == incoming.region }) {
+                launch = max(launch, last.availableAt.addingTimeInterval(0.08))
+            }
+            launch = min(launch, date.addingTimeInterval(maximumQueueDelay))
         }
-        if !requiresImpactTiming, let last = relevant.last(where: { $0.region == incoming.region }) {
-            launch = max(launch, last.availableAt.addingTimeInterval(0.08))
-        }
-        launch = min(launch, deadline)
         var incoming = incoming
         incoming.feedbackSpread = spread(for: incoming, previous: relevant, at: launch)
         let lifetime = incoming.region == .impact ? 1.05 : incoming.region == .announcement ? 1.6 : 0.92

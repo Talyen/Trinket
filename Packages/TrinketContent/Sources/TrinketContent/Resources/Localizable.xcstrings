@@ -5997,28 +5997,28 @@
       "comment": "ContentManifest/affixes.tsv: tattered_pages, astral_description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verliere jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> und ziehe eine Karte"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Every other turn, lose <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> and draw a card"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Cada dos turnos, pierde <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> y roba una carta"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Un tour sur deux, perdez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> et piochez une carte"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>失い、カードを1枚引く"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 <keyword id=\"health\">체력</keyword> <value id=\"quantity_1\">%1$lld</value> 소모 후 카드 한 장 뽑기"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "A cada dois turnos, perca <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> e compre uma carta"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合失去<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>並抽一張牌"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Bei <keyword id=\"burn\">Brand</keyword>-Schaden besteht eine Chance von <value id=\"quantity_1\">%1$lld</value>%%, eine Karte zu ziehen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">Burn</keyword> damage has a <value id=\"quantity_1\">%1$lld</value>%% chance to draw a card"}},
+        "es": {"stringUnit": {"state": "translated", "value": "El daño de <keyword id=\"burn\">Quemadura</keyword> tiene un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de hacerte robar una carta"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de <keyword id=\"burn\">Brûlure</keyword> ont <value id=\"quantity_1\">%1$lld</value>%% de chances de vous faire piocher une carte"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">炎上</keyword>ダメージで、<value id=\"quantity_1\">%1$lld</value>%%の確率でカードを1枚引く"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">화상</keyword> 피해 발생 시 <value id=\"quantity_1\">%1$lld</value>%% 확률로 카드 한 장 뽑기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "O dano de <keyword id=\"burn\">Queimadura</keyword> tem <value id=\"quantity_1\">%1$lld</value>%% de chance de fazer você comprar uma carta"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "造成<keyword id=\"burn\">燃燒</keyword>傷害時，有<value id=\"quantity_1\">%1$lld</value>%%的機率抽一張牌"}}
       }
     },
     "affixes.tattered_pages.basic_description": {
       "comment": "ContentManifest/affixes.tsv: tattered_pages, basic_description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verliere jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> und ziehe eine Karte"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Every other turn, lose <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> and draw a card"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Cada dos turnos, pierde <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> y roba una carta"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Un tour sur deux, perdez <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Santé</keyword> et piochez une carte"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>失い、カードを1枚引く"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 <keyword id=\"health\">체력</keyword> <value id=\"quantity_1\">%1$lld</value> 소모 후 카드 한 장 뽑기"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "A cada dois turnos, perca <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> e compre uma carta"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合失去<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>並抽一張牌"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Bei <keyword id=\"burn\">Brand</keyword>-Schaden besteht eine Chance von <value id=\"quantity_1\">%1$lld</value>%%, eine Karte zu ziehen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">Burn</keyword> damage has a <value id=\"quantity_1\">%1$lld</value>%% chance to draw a card"}},
+        "es": {"stringUnit": {"state": "translated", "value": "El daño de <keyword id=\"burn\">Quemadura</keyword> tiene un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de hacerte robar una carta"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de <keyword id=\"burn\">Brûlure</keyword> ont <value id=\"quantity_1\">%1$lld</value>%% de chances de vous faire piocher une carte"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">炎上</keyword>ダメージで、<value id=\"quantity_1\">%1$lld</value>%%の確率でカードを1枚引く"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">화상</keyword> 피해 발생 시 <value id=\"quantity_1\">%1$lld</value>%% 확률로 카드 한 장 뽑기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "O dano de <keyword id=\"burn\">Queimadura</keyword> tem <value id=\"quantity_1\">%1$lld</value>%% de chance de fazer você comprar uma carta"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "造成<keyword id=\"burn\">燃燒</keyword>傷害時，有<value id=\"quantity_1\">%1$lld</value>%%的機率抽一張牌"}}
       }
     },
     "affixes.tattered_pages.title": {
@@ -10001,14 +10001,14 @@
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Equipment/InventoryItem+Compatibility.swift: canonical numeric compatibility description",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verliere jeden zweiten Zug <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> und ziehe eine Karte"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Every other turn, lose <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> and draw a card"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Cada dos turnos, pierde <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword> y roba una carta"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Un tour sur deux, perdez <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Santé</keyword> et piochez une carte"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "1ターンおきに<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>失い、カードを1枚引く"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "한 턴 걸러 <keyword id=\"health\">체력</keyword> <value id=\"quantity_1\">%1$lld</value> 소모 후 카드 한 장 뽑기"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "A cada dois turnos, perca <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword> e compre uma carta"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每隔一回合失去<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>並抽一張牌"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Bei <keyword id=\"burn\">Brand</keyword>-Schaden besteht eine Chance von <value id=\"quantity_1\">%1$lld</value>%%, eine Karte zu ziehen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">Burn</keyword> damage has a <value id=\"quantity_1\">%1$lld</value>%% chance to draw a card"}},
+        "es": {"stringUnit": {"state": "translated", "value": "El daño de <keyword id=\"burn\">Quemadura</keyword> tiene un <value id=\"quantity_1\">%1$lld</value>%% de probabilidad de hacerte robar una carta"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de <keyword id=\"burn\">Brûlure</keyword> ont <value id=\"quantity_1\">%1$lld</value>%% de chances de vous faire piocher une carte"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">炎上</keyword>ダメージで、<value id=\"quantity_1\">%1$lld</value>%%の確率でカードを1枚引く"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"burn\">화상</keyword> 피해 발생 시 <value id=\"quantity_1\">%1$lld</value>%% 확률로 카드 한 장 뽑기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "O dano de <keyword id=\"burn\">Queimadura</keyword> tem <value id=\"quantity_1\">%1$lld</value>%% de chance de fazer você comprar uma carta"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "造成<keyword id=\"burn\">燃燒</keyword>傷害時，有<value id=\"quantity_1\">%1$lld</value>%%的機率抽一張牌"}}
       }
     },
     "authored.713ceb2c7a465edb": {

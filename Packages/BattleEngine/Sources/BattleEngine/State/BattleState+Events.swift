@@ -67,6 +67,7 @@ package extension BattleState {
         origin: ActionEvent.Origin = .automatic,
         isFullyBlocked: Bool = false,
         reactionPayoff: CombatReaction? = nil,
+        isDetonation: Bool = false,
     ) -> ActionEvent {
         nextEventID += 1
         let event = ActionEvent(
@@ -92,6 +93,8 @@ package extension BattleState {
             isFullyBlocked: isFullyBlocked,
             authoredCardOperation: origin == .direct ? resolution.authoredCardOperation : nil,
             reactionPayoff: reactionPayoff,
+            damageActionID: (isDetonation || (kind == .abilityDamage && origin == .direct)) ? resolution.actionID : nil,
+            isDetonation: isDetonation,
         )
         if tracksEvents {
             events.append(event)

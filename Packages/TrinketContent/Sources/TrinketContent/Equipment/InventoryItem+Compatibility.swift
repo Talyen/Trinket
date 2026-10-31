@@ -78,12 +78,11 @@ extension InventoryItem {
             guard triggers.healthPerTurn > 0 else { return original }
             description = "Restore 2 Health every other turn"
         case "tattered_pages":
-            if !triggers.forbiddenKnowledge {
-                guard triggers.drawEveryOtherTurn > 0 else { return original }
-                triggers.forbiddenKnowledge = true
-                triggers.drawEveryOtherTurn = 0
-            }
-            description = "Every other turn, lose 1 Health and draw a card"
+            guard triggers.forbiddenKnowledge || triggers.drawEveryOtherTurn > 0 else { return original }
+            triggers.forbiddenKnowledge = false
+            triggers.drawEveryOtherTurn = 0
+            triggers.burnDamageDrawChancePercent = 0.10
+            description = "Burn damage has a 10% chance to draw a card"
         case "the_returning_gale":
             description = "Once per turn, Dodging returns your last attack card"
         case "the_golden_crucible":

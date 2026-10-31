@@ -23,6 +23,7 @@ struct CombatReactionFeedbackTests {
         #expect(announcement.expiresAt == start.addingTimeInterval(1.6))
         #expect(damage.label == .amount(-8))
         #expect(damage.sourceEventIDs == [1])
+        #expect(damage.presentationIndex < announcement.presentationIndex)
         #expect(announcement.sourceEventIDs == [2, 3])
         #expect(BalancedFeedbackMotion.state(for: announcement, at: start.addingTimeInterval(1.2)).opacity == 1)
         #expect(CombatSFXMapper.clipID(for: [events[1]]) == nil)

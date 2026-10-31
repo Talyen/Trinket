@@ -215,7 +215,11 @@ struct AbilityEffectIntegrationTests {
                 [ActiveEffect(id: 1, effect: .burn(6), remainingTurns: 0)], for: context.enemy,
             )
         }
-        context.performTestAction(.combustion)
+        let events = context.performTestAction(.combustion)
+        let detonations = events.filter { $0.kind == .status && $0.isDetonation }
+        #expect(!detonations.isEmpty)
+        #expect(detonations.allSatisfy { $0.damageActionID != nil })
+        #expect(events.filter { $0.kind == .status && !$0.isDetonation }.allSatisfy { $0.damageActionID == nil })
         let remainingBurn = context.roster.activeEffects(for: context.enemy).filter { $0.effect.keyword == .burn }
         #expect(remainingBurn.isEmpty)
         let lost = before - context.roster.health(for: context.enemy)

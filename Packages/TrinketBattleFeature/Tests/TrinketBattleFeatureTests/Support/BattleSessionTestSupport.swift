@@ -272,6 +272,8 @@ enum BattleSessionTestSupport {
         abilityName: String = "Slash",
         authoredCardOperation: Int? = nil,
         reactionPayoff: CombatReaction? = nil,
+        damageActionID: Int? = nil,
+        isDetonation: Bool = false,
         origin: ActionEvent.Origin = .direct,
     ) -> ActionEvent {
         ActionEvent(
@@ -291,6 +293,8 @@ enum BattleSessionTestSupport {
             isFullyBlocked: isFullyBlocked,
             authoredCardOperation: authoredCardOperation,
             reactionPayoff: reactionPayoff,
+            damageActionID: damageActionID,
+            isDetonation: isDetonation,
         )
     }
 }

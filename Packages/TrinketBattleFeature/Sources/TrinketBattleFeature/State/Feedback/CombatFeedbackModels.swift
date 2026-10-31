@@ -37,6 +37,8 @@ struct CombatFeedbackItem: Identifiable, Equatable {
     var isCritical: Bool
     let isPrimaryCardResult: Bool
     let isCardHealthCost: Bool
+    let isStatusDamage: Bool
+    let containsDetonation: Bool
     var criticalAt: Date?
 
     init(
@@ -57,10 +59,14 @@ struct CombatFeedbackItem: Identifiable, Equatable {
         effectKind: ActionEvent.EffectOutcome? = nil,
         isPrimaryCardResult: Bool = false,
         isCardHealthCost: Bool = false,
+        isStatusDamage: Bool = false,
+        containsDetonation: Bool = false,
     ) {
         self.effectKind = effectKind
         self.isPrimaryCardResult = isPrimaryCardResult
         self.isCardHealthCost = isCardHealthCost
+        self.isStatusDamage = isStatusDamage
+        self.containsDetonation = containsDetonation
         lastReceivedAt = firstScheduledAt ?? availableAt
         self.id = id
         self.sourceEventIDs = sourceEventIDs

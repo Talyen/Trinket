@@ -74,6 +74,9 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
     public let authoredCardOperation: Int?
     /// Identifies an elemental reaction's actual damage payoff.
     public let reactionPayoff: CombatReaction?
+    /// Presentation provenance for an authored hit or a consumed-DoT detonation.
+    public let damageActionID: Int?
+    public let isDetonation: Bool
     public let isFullyBlocked: Bool
     public let kind: Kind
     public var effectKind: EffectOutcome? {
@@ -120,6 +123,8 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
         isFullyBlocked: Bool = false,
         authoredCardOperation: Int? = nil,
         reactionPayoff: CombatReaction? = nil,
+        damageActionID: Int? = nil,
+        isDetonation: Bool = false,
     ) {
         self.id = id
         self.actionID = actionID
@@ -127,6 +132,8 @@ public struct ActionEvent: Identifiable, Equatable, Sendable {
         self.origin = origin
         self.authoredCardOperation = authoredCardOperation
         self.reactionPayoff = reactionPayoff
+        self.damageActionID = damageActionID
+        self.isDetonation = isDetonation
         self.isFullyBlocked = isFullyBlocked
         self.kind = kind
         self.actorID = actorID

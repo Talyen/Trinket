@@ -197,6 +197,7 @@ package extension CombatTriggerEngine {
                     target: target,
                     sourceActorID: damageSourceID,
                     provenance: provenance,
+                    isDetonation: true,
                     in: &context,
                 )
             }
@@ -208,6 +209,7 @@ package extension CombatTriggerEngine {
                     target: target,
                     sourceActorID: damageSourceID,
                     provenance: provenance,
+                    isDetonation: true,
                     in: &context,
                 )
                 tail /= 2
