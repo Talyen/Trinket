@@ -1,7 +1,6 @@
 # Continuous card play
 
-Approved September 12, 2026. This is the standing product specification for
-[PD-024](Decisions.md), retained from the approved implementation plan.
+This is the standing product specification for [PD-024](Decisions.md).
 
 ## Tap and keep playing
 

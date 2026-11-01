@@ -207,7 +207,7 @@ not proof of installation or a successful device test.
    use system Ruby, `sudo`, or change shell profiles. Homebrew is the prerequisite
    if the Mac does not already have it; see [Homebrew](https://brew.sh).
 2. In App Store Connect, use app record `6811284921` (`com.ryanmcintire.Trinket`;
-   named **Trinket!** in the [October 12 portal baseline](AppStoreMetadata.md#candidate-evidence))
+   see [submission drafts](AppStoreMetadata.md))
    and select an existing internal group with its intended testers. Obtain a team API key through **Users and Access →
    Integrations → App Store Connect API**, with an App Manager or Admin role
    for upload and beta distribution. Signing additionally requires permission

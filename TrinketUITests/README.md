@@ -145,101 +145,21 @@ Assert a journey’s return destination before using helpers that navigate elsew
 
 ## Coverage ownership
 
-- `SmokeBattleTests` owns Campaign entry, earned victory, committed claim,
-  background return, Continue, and production-speed rapid cards/drag/retreat.
-  The victory journey uses Auto-Battle; the input journey owns manual play and
-  retreat once, replacing the separate slowed retreat launch. Duplicate settlement
-  protection is package-owned by `PlaythroughLifecycleTests`. The termination
-  journey uses the Chapter 1 victory fixture, taps the real claim, terminates at
-  its stable committed-checkpoint identifier, then verifies the credited Gold,
-  persisted progression, and next-stage entry after relaunch. Failed-write Leave
-  proves recovery by starting another battle in the same process. Its former
-  relaunch check only found the already-unlocked first stage; `DefeatCompletionTests`
-  owns retry/settlement correctness.
-- `BattleFlowUITests` shares one launch for inspection, dismissal, a held cancelled
-  drag, and a committed drag after cancellation. `BattleCardGesturePolicyTests` owns
-  numeric movement/play boundaries; the second sub-threshold flick is retired.
-  Successful plays check the selected card's departure; draw effects can keep
-  the total hand size unchanged.
-  `DuoRotationUITests` runs only through Profiles in `player-coverage.sh duo`,
-  retaining hand membership, reachable controls and post-rotation play. Keeping
-  its intentional runtime skip outside FullUI permits CI's complete-execution
-  proof before retrying classified launch failures. Actual folding remains an
-  interactive Device Hub check.
-- Localization retains every language and screenshot surface, but captures progression
-  from Battle's shared `CombatantDetailPane` after dismissing ability inspection,
-  before the same Campaign battle earns its talent choices. The seven language
-  journeys share one launch with Options/purchase inspection using the localized
-  native tab label. Double-length English retains a same-store relaunch directly
-  into Options because its expanded native tab label belongs to the app process.
-  All screenshot/hierarchy surfaces remain; StoreKit registration is once per runner.
-  Collection and purchase journeys retain Collection entry wiring. The localized offer scrolls its
-  content once and verifies Restore in the anchored footer beneath Purchase, following
-  [Monetization](../Docs/Product/Monetization.md#offer).
-  After talent choices, the next Campaign stage action must be reachable; the
-  retained Campaign screenshot, not the scroll container frame, supports clipping review.
-- `SmokeShellTests` owns onboarding, opening both selected starters after relaunch, and
-  the Collection → Homestead → Options → Play round-trip in the same career.
-  Shell and onboarding changes route to that one owner. Recruitment opens the earned
-  companion's detail in Collection and starts the next Campaign battle, proving
-  usable access instead of matching a lock label.
-  Full Game smoke opens the purchased character's detail directly; equipment owns item detail/picker,
-  equip, and actual unequip/reselect wiring. The equipment fixture keeps the target weapon
-  visible. Reload/failed-write equipment semantics remain package-owned by
-  `PresentationModelTests`.
-- Merchant smoke pins one offer and compares board/detail prices, purchase, Gold
-  debit, and return to Play. The fixed purchase footer signals detail readiness;
-  avoid scrolling while artwork prepares. `ShopPurchaseApplierTests` and
-  `AppStateShopEncounterTests` own item ownership and sold-stock rejection.
-- Labyrinth boss/Continue retains battle and floor-selection interactions, checking
-  the displayed floor after switching back to floor 1 and then floor 2. FullUI
-  also covers Voyage embark/abandon, Spires locked-floor rejection and battle launch, and
-  Labyrinth inspector selection/dismissal. Voyage stops at the returned offer board;
-  `VoyagePersistenceTests` and `CloudSaveMergeVoyageClaimRegressionTests` own abandoned
-  route encoding and disk reload, avoiding a duplicate cold launch and Explore traversal.
-- Homestead accounting verifies displayed debit and tier in one launch;
-  `PlayerHomesteadStoreTests` owns refused writes, exact debits and tiers across reload.
-  Accessibility profiles stop after the tier change.
-  Full Game smoke proves native Options rows accept taps. Options owns Reset cancellation
-  with preserved progression and confirmed erasure across relaunch; cancellation alone
-  no longer incurs a cold launch. The former Haptics thumb/relaunch
-  case is retired: it protected a narrow preference binding at the cost of two
-  launches. Dedicated Haptics UI persistence is no longer proved; real Music slider
-  binding/playback persistence remains in `AudioLifecycleUITests`. One Contract
-  plays a card after foreground return and checks its departure, music restart and
-  subsequent SFX before Auto-Battle or board return can supply unrelated audio. The twenty-Contract soak
-  owns repeated-battle audio coverage; `MusicPlayerRoutingTests` owns route rules.
-- Full Game smoke seeds completed free chapters, opens Campaign from the Play
-  hub, and taps the locked chapter's real offer entry. It purchases access to independently
-  recruited Warlock, opens his detail, then plays the previously locked stage.
-  Terminated Ask to Buy approval also owns
-  populated cold-launch recovery: hidden purchase/restore actions, unchanged Gold
-  and completed stages, recruited-character access, and a playable next stage.
-  The separate direct-purchase cold-launch case is retired; both enter the same
-  startup ownership reconciliation. Live approval, decline/retry, refund/repurchase,
-  and restore-failure recovery stay separate.
-  Cancellation never granting access is package-owned by `FullGameStoreTests`;
-  declined Ask to Buy retries from the locked character. Active approval and
-  restore-failure recovery observe app entitlement and purchase controls without
-  repeating Collection navigation. Cold recovery and decline/retry retain character
-  access wiring by opening Warlock's detail after recovery. Refund checks Gold and
-  completed Campaign stages across relaunch, then repurchases through the revoked
-  character's real purchase guard and opens his detail. Decline and
-  refund prove denial through that guard instead of a lock-label suffix. Initial purchase allows
-  StoreKit up to 60 seconds and requires offer dismissal and app entitlement before
-  refunding. Live App Store restoration remains separate from local recovery.
-- [Player coverage](../Docs/Platform/PlayerCoverage.md) owns settings profiles,
-  twenty-Contract real-audio soak, interrupted settlement, and deferred live checks.
-  Profiles require a played card to leave the hand and actually enter the stage unlocked by a claim.
-  Each soak Contract compares audio with its own pre-battle baseline, excluding earlier tab visits.
-  Audio observations prove backend scheduling/start results, not audibility.
-  Accessibility audits exclude only the opt-in nonshipping diagnostics label, whose
-  clipped one-point frame avoids covering controls at large text sizes. Each iOS audit
-  type runs separately with one retry for a native timeout; violations and repeated
-  timeouts fail with bounded element diagnostics.
-- Reward and talent confirmation checkpoints hold presentation only in owned,
-  cloud-disabled Debug stores. Background/disappearance uses ordinary finish paths;
-  holds never authorize rewards or writes and are absent from Release.
+[Player coverage](../Docs/Platform/PlayerCoverage.md#automated-owners) maps player
+risks to executable tests and their cadence. Consult the test sources for individual
+journeys and assertions; use the [Testing rubric](../Docs/Platform/Testing.md#ui-keep-drop-rubric)
+before adding or removing coverage. Preserve localization screenshot surfaces for
+all configured languages and use captured screens to review clipping. Duo rotation
+runs in Profiles; actual folding requires the interactive qualification described
+in [Player coverage](../Docs/Platform/PlayerCoverage.md#duo-visual-qualification).
+Successful card-play assertions check the selected card's departure, since a draw
+can leave the hand count unchanged.
+
+Dedicated Haptics UI persistence is not currently covered. Audio tests exercise the
+Music control and backend playback, but backend observations cannot prove audibility.
+Reward and talent confirmation checkpoints hold presentation only in owned,
+cloud-disabled Debug stores. Background/disappearance uses ordinary finish paths;
+holds never authorize rewards or writes and are absent from Release.
 
 ## Performance measurements
 
@@ -252,8 +172,7 @@ Exit unselected tests before launch/probe setup. In multi-step equipment and tal
 journeys, run only prerequisites for selected steps and skip trailing actions.
 Talent reveal/choice preparation uses Debug Skip Combat before measurement; Campaign
 smoke retains earned victory. Measurement windows and animation-tail budgets stay unchanged.
-Combatant-detail scrolling starts after launch preparation and detail readiness;
-there is no additional ten-second sleep. Existing animation-tail budgets remain.
+Combatant-detail scrolling starts after launch preparation and detail readiness.
 Resolve sampler coordinates and gesture setup before capture. Snapshot scroll probes
 outside `measured`, using one resolved surface for both snapshots and gestures;
 failed movement or an empty post-gesture snapshot retains the hierarchy and shared

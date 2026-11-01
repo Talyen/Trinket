@@ -46,8 +46,7 @@ job timeout for diagnostic classification and upload. The shorter generation/sty
 gate reserves two minutes. The command supervisor includes simulator
 preparation and serial package work; per-command Xcode watchdogs also cap themselves
 against the remaining deadline, preserving a short manifest-finalization allowance.
-CI allows five minutes per cold boot (local default: 150 seconds), based on
-observed boots finishing after the old four-minute limit. Simulator recovery
+CI allows five minutes per cold boot (local default: 150 seconds). Simulator recovery
 admits another boot only when its full watchdog fits
 within the setup recovery window: six minutes for standard lanes, twelve for the
 downloaded qualified release runtime, which has demonstrated a successful erase/boot
