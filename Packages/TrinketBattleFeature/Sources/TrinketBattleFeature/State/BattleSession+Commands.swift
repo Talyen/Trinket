@@ -142,6 +142,7 @@ extension BattleSession {
         guard let initialState = engineState else { return }
         var progress = AutoBattleProgress(in: initialState)
         let autoBattlePolicy = PlayPolicy.greedy
+        var tieBreakOffset = 0
         while input.isCurrent(in: self), !Task.isCancelled, isAutoBattleEnabled {
             guard hasRunnableAutoBattle else { return }
 
@@ -166,7 +167,7 @@ extension BattleSession {
                 isAutoBattleEnabled = false
                 return
             }
-            guard let card = autoBattlePolicy.preferredPlayableCard(in: engineState)
+            guard let card = autoBattlePolicy.preferredPlayableCard(in: engineState, tieBreakOffset: tieBreakOffset)
             else {
                 if !hasPendingAutoEnd {
                     scheduleAutoEndIfNeeded()
@@ -175,10 +176,12 @@ extension BattleSession {
                 continue
             }
 
+            let selectedIndex = engineState.hand.cards.firstIndex { $0.id == card.id } ?? 0
             guard await playCard(card) else {
                 await waitForAutoBattleRetry()
                 continue
             }
+            tieBreakOffset = selectedIndex + 1
             guard input.isCurrent(in: self), !Task.isCancelled, isAutoBattleEnabled, outcome == nil else { return }
 
             await waitWhileAutoBattleBlocked(input: input, isBlocked: isCardCastPacingBlocked)

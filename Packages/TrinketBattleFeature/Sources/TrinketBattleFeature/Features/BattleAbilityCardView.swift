@@ -303,15 +303,13 @@ struct BattleAbilityCardView: View {
     }
 
     private func beginPlay() {
-        let request = CardActivationRequest(
-            artworkName: card.ability.artReference?.imageName,
+        let request = CardActivationRequest.handRequest(
+            for: card,
             center: heldReleaseCenter,
             size: CGSize(width: width, height: height),
             rotation: CGFloat(activeRotation * .pi / 180),
             verticalTilt: CGFloat(verticalTilt),
             scale: heldScale.width,
-            perspective: BattleMotion.cardPerspective,
-            keywords: card.ability.presentationKeywords,
         )
         publishPlay(request)
     }
