@@ -35,5 +35,5 @@ keeping a useful single-use boundary is valid.
   proof of liveness or absence.
 - Preserve live save/schema compatibility until its consumer window is proven closed;
   elapsed time alone is insufficient. Preserve intentional seams under
-  [Architecture](../Platform/Architecture.md) and relevant [proposal memory](Proposals.md).
+  [Architecture](../Platform/Architecture.md).
 - Do not rewrite battle math, save wire formats, or meaningful tests for brevity.

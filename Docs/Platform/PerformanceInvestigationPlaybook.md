@@ -87,28 +87,21 @@ catalog entry.
 | Outcomes / encounters | Victory/defeat reveal, victory claim/return, talent reward/choice; Mystery reward and corruption reveal |
 | Diagnostic exceptions | Engine/hand and engine/feedback attribution controls; injected stall detector |
 
-Secondary browsing/control tours are retired: onboarding and mode navigation;
-Collection inspection/editing/salvage; battle inspection/Auto/retreat; Shop,
-Mystery and corruption interactions; Homestead overview/build/upgrade/wallet/
-collection; Options, Full Game and defeat return. Their frame-pacing regressions
-can escape this matrix even when functional tests pass. The baseline supplies
-current scenario membership.
-
-Retained scenario IDs and thresholds remain stable. The physical-device baseline
-retains only its existing surviving workloads; it does not gain Simulator scenarios.
+The baseline owns current scenario membership and thresholds. Functional coverage
+does not establish frame pacing for interactions outside the measured matrix;
+physical-device scenarios are listed in their own baseline.
 
 Scroll scenarios perform a slow directional drag and a fast flick through newly
 exposed content, including deceleration. Verify movement outside the sampling
 window; do not add round trips or recovery gestures that can obscure an inert
-fixture. These windows differ from older round-trip reports and must be measured
-afresh before comparison. They assert movement using stable
+fixture. They assert movement using stable
 accessibility identities or labels rather than recyclable child indices. Fixtures
 must contain enough content to scroll. Short item details and the fixed resource
 wallet fit their viewport; they receive presentation/interaction coverage instead
 of claiming a successful content scroll. Shared long detail layouts are measured
 with populated combatant/equipment content. Combatant-detail scrolling equips five
 Astral items with available talents, then idles for ten seconds before gesture
-capture; older Basic-loadout captures represent a lighter workload.
+capture.
 
 Functional UI and headless/package journeys own payment/ownership, onboarding,
 loadout persistence, reset safety, save recovery, and StoreKit entitlement behavior.
@@ -118,8 +111,8 @@ functional flows do not imply a retained performance scenario.
 
 Accessibility snapshots that establish and verify scroll motion run before and
 after frame sampling. Retained combined journeys check scroll motion and return
-destinations outside the measured interaction. Older reports for changed windows include
-accessibility snapshot cost and are not directly comparable to new reports.
+destinations outside the measured interaction. Compare reports only when their
+workloads and measurement windows match.
 
 Fixtures only establish disposable prerequisites before measurement: isolated
 local saves, deterministic Labyrinth maps, pending talent progress, live Battle

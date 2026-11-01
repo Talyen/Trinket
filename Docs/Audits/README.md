@@ -80,9 +80,9 @@ architectural changes, and approval boundaries.
 
 ### Run memory
 
-[Proposals.md](Proposals.md) holds unresolved decisions and unique current rationale
-with evidence pointers and reasons. Remove verdicts already explained by standing
-contracts; reassess remaining rationale when its assumptions change. It is neither run history nor proof that an audit's scope was reviewed.
+[Proposals.md](Proposals.md) holds unresolved decisions with evidence pointers and
+reasons. Put lasting rationale in its current owner and remove resolved verdicts.
+It is neither run history nor proof that an audit's scope was reviewed.
 Outcomes, coverage, and unresolved candidates belong in the handoff; do not append
 run logs or Done tables to audit guides.
 

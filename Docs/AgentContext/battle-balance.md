@@ -4,9 +4,8 @@ Load only for balance numbers, encounter scaling, pacing, rounding, talents, aur
 
 Before retuning combat or persistence behavior, read the applicable locked
 [product decisions](../Product/Decisions.md) and their linked mode contracts.
-[Audit proposals](../Audits/Proposals.md) preserve unresolved decisions and unique
-current rationale; past verdicts do not override current product rules or serve
-as permanent exceptions.
+[Audit proposals](../Audits/Proposals.md) record unresolved decisions; they do not
+override current product rules or serve as permanent exceptions.
 
 Headless balance sweeps: `./Scripts/balance-sweep.sh`; operating details and evidence interpretation are below. Default stdout and `.md` are a findings brief; read that, not the JSON dump. `--full-markdown` writes the old table report. `--samples` is n per identity enemy and pairs per contrast focus.
 
@@ -274,8 +273,6 @@ or extend the completion criterion, and are not classified as progression hotspo
 Decided defeats earn the existing partial XP from peak enemy Health depletion,
 using `BattleDefeatProgress.experienceAward`; unfinished capped simulations earn
 no defeat XP. Defeats do not clear advancing content or count as victories.
-Reports from the earlier victory-only career model overstate recovery grind and
-must not be compared as if they included live defeat rewards.
 Losses retain the same recovery offer until victory. Random-stage enemy variants
 have separate hotspot rows so one enemy cannot inherit another's losses.
 The battle-count limit still bounds the run; the Labyrinth tracker samples ten

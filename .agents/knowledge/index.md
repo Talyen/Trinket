@@ -6,9 +6,10 @@ policy owners. They are not a second policy layer or required prereads for every
 
 | Pattern | Trigger |
 | --- | --- |
-| [Artwork working set](patterns/artwork-working-set.md) | Launch art, pinning, cache budgets, hitch or memory work |
 | [Module DAG and hubs](patterns/module-dag-containment.md) | New dependencies, hub growth, cross-package moves |
 | [Deferred seams](patterns/architecture-deferred-seams.md) | Package splits, platform sync, further Battle presentation boundaries |
+
+For artwork retention and memory budgets, use [UI performance](../../Docs/AgentContext/ui-performance.md#first-paint-pins-and-encounter-transitions) and the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.md#artwork-budgets).
 
 Keep a lesson only when its evidence and rationale will change a future decision.
 Link to the enforcing policy or code instead of copying its rules. Update or remove
