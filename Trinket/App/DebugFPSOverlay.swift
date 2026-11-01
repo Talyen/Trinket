@@ -1,12 +1,9 @@
+#if DEBUG
 import QuartzCore
 import SwiftUI
 import TrinketAppState
-import TrinketBattleFeature
-import TrinketDesignSystem
 import TrinketFeatureSupport
 import UIKit
-
-#if DEBUG
 
 struct DebugFPSOverlayModifier: ViewModifier {
     @Environment(\.scenePhase) private var scenePhase
@@ -41,7 +38,6 @@ final class FramePacingMetricsProbe {
     private let monitor = FramePacingMonitor.measurementShared
     private var window: UIWindow?
     private var metricsLabel: UILabel?
-    private var resetButton: UIButton?
     private var resetObserver: NSObjectProtocol?
     private var beginObserver: NSObjectProtocol?
     private var preparationTask: Task<Void, Never>?
@@ -75,7 +71,6 @@ final class FramePacingMetricsProbe {
         reset.addTarget(self, action: #selector(handleResetTap), for: .touchUpInside)
         reset.translatesAutoresizingMaskIntoConstraints = false
         reset.backgroundColor = .clear
-        resetButton = reset
 
         let root = UIViewController()
         root.view.backgroundColor = .clear
@@ -135,6 +130,8 @@ final class FramePacingMetricsProbe {
 
     private func beginMeasurement() {
         guard metricsLabel?.accessibilityValue == "ready" else { return }
+        preparationTask?.cancel()
+        preparationTask = nil
         monitor.resetMeasurement()
         metricsLabel?.accessibilityValue = "measuring"
         monitor.scheduleSnapshot(after: .seconds(60))
@@ -163,12 +160,8 @@ final class FramePacingMetricsProbe {
     }
 
     private func activeWindowScene() -> UIWindowScene? {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first { $0.activationState == .foregroundActive }
-            ?? UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .first
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        return scenes.first { $0.activationState == .foregroundActive } ?? scenes.first
     }
 }
 
@@ -224,6 +217,7 @@ final class FramePacingMonitor: NSObject {
     }
 
     func snapshotMeasurement() {
+        finishRequested = false
         scheduledSnapshotTask?.cancel()
         scheduledSnapshotTask = nil
         displayLink?.isPaused = true
@@ -237,14 +231,12 @@ final class FramePacingMonitor: NSObject {
             try? await Task.sleep(for: delay)
             guard let self, !Task.isCancelled else { return }
             snapshotMeasurement()
-            scheduledSnapshotTask = nil
         }
     }
 
     @objc private func step(_ link: CADisplayLink) {
         capture.record(at: link.timestamp, expectedDuration: link.targetTimestamp - link.timestamp)
         if finishRequested {
-            finishRequested = false
             snapshotMeasurement()
         }
     }

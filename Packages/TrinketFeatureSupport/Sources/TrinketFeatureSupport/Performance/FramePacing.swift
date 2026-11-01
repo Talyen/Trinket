@@ -36,16 +36,17 @@ public struct FramePacingReport: Equatable, Sendable, Codable {
         return "schema=\(Self.schemaVersion);json=\(json)"
     }
 
+    private static func isSupportedSchema(_ schema: Int) -> Bool {
+        (4 ... schemaVersion).contains(schema)
+    }
+
     public static func parseAccessibilityValue(_ value: String) -> Self? {
         if let jsonStart = value.range(of: "json=") {
             guard let header = value.split(separator: ";", maxSplits: 1).first,
                   header.hasPrefix("schema="), let schema = Int(header.dropFirst("schema=".count)),
-                  schema == schemaVersion || schema == 5 || schema == 4 else { return nil }
-            let json = String(value[jsonStart.upperBound...])
-            if let data = json.data(using: .utf8),
-               let decoded = try? JSONDecoder().decode(Self.self, from: data) {
-                return decoded
-            }
+                  isSupportedSchema(schema) else { return nil }
+            let json = Data(value[jsonStart.upperBound...].utf8)
+            return try? JSONDecoder().decode(Self.self, from: json)
         }
         var map: [String: String] = [:]
         for part in value.split(separator: ";") {
@@ -55,7 +56,7 @@ public struct FramePacingReport: Equatable, Sendable, Codable {
         }
         guard
             let schema = map["schema"].flatMap(Int.init),
-            schema == schemaVersion || schema == 5 || schema == 4,
+            isSupportedSchema(schema),
             let samples = map["samples"].flatMap(Int.init),
             let expectedFPS = map["expectedFPS"].flatMap(Double.init),
             let averageFPS = map["avgFPS"].flatMap(Double.init),
@@ -107,11 +108,11 @@ public enum FramePacingAnalyzer {
             guard interval > 0, interval.isFinite, expected > 0, expected.isFinite else { return nil }
             return (interval, expected)
         }
+        guard !samples.isEmpty else { return .empty }
         let expectedFrameDuration = median(samples.lazy.map(\.expected))
         guard expectedFrameDuration > 0 else { return .empty }
 
         let sorted = samples.lazy.map(\.interval).sorted()
-        guard !sorted.isEmpty else { return .empty }
 
         var totalDuration = 0.0
         var missedDeadlineCount = 0

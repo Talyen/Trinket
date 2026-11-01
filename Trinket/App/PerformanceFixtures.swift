@@ -17,9 +17,8 @@ enum PerformanceFixtures {
         let wantsHomesteadBuild = arguments.contains("-performance-homestead-build")
         let wantsStrongParty = arguments.contains("-performance-strong-party")
         let wantsTalentPair = arguments.contains("-coverage-talent-pair")
-        let wantsTalentFixture = wantsTalentPair || arguments.contains("-performance-talent-reward")
-            || arguments.contains("-performance-talent-point")
         let wantsTalentPoint = arguments.contains("-performance-talent-point")
+        let wantsTalentFixture = wantsTalentPair || wantsTalentPoint || arguments.contains("-performance-talent-reward")
         let wantsShineLoadout = arguments.contains("-performance-shine-loadout")
         let wantsLabyrinthScroll = arguments.contains("-performance-labyrinth-scroll")
         let labyrinthNodeType: LabyrinthNodeType? = {

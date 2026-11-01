@@ -30,6 +30,9 @@ struct FramePacingCaptureTests {
         capture.begin(at: 200)
         capture.record(at: 200.02, expectedDuration: 1.0 / 60)
         #expect(capture.finish(at: 200.01).completionStatus == "invalid-boundary")
+        capture.begin(at: 300)
+        capture.record(at: 300.02, expectedDuration: 1.0 / 60)
+        #expect(capture.finish(at: .nan).completionStatus == "invalid-boundary")
     }
 
     @Test func `unstarted empty timed out and overflowed captures stay distinct`() {

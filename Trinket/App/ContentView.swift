@@ -136,10 +136,7 @@ struct ContentView: View {
         return TabView(selection: intercepting) {
             Tab(ContentCopy.localized(AppTab.play.displayName), systemImage: AppTab.play.symbolName, value: AppTab.play) {
                 PlayView()
-                    .modifier(SelectedTabLayoutAcknowledgement(
-                        isSelected: shellSession.selectedTab == .play,
-                        onLayout: onFirstLayout,
-                    ))
+                    .onFirstNonzeroLayout(when: shellSession.selectedTab == .play, perform: onFirstLayout)
                     .trinketDecorativeMotion(shellSession.selectedTab == .play)
             }
 
@@ -148,30 +145,21 @@ struct ContentView: View {
                     CollectionView {
                         appState.consumePendingCollectionPresentation()
                     }
-                    .modifier(SelectedTabLayoutAcknowledgement(
-                        isSelected: shellSession.selectedTab == .collection,
-                        onLayout: onFirstLayout,
-                    ))
+                    .onFirstNonzeroLayout(when: shellSession.selectedTab == .collection, perform: onFirstLayout)
                     .trinketDecorativeMotion(shellSession.selectedTab == .collection)
                 }
             }
 
             Tab(ContentCopy.localized(AppTab.homestead.displayName), systemImage: AppTab.homestead.symbolName, value: AppTab.homestead) {
                 homesteadTab
-                    .modifier(SelectedTabLayoutAcknowledgement(
-                        isSelected: shellSession.selectedTab == .homestead,
-                        onLayout: onFirstLayout,
-                    ))
+                    .onFirstNonzeroLayout(when: shellSession.selectedTab == .homestead, perform: onFirstLayout)
                     .trinketDecorativeMotion(shellSession.selectedTab == .homestead)
             }
 
             Tab(ContentCopy.localized(AppTab.options.displayName), systemImage: AppTab.options.symbolName, value: AppTab.options) {
                 NavigationStack {
                     OptionsView()
-                        .modifier(SelectedTabLayoutAcknowledgement(
-                            isSelected: shellSession.selectedTab == .options,
-                            onLayout: onFirstLayout,
-                        ))
+                        .onFirstNonzeroLayout(when: shellSession.selectedTab == .options, perform: onFirstLayout)
                         .trinketDecorativeMotion(shellSession.selectedTab == .options)
                 }
             }
@@ -221,17 +209,5 @@ struct ContentView: View {
                 }
             }
         }
-    }
-}
-
-private struct SelectedTabLayoutAcknowledgement: ViewModifier {
-    let isSelected: Bool
-    let onLayout: () -> Void
-
-    func body(content: Content) -> some View {
-        content
-            .onFirstNonzeroLayout(when: isSelected) {
-                onLayout()
-            }
     }
 }
