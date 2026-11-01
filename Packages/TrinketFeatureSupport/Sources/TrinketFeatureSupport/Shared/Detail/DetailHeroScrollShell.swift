@@ -5,7 +5,7 @@ import TrinketDesignSystem
 
 @MainActor
 @Observable
-private final class HeroScrollState {
+final class HeroScrollState {
     var headerBaseHeight: CGFloat = HeroHeaderLayout.minimumHeaderHeight
     var headerContentHeight: CGFloat = HeroHeaderLayout.minimumHeaderHeight
     var headerTopInset: CGFloat = 0
@@ -120,8 +120,7 @@ private struct DetailHeroHeaderSection<Header: View>: View {
 
     var body: some View {
         header(scrollState.headerBaseHeight)
-            .environment(\.detailHeroOverscroll, scrollState.overscroll)
-            .environment(\.detailHeroTopInset, scrollState.headerTopInset)
+            .environment(\.detailHeroScrollState, scrollState)
             .onGeometryChange(for: CGFloat.self) { geometry in
                 geometry.size.height
             } action: { height in
@@ -162,9 +161,7 @@ private struct DetailHeroNavBarModifier: ViewModifier {
 }
 
 extension EnvironmentValues {
-    /// Scroll geometry keeps updating even when the hero artwork is offscreen.
-    @Entry var detailHeroOverscroll: CGFloat = 0
-    @Entry var detailHeroTopInset: CGFloat = 0
+    @Entry var detailHeroScrollState = nil as HeroScrollState?
 }
 
 private struct HeroHeaderScrollMetrics: Equatable {

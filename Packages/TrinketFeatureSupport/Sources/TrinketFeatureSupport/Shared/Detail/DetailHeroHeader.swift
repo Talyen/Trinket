@@ -3,8 +3,7 @@ import TrinketDesignSystem
 
 public struct DetailHeroHeader<Art: View, Footer: View>: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.detailHeroOverscroll) private var overscroll
-    @Environment(\.detailHeroTopInset) private var topInset
+    @Environment(\.detailHeroScrollState) private var scrollState
 
     let eyebrow: String?
     let eyebrowIndicators: [DetailChangeIndicator]
@@ -65,10 +64,7 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
         Color.clear
             .frame(height: baseHeight)
             .overlay {
-                extendedArtwork
-                    .scaleEffect(baseHeight > 0 ? (baseHeight + overscroll) / baseHeight : 1, anchor: .top)
-                    .offset(y: -overscroll)
-                    .allowsHitTesting(false)
+                DetailHeroArtwork(height: baseHeight, art: art)
             }
             .overlay(alignment: .bottomLeading) {
                 VStack(alignment: .leading, spacing: footerSpacing) {
@@ -87,39 +83,14 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
             titleBlock
             footer()
         }
-        .padding(.top, topInset)
+        .padding(.top, scrollState?.headerTopInset ?? 0)
         .padding(.horizontal, horizontalPadding)
         .padding(.bottom, bottomPadding)
         .frame(maxWidth: .infinity, minHeight: baseHeight, alignment: .bottomLeading)
         .background {
             GeometryReader { geometry in
-                let height = geometry.size.height
-                extendedArtwork
-                    .scaleEffect(height > 0 ? (height + overscroll) / height : 1, anchor: .top)
-                    .offset(y: -overscroll)
-                    .allowsHitTesting(false)
+                DetailHeroArtwork(height: geometry.size.height, art: art)
             }
-        }
-    }
-
-    private var artworkFrame: some View {
-        GeometryReader { geometry in
-            art()
-                .frame(width: geometry.size.width, height: geometry.size.height)
-                .clipped()
-        }
-        .trinketBottomArtworkBlend()
-        // Rasterize the completed fade before native extension and fractional scroll transforms.
-        .drawingGroup()
-    }
-
-    @ViewBuilder
-    private var extendedArtwork: some View {
-        if #available(iOS 26.0, *) {
-            // Extend the cropped, blended artwork; an outer clip would cut off the side-bar background.
-            artworkFrame.backgroundExtensionEffect()
-        } else {
-            artworkFrame
         }
     }
 
@@ -160,6 +131,41 @@ public struct DetailHeroHeader<Art: View, Footer: View>: View {
             text.accessibilityIdentifier(titleAccessibilityIdentifier)
         } else {
             text
+        }
+    }
+}
+
+private struct DetailHeroArtwork<Art: View>: View {
+    @Environment(\.detailHeroScrollState) private var scrollState
+    let height: CGFloat
+    @ViewBuilder let art: () -> Art
+
+    var body: some View {
+        let overscroll = scrollState?.overscroll ?? 0
+        extendedArtwork
+            .scaleEffect(height > 0 ? (height + overscroll) / height : 1, anchor: .top)
+            .offset(y: -overscroll)
+            .allowsHitTesting(false)
+    }
+
+    private var artworkFrame: some View {
+        GeometryReader { geometry in
+            art()
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .clipped()
+        }
+        .trinketBottomArtworkBlend()
+        // Rasterize the completed fade before native extension and fractional scroll transforms.
+        .drawingGroup()
+    }
+
+    @ViewBuilder
+    private var extendedArtwork: some View {
+        if #available(iOS 26.0, *) {
+            // Extend the cropped, blended artwork; an outer clip would cut off the side-bar background.
+            artworkFrame.backgroundExtensionEffect()
+        } else {
+            artworkFrame
         }
     }
 }
