@@ -81,7 +81,7 @@ try {
           else if (maintenance.stdout.trim()) console.log(maintenance.stdout.trim());
         }
         if (fs.existsSync(retention)) {
-          const maintenance = spawnSync("python3", [retention, "--apply", "--primary", "--expired-evidence-only", "--evidence-limit", "8"], { cwd: source, encoding: "utf8", timeout: 20_000 });
+          const maintenance = spawnSync("python3", [retention, "--apply", "--primary", "--expired-evidence-only", "--evidence-limit", "64"], { cwd: source, encoding: "utf8", timeout: 20_000 });
           if (maintenance.status !== 0) console.log("Expired evidence cleanup deferred; protected or unprocessed evidence remains.");
           else if (maintenance.stdout.trim()) console.log(maintenance.stdout.trim());
         }

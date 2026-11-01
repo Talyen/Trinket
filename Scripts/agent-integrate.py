@@ -18,6 +18,8 @@ import ctypes
 import time
 from datetime import datetime, timezone
 
+from internal.cli import primary_worktree_root
+
 
 def git(root: Path, *args: str) -> str:
     # A status check must not start a new fsmonitor daemon inside a checkout
@@ -91,6 +93,7 @@ def routine_report(path: Path) -> bool:
 
 def preserve_evidence(source: Path, names: list[str], *, routine: bool = False) -> Path:
     """Copy explicit deliverables before cleanup, without following symlinks."""
+    from internal.diagnostic_retention import seal as seal_diagnostics
     paths = []
     for name in names:
         path = Path(os.path.abspath(source / name))
@@ -196,6 +199,7 @@ def preserve_evidence(source: Path, names: list[str], *, routine: bool = False) 
         'files': [str(path.relative_to(source)) for path in sorted(set(paths))],
         'file_hashes': expected,
         'routine_reports': reports,
+        **({'diagnostic_retention': seal_diagnostics(saved / 'files', list(expected))} if routine else {}),
     }, indent=2) + '\n')
     record_preservation(destination, saved, head)
     print(f'Preserved task evidence: {saved}')
@@ -707,8 +711,16 @@ if __name__ == "__main__":
     try:
         source = Path(__file__).resolve().parents[1]
         if sys.argv[1:] == ['--expire-routine-evidence']:
+            from internal.diagnostic_retention import archived
             count = expire_routine_evidence(source) + expire_legacy_routine_evidence(source)
-            print(f'Expired {count} routine verification report(s).')
+            diagnostics = archived(source, apply=True)
+            from internal.output_retention import expire_managed_results
+            diagnostics += expire_managed_results(primary_worktree_root(source), apply=True)
+            print(f'Expired {count} routine verification report(s) and {len(diagnostics)} sealed diagnostic bundle(s).')
+        elif sys.argv[1:] == ['--diagnostic-retention-dry-run']:
+            from internal.diagnostic_retention import archived
+            from internal.output_retention import expire_managed_results
+            print(json.dumps(archived(source) + expire_managed_results(primary_worktree_root(source), apply=False)))
         elif sys.argv[1:2] == ['--evidence']:
             if sys.argv[2:]:
                 preserve_evidence(source, sys.argv[2:])

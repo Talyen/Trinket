@@ -103,6 +103,38 @@ class EvidenceExpiryTests(unittest.TestCase):
         self.assertFalse(trace.exists())
         self.assertTrue(source.exists())
 
+    def test_snapshot_images_share_checks_and_preserve_native_bundles(self):
+        first = self.snapshot('finished')
+        manifest = first.parents[4] / 'evidence.json'
+        saved = json.loads(manifest.read_text())
+        targets = [first]
+        for i in range(9):
+            path = first.parent / f'image-{i}.png'
+            path.write_text('pixels')
+            self.age(path)
+            targets.append(path)
+            saved['files'].append(str(path.relative_to(manifest.parent / 'files')))
+        native = manifest.parent / 'files/.DerivedData/Deliverables/Inspection/result.xcresult/image.png'
+        native.parent.mkdir(parents=True)
+        native.write_text('native result')
+        self.age(native)
+        saved['files'].append(str(native.relative_to(manifest.parent / 'files')))
+        manifest.write_text(json.dumps(saved))
+        self.age(manifest)
+        with patch.object(expiry.subprocess, 'run', return_value=subprocess.CompletedProcess('lsof', 1, '', '')) as opened:
+            self.assertEqual(self.cleanup(True)[0], 10)
+        self.assertEqual(opened.call_count, 3)
+        self.assertTrue(all(not path.exists() for path in targets))
+        self.assertTrue(native.exists())
+
+    def test_open_file_or_new_active_branch_preserves_batch(self):
+        target = self.snapshot('finished')
+        with patch.object(expiry.subprocess, 'run', return_value=subprocess.CompletedProcess('lsof', 0, 'open', '')):
+            self.assertEqual(self.cleanup(True)[0], 0)
+        with patch.object(expiry, 'active_branches', side_effect=[set(), {'codex/finished'}]):
+            self.assertEqual(self.cleanup(True)[0], 0)
+        self.assertTrue(target.exists())
+
     def test_keep_and_busy_producer_prevent_expiry(self):
         target = self.snapshot('finished')
         (target.parent / '.retention-keep').touch()

@@ -127,8 +127,10 @@ task record, matching commit and report path establish provenance. Old snapshots
 did not record whether a report was explicitly requested, so unmarked legacy
 reports meeting those conditions also expire. New explicit evidence requests,
 keep markers, failures, non-visual release evidence, unclassifiable reports and
-active tasks remain. Recognized inactive visual captures expire after 24 hours;
-see [output retention](../../Scripts/Reference.md#output-retention).
+active tasks remain. Recognized inactive visual captures expire after 24 hours.
+Producer-sealed generated XCTest/log/build-comparison payloads follow the bounded
+age/size [output policy](../../Scripts/Reference.md#output-retention); compact
+manifests remain after expiry.
 The task report's verification-report paths can therefore expire. Failed
 preservation stops landing or cleanup; raw build logs expire
 separately. Save visual artifacts in Deliverables. For other task-local evidence,

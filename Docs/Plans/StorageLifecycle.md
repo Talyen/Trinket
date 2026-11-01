@@ -2,7 +2,7 @@
 type: execution-plan
 status: active
 created: 2026-10-27
-updated: 2026-10-27
+updated: 2026-11-01
 expires: 2026-11-10
 ---
 
@@ -10,9 +10,10 @@ expires: 2026-11-10
 
 ## Objective and boundaries
 
-Finish safe storage cleanup without deleting active or unknown work, unique
-retained evidence, artwork masters, release archives, symbols or provenance.
-Pushes and player-resource changes remain outside this task.
+Finish safe storage cleanup while preserving active or unknown work, artwork
+masters, and explicitly kept evidence. Current release and evidence lifetimes
+are owned by [output retention](../../Scripts/Reference.md#output-retention).
+Player-resource changes remain outside this plan.
 
 ## Remaining protected state
 
@@ -29,8 +30,8 @@ Pushes and player-resource changes remain outside this task.
   inactivity is provable. A clean tree and ancestor relationship do not establish
   that a retained checkout is no longer needed; do not poll or alter other chats.
 - [ ] Revisit eligible duplicate evidence after its retention window and once no
-  active or explicitly kept owner remains. Byte equality alone does not establish
-  physical savings or authorize deletion of unique evidence.
+  active or explicitly kept owner remains. Apply the current evidence policy;
+  byte equality alone does not establish physical savings.
 
 Use [the isolated workflow](../../AGENTS.md#route-and-read),
 [output retention](../../Scripts/Reference.md#output-retention) and

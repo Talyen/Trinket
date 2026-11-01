@@ -123,14 +123,14 @@ xcode_runner_write_manifest() {
   fi
   mkdir -p "$(dirname "$manifest_path")"
 
-  python3 - "$manifest_path" "$label" "$exit_code" "$result_bundle" "$diagnostics_json" "$test_summary" <<'PY' || true
+  python3 - "$manifest_path" "$label" "$exit_code" "$result_bundle" "$diagnostics_json" "$test_summary" "$XCODE_RUNNER_SCRIPT_DIR" <<'PY' || true
 import json
 import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-path, label, exit_code, result_bundle, diagnostics_json, test_summary = sys.argv[1:]
+path, label, exit_code, result_bundle, diagnostics_json, test_summary, script_dir = sys.argv[1:]
 payload = {
     "schema_version": 1,
     "label": label,
@@ -158,6 +158,14 @@ target = Path(path)
 temporary = target.with_name(f".{target.name}.{os.getpid()}.tmp")
 temporary.write_text(json.dumps(payload, separators=(",", ":")) + "\n", encoding="utf-8")
 os.replace(temporary, target)
+# Only completed managed outputs opt in; custom destinations remain caller-owned.
+try:
+    sys.path.insert(0, script_dir)
+    from internal.diagnostic_retention import seal_invocation
+    raw_log = os.environ.get("XCODE_RUNNER_LOG_PATH")
+    seal_invocation(Path(result_bundle), Path(raw_log) if raw_log else None, status=payload["status"])
+except (ImportError, OSError, ValueError) as error:
+    print(f"Diagnostic retention deferred: {error}", file=sys.stderr)
 PY
   XCODE_RUNNER_MANIFEST_PATH="$manifest_path"
   export XCODE_RUNNER_MANIFEST_PATH

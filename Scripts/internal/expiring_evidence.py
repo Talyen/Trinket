@@ -108,7 +108,8 @@ def snapshot_candidates(common: Path, active: set[str], *, traces_only: bool):
                     if index is not None:
                         if not any(part.endswith(('.xcresult', '.xcarchive')) for part in parts[:index]):
                             traces.add(Path(*parts[:index + 1]))
-                    elif is_visual_evidence(relative):
+                    elif (not any(part.endswith(('.xcresult', '.xcarchive', '.app', '.dSYM')) for part in parts)
+                          and is_visual_evidence(relative)):
                         visuals.append(relative)
                 for relative in (sorted(traces) if traces_only else visuals):
                     yield snapshot / 'files' / relative, manifest, evidence
@@ -152,7 +153,7 @@ def local_visual_candidates(root: Path):
                     yield path, root
 
 
-def removable(path: Path, owner: Path, boundary: Path, now: float, processes: dict) -> tuple[bool, int]:
+def removable(path: Path, owner: Path, boundary: Path, now: float, processes: dict, *, check_open: bool = True) -> tuple[bool, int]:
     if not path.exists() or not retention.safe_path(path, boundary) or not retention.safe_path(owner, boundary):
         return False, 0
     if retention.protection(owner, boundary, processes, scoped=True) or retention.protection(path, boundary, processes, scoped=True):
@@ -161,9 +162,47 @@ def removable(path: Path, owner: Path, boundary: Path, now: float, processes: di
     owner_time = (owner / 'result.json').stat().st_mtime if owner.is_dir() and owner != path else owner.stat().st_mtime
     if max(modified, owner_time) > now - AGE:
         return False, 0
-    opened = subprocess.run(['lsof', '-n', '-P', *(['+D', str(path)] if path.is_dir() else ['--', str(path)])],
-                            capture_output=True, text=True, timeout=30)
-    return opened.returncode == 1 and not opened.stdout.strip() and not opened.stderr.strip(), size
+    return (not check_open or unopened([path])), size
+
+
+def unopened(paths: list[Path]) -> bool:
+    if not paths:
+        return False
+    args = ['+D', str(paths[0])] if len(paths) == 1 and paths[0].is_dir() else ['--', *map(str, paths)]
+    result = subprocess.run(['lsof', '-n', '-P', *args], capture_output=True, text=True, timeout=30)
+    return result.returncode == 1 and not result.stdout.strip() and not result.stderr.strip()
+
+
+def identity(path: Path) -> tuple[int, int, int, int, int]:
+    value = path.lstat()
+    return value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns, value.st_ctime_ns
+
+
+def unchanged(item: tuple, now: float, processes: dict) -> bool:
+    path, manifest, boundary, _, original = item
+    try:
+        return (removable(path, manifest, boundary, now, processes, check_open=False)[0]
+                and identity(path) == original)
+    except OSError:
+        return False
+
+
+def snapshot_batches(candidates):
+    batch = []
+    key = None
+    for item in candidates:
+        path, manifest, _ = item
+        next_key = (manifest, path.parent) if not path.is_dir() else None
+        if batch and (next_key != key or next_key is None or len(batch) >= 32):
+            yield batch
+            batch = []
+        batch.append(item)
+        key = next_key
+        if next_key is None:
+            yield batch
+            batch = []
+    if batch:
+        yield batch
 
 
 def cleanup(root: Path, common: Path, *, apply: bool, now: float | None = None,
@@ -218,39 +257,58 @@ def cleanup(root: Path, common: Path, *, apply: bool, now: float | None = None,
                     return count, total
         else:
             print('SKIP profile evidence: active or unknown producer lease')
-    # Serialize each mutation with snapshot preservation, not the entire scan.
+    # Group neighboring regular files; one open-file query protects every file
+    # in a bounded batch. Native trace bundles retain their directory check.
     active = active_branches(root)
     processes = retention.process_snapshot()
     processes.pop(os.getpid(), None)
     candidates = chain(snapshot_candidates(common, active, traces_only=True) or (),
                        snapshot_candidates(common, active, traces_only=False) or ())
-    for path, manifest, boundary in candidates:
-        ok, size = removable(path, manifest, boundary, now, processes)
-        if not ok:
+    for batch in snapshot_batches(candidates):
+        if count >= limit:
+            break
+        eligible = []
+        for path, manifest, boundary in batch:
+            ok, size = removable(path, manifest, boundary, now, processes, check_open=False)
+            if ok:
+                eligible.append((path, manifest, boundary, size, identity(path)))
+                if len(eligible) >= limit - count:
+                    break
+        if not eligible or not unopened([item[0] for item in eligible]):
             continue
         if apply:
             with evidence_lock(common, True) as admitted:
                 if not admitted:
                     print('SKIP visual evidence: integration lock busy')
                     break
-                branch = 'codex/' + manifest.parent.parent.name
-                if branch in active_branches(root) or not removable(path, manifest, boundary, now, retention.process_snapshot())[0]:
+                branch = 'codex/' + eligible[0][1].parent.parent.name
+                if branch in active_branches(root):
                     continue
-                journal = manifest.parent.parent / ('profile-expiry.jsonl' if path.suffix == '.trace' else 'visual-expiry.jsonl')
+                current = retention.process_snapshot()
+                eligible = [item for item in eligible if unchanged(item, now, current)]
+                if not eligible or not unopened([item[0] for item in eligible]):
+                    continue
+                manifest = eligible[0][1]
+                journal = manifest.parent.parent / ('profile-expiry.jsonl' if eligible[0][0].suffix == '.trace' else 'visual-expiry.jsonl')
                 if journal.is_symlink():
                     continue
                 with journal.open('a') as stream:
-                    stream.write(json.dumps({'snapshot': manifest.parent.name, 'file': str(path.relative_to(manifest.parent / 'files')), 'retired_at': now}) + '\n')
+                    for path, _, _, _, _ in eligible:
+                        stream.write(json.dumps({'snapshot': manifest.parent.name, 'file': str(path.relative_to(manifest.parent / 'files')), 'retired_at': now}) + '\n')
                     stream.flush()
                     os.fsync(stream.fileno())
-                if not removable(path, manifest, boundary, now, retention.process_snapshot())[0]:
+                if branch in active_branches(root):
                     continue
-                retention.remove(path)
-        kind = 'profile' if path.suffix == '.trace' else 'visual'
-        print(f'{"REMOVE" if apply else "WOULD REMOVE"} expired {kind} {path}: {size} allocated bytes')
-        count += 1
-        total += size
-        if count >= limit:
-            break
+                current = retention.process_snapshot()
+                eligible = [item for item in eligible if unchanged(item, now, current)]
+                if not eligible or not unopened([item[0] for item in eligible]):
+                    continue
+                for path, _, _, _, _ in eligible:
+                    retention.remove(path)
+        for path, _, _, size, _ in eligible:
+            kind = 'profile' if path.suffix == '.trace' else 'visual'
+            print(f'{"REMOVE" if apply else "WOULD REMOVE"} expired {kind} {path}: {size} allocated bytes')
+            count += 1
+            total += size
     print(f'{"Removed" if apply else "Eligible"} evidence payloads: {count}, {total} allocated bytes (APFS extents may be shared).')
     return count, total

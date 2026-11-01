@@ -426,7 +426,11 @@ def finish(path: Path, root: Path, pid: int, status: int, *, comparison: bool = 
     identity = json.loads(owner.read_text())
     if identity != {'pid': pid, 'started': processes.get(pid, ('', ''))[0]}:
         raise ValueError('output belongs to another invocation')
+    began = owner.stat().st_mtime
     owner.unlink()
+    if path in output_roots(root) and path.name == 'TestResults':
+        from internal.diagnostic_retention import seal_completed_results
+        seal_completed_results(path, began)
     processes.pop(pid, None)
     if status == 0 and not comparison and path not in output_roots(root) and not protection(path, root, processes):
         remove(path)
@@ -651,6 +655,8 @@ def expire_results(base: Path) -> tuple[int, int]:
     if base.name != 'TestResults' or not safe_path(base, base) or not base.is_dir():
         raise ValueError('expiry requires an explicit nonsymlink TestResults directory')
     boundary = ROOT if base.is_relative_to(ROOT) else base
+    from internal.diagnostic_retention import expire, result_records
+    expire(result_records(base), boundary, apply=True)
     decisions = []
     result = expire_paths(disposable_entries(base), boundary, apply=False, decisions=decisions)
     for item in decisions:
@@ -660,3 +666,12 @@ def expire_results(base: Path) -> tuple[int, int]:
                       'permanent_deletion_approved': False, 'candidates': decisions[:64],
                       'more_candidates': len(decisions) > 64, 'reclaimed_bytes': 0})
     return result
+
+
+def expire_managed_results(root: Path, *, apply: bool = False) -> list[dict]:
+    from internal.diagnostic_retention import expire, result_records
+    records = []
+    for base in output_roots(root):
+        if base.name == 'TestResults' and safe_path(base, root) and base.is_dir():
+            records.extend(result_records(base))
+    return expire(records, root, apply=apply)
