@@ -27,8 +27,8 @@ Apply the [shared audit contract](README.md).
   the boundary's contract; not every effect requires user-facing error UI.
 - SwiftData stays local; Persistence owns explicit complete-save CloudKit exchange.
   Judge sync effects against the [storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation).
-  Ordinary local-only and explicitly enabled builds have different sync behavior;
-  enablement and release readiness belong to the
+  Cloud-enabled and explicitly disabled builds have different sync behavior;
+  release readiness belongs to the
   [CloudKit checklist](../Platform/CloudKitPreShipChecklist.md).
 
 ## Evidence and success

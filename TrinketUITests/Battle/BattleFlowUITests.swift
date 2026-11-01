@@ -53,4 +53,25 @@ final class BattleFlowUITests: TrinketUITestCase {
         waitUntil("A successful drag after cancellation must play the selected card") { !self.button(dragCardID).exists }
         attachSuccessScreenshot(named: "hand-after-drag")
     }
+
+    @MainActor
+    func testAutoBattleUsesNormalCardPlayAfterManualTap() {
+        launchApp(arguments: TestLaunchArg.productionTiming() + TestLaunchArg.screen("battle"))
+        battle.assertActive()
+
+        let manualCard = battle.frontmostHandCard
+        assertExists(manualCard)
+        let manualID = manualCard.identifier
+        tapWhenReady(manualCard)
+        waitUntil("The manual tap must play its card") { !self.button(manualID).exists }
+
+        // XCTest identifiers are main-actor isolated and cannot form key paths.
+        // swiftformat:disable:next preferKeyPath
+        let remainingIDs = battle.handCards.allElementsBoundByIndex.map { $0.identifier }
+        XCTAssertFalse(remainingIDs.isEmpty, "Auto Battle needs a card after the manual play")
+        tapWhenReady(battle.autoBattleToggle)
+        waitUntil("Auto Battle must play a remaining card", timeout: 20) {
+            remainingIDs.contains { !self.button($0).exists }
+        }
+    }
 }

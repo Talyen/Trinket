@@ -47,7 +47,7 @@ public struct ItemGenerator: Sendable {
             // Content drift can leave a keyword with no eligible affix; the
             // item still generates without the guarantee instead of trapping.
             let matching = eligibleAffixes.filter { $0.keywords.contains(requiredKeyword) && $0.weight > 0 }
-            if let guaranteed = Self.weightedSample(matching, count: 1, using: &randomNumberGenerator).first {
+            if let guaranteed = Self.weightedSample(matching, count: 1, partyBias: partyBias, using: &randomNumberGenerator).first {
                 guaranteedDefinitions.append(guaranteed)
                 guaranteedIDs.insert(guaranteed.id)
             }
@@ -123,7 +123,7 @@ public struct ItemGenerator: Sendable {
         let hasPartyBias = !partyBias.isEmpty
         var pool = definitions.map { definition in
             let baseWeight = adjustedWeight(for: definition, keywordBias: keywordBias)
-            let weight = hasPartyBias && baseWeight > 0 ? baseWeight * partyBias.weight(for: definition.keywords) : baseWeight
+            let weight = hasPartyBias && baseWeight > 0 ? baseWeight * partyBias.affixWeight(for: definition.keywords) : baseWeight
             totalWeight += weight
             return (definition: definition, weight: weight)
         }

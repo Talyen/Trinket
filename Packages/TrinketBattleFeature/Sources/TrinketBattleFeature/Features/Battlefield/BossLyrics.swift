@@ -51,10 +51,11 @@ private struct SungBossLyrics: View {
         .allowsHitTesting(false)
         .accessibilityIdentifier(AccessibilityID.Battle.bossLyrics)
         .task {
+            var sampler = BossLyricSampler(phrases: phrases)
             while !Task.isCancelled {
                 let playback = session.dependencies.readMusicPlayback()
                 let next = playback?.trackID == trackID && playback?.isAudible == true
-                    ? playback.flatMap { MusicLyricFrame.at($0.currentTime, in: phrases) }
+                    ? playback.flatMap { sampler.frame(at: $0.currentTime) }
                     : nil
                 if next != frame {
                     // Animate row recentering and wrapping in the same transaction as word entrances.
@@ -69,6 +70,44 @@ private struct SungBossLyrics: View {
                 }
             }
         }
+    }
+}
+
+/// A lyric frame can only change at a word boundary, but playback is still sampled
+/// every display interval so pauses, seeks, track changes and loops remain responsive.
+struct BossLyricSampler {
+    private let phrases: [MusicLyricPhrase]
+    private let boundaries: [TimeInterval]
+    private var interval: Range<TimeInterval>?
+    private var cachedFrame: MusicLyricFrame?
+
+    init(phrases: [MusicLyricPhrase]) {
+        self.phrases = phrases
+        boundaries = phrases.flatMap { $0.words.flatMap { [$0.start, $0.end] } }
+            .filter(\.isFinite)
+            .sorted()
+    }
+
+    mutating func frame(at time: TimeInterval) -> MusicLyricFrame? {
+        guard time.isFinite else { return nil }
+        if let interval, interval.contains(time) {
+            return cachedFrame
+        }
+        var low = 0
+        var high = boundaries.count
+        while low < high {
+            let middle = low + (high - low) / 2
+            if boundaries[middle] <= time {
+                low = middle + 1
+            } else {
+                high = middle
+            }
+        }
+        let start = low == 0 ? -Double.infinity : boundaries[low - 1]
+        let end = low == boundaries.count ? Double.infinity : boundaries[low]
+        interval = start ..< end
+        cachedFrame = MusicLyricFrame.at(time, in: phrases)
+        return cachedFrame
     }
 }
 
@@ -97,20 +136,41 @@ private struct BossLyricWord: View {
 private struct BossLyricWordLayout: Layout {
     private let spacing: CGFloat = 5
 
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache _: inout ()) -> CGSize {
-        let rows = rows(subviews, width: proposal.width ?? .infinity)
+    struct Cache {
+        var sizes: [CGSize]
+        var width: CGFloat?
+        var rows: [Row] = []
+    }
+
+    struct Row {
+        var indices: [Int] = []
+        var width: CGFloat = 0
+        var height: CGFloat = 0
+    }
+
+    func makeCache(subviews: Subviews) -> Cache {
+        Cache(sizes: subviews.map { $0.sizeThatFits(.unspecified) })
+    }
+
+    func updateCache(_ cache: inout Cache, subviews: Subviews) {
+        cache = makeCache(subviews: subviews)
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews _: Subviews, cache: inout Cache) -> CGSize {
+        let rows = rows(width: proposal.width ?? .infinity, cache: &cache)
         return CGSize(
             width: proposal.width ?? rows.map(\.width).max() ?? 0,
             height: rows.reduce(0) { $0 + $1.height } + CGFloat(max(0, rows.count - 1)) * spacing,
         )
     }
 
-    func placeSubviews(in bounds: CGRect, proposal _: ProposedViewSize, subviews: Subviews, cache _: inout ()) {
+    func placeSubviews(in bounds: CGRect, proposal _: ProposedViewSize, subviews: Subviews, cache: inout Cache) {
+        let rows = rows(width: bounds.width, cache: &cache)
         var y = bounds.minY
-        for row in rows(subviews, width: bounds.width) {
+        for row in rows {
             var x = bounds.midX - row.width / 2
             for index in row.indices {
-                let size = subviews[index].sizeThatFits(.unspecified)
+                let size = cache.sizes[index]
                 subviews[index].place(at: CGPoint(x: x, y: y + row.height / 2), anchor: .leading, proposal: ProposedViewSize(size))
                 x += size.width + spacing
             }
@@ -118,17 +178,13 @@ private struct BossLyricWordLayout: Layout {
         }
     }
 
-    private struct Row {
-        var indices: [Int] = []
-        var width: CGFloat = 0
-        var height: CGFloat = 0
-    }
-
-    private func rows(_ subviews: Subviews, width: CGFloat) -> [Row] {
+    private func rows(width: CGFloat, cache: inout Cache) -> [Row] {
+        if cache.width == width {
+            return cache.rows
+        }
         var rows: [Row] = []
         var row = Row()
-        for index in subviews.indices {
-            let size = subviews[index].sizeThatFits(.unspecified)
+        for (index, size) in cache.sizes.enumerated() {
             let gap = row.indices.isEmpty ? 0 : spacing
             if !row.indices.isEmpty, row.width + gap + size.width > width {
                 rows.append(row)
@@ -141,6 +197,8 @@ private struct BossLyricWordLayout: Layout {
         if !row.indices.isEmpty {
             rows.append(row)
         }
+        cache.width = width
+        cache.rows = rows
         return rows
     }
 }

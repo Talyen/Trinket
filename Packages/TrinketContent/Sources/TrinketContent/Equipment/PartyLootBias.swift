@@ -1,14 +1,15 @@
 import TrinketCore
 
 /// Soft loot weights from the active pair's authored Talent affinities.
-/// Matching either character gives 1.5x weight; a shared keyword gives 1.75x.
 public struct PartyLootBias: Equatable, Sendable {
     private let favoredKeywords: Set<Keyword>
     private let sharedKeywords: Set<Keyword>
+    private let heroKeywords: Set<Keyword>
 
     public init() {
         favoredKeywords = []
         sharedKeywords = []
+        heroKeywords = []
     }
 
     public init(roster: PlayerRosterState) {
@@ -16,6 +17,7 @@ public struct PartyLootBias: Equatable, Sendable {
         let companion = Set(roster.activeCompanion.affinityKeywords)
         favoredKeywords = hero.union(companion)
         sharedKeywords = hero.intersection(companion)
+        heroKeywords = hero
     }
 
     var isEmpty: Bool {
@@ -31,6 +33,14 @@ public struct PartyLootBias: Equatable, Sendable {
             return 6
         }
         return 4
+    }
+
+    /// Gear favors the hero over companion-only affinities, without excluding either.
+    func affixWeight(for keywords: Set<Keyword>) -> Int {
+        if !keywords.isDisjoint(with: heroKeywords) {
+            return 7
+        }
+        return keywords.isDisjoint(with: favoredKeywords) ? 4 : 6
     }
 
     private func weight(for item: InventoryItem) -> Int {

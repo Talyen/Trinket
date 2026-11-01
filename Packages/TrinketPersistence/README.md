@@ -65,8 +65,7 @@ Tests use `SaveTestSupport` with `disableCloudSync: true`. The
 `-disable-cloud-sync` launch argument belongs to app / UI tests through
 `AppEnvironment`, not package unit tests.
 
-Ordinary builds default to local-only; explicitly enabled builds use complete-save
-sync. Enablement and wider distribution follow
+Ordinary builds use complete-save iCloud sync when available. Release checks follow
 [CloudKitPreShipChecklist.md](../../Docs/Platform/CloudKitPreShipChecklist.md).
 
 Purchase access is a transient `PlayerSaveStore.contentAccess` input supplied by

@@ -9,19 +9,21 @@ public enum PlayPolicy: String, Sendable, CaseIterable {
         rawValue
     }
 
-    public func preferredPlayableCard(in battle: BattleState) -> BattleCard? {
-        HeuristicCardScoring.preferredPlayableCard(in: battle, setupAware: self == .setupAware)
+    public func preferredPlayableCard(in battle: BattleState, tieBreakOffset: Int = 0) -> BattleCard? {
+        HeuristicCardScoring.preferredPlayableCard(in: battle, setupAware: self == .setupAware, tieBreakOffset: tieBreakOffset)
     }
 }
 
 private enum HeuristicCardScoring {
-    static func preferredPlayableCard(in battle: BattleState, setupAware: Bool) -> BattleCard? {
+    static func preferredPlayableCard(in battle: BattleState, setupAware: Bool, tieBreakOffset: Int) -> BattleCard? {
         guard !battle.hand.cards.isEmpty else { return nil }
         var bestCard: BattleCard?
         var bestScore = Int.min
-        // Membership is established by traversing the live hand; avoid comparing
-        // each complete ability against another lookup of the same physical card.
-        for card in battle.hand.cards where BattleCardCombatEngine.playError(for: card, in: battle) == nil {
+        let cards = battle.hand.cards
+        let first = max(0, tieBreakOffset) % cards.count
+        for offset in cards.indices {
+            let card = cards[(first + offset) % cards.count]
+            guard BattleCardCombatEngine.playError(for: card, in: battle) == nil else { continue }
             if finishesBattle(card, in: battle) {
                 return card
             }

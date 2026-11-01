@@ -4,10 +4,13 @@ import Foundation
 
 public enum MusicCatalog {
     public static func lyrics(for trackID: String) -> [MusicLyricPhrase]? {
-        lyricsByTrackID[trackID]
+        switch trackID {
+@lyric_cases@
+        default: nil
+        }
     }
 
-    private static let lyricsByTrackID: [String: [MusicLyricPhrase]] = @lyrics@
+@lyric_storage@
 
     public static let allTracks: [MusicTrack] = [
 @tracks@

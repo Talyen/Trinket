@@ -359,6 +359,9 @@ begin
     cloud = factory.call(cloud: 'YES')
     cloud.start
     assert(cloud.receipt['cloud_sync'] == 'YES')
+    cloud_info = info.merge('CFBundleVersion' => cloud.receipt['build'].to_s)
+    cloud.validate_export(cloud_info.merge('TrinketCloudSyncEnabled' => 'YES'), entitlements)
+    rejects('CloudKit setting') { cloud.validate_export(cloud_info, entitlements) }
   end
 
   fixture do |deploy, _portal|

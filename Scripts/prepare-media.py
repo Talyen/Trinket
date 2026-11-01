@@ -282,11 +282,13 @@ def prepare_audio(kind, rows, snapshot, lyrics=None):
         fields.append(f"volumeGain: {row['volume_gain']}")
         snippets['tracks' if kind == 'music' else 'clips'].append('        ' + ('MusicTrack' if kind == 'music' else 'SFXClip') + '(\n            ' + ',\n            '.join(fields) + '\n        ),')
     if kind == 'music':
-        entries = []
-        for identifier, lines in (lyrics or {}).items():
+        cases, entries = [], []
+        for index, (identifier, lines) in enumerate((lyrics or {}).items()):
             phrases = [f'            MusicLyricPhrase(text: {swift(line["text"])}, timings: {line["timings"]}),' for line in lines]
-            entries.append(f'        {swift(identifier)}: [\n' + '\n'.join(phrases) + '\n        ],')
-        snippets['lyrics'] = ['[\n' + '\n'.join(entries) + '\n    ]' if entries else '[:]']
+            cases.append(f'        case {swift(identifier)}: lyrics{index}')
+            entries.append(f'    private static let lyrics{index}: [MusicLyricPhrase] = [\n' + '\n'.join(phrases) + '\n    ]')
+        snippets['lyric_cases'] = cases
+        snippets['lyric_storage'] = entries
     run.finish(template(kind, **{key: '\n'.join(value) for key, value in snippets.items()}),
                active=active, patterns=('*.m4a',), label=f'{kind} asset')
 

@@ -35,7 +35,7 @@ outgoing links are references, not additional workflow steps.
 | StoreKit purchase prerequisites | [Purchases](Platform/Purchases.md) (infra checklist); [Monetization](Product/Monetization.md) owns product rules |
 | Localization ownership and synchronization | [Localization](Platform/Localization.md), [English store copy](../Localization/Store/English.json) |
 | App Store metadata draft (data, not policy) | [App Store field drafts](Platform/AppStoreMetadata.md); [Release](Platform/Release.md) owns the procedure |
-| CloudKit enablement gates | [CloudKit checklist](Platform/CloudKitPreShipChecklist.md) (ordered gates); [storage contract](AgentContext/persistence-storage.md) owns save behavior |
+| CloudKit release checks | [CloudKit guide](Platform/CloudKitPreShipChecklist.md); [storage contract](AgentContext/persistence-storage.md) owns save behavior |
 | Task checkouts, integration, evidence preservation, commit format, hooks, and push preconditions | [Platform/Development.md](Platform/Development.md) |
 | Artifact lifetimes and cleanup eligibility | [Output retention](../Scripts/Reference.md#output-retention); release-copy validation in [Release](Platform/Release.md#options-and-recovery) |
 | Audit procedure | [Audits/README.md](Audits/README.md) plus the cited audit file |

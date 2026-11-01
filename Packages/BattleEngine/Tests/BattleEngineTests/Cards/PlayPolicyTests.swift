@@ -5,6 +5,29 @@ import TrinketCore
 @testable import TrinketContent
 
 struct PlayPolicyTests {
+    @Test func `tie rotation changes equal choices without overriding a better or finishing card`() throws {
+        var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 100, dealOpeningHand: false)
+        let ability = Ability(id: "equal", name: "Equal", tier: .basic, directDamage: 2)
+        let first = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
+        let second = BattleCardCombatEngine.deal(ability, owner: .hero, context: &battle)
+        let before = battle
+        #expect(PlayPolicy.greedy.preferredPlayableCard(in: battle)?.id == first.id)
+        #expect(PlayPolicy.greedy.preferredPlayableCard(in: battle, tieBreakOffset: 1)?.id == second.id)
+        #expect(PlayPolicy.greedy.preferredPlayableCard(in: battle, tieBreakOffset: 2)?.id == first.id)
+        var previousRNG = before.rng
+        var afterRNG = battle.rng
+        #expect(previousRNG.next() == afterRNG.next())
+        let stronger = BattleCardCombatEngine.deal(
+            Ability(id: "stronger", name: "Stronger", tier: .basic, directDamage: 5), owner: .hero, context: &battle,
+        )
+        #expect(PlayPolicy.greedy.preferredPlayableCard(in: battle, tieBreakOffset: 1)?.id == stronger.id)
+        battle.roster.enemy.currentHealth = 2
+        let finishing = try #require(PlayPolicy.greedy.preferredPlayableCard(in: battle, tieBreakOffset: 1))
+        var forecast = battle
+        _ = try forecast.playCard(cardID: finishing.id)
+        #expect(forecast.isEnemyDefeated)
+    }
+
     @Test func `setup policy prefers new Poison over leftmost chip`() {
         var battle = BattleStateTestFactory.makeBattleWithAbilities(enemyMaxHealth: 40, dealOpeningHand: false)
         _ = BattleCardCombatEngine.deal(

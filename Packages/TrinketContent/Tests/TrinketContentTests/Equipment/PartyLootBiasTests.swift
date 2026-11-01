@@ -61,31 +61,36 @@ struct PartyLootBiasTests {
         #expect(finalCandidate == unrelated)
     }
 
-    @Test func `gear affix weighting preserves counts and does not force alignment`() throws {
-        let base = try #require(GameContent.itemBaseTypes.first {
-            $0.slot != .trinket && $0.keywordAffinities.contains(.block) && $0.keywordAffinities.contains(.dodge)
-        })
+    @Test(arguments: [false, true])
+    func `gear affixes favor the hero while keeping other keywords possible`(required: Bool) throws {
+        let base = ItemBaseType(
+            id: "weighted-test", name: "Test", slot: .weapon,
+            keywordAffinities: [.holy, .physical, .burn, .dodge],
+        )
         let power = try #require(GameContent.itemAffixDefinitions.first { $0.slot == base.slot }).basic
-        let definitions = [Keyword.block, .dodge].map { keyword in
+        let definitions = [Keyword.holy, .physical, .burn].map { keyword in
             ItemAffixDefinition(
                 id: "test-\(keyword.rawValue)", title: "Test", slot: base.slot,
-                keywords: [keyword], weight: 1, basic: power, astral: power,
+                keywords: [keyword, .dodge], weight: 1, basic: power, astral: power,
             )
         }
         let generator = ItemGenerator(affixDefinitions: definitions)
-        var blockCount = 0
+        var counts: [Keyword: Int] = [:]
         for seed in UInt64(0) ..< 2000 {
             var random = SeededRandomNumberGenerator(seed: seed)
             let item = generator.generate(
                 id: "weighted-gear", baseType: base, rarity: .basic, fixedAffixCount: 1,
-                partyBias: bias, using: &random,
+                partyBias: bias, requiredKeyword: required ? .dodge : nil, using: &random,
             )
             #expect(item.affixes.count == 1)
-            if item.keywords.contains(.block) {
-                blockCount += 1
+            for keyword in [Keyword.holy, .physical, .burn] where item.keywords.contains(keyword) {
+                counts[keyword, default: 0] += 1
             }
         }
-        #expect((1180 ... 1380).contains(blockCount))
+        // Equal authored weights become 7:6:4 for hero, companion, and unrelated.
+        #expect((740 ... 910).contains(counts[.holy, default: 0]))
+        #expect((620 ... 790).contains(counts[.physical, default: 0]))
+        #expect((390 ... 550).contains(counts[.burn, default: 0]))
     }
 
     @Test func `party weighting preserves wish coin and source tier rolls`() throws {

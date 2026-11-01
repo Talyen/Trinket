@@ -167,5 +167,5 @@ The following live evidence remains deferred to a separately requested pass:
 - Actual two-device/account/network/quota CloudKit scenarios under the
   [CloudKit readiness gates](CloudKitPreShipChecklist.md).
 
-Ordinary builds retain local-only progress. This portfolio does not authorize
-live accounts, publication, purchase-service changes, or wider sync enablement.
+Ordinary builds enable iCloud sync. This portfolio does not establish live CloudKit
+or purchase-service behavior or authorize publication.

@@ -4,18 +4,28 @@ import UIKit
 
 /// Finished Alchemy clips are bundled as authored battle resources.
 enum BossIdleCatalog {
+    private static let blightTreant = clips(named: "blight-treant", count: 3)
+    private static let forgeGolem = clips(named: "forge-golem", count: 3)
+    private static let frostwarden = clips(named: "frostwarden", count: 3)
+    private static let ironBear = clips(named: "iron-bear", count: 3)
+    private static let bloodCountess = clips(named: "blood-countess", count: 5)
+    private static let seraph = clips(named: "seraph", count: 3)
+    private static let stoneTitan = clips(named: "stone-titan", count: 3)
+
     static func clips(for enemyID: String) -> [URL]? {
-        let entry: (String, Int)? = switch enemyID {
-        case "the_blight_treant": ("blight-treant", 3)
-        case "the_forge_golem": ("forge-golem", 3)
-        case "the_frostwarden": ("frostwarden", 3)
-        case "the_iron_bear": ("iron-bear", 3)
-        case "the_blood_countess": ("blood-countess", 5)
-        case "the_seraph": ("seraph", 3)
-        case "the_stone_titan": ("stone-titan", 3)
+        switch enemyID {
+        case "the_blight_treant": blightTreant
+        case "the_forge_golem": forgeGolem
+        case "the_frostwarden": frostwarden
+        case "the_iron_bear": ironBear
+        case "the_blood_countess": bloodCountess
+        case "the_seraph": seraph
+        case "the_stone_titan": stoneTitan
         default: nil
         }
-        guard let (name, count) = entry else { return nil }
+    }
+
+    private static func clips(named name: String, count: Int) -> [URL]? {
         let urls = (1 ... count).compactMap { number in
             Bundle.module.url(forResource: "\(name)-idle-\(number)-1280", withExtension: "mp4", subdirectory: "BossIdles")
         }
