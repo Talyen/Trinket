@@ -41,7 +41,7 @@ private struct SungBossLyrics: View {
                         text: phrases[frame.phrase].words[index].text,
                         isActive: index == frame.activeWord,
                     )
-                    .id("\(frame.phrase):\(index)")
+                    .id(BossLyricWordID(phrase: frame.phrase, word: index))
                     .transition(reduceMotion ? .opacity : .asymmetric(
                         insertion: .opacity.combined(with: .offset(y: 6)),
                         removal: .opacity,
@@ -105,6 +105,11 @@ private struct SungBossLyrics: View {
     }
 }
 
+private struct BossLyricWordID: Hashable {
+    let phrase: Int
+    let word: Int
+}
+
 @MainActor
 private final class BossLyricSamplerBox {
     var value: BossLyricSampler
@@ -123,9 +128,20 @@ struct BossLyricSampler {
 
     init(phrases: [MusicLyricPhrase]) {
         self.phrases = phrases
-        boundaries = phrases.flatMap { $0.words.flatMap { [$0.start, $0.end] } }
-            .filter(\.isFinite)
-            .sorted()
+        var times: [TimeInterval] = []
+        times.reserveCapacity(phrases.reduce(0) { $0 + $1.words.count } * 2)
+        for phrase in phrases {
+            for word in phrase.words {
+                if word.start.isFinite {
+                    times.append(word.start)
+                }
+                if word.end.isFinite {
+                    times.append(word.end)
+                }
+            }
+        }
+        times.sort()
+        boundaries = times
     }
 
     mutating func frame(at time: TimeInterval) -> MusicLyricFrame? {
