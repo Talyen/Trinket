@@ -232,23 +232,14 @@ struct MusicPlayerTests {
         let center = NotificationCenter()
         let player = MusicPlayer(isDisabled: false, backend: backend, notificationCenter: center)
         let changes = player.playbackChanges()
-        var changeCount = 0
-        let observer = Task { @MainActor in
-            for await _ in changes {
-                changeCount += 1
-            }
-        }
-        defer { observer.cancel() }
         player.setVolume(0.5)
-        try await eventually { changeCount == 1 }
+        try #require(await receivesPlaybackChange(changes))
         _ = try await start(request("boss"), player: player, backend: backend)
-        try await eventually { changeCount > 1 }
-        let afterStart = changeCount
+        try #require(await receivesPlaybackChange(changes))
         center.post(name: AVAudioSession.interruptionNotification, object: nil)
-        try await eventually { changeCount > afterStart }
-        let afterInterruption = changeCount
+        try #require(await receivesPlaybackChange(changes))
         player.silenceImmediately(preservingPosition: true)
-        try await eventually { changeCount > afterInterruption }
+        try #require(await receivesPlaybackChange(changes))
     }
 
     @Test func `lyric snapshot follows the active voice and never prepared or outgoing tracks`() async throws {
@@ -299,6 +290,23 @@ struct MusicPlayerTests {
         backend.completeLoad(index, with: voice)
         try await eventually { voice.starts == 1 }
         return voice
+    }
+
+    private func receivesPlaybackChange(_ changes: AsyncStream<Void>) async -> Bool {
+        await withTaskGroup(of: Bool.self) { group in
+            group.addTask {
+                var iterator = changes.makeAsyncIterator()
+                return await iterator.next() != nil
+            }
+            group.addTask {
+                // TestSleepCheck: allow - This timeout is canceled as soon as the buffered event arrives.
+                try? await Task.sleep(for: .seconds(30))
+                return false
+            }
+            let received = await group.next() ?? false
+            group.cancelAll()
+            return received
+        }
     }
 
     private func eventually(_ condition: () -> Bool) async throws {

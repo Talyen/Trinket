@@ -137,7 +137,7 @@ struct DefeatCompletionTests {
         let stage = try #require(GameContent.chapters[0].stages.first)
         #expect(play.journey.startBattle(for: stage) == nil)
         let configuration = try #require(runtime.activeBattle)
-        runtime.resolvedDefeatProgress = BattleDefeatProgress(depletedFraction: 0.5)
+        runtime.resolvedDefeatProgress = BattleDefeatProgress(remainingHealth: 50, maximumHealth: 100)
         let settlement = try #require(play.settleDefeatRewards(configuration))
         #expect(play.completeDefeat(configuration, settlement: settlement, action: .retry) == .unavailable)
         #expect(runtime.activeBattle?.id == configuration.id)
