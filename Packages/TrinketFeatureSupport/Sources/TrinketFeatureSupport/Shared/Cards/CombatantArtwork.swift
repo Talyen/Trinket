@@ -20,18 +20,24 @@ public struct CombatantArtwork: View {
     public var body: some View {
         Group {
             if let artReference = combatant.artReference {
-                PreparedArtworkImage(
-                    artReference,
-                    displaySize: variant == .card ? .compact : .full,
-                )
-                .modifier(ArtFillModifier(alignment: variant == .hero ? .top : .center))
-                .decorativePreparedArtwork()
-
+                Color.clear
+                    .overlay(alignment: variant == .hero ? .top : .center) {
+                        PreparedArtworkImage(
+                            artReference,
+                            displaySize: variant == .card ? .compact : .full,
+                        )
+                        .scaledToFill()
+                    }
+                    .decorativePreparedArtwork()
             } else {
                 placeholderArt
             }
         }
-        .modifier(BattleFrameModifier(expandsToFrame: variant == .battle))
+        .frame(
+            maxWidth: variant == .battle ? .infinity : nil,
+            maxHeight: variant == .battle ? .infinity : nil,
+        )
+        .clipped()
     }
 
     private var placeholderArt: some View {
@@ -44,27 +50,5 @@ public struct CombatantArtwork: View {
             return PlaceholderArtwork(style)
         }
         return PlaceholderArtwork(style, iconPointSize: 48, relativeTo: .largeTitle)
-    }
-}
-
-private struct ArtFillModifier: ViewModifier {
-    let alignment: Alignment
-
-    func body(content: Content) -> some View {
-        Color.clear
-            .overlay(alignment: alignment) {
-                content.scaledToFill()
-            }
-            .clipped()
-    }
-}
-
-private struct BattleFrameModifier: ViewModifier {
-    let expandsToFrame: Bool
-
-    func body(content: Content) -> some View {
-        content
-            .frame(maxWidth: expandsToFrame ? .infinity : nil, maxHeight: expandsToFrame ? .infinity : nil)
-            .clipped()
     }
 }

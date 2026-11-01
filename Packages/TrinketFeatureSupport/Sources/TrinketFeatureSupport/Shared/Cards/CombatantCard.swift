@@ -6,7 +6,7 @@ public struct CombatantCard: View {
     let combatant: Combatant
     var isLocked: Bool = false
     var showsName: Bool = true
-    var isSelected = false
+    var isSelected: Bool = false
 
     public init(
         combatant: Combatant,
@@ -61,10 +61,17 @@ public struct CollectionCombatantButton: View {
         self.onSelect = onSelect
     }
 
+    private var cardAccessibilityLabel: Text {
+        if isLocked {
+            var name = ContentCopy.resource(combatant.name)
+            name.locale = locale
+            return Text(L10n.ui_combatantcard_1_locked_1871c(name))
+        }
+        return Text(verbatim: ContentCopy.localized(combatant.name, locale: locale))
+    }
+
     public var body: some View {
-        var name = ContentCopy.resource(combatant.name)
-        name.locale = locale
-        return Button(action: onSelect) {
+        Button(action: onSelect) {
             CombatantCard(
                 combatant: combatant,
                 isLocked: isLocked,
@@ -73,9 +80,7 @@ public struct CollectionCombatantButton: View {
             .frame(width: cardWidth)
         }
         .trinketArtworkCardButtonStyle()
-        .accessibilityLabel(isLocked
-            ? Text(L10n.ui_combatantcard_1_locked_1871c(name))
-            : Text(verbatim: ContentCopy.localized(combatant.name, locale: locale)))
+        .accessibilityLabel(cardAccessibilityLabel)
         .accessibilityIdentifier(AccessibilityID.CombatantDetail.collectionCard(name: combatant.name))
     }
 }
