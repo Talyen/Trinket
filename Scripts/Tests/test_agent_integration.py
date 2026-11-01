@@ -216,6 +216,8 @@ class AgentIntegrationTests(ScriptRegressionTestCase):
         shutil.copy2(ROOT / 'Scripts/lib/worktree-storage.mjs', scripts / 'lib/worktree-storage.mjs')
         (scripts / 'internal').mkdir()
         shutil.copy2(ROOT / 'Scripts/internal/cli.py', scripts / 'internal/cli.py')
+        for name in ('diagnostic_retention.py', 'output_retention.py'):
+            shutil.copy2(ROOT / 'Scripts/internal' / name, scripts / 'internal' / name)
         shutil.copy2(ROOT / 'Scripts/internal/verification_evidence.py', scripts / 'internal/verification_evidence.py')
         (scripts / 'internal/change_routing.py').write_text(
             'def classify(*args, **kwargs): return None\n'

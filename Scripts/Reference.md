@@ -303,7 +303,7 @@ producing hosted workflows. Age alone never proves that an artifact is disposabl
 | Artifact | Default lifetime / review point | Removal conditions |
 |---|---|---|
 | Successful test/gate invocation bundles, reports and raw logs | Until consumers finish | Producer cleanup removes successful output after staging; explicit keeps remain protected |
-| Historical failure, orphan and comparison evidence, including agent evaluations | Review after 24 hours (`TRINKET_OUTPUT_MAX_AGE_HOURS`) | Automatic producer cleanup writes `.retention-review.json`; permanent deletion of unique evidence requires exact-batch approval |
+| Producer-sealed XCTest results, diagnostic logs and build-comparison artifacts | At least 24 hours; normally three days; 2 GiB soft budget | Existing producer/task lifecycle removes oldest unchanged sealed records first; newest bundle per kind, owners, locks and explicit keeps survive. Legacy/unsealed and unknown evidence stays review-only |
 | Local timing entries and temporary guidance receipts | 24 hours per timing entry; one day of inactivity for checkout-scoped guidance receipts | Existing expiry removes eligible entries/receipts individually |
 | Idle task compiler scratch under `.DerivedData/runs/` and legacy `Packages/*/.build/` | One day without writes (`TRINKET_RUN_MAX_AGE_DAYS`) | Cleanup checks ownership, leases, keeps and open files under the simulator allocation lock; preserves tenant products and evidence |
 | Compiler scratch and agent products retired at task creation | Same idle-cache window | Known agent app/package/host intermediates and product directories; preserves package checkouts, diagnostics and shared compilation caches; no-build requests reject missing products |
@@ -311,7 +311,7 @@ producing hosted workflows. Age alone never proves that an artifact is disposabl
 | Successful IPA inspection / thinned-export scratch | Until inspection consumers finish | Scoped temporary cleanup retains compact validation/size proof; failed inspection output and explicit keeps remain available |
 | Ready or exported TestFlight duplicate working copies | 24 hours after verified preservation and last receipt write | Deployment-locked hash/UUID/receipt validation; exported runs remain resumable from the verified backup; unbacked, unknown, mismatched, active or kept copies remain protected |
 | Authoritative uploaded archive, IPA, matching symbols and provenance; deployment receipts and failed build-number reservations | Indefinite | Release working-copy cleanup never removes these records |
-| Task deliverables and preserved evidence snapshots | Retained; routine successful static reports expire after seven days | Later task creation journals classified reports and respects active worktrees and keep markers. Legacy reports require an integrated task record, matching commit and report path; failed, visual, release and unclassifiable evidence remains protected |
+| Task deliverables and preserved evidence snapshots | Routine static reports: seven days; sealed diagnostics: three days / 2 GiB | Later task creation journals classified reports and respects active worktrees and keep markers. Legacy reports require an integrated task record, matching commit and report path; unsealed failures, source footage, release and unclassifiable evidence remains protected |
 | Raw device traces, matching symbols and explicitly retained derived exports | Caller-owned / explicitly kept | No general profile sweep; preserve raw evidence and verify any proposed derivative deletion separately |
 | Hosted logs, bounded diagnostics, compact timing, size/cache reports and native qualification evidence | 14 days | Workflow expiry, subject to GitHub's repository retention cap |
 | Exact qualified release proof | 30 days | [Release verification workflow](../.github/workflows/release-verification.yml) owns this exception |
@@ -353,6 +353,17 @@ duplicate pass against the primary checkout; a busy or ambiguous owner defers it
 review its dry run before applying. Normal opportunistic cleanup does not hash
 all release archives. [Release](../Docs/Platform/Release.md#options-and-recovery)
 owns exact validation and recovery mechanics.
+
+Managed TestResults producers seal only recognized artifacts written during that invocation.
+Routine task preservation seals generated `.xcresult` trees, plain logs and known
+simulator build-comparison archives; no legacy snapshot is retroactively opted in.
+The existing task-creation maintenance runs at most 64 expirations per pass, keeping
+compact manifests/provenance and the newest raw result per kind. A minimum 24-hour
+window remains even over budget. Active worktrees, lifecycle locks, open files,
+changed members, saves, original assets, source, footage and signed releases stay
+protected. Rejected or unavailable process inspection defers removal.
+`python3 Scripts/agent-integrate.py --diagnostic-retention-dry-run` lists this exact
+sealed policy without mutation; it does not apply the broader explicit cleanup scope.
 
 Task creation also runs a bounded, incremental pass over inactive task snapshots.
 On macOS it losslessly compresses eligible old text and clones exact duplicate
