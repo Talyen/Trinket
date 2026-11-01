@@ -119,12 +119,13 @@ the same resolver to Astral gear; exact authored item rewards remain exact.
 
 All newly rolled random items, including boss Uniques and Trinkets, shop stock,
 Mystery offers, and crafted equipment, favor the active Hero and Companion's
-three authored Talent keyword affinities. Matching either character gives 1.5×
-selection weight; matching a keyword shared by both gives 1.75×. The boost caps
-there regardless of how many keywords match. Gear applies these weights to random
-affixes, retaining the usual base-family distribution. Collectibles apply them to
-item selection within the rolled category. Party weighting never excludes a
-candidate or changes category odds, affix counts, or power magnitudes. Existing
+three authored Talent keyword affinities. Gear affixes matching the Hero receive
+1.75× weight; companion-only matches receive 1.5×. Collectibles matching either
+character receive 1.5× selection weight, or 1.75× for a shared keyword. The boost
+does not grow with additional matches. Gear retains the usual base-family
+distribution; collectibles apply the weighting to item selection within the
+rolled category. Party weighting never excludes a candidate or changes category
+odds, affix counts, or power magnitudes. Existing
 source restrictions and guaranteed affixes still apply. An eligible Wishing Well
 target retains its exact 50% chance; only the remaining choices receive party
 weighting. Capture the party weighting with prepared battle loot and pinned
@@ -234,8 +235,9 @@ modifier; missing offer modifiers decode as Bonus Gold.
 
 Keyword rewards choose uniformly among non-Trinket bases that have the advertised
 keyword affinity and a positive-weight eligible affix for it. Generation reserves
-one normal affix slot using matching affix weights, then rolls remaining slots
-normally. Only Basic/Astral tiers participate, with their existing relative weights.
+one normal affix slot using matching affix weights and party weighting, then
+rolls remaining slots normally. Only Basic/Astral tiers participate, with their
+existing relative weights.
 The strict `requiredKeyword` input is separate from probabilistic `keywordBias`;
 missing matching content must never silently produce unrelated equipment.
 
