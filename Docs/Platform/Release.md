@@ -247,9 +247,10 @@ Dry-run is offline and makes no writes, installs, or Apple calls. Optional notes
 populate English **What to Test**; the default is a neutral version/build/commit
 description. Existing App Store release notes are not assumed current.
 
-Cloud sync inherits `project.yml`. Only request `--cloud-sync YES` after the
-[CloudKit activation gates](CloudKitPreShipChecklist.md#prepared-testflight-activation)
-have been satisfied; `--cloud-sync NO` makes an explicit local-only build. The
+Cloud sync inherits `project.yml`. For `--cloud-sync YES`, review applicable prior
+evidence and the intended audience under the
+[CloudKit activation procedure](CloudKitPreShipChecklist.md#prepared-testflight-activation);
+`--cloud-sync NO` makes an explicit local-only build. The
 export checks the effective flag, existing app identity, build/version, signature,
 Production iCloud/push entitlements, and export-compliance declaration.
 

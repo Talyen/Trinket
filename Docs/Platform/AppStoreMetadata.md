@@ -72,8 +72,8 @@ baseline, not qualification of the next candidate.
 
 ## Cloud-enabled beta copy
 
-Prepared for the first cloud-enabled internal TestFlight update; do not use this
-copy for the existing local-only build. Activation belongs to the
+Prepared for a cloud-enabled internal TestFlight update; do not use this
+copy for a local-only build. Activation belongs to the
 [CloudKit checklist](CloudKitPreShipChecklist.md#prepared-testflight-activation).
 
 **What to Test:** Progress now syncs automatically between devices signed into the

@@ -1,8 +1,10 @@
 # CloudKit Pre-Ship Checklist
 
-Use before enabling Production sync or submitting Trinket with iCloud progress sync.
-Keep these repeatable gates unchecked in Git; record candidate build IDs, outcomes,
-and missing evidence in release handoffs or TestFlight notes.
+Use when preparing a cloud-enabled build or submitting Trinket with iCloud progress
+sync. The scenarios below are a reusable catalog, not a fresh list of failed checks
+for every build. Record candidate build IDs, reused evidence, affected changes, and
+remaining checks in the release handoff or TestFlight notes. Unchecked boxes describe
+repeatable requirements; they do not mean the scenario has never passed.
 
 **Current posture:** ordinary builds remain local-only. Explicit internal TestFlight
 builds may use Production for controlled testing; wider enablement requires all
@@ -30,23 +32,53 @@ Recheck these identities against the candidate's signing and provisioning:
 Banking/tax and [Full Game purchases](Purchases.md) are separate StoreKit work;
 they do not block CloudKit development. Provisioning alone completes no readiness gate.
 
-## Remaining live verification
+## Evidence and candidate review
 
-The September 13 Development baseline verified two-way sync between the owner's
-iPhone and a Simulator, and an offline-device reset without restoring stale
-progress. A disposable-zone server harness also verified concurrent Homestead
-collection/upgrade and recovery after a committed response was lost. The detailed
-record is in Git at `297a4b884^:Docs/Plans/CloudKitLaunchPreparation.md`;
-its separately retained JSON was not present at its recorded path during the
-October 26 review. These results are historical, not current-candidate proof.
+The retained September 13 record is in Git at
+`297a4b884^:Docs/Plans/CloudKitLaunchPreparation.md`. It records:
 
-Those checks were completed, even though the repeatable release-gate boxes below
-stay unchecked. The live reset result reflected the old policy: offline progress
+- **Development:** two-way iPhone and Simulator sync and the then-current
+  offline-device reset behavior. A disposable-zone server harness verified concurrent
+  Homestead collection/upgrade and recovery after a committed response was lost.
+- **Production internal TestFlight 0.1.0 (2):** the schema had been deployed;
+  the owner's Mac and iPhone synced starter selection and gameplay progress in both
+  directions. The Mac retained imported progress after relaunch. Build 3 included a
+  starter-navigation fix, but that fix was not retested on the iPhone in this record.
+
+These were real successful tests, not a substitute for all candidate-specific
+scenarios. The separately retained Development harness JSON was not present at its
+recorded path during the October 26 review. The Git record remains available.
+
+For a new candidate, first identify the intended audience and cloud setting. Compare
+the candidate against the tested build and evidence, and identify changed behavior,
+schema, signing, environment, or device conditions that affect each relevant
+scenario. Reuse evidence where its scope still applies; do not rerun a scenario
+solely because its checkbox is unchecked or the build number changed. State what was
+reused, what changed, and any evidence that is missing; do not infer a pass from an
+unchanged checklist or from synthetic tests. Recheck Production schema and signing
+when those inputs may have changed rather than treating the earlier deployment as
+proof of their present state.
+
+In the candidate handoff, identify the build and audience, then list each reused
+result with its environment and source, each change that affects that result, and
+the specific checks still needed. State whether the candidate is local-only, a
+controlled cloud test, or qualified for wider cloud release. This record makes the
+next review incremental without turning the scenario catalog into a status tracker.
+
+Controlled internal cloud testing and wider release have different purposes. For an
+internal test, establish the safety and applicable Development evidence needed for
+the intended test, preserve test saves, and name the Production scenarios being
+tested. Unverified edge cases are follow-up work, not proof that prior sync never
+worked. Before wider enablement or submission, resolve the applicable outstanding
+readiness scenarios below and document their evidence; do not silently promote a
+controlled test result into broad release qualification.
+
+The September 13 live reset result reflected the old policy: offline progress
 did not return. Commit `ba81da0dc` changed that policy so offline progress can
 merge back after reset; the prior reset observation cannot verify the new behavior.
-Reassess other completed scenarios against the candidate's actual changes rather
-than assuming all past evidence is absent. Record any reused evidence and its
-environment alongside the candidate's remaining checks.
+Account switching, quota, offline contention, reset, and Homestead Production edge
+cases were left as follow-up in the TestFlight record; do not describe all of them
+as passed on the strength of the two-way sync test.
 
 On October 27, an iPhone 14 Pro ran explicitly cloud-enabled Development builds
 for launch and fresh-restore timing. The `codex/cloud-launch-timing` evidence at
@@ -99,8 +131,9 @@ Stages 1–2 precede controlled Development play; stages 3–4 precede wider ena
 
 ### 2. Persistence safety
 
-- [ ] Establish the validation scenarios through source and isolated tests before
-  live trials. Keep the existing local SwiftData URL and mirroring disabled;
+- [ ] Establish the applicable safety scenarios through source and isolated tests
+  before live trials, reusing evidence where it remains applicable. Keep the existing
+  local SwiftData URL and mirroring disabled;
   explicit sync owns complete-save projection and atomic head/backup commits.
   Merge offline uploads across reset epochs without replaying old production receipts;
   reject stale reset requests and production sequences. Duplicate local roots fail
@@ -123,15 +156,17 @@ Stages 1–2 precede controlled Development play; stages 3–4 precede wider ena
   (`payload`: Asset), and `TrinketSaveOperation` (`payload`: Bytes). Heads/backups
   carry complete snapshots; operations carry immutable receipts. Authenticated
   Development use creates the zone and head subscription. SwiftData models stay local.
-- [ ] Run the validation scenarios on two devices, or Simulator plus device, in
-  the same iCloud account. Verify actual import/export and receiving-app behavior;
-  container-open success is insufficient. Keep Development separate from Production.
+- [ ] Verify the missing or invalidated Development scenarios on two devices, or
+  Simulator plus device, in the same iCloud account. Where applicable, verify actual
+  import/export and receiving-app behavior; container-open success is insufficient.
+  Reuse applicable recorded results and keep Development separate from Production.
 
 ### 4. TestFlight promotion
 
-- [ ] After Development passes, follow [prepared activation](#prepared-testflight-activation).
-  Repeat stage 3's critical device scenarios and stage 2's populated rollback proof
-  on an internal Production build over the existing local-save beta.
+- [ ] Follow [prepared activation](#prepared-testflight-activation). On an internal
+  Production build over the existing local-save beta, verify missing or invalidated
+  critical device scenarios and populated rollback. Reuse applicable Production
+  evidence and distinguish it from Development and isolated-test results.
 - [ ] Ship `PrivacyInfo.xcprivacy` and reconcile optional-sync, offline/no-login,
   and propagated-reset disclosures against observed behavior. General support/privacy
   and App Privacy preparation follow [Release](Release.md#prepare-while-the-beta-is-running)
@@ -156,10 +191,11 @@ Preparing/compiling a build accesses no Production save; running it can.
 The switch expands into `TrinketCloudSyncEnabled` in Info.plist. Verify it with
 `TrinketCloudEnvironment` and signed entitlements; Debug arguments do not enable TestFlight.
 
-After Development gates pass:
+After reviewing the applicable Development evidence and the intended internal test:
 
-1. Review and deploy the existing container's Development schema to Production in
-   CloudKit Console, using deliberate test saves.
+1. Review the existing container's Production schema in CloudKit Console. Deploy
+   required Development schema changes if they are not already present, using
+   deliberate test saves; do not repeat a deployment solely because the build changed.
 2. Archive scheme `Trinket` in Release at the next internal beta build number with
    `CLOUDKIT_SYNC_ENABLED=YES`. Preserve the bundle ID, check Production export
    entitlements, and leave the checked-in default `NO` until adoption is verified.
