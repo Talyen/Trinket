@@ -33,9 +33,6 @@ recruitment and floor progression remain separate from purchase access.
 
 ## Offer
 
-[Original visual reference](FullGameOffer.png). This is a design mockup, not a
-screenshot of the running app; the presentation and copy below supersede it.
-
 Use a native art-led full-screen modal: the **Keep Exploring** heading overlays the
 bottom-left of the triggering chapter, Spire, Labyrinth mode, hero, or companion
 artwork, with a **FULL GAME** eyebrow. Use the current mountain artwork for Options

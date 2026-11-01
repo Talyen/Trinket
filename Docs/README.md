@@ -79,8 +79,10 @@ tuning values, or exception lists. Remove superseded guidance and duplicates.
 Keep rationale beside surprising rules, and substantial rejected approaches in
 knowledge only while they inform future decisions. Remove completed-work inventories,
 old run examples, and superseded designs when they no longer guide an action; Git
-preserves their history. Preserve active blockers, non-obvious game rules, save
-contracts, provenance, and recovery steps.
+preserves their history. Once a current design reference is selected, remove unused
+iterations and references explicitly superseded by the current contract. Preserve
+active blockers, non-obvious game rules, save contracts, provenance, and recovery
+steps.
 
 Distinguish requirements from defaults, examples, history, and implementation gaps.
 Reserve “always” and “never” for invariants; examples do not mandate abstractions,

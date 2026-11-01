@@ -8,21 +8,10 @@ silhouette preserves the crafting identity where SF Symbols has no anvil glyph.
 
 ## Keywords
 
-`Keyword.visualStyle` owns the shared identity used by ordinary UI and floating
-combat feedback. Thorns shares Physical's color, but has a distinct silhouette.
-
-| Meaning | SF Symbol |
-|---|---|
-| Physical / Thorns | `burst.fill` / `asterisk` |
-| Burn / Stun | `flame.fill` / `bolt.fill` |
-| Block / Health | `shield.fill` / `heart.fill` |
-| Holy / Mana | `sun.max.fill` / `moon.stars.fill` |
-| Poison / Bleed / Leech | `flask.fill` / `drop.fill` / `eyedropper` |
-| Freeze / Dodge | `snowflake` / `wind` |
-| Purge / Cleanse | `shield.slash.fill` / `sparkles` |
-| Death's Door | `hourglass.bottomhalf.filled` |
-| Gold | `circle.circle.fill` |
-| Beneficial / negative status | `arrowshape.up.fill` / `arrowshape.down.fill` |
+[Keyword visual styles](../../Packages/TrinketDesignSystem/Sources/TrinketDesignSystem/Keyword+VisualStyle.swift)
+own the shared icon and color mapping used by ordinary UI and floating combat
+feedback, including the feedback-only status presets. Thorns shares Physical's
+color, but has a distinct silhouette.
 
 Floating combat feedback uses the same identities, with dark outlines for contrast
 over artwork. Numbers match their adjacent icon's keyword color. Size and motion
