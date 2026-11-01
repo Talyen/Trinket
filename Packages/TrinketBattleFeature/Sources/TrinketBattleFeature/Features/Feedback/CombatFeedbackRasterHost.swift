@@ -255,6 +255,11 @@ final class CombatFeedbackRasterUIView: UIView {
         withLayerActionsDisabled { tickStationary(at: date) }
     }
 
+    fileprivate func tickMotionInTransaction(at date: Date) {
+        guard !bounds.isEmpty else { return }
+        tickStationary(at: date)
+    }
+
     private static func chipLayerOrder(_ lhs: ChipLayer, _ rhs: ChipLayer) -> Bool {
         let lhsItem = lhs.item
         let rhsItem = rhs.item
@@ -540,7 +545,7 @@ private enum CombatFeedbackChipMotionClock {
                 stale.append(key)
                 continue
             }
-            view.tickMotion(at: now)
+            view.tickMotionInTransaction(at: now)
         }
         CATransaction.commit()
         for key in stale {

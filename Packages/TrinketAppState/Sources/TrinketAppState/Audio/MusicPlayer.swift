@@ -8,6 +8,8 @@ final class MusicPlayer {
     private struct Track: Sendable {
         let voice: any MusicPlaybackVoice
         let request: MusicPlaybackRequest
+        // A loaded song's duration is fixed; lyric snapshots read it repeatedly.
+        let duration: TimeInterval
         var canSavePosition = true
     }
 
@@ -99,7 +101,7 @@ final class MusicPlayer {
             trackID: current.request.track.id,
             currentTime: current.voice.currentTime,
             isAudible: current.voice.isPlaying && current.voice.volume > 0,
-            duration: current.voice.duration,
+            duration: current.duration,
         )
     }
 
@@ -224,7 +226,7 @@ final class MusicPlayer {
         }
         pending = .idle
         guard let voice else { return }
-        let track = Track(voice: voice, request: load.request)
+        let track = Track(voice: voice, request: load.request, duration: voice.duration)
         if let volume = load.startVolume, volume > 0 {
             activate(track, volume: volume, crossfade: true)
         } else {
@@ -316,7 +318,7 @@ final class MusicPlayer {
 
     private func applyResumePosition(_ track: Track) {
         let saved = resumePositions[track.request.resumeKey, default: 0]
-        track.voice.currentTime = max(0, min(saved, track.voice.duration - 0.05))
+        track.voice.currentTime = max(0, min(saved, track.duration - 0.05))
     }
 
     private func configure(_ voice: any MusicPlaybackVoice, request: MusicPlaybackRequest, volume: Float) {
