@@ -134,16 +134,14 @@ copies and cleanup. Preservation alone does not establish visual or interaction 
 
 When a Duo capture is black or input has no effect after folding, compare the
 rendered display, app process and actual window dimensions before diagnosing the
-game. In Xcode 27.1 RC (`27A9275`) with iOS 27.1 (`24A94232`), native interaction
-reported `NotRun` for a running app, captured the inactive outer display after
-unfolding, and changed orientation metadata without resizing the app. Device Hub's
-pose and Rotate controls produced actual geometry changes. These are observed
-tool limitations, not permission to weaken the rotation journey.
+game. Native interaction may report `NotRun` for a running app, capture the inactive
+display, or change orientation metadata without resizing the app. Use Device Hub's
+pose and Rotate controls to change geometry. These tool limitations do not weaken
+the rotation journey.
 
 Under the live lease, `xcrun simctl io "$SIMULATOR_UDID" enumerate` identifies the
-display IDs accepted by screenshot/recording `--display`. The observed outer/inner
-IDs were `1`/`3`; resolve them for the current device rather than assuming that
-mapping. Capture the active display explicitly when the default targets the other
+display IDs accepted by screenshot/recording `--display`. Resolve them for the
+current device. Capture the active display explicitly when the default targets the other
 screen. A readable capture establishes layout, not successful touch routing.
 
 Follow the simulator skill's bounded observation/rebind recovery after Device Hub

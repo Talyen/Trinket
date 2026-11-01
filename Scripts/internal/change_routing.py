@@ -239,11 +239,11 @@ def classify(paths: list[str], root: Path = ROOT, *, base: str | None = None) ->
                 route.compile_reasons.append(f'{path}: ' + ('public declaration changed' if declaration_change
                     else 'conservative consumer check: implementation changed in an API-bearing file'))
             public = r'(public\s+(actor|class|enum|struct|protocol|typealias)|(^|\s)protocol\s|@Model|[A-Za-z0-9_]+Schema|@attached)'
-            if re.search(r'^\+(?!\+).*' + public if tracked else public, diff, re.MULTILINE): route.add('skills', '.agents/skills/architect/SKILL.md'); route.add('knowledge', '.agents/knowledge/patterns/module-dag-containment.md')
+            if re.search(r'^\+(?!\+).*' + public if tracked else public, diff, re.MULTILINE): route.add('skills', '.agents/skills/architect/SKILL.md'); route.add('cards', 'Docs/Platform/Architecture.md')
         for owners, references in OWNER_GUIDANCE:
             if beneath(path, owners): route.add('cards', *references)
         if path.startswith('ContentManifest/') and Path(path).stem == 'talents': route.add('cards', TALENTS)
-        if path.endswith('/Package.swift'): route.add('knowledge', '.agents/knowledge/patterns/module-dag-containment.md')
+        if path.endswith('/Package.swift'): route.add('cards', 'Docs/Platform/Architecture.md')
         for parent in (root / path).parents:
             if parent == root: break
             if (parent / 'AGENTS.md').is_file(): route.add('guides', (parent / 'AGENTS.md').relative_to(root).as_posix())

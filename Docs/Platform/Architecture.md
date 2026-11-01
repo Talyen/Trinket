@@ -142,5 +142,16 @@ contracts receive a supplied reward plan and never define saved reward policy.
 
 ## Deferred architecture seams
 
-Do not begin a deferred split or platform expansion without the concrete forcing
-function recorded in the [architecture deferrals knowledge pattern](../../.agents/knowledge/patterns/architecture-deferred-seams.md).
+Keep these boundaries until a concrete need justifies changing them:
+
+| Boundary | Revisit when |
+|---|---|
+| Content catalogs and procedural systems in one package | A third independent consumer or a measured build or ownership problem requires a split. |
+| FeatureSupport domains in one package | A domain gains an independent consumer or an ownership boundary the package cannot express cleanly. |
+| Battle simulation, projection, feedback, and spectacle | A trace-backed performance or ownership problem shows an existing owner cannot remain cohesive. |
+
+The forcing function differs by boundary; a third consumer is not a universal
+requirement or automatic approval. Review proposed operations and their callers:
+dependency checks alone cannot establish that behavior belongs on a hub. For
+CloudKit distribution and release, use the [storage contract](../AgentContext/persistence-storage.md#cloudkit-preparation)
+and [CloudKit guide](CloudKitPreShipChecklist.md).

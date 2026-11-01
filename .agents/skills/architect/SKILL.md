@@ -21,6 +21,6 @@ rules and hub containment, then the owning package guide for its extension point
   follow the root guide's preservation and migration rules.
 
 If considering a package split, consult the
-[deferred seams](../../knowledge/patterns/architecture-deferred-seams.md).
+[deferred seams](../../../Docs/Platform/Architecture.md#deferred-architecture-seams).
 Boundary checks verify dependency direction; review still needs to establish
 whether the chosen owner and API make sense.

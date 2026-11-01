@@ -161,6 +161,8 @@ The following live evidence remains deferred to a separately requested pass:
 - Phone lock/call interruptions, Bluetooth routes, and audible audio recovery.
 - Extended device memory, thermal, energy and Low Power Mode behavior.
 - VoiceOver task completion and visual review of critical settings/screens.
+- Rendered battle feedback, including floating feedback, and Duo touch and precise
+  cast-boundary interactions when inspection tools can exercise them.
 - Actual populated beta-save upgrade and supported rollback.
 - Live product loading, family ownership, approval delivery and reinstall restore
   under [Purchases](Purchases.md).

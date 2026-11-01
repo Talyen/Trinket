@@ -1,13 +1,9 @@
 # Knowledge index
 
-Load a pattern when its trigger applies. These files preserve useful rationale
-and rejected approaches; [Docs/README.md](../../Docs/README.md) identifies standing
-policy owners. They are not a second policy layer or required prereads for every task.
-
-| Pattern | Trigger |
-| --- | --- |
-| [Module DAG and hubs](patterns/module-dag-containment.md) | New dependencies, hub growth, cross-package moves |
-| [Deferred seams](patterns/architecture-deferred-seams.md) | Package splits, platform sync, further Battle presentation boundaries |
+Reusable rationale belongs here only when the current owner cannot express it
+clearly. [Docs/README.md](../../Docs/README.md) identifies standing policy owners.
+For dependencies, hub containment and deferred package splits, use the
+[architecture guide](../../Docs/Platform/Architecture.md).
 
 For artwork retention and memory budgets, use [UI performance](../../Docs/AgentContext/ui-performance.md#first-paint-pins-and-encounter-transitions) and the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.md#artwork-budgets).
 

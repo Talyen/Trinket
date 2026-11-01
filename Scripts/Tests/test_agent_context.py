@@ -158,7 +158,7 @@ class AgentContextTests(ScriptRegressionTestCase):
             ('project.yml', ['Docs/AgentContext/content-and-manifests.md'], []),
             ('Scripts/check-docs.py', [], ['Applicable ownership requirements']),
             ('TrinketUITests/Smoke/SmokeShellTests.swift', [], ['apple-design/SKILL.md', '.agents/knowledge/patterns/']),
-            ('Packages/BattleEngine/Package.swift', ['.agents/knowledge/patterns/module-dag-containment.md'], []),
+            ('Packages/BattleEngine/Package.swift', ['Docs/Platform/Architecture.md'], []),
             ('Docs/Platform/Architecture.md', [], []),
         )
         for path, required, excluded in cases:
