@@ -39,10 +39,37 @@ struct CombatantStatusEffectOverlay: View {
     let kind: CombatantStatusEffectKind
     let progress: CGFloat
 
-    private static let starNoise = (0 ..< 8).map { CombatantCardEffectNoise.value($0, salt: 17) }
-    private static let snowflakeNoise = (0 ..< 16).map {
-        (along: CombatantCardEffectNoise.value($0, salt: 41), inset: CombatantCardEffectNoise.value($0, salt: 47))
-    }
+    /// These terms depend only on the fixed particle index and noise, not frame time or size.
+    private static let stars = {
+        let count = 8
+        return (0 ..< count).map { index in
+            let noise = CombatantCardEffectNoise.value(index, salt: 17)
+            return (
+                angleOffset: CGFloat(index) / CGFloat(count) * .pi * 2,
+                angleNoise: noise * 0.35,
+                radialScale: 0.85 + noise * 0.3,
+                baseSize: 7.2 + noise * 6,
+                phaseOffset: noise * .pi * 2,
+            )
+        }
+    }()
+
+    private static let snowflakes = {
+        let count = 16
+        return (0 ..< count).map { index in
+            let along = CombatantCardEffectNoise.value(index, salt: 41)
+            let noise = CombatantCardEffectNoise.value(index, salt: 47)
+            return (
+                along: along,
+                edge: index % 4,
+                delay: CGFloat(index) / CGFloat(count) * 0.72,
+                inset: 4 + noise * (6 + FreezeStyle.crackDensity * 10),
+                phaseOffset: noise * .pi * 2,
+                radiusVariance: 0.7 + noise * 0.5,
+                rotationOffset: along * .pi + noise,
+            )
+        }
+    }()
 
     var body: some View {
         let keyword: Keyword = switch kind {
@@ -68,8 +95,7 @@ struct CombatantStatusEffectOverlay: View {
     }
 
     private func swirlingStars(size: CGSize, style: Keyword.VisualStyle, phase: CGFloat) -> some View {
-        let noiseValues = Self.starNoise
-        let count = noiseValues.count
+        let count = Self.stars.count
         let radius = min(size.width, size.height) * 0.54 * 0.5
         let appear = min(max(phase / 0.12, 0), 1)
 
@@ -78,24 +104,21 @@ struct CombatantStatusEffectOverlay: View {
         var stars: [(point: CGPoint, size: CGFloat, rotation: CGFloat, opacity: Double, sinAngle: CGFloat)] = []
         stars.reserveCapacity(count)
 
-        for index in 0 ..< count {
-            let noise = noiseValues[index]
-            let angle = angleBase + CGFloat(index) / CGFloat(count) * .pi * 2
-                + noise * 0.35
-            let radial = radius * (0.85 + noise * 0.3)
+        for star in Self.stars {
+            let angle = angleBase + star.angleOffset + star.angleNoise
+            let radial = radius * star.radialScale
             let sinAngle = sin(angle)
             let depth = (sinAngle + 1) * 0.5
             let depthScale = 0.75 + 0.35 * depth
             let depthOpacity = 0.75 + 0.25 * depth
-            let baseSize = (7.2 + noise * 6)
-            let twinkle = 0.45 + 0.55 * abs(sin(phase * .pi * 4 + noise * .pi * 2))
+            let twinkle = 0.45 + 0.55 * abs(sin(phase * .pi * 4 + star.phaseOffset))
             stars.append((
                 point: CGPoint(
                     x: center.x + cos(angle) * radial,
                     y: center.y + sinAngle * (radial * 0.38),
                 ),
-                size: baseSize * depthScale,
-                rotation: phase * .pi * 1.5 + noise * .pi * 2,
+                size: star.baseSize * depthScale,
+                rotation: phase * .pi * 1.5 + star.phaseOffset,
                 opacity: appear > 0.01 ? Double(twinkle * depthOpacity * appear) : 0,
                 sinAngle: sinAngle,
             ))
@@ -124,7 +147,6 @@ struct CombatantStatusEffectOverlay: View {
     }
 
     private func iceCrystals(size: CGSize, style: Keyword.VisualStyle, phase: CGFloat) -> some View {
-        let flakes = Self.snowflakeNoise.count
         let encroach = min(
             max(phase / CGFloat(BattleMotion.combatantFreezeEncroachProgress), 0),
             1,
@@ -174,7 +196,6 @@ struct CombatantStatusEffectOverlay: View {
                 size: size,
                 style: style,
                 phase: phase,
-                flakes: flakes,
                 encroach: encroach,
             )
         }
@@ -185,40 +206,32 @@ struct CombatantStatusEffectOverlay: View {
         size: CGSize,
         style: Keyword.VisualStyle,
         phase: CGFloat,
-        flakes: Int,
         encroach: CGFloat,
     ) -> some View {
-        let noiseValues = Self.snowflakeNoise
         let radiusFraction: CGFloat = min(size.width, size.height)
             * (0.01 + FreezeStyle.crackDensity * 0.018)
         return Canvas { context, _ in
-            for index in 0 ..< flakes {
-                let along = noiseValues[index].along
-                let edge = index % 4
-                let delay = CGFloat(index) / CGFloat(flakes) * 0.72
-                let appear = min(max((encroach - delay) / 0.28, 0), 1)
+            for flake in Self.snowflakes {
+                let appear = min(max((encroach - flake.delay) / 0.28, 0), 1)
                 guard appear > 0.02 else { continue }
 
-                let insetNoise = noiseValues[index].inset
-                let inset = 4 + insetNoise * (6 + FreezeStyle.crackDensity * 10)
-                let center = switch edge {
-                case 0: CGPoint(x: along * size.width, y: inset)
-                case 1: CGPoint(x: size.width - inset, y: along * size.height)
-                case 2: CGPoint(x: along * size.width, y: size.height - inset)
-                default: CGPoint(x: inset, y: along * size.height)
+                let center = switch flake.edge {
+                case 0: CGPoint(x: flake.along * size.width, y: flake.inset)
+                case 1: CGPoint(x: size.width - flake.inset, y: flake.along * size.height)
+                case 2: CGPoint(x: flake.along * size.width, y: size.height - flake.inset)
+                default: CGPoint(x: flake.inset, y: flake.along * size.height)
                 }
 
-                let twinkle: CGFloat = 0.72 + 0.28 * abs(sin(phase * .pi * 2.4 + insetNoise * .pi * 2))
+                let twinkle: CGFloat = 0.72 + 0.28 * abs(sin(phase * .pi * 2.4 + flake.phaseOffset))
                 let breathe: CGFloat = 0.88 + 0.12 * twinkle
-                let radiusVariance: CGFloat = 0.7 + insetNoise * 0.5
-                let radius: CGFloat = radiusFraction * radiusVariance * appear * breathe * FreezeStyle.intensity
+                let radius: CGFloat = radiusFraction * flake.radiusVariance * appear * breathe * FreezeStyle.intensity
                 let opacityBase: CGFloat = 0.3 + 0.55 * appear * FreezeStyle.frostOpacity
                 let opacity = Double(opacityBase * twinkle)
                 drawSnowflake(
                     in: &context,
                     at: center,
                     radius: radius,
-                    rotation: along * .pi + insetNoise + phase * 0.15,
+                    rotation: flake.rotationOffset + phase * 0.15,
                     color: style.color.opacity(opacity * 0.7),
                     secondary: style.secondaryColor.opacity(opacity),
                 )
