@@ -101,6 +101,8 @@ struct CombatantStatusEffectOverlay: View {
 
         let center = CGPoint(x: size.width * 0.5, y: size.height * 0.23)
         let angleBase = phase * .pi * 2
+        let twinklePhase = phase * .pi * 4
+        let rotationPhase = phase * .pi * 1.5
         var stars: [(point: CGPoint, size: CGFloat, rotation: CGFloat, opacity: Double, sinAngle: CGFloat)] = []
         stars.reserveCapacity(count)
 
@@ -111,14 +113,14 @@ struct CombatantStatusEffectOverlay: View {
             let depth = (sinAngle + 1) * 0.5
             let depthScale = 0.75 + 0.35 * depth
             let depthOpacity = 0.75 + 0.25 * depth
-            let twinkle = 0.45 + 0.55 * abs(sin(phase * .pi * 4 + star.phaseOffset))
+            let twinkle = 0.45 + 0.55 * abs(sin(twinklePhase + star.phaseOffset))
             stars.append((
                 point: CGPoint(
                     x: center.x + cos(angle) * radial,
                     y: center.y + sinAngle * (radial * 0.38),
                 ),
                 size: star.baseSize * depthScale,
-                rotation: phase * .pi * 1.5 + star.phaseOffset,
+                rotation: rotationPhase + star.phaseOffset,
                 opacity: appear > 0.01 ? Double(twinkle * depthOpacity * appear) : 0,
                 sinAngle: sinAngle,
             ))
@@ -211,6 +213,8 @@ struct CombatantStatusEffectOverlay: View {
         let radiusFraction: CGFloat = min(size.width, size.height)
             * (0.01 + FreezeStyle.crackDensity * 0.018)
         return Canvas { context, _ in
+            let twinklePhase = phase * .pi * 2.4
+            let rotationPhase = phase * 0.15
             for flake in Self.snowflakes {
                 let appear = min(max((encroach - flake.delay) / 0.28, 0), 1)
                 guard appear > 0.02 else { continue }
@@ -222,7 +226,7 @@ struct CombatantStatusEffectOverlay: View {
                 default: CGPoint(x: flake.inset, y: flake.along * size.height)
                 }
 
-                let twinkle: CGFloat = 0.72 + 0.28 * abs(sin(phase * .pi * 2.4 + flake.phaseOffset))
+                let twinkle: CGFloat = 0.72 + 0.28 * abs(sin(twinklePhase + flake.phaseOffset))
                 let breathe: CGFloat = 0.88 + 0.12 * twinkle
                 let radius: CGFloat = radiusFraction * flake.radiusVariance * appear * breathe * FreezeStyle.intensity
                 let opacityBase: CGFloat = 0.3 + 0.55 * appear * FreezeStyle.frostOpacity
@@ -231,7 +235,7 @@ struct CombatantStatusEffectOverlay: View {
                     in: &context,
                     at: center,
                     radius: radius,
-                    rotation: flake.rotationOffset + phase * 0.15,
+                    rotation: flake.rotationOffset + rotationPhase,
                     color: style.color.opacity(opacity * 0.7),
                     secondary: style.secondaryColor.opacity(opacity),
                 )
