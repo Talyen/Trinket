@@ -173,8 +173,8 @@ prices to reconstruct these charges.
 `NonCombatEncounterCompletion` owns Journey, Labyrinth, and Voyage progress for
 Shops and Mystery events. It requires a current playable `EncounterIdentity`;
 stale sessions and combat nodes cannot grant rewards or advance progress.
-Direct choices receive normal encounter rewards; pooled Mystery offers only advance
-progress. Empty Shops prepare stock and complete in one transaction.
+Direct and pooled Mystery payouts follow [Mystery claims](#mystery-claims).
+Empty Shops prepare stock and complete in one transaction.
 Shop and Mystery callbacks require their captured session and its current save
 generation before acting, including retry submission. Retired callbacks leave current
 progress and presentation untouched; external-progress cleanup retires obsolete covers.
@@ -200,21 +200,16 @@ Homestead collection and build/upgrade commands are asynchronous. Linked cloud
 players collect and upgrade locally after a durable write, including offline;
 the next synchronization merges accepted actions without player prompts.
 
-Pending server production receipts remain replay-safe. Durable local actions are
-identified and replayed by uploads carrying an acknowledged base snapshot;
-concurrent branches merge earned progress
-and the production cursor within the same reset epoch. Distinct upgrades survive
-even when their combined material spend exceeds the old balance; floor that
-balance at zero. Overlapping production collections count once. Local and cloud
-collection debits retain unpaid production credit even when converting the
-collected integer to `Double` would round it upward.
-Reset epochs invalidate outstanding claims. Development and Production evidence
-is required by the [CloudKit checklist](../Platform/CloudKitPreShipChecklist.md).
+Local and cloud collection debits retain unpaid production credit even when
+converting the collected integer to `Double` would round it upward. Reconciliation,
+overlap and reset behavior belong to the [storage contract](persistence-storage.md#homestead-production-identity);
+release evidence follows the [CloudKit checklist](../Platform/CloudKitPreShipChecklist.md).
 
 ## Voyage identities
 
 Saved Voyage routes require a nonempty run identity, ordinary battle enemies,
 and one boss at the terminal node. Invalid routes retain their opaque payload
-and cannot admit encounters or destination payouts.
+and cannot admit encounters or destination payouts; [storage](persistence-storage.md#voyage-payload)
+owns payload compatibility and recovery.
 
 Voyage encounters use run-and-node identities for saved shops, Mystery offers, and one-time completion. Final battle reward plans include the [Voyage completion bonus](../Product/Voyage.md#levels-and-rewards) after ordinary reward multipliers and before capacity settlement.

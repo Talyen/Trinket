@@ -62,10 +62,9 @@ Backgrounding, hiding its presentation, or retiring the card cancels loading and
 releases playback; a memory warning falls back to static art for that card. Static
 prepared artwork also covers loading, Reduce Motion, missing or failed media, and
 the defeated enemy slice.
-Lyrics and resource bars remain above the artwork. Lyrics derive from current media time,
-waking at word and loop boundaries and when audio playback changes; periodic reconciliation
-covers unreported system changes. The supplied MP4s are finished authored resources in the
-BattleFeature bundle.
+Lyrics and resource bars remain above the artwork. [Boss lyrics](../../Packages/TrinketBattleFeature/README.md#boss-lyrics)
+owns lyric playback and visibility. The supplied MP4s are finished authored resources
+in the BattleFeature bundle.
 
 ## Continuous card input
 
@@ -234,7 +233,8 @@ order with a 320 ms gap. An announcement accompanying its own impact waits for
 the numbers to finish; that queue is bounded to 1.37 seconds from arrival.
 Other reaction announcements are bounded to 640 ms. New paths compare measured
 projected footprints throughout their lifetimes, strongly penalizing complete
-covering in either direction. Diagonal paths and fixed rows preserve visible space when the
+covering in either direction with a 6-point clearance target. Damage and healing
+prefer opposite sides. Diagonal paths and fixed rows preserve visible space when the
 queue deadline forces concurrent launches. The host clamps the path to the
 portrait's peak footprint; spatial-edge fading cannot prematurely evict a flight.
 

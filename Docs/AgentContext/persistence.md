@@ -53,9 +53,10 @@ or silently select a fallback; save hydration still repairs older data.
 
 Options are deliberately separate: `OptionsStore` uses app-storage-compatible `UserDefaults`, not player-save/CloudKit state. Packages must not import app or SwiftUI feature code.
 
-For durable store behavior, establish mutation → disk reload → assertion evidence;
-existing persistence tests may suffice for a new API. Apply
-[Testing.md](../Platform/Testing.md) to additions and retirement. Use `PersistenceTestContext`; do not test real CloudKit I/O. Isolate `@MainActor` on the store-opening test, not the suite, so sanitizer and domain-math tests stay parallelizable. Verification routing is owned by [Verification.md](../Platform/Verification.md).
+For durable store behavior, establish mutation → disk reload → assertion evidence.
+The [Persistence test guide](../../Packages/TrinketPersistence/Tests/README.md)
+owns fixtures, test isolation and concern-specific starting points;
+[Testing](../Platform/Testing.md) owns coverage decisions.
 
 ## Focused contracts
 

@@ -94,9 +94,6 @@ new confirmed gameplay defect or a material content/progression change.
 
 ## Balance sweep
 
-Will-o-Wisp uses Ray of Frost, Frostbolt and Blizzard. Its Basic no longer doubles
-damage against an already Frozen target; player-owned Ice Shot is unchanged.
-
 Run the manually dispatched [Balance diagnostics workflow](../../.github/workflows/balance-sweep.yml)
 for hosted sweeps. Its default is the identity screen; choose a contrast or deep
 mode and more samples or another seed to investigate findings. Reports and run
@@ -139,6 +136,9 @@ than bypassing concurrency checks on a shared collection.
 
 ### Reading sweep evidence
 
+Compare reports only when their tooling, sampling, gear generation and policy
+are comparable; use their recorded policy IDs.
+
 Identity, progression, and paired contrast sampling use a party-wide guideline
 of at least three damage-dealing abilities across the six selected cards. Either
 character may be entirely support-focused. Ability contrasts apply the guideline
@@ -147,16 +147,14 @@ Contrast sampling retries up to 64 times, then selects the highest available
 damage count if necessary; an inherently low-damage roster can fall below the
 guideline. This card-count heuristic does not measure actual damage, talent or
 gear contributions, or play quality, so investigate stalls even in eligible
-parties. These sampling changes alter seeded contrast builds; compare reports
-produced by the same sampling revision.
+parties.
 
 Identity runs use the same rotating Hero/Companion schedule for every enemy.
 Both rosters cycle evenly before repeated pairings shift to cover filtered rosters
 with shared divisors. The default screen represents every Hero and Companion;
 within a complete Hero × Companion cycle every pairing is represented. Enemy
 seeds use the enemy ID, so narrowing an enemy filter preserves that enemy's
-samples. This sampling revision changes results from older sweeps with the same
-seed; compare reports produced by the same tooling revision.
+samples.
 
 Win rates and contrast HP/round deltas exclude unfinished battles. Duration
 averages include observed rounds up to the cap; they are lower bounds for
@@ -202,8 +200,7 @@ Use `--mode all` to include identity, card, talent, affix, and progression check
 identity alone does not test every combination. Early/middle/late are fixed
 loadout profiles; early affix contrasts use one starter item per party member.
 Themed gear uses authored Trinkets, with their own signature alignment, rather than
-rolling ordinary gear affixes onto Trinket bases. This changes seeded builds from
-older sweeps; compare reports produced by the same gear-generation revision. A lack of flags
+rolling ordinary gear affixes onto Trinket bases. A lack of flags
 with sparse samples or omitted modes does not establish balance. Increase
 `--samples`, confirm across seeds, and use `--policy-compare` to check whether an
 identity finding depends on autoplay choices. Durations are battle rounds, not
@@ -214,9 +211,7 @@ profile. The focused talent choice is excluded from the common background kit;
 both resulting builds must remain legal. The minimal-talent diagnostic omits
 background talents and retains the focus's prerequisites. Shared kits leave points
 unspent when using them would require the opposing focus or an illegal later row.
-The diagnostic is labeled separately; older JSON reports without the build-context field retain
-their historical minimal-talent interpretation. Do not compare those results as
-if they were tier-kit evidence.
+The diagnostic is labeled separately; do not compare it as tier-kit evidence.
 
 Duration buckets and identity tables share one classification path. Enemy duration
 rows keep boss and regular encounters separate even when their IDs match; Hero and
@@ -257,12 +252,11 @@ loadout; they do not grant the source damage type's attacks or procs. Saved modi
 and trigger roll magnitudes break ties only between the same affix portfolio, rarity
 and hand multiplier, with no magnitude reduced. The versioned policy is
 still a heuristic, not an estimate of optimal combat value; conditional effects retain
-coarse keyword alignment. Compare reports with their recorded policy IDs. Shops, crafting,
+coarse keyword alignment. Shops, crafting,
 Corruption, wishes and Homestead bonuses are outside this headless model.
 
-`--progression-gear tier` retains the historical idealized benchmark, including its
-level-35 Basic-to-Astral switch and per-battle ability/talent/gear draws. Historical
-JSON without an equipment-model field retains that interpretation. Legacy seeded
+`--progression-gear tier` selects an idealized benchmark, including its
+level-35 Basic-to-Astral switch and per-battle ability/talent/gear draws. Legacy seeded
 matchups draw both talent kits before starter gear; preserve that draw order when
 simplifying setup. Identity and contrast modes remain fixed tier benchmarks.
 Fixed-party progression includes every Spire, uses the run's world seed for

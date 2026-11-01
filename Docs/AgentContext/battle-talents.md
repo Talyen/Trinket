@@ -197,10 +197,6 @@ Healing Flames and Flame Shield roll once per Burn ability after positive Health
 damage. Ember Shield instead improves its owner's Block absorption against a
 Burning attacker. Fully absorbed ticks grant no damage rewards.
 
-### Thick Hide
-
-Thick Hide applies a flat Physical damage reduction only while its owner has Block.
-
 ### Concussive Blow and Pulverize
 
 Concussive Blow applies its reduction after the final Stun skip and retains it
@@ -221,22 +217,6 @@ qualifying Physical attack each combat Critically Hits; preceding non-Physical
 attacks neither Crit nor spend the combat allowance. This is distinct from
 Panther's [Surprise Strike](#panther-dodge-preparations), which prepares doubled
 damage after its first Dodge.
-
-### Mimic
-
-Mimic deals one additional Bleed damage hit (ordinary Bleed damage and
-application) on its first attack only, through the normal damage pipeline;
-subsequent hits and ongoing ticks do not repeat the bonus.
-
-### Lead the Hunt
-
-Lead the Hunt applies a percentage bonus to Companion attacks against Bleeding
-enemies; it adds no unconditional flat Bleed damage.
-
-### Beastbond
-
-Beastbond restricts its Companion damage bonus to Physical damage (no separate
-Physical attack added to non-Physical attacks).
 
 ### Noxious Reaction, Serrated Blades, and Blood Money
 
@@ -363,7 +343,9 @@ reactions between hits of the current card.
 Whiplash, Wing Buffet, and Counter Pounce prepare damage for the wearer's next
 Stun, Freeze, and Bleed attack respectively after Dodge. Arm them after the Dodge's
 counteractions finish, even when counterattacks are disabled; a fallen owner cannot
-arm a bonus. Denouncing prepares Holy attack damage only after an actual enemy
+arm a bonus. Existing preparations remain eligible for that counterattack,
+including when it is deferred.
+Denouncing prepares Holy attack damage only after an actual enemy
 buff removal. Empty Purges leave existing readiness unchanged.
 Toxic Touch prepares Poison attack damage after its Companion's Leech Critical
 Hit, including guaranteed Leech attacks at full Health. It creates no Poison hit
@@ -397,8 +379,9 @@ This also applies to a qualifying Basic counterattack's own Critical Hit and the
 ### Consolation Prize and Feigned Miss
 
 Consolation Prize adds one uniformly random player ability to its owner's hand
-on the first fully Blocked attack each combat. The new physical copy remains in
-that owner's deck for the battle; no Gold is granted. Feigned Miss still prepares
+on the first fully Blocked attack each combat. Claim before generation; the new
+physical copy respects FIFO overflow and ordinary cycling for the battle without
+changing the saved loadout. No Gold is granted. Feigned Miss prepares
 double damage for the next Physical attack after an attack is fully Blocked.
 Neither reward requires Health damage, and the creating card cannot consume the
 prepared attack bonus.
@@ -518,10 +501,10 @@ healer to survive the Cleanse reactions.
 
 ### Library Owl restoration and Cleanse
 
-Owl's Aether Shield and Living Archive each roll once per restoring ability
-after actual Health is gained. A successful roll affects one healed ally:
-Aether Shield grants Block equal to their restoration; Living Archive grants
-Thorns. Font of Magic rolls once when an ability restores Health or Mana,
+Owl's Aether Shield rolls once per restoring ability after actual Health is gained,
+granting one healed ally Block equal to their restoration on success.
+[Living Archive](#living-archive-wishspring-and-marrowmend) has a separate roll.
+Font of Magic rolls once when an ability restores Health or Mana,
 even when it restores both. Purifying Light's automatic Cleanse uses normal
 Cleanse reactions when it succeeds; it rolls once per Holy ability.
 

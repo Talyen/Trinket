@@ -60,6 +60,8 @@ Block or mitigation; Dodge prevents landed-hit rewards. Trait damage, retaliatio
 and ongoing damage do not recursively trigger attack traits. Firestarter and
 Chilling Strikes apply to all attack tiers. Bloodletting, Venomous Strikes,
 Pyromancy and Condemn apply to every qualifying hit, without an action-wide cap.
+Hidden Fangs adds one Bleed reaction on the enemy's first eligible attack hit,
+then applies its Bleed stack; its amount is owned by the trait catalog.
 Condemn checks the opponent's Health before each hit. Pilfer steals up to 1 Block
 before each attempted hit, including a Dodged hit. Siphon restores 1 Health per
 landed hit. Self-Sacrifice loses 1 Health after each attempted hit, bypassing Block

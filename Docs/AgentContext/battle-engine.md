@@ -10,10 +10,6 @@ consumers inspecting future RNG copy the generator rather than advance live RNG.
 Keep package dependencies below app/feature UI. Consequential rules need
 existing or focused deterministic evidence in `BattleEngineTests`.
 
-Read the relevant behavior contract for the change: [actions](battle-actions.md),
-[damage](battle-damage.md), [healing](battle-healing.md), or
-[balance](battle-balance.md). The runtime details below describe the current owners.
-
 ## Resolution and state ownership
 
 Start with `BattleState`, the matching `EffectHandlers/` type, or the matching `CombatTriggerEngine+*.swift` cadence extension. `BattleState` is a facade: put shared mutation plumbing in `BattleState+*.swift`; place rule branches in handlers or engines. Do not put feature calls in the engine. BattleState shares its immutable modifier profiles through private storage so nested card resolution does not copy those large values into every state snapshot.
@@ -109,12 +105,7 @@ and retains an existing stack's ID, source and duration. Stored buffs share
 replacement and feedback while retaining their stacking rules.
 Thorns and Kindled share saturating amount-buff operations. Block grants use
 `BattleState.applyBlockGain`; all other insertion uses `insertEffect`.
-For a new effect kind, add its application dispatch case and any specialized lifecycle rules. Existing handler and turn-processing
-coverage may suffice; add or extend `EffectHandlersApplyTests` only when a behavior
-gap meets the [Testing.md](../Platform/Testing.md) value threshold. Use a thin
-integration case only when the existing owner cannot prove the interaction and
-the same threshold passes. Testing.md also owns retirement, fixtures, seeds, and
-dispatch conventions.
+For a new effect kind, follow the [package's effect guide](../../Packages/BattleEngine/README.md#adding-a-new-effect).
 
 `CombatCheckpoint` checks eligibility before each ordered reaction. Prepared-action
 and card-completion work requires a living actor; winning cards can finish support

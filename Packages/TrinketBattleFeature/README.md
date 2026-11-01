@@ -52,6 +52,7 @@ sits immediately above Health inside the boss card's attack/recoil transforms;
 it does not resize the battlefield or intercept combatant taps. Only arriving words
 animate. A leaf-owned sampler reads actual playback time and changes view state
 only at word/phrase boundaries, following resumes, seeks and loops.
+Playback changes wake it; periodic reconciliation covers unreported changes and clock drift.
 
 The default-on Audio option can disable lyrics. Unsupported bosses, defeated bosses,
 retired/prepared displays, hidden tabs, and inactive scenes do not sample. Muted,
@@ -140,24 +141,8 @@ sample; Run All plays all five sequences. Stop cancels playback and clears all
 feedback. Backgrounding cancels playback. The existing
 `-launch-screen options -feedback-comparison` launch flag remains supported.
 
-Balanced retains native font/icon assets and portrait-capped 52-point travel.
-Central motion peaks at 1.85× after 85 ms, settles to 1.55× by 170 ms, starts
-rising at 240 ms, and fades over its final 280 ms of a 1.05-second lifetime.
-Impact numbers and direct Health costs launch at contact; other ordinary feedback
-prefers an 80 ms stagger and launches within 180 ms of arrival. Reaction pairs
-follow primary results in 320 ms beats. When their action has impact numbers, they
-wait for those numbers to finish, with a 1.37-second maximum wait; otherwise
-the maximum wait is 640 ms. Raster paths
-seek 6 points of clearance. New numeric flights compare measured footprints before choosing a fixed center or
-diagonal path, with extra vertical separation on wider paths. Complete masking
-is strongly penalized in either direction: a small arrival cannot hide inside an
-older pop, and a new pop cannot completely cover an older result. Damage and
-healing prefer opposite sides; travel is clamped to the portrait at peak scale.
-Corners and names receive fixed extra rows. Every path is chosen once: later
-arrivals never move, restart, shorten, or evict earlier chips. Dense overlap is
-allowed when the queue deadline arrives. Each chip keeps its full post-launch
-lifetime, including names at 1.6 seconds. Matching results merge within a 250 ms
-arrival gap without renewed pulse or expiry.
+Motion, placement, merging and lifetime are the same as in the
+[shipping feedback contract](../../Docs/AgentContext/battle-presentation.md#floating-combat-feedback).
 
 The Reactions sample deliberately emits two Frostfire actions 140 ms apart.
 Each includes Burn and Freeze damage. Mixed includes fully blocked packets so

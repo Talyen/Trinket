@@ -29,8 +29,8 @@ Playful Energy counts both partners' cards and heals once when the party reaches
 its threshold. Shared next-card Dodge bonuses refresh rather than stack; card preparation
 reserves it, and only that card's first damaging hit can spend it. A support card
 uses the preparation without carrying it forward to another card.
-Whiplash, Wing Buffet, and Counter Pounce arm after the Dodge's Basic counterattack
-finishes, including deferred counterattacks; older preparations remain eligible for that counterattack.
+[Dodge-triggered preparations](battle-talents.md#reaction-attack-preparations)
+arm after the Dodge's counteractions finish.
 `CombatResolution` owns party preparations and their per-card reservations.
 Immediate card damage carries action/card provenance independently of damage
 mechanics, including the first pulse of a recurring effect. Later ticks and
@@ -201,9 +201,9 @@ from drawing, or has no card to draw. Health-cost affordability is checked when
 the drawn card is played, rather than when it is drawn.
 Feint grants +40% Dodge chance until the next turn and draws two manual cards from
 the caster's deck; a missing card does not borrow the partner's. Dodge bonuses
-are additive and the usual 75% chance cap applies. Shadowstep deals Physical damage, then draws
-from the caster's deck, without Dodge or repeat preparation. Current card text
-is owned by the [authored ability catalogs](content-and-manifests.md#abilities).
+are additive and the usual 75% chance cap applies. [Card play](../Product/CardPlay.md#automatic-cards-stay-full-size)
+owns Pack Tactics and Shadowstep's player-facing behavior; current card text is
+owned by the [authored ability catalogs](content-and-manifests.md#abilities).
 
 The engine's `playNextCardTwice` effect remains supported but is not granted by
 current authored abilities. It repeats the caster's next manually played card,
@@ -238,10 +238,8 @@ Entries follow the same consumption and expiry rules as their bonuses.
 Full automatic Basic abilities use ordinary attack damage talents such as Razor
 Claws, Ground Slam, and Battering Ram; card-only cadences retain their restrictions.
 
-Consolation Prize creates one uniformly random card from `AbilityCatalog.all` on
-the owner's first fully Blocked attack per combat. Claim before generation; the
-new copy belongs to that owner, respects FIFO overflow, and follows ordinary
-cycling for this battle without changing the saved loadout.
+[Consolation Prize](battle-talents.md#consolation-prize-and-feigned-miss) claims
+its allowance before generating a card from `AbilityCatalog.all`.
 Card admission also checks live pending Stun and Freeze, so a generated card cannot
 bypass control applied after turn preparation.
 Battle preparation pins the possible card artwork only when Consolation Prize is
