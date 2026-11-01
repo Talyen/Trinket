@@ -77,8 +77,6 @@ def run_cache_roots(root: Path, *, intermediates_only: bool = False, products: b
         if safe_path(path, root) and path.is_dir():
             paths.append(path)
     if products:
-        # Device products are admitted only after independently verifying their
-        # retained binaries and dSYMs in expire_paths.
         for relative in ('Build/Products', 'Device/Build/Products'):
             path = root / '.DerivedData' / relative
             if safe_path(path, root) and path.is_dir():
@@ -603,20 +601,13 @@ def expire_paths(paths: list[Path], boundary: Path, *, apply: bool, now: float |
         if opened.returncode != 1 or opened.stdout.strip() or opened.stderr.strip():
             emit(f'SKIP {path}: open files or unavailable open-file inventory')
             continue
-        device_products = path == boundary / '.DerivedData/Device/Build/Products'
-        if device_products:
-            from internal.device_product_retention import verified_device_products
-            if not verified_device_products(path):
-                emit(f'SKIP {path}: exact device binaries and symbols are not independently verified')
-                continue
         if apply:
             guard = lifecycle_guard(boundary, apply=True) if guard_each else nullcontext(True)
             with guard as admitted:
                 if (not admitted or not path.exists()
                         or protection(path, boundary, process_snapshot(), scoped=scoped)
                         or (path not in immediate and metadata(path)[0] > now - max_age)
-                        or (shared and unmanaged_build_active())
-                        or (device_products and not verified_device_products(path))):
+                        or (shared and unmanaged_build_active())):
                     continue
                 reopened = subprocess.run(['lsof', '-n', '-P', '+D', str(path)],
                                           capture_output=True, text=True, timeout=30) if path.is_dir() else subprocess.run(

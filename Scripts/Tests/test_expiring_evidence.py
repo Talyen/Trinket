@@ -69,6 +69,40 @@ class EvidenceExpiryTests(unittest.TestCase):
         self.assertTrue((profile / 'result.json').exists() and active.exists() and recent.exists())
         self.assertTrue((old.parents[5] / 'visual-expiry.jsonl').exists())
 
+    def test_snapshot_trace_is_retired_as_one_bundle_and_pins_are_honored(self):
+        target = self.snapshot('finished')
+        manifest = target.parents[4] / 'evidence.json'
+        saved = json.loads(manifest.read_text())
+        trace_name = '.DerivedData/Deliverables/device.trace'
+        trace = manifest.parent / 'files' / trace_name
+        trace.mkdir()
+        (trace / 'data').write_text('trace')
+        saved['files'].append(trace_name + '/data')
+        manifest.write_text(json.dumps(saved))
+        for path in (trace / 'data', trace, manifest):
+            self.age(path)
+        (trace / '.retention-keep').touch()
+        self.assertEqual(self.cleanup(True)[0], 1)
+        self.assertTrue(trace.exists())
+        (trace / '.retention-keep').unlink()
+        self.age(trace)
+        self.assertEqual(self.cleanup(True)[0], 1)
+        self.assertFalse(trace.exists())
+        self.assertTrue((manifest.parent.parent / 'profile-expiry.jsonl').exists())
+
+    def test_unpinned_legacy_trace_expires_but_other_investigation_files_stay(self):
+        base = self.artifacts / 'profiles/old-investigation'
+        trace = base / 'recording.trace'
+        trace.mkdir(parents=True)
+        (trace / 'data').write_text('trace')
+        source = base / 'notes.swift'
+        source.write_text('source')
+        for path in (trace / 'data', trace):
+            self.age(path)
+        self.assertEqual(self.cleanup(True)[0], 1)
+        self.assertFalse(trace.exists())
+        self.assertTrue(source.exists())
+
     def test_keep_and_busy_producer_prevent_expiry(self):
         target = self.snapshot('finished')
         (target.parent / '.retention-keep').touch()

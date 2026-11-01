@@ -307,12 +307,12 @@ producing hosted workflows. Age alone never proves that an artifact is disposabl
 | Local timing entries and temporary guidance receipts | 24 hours per timing entry; one day of inactivity for checkout-scoped guidance receipts | Existing expiry removes eligible entries/receipts individually |
 | Idle task compiler scratch under `.DerivedData/runs/` and legacy `Packages/*/.build/` | One day without writes (`TRINKET_RUN_MAX_AGE_DAYS`) | Cleanup checks ownership, leases, keeps and open files under the simulator allocation lock; preserves tenant products and evidence |
 | Compiler scratch and agent products retired at task creation | Same idle-cache window | Known agent app/package/host intermediates and product directories; preserves package checkouts, diagnostics and shared compilation caches; no-build requests reject missing products |
-| Shared primary/device compiler scratch and build products | Same idle-cache window | Managed producers register a lifecycle lease; cleanup also rejects open files and active or uninspectable Apple build/debug processes. Device products require independently verified, exact binary and dSYM copies from a successful profile |
+| Shared primary/device compiler scratch and build products | Same idle-cache window | Managed producers register a lifecycle lease; cleanup also rejects open files and active or uninspectable Apple build/debug processes. Device products can be rebuilt and do not require a retained profile copy |
 | Successful IPA inspection / thinned-export scratch | Until inspection consumers finish | Scoped temporary cleanup retains compact validation/size proof; failed inspection output and explicit keeps remain available |
 | Ready or exported TestFlight duplicate working copies | 24 hours after verified preservation and last receipt write | Deployment-locked hash/UUID/receipt validation; exported runs remain resumable from the verified backup; unbacked, unknown, mismatched, active or kept copies remain protected |
 | Completed release archive, IPA and symbols | Until superseded by a newer ready build for the same app | Retire under the deployment lock; preserve current and unfinished releases, receipts, manifests and reservation records |
 | Task deliverables and preserved evidence snapshots | Recognized visual captures expire after 24 hours; routine successful static reports after seven days | Preserve active branches, keep markers, source, unclassified and non-evidence deliverables; snapshot visual expiry is journaled |
-| Recognized device-profile traces, copied binaries/symbols and XML | 24 hours after capture and last payload write | Retain result metadata, active or unknown leases and explicit keep markers; unclassified investigations remain caller-owned |
+| Recognized profile traces, copied device binaries/symbols and XML | 24 hours after capture and last payload write | Retain result metadata, active or unknown leases and explicit keep markers; unclassified investigations remain caller-owned |
 | Hosted logs, bounded diagnostics, compact timing, size/cache reports and native qualification evidence | 14 days | Workflow expiry, subject to GitHub's repository retention cap |
 | Exact qualified release proof | 30 days | [Release verification workflow](../.github/workflows/release-verification.yml) owns this exception |
 | Hosted reusable build products, iOS runtime transfers and full performance traces | One day | Consumer window only; missing/expired products follow existing rebuild/validation policy |
@@ -340,7 +340,7 @@ A release invocation runs this pass before acquiring its deployment lock.
 
 `python3 Scripts/cleanup-outputs.py --dry-run --primary --expired-evidence-only`
 previews recognized local visual captures, inactive saved snapshot captures and
-standard `device-*` profile payloads after 24 hours. Replace `--dry-run` with
+standard `device-*` profile payloads and recognized `.trace` bundles after 24 hours. Replace `--dry-run` with
 `--apply` to remove them. Each pass handles at most 32 items by default;
 `--evidence-limit N` changes the bound. Task creation attempts eight per pass.
 Active or ambiguous leases, open files, active snapshot branches, keep markers,
