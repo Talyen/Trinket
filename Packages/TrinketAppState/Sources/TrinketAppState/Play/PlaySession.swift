@@ -153,9 +153,7 @@ public final class PlaySession: BattleProgressionDelegate {
         materialRewards: [ResourceAmount]? = nil,
         at date: Date? = nil,
     ) -> BattleRewardSettlement? {
-        guard battle.activeBattle?.id == configuration.id,
-              configuration.runKey == nil || route(for: configuration.runKey) != nil else { return nil }
-        return battleCoordinator.settleRewards(
+        battleCoordinator.settleRewards(
             configuration, battleGold: battleGold, materialRewards: materialRewards,
             at: date ?? battleRewardDate(),
         )
@@ -182,10 +180,6 @@ public final class PlaySession: BattleProgressionDelegate {
         encounters.activeShopEncounter = nil
         pendingDestination = nil
         shellSession.selectedTab = .play
-    }
-
-    func route(for runKey: BattleRunKey?) -> PlayBattleRoute? {
-        battleCoordinator.registration(for: runKey)?.route
     }
 
     public func battlePresentation(for configuration: BattleRunConfiguration) -> BattlePresentationContext? {

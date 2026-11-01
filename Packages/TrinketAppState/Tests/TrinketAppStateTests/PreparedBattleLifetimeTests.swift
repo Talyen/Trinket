@@ -4,7 +4,7 @@ import TrinketContent
 
 extension AppStatePlayFlowTests {
     @Test func `releasing play invalidates a prepared handle retained by presentation`() async throws {
-        let runtime = PreparedThenRejectingBattleRuntime()
+        let runtime = RejectingBattleRuntime()
         var play: PlaySession? = try context.makePlaySession(battleRuntime: runtime)
         let stage = try #require(GameContent.chapters[0].stages.first)
         play?.journey.prepareBattle(for: stage)

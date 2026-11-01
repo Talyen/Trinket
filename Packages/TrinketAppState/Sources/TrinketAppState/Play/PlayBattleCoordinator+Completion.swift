@@ -143,9 +143,9 @@ extension PlayBattleCoordinator {
         _ configuration: BattleRunConfiguration,
         settlement: BattleRewardSettlement,
     ) -> SaveActionAttempt<BattleCompletionResult> {
-        guard let run = activeRegistration(for: configuration),
+        guard let activeBattle,
+              let run = activeRegistration(for: configuration),
               battle.resolvedDefeatProgress != nil else { return SaveActionAttempt(.unavailable) }
-        guard let activeBattle else { return SaveActionAttempt(.unavailable) }
         switch activeBattle.claimState {
         case .claiming, .victory, .ending: return SaveActionAttempt(.unavailable)
         case .defeat: return SaveActionAttempt(.completed)

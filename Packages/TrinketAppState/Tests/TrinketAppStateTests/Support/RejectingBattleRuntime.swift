@@ -4,55 +4,6 @@ import TrinketContent
 import TrinketFeatureContracts
 
 @MainActor
-class RejectingBattleRuntime: BattleRuntime {
-    var resolvedDefeatProgress: BattleDefeatProgress? {
-        nil
-    }
-
-    var activeBattle: BattleRunConfiguration?
-    var lifecyclePhase: BattleLifecyclePhase = .idle
-    var isSuspendedForScenePhase = false
-    var finalPartyHealthByCombatantID: [String: Int]?
-    weak var progression: (any BattleProgressionDelegate)?
-
-    func connectProgression(to delegate: any BattleProgressionDelegate) {
-        progression = delegate
-    }
-
-    func createPreparedRun(_: BattleRunConfiguration) -> (any PreparedBattleRunHandle)? {
-        nil
-    }
-
-    func publishPreparedPreview(_ preview: BattlePreparedPreview) {
-        if activeBattle == nil {
-            lifecyclePhase = preview.configurations.isEmpty ? .idle : .prepared
-        }
-    }
-
-    func activatePreparedBattle(_: any PreparedBattleRunHandle, presentation _: BattlePresentationContext) -> Bool {
-        false
-    }
-
-    func activate(_: BattleRunConfiguration, presentation _: BattlePresentationContext) -> Bool {
-        false
-    }
-
-    func restart(_: BattleRunConfiguration, presentation _: BattlePresentationContext) -> Bool {
-        false
-    }
-
-    func endBattle() {
-        activeBattle = nil; lifecyclePhase = .idle
-    }
-
-    func setSuspendedForScenePhase(_ suspended: Bool) {
-        isSuspendedForScenePhase = suspended
-    }
-
-    func trimMemoryFootprint(releaseBattleLog _: Bool) {}
-}
-
-@MainActor
 final class FixturePreparedRun: PreparedBattleRunHandle {
     let configuration: BattleRunConfiguration
     var isValid = true
@@ -66,34 +17,73 @@ final class FixturePreparedRun: PreparedBattleRunHandle {
 }
 
 @MainActor
-final class PreparedThenRejectingBattleRuntime: RejectingBattleRuntime {
-    private(set) var prepareCount = 0
-    var shouldRejectActivation = true
-    var shouldRejectPreparation = false
-    var onRestart: ((BattleRunConfiguration, BattlePresentationContext) -> Void)?
+final class RejectingBattleRuntime: BattleRuntime {
+    var activeBattle: BattleRunConfiguration?
+    var resolvedDefeatProgress: BattleDefeatProgress?
+    var isSuspendedForScenePhase = false
+    var finalPartyHealthByCombatantID: [String: Int]?
+    weak var progression: (any BattleProgressionDelegate)?
 
-    override func createPreparedRun(_ configuration: BattleRunConfiguration) -> (any PreparedBattleRunHandle)? {
+    private(set) var prepareCount = 0
+    var shouldRejectPreparation: Bool
+    var shouldRejectActivation: Bool
+    var onRestart: ((BattleRunConfiguration, BattlePresentationContext) -> Void)?
+    private var hasPreparedPreview = false
+
+    init(
+        shouldRejectPreparation: Bool = false,
+        shouldRejectActivation: Bool = true,
+    ) {
+        self.shouldRejectPreparation = shouldRejectPreparation
+        self.shouldRejectActivation = shouldRejectActivation
+    }
+
+    var lifecyclePhase: BattleLifecyclePhase {
+        if activeBattle != nil {
+            return .active
+        }
+        return hasPreparedPreview ? .prepared : .idle
+    }
+
+    func connectProgression(to delegate: any BattleProgressionDelegate) {
+        progression = delegate
+    }
+
+    func createPreparedRun(_ configuration: BattleRunConfiguration) -> (any PreparedBattleRunHandle)? {
         prepareCount += 1
         return shouldRejectPreparation ? nil : FixturePreparedRun(configuration)
     }
 
-    override func activatePreparedBattle(_ handle: any PreparedBattleRunHandle, presentation _: BattlePresentationContext) -> Bool {
+    func publishPreparedPreview(_ preview: BattlePreparedPreview) {
+        hasPreparedPreview = !preview.configurations.isEmpty
+    }
+
+    func activatePreparedBattle(_ handle: any PreparedBattleRunHandle, presentation _: BattlePresentationContext) -> Bool {
         guard !shouldRejectActivation, let run = handle as? FixturePreparedRun, run.isValid else { return false }
         run.invalidate()
         activeBattle = run.configuration
-        lifecyclePhase = .active
         return true
     }
 
-    override func restart(_ configuration: BattleRunConfiguration, presentation: BattlePresentationContext) -> Bool {
+    func activate(_ configuration: BattleRunConfiguration, presentation _: BattlePresentationContext) -> Bool {
+        guard !shouldRejectActivation else { return false }
+        activeBattle = configuration
+        return true
+    }
+
+    func restart(_ configuration: BattleRunConfiguration, presentation: BattlePresentationContext) -> Bool {
         onRestart?(configuration, presentation)
         return false
     }
 
-    override func activate(_ configuration: BattleRunConfiguration, presentation _: BattlePresentationContext) -> Bool {
-        guard !shouldRejectActivation else { return false }
-        activeBattle = configuration
-        lifecyclePhase = .active
-        return true
+    func endBattle() {
+        activeBattle = nil
+        hasPreparedPreview = false
     }
+
+    func setSuspendedForScenePhase(_ suspended: Bool) {
+        isSuspendedForScenePhase = suspended
+    }
+
+    func trimMemoryFootprint(releaseBattleLog _: Bool) {}
 }

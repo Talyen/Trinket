@@ -300,12 +300,12 @@ struct BattleSessionAppIntegrationTests {
         _ = appState.journey.startBattle(for: stage)
         let runKey = try #require(appState.battle.activeBattle?.runKey)
 
-        #expect(appState.route(for: runKey) != nil)
+        #expect(appState.battleCoordinator.registration(for: runKey)?.route != nil)
         #expect(appState.battlePresentation(for: runKey) != nil)
 
         appState.clearTransientState()
 
-        #expect(appState.route(for: runKey) == nil)
+        #expect(appState.battleCoordinator.registration(for: runKey) == nil)
         #expect(appState.battlePresentation(for: runKey) == nil)
         #expect(appState.battle.activeBattle == nil)
     }

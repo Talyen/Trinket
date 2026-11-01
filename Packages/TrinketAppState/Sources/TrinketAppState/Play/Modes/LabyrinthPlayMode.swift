@@ -139,9 +139,8 @@ public final class LabyrinthPlayMode {
         node: LabyrinthNode,
         labyrinth: PlayerLabyrinthState,
     ) -> Bool {
-        guard let encounter = resolvedEncounter(for: node) else { return false }
-        guard battle.lifecyclePhase != .active else { return false }
-        guard let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter) else { return false }
+        guard let encounter = resolvedEncounter(for: node),
+              let request = combatRequest(node: node, labyrinth: labyrinth, encounter: encounter) else { return false }
         return battleCoordinator.prepareCombat(request.input, route: request.route)
     }
 }

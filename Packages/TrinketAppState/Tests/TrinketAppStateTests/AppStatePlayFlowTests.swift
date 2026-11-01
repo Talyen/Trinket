@@ -122,7 +122,7 @@ struct AppStatePlayFlowTests {
     }
 
     @Test func `failed prepared journey activation retains prepared inputs`() throws {
-        let runtime = PreparedThenRejectingBattleRuntime()
+        let runtime = RejectingBattleRuntime()
         let state = try context.makePlaySession(battleRuntime: runtime)
         let stage = try #require(GameContent.chapters[0].stages.first)
         let runKey = PlayBattleOrigin.journey(stageID: stage.id).runKey
@@ -467,7 +467,7 @@ extension AppStatePlayFlowTests {
     }
 
     @Test func `rejected preparation refresh evicts only its own run and can recover`() throws {
-        let runtime = PreparedThenRejectingBattleRuntime()
+        let runtime = RejectingBattleRuntime()
         let state = try context.makePlaySession(battleRuntime: runtime)
         let stage = try PlayBattleLaunchTestSupport.firstJourneyStage()
         state.journey.prepareBattle(for: stage)
@@ -501,7 +501,7 @@ extension AppStatePlayFlowTests {
     }
 
     @Test func `rejected restart receives presentation without publishing candidate metadata`() throws {
-        let runtime = PreparedThenRejectingBattleRuntime()
+        let runtime = RejectingBattleRuntime()
         let state = try context.makePlaySession(battleRuntime: runtime)
         let stage = try PlayBattleLaunchTestSupport.firstJourneyStage()
         runtime.shouldRejectActivation = false

@@ -132,24 +132,23 @@ struct DefeatCompletionTests {
     }
 
     @Test func `claimed defeat can leave after failed restart without another award`() throws {
-        let battle = BattleSession(outcomePresentationDelayOverride: 0)
-        let runtime = RefusingRestartRuntime(battle)
+        let runtime = RejectingBattleRuntime(shouldRejectActivation: false)
         let play = try context.makePlaySession(arguments: ["-reset-state"], battleRuntime: runtime)
         let stage = try #require(GameContent.chapters[0].stages.first)
         #expect(play.journey.startBattle(for: stage) == nil)
-        let configuration = try #require(battle.activeBattle)
-        try resolveDefeat(battle)
+        let configuration = try #require(runtime.activeBattle)
+        runtime.resolvedDefeatProgress = BattleDefeatProgress(depletedFraction: 0.5)
         let settlement = try #require(play.settleDefeatRewards(configuration))
-        #expect(!battle.claimDefeat(configurationID: configuration.id, settlement: settlement, action: .retry))
-        #expect(battle.activeBattle?.id == configuration.id)
+        #expect(play.completeDefeat(configuration, settlement: settlement, action: .retry) == .unavailable)
+        #expect(runtime.activeBattle?.id == configuration.id)
         #expect(play.playerSave.roster.progression(for: configuration.hero.combatant) == settlement.heroProgressionAfter)
         let claimed = play.playerSave.currentSave
         #expect(play.completeActiveBattle(configuration, battleGold: .init(gained: 0)) == .unavailable)
         #expect(play.playerSave.currentSave == claimed)
-        #expect(battle.activeBattle?.id == configuration.id)
-        #expect(battle.claimDefeat(configurationID: configuration.id, settlement: settlement, action: .leave))
+        #expect(runtime.activeBattle?.id == configuration.id)
+        #expect(play.completeDefeat(configuration, settlement: settlement, action: .leave) == .completed)
         #expect(play.playerSave.currentSave == claimed)
-        #expect(battle.activeBattle == nil)
+        #expect(runtime.activeBattle == nil)
     }
 
     @Test func `talent points earned on retry are offered when leaving later`() throws {
@@ -202,79 +201,5 @@ struct DefeatCompletionTests {
         battle.outcomePresentationDelayOverride = .zero
         battle.handleOutcomeIfNeeded(at: .now)
         #expect(battle.resolvedDefeatProgress != nil)
-    }
-}
-
-@MainActor
-private final class RefusingRestartRuntime: BattleRuntime {
-    let session: BattleSession
-    init(_ session: BattleSession) {
-        self.session = session
-    }
-
-    var activeBattle: BattleRunConfiguration? {
-        session.activeBattle
-    }
-
-    var lifecyclePhase: BattleLifecyclePhase {
-        session.lifecyclePhase
-    }
-
-    var isSuspendedForScenePhase: Bool {
-        session.isSuspendedForScenePhase
-    }
-
-    var resolvedDefeatProgress: BattleDefeatProgress? {
-        session.resolvedDefeatProgress
-    }
-
-    var finalPartyHealthByCombatantID: [String: Int]? {
-        session.finalPartyHealthByCombatantID
-    }
-
-    func connectProgression(to delegate: any BattleProgressionDelegate) {
-        session.connectProgression(to: delegate)
-    }
-
-    func createPreparedRun(_ configuration: BattleRunConfiguration) -> (any PreparedBattleRunHandle)? {
-        session
-            .createPreparedRun(configuration)
-    }
-
-    func publishPreparedPreview(_ preview: BattlePreparedPreview) {
-        session.publishPreparedPreview(preview)
-    }
-
-    func activatePreparedBattle(
-        _ handle: any PreparedBattleRunHandle,
-        presentation: BattlePresentationContext,
-    ) -> Bool {
-        session.activatePreparedBattle(
-            handle,
-            presentation: presentation,
-        )
-    }
-
-    func activate(_ configuration: BattleRunConfiguration, presentation: BattlePresentationContext) -> Bool {
-        session.activate(
-            configuration,
-            presentation: presentation,
-        )
-    }
-
-    func restart(_: BattleRunConfiguration, presentation _: BattlePresentationContext) -> Bool {
-        false
-    }
-
-    func endBattle() {
-        session.endBattle()
-    }
-
-    func setSuspendedForScenePhase(_ suspended: Bool) {
-        session.setSuspendedForScenePhase(suspended)
-    }
-
-    func trimMemoryFootprint(releaseBattleLog: Bool) {
-        session.trimMemoryFootprint(releaseBattleLog: releaseBattleLog)
     }
 }
