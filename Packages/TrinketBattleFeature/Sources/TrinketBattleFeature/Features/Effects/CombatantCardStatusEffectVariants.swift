@@ -113,7 +113,13 @@ struct CombatantStatusEffectOverlay: View {
             let depth = (sinAngle + 1) * 0.5
             let depthScale = 0.75 + 0.35 * depth
             let depthOpacity = 0.75 + 0.25 * depth
-            let twinkle = 0.45 + 0.55 * abs(sin(twinklePhase + star.phaseOffset))
+            let opacity: Double
+            if appear > 0.01 {
+                let twinkle = 0.45 + 0.55 * abs(sin(twinklePhase + star.phaseOffset))
+                opacity = Double(twinkle * depthOpacity * appear)
+            } else {
+                opacity = 0
+            }
             stars.append((
                 point: CGPoint(
                     x: center.x + cos(angle) * radial,
@@ -121,7 +127,7 @@ struct CombatantStatusEffectOverlay: View {
                 ),
                 size: star.baseSize * depthScale,
                 rotation: rotationPhase + star.phaseOffset,
-                opacity: appear > 0.01 ? Double(twinkle * depthOpacity * appear) : 0,
+                opacity: opacity,
                 sinAngle: sinAngle,
             ))
         }
@@ -157,7 +163,8 @@ struct CombatantStatusEffectOverlay: View {
             max(phase / CGFloat(BattleMotion.combatantFreezeOnsetProgress), 0),
             1,
         )
-        let onsetGlow = sin(onset * .pi)
+        // At the clamped endpoint sin(pi) is below the glow's drawing threshold.
+        let onsetGlow = onset < 1 ? sin(onset * .pi) : 0
         let minDim = min(size.width, size.height)
         let clearRadius = minDim * 0.55 * (1 - encroach * (0.55 + FreezeStyle.crackDensity * 0.3))
         let edgeRadius = minDim * 0.78
