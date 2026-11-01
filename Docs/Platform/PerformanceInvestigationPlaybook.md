@@ -352,8 +352,8 @@ See Apple's [app symbol guidance](https://developer.apple.com/documentation/xcod
 
 Each run creates a new evidence directory with logs, device/app/toolchain metadata,
 the raw trace, matching symbols/binaries, compact measurements and `result.json`.
-Profiling command logs retain their beginning and final diagnostics within4MiB;
-console output is capped at64KiB of characters. Derived XML rows use owned temporary scratch space and disappear when the command
+Profiling command logs retain their beginning and final diagnostics within 4 MiB;
+console output is capped at 64 KiB of characters. Derived XML rows use owned temporary scratch space and disappear when the command
 exits, including analysis failures. Each export has a 256 MiB hard cap; scratch is
 limited to 1 GiB across temporary export groups. Crash remnants are counted, never
 automatically purged. An active export holds a lock, and a full scratch budget

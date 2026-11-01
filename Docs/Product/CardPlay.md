@@ -76,7 +76,7 @@ damage, healing, and status effects may still be animating.
 Card availability follows the current resolved state. Health, Mana, status artwork,
 and defeat artwork update with the action’s impact feedback.
 
-This section owns approved attack timing; [BattleFeedbackAttackRecipes.swift](../../Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/Feedback/CombatFeedbackAttackRecipes.swift)
+This section owns approved attack timing; [CombatFeedbackAttackRecipes.swift](../../Packages/TrinketBattleFeature/Sources/TrinketBattleFeature/State/Feedback/CombatFeedbackAttackRecipes.swift)
 implements the motion recipes.
 
 Combatant attacks retain a visible wind-up, swing, and recovery for taps,
