@@ -11,7 +11,6 @@ final class HeroScrollState {
     var headerTopInset: CGFloat = 0
     var titleOpacity: CGFloat = 0
     var overscroll: CGFloat = 0
-    var isPinned = false
 }
 
 public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
@@ -64,21 +63,16 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
             .trinketScreenBackground()
             .ignoresSafeArea(edges: .top)
             .scrollBounceBehavior(.always)
-            .modifier(DetailHeroSoftEdgeModifier(scrollState: scrollState))
+            .trinketSoftTopScrollEdge()
             .onScrollGeometryChange(for: HeroHeaderScrollMetrics.self) { geometry in
                 let topInset = geometry.contentInsets.top
                 let baseHeight = heroHeightPolicy.height(in: heroContainerSize ?? CGSize(
                     width: geometry.containerSize.width,
                     height: max(0, geometry.containerSize.height - topInset - geometry.contentInsets.bottom),
                 ))
-                let opacity = HeroHeaderLayout.titleOpacity(
-                    offsetY: geometry.contentOffset.y,
-                    contentHeight: geometry.contentSize.height,
-                    viewportHeight: geometry.containerSize.height,
-                    topInset: topInset,
-                    bottomInset: geometry.contentInsets.bottom,
-                    headerHeight: max(baseHeight, scrollState.headerContentHeight),
-                )
+                let threshold = max(baseHeight, scrollState.headerContentHeight) - topInset
+                let offsetY = geometry.contentOffset.y + topInset
+                let opacity = min(max((offsetY - threshold) / 32, 0), 1)
                 return HeroHeaderScrollMetrics(
                     baseHeight: baseHeight,
                     topInset: topInset,
@@ -98,13 +92,6 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                 }
                 if scrollState.overscroll != metrics.overscroll {
                     scrollState.overscroll = metrics.overscroll
-                }
-                let isPinned = HeroHeaderLayout.titleIsPinned(
-                    opacity: metrics.titleOpacity,
-                    wasPinned: scrollState.isPinned,
-                )
-                if scrollState.isPinned != isPinned {
-                    scrollState.isPinned = isPinned
                 }
             }
         }
@@ -137,23 +124,13 @@ private struct DetailHeroHeaderSection<Header: View>: View {
     }
 }
 
-private struct DetailHeroSoftEdgeModifier: ViewModifier {
-    let scrollState: HeroScrollState
-
-    func body(content: Content) -> some View {
-        content
-            .trinketSoftTopScrollEdge(isHidden: !scrollState.isPinned)
-    }
-}
-
 private struct DetailHeroNavBarModifier: ViewModifier {
-    @Environment(\.locale) private var locale
     let title: String
     let scrollState: HeroScrollState
 
     func body(content: Content) -> some View {
         content
-            .navigationTitle(scrollState.isPinned ? ContentCopy.localized(title, locale: locale) : "")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.clear, for: .navigationBar)
             .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
@@ -188,7 +165,7 @@ private struct DetailScrollNavigationTitle: View {
         if opacity > 0 {
             GameLabel(title)
                 .trinketTypography(.cardTitle)
-                .trinketPresentationVisibility(scrollState.isPinned, opacity: opacity)
+                .trinketPresentationVisibility(opacity >= 0.5, opacity: opacity)
         }
     }
 }
