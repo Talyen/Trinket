@@ -1,4 +1,4 @@
-"""Retire artifacts for superseded completed releases, preserving all receipts."""
+"""Retire superseded or explicitly abandoned releases, preserving receipts."""
 from __future__ import annotations
 
 import json
@@ -18,6 +18,9 @@ def release_identity(receipt: dict) -> tuple[tuple[int, ...], int]:
 
 
 def superseded(receipt: dict, latest: dict) -> bool:
+    abandonment = receipt.get('abandonment')
+    if receipt.get('stage') == 'abandoned' and isinstance(abandonment, dict) and abandonment.get('discard_artifacts') is True:
+        return True
     return receipt.get('stage') == 'ready' and release_identity(receipt) < latest[receipt['bundle_id']]
 
 
@@ -58,8 +61,6 @@ def candidates(root: Path, artifact_root: Path) -> list[tuple[Path, Path, dict, 
     result = []
     releases = artifact_root / 'releases'
     for receipt_path, receipt in records:
-        if receipt['stage'] != 'ready':
-            continue
         if not superseded(receipt, latest):
             continue
         run = receipt_path.parent

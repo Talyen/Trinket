@@ -204,6 +204,9 @@ module TrinketTestFlight
 
     def execute
       start
+      if @receipt['stage'] == 'abandoned'
+        raise Failure, 'This deployment was abandoned; its receipt remains reserved and it cannot be resumed.'
+      end
       if @receipt['stage'] == 'ready' && File.file?(File.join(@run_dir, 'artifact-expiry.jsonl'))
         raise Failure, 'This completed release was retired; its receipt remains available, but its artifacts cannot be resumed.'
       end

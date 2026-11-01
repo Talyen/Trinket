@@ -251,6 +251,17 @@ begin
   end
 
   fixture do |deploy, portal, factory|
+    deploy.start
+    deploy.receipt['stage'] = 'abandoned'
+    deploy.save
+    rejects('was abandoned') { factory.call(resume: deploy.run_dir).execute }
+    assert(portal.calls.empty?)
+    next_run = factory.call
+    next_run.start
+    assert(next_run.receipt['build'] > deploy.receipt['build'])
+  end
+
+  fixture do |deploy, portal, factory|
     portal.fail_upload = true
     rejects('Connection lost') { deploy.execute }
     assert(deploy.receipt['stage'] == 'uploading')

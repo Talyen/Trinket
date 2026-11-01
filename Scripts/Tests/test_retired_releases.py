@@ -68,6 +68,18 @@ class RetiredReleaseTests(unittest.TestCase):
         self.assertFalse(archive.exists() or export.exists())
         self.assertTrue(unknown.exists())
 
+    def test_only_explicitly_abandoned_artifacts_expire(self):
+        run, archive, backup = self.release(1, 'abandoned')
+        _, pending, _ = self.release(2, 'uploading')
+        path = run / 'receipt.json'
+        receipt = json.loads(path.read_text())
+        self.assertEqual(retire.cleanup(self.root, apply=True, artifact_root=self.artifacts)[0], 0)
+        receipt['abandonment'] = {'discard_artifacts': True}
+        path.write_text(json.dumps(receipt))
+        self.assertEqual(retire.cleanup(self.root, apply=True, artifact_root=self.artifacts)[0], 2)
+        self.assertFalse(archive.exists() or (backup / 'Trinket.ipa').exists())
+        self.assertTrue(path.exists() and pending.exists())
+
     def test_unfinished_run_can_reference_an_old_working_copy(self):
         _, archive, _ = self.release(1, 'ready')
         self.release(3, 'ready')
