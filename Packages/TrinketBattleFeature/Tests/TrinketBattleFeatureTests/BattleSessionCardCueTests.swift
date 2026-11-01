@@ -83,7 +83,7 @@ struct BattleSessionCardCueTests {
     }
 
     @Test(arguments: [false, true])
-    func `auto battle departs from rest and a manual play commits during its cast`(queued: Bool) throws {
+    func `auto battle uses the normal tap cast while manual play remains available`(queued: Bool) throws {
         let session = makeSession()
         defer { session.endBattle() }
         let card = try install(.slash, in: session)
@@ -99,36 +99,32 @@ struct BattleSessionCardCueTests {
         let casts = BattleCastPresentationState()
         defer { casts.reset() }
         let field = try makeField(in: session, casts: casts)
-        let battleSize = CGSize(width: 375, height: 667)
-        let handFrame = BattleHandLayout.frame(in: battleSize)
-        let departure = CardActivationRequest.restingRequest(
-            for: card, index: 0, cardCount: session.hand.count, handFrame: handFrame,
+        let frame = BattleHandLayout.frame(in: CGSize(width: 375, height: 667))
+        let expected = CardActivationRequest.tapRequest(
+            for: card, index: 0, cardCount: session.hand.count, handFrame: frame,
         )
-        #expect(field.playAutoBattleCard(card, handFrame: handFrame))
+        #expect(field.playAutoBattleCard(card, handFrame: frame))
         #expect(!session.hand.contains(card))
-        #expect(session.cardCues.current?.mode == .tapCommit)
-        let automaticCast = try #require(casts.request)
-        #expect(automaticCast.center == departure.center)
-        #expect(automaticCast.size == departure.size)
-        #expect(automaticCast.rotation == departure.rotation)
-        let departureTiming = try expectAlignedDeparture(in: session, id: automaticCast.id)
-        if queued {
-            #expect(departureTiming.startedAt > automaticCast.startedAt)
-            #expect(departureTiming.departureProgress(at: automaticCast.startedAt) == 0)
-        }
+        #expect(session.cardCues.current?.mode == .pressPreview)
+        let automatic = try #require(casts.request)
+        #expect(automatic.center == expected.center)
+        #expect(automatic.size == expected.size)
+        #expect(automatic.rotation == expected.rotation)
+        #expect(automatic.verticalTilt == expected.verticalTilt)
+        #expect(automatic.scale == expected.scale)
+        #expect(automatic.perspective == expected.perspective)
+        #expect(session.cardPlayback.handDeparture(id: automatic.id) == nil)
+        #expect(automatic.completionDate(scheduledCast: nil) == automatic.startedAt.addingTimeInterval(BattleMotion.cardActivationDuration))
 
         #expect(session.canInteractWithHand)
-        session.beginCardCue(next, mode: .tapCommit)
-        let manualCast = CardActivationRequest.restingRequest(
-            for: next, index: 0, cardCount: session.hand.count, handFrame: handFrame,
+        session.beginCardCue(next, mode: .pressPreview)
+        let manual = CardActivationRequest.tapRequest(
+            for: next, index: 0, cardCount: session.hand.count, handFrame: frame,
         )
-        #expect(field.playCard(next, request: manualCast))
+        #expect(field.playCard(next, request: manual))
         #expect(session.hand.isEmpty)
-        #expect(casts.requests.map(\.id) == [automaticCast.id, manualCast.id])
-        let accelerated = try expectAlignedDeparture(in: session, id: automaticCast.id, earlier: departureTiming)
-        #expect(automaticCast.completionDate(scheduledCast: accelerated)
-            >= automaticCast.startedAt.addingTimeInterval(BattleMotion.autoBattleCardInterval))
-        #expect(session.cardPlayback.handDeparture(id: manualCast.id) == nil)
+        #expect(casts.requests.map(\.id) == [automatic.id, manual.id])
+        #expect(session.cardPlayback.handDeparture(id: manual.id) == nil)
         if let preceding {
             _ = try state.playCard(cardID: preceding.id)
         }
@@ -137,15 +133,53 @@ struct BattleSessionCardCueTests {
         #expect(session.engineState?.events == state.events)
         #expect(session.engineState?.rng == state.rng)
 
-        try expectSuspendedDeparture(in: session, casts: casts, departure: accelerated)
+        let pause = automatic.startedAt.addingTimeInterval(0.2)
+        casts.setSuspended(true, at: pause)
+        #expect(casts.blocksAutoBattle(at: pause.addingTimeInterval(10)))
+        casts.setSuspended(false, at: pause.addingTimeInterval(10))
+        let resumed = try #require(casts.requests.first)
+        #expect(resumed.startedAt == automatic.startedAt.addingTimeInterval(10))
+        #expect(resumed.completionDate(scheduledCast: nil) == automatic.completionDate(scheduledCast: nil).addingTimeInterval(10))
 
         session.isAutoBattleEnabled = false
-        #expect(!field.playAutoBattleCard(card, handFrame: handFrame))
-        #expect(casts.requests.map(\.id) == [automaticCast.id, manualCast.id])
-        casts.remove(id: automaticCast.id)
-        #expect(session.cardPlayback.handDeparture(id: automaticCast.id) == nil)
-        #expect(casts.requests.map(\.id) == [manualCast.id])
-        #expect(session.hand.isEmpty)
+        #expect(!field.playAutoBattleCard(card, handFrame: frame))
+        casts.remove(id: automatic.id)
+        #expect(casts.requests.map(\.id) == [manual.id])
+    }
+
+    @Test(arguments: [0, 1, 2])
+    func `automatic tap geometry matches the held manual release`(index: Int) throws {
+        let session = makeSession()
+        defer { session.endBattle() }
+        let card = try install(.slash, in: session)
+        let frame = BattleHandLayout.frame(in: CGSize(width: 375, height: 667))
+        let metrics = BattleHandLayout.metrics(containerWidth: frame.width, cardCount: 3, handHeight: frame.height)
+        let start = Date(timeIntervalSinceReferenceDate: 100)
+        let auto = CardActivationRequest.tapRequest(for: card, index: index, cardCount: 3, handFrame: frame, startedAt: start)
+        let manual = CardActivationRequest.handRequest(
+            for: card,
+            center: BattleHandLayout.releaseCenter(
+                restingCenter: BattleHandLayout.restingCenter(index: index, metrics: metrics, cardCount: 3, handFrame: frame),
+                dragTranslation: .zero,
+                cardSize: CGSize(width: metrics.cardWidth, height: metrics.cardHeight),
+                rotation: BattleHandLayout.rotation(index: index, cardCount: 3) * .pi / 180,
+                scale: CGFloat(BattleMotion.cardHeldScale),
+                in: frame,
+            ),
+            size: CGSize(width: metrics.cardWidth, height: metrics.cardHeight),
+            rotation: BattleHandLayout.rotation(index: index, cardCount: 3) * .pi / 180,
+            verticalTilt: 0,
+            scale: CGFloat(BattleMotion.cardHeldScale),
+            startedAt: start,
+        )
+        #expect(auto.center == manual.center)
+        #expect(auto.size == manual.size)
+        #expect(auto.rotation == manual.rotation)
+        #expect(auto.verticalTilt == manual.verticalTilt)
+        #expect(auto.scale == manual.scale)
+        #expect(auto.perspective == manual.perspective)
+        #expect(auto.keywords == manual.keywords)
+        #expect(auto.completionDate(scheduledCast: nil) == manual.completionDate(scheduledCast: nil))
     }
 
     @Test func `lifting a card cues without playing it`() throws {
@@ -267,42 +301,6 @@ struct BattleSessionCardCueTests {
             battleSession: session, presentation: session.presentation,
             interactionState: BattleInteractionState(), castPresentation: casts,
         )
-    }
-
-    private func expectAlignedDeparture(
-        in session: BattleSession, id: UUID, earlier: BattleRecordedCardCast? = nil,
-    ) throws -> BattleRecordedCardCast {
-        let action = try #require(session.feedback.scheduledActions.first { $0.castID == id })
-        let cast = try #require(session.cardPlayback.handDeparture(id: id))
-        #expect(cast.startedAt == action.startAt)
-        #expect(cast.activationAt == action.swingAt)
-        #expect(cast.departureProgress(at: cast.startedAt) == 0)
-        #expect(cast.departureProgress(at: action.swingAt) == CardDissolveConfiguration().dissolveDuration)
-        #expect(cast.departureProgress(at: cast.departureEndAt.addingTimeInterval(0.001)) == 1)
-        #expect(!session.cardPlayback.automaticCasts.contains { $0.id == id })
-        if let earlier {
-            #expect(cast.activationAt < earlier.activationAt)
-        }
-        return cast
-    }
-
-    private func expectSuspendedDeparture(
-        in session: BattleSession, casts: BattleCastPresentationState, departure: BattleRecordedCardCast,
-    ) throws {
-        let pausedAt = departure.startedAt.addingTimeInterval(0.02)
-        session.cardPlayback.setSuspended(true, at: pausedAt)
-        session.feedback.setSuspended(true, at: pausedAt)
-        casts.setSuspended(true, at: pausedAt)
-        let paused = try #require(session.cardPlayback.handDeparture(id: departure.id))
-        #expect(paused.departureProgress(at: pausedAt.addingTimeInterval(10)) == paused.departureProgress(at: pausedAt))
-        let resumedAt = pausedAt.addingTimeInterval(10)
-        session.cardPlayback.setSuspended(false, at: resumedAt)
-        session.feedback.setSuspended(false, at: resumedAt)
-        casts.setSuspended(false, at: resumedAt)
-        let resumed = try #require(session.cardPlayback.handDeparture(id: departure.id))
-        let resumedAction = try #require(session.feedback.scheduledActions.first { $0.castID == departure.id })
-        #expect(resumed.activationAt == resumedAction.swingAt)
-        #expect(abs(resumed.departureProgress(at: resumedAt) - paused.departureProgress(at: pausedAt)) < 0.001)
     }
 
     private func makeSession() -> BattleSession {

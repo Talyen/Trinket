@@ -15,7 +15,9 @@ final class BattleCastPresentationState {
 
     func blocksAutoBattle(at date: Date) -> Bool {
         requests.contains { request in
-            (request.pausedAt ?? date).timeIntervalSince(request.startedAt) < BattleMotion.autoBattleCardInterval
+            let pacingEnd = request.startedAt.addingTimeInterval(BattleMotion.autoBattleCardInterval)
+            let completion = request.completionDate(scheduledCast: playback?.handDeparture(id: request.id))
+            return (request.pausedAt ?? date) < max(pacingEnd, completion)
         }
     }
 
@@ -140,6 +142,53 @@ struct CardActivationRequest: Equatable, Identifiable {
             result.append(keyword)
         }
         self.keywords = uniqueKeywords.isEmpty ? [.physical] : uniqueKeywords
+    }
+
+    static func handRequest(
+        for card: BattleCard,
+        center: CGPoint,
+        size: CGSize,
+        rotation: CGFloat,
+        verticalTilt: CGFloat,
+        scale: CGFloat,
+        startedAt: Date = .now,
+    ) -> Self {
+        Self(
+            startedAt: startedAt,
+            artworkName: card.ability.artReference?.imageName,
+            center: center,
+            size: size,
+            rotation: rotation,
+            verticalTilt: verticalTilt,
+            scale: scale,
+            perspective: BattleMotion.cardPerspective,
+            keywords: card.ability.presentationKeywords,
+        )
+    }
+
+    static func tapRequest(
+        for card: BattleCard,
+        index: Int,
+        cardCount: Int,
+        handFrame: CGRect,
+        startedAt: Date = .now,
+    ) -> Self {
+        let metrics = BattleHandLayout.metrics(
+            containerWidth: handFrame.width, cardCount: cardCount, handHeight: handFrame.height,
+        )
+        let size = CGSize(width: metrics.cardWidth, height: metrics.cardHeight)
+        let rotation = BattleHandLayout.rotation(index: index, cardCount: cardCount) * .pi / 180
+        let scale = CGFloat(BattleMotion.cardHeldScale)
+        let center = BattleHandLayout.releaseCenter(
+            restingCenter: BattleHandLayout.restingCenter(
+                index: index, metrics: metrics, cardCount: cardCount, handFrame: handFrame,
+            ),
+            dragTranslation: .zero, cardSize: size, rotation: rotation, scale: scale, in: handFrame,
+        )
+        return handRequest(
+            for: card, center: center, size: size, rotation: rotation,
+            verticalTilt: 0, scale: scale, startedAt: startedAt,
+        )
     }
 
     static func restingRequest(

@@ -96,7 +96,40 @@ extension BattleSessionAutoBattleTests {
         #expect(session.isAutoBattleEnabled)
     }
 
-    @Test func `auto battle commits the next card while the preceding cast remains visible`() async throws {
+    @Test func `auto battle rotates equally ranked cards instead of repeatedly choosing the leftmost`() async throws {
+        let session = BattleSessionTestSupport.makeConfiguredSession()
+        defer { session.endBattle() }
+        var state = try #require(session.engineState)
+        state.hand = BattleHand()
+        let ability = Ability(id: "equal", name: "Equal", tier: .basic, directDamage: 1)
+        let first = BattleCardCombatEngine.deal(ability, owner: .hero, context: &state)
+        _ = BattleCardCombatEngine.deal(ability, owner: .hero, context: &state)
+        let third = BattleCardCombatEngine.deal(ability, owner: .hero, context: &state)
+        session.engineState = state
+        session.installSimulationPresentation()
+        session.isAutoBattleEnabled = true
+        var played: [Int] = []
+        await session.driveAutoBattle(
+            input: BattleViewInput(session: session, presentation: session.presentation),
+            isCardCastPacingBlocked: { false },
+            isManualInteractionActive: { false },
+            playCard: { card in
+                let result = session.playCard(cardID: card.id)
+                guard result.didCommit else {
+                    session.isAutoBattleEnabled = false
+                    return false
+                }
+                played.append(card.id)
+                if played.count == 2 {
+                    session.isAutoBattleEnabled = false
+                }
+                return true
+            },
+        )
+        #expect(played == [first.id, third.id])
+    }
+
+    @Test func `auto battle waits until the preceding tap cast completes`() async throws {
         let session = BattleSessionTestSupport.makeConfiguredSession()
         defer { session.endBattle() }
         let casts = BattleCastPresentationState()
@@ -109,7 +142,7 @@ extension BattleSessionAutoBattleTests {
             handFrame: BattleHandLayout.frame(in: CGSize(width: 375, height: 667)),
             startedAt: start,
         ))
-        var clock = start.addingTimeInterval(0.84)
+        var clock = start.addingTimeInterval(BattleMotion.autoBattleCardInterval - 0.01)
         var gateChecked = false
         var didCommit = false
         session.isAutoBattleEnabled = true
@@ -131,7 +164,7 @@ extension BattleSessionAutoBattleTests {
         defer { driver.cancel() }
         #expect(try await BattleSessionTestSupport.waitUntil { gateChecked })
         #expect(!didCommit)
-        clock = start.addingTimeInterval(0.86)
+        clock = start.addingTimeInterval(BattleMotion.autoBattleCardInterval + 0.01)
         #expect(try await BattleSessionTestSupport.waitUntil { didCommit })
         await driver.value
         #expect(casts.request != nil)
@@ -148,8 +181,8 @@ extension BattleSessionAutoBattleTests {
         casts.setSuspended(true, at: start.addingTimeInterval(0.4))
         #expect(casts.blocksAutoBattle(at: start.addingTimeInterval(10)))
         casts.setSuspended(false, at: start.addingTimeInterval(10))
-        #expect(casts.blocksAutoBattle(at: start.addingTimeInterval(10.44)))
-        #expect(!casts.blocksAutoBattle(at: start.addingTimeInterval(10.46)))
+        #expect(casts.blocksAutoBattle(at: start.addingTimeInterval(10 + BattleMotion.autoBattleCardInterval - 0.41)))
+        #expect(!casts.blocksAutoBattle(at: start.addingTimeInterval(10 + BattleMotion.autoBattleCardInterval - 0.39)))
         #expect(casts.request != nil)
     }
 }

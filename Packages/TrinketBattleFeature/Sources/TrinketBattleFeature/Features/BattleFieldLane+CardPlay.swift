@@ -14,18 +14,16 @@ extension BattleFieldLane {
         guard input.isCurrent, !Task.isCancelled, battleSession.isAutoBattleEnabled,
               let request = activationRequest(for: card, handFrame: handFrame)
         else { return false }
-        input.perform { $0.beginCardCue(card, mode: .tapCommit) }
-        let didPlay = playCard(card, request: request, isAutomatic: true)
+        input.perform { $0.beginCardCue(card, mode: .pressPreview) }
+        let didPlay = playCard(card, request: request)
         if !didPlay {
             cancelCardLift(for: card)
         }
         return didPlay
     }
 
-    func playCard(_ card: BattleCard, request: CardActivationRequest, isAutomatic: Bool = false) -> Bool {
-        let outcome = input.perform {
-            $0.playCard(cardID: card.id, isAutomatic: isAutomatic, departureID: isAutomatic ? request.id : nil)
-        }
+    func playCard(_ card: BattleCard, request: CardActivationRequest) -> Bool {
+        let outcome = input.perform { $0.playCard(cardID: card.id) }
         guard outcome == .committed else { return false }
         castPresentation.append(request, playback: presentation.cardPlayback)
         return true
@@ -41,7 +39,7 @@ extension BattleFieldLane {
     ) -> CardActivationRequest? {
         let hand = presentation.hand
         guard let index = hand.firstIndex(where: { $0.id == card.id }) else { return nil }
-        return CardActivationRequest.restingRequest(
+        return CardActivationRequest.tapRequest(
             for: card,
             index: index,
             cardCount: hand.count,
