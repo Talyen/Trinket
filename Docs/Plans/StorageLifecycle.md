@@ -14,33 +14,6 @@ Finish safe storage cleanup without deleting active or unknown work, unique
 retained evidence, artwork masters, release archives, symbols or provenance.
 Pushes and player-resource changes remain outside this task.
 
-## Completed locally
-
-- Final integration preserves deliverables and removes its checkout when idle;
-  `--keep-worktree` retains intermediate work. Unknown ignored files or active
-  processes stop removal. Verified task-owned Git monitors stop through Git.
-- Evidence snapshots record hashes and clone verified unchanged files when possible.
-  Bounded compaction resumes between passes and does not convert native bundles.
-- Simulator, UI, build and device producers record their checkout and explicit
-  output paths when possible. Scoped cleanup rechecks owner identity and serializes
-  final removal with producer lease acquisition. Legacy, malformed, uninspectable
-  or retargeted-path leases remain global. TestFlight keeps its deployment lock.
-- A read-only audit classified 64,226 evidence files and compared duplicate bytes;
-  11,849 groups contained approximately 8.10 billion duplicate logical bytes.
-  Shared APFS extents, open-file ownership and metadata were not measured. Nearly
-  all duplicate members were recent or in registered worktrees; unique evidence
-  and keep markers were preserved. The full JSON and cleanup decisions are in the
-  retained `codex/storage-audit-scoping` task evidence.
-- Guarded cleanup removed six independently verified TestFlight working copies,
-  3,292,307,456 reported allocated bytes. Both authoritative backups and receipts
-  were reverified after removal. Volume free space rose by 3,996,434,432 bytes
-  during the observation window; other host activity makes attribution uncertain.
-
-- Release backfills can link a verified existing or new backup under the deployment
-  lock. Registered task caches have one guarded cross-worktree cleanup command.
-- Landing records retained versus final-cleanup intent; the concise storage report
-  surfaces cleanup decisions and release review dates. Records are advisory.
-
 ## Remaining protected state
 
 - [ ] Recheck build 42's duplicate working files after the 24-hour grace period

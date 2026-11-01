@@ -77,7 +77,10 @@ Add guidance only for a concrete failure or recurring decision. State the trigge
 and action at the narrowest owner; link to mechanics rather than copying flags,
 tuning values, or exception lists. Remove superseded guidance and duplicates.
 Keep rationale beside surprising rules, and substantial rejected approaches in
-knowledge. Preserve non-obvious game rules, save contracts, and recovery steps.
+knowledge only while they inform future decisions. Remove completed-work inventories,
+old run examples, and superseded designs when they no longer guide an action; Git
+preserves their history. Preserve active blockers, non-obvious game rules, save
+contracts, provenance, and recovery steps.
 
 Distinguish requirements from defaults, examples, history, and implementation gaps.
 Reserve “always” and “never” for invariants; examples do not mandate abstractions,

@@ -420,12 +420,6 @@ and the actual device/build before reuse. Historical successes or closed
 experiments do not establish current readiness. Do not start speculative cache or
 artwork changes before measurement identifies a player-impacting problem.
 
-The October performance and resource campaigns were retired without completing
-these device gates. Their evidence inventories remain in Git at
-`ba6aa1277:Docs/Plans/IPhonePerformance.md` and
-`ba6aa1277:Docs/Plans/ResourceEfficiency.md`; retained release artifacts and captures
-remain protected under the output-retention policy.
-
 Outstanding restoration note: the October 12 iPhone 14 Pro session temporarily
 disabled Auto-Brightness and set Auto-Lock to Never. At the next explicitly
 authorized device session, check current settings before restoring Auto-Brightness
