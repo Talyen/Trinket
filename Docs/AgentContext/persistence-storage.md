@@ -62,8 +62,8 @@ scalar does not discard otherwise readable pinned offers.
 ## Save compatibility
 
 Distributed TestFlight builds have local player saves that must be preserved or
-migrated when schemas or serialized identifiers change. Production CloudKit remains
-gated by the [release checklist](../Platform/CloudKitPreShipChecklist.md).
+migrated when schemas or serialized identifiers change. Production CloudKit release
+checks are in the [release guide](../Platform/CloudKitPreShipChecklist.md).
 Compatibility layers are versioned independently:
 
 | Layer | Current format and retained compatibility | Executable owner |
@@ -198,10 +198,11 @@ Persistence, exchange versioned complete snapshots in the existing private
 container. Device account, request and receipt transitions are computed without
 side effects in `CloudSaveTransitions`; `PlayerSaveCloudSync` owns network work and
 applies those plans through one preparation, stale-state check and durable commit
-path. The authored `CLOUDKIT_SYNC_ENABLED` build setting defaults to `NO`;
-an explicitly enabled build requests automatic sync through its Info.plist value.
-Debug also supports an opt-in retained until disabled; Release ignores that
-development argument/preference. Test, reset, named, explicit-URL, and in-memory
+path. The authored `CLOUDKIT_SYNC_ENABLED` build setting defaults to `YES` and
+requests automatic sync through its Info.plist value. A `NO` build disables sync by
+default; Debug can opt in, while Release ignores the development opt-in. The
+`-disable-cloud-sync` launch argument disables sync for that launch. Test, reset,
+named, explicit-URL, and in-memory
 public configurations stay isolated even in a cloud-enabled build.
 
 `PlayerSaveRoot.cloudStatePayload` is optional local metadata: device revision
@@ -379,8 +380,8 @@ Reconciliation restores snapshot inputs and explicit receipts one action at a ti
 the approved concurrent-spending and selection policies remain unchanged. Changed snapshot fields are stored as
 replacement values; a Gold edit does not repeat Inventory or Labyrinth maps.
 Recovery-file writes serialize the complete compact outbox to remain self-contained.
-Distribution remains disabled; CI owns reload, interrupted-request and long-offline
-scaling checks, with device write-cost measurements required before wider enablement.
+CI owns reload, interrupted-request and long-offline scaling checks. Device write-cost
+measurements provide separate performance evidence.
 
 #### Homestead cursor and legacy reconciliation
 
@@ -430,9 +431,9 @@ coordination state and is excluded from cloud snapshot coding.
 
 ### Release evidence
 
-These contracts have isolated test coverage. Real provisioning, schema, upgrade,
-rollback, account, and two-device evidence remain the
-[CloudKit release gates](../Platform/CloudKitPreShipChecklist.md).
+These contracts have isolated test coverage. Assess provisioning, schema, upgrade,
+rollback, account, and two-device evidence using the
+[CloudKit release guide](../Platform/CloudKitPreShipChecklist.md).
 
 ## Voyage payload
 

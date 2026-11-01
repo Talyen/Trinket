@@ -16,7 +16,7 @@ Standing engineering policy. Product decisions live in [Docs/Product/Decisions.m
 | [Development.md](Development.md) | Task checkouts, integration, evidence, commit format, and Git hooks |
 | [Release.md](Release.md) | Versions, release notes, TestFlight, tags, and App Store handoff |
 | [ApplePlatformReference.md](ApplePlatformReference.md) | iOS support, adoption, and Apple design/API choices |
-| [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | Human CloudKit / App Store enablement checklist |
+| [CloudKitPreShipChecklist.md](CloudKitPreShipChecklist.md) | CloudKit release checks and rollback |
 | [AppStoreMetadata.md](AppStoreMetadata.md) | App Store field drafts (data, not policy); procedure in Release.md |
 | [PerformanceInvestigationPlaybook.md](PerformanceInvestigationPlaybook.md) | Frame-pacing + device memory/energy investigation only — do not run unless the task is performance |
 

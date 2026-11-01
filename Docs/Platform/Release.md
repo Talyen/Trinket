@@ -28,9 +28,8 @@ plus the affected availability branches, before claiming readiness.
 
 Before App Store submission, complete the
 [purchase release prerequisites](Purchases.md#before-release), including the
-public support contact and published support/privacy pages. When enabling iCloud
-progress sync, also complete the [CloudKit checklist](CloudKitPreShipChecklist.md).
-Local-only releases do not require CloudKit enablement. The commands below
+public support contact and published support/privacy pages. For iCloud progress sync,
+use the [CloudKit release checks](CloudKitPreShipChecklist.md). The commands below
 produce verified release artifacts; they do not provision these external services.
 
 ### Prepare while the beta is running
@@ -247,10 +246,9 @@ Dry-run is offline and makes no writes, installs, or Apple calls. Optional notes
 populate English **What to Test**; the default is a neutral version/build/commit
 description. Existing App Store release notes are not assumed current.
 
-Cloud sync inherits `project.yml`. For `--cloud-sync YES`, review applicable prior
-evidence and the intended audience under the
-[CloudKit activation procedure](CloudKitPreShipChecklist.md#prepared-testflight-activation);
-`--cloud-sync NO` makes an explicit local-only build. The
+Cloud sync inherits `project.yml` and is enabled by default. Use `--cloud-sync NO`
+for a local-only rollback; [CloudKit release checks](CloudKitPreShipChecklist.md)
+cover schema, save behavior and validation. The
 export checks the effective flag, existing app identity, build/version, signature,
 Production iCloud/push entitlements, and export-compliance declaration.
 

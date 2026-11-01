@@ -6,9 +6,8 @@ Persistence mechanics belong to [persistence context](../AgentContext/persistenc
 
 ## Current behavior
 
-Ordinary builds default to local-only progress. Explicitly enabled internal beta
-builds use iCloud as described below. Players begin without login or identity
-prompts. Identity and sync errors must not gate local play.
+Ordinary builds sync progress through iCloud as described below. Players begin
+without login or identity prompts. Identity and sync errors must not gate local play.
 Do not add Sign in with Apple, Google, hosted accounts, or Game Center integration.
 
 Options → **Reset Game Progress** requires confirmation and resets progress on
@@ -32,12 +31,9 @@ reconnecting offline progress is reconciled conservatively and may restore earli
 progress. Update reset, support, and privacy copy when that behavior ships. Players
 can also manage iCloud data through Apple's system settings.
 
-The [CloudKit pre-ship checklist](../Platform/CloudKitPreShipChecklist.md) owns
-enablement: provisioning, entitlements, schema, reset propagation, per-domain
-conflict outcomes, passive Homestead claim authority, and device/release checks.
-Keep that gate in place until its requirements are met; enrollment alone does not
-establish readiness. Tests and CI remain deterministic without Apple ID credentials
-or live CloudKit I/O.
+The [CloudKit release guide](../Platform/CloudKitPreShipChecklist.md) covers
+provisioning, schema, device verification, and rollback. Tests and CI remain
+deterministic without Apple ID credentials or live CloudKit I/O.
 
 ## Apple references
 
