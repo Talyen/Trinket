@@ -40,6 +40,8 @@ final class AbilityStorage: Hashable, Sendable {
         self.definition = definition
         var damage: [DamageComponent] = []
         var effects: [TargetedEffect] = []
+        damage.reserveCapacity(definition.operations.count)
+        effects.reserveCapacity(definition.operations.count)
         for operation in definition.operations {
             switch operation {
             case let .damage(component): damage.append(component)

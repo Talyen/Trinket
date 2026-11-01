@@ -100,4 +100,31 @@ struct AbilityPresentationCacheTests {
         #expect(branched.summary == originalSummary)
         #expect(branched.presentationKeywords == [.freeze, .poison])
     }
+
+    @Test func `combat damage detection checks operations when outcome branches are empty`() {
+        let ability = Ability(
+            id: "empty-branches-damage", name: "Empty Branches", tier: .basic,
+            damageComponents: [DamageComponent(4, keyword: .physical)],
+            outcomeBranches: [],
+        )
+        #expect(ability.dealsCombatDamage)
+    }
+
+    @Test func `branched and conditional blessed aegis contributes block keyword`() {
+        let aegisEffect = AbilityOperation.effect(TargetedEffect(.blessedAegis(block: 5, holyDamage: 5)))
+        let branched = Ability(
+            id: "branched-aegis", name: "Branched Aegis", tier: .skill,
+            outcomeBranches: [AbilityOutcomeBranch(operations: [aegisEffect])],
+        )
+        let expected: [Keyword] = [.holy, .block]
+        #expect(branched.keywords == expected)
+        #expect(branched.identityKeywords == expected)
+
+        let conditional = Ability(
+            id: "conditional-aegis", name: "Conditional Aegis", tier: .skill,
+            conditionalOutcome: AbilityConditionalOutcome(condition: .enemyHasBlock, operations: [aegisEffect]),
+        )
+        #expect(conditional.keywords == expected)
+        #expect(conditional.identityKeywords == expected)
+    }
 }

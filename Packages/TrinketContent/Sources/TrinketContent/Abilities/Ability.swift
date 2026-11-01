@@ -23,8 +23,12 @@ public struct AbilityOutcomeBranch: Hashable, Sendable {
         condition: DamageCondition? = nil,
     ) {
         self.condition = condition
-        self.operations = operations ?? (damageComponents.map(AbilityOperation.damage)
-            + (targetedEffects ?? effects.map { TargetedEffect($0) }).map(AbilityOperation.effect))
+        self.operations = Ability.buildOperations(
+            damageComponents: damageComponents,
+            effects: effects,
+            targetedEffects: targetedEffects,
+            explicitOperations: operations,
+        )
         self.randomizeDamageKeywords = randomizeDamageKeywords
     }
 }
@@ -121,8 +125,12 @@ public struct Ability: Identifiable, Hashable, Sendable {
     ) {
         self.init(definition: .init(
             id: id, name: name, tier: tier,
-            operations: operations ?? (damageComponents.map(AbilityOperation.damage)
-                + (targetedEffects ?? effects.map { TargetedEffect($0) }).map(AbilityOperation.effect)),
+            operations: Self.buildOperations(
+                damageComponents: damageComponents,
+                effects: effects,
+                targetedEffects: targetedEffects,
+                explicitOperations: operations,
+            ),
             descriptionOverride: description,
             outcomeBranches: outcomeBranches, conditionalOutcome: conditionalOutcome,
             blockCost: blockCost, guaranteedCriticalCondition: guaranteedCriticalCondition,
@@ -130,6 +138,27 @@ public struct Ability: Identifiable, Hashable, Sendable {
             guaranteedCriticalIfEnemyBuffed: guaranteedCriticalIfEnemyBuffed, hasLeech: hasLeech,
             repeatsManaEmpowerment: repeatsManaEmpowerment, stealsGold: stealsGold,
         ))
+    }
+
+    static func buildOperations(
+        damageComponents: [DamageComponent],
+        effects: [Effect],
+        targetedEffects: [TargetedEffect]?,
+        explicitOperations: [AbilityOperation]?,
+    ) -> [AbilityOperation] {
+        if let explicitOperations {
+            return explicitOperations
+        }
+        let effectsList = targetedEffects ?? effects.map { TargetedEffect($0) }
+        var result: [AbilityOperation] = []
+        result.reserveCapacity(damageComponents.count + effectsList.count)
+        for component in damageComponents {
+            result.append(.damage(component))
+        }
+        for effect in effectsList {
+            result.append(.effect(effect))
+        }
+        return result
     }
 
     private init(definition: AbilityStorage.Definition) {
@@ -195,9 +224,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
 
     public var keywords: [Keyword] {
         storage.keywords(identityOnly: false) {
-            var result = operations.compactMap { $0.target != .actor ? $0.damageComponent?.keyword : nil }
-            appendNonDamageKeywords(to: &result)
-            return result
+            collectKeywords(identityOnly: false)
         }
     }
 
@@ -207,60 +234,38 @@ public struct Ability: Identifiable, Hashable, Sendable {
 
     public var identityKeywords: [Keyword] {
         storage.keywords(identityOnly: true) {
-            var result = operations.compactMap { operation -> Keyword? in
-                guard let component = operation.damageComponent,
-                      component.target != .actor,
-                      component.condition == nil || component.bonusAmount > 0 else { return nil }
-                return component.keyword
-            }
-            appendNonDamageKeywords(to: &result, identityOnly: true)
-            return result
+            collectKeywords(identityOnly: true)
         }
     }
 
-    private func appendNonDamageKeywords(to result: inout [Keyword], identityOnly: Bool = false) {
-        func hasComponentLeech(_ operations: [AbilityOperation]) -> Bool {
-            operations.contains {
-                guard case let .damage(component) = $0, component.target != .actor else { return false }
-                return component.hasLeech && (!identityOnly || component.condition == nil || component.bonusAmount > 0)
-            }
+    private func collectKeywords(identityOnly: Bool) -> [Keyword] {
+        var result: [Keyword] = []
+        for operation in operations where operation.damageComponent != nil {
+            result.append(contentsOf: operation.keywords(identityOnly: identityOnly))
         }
-        func qualifies(_ effect: Effect) -> Bool {
-            switch effect {
-            case .drawCards, .drawAndPlayCards:
-                false
-            default:
-                true
-            }
-        }
-        var includesLeech = hasLeech || hasComponentLeech(operations)
         for targetedEffect in targetedEffects {
-            result.append(contentsOf: AbilityOperation.effect(targetedEffect).keywords)
+            result.append(contentsOf: AbilityOperation.effect(targetedEffect).keywords(identityOnly: identityOnly))
         }
+        var includesLeech = hasLeech || operations.contains { $0.hasLeech(identityOnly: identityOnly) }
         for branch in outcomeBranches ?? [] {
-            result.append(contentsOf: branch.operations.lazy.compactMap(\.damageComponent)
-                .filter { $0.target != .actor }.map(\.keyword))
-            result.append(contentsOf: branch.operations.lazy.compactMap(\.targetedEffect)
-                .map(\.effect)
-                .filter(qualifies)
-                .map(\.keyword))
-            includesLeech = includesLeech || hasComponentLeech(branch.operations)
+            for operation in branch.operations where operation.damageComponent != nil {
+                result.append(contentsOf: operation.keywords(identityOnly: identityOnly))
+            }
+            for operation in branch.operations where operation.targetedEffect != nil {
+                result.append(contentsOf: operation.keywords(identityOnly: identityOnly))
+            }
+            includesLeech = includesLeech || branch.operations.contains { $0.hasLeech(identityOnly: identityOnly) }
         }
         if let conditionalOutcome, !identityOnly || conditionalOutcome.contributesToIdentity {
-            result.append(contentsOf: conditionalOutcome.operations.lazy.compactMap { op in
-                if op.damageComponent != nil, op.target == .actor {
-                    return nil
-                }
-                if let effect = op.targetedEffect, !qualifies(effect.effect) {
-                    return nil
-                }
-                return op.keyword
-            })
-            includesLeech = includesLeech || hasComponentLeech(conditionalOutcome.operations)
+            for operation in conditionalOutcome.operations {
+                result.append(contentsOf: operation.keywords(identityOnly: identityOnly))
+            }
+            includesLeech = includesLeech || conditionalOutcome.operations.contains { $0.hasLeech(identityOnly: identityOnly) }
         }
         if includesLeech {
             result.append(.leech)
         }
+        return result
     }
 
     public var summary: String {
@@ -322,7 +327,7 @@ public struct Ability: Identifiable, Hashable, Sendable {
     }
 
     public var dealsCombatDamage: Bool {
-        if let outcomeBranches {
+        if let outcomeBranches, !outcomeBranches.isEmpty {
             return outcomeBranches.contains { branch in
                 branch.operations.contains { $0.damageKeyword != nil }
             }

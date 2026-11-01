@@ -36,16 +36,32 @@ public enum AbilityOperation: Hashable, Sendable {
 
     /// Keywords contributed by this operation, excluding self costs and draw-only effects.
     public var keywords: [Keyword] {
+        keywords(identityOnly: false)
+    }
+
+    public func keywords(identityOnly: Bool) -> [Keyword] {
         switch self {
         case let .damage(component):
-            component.target == .actor ? [] : [component.keyword]
+            guard component.target != .actor else { return [] }
+            if identityOnly, component.condition != nil, component.bonusAmount == 0 {
+                return []
+            }
+            return [component.keyword]
         case let .effect(targeted):
             switch targeted.effect {
-            case .drawCards, .drawAndPlayCards: []
-            case .blessedAegis: [targeted.effect.keyword, .block]
-            default: [targeted.effect.keyword]
+            case .drawCards, .drawAndPlayCards:
+                return []
+            case .blessedAegis:
+                return [targeted.effect.keyword, .block]
+            default:
+                return [targeted.effect.keyword]
             }
         }
+    }
+
+    public func hasLeech(identityOnly: Bool = false) -> Bool {
+        guard case let .damage(component) = self, component.target != .actor else { return false }
+        return component.hasLeech && (!identityOnly || component.condition == nil || component.bonusAmount > 0)
     }
 
     public var keyword: Keyword {
