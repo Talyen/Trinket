@@ -64,7 +64,7 @@ final class BossIdleCachedAsset: NSObject, AVAssetResourceLoaderDelegate, @unche
                 return true
             }
             if !range.isEmpty {
-                requested.respond(with: data.subdata(in: range))
+                requested.respond(with: data[range])
             }
         }
         request.finishLoading()

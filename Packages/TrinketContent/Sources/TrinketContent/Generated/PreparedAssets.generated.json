@@ -1,6 +1,6 @@
 {
   "app-icon": {
-    "input_hash": "d2842270f92f140e69c6df5f771163eabf1851732d8076ec72bd7e48e66745a1",
+    "input_hash": "00ba58d5911f54b782b0dd4d3c6c8730e1b191527065e7217971336f1b38ef44",
     "outputs": {
       "Packages/TrinketContent/Sources/TrinketContent/Generated/AppIconSourceHashes.generated.tsv": "c7ec3e9f737e9570ef1dc76fe9ef6fbb2a3cdd6b80890665b8e085f2ad3103ad",
       "Trinket/AppIcon.icon/Assets/Trinket App Icon.jpg": "5d1746f8a848e773c2be9cef9f16933aadf6a7cdb913d937853892ad198be7c2",
@@ -12,7 +12,7 @@
     }
   },
   "art": {
-    "input_hash": "1d5b516d93150efafaba979ea2e023ef0b47a844ace00b6f395246ba58436e66",
+    "input_hash": "4528da754d38a38eb317cbaaab29308bc46386246f059aa8d69a7b720e2e2268",
     "outputs": {
       "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtCatalog.generated.swift": "4b52eebee8e7bb6299ada9b6872fbee570a4ac3b26cb401ad97510a4587b7db8",
       "Packages/TrinketContent/Sources/TrinketContent/Generated/ArtSourceHashes.generated.tsv": "33269145fc82fd9539df826c88b677fe940122837f5cf2dc5d9561590bb0d82a",
@@ -1640,9 +1640,9 @@
     }
   },
   "music": {
-    "input_hash": "369be5b0fa286753393b9619f75860915f4ee42912c74429d922350a4383bbfa",
+    "input_hash": "fcaf496539b95ee38163204d53f39a3b112f8e2a4a62f0487077ea41d909db2e",
     "outputs": {
-      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift": "f6a15942ef7944c7de2433c298566f2e327ea680a400c3884fde0401ce8ca946",
+      "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicCatalog.generated.swift": "d75a4bd67d52bcf7800b53e0d396ffded2210e0c4e34e92186a04417e076323b",
       "Packages/TrinketContent/Sources/TrinketContent/Generated/MusicSourceHashes.generated.tsv": "89e1d99f05927c141639b4c854232e24a8387666343e916ef34b4768f9971a50",
       "Trinket/Media/Music/music_battle_1.m4a": "3edcd6b9b215a405701843d32e63e60af865e7eb0a64b80496964e464acffedc",
       "Trinket/Media/Music/music_battle_2.m4a": "0cdfe07496b4cffbf68677003584714f5601c2a2afb101f2dedfeab3bcbfc689",
@@ -1679,7 +1679,7 @@
     }
   },
   "sfx": {
-    "input_hash": "e4e36a714b02595a96168c01bf9facc6799f96831f72d55a02b7779c4b90ca10",
+    "input_hash": "582a08a01963ed0c5bc3ed7ed98549307b5d8ad6909eaf8ae399a5aaf23fc8e3",
     "outputs": {
       "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXCatalog.generated.swift": "a699272df2f7031488ee907f1095ab4243a62c64b25045ceae688caa82c85789",
       "Packages/TrinketContent/Sources/TrinketContent/Generated/SFXSourceHashes.generated.tsv": "e90174eeeb37f88edc695c173ef3b1232d45e44b1e153e119073e7955eabc1fd",

@@ -4,11 +4,19 @@ import Foundation
 
 public enum MusicCatalog {
     public static func lyrics(for trackID: String) -> [MusicLyricPhrase]? {
-        lyricsByTrackID[trackID]
+        switch trackID {
+        case "boss_blight_treant": lyrics0
+        case "boss_blood_countess": lyrics1
+        case "boss_forge_golem": lyrics2
+        case "boss_frostwarden": lyrics3
+        case "boss_iron_bear": lyrics4
+        case "boss_seraph": lyrics5
+        case "boss_stone_titan": lyrics6
+        default: nil
+        }
     }
 
-    private static let lyricsByTrackID: [String: [MusicLyricPhrase]] = [
-        "boss_blight_treant": [
+    private static let lyrics0: [MusicLyricPhrase] = [
             MusicLyricPhrase(text: "I was a grove before your kind learned to walk,", timings: [0.58, 1.34, 1.34, 1.58, 1.58, 1.76, 1.76, 2.48, 2.48, 2.74, 2.74, 2.96, 2.96, 3.48, 3.48, 3.88, 3.88, 4.18, 4.18, 4.68]),
             MusicLyricPhrase(text: "Now I drink the rot", timings: [6.08, 6.56, 6.56, 6.8, 6.8, 7.08, 7.08, 7.3, 7.3, 7.52]),
             MusicLyricPhrase(text: "and wear it like a crown.", timings: [7.58, 8.2, 8.2, 8.5, 8.5, 8.7, 8.7, 8.88, 8.88, 9.04, 9.04, 9.54]),
@@ -81,8 +89,8 @@ public enum MusicCatalog {
             MusicLyricPhrase(text: "Let the old wood crack and blare.", timings: [314.56, 314.78, 314.78, 315.06, 315.06, 315.48, 315.48, 315.82, 315.82, 316.34, 316.34, 316.78, 316.78, 317.48]),
             MusicLyricPhrase(text: "For every wound I carve,", timings: [318.4, 318.8, 318.8, 319.74, 319.74, 320.16, 320.16, 320.56, 320.56, 321.66]),
             MusicLyricPhrase(text: "it grows a second scar.", timings: [321.7, 322.38, 322.38, 323.08, 323.08, 323.48, 323.48, 324.02, 324.02, 324.72]),
-        ],
-        "boss_blood_countess": [
+    ]
+    private static let lyrics1: [MusicLyricPhrase] = [
             MusicLyricPhrase(text: "I wore black for every king.", timings: [20.68, 22.08, 22.08, 22.42, 22.42, 22.96, 22.96, 23.4, 23.4, 23.78, 23.78, 24.18]),
             MusicLyricPhrase(text: "Kept the crowns, forgot the names.", timings: [24.9, 25.24, 25.24, 25.4, 25.4, 26.28, 26.28, 26.46, 26.46, 26.96, 26.96, 27.44]),
             MusicLyricPhrase(text: "Hung their banners in the rafters.", timings: [27.84, 28.24, 28.24, 28.64, 28.64, 29.32, 29.32, 29.86, 29.86, 30.08, 30.08, 30.66]),
@@ -141,8 +149,8 @@ public enum MusicCatalog {
             MusicLyricPhrase(text: "Was never your own.", timings: [230.54, 231.22, 231.22, 233.06, 233.06, 234.32, 234.32, 235.3]),
             MusicLyricPhrase(text: "One more heartbeat.", timings: [239.22, 239.6, 239.6, 240.36, 240.36, 242.06]),
             MusicLyricPhrase(text: "Come closer.", timings: [245.74, 246.34, 246.34, 247.24]),
-        ],
-        "boss_forge_golem": [
+    ]
+    private static let lyrics2: [MusicLyricPhrase] = [
             MusicLyricPhrase(text: "Built in the breath of the bellows' flame,", timings: [30.94, 32.54, 32.54, 32.86, 32.86, 33.04, 33.04, 33.4, 33.4, 33.8, 33.8, 34.0, 34.0, 35.1, 35.1, 35.24]),
             MusicLyricPhrase(text: "the Forge Golem wakes.", timings: [35.44, 35.96, 35.96, 36.72, 36.72, 37.78, 37.78, 39.1]),
             MusicLyricPhrase(text: "Its rust-red heart still beating,", timings: [39.7, 40.06, 40.06, 40.92, 40.92, 41.4, 41.4, 41.92, 41.92, 43.36]),
@@ -166,8 +174,8 @@ public enum MusicCatalog {
             MusicLyricPhrase(text: "Rust is my crown, the anvil my hall", timings: [171.66, 172.34, 172.34, 172.74, 172.74, 173.04, 173.04, 174.04, 174.04, 174.12, 174.12, 174.68, 174.68, 175.06, 175.06, 175.34]),
             MusicLyricPhrase(text: "Strike and strike, but I do not fall", timings: [175.64, 176.42, 176.42, 176.88, 176.88, 177.46, 177.46, 177.88, 177.88, 178.1, 178.1, 178.46, 178.46, 178.96, 178.96, 179.36]),
             MusicLyricPhrase(text: "I answer with iron for all", timings: [179.88, 180.1, 180.1, 180.64, 180.64, 181.08, 181.08, 181.5, 181.5, 182.12, 182.12, 182.44]),
-        ],
-        "boss_frostwarden": [
+    ]
+    private static let lyrics3: [MusicLyricPhrase] = [
             MusicLyricPhrase(text: "Where the leyline dies and the aurora weeps", timings: [26.84, 28.06, 28.06, 28.32, 28.32, 29.16, 29.16, 29.88, 29.88, 30.8, 30.8, 31.16, 31.16, 32.38, 32.38, 33.36]),
             MusicLyricPhrase(text: "The Frostwarden sits", timings: [34.88, 35.16, 35.16, 36.22, 36.22, 36.58]),
             MusicLyricPhrase(text: "A throne of hoarfrost", timings: [38.82, 39.2, 39.2, 39.86, 39.86, 40.26, 40.26, 41.12]),
@@ -232,8 +240,8 @@ public enum MusicCatalog {
             MusicLyricPhrase(text: "What burns me", timings: [319.06, 320.1, 320.1, 320.98, 320.98, 321.42]),
             MusicLyricPhrase(text: "Melts me, breaks the chains", timings: [322.36, 323.14, 323.14, 324.5, 324.5, 325.68, 325.68, 326.0, 326.0, 326.36]),
             MusicLyricPhrase(text: "[vocalizing]", timings: [326.4, 337.7]),
-        ],
-        "boss_iron_bear": [
+    ]
+    private static let lyrics4: [MusicLyricPhrase] = [
             MusicLyricPhrase(text: "From the cold iron mountains, where the forges never cool,", timings: [30.91, 32.19, 32.19, 32.39, 32.39, 32.87, 32.87, 33.59, 33.59, 34.77, 34.77, 35.03, 35.03, 35.21, 35.21, 35.85, 35.85, 36.33, 36.33, 37.05]),
             MusicLyricPhrase(text: "the Iron Bear descends—", timings: [37.06, 38.08, 38.08, 38.38, 38.38, 39.06, 39.06, 40.68]),
             MusicLyricPhrase(text: "armored in stolen steel,", timings: [40.86, 41.22, 41.22, 41.46, 41.46, 41.98, 41.98, 42.68]),
@@ -293,8 +301,8 @@ public enum MusicCatalog {
             MusicLyricPhrase(text: "[chants]", timings: [222.75, 224.35]),
             MusicLyricPhrase(text: "we are what the mountain breeds", timings: [224.38, 224.64, 224.64, 225.08, 225.08, 225.38, 225.38, 225.74, 225.74, 226.38, 226.38, 226.84]),
             MusicLyricPhrase(text: "One thunderclap.", timings: [242.25, 245.87, 245.87, 247.39]),
-        ],
-        "boss_seraph": [
+    ]
+    private static let lyrics5: [MusicLyricPhrase] = [
             MusicLyricPhrase(text: "The saint whose name is on your blade", timings: [12.19, 13.45, 13.45, 13.97, 13.97, 14.31, 14.31, 14.85, 14.85, 15.25, 15.25, 15.53, 15.53, 15.83, 15.83, 16.27]),
             MusicLyricPhrase(text: "Once knelt where you now stand.", timings: [16.6, 16.82, 16.82, 17.32, 17.32, 17.68, 17.68, 17.96, 17.96, 18.34, 18.34, 19.22]),
             MusicLyricPhrase(text: "You ask his shade to guide your sword.", timings: [19.24, 20.14, 20.14, 20.68, 20.68, 20.88, 20.88, 21.44, 21.44, 21.78, 21.78, 22.16, 22.16, 22.46, 22.46, 22.92]),
@@ -335,8 +343,8 @@ public enum MusicCatalog {
             MusicLyricPhrase(text: "I have cast the veil away.", timings: [196.48, 196.76, 196.76, 196.9, 196.9, 197.34, 197.34, 197.78, 197.78, 198.32, 198.32, 198.86]),
             MusicLyricPhrase(text: "Now you know why mortals tremble.", timings: [199.64, 199.92, 199.92, 200.16, 200.16, 200.54, 200.54, 200.98, 200.98, 201.56, 201.56, 202.94]),
             MusicLyricPhrase(text: "Be not afraid.", timings: [206.26, 206.68, 206.68, 207.2, 207.2, 207.9]),
-        ],
-        "boss_stone_titan": [
+    ]
+    private static let lyrics6: [MusicLyricPhrase] = [
             MusicLyricPhrase(text: "You cut the hillside into stairways.", timings: [13.14, 16.18, 16.18, 16.52, 16.52, 16.88, 16.88, 18.0, 18.0, 18.8, 18.8, 19.88]),
             MusicLyricPhrase(text: "You hauled my ribs across the plain.", timings: [20.2, 21.02, 21.02, 21.36, 21.36, 21.64, 21.64, 22.14, 22.14, 22.82, 22.82, 23.4, 23.4, 23.76]),
             MusicLyricPhrase(text: "You raised your castles of me.", timings: [25.6, 25.8, 25.8, 26.18, 26.18, 26.46, 26.46, 27.26, 27.26, 27.66, 27.66, 28.26]),
@@ -385,7 +393,6 @@ public enum MusicCatalog {
             MusicLyricPhrase(text: "Will fall the same.", timings: [202.06, 202.38, 202.38, 202.84, 202.84, 203.22, 203.22, 204.06]),
             MusicLyricPhrase(text: "Stone remembers.", timings: [205.2, 205.56, 205.56, 206.2]),
             MusicLyricPhrase(text: "Stone reclaims.", timings: [208.22, 209.96, 209.96, 211.28]),
-        ],
     ]
 
     public static let allTracks: [MusicTrack] = [

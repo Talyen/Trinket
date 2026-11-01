@@ -146,6 +146,8 @@ runpy.run_path(sys.argv[0], run_name='__main__')
             catalog = generated / "MusicCatalog.generated.swift"
             before = catalog.read_bytes()
             self.assertIn(b'MusicLyricPhrase(text: "I grow", timings: [0.5, 1, 1.2, 2])', before)
+            self.assertIn(b'case "test_track": lyrics0', before)
+            self.assertIn(b'private static let lyrics0: [MusicLyricPhrase]', before)
             self.assertEqual(self.run_audio_fixture(root, environment, "music").returncode, 0)
             self.assertEqual(catalog.read_bytes(), before)
             self.assertEqual(log.read_text().count("convert"), 1)
