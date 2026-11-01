@@ -204,6 +204,9 @@ module TrinketTestFlight
 
     def execute
       start
+      if @receipt['stage'] == 'ready' && File.file?(File.join(@run_dir, 'artifact-expiry.jsonl'))
+        raise Failure, 'This completed release was retired; its receipt remains available, but its artifacts cannot be resumed.'
+      end
       if %w[uploading uploaded ready].include?(@receipt['stage'])
         if @receipt['symbol_artifacts'] || File.directory?(@receipt.fetch('archive', ''))
           ensure_symbol_artifacts

@@ -55,6 +55,18 @@ Concurrent creations use Git's registration/index locks. Creation reports omitte
 and cloned logical bytes plus population/first-status time; these are not physical
 savings because APFS shares extents. Existing checkouts are never converted.
 
+### Reduced-history checkout on a new Mac
+
+An optional `git clone --depth 50 --single-branch --branch main <repository-url>`
+keeps the full current working tree, including asset masters, while limiting
+history. It does not include unpushed commits or local branches from another Mac.
+The normal worktree flow can branch from this local main, but older commits,
+merge bases and release-verification baselines may be unavailable. Before an
+operation that needs them, run `git fetch --deepen=100 origin main` or
+`git fetch --unshallow origin` and verify the required commit and ancestry.
+Do not convert an existing shared repository with active worktrees to a shallow
+clone; use a separate checkout and migrate only after preserving all local work.
+
 ### Landing and review
 
 Review the full task diff and relevant consumers, then commit only task files.
@@ -114,8 +126,9 @@ Legacy snapshots can also expire successful static reports when an integrated
 task record, matching commit and report path establish provenance. Old snapshots
 did not record whether a report was explicitly requested, so unmarked legacy
 reports meeting those conditions also expire. New explicit evidence requests,
-keep markers, failures, visual or release evidence, unclassifiable reports and
-active tasks remain.
+keep markers, failures, non-visual release evidence, unclassifiable reports and
+active tasks remain. Recognized inactive visual captures expire after 24 hours;
+see [output retention](../../Scripts/Reference.md#output-retention).
 The task report's verification-report paths can therefore expire. Failed
 preservation stops landing or cleanup; raw build logs expire
 separately. Save visual artifacts in Deliverables. For other task-local evidence,

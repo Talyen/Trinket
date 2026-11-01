@@ -73,7 +73,7 @@ Scripts/ci-reuse.py	test_ci_effort.py
 Scripts/deploy-verification.py	test_deploy_verification.py
 Scripts/ci-run-budget.py	test_ci_gate_scripts.py,test_ci_improvements.py
 Scripts/ci_ui_retry.py	test_ci_effort.py,test_deploy_verification.py
-Scripts/cleanup-outputs.py	test_output_retention.py,test_release_retention.py,test_worktree_retention.py
+Scripts/cleanup-outputs.py	test_output_retention.py,test_release_retention.py,test_retired_releases.py,test_expiring_evidence.py,test_worktree_retention.py
 Scripts/compact-evidence.py	test_evidence_compaction.py
 Scripts/collect-performance-results.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py,test_tooling_evidence.py
 Scripts/compare-performance.py	test_aggregate_performance.py,test_compare_performance.py,test_performance_scenarios.py
@@ -110,7 +110,9 @@ Scripts/internal/agent_status.py	test_agent_context.py
 Scripts/internal/agent_tasks.py	test_agent_context.py,test_agent_investigate.py,test_agent_read.py,test_agent_search.py
 Scripts/internal/build_symbols.py	test_profile_inventory.py,test_build_symbols.py,test_profile_device.py,test_testflight.py,test_release_retention.py,test_device_product_retention.py
 Scripts/internal/device_product_retention.py	test_device_product_retention.py,test_output_retention.py
-Scripts/internal/release_retention.py	test_release_retention.py
+Scripts/internal/release_retention.py	test_release_retention.py,test_retired_releases.py
+Scripts/internal/retired_releases.py	test_retired_releases.py,test_testflight.py
+Scripts/internal/expiring_evidence.py	test_expiring_evidence.py
 Scripts/internal/resource_lease.py	test_resource_lease.py,test_shared_build_lease.py,test_release_retention.py
 Scripts/resource-lease.py	test_resource_lease.py
 Scripts/report-evidence.py	test_evidence_audit.py

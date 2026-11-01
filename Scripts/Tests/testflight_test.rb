@@ -241,6 +241,9 @@ begin
     assert(resumed.commands.empty?)
     assert(resumed.receipt['legacy_symbol_retention'].include?('unavailable'))
     assert(portal.calls == [:upload, :distribute])
+    File.write(File.join(deploy.run_dir, 'artifact-expiry.jsonl'), "{}\n")
+    rejects('was retired') { factory.call(resume: deploy.run_dir).execute }
+    assert(portal.calls == [:upload, :distribute])
     portal.remote.clear # Local reservations still prevent reusing 10.
     next_run = factory.call
     next_run.start

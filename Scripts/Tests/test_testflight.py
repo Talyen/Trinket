@@ -26,7 +26,7 @@ class TestFlightTests(unittest.TestCase):
             root.mkdir()
             for relative in ('Scripts/testflight.sh', 'Scripts/internal/cli.py', 'Scripts/lib/lock.sh',
                              'Scripts/lib/output-retention.sh', 'Scripts/internal/output_retention.py',
-                             'Scripts/internal/release_retention.py', 'Scripts/internal/build_symbols.py',
+                             'Scripts/internal/release_retention.py', 'Scripts/internal/retired_releases.py', 'Scripts/internal/build_symbols.py',
                              'Scripts/cleanup-outputs.py'):
                 target = root / relative
                 target.parent.mkdir(parents=True, exist_ok=True)

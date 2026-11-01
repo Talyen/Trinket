@@ -363,9 +363,9 @@ Use `--retain-exports` only when an active investigation needs the XML after the
 command ends. It writes `exports/` with an explicit `.retention-keep` pin; release
 that derived data deliberately when the investigation ends. `--export-limit-mib`
 sets a deliberate per-file cap for larger investigations. Retained pins are an
-exception, not the default. Raw traces, matching dSYMs, release recovery products
-and compact JSON summaries keep their existing lifetime. No old profiles are
-swept or permanently deleted by this producer.
+exception, not the default. Standard device-profile traces, copied binaries and symbols, and XML become
+eligible for cleanup after 24 hours. Compact JSON summaries remain. Explicit
+keep markers protect ongoing investigations; custom destinations remain caller-owned.
 
 For ad-hoc SwiftUI table exports, use an owned temporary directory and keep the
 compact analysis in the capture directory. Pin raw XML explicitly if needed for

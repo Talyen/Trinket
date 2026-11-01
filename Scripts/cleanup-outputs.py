@@ -25,6 +25,9 @@ def main() -> None:
     parser.add_argument('--status', type=int, default=0, help=argparse.SUPPRESS)
     parser.add_argument('--comparison', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--experiments', action='store_true', help='also remove the three known abandoned experiment builds')
+    parser.add_argument('--evidence-limit', type=int, default=32, help='maximum evidence payloads per pass (default: 32)')
+    parser.add_argument('--expired-evidence-only', action='store_true', help='expire inactive classified profile and visual evidence after 24 hours')
+    parser.add_argument('--retired-releases-only', action='store_true', help='retire superseded completed release artifacts, keeping receipts and in-progress releases')
     parser.add_argument('--resources', action='store_true', help='also verify and expire completed release duplicates (may hash large artifacts)')
     parser.add_argument('--release-duplicates-only', action='store_true', help='verify at most one backed-up ready or exported release; preserve receipts and authoritative artifacts')
     parser.add_argument('--all-release-duplicates', action='store_true', help='verify all ready or exported copies with --release-duplicates-only')
@@ -42,6 +45,22 @@ def main() -> None:
         parser.error('--products requires --intermediates-only')
     try:
         root = primary_worktree_root(ROOT) if args.primary else ROOT
+        if args.expired_evidence_only:
+            if not (args.dry_run or args.apply) or args.worktrees or args.resources or args.release_duplicates_only or args.retired_releases_only or args.intermediates_only or args.receipt:
+                parser.error('--expired-evidence-only requires --dry-run or --apply and cannot combine with other scopes')
+            from internal import expiring_evidence
+            primary = primary_worktree_root(ROOT)
+            common = Path(subprocess.check_output(['git', '-C', str(primary), 'rev-parse', '--path-format=absolute', '--git-common-dir'], text=True).strip())
+            if not 1 <= args.evidence_limit <= 10000:
+                parser.error('--evidence-limit must be between 1 and 10000')
+            expiring_evidence.cleanup(primary, common, apply=args.apply, limit=args.evidence_limit)
+            return
+        if args.retired_releases_only:
+            if not (args.dry_run or args.apply) or args.worktrees or args.resources or args.release_duplicates_only or args.intermediates_only or args.receipt:
+                parser.error('--retired-releases-only requires --dry-run or --apply and cannot combine with other scopes')
+            from internal import retired_releases
+            retired_releases.cleanup(primary_worktree_root(ROOT), apply=args.apply)
+            return
         if args.worktrees:
             from internal import worktree_retention
             worktree_retention.cleanup(primary_worktree_root(ROOT), apply=args.apply, products=args.products)

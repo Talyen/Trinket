@@ -267,9 +267,11 @@ The default is `~/Library/Developer/Trinket/BuildArtifacts/releases/`; set
 volume. The default is a local safety copy, not an off-machine backup. Existing
 copies are verified and never overwritten with different artifact contents.
 The receipt's `symbol_artifacts` records this copy and its manifest; later receipt
-updates are mirrored there. Keep release copies for as long as those builds need
-diagnosis. If restoring a deleted deployment, restore its original run directory
-and paths from these artifacts before resuming.
+updates are mirrored there. Keep the current completed release and every unfinished deployment. Once a newer
+release for the same app is ready, the older completed release artifacts
+may be retired; its receipt, reservation and manifest remain. Retired releases
+cannot be resumed or locally diagnosed. [Output retention](../../Scripts/Reference.md#output-retention)
+owns the guarded retirement pass.
 Already-uploaded legacy receipts without surviving local archives remain
 reconcilable using Apple's symbol status; the receipt records that local retention
 could not be verified. This cannot recreate a lost archive or dSYM.

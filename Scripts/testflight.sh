@@ -35,6 +35,8 @@ export TRINKET_TESTFLIGHT_STATE_ROOT="$shared_state"
 # Retire only independently verified older working copies before taking the
 # deployment lock. A busy or ambiguous owner simply defers maintenance.
 if [[ -d "$shared_state" ]]; then
+  python3 Scripts/cleanup-outputs.py --apply --primary --retired-releases-only || \
+    echo "Retired release maintenance deferred; artifacts are preserved." >&2
   python3 Scripts/cleanup-outputs.py --apply --primary --release-duplicates-only --all-release-duplicates || \
     echo "Release-copy maintenance deferred; remaining artifacts are preserved." >&2
 fi

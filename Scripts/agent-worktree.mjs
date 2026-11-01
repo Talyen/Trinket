@@ -80,6 +80,11 @@ try {
           if (maintenance.status !== 0) console.log("Idle compiler cleanup deferred; active or unavailable ownership is preserved.");
           else if (maintenance.stdout.trim()) console.log(maintenance.stdout.trim());
         }
+        if (fs.existsSync(retention)) {
+          const maintenance = spawnSync("python3", [retention, "--apply", "--primary", "--expired-evidence-only", "--evidence-limit", "8"], { cwd: source, encoding: "utf8", timeout: 20_000 });
+          if (maintenance.status !== 0) console.log("Expired evidence cleanup deferred; protected or unprocessed evidence remains.");
+          else if (maintenance.stdout.trim()) console.log(maintenance.stdout.trim());
+        }
         const evidence = path.join(source, "Scripts/agent-integrate.py");
         if (fs.existsSync(evidence)) {
           const maintenance = spawnSync("python3", [evidence, "--expire-routine-evidence"], { cwd: source, encoding: "utf8", timeout: 20_000 });

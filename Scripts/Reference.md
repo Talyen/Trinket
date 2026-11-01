@@ -310,9 +310,9 @@ producing hosted workflows. Age alone never proves that an artifact is disposabl
 | Shared primary/device compiler scratch and build products | Same idle-cache window | Managed producers register a lifecycle lease; cleanup also rejects open files and active or uninspectable Apple build/debug processes. Device products require independently verified, exact binary and dSYM copies from a successful profile |
 | Successful IPA inspection / thinned-export scratch | Until inspection consumers finish | Scoped temporary cleanup retains compact validation/size proof; failed inspection output and explicit keeps remain available |
 | Ready or exported TestFlight duplicate working copies | 24 hours after verified preservation and last receipt write | Deployment-locked hash/UUID/receipt validation; exported runs remain resumable from the verified backup; unbacked, unknown, mismatched, active or kept copies remain protected |
-| Authoritative uploaded archive, IPA, matching symbols and provenance; deployment receipts and failed build-number reservations | Indefinite | Release working-copy cleanup never removes these records |
-| Task deliverables and preserved evidence snapshots | Retained; routine successful static reports expire after seven days | Later task creation journals classified reports and respects active worktrees and keep markers. Legacy reports require an integrated task record, matching commit and report path; failed, visual, release and unclassifiable evidence remains protected |
-| Raw device traces, matching symbols and explicitly retained derived exports | Caller-owned / explicitly kept | No general profile sweep; preserve raw evidence and verify any proposed derivative deletion separately |
+| Completed release archive, IPA and symbols | Until superseded by a newer ready build for the same app | Retire under the deployment lock; preserve current and unfinished releases, receipts, manifests and reservation records |
+| Task deliverables and preserved evidence snapshots | Recognized visual captures expire after 24 hours; routine successful static reports after seven days | Preserve active branches, keep markers, source, unclassified and non-evidence deliverables; snapshot visual expiry is journaled |
+| Recognized device-profile traces, copied binaries/symbols and XML | 24 hours after capture and last payload write | Retain result metadata, active or unknown leases and explicit keep markers; unclassified investigations remain caller-owned |
 | Hosted logs, bounded diagnostics, compact timing, size/cache reports and native qualification evidence | 14 days | Workflow expiry, subject to GitHub's repository retention cap |
 | Exact qualified release proof | 30 days | [Release verification workflow](../.github/workflows/release-verification.yml) owns this exception |
 | Hosted reusable build products, iOS runtime transfers and full performance traces | One day | Consumer window only; missing/expired products follow existing rebuild/validation policy |
@@ -329,6 +329,24 @@ remain globally protective; deployment
 locks remain independent. Process queries inspect this invocation/direct owner,
 exact recorded lease PIDs and scoped open files. Cleanup is
 explicit or opportunistic through existing tools, with no background job.
+
+`python3 Scripts/cleanup-outputs.py --dry-run --primary --retired-releases-only`
+previews retirement of completed releases superseded by a newer ready build of
+the same app; replace `--dry-run` with `--apply` to retire them.
+Known archives, IPA exports and compiler scratch from older attempts in that
+run also expire. The receipt and compact artifact manifest remain, but retired
+builds cannot be resumed or locally diagnosed. In-progress and current builds are never candidates.
+A release invocation runs this pass before acquiring its deployment lock.
+
+`python3 Scripts/cleanup-outputs.py --dry-run --primary --expired-evidence-only`
+previews recognized local visual captures, inactive saved snapshot captures and
+standard `device-*` profile payloads after 24 hours. Replace `--dry-run` with
+`--apply` to remove them. Each pass handles at most 32 items by default;
+`--evidence-limit N` changes the bound. Task creation attempts eight per pass.
+Active or ambiguous leases, open files, active snapshot branches, keep markers,
+unknown material and non-evidence deliverables are preserved. Custom profile
+locations remain caller-owned; the retention window is an eligibility threshold,
+not a wall-clock deletion guarantee.
 
 `python3 Scripts/cleanup-outputs.py --dry-run` lists known candidates, protection
 reasons and allocated bytes without writing a report; `--apply` applies that
