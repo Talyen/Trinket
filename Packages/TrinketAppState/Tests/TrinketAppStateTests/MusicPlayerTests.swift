@@ -234,7 +234,12 @@ struct MusicPlayerTests {
         let changes = player.playbackChanges()
         player.setVolume(0.5)
         try #require(await receivesPlaybackChange(changes))
-        _ = try await start(request("boss"), player: player, backend: backend)
+        try player.update(route: .track(request("boss")), volume: 1)
+        try #require(await receivesPlaybackChange(changes))
+        try await eventually { backend.loads.count == 1 }
+        let voice = TestMusicVoice()
+        backend.completeLoad(0, with: voice)
+        try await eventually { voice.starts == 1 }
         try #require(await receivesPlaybackChange(changes))
         center.post(name: AVAudioSession.interruptionNotification, object: nil)
         try #require(await receivesPlaybackChange(changes))
