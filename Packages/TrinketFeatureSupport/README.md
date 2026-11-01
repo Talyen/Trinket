@@ -89,7 +89,11 @@ by usable viewport height so their summaries and following content remain visibl
 Talent-tree artwork uses 40% of the sheet height before the pinned inspector reserves space.
 The shell’s scroll geometry drives header height,
 pinned-title opacity, and artwork overscroll zoom even after the hero scrolls
-offscreen. Only the artwork transform observes the changing overscroll value. Artwork extension
+offscreen. The pinned title follows the reachable scroll range, so bottom rubber-banding
+does not toggle navigation chrome on short sheets. Pinning and unpinning use separate
+thresholds to keep small scroll corrections at the hero edge from repeatedly changing
+the native chrome. Only the artwork transform observes
+the changing overscroll value. Artwork extension
 follows cropping and blending, without an outer clip; the completed crop and fade
 are rasterized together before extension so fractional sheet and scroll movement
 cannot expose an unfaded edge row. Overscroll transforms the extended artwork

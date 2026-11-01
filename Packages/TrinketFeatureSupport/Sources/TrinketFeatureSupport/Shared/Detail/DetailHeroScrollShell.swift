@@ -71,9 +71,14 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                     width: geometry.containerSize.width,
                     height: max(0, geometry.containerSize.height - topInset - geometry.contentInsets.bottom),
                 ))
-                let threshold = max(baseHeight, scrollState.headerContentHeight) - topInset
-                let offsetY = geometry.contentOffset.y + topInset
-                let opacity = min(max((offsetY - threshold) / 32, 0), 1)
+                let opacity = HeroHeaderLayout.titleOpacity(
+                    offsetY: geometry.contentOffset.y,
+                    contentHeight: geometry.contentSize.height,
+                    viewportHeight: geometry.containerSize.height,
+                    topInset: topInset,
+                    bottomInset: geometry.contentInsets.bottom,
+                    headerHeight: max(baseHeight, scrollState.headerContentHeight),
+                )
                 return HeroHeaderScrollMetrics(
                     baseHeight: baseHeight,
                     topInset: topInset,
@@ -94,7 +99,10 @@ public struct DetailHeroScrollShell<Header: View, BodyContent: View>: View {
                 if scrollState.overscroll != metrics.overscroll {
                     scrollState.overscroll = metrics.overscroll
                 }
-                let isPinned = metrics.titleOpacity >= 0.5
+                let isPinned = HeroHeaderLayout.titleIsPinned(
+                    opacity: metrics.titleOpacity,
+                    wasPinned: scrollState.isPinned,
+                )
                 if scrollState.isPinned != isPinned {
                     scrollState.isPinned = isPinned
                 }
@@ -180,7 +188,7 @@ private struct DetailScrollNavigationTitle: View {
         if opacity > 0 {
             GameLabel(title)
                 .trinketTypography(.cardTitle)
-                .trinketPresentationVisibility(opacity >= 0.5, opacity: opacity)
+                .trinketPresentationVisibility(scrollState.isPinned, opacity: opacity)
         }
     }
 }
