@@ -89,8 +89,8 @@ by usable viewport height so their summaries and following content remain visibl
 Talent-tree artwork uses 40% of the sheet height before the pinned inspector reserves space.
 The shell’s scroll geometry drives header height,
 pinned-title opacity, and artwork overscroll zoom even after the hero scrolls
-offscreen. The fading title stays in the principal toolbar item while the native
-navigation title and scroll-edge configuration remain stable during scrolling.
+offscreen. The principal toolbar item retains its size while the title fades, and
+the native navigation title and scroll-edge configuration remain stable during scrolling.
 Only the artwork transform observes the changing overscroll value. Artwork extension
 follows cropping and blending, without an outer clip; the completed crop and fade
 are rasterized together before extension so fractional sheet and scroll movement

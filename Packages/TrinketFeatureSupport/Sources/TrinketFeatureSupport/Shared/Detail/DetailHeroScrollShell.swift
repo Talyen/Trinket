@@ -162,11 +162,18 @@ private struct DetailScrollNavigationTitle: View {
 
     var body: some View {
         let opacity = scrollState.titleOpacity
-        if opacity > 0 {
-            GameLabel(title)
-                .trinketTypography(.cardTitle)
-                .trinketPresentationVisibility(opacity >= 0.5, opacity: opacity)
-        }
+        // Keep the principal item's size stable as its visible title enters and leaves.
+        GameLabel(title)
+            .trinketTypography(.cardTitle)
+            .hidden()
+            .accessibilityHidden(true)
+            .overlay {
+                if opacity > 0 {
+                    GameLabel(title)
+                        .trinketTypography(.cardTitle)
+                        .trinketPresentationVisibility(opacity >= 0.5, opacity: opacity)
+                }
+            }
     }
 }
 
