@@ -10,7 +10,7 @@ enum GameContentRosterGenerated {
             id: "ranger",
             name: "Ranger",
             role: .hero,
-            maxHealth: 14,
+            maxHealth: 16,
             abilityChoices: AbilityChoices(
                 basics: [.fireArrow, .venomArrow, .sniffOut, .rendingSlash],
                 skills: [.bountyShot, .pounce, .predatorsFocus, .serratedEdge],
@@ -21,7 +21,7 @@ enum GameContentRosterGenerated {
             id: "knight",
             name: "Knight",
             role: .hero,
-            maxHealth: 17,
+            maxHealth: 19,
             abilityChoices: AbilityChoices(
                 basics: [.bash, .block, .shieldBash, .slash],
                 skills: [.smite, .sunder, .stoneskinPotion, .spikedShield],
@@ -32,7 +32,7 @@ enum GameContentRosterGenerated {
             id: "rogue",
             name: "Rogue",
             role: .hero,
-            maxHealth: 14,
+            maxHealth: 16,
             abilityChoices: AbilityChoices(
                 basics: [.stab, .blackjack, .fangs, .rendingSlash],
                 skills: [.poisonDagger, .serratedEdge, .steal, .feint],
@@ -43,7 +43,7 @@ enum GameContentRosterGenerated {
             id: "wizard",
             name: "Wizard",
             role: .hero,
-            maxHealth: 14,
+            maxHealth: 16,
             maxMana: 10,
             abilityChoices: AbilityChoices(
                 basics: [.manaBerries, .rayOfFrost, .kindling, .stargaze],
@@ -55,7 +55,7 @@ enum GameContentRosterGenerated {
             id: "druid",
             name: "Druid",
             role: .hero,
-            maxHealth: 16,
+            maxHealth: 18,
             maxMana: 9,
             abilityChoices: AbilityChoices(
                 basics: [.manaBerries, .maul, .pixieDust, .stargaze],
@@ -67,7 +67,7 @@ enum GameContentRosterGenerated {
             id: "warlock",
             name: "Warlock",
             role: .hero,
-            maxHealth: 16,
+            maxHealth: 18,
             maxMana: 9,
             abilityChoices: AbilityChoices(
                 basics: [.kindling, .fangs, .manaBerries, .rendingSlash],
@@ -79,7 +79,7 @@ enum GameContentRosterGenerated {
             id: "alchemist",
             name: "Alchemist",
             role: .hero,
-            maxHealth: 14,
+            maxHealth: 16,
             maxMana: 8,
             abilityChoices: AbilityChoices(
                 basics: [.causticJab, .kindling, .apple, .manaBerries],
@@ -91,7 +91,7 @@ enum GameContentRosterGenerated {
             id: "wildcard",
             name: "Wildcard",
             role: .hero,
-            maxHealth: 14,
+            maxHealth: 16,
             abilityChoices: AbilityChoices(
                 basics: [.blackjack, .slash, .maul, .stab],
                 skills: [.bountyShot, .cinderbloom, .fireball, .tithe],
@@ -108,7 +108,7 @@ enum GameContentRosterGenerated {
             id: "wolf",
             name: "Wolf",
             role: .companion,
-            maxHealth: 14,
+            maxHealth: 16,
             abilityChoices: AbilityChoices(
                 basics: [.fangs, .rendingSlash, .stab, .sniffOut],
                 skills: [.pounce, .predatorsFocus, .venomFangs, .serratedEdge],
@@ -119,7 +119,7 @@ enum GameContentRosterGenerated {
             id: "bear",
             name: "Bear",
             role: .companion,
-            maxHealth: 17,
+            maxHealth: 19,
             abilityChoices: AbilityChoices(
                 basics: [.maul, .fangs, .bash, .slash],
                 skills: [.briarShield, .sunder, .stoneskinPotion, .serratedEdge],
@@ -130,7 +130,7 @@ enum GameContentRosterGenerated {
             id: "frost_whelp",
             name: "Frost Whelp",
             role: .companion,
-            maxHealth: 14,
+            maxHealth: 16,
             maxMana: 8,
             abilityChoices: AbilityChoices(
                 basics: [.rayOfFrost, .iceShot, .manaBerries, .stargaze],
@@ -142,7 +142,7 @@ enum GameContentRosterGenerated {
             id: "lizard_scout",
             name: "Lizard Scout",
             role: .companion,
-            maxHealth: 14,
+            maxHealth: 16,
             abilityChoices: AbilityChoices(
                 basics: [.stab, .blackjack, .causticJab, .sniffOut],
                 skills: [.serratedEdge, .poisonDagger, .steal, .acidPotion],
@@ -153,7 +153,7 @@ enum GameContentRosterGenerated {
             id: "panther",
             name: "Panther",
             role: .companion,
-            maxHealth: 15,
+            maxHealth: 17,
             abilityChoices: AbilityChoices(
                 basics: [.rendingSlash, .fangs, .stab, .sniffOut],
                 skills: [.pounce, .venomFangs, .predatorsFocus, .serratedEdge],
@@ -164,7 +164,7 @@ enum GameContentRosterGenerated {
             id: "phoenix",
             name: "Phoenix",
             role: .companion,
-            maxHealth: 14,
+            maxHealth: 16,
             maxMana: 8,
             abilityChoices: AbilityChoices(
                 basics: [.kindling, .fireArrow, .pixieDust, .manaBerries],
@@ -176,7 +176,7 @@ enum GameContentRosterGenerated {
             id: "golden_retriever",
             name: "Golden Retriever",
             role: .companion,
-            maxHealth: 16,
+            maxHealth: 18,
             abilityChoices: AbilityChoices(
                 basics: [.shieldBash, .sniffOut, .block, .apple],
                 skills: [.stoneskinPotion, .tithe, .steal, .heal],
@@ -187,7 +187,7 @@ enum GameContentRosterGenerated {
             id: "library_owl",
             name: "Library Owl",
             role: .companion,
-            maxHealth: 14,
+            maxHealth: 16,
             maxMana: 8,
             abilityChoices: AbilityChoices(
                 basics: [.stargaze, .apple, .manaBerries, .rayOfFrost],
@@ -199,7 +199,7 @@ enum GameContentRosterGenerated {
             id: "risen_skeleton",
             name: "Risen Skeleton",
             role: .companion,
-            maxHealth: 15,
+            maxHealth: 17,
             abilityChoices: AbilityChoices(
                 basics: [.slash, .shieldBash, .fangs, .rendingSlash],
                 skills: [.darkPact, .sunder, .bloodOffering, .venomFangs],
@@ -210,7 +210,7 @@ enum GameContentRosterGenerated {
             id: "mana_moth",
             name: "Mana Moth",
             role: .companion,
-            maxHealth: 14,
+            maxHealth: 16,
             maxMana: 11,
             abilityChoices: AbilityChoices(
                 basics: [.stargaze, .pixieDust, .manaBerries, .rayOfFrost],
@@ -222,7 +222,7 @@ enum GameContentRosterGenerated {
             id: "pixie",
             name: "Pixie",
             role: .companion,
-            maxHealth: 14,
+            maxHealth: 16,
             maxMana: 7,
             abilityChoices: AbilityChoices(
                 basics: [.pixieDust, .manaBerries, .apple, .stargaze],
@@ -234,7 +234,7 @@ enum GameContentRosterGenerated {
             id: "shield_scarab",
             name: "Shield Scarab",
             role: .companion,
-            maxHealth: 16,
+            maxHealth: 18,
             abilityChoices: AbilityChoices(
                 basics: [.shieldBash, .block, .bash, .slash],
                 skills: [.spikedShield, .stoneskinPotion, .briarShield, .sunder],
@@ -245,7 +245,7 @@ enum GameContentRosterGenerated {
             id: "fox",
             name: "Fox",
             role: .companion,
-            maxHealth: 14,
+            maxHealth: 16,
             abilityChoices: AbilityChoices(
                 basics: [.bash, .fangs, .sniffOut, .rendingSlash],
                 skills: [.steal, .pounce, .predatorsFocus, .serratedEdge],
