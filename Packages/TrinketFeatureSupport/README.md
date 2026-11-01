@@ -91,6 +91,7 @@ The shell’s scroll geometry drives header height,
 pinned-title opacity, and artwork overscroll zoom even after the hero scrolls
 offscreen. The principal toolbar item retains its size while the title fades, and
 the native navigation title and scroll-edge configuration remain stable during scrolling.
+Title opacity follows the reachable scroll range, excluding bottom rubber-banding.
 Only the artwork transform observes the changing overscroll value. Artwork extension
 follows cropping and blending, without an outer clip; the completed crop and fade
 are rasterized together before extension so fractional sheet and scroll movement

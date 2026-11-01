@@ -25,4 +25,18 @@ public enum HeroHeaderLayout {
 
     static let minimumHeaderHeight: CGFloat = 300
     static let headerAspectRatio: CGFloat = 4.0 / 3.0
+
+    static func titleOpacity(
+        offsetY: CGFloat,
+        contentHeight: CGFloat,
+        viewportHeight: CGFloat,
+        topInset: CGFloat,
+        bottomInset: CGFloat,
+        headerHeight: CGFloat,
+    ) -> CGFloat {
+        // Bottom rubber-banding should not reveal a title beyond the reachable scroll range.
+        let scrollableDistance = max(0, contentHeight + topInset + bottomInset - viewportHeight)
+        let offset = min(max(offsetY + topInset, 0), scrollableDistance)
+        return min(max((offset - (headerHeight - topInset)) / 32, 0), 1)
+    }
 }
