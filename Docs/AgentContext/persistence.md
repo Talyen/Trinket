@@ -43,7 +43,7 @@ accepted recovery-file save at lifecycle/sync checkpoints, never an uncommitted 
 
 Roster edits carry combatant, ability, and physical item IDs, never caller-owned
 catalog or Inventory snapshots. Content owns `PlayerRosterState` and its candidate-value
-rules in `Roster/RosterEdits.swift`; they resolve those IDs against current content,
+rules in [RosterEdits.swift](../../Packages/TrinketContent/Sources/TrinketContent/Roster/RosterEdits.swift); they resolve those IDs against current content,
 unlocks, purchase access, and the inventory supplied by Persistence inside the
 transaction. Persistence owns admission, hydration/migration, and durable publication.
 Loadout, party, and talent commands return `SaveActionAttempt<RosterEditResult>`,

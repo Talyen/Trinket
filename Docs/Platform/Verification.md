@@ -295,8 +295,9 @@ are implementation references, not an everyday reading requirement.
 | `check-module-boundaries.sh` | Package layering and imports |
 
 The shell policy commands delegate to `check-swift-policy.py`. Their rule owners
-share fail-closed search, source context, and reporting in `internal/policy_scan.py`;
-the UI style and cache-path checks reuse the same search/report boundary.
+share fail-closed search, source context, and reporting in
+`Scripts/internal/policy_scan.py`; the UI style and cache-path checks reuse the
+same search/report boundary.
 
 API bans and SwiftLint suppression reasons are enforced by the scripts in the
 table above (pinned SwiftFormat token export through

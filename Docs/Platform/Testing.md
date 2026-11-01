@@ -179,16 +179,13 @@ exception tied to its native-query limitation; ordinary product queries retain
 their stable identifiers. Avoid incidental display names, rarity labels, or exact scroll geometry;
 assert those values only when they are themselves the contract being protected.
 
-Smoke/full-UI class membership and launch details belong to
-[`TrinketUITests/README.md`](../../TrinketUITests/README.md); this document owns
-only the semantic keep/drop rubric above. Command selection and isolation belong
-to [Verification.md](Verification.md).
+Smoke/full-UI class membership, launch details, speed rules, and mid-battle guidance
+belong to [`TrinketUITests/README.md`](../../TrinketUITests/README.md); this document
+owns only the semantic keep/drop rubric above. Command selection and isolation
+belong to [Verification.md](Verification.md).
 
 ## UI execution notes
 
 Frame pacing and app-journey metrics are outside smoke and routine push CI.
 Manual hosted performance diagnostics and expressly requested local measurements
 follow the [performance playbook](PerformanceInvestigationPlaybook.md).
-Launch-arg catalog, speed rules, and mid-battle guidance live in
-[`TrinketUITests/README.md`](../../TrinketUITests/README.md); command selection and
-isolation belong to [Verification.md](Verification.md).

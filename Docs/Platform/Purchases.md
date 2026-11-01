@@ -5,7 +5,7 @@ Product rules and offer copy: [Monetization.md](../Product/Monetization.md).
 ## Apple infrastructure
 
 Use StoreKit with product identifier `com.ryanmcintire.Trinket.fullgame`, a
-non-consumable named **Full Game**, US base price **$4.99**, Family Sharing enabled.
+non-consumable named **Full Game**, US base price **\$4.99**, Family Sharing enabled.
 Never rename or reuse that identifier for another product. No Apple Pay merchant
 setup, payment server, hosted player account, or third-party purchase SDK is needed.
 

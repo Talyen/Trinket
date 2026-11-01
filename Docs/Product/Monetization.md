@@ -1,7 +1,7 @@
 # Monetization
 
 Trinket is free to start, with one permanent **Full Game** purchase at a US base
-price of **$4.99**. Use Apple's non-consumable In-App Purchase with Family Sharing.
+price of **\$4.99**. Use Apple's non-consumable In-App Purchase with Family Sharing.
 No subscriptions, consumable currencies, paid power, reward boosts, or paid skips.
 
 ## Access

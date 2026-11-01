@@ -336,7 +336,7 @@ becomes a checkpoint. Missing build products are rebuilt before remaining tests.
 Local and hosted routing read package/generation inputs and generated-output roots
 through `Scripts/internal/source_ownership.py`, backed by the existing authored
 registries. CI shard membership must cover that package inventory exactly once.
-`internal/path_matching.py` keeps the two existing wildcard dialects explicit:
+`Scripts/internal/path_matching.py` keeps the two existing wildcard dialects explicit:
 local `matches` permits a wildcard to span separators, while hosted `glob_match`
 keeps a single star within its component and uses `**` for recursive paths.
 Sharing ownership facts does not combine local budgets with hosted qualification
