@@ -58,9 +58,10 @@ Boss battles use the bundled Alchemy idle clips, centered and filled within the
 existing enemy frame. The battle card owns a bounded cache of the selected boss's
 compressed clips and prepares two reusable players; it keeps the outgoing frame until the
 next clip's fresh layer is ready, then crossfades. Shuffled rounds avoid adjacent repeats.
-Backgrounding or retiring the card cancels loading and releases playback; a memory
-warning falls back to static art for that card. Static prepared artwork also covers
-loading, Reduce Motion, missing or failed media, and the defeated enemy slice.
+Backgrounding, hiding its presentation, or retiring the card cancels loading and
+releases playback; a memory warning falls back to static art for that card. Static
+prepared artwork also covers loading, Reduce Motion, missing or failed media, and
+the defeated enemy slice.
 Lyrics and resource bars remain above the artwork. Lyrics derive from current media time,
 waking at word and loop boundaries and when audio playback changes; periodic reconciliation
 covers unreported system changes. The supplied MP4s are finished authored resources in the

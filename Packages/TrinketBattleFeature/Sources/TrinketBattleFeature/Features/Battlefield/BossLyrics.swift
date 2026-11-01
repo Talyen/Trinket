@@ -80,9 +80,16 @@ private struct SungBossLyrics: View {
                     }
                 }
                 let delay: TimeInterval
-                if settlingSamples > 0 || session.dependencies.musicPlaybackChanges == nil || !playing {
+                if settlingSamples > 0 || session.dependencies.musicPlaybackChanges == nil {
                     delay = 1.0 / 60
                     settlingSamples = max(0, settlingSamples - 1)
+                } else if playback?.trackID != trackID {
+                    // A different track can only become this one through a route change,
+                    // which wakes the task. Keep a reconciliation fallback as well.
+                    delay = 1
+                } else if !playing {
+                    // Preserve prompt recovery from unreported interruptions or gain changes.
+                    delay = 1.0 / 60
                 } else if let playback {
                     delay = sampler.value.delayUntilNextBoundary(at: playback.currentTime, duration: playback.duration)
                 } else {

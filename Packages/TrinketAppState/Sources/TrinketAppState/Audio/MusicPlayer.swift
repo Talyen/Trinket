@@ -284,8 +284,11 @@ final class MusicPlayer {
                 guard !Task.isCancelled else { return }
                 let progress = Float(step) / 18
                 outgoing.volume = startingVolume * (1 - progress)
+                let wasAudible = incoming.map { $0.isPlaying && $0.volume > 0 } ?? false
                 incoming?.volume = target * progress
-                self?.notifyPlaybackChanged()
+                if let incoming, wasAudible != (incoming.isPlaying && incoming.volume > 0) {
+                    self?.notifyPlaybackChanged()
+                }
                 do {
                     try await backend.waitForFadeStep(duration)
                 } catch {

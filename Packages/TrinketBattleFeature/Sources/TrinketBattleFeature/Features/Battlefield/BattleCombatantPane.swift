@@ -31,6 +31,7 @@ struct BattleCombatantPane: View {
     @Environment(\.displayScale) private var displayScale
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.isDecorativeMotionActive) private var isVisible
     let combatant: Combatant
     let presentation: BattlePresentationState
     let health: Int
@@ -146,7 +147,7 @@ struct BattleCombatantPane: View {
             .overlay {
                 if recoilDirection == .up, !isDefeated, !reduceMotion,
                    let clips = BossIdleCatalog.clips(for: combatant.id) {
-                    BossIdleArtwork(clips: clips, isActive: scenePhase == .active)
+                    BossIdleArtwork(clips: clips, isActive: scenePhase == .active && isVisible)
                         .id(combatant.id)
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)

@@ -187,9 +187,10 @@ final class BossIdlePlayerView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        guard slots.contains(where: { $0.map { $0.layer.frame != bounds } ?? false }) else { return }
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        for slot in slots {
+        for slot in slots where slot?.layer.frame != bounds {
             slot?.layer.frame = bounds
         }
         CATransaction.commit()
