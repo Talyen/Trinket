@@ -30,6 +30,8 @@ private struct SungBossLyrics: View {
     let phrases: [MusicLyricPhrase]
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var frame: MusicLyricFrame?
+    @State private var playbackRevision = 0
+    @State private var samplerBox: BossLyricSamplerBox?
 
     var body: some View {
         BossLyricWordLayout {
@@ -51,20 +53,43 @@ private struct SungBossLyrics: View {
         .allowsHitTesting(false)
         .accessibilityIdentifier(AccessibilityID.Battle.bossLyrics)
         .task {
-            var sampler = BossLyricSampler(phrases: phrases)
+            guard let changes = session.dependencies.musicPlaybackChanges?() else { return }
+            // Reconcile once after subscribing so a concurrent route change cannot be missed.
+            playbackRevision &+= 1
+            for await _ in changes {
+                playbackRevision &+= 1
+            }
+        }
+        .task(id: playbackRevision) {
+            let sampler: BossLyricSamplerBox
+            if let samplerBox {
+                sampler = samplerBox
+            } else {
+                sampler = BossLyricSamplerBox(phrases: phrases)
+                samplerBox = sampler
+            }
+            var settlingSamples = 3
             while !Task.isCancelled {
                 let playback = session.dependencies.readMusicPlayback()
-                let next = playback?.trackID == trackID && playback?.isAudible == true
-                    ? playback.flatMap { sampler.frame(at: $0.currentTime) }
-                    : nil
+                let playing = playback?.trackID == trackID && playback?.isAudible == true
+                let next = playing ? playback.flatMap { sampler.value.frame(at: $0.currentTime) } : nil
                 if next != frame {
                     // Animate row recentering and wrapping in the same transaction as word entrances.
                     withAnimation(reduceMotion ? nil : TrinketMotion.Content.entrance) {
                         frame = next
                     }
                 }
+                let delay: TimeInterval
+                if settlingSamples > 0 || session.dependencies.musicPlaybackChanges == nil || !playing {
+                    delay = 1.0 / 60
+                    settlingSamples = max(0, settlingSamples - 1)
+                } else if let playback {
+                    delay = sampler.value.delayUntilNextBoundary(at: playback.currentTime, duration: playback.duration)
+                } else {
+                    delay = 1.0 / 60
+                }
                 do {
-                    try await Task.sleep(for: .seconds(1.0 / 60))
+                    try await Task.sleep(for: .seconds(delay))
                 } catch {
                     return
                 }
@@ -73,8 +98,16 @@ private struct SungBossLyrics: View {
     }
 }
 
-/// A lyric frame can only change at a word boundary, but playback is still sampled
-/// every display interval so pauses, seeks, track changes and loops remain responsive.
+@MainActor
+private final class BossLyricSamplerBox {
+    var value: BossLyricSampler
+
+    init(phrases: [MusicLyricPhrase]) {
+        value = BossLyricSampler(phrases: phrases)
+    }
+}
+
+/// Playback changes wake the view; media time still determines every displayed word.
 struct BossLyricSampler {
     private let phrases: [MusicLyricPhrase]
     private let boundaries: [TimeInterval]
@@ -108,6 +141,13 @@ struct BossLyricSampler {
         interval = start ..< end
         cachedFrame = MusicLyricFrame.at(time, in: phrases)
         return cachedFrame
+    }
+
+    func delayUntilNextBoundary(at time: TimeInterval, duration: TimeInterval) -> TimeInterval {
+        guard time.isFinite else { return 1.0 / 60 }
+        let next = min(interval?.upperBound ?? time, duration)
+        // Periodic reconciliation covers unreported system changes and clock drift.
+        return max(1.0 / 120, min(1, next - time))
     }
 }
 

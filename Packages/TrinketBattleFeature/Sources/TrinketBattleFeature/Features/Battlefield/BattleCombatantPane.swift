@@ -117,6 +117,9 @@ struct BattleCombatantPane: View {
                     .combatantCardChrome()
                     .overlay { feedbackLayer }
             }
+        } else if recoilDirection == .up {
+            artworkLayer
+                .overlay { feedbackLayer }
         } else {
             artworkLayer
                 .saturation(isDefeated ? 0 : 1)

@@ -227,6 +227,30 @@ struct MusicPlayerTests {
         #expect(restarted.currentTime == 0)
     }
 
+    @Test func `lyric observers wake for audio and system playback changes`() async throws {
+        let backend = ControlledMusicBackend()
+        let center = NotificationCenter()
+        let player = MusicPlayer(isDisabled: false, backend: backend, notificationCenter: center)
+        let changes = player.playbackChanges()
+        var changeCount = 0
+        let observer = Task { @MainActor in
+            for await _ in changes {
+                changeCount += 1
+            }
+        }
+        defer { observer.cancel() }
+        player.setVolume(0.5)
+        try await eventually { changeCount == 1 }
+        _ = try await start(request("boss"), player: player, backend: backend)
+        try await eventually { changeCount > 1 }
+        let afterStart = changeCount
+        center.post(name: AVAudioSession.interruptionNotification, object: nil)
+        try await eventually { changeCount > afterStart }
+        let afterInterruption = changeCount
+        player.silenceImmediately(preservingPosition: true)
+        try await eventually { changeCount > afterInterruption }
+    }
+
     @Test func `lyric snapshot follows the active voice and never prepared or outgoing tracks`() async throws {
         let backend = ControlledMusicBackend()
         let player = MusicPlayer(isDisabled: false, backend: backend)

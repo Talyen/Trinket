@@ -98,10 +98,11 @@ Recovery then creates fresh native objects and restores the ambient category,
 Ring/Silent behavior, and audio mixing.
 
 `MusicPlayer.readPlayback()` returns the current voice's track, media position,
-and playing/positive-volume status for lyric sampling. Prepared voices and outgoing
-fades never become the lyric clock. The persisted Boss Lyrics preference defaults
-on and crosses into Battle alongside this read capability through
-`BattlePresentationDependencies`.
+duration, and playing/positive-volume status for lyric sampling. Playback-change
+notifications wake lyric scheduling on route, gain, interruption, and media-service
+changes; prepared voices and outgoing fades never become the lyric clock. The persisted
+Boss Lyrics preference defaults on and crosses into Battle alongside these capabilities
+through `BattlePresentationDependencies`.
 
 ## Sound effects
 

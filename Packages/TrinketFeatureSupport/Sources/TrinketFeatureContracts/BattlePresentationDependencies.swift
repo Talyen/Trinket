@@ -4,17 +4,20 @@ public struct MusicPlaybackSnapshot: Equatable, Sendable {
     public let trackID: String
     public let currentTime: TimeInterval
     public let isAudible: Bool
+    public let duration: TimeInterval
 
-    public init(trackID: String, currentTime: TimeInterval, isAudible: Bool) {
+    public init(trackID: String, currentTime: TimeInterval, isAudible: Bool, duration: TimeInterval = .infinity) {
         self.trackID = trackID
         self.currentTime = currentTime
         self.isAudible = isAudible
+        self.duration = duration
     }
 }
 
 @MainActor
 public struct BattlePresentationDependencies {
     public let readMusicPlayback: () -> MusicPlaybackSnapshot?
+    public let musicPlaybackChanges: (() -> AsyncStream<Void>)?
     public let bossLyricsEnabled: () -> Bool
     public let playSFX: ([String]) -> Void
     public let warmSFX: ([String], Int) -> Void
@@ -34,6 +37,7 @@ public struct BattlePresentationDependencies {
 
     public init(
         readMusicPlayback: @escaping () -> MusicPlaybackSnapshot? = { nil },
+        musicPlaybackChanges: (() -> AsyncStream<Void>)? = nil,
         bossLyricsEnabled: @escaping () -> Bool = { false },
         playSFX: @escaping ([String]) -> Void,
         warmSFX: @escaping ([String], Int) -> Void,
@@ -43,6 +47,7 @@ public struct BattlePresentationDependencies {
         setAutoBattleEnabled: @escaping (Bool) -> Void = { _ in },
     ) {
         self.readMusicPlayback = readMusicPlayback
+        self.musicPlaybackChanges = musicPlaybackChanges
         self.bossLyricsEnabled = bossLyricsEnabled
         self.playSFX = playSFX
         self.warmSFX = warmSFX

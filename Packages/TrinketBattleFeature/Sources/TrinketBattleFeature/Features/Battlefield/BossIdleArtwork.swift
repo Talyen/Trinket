@@ -121,17 +121,21 @@ struct BossIdleHandoff {
 @MainActor
 final class BossIdlePlayerView: UIView {
     private final class Slot {
-        let id = UUID()
-        let clip: Int
+        var id = UUID()
+        var clip = 0
         let player = AVPlayer()
-        let layer = AVPlayerLayer()
+        var layer = AVPlayerLayer()
         var readyObservation: NSKeyValueObservation?
         var statusObservation: NSKeyValueObservation?
         var endObserver: NSObjectProtocol?
         var failureObserver: NSObjectProtocol?
 
-        init(clip: Int) {
+        func reset(clip: Int) {
+            invalidate()
+            id = UUID()
             self.clip = clip
+            // A fresh layer cannot report the previous clip's display readiness.
+            layer = AVPlayerLayer()
         }
 
         func invalidate() {
@@ -256,9 +260,9 @@ final class BossIdlePlayerView: UIView {
 
     private func prepareSlot(_ index: Int) {
         guard active, let clip = order.next(), cachedAssets.indices.contains(clip) else { return }
-        slots[index]?.invalidate()
         handoff.reset(index)
-        let slot = Slot(clip: clip)
+        let slot = slots[index] ?? Slot()
+        slot.reset(clip: clip)
         let id = slot.id
         slots[index] = slot
         slot.player.isMuted = true

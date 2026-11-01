@@ -1,3 +1,4 @@
+import AVFoundation
 import Foundation
 import TrinketCore
 import TrinketFeatureContracts
@@ -45,6 +46,8 @@ final class MusicPlayer {
     private var fade: Fade?
     private var resumePositions: [MusicResumeKey: TimeInterval] = [:]
     private var mediaServicesResetObserver: MainActorCleanup?
+    private var playbackObservers: [UUID: AsyncStream<Void>.Continuation] = [:]
+    private var audioChangeObservers: [MainActorCleanup] = []
     private(set) var needsMediaServicesRecovery = false
     private static let maxResumePositions = 32
 
@@ -58,6 +61,12 @@ final class MusicPlayer {
         self.fadeDuration = fadeDuration
         self.backend = backend
         if !isDisabled {
+            for name in [AVAudioSession.interruptionNotification, AVAudioSession.routeChangeNotification] {
+                let observer = notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                    MainActor.assumeIsolated { self?.notifyPlaybackChanged() }
+                }
+                audioChangeObservers.append(MainActorCleanup { notificationCenter.removeObserver(observer) })
+            }
             mediaServicesResetObserver = AudioSupport.observeMediaServicesReset(in: notificationCenter) { [weak self] in
                 // Old players, including prepared and decoding replacements,
                 // belong to the retired media server and must never be reused.
@@ -90,7 +99,24 @@ final class MusicPlayer {
             trackID: current.request.track.id,
             currentTime: current.voice.currentTime,
             isAudible: current.voice.isPlaying && current.voice.volume > 0,
+            duration: current.voice.duration,
         )
+    }
+
+    func playbackChanges() -> AsyncStream<Void> {
+        let id = UUID()
+        let (stream, continuation) = AsyncStream<Void>.makeStream(bufferingPolicy: .bufferingNewest(1))
+        playbackObservers[id] = continuation
+        continuation.onTermination = { [weak self] _ in
+            Task { @MainActor [weak self] in self?.playbackObservers.removeValue(forKey: id) }
+        }
+        return stream
+    }
+
+    private func notifyPlaybackChanged() {
+        for continuation in playbackObservers.values {
+            continuation.yield(())
+        }
     }
 
     var canPreviewVolume: Bool {
@@ -98,6 +124,7 @@ final class MusicPlayer {
     }
 
     func update(route: MusicRoute, volume: Double, immediate: Bool = false) {
+        defer { notifyPlaybackChanged() }
         guard !isDisabled, !needsMediaServicesRecovery else { return }
         switch route {
         case let .silence(preservingPosition):
@@ -115,6 +142,7 @@ final class MusicPlayer {
     }
 
     func setVolume(_ volume: Double) {
+        defer { notifyPlaybackChanged() }
         guard !isDisabled, !needsMediaServicesRecovery else { return }
         let volume = AudioSupport.clampedVolume(volume)
         if case var .loading(load) = pending, load.startVolume != nil || current == nil {
@@ -210,6 +238,7 @@ final class MusicPlayer {
     }
 
     private func activate(_ track: Track, volume: Float, crossfade: Bool) {
+        defer { notifyPlaybackChanged() }
         backend.activateSession()
         saveCurrentPosition()
         cancelActiveFades()
@@ -229,6 +258,7 @@ final class MusicPlayer {
     }
 
     private func silence(preservingPosition: Bool, immediate: Bool) {
+        defer { notifyPlaybackChanged() }
         clearPending()
         if preservingPosition {
             saveCurrentPosition()
@@ -255,6 +285,7 @@ final class MusicPlayer {
                 let progress = Float(step) / 18
                 outgoing.volume = startingVolume * (1 - progress)
                 incoming?.volume = target * progress
+                self?.notifyPlaybackChanged()
                 do {
                     try await backend.waitForFadeStep(duration)
                 } catch {

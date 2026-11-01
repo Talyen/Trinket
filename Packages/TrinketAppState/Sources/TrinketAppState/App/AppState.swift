@@ -93,6 +93,7 @@ public final class AppState {
         let options = dependencies.options
         return factory(BattlePresentationDependencies(
             readMusicPlayback: { musicPlayer.readPlayback() },
+            musicPlaybackChanges: { musicPlayer.playbackChanges() },
             bossLyricsEnabled: { options.bossLyricsEnabled },
             playSFX: { ids in
                 sfxPlayer.playAll(
