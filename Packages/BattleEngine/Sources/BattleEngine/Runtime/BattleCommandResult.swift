@@ -7,9 +7,21 @@ public struct BattleCommandResult: Equatable, Sendable {
     public let playedCards: [BattleCard]
     /// Nested actions finish before their parent, preserving resolution order.
     public let actions: [BattleResolvedAction]
-    public internal(set) var combatantChanges: [BattleCombatantChange] = []
+    public let combatantChanges: [BattleCombatantChange]
 
-    static let empty = Self(events: [], playedCards: [], actions: [])
+    public init(
+        events: [ActionEvent] = [],
+        playedCards: [BattleCard] = [],
+        actions: [BattleResolvedAction] = [],
+        combatantChanges: [BattleCombatantChange] = [],
+    ) {
+        self.events = events
+        self.playedCards = playedCards
+        self.actions = actions
+        self.combatantChanges = combatantChanges
+    }
+
+    static let empty = Self()
 }
 
 /// Command-local output shared by nested rules, never retained by a completed state.
@@ -28,9 +40,12 @@ final class BattleCommandOutput {
     }
 
     var result: BattleCommandResult {
-        var result = BattleCommandResult(events: events, playedCards: playedCards, actions: resolvedActions)
-        result.combatantChanges = combatantChanges
-        return result
+        BattleCommandResult(
+            events: events,
+            playedCards: playedCards,
+            actions: resolvedActions,
+            combatantChanges: combatantChanges,
+        )
     }
 
     func recordCombatants(in state: borrowing BattleState, afterEventID: Int? = nil) {
@@ -50,8 +65,8 @@ final class BattleCommandOutput {
 
     func append(_ event: ActionEvent) {
         events.append(event)
-        guard !actions.isEmpty else { return }
-        actions[actions.count - 1].eventIDs.append(event.id)
+        guard let lastIndex = actions.indices.last else { return }
+        actions[lastIndex].eventIDs.append(event.id)
     }
 
     func beginCard(_ card: BattleCard) {
@@ -61,14 +76,18 @@ final class BattleCommandOutput {
     }
 
     func endCard() {
+        guard recordsActions else { return }
         _ = cards.popLast()
     }
 
     func beginAction(id: Int, actorID: String, abilityID: String, isAttack: Bool, afterEventID: Int) {
         guard recordsActions else { return }
-        let cardID = cards.last.flatMap { $0.hasAction ? nil : $0.card.id }
-        if !cards.isEmpty {
-            cards[cards.count - 1].hasAction = true
+        let cardID: Int?
+        if let lastIndex = cards.indices.last {
+            cardID = cards[lastIndex].hasAction ? nil : cards[lastIndex].card.id
+            cards[lastIndex].hasAction = true
+        } else {
+            cardID = nil
         }
         actions.append(BattleResolvedAction(
             id: id, actorID: actorID, abilityID: abilityID, cardID: cardID,
@@ -82,7 +101,7 @@ final class BattleCommandOutput {
     }
 
     func recordDamage(_ damage: BattleResolvedDamage) {
-        guard !actions.isEmpty else { return }
-        actions[actions.count - 1].damage.append(damage)
+        guard let lastIndex = actions.indices.last else { return }
+        actions[lastIndex].damage.append(damage)
     }
 }
