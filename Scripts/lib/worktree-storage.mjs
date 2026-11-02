@@ -174,6 +174,67 @@ export function populateWorktree(
 ) {
   source = fs.realpathSync(source);
   target = fs.realpathSync(target);
+  const lockFile = path.join(
+    path.dirname(target),
+    `.${path.basename(target)}.populate.lock`,
+  );
+  let lockFd = null;
+  for (;;) {
+    try {
+      lockFd = fs.openSync(
+        lockFile,
+        fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_RDWR,
+      );
+      fs.writeSync(lockFd, String(process.pid));
+      break;
+    } catch (error) {
+      if (error.code === "EEXIST") {
+        try {
+          const ownerPid = parseInt(
+            fs.readFileSync(lockFile, "utf8").trim(),
+            10,
+          );
+          if (ownerPid > 0) {
+            try {
+              process.kill(ownerPid, 0);
+            } catch (killErr) {
+              if (killErr.code === "ESRCH") {
+                fs.rmSync(lockFile, { force: true });
+                continue;
+              }
+            }
+          }
+        } catch {}
+        throw new Error(
+          `Target worktree is currently being populated; concurrent creation rejected: ${target}`,
+        );
+      }
+      throw error;
+    }
+  }
+  try {
+    return populateWorktreeLocked(source, target, profile, {
+      cloneFile,
+      platform,
+    });
+  } finally {
+    if (lockFd !== null) {
+      try {
+        fs.closeSync(lockFd);
+      } catch {}
+      try {
+        fs.rmSync(lockFile, { force: true });
+      } catch {}
+    }
+  }
+}
+
+function populateWorktreeLocked(
+  source,
+  target,
+  profile,
+  { cloneFile = null, platform = process.platform } = {},
+) {
   const started = performance.now();
   const commit = git(target, ["rev-parse", "HEAD"]).trim();
   let candidates = [],
