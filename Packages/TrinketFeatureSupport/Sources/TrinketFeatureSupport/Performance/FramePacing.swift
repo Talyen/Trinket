@@ -109,7 +109,14 @@ public enum FramePacingAnalyzer {
             return (interval, expected)
         }
         guard !samples.isEmpty else { return .empty }
-        let expectedFrameDuration = median(samples.lazy.map(\.expected))
+        let expectedFrameDuration: CFTimeInterval = if expectedFrameDurations.count == 1 {
+            samples[0].expected
+        } else if let firstExpected = samples.first?.expected,
+                  samples.allSatisfy({ $0.expected == firstExpected }) {
+            firstExpected
+        } else {
+            median(samples.lazy.map(\.expected))
+        }
         guard expectedFrameDuration > 0 else { return .empty }
 
         let sorted = samples.lazy.map(\.interval).sorted()

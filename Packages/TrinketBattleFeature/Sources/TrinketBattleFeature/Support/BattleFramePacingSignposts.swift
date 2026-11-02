@@ -29,6 +29,6 @@ public enum BattleFramePacingSignposts {
 
 extension View {
     func battleFramePacingSignpost(_ name: StaticString, isActive: Bool) -> some View {
-        modifier(FramePacingIntervalModifier(signposter: BattleFramePacingSignposts.signposter, name: name, isActive: isActive))
+        framePacingInterval(signposter: BattleFramePacingSignposts.signposter, name: name, isActive: isActive)
     }
 }

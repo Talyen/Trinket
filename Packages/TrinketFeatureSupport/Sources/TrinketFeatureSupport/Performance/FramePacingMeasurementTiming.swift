@@ -56,3 +56,9 @@ public struct FramePacingIntervalModifier: ViewModifier {
         self.intervalState = nil
     }
 }
+
+public extension View {
+    func framePacingInterval(signposter: OSSignposter, name: StaticString, isActive: Bool) -> some View {
+        modifier(FramePacingIntervalModifier(signposter: signposter, name: name, isActive: isActive))
+    }
+}
