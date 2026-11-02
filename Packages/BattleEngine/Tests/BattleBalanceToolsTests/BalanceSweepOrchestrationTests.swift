@@ -395,3 +395,41 @@ extension BalanceSweepOrchestrationTests {
         #expect(Set(report.records.map(\.companionID)) == Set(roster.companions.map(\.id)))
     }
 }
+
+extension BalanceSweepOrchestrationTests {
+    @Test func `identity summarization handles shared hero companion IDs and empty tiers safely`() {
+        let win = BalanceTestFixtures.result(partyHPRemainingFraction: 0.8)
+        let record = BalanceBattleRecord(
+            tier: .early,
+            heroID: "knight",
+            companionID: "knight",
+            enemyID: "slime",
+            isBoss: false,
+            heroAbilityIDs: ["bash"],
+            companionAbilityIDs: ["bash"],
+            enemyAbilityIDs: ["acid"],
+            enemyTraitIDs: [],
+            affixIDs: [],
+            heroAffixIDs: [],
+            companionAffixIDs: [],
+            heroTalentIDs: [],
+            companionTalentIDs: [],
+            seed: 42,
+            policyID: "greedy-v1",
+            result: win,
+        )
+        let report = BalanceSweepReport(
+            config: BalanceSweepConfig(mode: .identity, battlesPerTier: 1, tiers: [.early, .middle], jobs: 1),
+            policyID: "greedy-v1",
+            records: [record],
+        )
+        let summaries = BalanceStatsAggregator.summarize(report: report)
+        #expect(summaries.count == 2)
+        #expect(summaries[0].tier == .early)
+        #expect(summaries[0].battles == 1)
+        #expect(summaries[0].wins == 1)
+        #expect(summaries[1].tier == .middle)
+        #expect(summaries[1].battles == 0)
+        #expect(summaries[1].heroes.isEmpty)
+    }
+}

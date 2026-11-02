@@ -57,6 +57,19 @@ public struct BalanceDurationBucketStats: Equatable, Sendable {
     public var flagged: Bool
     public var flagReason: String?
 
+    public static let empty = Self(
+        battles: 0,
+        shortBattles: 0,
+        longBattles: 0,
+        averageRounds: 0,
+        averageRoundsWhenShort: 0,
+        averageRoundsWhenLong: 0,
+        maxRounds: 0,
+        worstEnemyID: nil,
+        flagged: false,
+        flagReason: nil,
+    )
+
     public var shortRate: Double {
         guard battles > 0 else { return 0 }
         return Double(shortBattles) / Double(battles)
@@ -119,6 +132,20 @@ public struct BalanceTierStats: Sendable {
     public var affixes: [WinRateSummary]
     public var heroCompanionCells: [PairCellSummary]
     public var heroEnemyCells: [PairCellSummary]
+
+    public static func empty(tier: SimulationPowerTier) -> Self {
+        Self(
+            tier: tier, battles: 0, decidedBattles: 0, wins: 0, timeouts: 0,
+            averageRounds: 0, averagePartyHPOnWin: 0, averageEnemyHPOnLoss: 0,
+            trashDuration: .empty, bossDuration: .empty,
+            enemyDurations: [], heroDurations: [], companionDurations: [],
+            heroes: [], heroesTrash: [], heroesBoss: [],
+            companions: [], companionsTrash: [], companionsBoss: [],
+            enemies: [], items: [], abilities: [], talents: [],
+            enemyAbilities: [], enemyTraits: [], affixes: [],
+            heroCompanionCells: [], heroEnemyCells: [],
+        )
+    }
 }
 
 public enum BalanceStatsAggregator {
@@ -170,9 +197,12 @@ private struct TierAggregation {
     }
 
     var summary: BalanceTierStats {
+        guard !records.isEmpty else {
+            return .empty(tier: tier)
+        }
         let heroes = ownerMargins(decided, id: \.heroID)
         let companions = ownerMargins(decided, id: \.companionID)
-        let ownerRates = Dictionary(uniqueKeysWithValues: (heroes + companions).map { ($0.id, $0.winRate) })
+        let ownerRates = Dictionary((heroes + companions).map { ($0.id, $0.winRate) }, uniquingKeysWith: { first, _ in first })
         let trash = decided.filter { !$0.isBoss }
         let boss = decided.filter(\.isBoss)
         func presence(

@@ -12,7 +12,7 @@ public struct BalanceSweepReport: Codable, Sendable {
     public var progressionRecords: [ProgressionBattleRecord] = []
     public var progressionPlayerStates: [PlayerProgressionState] = []
     public var progressionTruncatedRuns = 0
-    public var elapsedSeconds: Double
+    public var elapsedSeconds: Double = 0
 
     /// The four contrast sections in canonical order. Both the markdown tables
     /// and the findings brief iterate this so a new contrast kind cannot be
@@ -43,7 +43,7 @@ public struct BalanceSweepReport: Codable, Sendable {
             config: config,
             policyID: policyID,
             records: slices.flatMap(\.records),
-            comparedPolicyID: slices.first(where: { $0.comparedPolicyID != nil })?.comparedPolicyID,
+            comparedPolicyID: slices.lazy.compactMap(\.comparedPolicyID).first,
             comparedRecords: slices.flatMap(\.comparedRecords),
             abilityContrasts: merge(\.abilityContrasts),
             affixContrasts: merge(\.affixContrasts),

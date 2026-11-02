@@ -181,7 +181,7 @@ enum BalanceMarkdownTables {
     ) -> [String] {
         let identityLow = tiers.flatMap { tier in
             [tier.heroes, tier.companions, tier.enemies, tier.items, tier.abilities,
-             tier.talents, tier.enemyAbilities, tier.enemyTraits, tier.affixes].joined().filter(\.sampleTooLow)
+             tier.talents, tier.enemyAbilities, tier.enemyTraits, tier.affixes].lazy.joined().filter(\.sampleTooLow)
         }
         let contrastLow = report.contrastSections.flatMap(\.rows)
             .filter { $0.decidedPairs < BalanceSweepConfig.contrastFlagMinPairs && !$0.nonCombat }

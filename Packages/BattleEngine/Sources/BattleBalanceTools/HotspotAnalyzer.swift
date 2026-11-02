@@ -72,6 +72,7 @@ public enum HotspotAnalyzer {
     }
 
     public static func analyze(records: [ProgressionBattleRecord]) -> [NodeHotspotSummary] {
+        guard !records.isEmpty else { return [] }
         // Recovery jobs award XP but are not advancing-content difficulty nodes.
         var buckets: [EncounterKey: EncounterTally] = [:]
         for record in records where record.step.mode != .contract {
