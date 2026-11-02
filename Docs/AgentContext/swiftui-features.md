@@ -28,10 +28,12 @@ The app root keeps `appearsActive` true so switching apps does not grey out game
 controls. Keep actual action eligibility in `isEnabled`/`.disabled` and continue
 using the real `scenePhase` for lifecycle work and decorative motion.
 
-The app root uses `trinketSoftTopScrollEdge` for the native soft top effect on
-iOS 26+; iOS 18 retains its native scroll/navigation appearance. Detail headers
-hide the newer effect until their title is pinned. Keep availability checks in
-shared chrome, preserving readable controls on both appearances.
+The app root and `DetailHeroScrollShell` use `trinketSoftTopScrollEdge` for the
+native soft top effect on iOS 26+; iOS 18 retains its native scroll/navigation
+appearance. Detail shells keep their scroll-edge configuration and principal
+toolbar item size stable while the header title fades in, and screens that hide
+the navigation bar pass `isHidden: true`. Keep availability checks in shared
+chrome, preserving readable controls on both appearances.
 
 Use [swiftui-specialist](../../.agents/skills/swiftui-specialist/SKILL.md) for
 SwiftUI implementation correctness and update performance, and

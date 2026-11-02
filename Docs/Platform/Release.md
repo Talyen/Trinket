@@ -268,8 +268,9 @@ volume. The default is a local safety copy, not an off-machine backup. Existing
 copies are verified and never overwritten with different artifact contents.
 The receipt's `symbol_artifacts` records this copy and its manifest; later receipt
 updates are mirrored there. Keep the current completed release and every unfinished deployment. Once a newer
-release for the same app is ready, the older completed release artifacts
-may be retired; its receipt, reservation and manifest remain. Retired releases
+release for the same app is ready, the older completed release artifacts—along with
+explicitly abandoned deployments marked to discard artifacts—may be retired; their
+receipt, reservation and manifest remain. Retired or abandoned deployments
 cannot be resumed or locally diagnosed. [Output retention](../../Scripts/Reference.md#output-retention)
 owns the guarded retirement pass.
 Already-uploaded legacy receipts without surviving local archives remain

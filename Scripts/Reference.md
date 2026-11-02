@@ -310,7 +310,7 @@ producing hosted workflows. Age alone never proves that an artifact is disposabl
 | Shared primary/device compiler scratch and build products | Same idle-cache window | Managed producers register a lifecycle lease; cleanup also rejects open files and active or uninspectable Apple build/debug processes. Device products can be rebuilt and do not require a retained profile copy |
 | Successful IPA inspection / thinned-export scratch | Until inspection consumers finish | Scoped temporary cleanup retains compact validation/size proof; failed inspection output and explicit keeps remain available |
 | Ready or exported TestFlight duplicate working copies | 24 hours after verified preservation and last receipt write | Deployment-locked hash/UUID/receipt validation; exported runs remain resumable from the verified backup; unbacked, unknown, mismatched, active or kept copies remain protected |
-| Completed release archive, IPA and symbols | Until superseded by a newer ready build for the same app | Retire under the deployment lock; preserve current and unfinished releases, receipts, manifests and reservation records |
+| Completed or explicitly abandoned release archive, IPA and symbols | Until superseded by a newer ready build for the same app, or explicitly abandoned with `discard_artifacts` | Retire under the deployment lock; preserve current and unfinished releases, receipts, manifests and reservation records |
 | Task deliverables and preserved evidence snapshots | Recognized visual captures: 24 hours; routine static reports: seven days; sealed diagnostics: three days / 2 GiB | Preserve active branches, keep markers, source, unclassified and non-evidence deliverables; expiry is journaled where applicable |
 | Recognized profile traces, copied device binaries/symbols and XML | 24 hours after capture and last payload write | Retain result metadata, active or unknown leases and explicit keep markers; unclassified investigations remain caller-owned |
 | Hosted logs, bounded diagnostics, compact timing, size/cache reports and native qualification evidence | 14 days | Workflow expiry, subject to GitHub's repository retention cap |
@@ -332,10 +332,11 @@ explicit or opportunistic through existing tools, with no background job.
 
 `python3 Scripts/cleanup-outputs.py --dry-run --primary --retired-releases-only`
 previews retirement of completed releases superseded by a newer ready build of
-the same app; replace `--dry-run` with `--apply` to retire them.
+the same app and explicitly abandoned deployments marked `discard_artifacts`;
+replace `--dry-run` with `--apply` to retire them.
 Known archives, IPA exports and compiler scratch from older attempts in that
 run also expire. The receipt and compact artifact manifest remain, but retired
-builds cannot be resumed or locally diagnosed. In-progress and current builds are never candidates.
+or abandoned builds cannot be resumed or locally diagnosed. In-progress and current builds are never candidates.
 A release invocation runs this pass before acquiring its deployment lock.
 
 `python3 Scripts/cleanup-outputs.py --dry-run --primary --expired-evidence-only`
