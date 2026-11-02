@@ -153,8 +153,13 @@ struct PlayerRosterStateTests {
         var roster = PlayerRosterState.testSeed
         let knight = try #require(GameContent.hero(matching: "knight"))
         let wizard = try #require(GameContent.hero(matching: "wizard"))
+        let ranger = try #require(GameContent.hero(matching: "ranger"))
         let wolf = try #require(GameContent.companion(matching: "wolf"))
         let wand = try #require(GameContent.sampleInventoryItems.first { $0.id == "wand-basic" })
+        let bowBase = try #require(GameContent.itemBaseType(matching: "shortbow"))
+        let quiverBase = try #require(GameContent.itemBaseType(matching: "quiver"))
+        let bow = InventoryItem(id: "bow-test", baseType: bowBase, rarity: .basic, displayName: "Bow", affixes: [])
+        let quiver = InventoryItem(id: "quiver-test", baseType: quiverBase, rarity: .basic, displayName: "Quiver", affixes: [])
         let before = roster
 
         let rejectedEquip = roster.applyLoadoutEdit(
@@ -174,6 +179,26 @@ struct PlayerRosterStateTests {
         #expect(transferred)
         #expect(roster.equipmentLoadout(for: knight).itemID(for: .weapon) == wand.id)
         #expect(roster.equipmentLoadout(for: wizard).itemID(for: .weapon) == nil)
+
+        #expect(roster.applyLoadoutEdit(
+            .equipItem(itemID: bow.id, slot: .weapon), for: ranger.id, inventory: [bow, quiver], access: .fullGame,
+        ))
+        #expect(roster.applyLoadoutEdit(
+            .equipItem(itemID: quiver.id, slot: .secondaryWeapon), for: ranger.id, inventory: [bow, quiver], access: .fullGame,
+        ))
+        #expect(roster.applyLoadoutEdit(
+            .equipItem(itemID: bow.id, slot: .weapon), for: knight.id, inventory: [bow, quiver], access: .fullGame,
+        ))
+        #expect(roster.equipmentLoadout(for: ranger).itemID(for: .weapon) == nil)
+        #expect(roster.equipmentLoadout(for: ranger).itemID(for: .secondaryWeapon) == nil)
+        #expect(roster.applyLoadoutEdit(
+            .equipItem(itemID: quiver.id, slot: .secondaryWeapon), for: knight.id, inventory: [bow, quiver], access: .fullGame,
+        ))
+        #expect(roster.applyLoadoutEdit(
+            .unequipItem(.weapon), for: knight.id, inventory: [bow, quiver], access: .fullGame,
+        ))
+        #expect(roster.equipmentLoadout(for: knight).itemID(for: .weapon) == nil)
+        #expect(roster.equipmentLoadout(for: knight).itemID(for: .secondaryWeapon) == nil)
     }
 
     @Test func `highest levels filter by role and default to one`() throws {
@@ -247,6 +272,10 @@ struct PlayerRosterStateTests {
 
         roster.progressions[knight.id] = .at(level: 2)
         #expect(roster.availableTalentPoints(for: knight.id) == 1)
+        let rogueTree = try #require(CombatantTalentCatalog.config(for: "rogue").trees.first)
+        let rogueNode = try #require(rogueTree.nodes(forRow: 1).first)
+        #expect(!roster.unlockTalent(node: rogueNode, inTree: rogueTree, for: knight.id))
+        #expect(roster.unlockedTalents(for: knight.id).isEmpty)
         let unlockedRow1A = roster.unlockTalent(node: row1A, inTree: tree, for: knight.id)
         #expect(unlockedRow1A)
         #expect(roster.unlockedTalents(for: knight.id) == Set([row1A.id]))

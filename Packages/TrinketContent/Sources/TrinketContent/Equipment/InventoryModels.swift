@@ -159,13 +159,18 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
 
     /// Restores the weapon-pair invariant after a primary change: an equipped
     /// secondary the new primary disallows is unequipped. One rule covers
-    /// two-handed primaries and ranged primaries paired with non-quiver
-    /// secondaries alike.
-    private mutating func clearDisallowedSecondary(primary: ItemBaseType, inventory: [InventoryItem]) {
-        guard let secondary = equippedItem(in: .secondaryWeapon, inventory: inventory),
-              !Self.secondaryWeaponAllows(primary: primary, secondary: secondary.baseType)
-        else { return }
-        itemIDsBySlot[.secondaryWeapon] = nil
+    /// two-handed primaries, ranged primaries paired with non-quiver
+    /// secondaries, and quivers left without a ranged primary alike.
+    private mutating func clearDisallowedSecondary(primary: ItemBaseType?, inventory: [InventoryItem]) {
+        guard let secondary = equippedItem(in: .secondaryWeapon, inventory: inventory) else { return }
+        let isAllowed = if let primary {
+            Self.secondaryWeaponAllows(primary: primary, secondary: secondary.baseType)
+        } else {
+            !secondary.baseType.isQuiver
+        }
+        if !isAllowed {
+            itemIDsBySlot[.secondaryWeapon] = nil
+        }
     }
 
     public func canEquip(
@@ -275,8 +280,11 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         return primary.baseType.isRanged || primary.baseType.weaponKind != .twoHanded
     }
 
-    public mutating func unequip(_ slot: ItemSlot) {
+    public mutating func unequip(_ slot: ItemSlot, inventory: [InventoryItem] = []) {
         itemIDsBySlot[slot] = nil
+        if slot == .weapon {
+            clearDisallowedSecondary(primary: nil, inventory: inventory)
+        }
     }
 
     public func itemIDs(inFamilyOf slot: ItemSlot) -> Set<String> {

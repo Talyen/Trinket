@@ -9,12 +9,13 @@ public extension EquipmentLoadout {
     ) -> [String: EquipmentLoadout] {
         guard !loadouts.isEmpty else { return loadouts }
         var orderedIDs = loadouts.keys.sorted()
-        if let combatantID {
-            orderedIDs.removeAll { $0 == combatantID }
+        if let combatantID, let index = orderedIDs.firstIndex(of: combatantID), index > 0 {
+            orderedIDs.remove(at: index)
             orderedIDs.insert(combatantID, at: 0)
         }
         var claimedItemIDs = Set<String>()
         var unique: [String: EquipmentLoadout] = [:]
+        unique.reserveCapacity(loadouts.count)
         for combatantID in orderedIDs {
             guard let loadout = loadouts[combatantID] else { continue }
             guard !loadout.itemIDsBySlot.isEmpty else {
@@ -26,7 +27,9 @@ public extension EquipmentLoadout {
                 guard let itemID = loadout.itemID(for: slot), claimedItemIDs.insert(itemID).inserted else { continue }
                 slots[slot] = itemID
             }
-            unique[combatantID] = EquipmentLoadout(itemIDsBySlot: slots)
+            unique[combatantID] = slots.count == loadout.itemIDsBySlot.count
+                ? loadout
+                : EquipmentLoadout(itemIDsBySlot: slots)
         }
         return unique
     }

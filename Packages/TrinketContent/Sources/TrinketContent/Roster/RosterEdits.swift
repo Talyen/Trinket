@@ -29,12 +29,17 @@ public extension PlayerRosterState {
                   let item = inventory.first(where: { $0.id == itemID }) else { return false }
             var equipment = equipmentLoadout(for: combatant)
             guard equipment.canEquip(item, in: slot, inventory: inventory) else { return false }
+            for (otherID, var otherLoadout) in equipmentLoadouts
+                where otherID != combatant.id && otherLoadout.itemID(for: .weapon) == itemID {
+                otherLoadout.unequip(.weapon, inventory: inventory)
+                equipmentLoadouts[otherID] = otherLoadout
+            }
             equipment.equip(item, in: slot, inventory: inventory)
             setEquipmentLoadout(equipment, for: combatant)
         case let .unequipItem(slot):
             guard combatant.role.equipmentSlots.contains(slot) else { return false }
             var equipment = equipmentLoadout(for: combatant)
-            equipment.unequip(slot)
+            equipment.unequip(slot, inventory: inventory)
             setEquipmentLoadout(equipment, for: combatant)
         case .resetTalents:
             resetTalents(for: combatantID)
@@ -59,17 +64,11 @@ public extension PlayerRosterState {
     }
 
     mutating func applyTalentUnlock(nodeID: String, treeID: String, for combatantID: String, access: ContentAccessPolicy) -> Bool {
-        guard let combatant = editableCombatant(id: combatantID, access: access),
+        guard editableCombatant(id: combatantID, access: access) != nil,
               let config = CombatantTalentCatalog.configIfAvailable(for: combatantID),
               let tree = config.tree(matching: treeID),
               let node = tree.node(matching: nodeID) else { return false }
-        var candidate = self
-        guard candidate.unlockTalent(node: node, inTree: tree, for: combatantID) else { return false }
-        let unlocked = candidate.unlockedTalents(for: combatantID)
-        guard config.cappedUnlocks(unlocked, budget: candidate.progression(for: combatant).totalTalentPoints) == unlocked
-        else { return false }
-        self = candidate
-        return true
+        return unlockTalent(node: node, inTree: tree, for: combatantID)
     }
 }
 

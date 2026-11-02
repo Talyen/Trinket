@@ -133,16 +133,14 @@ public struct PlayerRosterState: Equatable, Sendable {
     }
 
     public mutating func setLoadout(_ loadout: AbilityLoadout, for combatant: Combatant) {
-        let configuredCombatant = combatant.withAbilityLoadout(loadout)
-        abilityLoadouts[combatant.id] = configuredCombatant.abilityLoadout
+        abilityLoadouts[combatant.id] = combatant.abilityChoices.withSelectedLoadout(loadout).selected
     }
 
     public func configuredCombatant(_ combatant: Combatant) -> Combatant {
-        combatant.withAbilityLoadout(loadout(for: combatant))
-    }
-
-    public func configuredCombatants(_ combatants: [Combatant]) -> [Combatant] {
-        combatants.map(configuredCombatant)
+        guard let loadout = abilityLoadouts[combatant.id] else {
+            return combatant
+        }
+        return combatant.withAbilityLoadout(loadout)
     }
 
     public func progression(for combatant: Combatant) -> CombatantProgression {
@@ -309,8 +307,8 @@ public struct PlayerRosterState: Equatable, Sendable {
         if let firstUnlocked = catalog.first(where: { isUnlocked($0) }) {
             return configuredCombatant(firstUnlocked)
         }
-        if let starter = catalog.first(where: { $0.id == starterID }) ?? orderedCollectionCombatants(catalog).first {
-            return starter
+        if let starter = catalog.first(where: { $0.id == starterID }) ?? catalog.first {
+            return configuredCombatant(starter)
         }
         preconditionFailure("GameContent party catalogs must be non-empty")
     }
@@ -383,14 +381,24 @@ public extension PlayerRosterState {
         inTree tree: TalentTree,
         for combatantID: String,
     ) -> Bool {
+        guard let config = CombatantTalentCatalog.configIfAvailable(for: combatantID),
+              let ownedTree = config.tree(matching: tree.id),
+              ownedTree == tree
+        else {
+            return false
+        }
         var currentUnlocked = unlockedTalents(for: combatantID)
         let points = availableTalentPoints(for: combatantID)
 
-        guard tree.canUnlock(node: node, unlockedNodeIDs: currentUnlocked, availablePoints: points) else {
+        guard ownedTree.canUnlock(node: node, unlockedNodeIDs: currentUnlocked, availablePoints: points) else {
             return false
         }
 
         currentUnlocked.insert(node.id)
+        let budget = (progressions[combatantID] ?? .initial).totalTalentPoints
+        guard config.cappedUnlocks(currentUnlocked, budget: budget) == currentUnlocked else {
+            return false
+        }
         setUnlockedTalents(currentUnlocked, for: combatantID)
         return true
     }
