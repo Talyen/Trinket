@@ -12,6 +12,7 @@ struct LibraryResearchTests {
         #expect(EquipmentRecipe.matching("missing-recipe") == nil)
         for project in ResearchProject.all {
             #expect(ResearchProject.matching(project.id) == ResearchProject.all.first { $0.id == project.id })
+            #expect(project.objectives.allSatisfy { $0.enemyID != nil })
         }
         #expect(ResearchProject.matching("missing-project") == nil)
         for event in RecruitEventPool.all {

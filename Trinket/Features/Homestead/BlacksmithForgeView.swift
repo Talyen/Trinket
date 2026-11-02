@@ -54,7 +54,7 @@ struct BlacksmithForgeView: View {
                             })
                         }
                     case let .enemy(detail):
-                        if playerSave.library.isReadable, playerSave.library.progress.encounteredEnemyIDs.contains(detail.id) {
+                        if playerSave.library.hasEncountered(detail.id) {
                             LibraryEnemyDetailContent(detail: detail)
                         }
                     case let .result(recipeID, item, celebrates):

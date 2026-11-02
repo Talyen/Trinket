@@ -9,6 +9,18 @@ public struct PlayerLibraryState: Codable, Equatable, Sendable {
         unreadablePayload == nil
     }
 
+    public func hasEncountered(_ enemyID: String) -> Bool {
+        isReadable && progress.encounteredEnemyIDs.contains(enemyID)
+    }
+
+    public func isRecipeUnlocked(_ recipeID: String) -> Bool {
+        isReadable && progress.unlockedRecipeIDs.contains(recipeID)
+    }
+
+    public func isResearchCompleted(_ projectID: String) -> Bool {
+        isReadable && progress.completedResearchIDs.contains(projectID)
+    }
+
     public init() {}
 
     public init(payload: Data?) {

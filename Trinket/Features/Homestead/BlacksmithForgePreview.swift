@@ -29,7 +29,7 @@ struct BlacksmithForgePreview: View {
     var onOpenWorkshop: (() -> Void)?
 
     private var learned: Bool {
-        recipe.researchID == nil || (playerSave.library.isReadable && playerSave.library.progress.unlockedRecipeIDs.contains(recipe.id))
+        recipe.researchID == nil || playerSave.library.isRecipeUnlocked(recipe.id)
     }
 
     private var canAfford: Bool {

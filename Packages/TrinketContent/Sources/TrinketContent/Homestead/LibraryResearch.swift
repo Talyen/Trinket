@@ -4,6 +4,12 @@ public struct ResearchProject: Identifiable, Hashable, Sendable {
     public enum Objective: Hashable, Sendable {
         case defeat(String)
 
+        public var enemyID: String? {
+            switch self {
+            case let .defeat(id): id
+            }
+        }
+
         fileprivate func isSatisfied(in history: LibraryProgress) -> Bool {
             switch self {
             case let .defeat(id): history.defeatedEnemyIDs.contains(id)

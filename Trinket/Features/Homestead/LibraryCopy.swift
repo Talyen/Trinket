@@ -70,20 +70,3 @@ enum LibraryCopy {
         }
     }
 }
-
-struct LibraryRecipePreview: View {
-    @Environment(ShellSession.self) private var shell
-    @Namespace private var resultNamespace
-    let recipe: EquipmentRecipe
-
-    var body: some View {
-        BlacksmithForgePreview(
-            recipe: recipe,
-            resultNamespace: resultNamespace,
-            onOpenResult: { _, _ in },
-            onViewResearch: { LibraryNavigation.open(.researchProject($0), in: shell) },
-            readOnly: true,
-            onOpenWorkshop: { LibraryNavigation.open(.workshop(recipe.id), in: shell) },
-        )
-    }
-}

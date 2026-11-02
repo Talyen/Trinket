@@ -14,8 +14,7 @@ struct LibraryBestiaryView: View {
 
     private var allowedSelection: Binding<CombatantCardDetail?> {
         Binding(get: {
-            guard let selection, playerSave.library.isReadable,
-                  playerSave.library.progress.encounteredEnemyIDs.contains(selection.id) else { return nil }
+            guard let selection, playerSave.library.hasEncountered(selection.id) else { return nil }
             return selection
         }, set: { selection = $0 })
     }
@@ -24,7 +23,7 @@ struct LibraryBestiaryView: View {
         ScrollView {
             LazyVStack(spacing: TrinketDesign.Spacing.small) {
                 ForEach(GameContent.enemies) { enemy in
-                    let discovered = playerSave.library.isReadable && playerSave.library.progress.encounteredEnemyIDs.contains(enemy.id)
+                    let discovered = playerSave.library.hasEncountered(enemy.id)
                     Button { selection = LibraryEnemyDetail.snapshot(enemy, roster: playerSave.roster) } label: {
                         LibraryEnemyArtwork(enemy: enemy, discovered: discovered)
                     }
@@ -44,16 +43,7 @@ struct LibraryBestiaryView: View {
         .trinketScreenBackground()
         .trinketSoftTopScrollEdge()
         .accessibilityIdentifier(AccessibilityID.Homestead.bestiary)
-        .modifier(CombatantDetailSheet(
-            selection: allowedSelection,
-            artworkNames: { CombatantDetailPane.artworkNames(
-                combatant: $0.combatant,
-                loadout: $0.combatant.abilityLoadout,
-                equipmentLoadout: $0.equipmentLoadout,
-                inventoryItems: $0.inventoryItems,
-            ) },
-            detailContent: { detail in LibraryEnemyDetailContent(detail: detail) },
-        ))
+        .libraryEnemyDetailSheet(selection: allowedSelection)
         .onChange(of: playerSave.sessionGeneration) { _, _ in selection = nil }
         .task(id: visibleIDs) {
             await ArtworkViewportPrewarm.prewarm(
@@ -200,7 +190,7 @@ struct LibraryResearchView: View {
             Text(LibraryCopy.tier(project.minimumLibraryTier, locale: locale)).foregroundStyle(.secondary)
         } else {
             HStack(spacing: TrinketDesign.Spacing.small) {
-                ForEach(Array(project.objectives.enumerated()), id: \.element) { index, _ in
+                ForEach(Array(project.objectives.enumerated()), id: \.offset) { index, _ in
                     ResearchCheck(complete: progress[index])
                 }
             }
@@ -229,8 +219,7 @@ struct LibraryResearchProjectView: View {
 
     private var allowedSelection: Binding<CombatantCardDetail?> {
         Binding(get: {
-            guard let selection, playerSave.library.isReadable,
-                  playerSave.library.progress.encounteredEnemyIDs.contains(selection.id) else { return nil }
+            guard let selection, playerSave.library.hasEncountered(selection.id) else { return nil }
             return selection
         }, set: { selection = $0 })
     }
@@ -257,17 +246,11 @@ struct LibraryResearchProjectView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier(AccessibilityID.Homestead.researchReward(project.id))
                 }
-                if project.objectives.contains(where: {
-                    if case .defeat = $0 {
-                        true
-                    } else {
-                        false
-                    }
-                }) {
+                if project.objectives.contains(where: { $0.enemyID != nil }) {
                     Text(L10n.library_defeat).trinketTypography(.sectionTitle)
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: objectiveWidth), alignment: .top)], alignment: .leading) {
-                        ForEach(Array(project.objectives.enumerated()), id: \.element) { index, objective in
-                            if case let .defeat(id) = objective, let enemy = GameContent.enemy(matching: id) {
+                        ForEach(Array(project.objectives.enumerated()), id: \.offset) { index, objective in
+                            if let id = objective.enemyID, let enemy = GameContent.enemy(matching: id) {
                                 objectiveCard(enemy, complete: progress[index])
                             }
                         }
@@ -285,23 +268,14 @@ struct LibraryResearchProjectView: View {
         .trinketScreenBackground()
         .trinketSoftTopScrollEdge()
         .accessibilityIdentifier(AccessibilityID.Homestead.researchProjectDetail(project.id))
-        .modifier(CombatantDetailSheet(
-            selection: allowedSelection,
-            artworkNames: { CombatantDetailPane.artworkNames(
-                combatant: $0.combatant,
-                loadout: $0.combatant.abilityLoadout,
-                equipmentLoadout: $0.equipmentLoadout,
-                inventoryItems: $0.inventoryItems,
-            ) },
-            detailContent: { LibraryEnemyDetailContent(detail: $0) },
-        ))
+        .libraryEnemyDetailSheet(selection: allowedSelection)
         .task(id: project.id) { await artworkPins.prepare(names: LibraryArtworkNames.forRoute(.researchProject(project.id))) }
         .onDisappear { artworkPins.release() }
         .onChange(of: playerSave.sessionGeneration) { _, _ in selection = nil }
     }
 
     private func objectiveCard(_ enemy: Enemy, complete: Bool) -> some View {
-        let discovered = playerSave.library.isReadable && playerSave.library.progress.encounteredEnemyIDs.contains(enemy.id)
+        let discovered = playerSave.library.hasEncountered(enemy.id)
         return VStack(alignment: .leading, spacing: TrinketDesign.Spacing.small) {
             Button {
                 guard discovered else { return }
@@ -355,5 +329,37 @@ enum LibraryNavigation {
         } else {
             shell.homesteadPath.append(route)
         }
+    }
+}
+
+struct LibraryRecipePreview: View {
+    @Environment(ShellSession.self) private var shell
+    @Namespace private var resultNamespace
+    let recipe: EquipmentRecipe
+
+    var body: some View {
+        BlacksmithForgePreview(
+            recipe: recipe,
+            resultNamespace: resultNamespace,
+            onOpenResult: { _, _ in },
+            onViewResearch: { LibraryNavigation.open(.researchProject($0), in: shell) },
+            readOnly: true,
+            onOpenWorkshop: { LibraryNavigation.open(.workshop(recipe.id), in: shell) },
+        )
+    }
+}
+
+private extension View {
+    func libraryEnemyDetailSheet(selection: Binding<CombatantCardDetail?>) -> some View {
+        modifier(CombatantDetailSheet(
+            selection: selection,
+            artworkNames: { CombatantDetailPane.artworkNames(
+                combatant: $0.combatant,
+                loadout: $0.combatant.abilityLoadout,
+                equipmentLoadout: $0.equipmentLoadout,
+                inventoryItems: $0.inventoryItems,
+            ) },
+            detailContent: { LibraryEnemyDetailContent(detail: $0) },
+        ))
     }
 }

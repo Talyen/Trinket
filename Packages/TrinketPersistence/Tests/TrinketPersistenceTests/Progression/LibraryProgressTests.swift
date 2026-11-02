@@ -21,6 +21,8 @@ struct LibraryProgressTests {
         store.recordBattleEncounter(claim)
         let reloaded = try context.makeReloadedStore()
         #expect(reloaded.library.progress.encounteredEnemyIDs == ["slime"])
+        #expect(reloaded.library.hasEncountered("slime"))
+        #expect(!reloaded.library.hasEncountered("goblin"))
         #expect(reloaded.library.progress.defeatedEnemyIDs.isEmpty)
         try store.resetGameplayProgress()
         store.recordBattleEncounter(claim)

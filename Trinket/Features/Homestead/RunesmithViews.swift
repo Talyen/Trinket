@@ -90,7 +90,9 @@ private struct RunesmithEditorView: View {
                                 GameLabel(definition.title)
                                 GameLabel(definition.power(for: item.rarity).scaled(by: item.baseType.affixPowerMultiplier).description)
                                     .foregroundStyle(.secondary)
-                            }.tag(Optional(definition.id))
+                            }
+                            .tag(Optional(definition.id))
+                            .accessibilityIdentifier(AccessibilityID.Homestead.inscriptionAffix(definition.id))
                         }
                     } label: { Text(L10n.homestead_new_affix) }
                         .pickerStyle(.navigationLink)

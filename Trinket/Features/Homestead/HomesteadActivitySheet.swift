@@ -151,16 +151,32 @@ struct HomesteadActivityEntry: View {
     let isBuilt: Bool
     let onOpen: () -> Void
 
+    private var activityIconName: String {
+        switch nodeID {
+        case .transmutationCrucible: "arrow.left.arrow.right"
+        case .runesmithWorkshop: "wand.and.stars"
+        default: "water.waves"
+        }
+    }
+
+    private var activityTitle: LocalizedStringResource {
+        switch nodeID {
+        case .transmutationCrucible:
+            L10n.homestead_transmute
+        case .runesmithWorkshop:
+            L10n.homestead_inscribe
+        default:
+            playerSave.homestead.wishedTemplateID == nil ? L10n.homestead_make_wish : L10n.homestead_change_wish
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
             Button(action: onOpen) {
                 HStack {
-                    Image(systemName: nodeID == .transmutationCrucible ? "arrow.left.arrow.right" : nodeID == .runesmithWorkshop ?
-                        "wand.and.stars" : "water.waves")
+                    Image(systemName: activityIconName)
                         .frame(width: 36, height: 36).accessibilityHidden(true)
-                    Text(nodeID == .transmutationCrucible ? L10n.homestead_transmute : nodeID == .runesmithWorkshop ? L10n
-                        .homestead_inscribe : playerSave.homestead.wishedTemplateID == nil ? L10n.homestead_make_wish : L10n
-                        .homestead_change_wish)
+                    Text(activityTitle)
                     Spacer()
                     Image(systemName: "chevron.right").accessibilityHidden(true)
                 }
