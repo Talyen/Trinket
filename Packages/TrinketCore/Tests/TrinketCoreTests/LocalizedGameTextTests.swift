@@ -41,7 +41,7 @@ struct LocalizedGameTextTests {
     }
 
     @Test func `equipment labels localize while slot save identities stay canonical`() throws {
-        for slot in [ItemSlot.weapon, .armor, .accessory, .trinket] {
+        for slot in ItemSlot.baseSlots {
             let canonical = try JSONEncoder().encode(slot)
             for language in ["ja", "ko", "de", "zh-Hant", "fr"] {
                 let text = CoreCopy.description(slot.displayName, locale: Locale(identifier: language)).text

@@ -210,18 +210,12 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
                 return Self.secondaryWeaponAllows(primary: primary, secondary: item.baseType)
             }
         }
-        let siblingSlots = ItemSlot.allCases.filter { $0 != slot && $0.baseItemSlot == slot.baseItemSlot }
-        let siblings = siblingSlots.compactMap { sibling -> InventoryItem? in
-            equippedItem(in: sibling, inventory: inventory)
-        }
-        if siblings.isEmpty {
-            return inventory.filter { $0.baseType.canEquip(in: slot) }
-        }
-        return inventory.filter { item in
-            item.baseType.canEquip(in: slot) && siblings.allSatisfy {
-                $0.id == item.id || $0.baseType.id != item.baseType.id
+        if let sibling = slot.siblingSlot, let equippedSibling = equippedItem(in: sibling, inventory: inventory) {
+            return inventory.filter { item in
+                item.baseType.canEquip(in: slot) && (equippedSibling.id == item.id || equippedSibling.baseType.id != item.baseType.id)
             }
         }
+        return inventory.filter { $0.baseType.canEquip(in: slot) }
     }
 
     func canEquip(
@@ -260,15 +254,12 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
         inventory: [InventoryItem],
     ) -> Bool {
         guard baseType.slot == .trinket, !itemIDsBySlot.isEmpty else { return true }
-        return ItemSlot.allCases.allSatisfy { slot in
-            guard slot != destination,
-                  slot.baseItemSlot == destination.baseItemSlot,
-                  let siblingID = itemID(for: slot),
-                  siblingID != candidateID,
-                  let worn = inventory.first(where: { $0.id == siblingID })
-            else { return true }
-            return worn.baseType.id != baseType.id
-        }
+        guard let sibling = destination.siblingSlot,
+              let siblingID = itemID(for: sibling),
+              siblingID != candidateID,
+              let worn = inventory.first(where: { $0.id == siblingID })
+        else { return true }
+        return worn.baseType.id != baseType.id
     }
 
     public func isAvailable(_ slot: ItemSlot, inventory: [InventoryItem]) -> Bool {
@@ -289,9 +280,6 @@ public struct EquipmentLoadout: Equatable, Hashable, Sendable {
 
     public func itemIDs(inFamilyOf slot: ItemSlot) -> Set<String> {
         guard !itemIDsBySlot.isEmpty else { return [] }
-        return Set(ItemSlot.allCases.lazy.compactMap { candidate in
-            guard candidate.baseItemSlot == slot.baseItemSlot else { return nil }
-            return itemIDsBySlot[candidate]
-        })
+        return Set(slot.familySlots.compactMap { itemIDsBySlot[$0] })
     }
 }

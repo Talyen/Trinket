@@ -42,11 +42,12 @@ public struct EmptyItemSlotCard: View {
     }
 
     private var emptyLabel: LocalizedStringResource {
-        switch slot {
-        case .weapon, .secondaryWeapon: L10n.ui_emptyslots_empty_weapon
+        switch slot.baseItemSlot {
+        case .weapon: L10n.ui_emptyslots_empty_weapon
         case .armor: L10n.ui_emptyslots_empty_armor
-        case .accessory, .secondaryAccessory: L10n.ui_emptyslots_empty_accessory
-        case .trinket, .secondaryTrinket: L10n.ui_emptyslots_empty_trinket
+        case .accessory: L10n.ui_emptyslots_empty_accessory
+        case .trinket: L10n.ui_emptyslots_empty_trinket
+        default: L10n.ui_emptyslots_empty_trinket
         }
     }
 

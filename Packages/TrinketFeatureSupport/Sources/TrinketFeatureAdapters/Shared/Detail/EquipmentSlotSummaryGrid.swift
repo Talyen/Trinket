@@ -16,9 +16,10 @@ struct EquipmentSlotSummaryGrid: View {
     var body: some View {
         let equippedItemIDs = Set(equipmentLoadout.itemIDsBySlot.values)
         let equippedItemsByID = Dictionary(
-            uniqueKeysWithValues: inventoryItems.lazy
+            inventoryItems.lazy
                 .filter { equippedItemIDs.contains($0.id) }
                 .map { ($0.id, $0) },
+            uniquingKeysWith: { first, _ in first },
         )
 
         VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
