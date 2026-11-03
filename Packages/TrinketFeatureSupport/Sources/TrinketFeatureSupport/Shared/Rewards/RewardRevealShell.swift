@@ -76,24 +76,25 @@ public struct RewardRevealShell<Content: View>: View {
     }
 
     private func scrollContent(pinsActions: Bool) -> some View {
-        ScrollView {
-            VStack(spacing: contentStackSpacing) {
-                heading
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(spacing: contentStackSpacing) {
+                    heading
 
-                content()
+                    content()
 
-                if !pinsActions {
-                    actions
+                    if !pinsActions {
+                        actions
+                    }
                 }
+                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                .padding(.top, contentTopPadding)
+                .padding(.bottom, contentStackSpacing)
+                .frame(maxWidth: .infinity)
             }
-            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-            .padding(.top, contentTopPadding)
-            .padding(.bottom, contentStackSpacing)
-            .frame(maxWidth: .infinity)
-        }
-        .defaultScrollAnchor(.top)
-        .clipped()
-        .safeAreaInset(edge: .bottom) {
+            .defaultScrollAnchor(.top)
+            .clipped()
+
             if pinsActions {
                 actions
                     .padding(.horizontal, TrinketDesign.Layout.contentMargin)

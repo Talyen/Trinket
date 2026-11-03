@@ -7,6 +7,7 @@ import TrinketFeatureSupport
 
 struct FullGameOfferView: View {
     @Environment(\.locale) private var locale
+    @Environment(\.layoutDirection) private var layoutDirection
     @Environment(FullGameStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @ScaledMetric(relativeTo: .title2) private var benefitIconSize: CGFloat = 24
@@ -121,16 +122,9 @@ struct FullGameOfferView: View {
 
     private var purchaseSupport: some View {
         VStack(spacing: TrinketDesign.Spacing.small) {
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: TrinketDesign.Spacing.medium) {
-                    restoreButton
-                    privacyLink
-                }
-                .fixedSize(horizontal: true, vertical: false)
-                VStack(spacing: TrinketDesign.Spacing.small) {
-                    restoreButton
-                    privacyLink
-                }
+            FullGameSupportLayout(layoutDirection: layoutDirection) {
+                restoreButton
+                privacyLink
             }
             Label(String(localized: L10n.ui_fullgameofferview_family_sharing_ba974), systemImage: "person.2")
                 .trinketTypography(.secondaryBody)
@@ -165,6 +159,49 @@ struct FullGameOfferView: View {
                 .contentShape(.rect)
         }
         .accessibilityIdentifier(AccessibilityID.FullGame.privacy)
+    }
+}
+
+private struct FullGameSupportLayout: Layout {
+    let layoutDirection: LayoutDirection
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache _: inout ()) -> CGSize {
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        let rowWidth = sizes.reduce(0) { $0 + $1.width } + TrinketDesign.Spacing.medium
+        let width = proposal.width ?? rowWidth
+        if rowWidth <= width {
+            return CGSize(width: rowWidth, height: sizes.map(\.height).max() ?? 0)
+        }
+        let heights = subviews.map { $0.sizeThatFits(ProposedViewSize(width: width, height: nil)).height }
+        return CGSize(width: width, height: heights.reduce(0, +) + TrinketDesign.Spacing.small)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal _: ProposedViewSize, subviews: Subviews, cache _: inout ()) {
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        let rowWidth = sizes.reduce(0) { $0 + $1.width } + TrinketDesign.Spacing.medium
+        if rowWidth <= bounds.width {
+            var x = bounds.midX - rowWidth / 2
+            let indices = layoutDirection == .rightToLeft ? Array(subviews.indices.reversed()) : Array(subviews.indices)
+            for index in indices {
+                subviews[index].place(
+                    at: CGPoint(x: x, y: bounds.midY),
+                    anchor: .leading,
+                    proposal: ProposedViewSize(sizes[index]),
+                )
+                x += sizes[index].width + TrinketDesign.Spacing.medium
+            }
+        } else {
+            var y = bounds.minY
+            for subview in subviews {
+                let size = subview.sizeThatFits(ProposedViewSize(width: bounds.width, height: nil))
+                subview.place(
+                    at: CGPoint(x: bounds.midX, y: y),
+                    anchor: .top,
+                    proposal: ProposedViewSize(width: bounds.width, height: size.height),
+                )
+                y += size.height + TrinketDesign.Spacing.small
+            }
+        }
     }
 }
 
