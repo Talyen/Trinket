@@ -23,8 +23,12 @@ Apple-service readiness.
 | Account change during fetch and offline/retry behavior | `CloudSaveSyncTests`, isolated transport | Persistence package checks |
 | Process exit before/after settlement and after remote commit before acknowledgement | `PlaythroughSweepTests`, `CloudProcessRecovery`, playthrough runner | Weekly/manual crash proof |
 
-Exhaustive FullUI runs the purchase-recovery class on qualified iOS 26.2 (23C54),
-while its other classes use the selected current runtime. The known iOS 27 local
+Required functional Smoke, exhaustive FullUI and exact-build diagnostics all use
+the qualified iPhone 17 Pro / iOS 26.2 (23C54) baseline. Required purchase smoke
+checks a real Options purchase and unlocked access; FullUI retains the complete
+campaign/purchase/recruited-Warlock/battle journey and every recovery case.
+Exhaustive UI runs independently of compilation/smoke using exact-commit products.
+Compatibility and native settings lanes retain their separate OS/device coverage. The known iOS 27 local
 StoreKit denial defect must not be worked around by granting or filtering signed
 ownership, or by dropping the denial/retry assertions; see
 [StoreKit qualification](Release.md#testflight-troubleshooting).
@@ -64,7 +68,7 @@ with that device; exact OS-version and build requests remain exact. A newer Duo-
 runtime must not prevent the iPad profile from using its compatible runtime.
 When iOS 26 is missing, provisioning requests build `23C54` (iOS 26.2), matching the
 purchase-qualification runtime. Requesting the semantic version alone can download
-a different build. Exhaustive purchase tests also pin that build during simulator selection.
+a different build. All functional UI tests pin that build during simulator selection.
 Read-only simulator inventory queries retry one 30-second timeout. Exhausted
 queries still fail; native settings changes are not automatically repeated.
 Simulator identity is recorded after the serial tests and settings restoration,

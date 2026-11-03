@@ -1,0 +1,8 @@
+name: Prepare functional UI baseline
+description: Install and select the exact release-qualified device/runtime without booting a simulator
+runs:
+  using: composite
+  steps:
+    - name: Prepare the release-qualified functional runtime
+      shell: bash
+      run: python3 Scripts/ci-run-budget.py --phase functional-ui-prerequisite -- python3 Scripts/ci-ui-profile.py prepare

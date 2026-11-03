@@ -29,6 +29,9 @@ def main() -> None:
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     for result in sorted(args.results.rglob('*.xcresult')):
+        if not (result / 'Info.plist').is_file():
+            print(f'Skipping unfinished result bundle: {result.name}')
+            continue
         summary = subprocess.run(['xcrun', 'xcresulttool', 'get', 'test-results', 'tests', '--path', str(result)],
                                  check=True, capture_output=True, text=True, timeout=30)
         identifier = suite_identifier(json.loads(summary.stdout))

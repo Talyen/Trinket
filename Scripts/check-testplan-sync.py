@@ -245,9 +245,7 @@ def testplan_failures() -> list[str]:
             failures.append('.github/workflows/tests.yml build must run registry-selected smoke on its build runner')
         full_ui = re.search(r'^  exhaustive-ui:\n(.*?)(?=^  [\w-]+:|\Z)', workflow, re.M | re.S)
         if not full_ui or '--classes FullUI' not in full_ui[1] or \
-                'python3 Scripts/ci-exhaustive-ui.py ${{ steps.ui-targets.outputs.targets }}' not in full_ui[1] or \
-                not build or '--classes FullUI' not in build[1] or \
-                'python3 Scripts/ci-exhaustive-ui.py ${{ steps.ui-matrices.outputs.full-targets }}' not in build[1]:
+                'python3 Scripts/ci-exhaustive-ui.py ${{ steps.ui-targets.outputs.targets }}' not in full_ui[1]:
             failures.append('.github/workflows/tests.yml exhaustive-ui must consume every registry-selected FullUI class')
         return failures
     except (OSError, ValueError, KeyError) as error:

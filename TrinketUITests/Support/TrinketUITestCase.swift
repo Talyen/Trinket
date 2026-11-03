@@ -157,6 +157,14 @@ class TrinketUITestCase: XCTestCase {
 
     override func setUpWithError() throws {
         try super.setUpWithError()
+        if let expectedBuild = ProcessInfo.processInfo.environment["TRINKET_EXPECTED_OS_BUILD"], !expectedBuild.isEmpty {
+            let actual = ProcessInfo.processInfo.operatingSystemVersionString
+            guard actual.contains("(Build \(expectedBuild))") else {
+                throw NSError(domain: "TrinketUIRuntime", code: 1, userInfo: [
+                    NSLocalizedDescriptionKey: "[coverage prerequisite] Expected iOS build \(expectedBuild); running \(actual)",
+                ])
+            }
+        }
         hasCapturedFailureScreenshot = false
         failurePhase = "setup"
         phaseStartedAt = .now

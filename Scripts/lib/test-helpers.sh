@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+trinket_add_ui_method_timeouts() {
+  [[ "${GITHUB_ACTIONS:-}" == true ]] || return 0
+  if [[ "$MODE" == smoke ]] || [[ "$MODE" == ui && ( "${ui_plan:-}" == FullUI || -n "${TRINKET_DEPLOY_EXPECTED_CASES:-}" ) ]]; then
+    XCODEBUILD_ARGS+=(-test-timeouts-enabled YES -default-test-execution-time-allowance 300 -maximum-test-execution-time-allowance 300)
+  fi
+}
+
 trinket_record_timing() {
   if [[ "${TRINKET_RECORD_TIMING:-1}" == "0" ]]; then
     return 0

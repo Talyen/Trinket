@@ -61,3 +61,6 @@ serial settings profiles, and weekly functional soak/recovery. It is CI-owned an
 [Player coverage](../Docs/Platform/PlayerCoverage.md) owns scenarios, cadence,
 explicit profile prerequisites, and evidence limitations. UI membership is authored
 in `config/ui-tests.tsv`; Profiles and Soak stay outside routine FullUI.
+`ci-ui-profile.py prepare` selects the exact release-qualified functional runtime
+for hosted Smoke, independent FullUI and exact-build diagnostics. Those functional
+methods have five-minute deadlines; native profiles and Soak retain their own limits.

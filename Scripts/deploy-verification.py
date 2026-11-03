@@ -21,8 +21,7 @@ REUSE = load_sibling('deploy_ci_reuse', 'ci-reuse.py')
 PROFILES = load_sibling('deploy_profiles', 'coverage_profiles.py')
 UI_RESULTS = load_sibling('deploy_ui_results', 'ci_ui_retry.py')
 
-QUALIFIED_PROFILE = dict(device='com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro',
-                         runtime='com.apple.CoreSimulator.SimRuntime.iOS-26-2', version='26.2', build='23C54')
+QUALIFIED_PROFILE = load_sibling('deploy_ui_profile', 'ci-ui-profile.py').QUALIFIED_PROFILE
 
 CRITICAL_CASES = {
     'audio': 'AudioLifecycleUITests/testRealBackendsPlayAfterBattleAndForegroundRouting',

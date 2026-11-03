@@ -77,7 +77,9 @@ App Store Connect setup, product loading there may be unavailable; free play
 still works. Distributed release builds have no purchase overrides. TestFlight
 purchases are sandbox-only and do not become production purchases.
 
-StoreKit integration tests run in `FullGamePurchaseSmokeTests` against the app.
+Required `FullGamePurchaseSmokeTests` covers a real Options purchase against the app.
+`FullGamePurchaseUITests` retains the complete campaign unlock, recruited Warlock
+and battle journey alongside pending, decline, restore and revocation coverage.
 The standalone SPM test process cannot act as the app's StoreKit purchase host;
 package tests use controlled storefront I/O to cover entitlement ordering,
 unfinished/live delivery, acknowledgement, and purchase result states.

@@ -1,4 +1,4 @@
-"""FullUI runtime routing retains every class and fails on unqualified StoreKit execution."""
+"""FullUI retains every requested class on one prepared functional runtime."""
 from __future__ import annotations
 
 import unittest
@@ -11,75 +11,42 @@ MODULE = load_script('test_full_ui_routing', 'ci-exhaustive-ui.py')
 
 class FullUIRoutingTests(unittest.TestCase):
     def setUp(self):
-        self.targets = ['BattleFlowUITests', MODULE.PURCHASE_CLASS, 'LocalizationUITests']
-        self.environment = {'GITHUB_ACTIONS': 'true', 'DEVELOPER_DIR': '/verified-xcode', 'TRINKET_SIM_OS_MAJOR': '27'}
-        qualified = MODULE.QUALIFIED_PROFILE
-        self.runtime = dict(identifier=qualified['runtime'], version=qualified['version'], buildversion=qualified['build'])
+        self.targets = ['BattleFlowUITests', 'FullGamePurchaseUITests', 'LocalizationUITests']
+        self.environment = {'GITHUB_ACTIONS': 'true', 'DEVELOPER_DIR': '/verified-xcode',
+                            **MODULE.PROFILE.profile_environment()}
 
-    def test_every_requested_class_executes_once_on_its_runtime(self):
-        with patch.object(MODULE.subprocess, 'check_output', return_value=' '.join(self.targets)), \
-                patch.object(MODULE.PROFILES, 'prepare_runtime', return_value=self.runtime) as prepare, \
-                patch.object(MODULE.subprocess, 'call', return_value=0) as execute:
-            self.assertEqual(MODULE.run(self.targets, self.environment), 0)
-        calls = execute.call_args_list
-        self.assertEqual([target for call in calls for target in call.args[0][5:]],
-                         ['BattleFlowUITests', 'LocalizationUITests', MODULE.PURCHASE_CLASS])
-        self.assertEqual(calls[0].kwargs['env']['TRINKET_SIM_OS_MAJOR'], '27')
-        self.assertEqual(calls[1].kwargs['env']['TRINKET_SIM_OS_VERSION'], '26.2')
-        self.assertEqual(calls[1].kwargs['env']['TRINKET_SIM_OS_BUILD'], MODULE.QUALIFIED_PROFILE['build'])
-        self.assertEqual(calls[1].kwargs['env']['TRINKET_SIM_OS_MAJOR'], '26')
-        self.assertEqual(calls[1].kwargs['env']['TRINKET_SIM_DEVICE_TYPE'], MODULE.QUALIFIED_PROFILE['device'])
-        self.assertEqual(calls[1].kwargs['env']['DEVELOPER_DIR'], '/verified-xcode')
-        for call in calls:
-            self.assertEqual(call.kwargs['env']['TRINKET_ISOLATE'], '1')
-            self.assertEqual(call.kwargs['env']['DERIVED_DATA_PATH'], str((ROOT / '.DerivedData').resolve()))
-            self.assertEqual(call.kwargs['env']['RESULTS_DIR'], str((ROOT / '.DerivedData/TestResults').resolve()))
-        prepare.assert_called_once_with(MODULE.QUALIFIED_PROFILE['device'], 26, '26.2',
-                                        build=MODULE.QUALIFIED_PROFILE['build'])
-        self.assertEqual(self.environment['TRINKET_SIM_OS_MAJOR'], '27')
-
-    def test_independent_purchase_evidence_runs_after_other_ui_failure_and_either_failure_survives(self):
-        for outcomes in ([65, 0], [0, 65], [65, 65]):
-            with self.subTest(outcomes=outcomes), \
+    def test_all_requested_classes_execute_once_together_and_preserve_failure(self):
+        for status in (0, 65):
+            with self.subTest(status=status), \
                     patch.object(MODULE.subprocess, 'check_output', return_value=' '.join(self.targets)), \
-                    patch.object(MODULE.PROFILES, 'prepare_runtime', return_value=self.runtime), \
-                    patch.object(MODULE.subprocess, 'call', side_effect=outcomes) as execute:
-                self.assertEqual(MODULE.run(self.targets, self.environment), 65)
-                self.assertEqual(execute.call_count, 2)
+                    patch.object(MODULE.subprocess, 'call', return_value=status) as execute:
+                self.assertEqual(MODULE.run(self.targets, self.environment), status)
+                execute.assert_called_once()
+                call = execute.call_args
+                self.assertEqual(call.args[0][5:], self.targets)
+                environment = call.kwargs['env']
+                for key, value in MODULE.PROFILE.profile_environment().items():
+                    self.assertEqual(environment[key], value)
+                self.assertEqual(environment['TRINKET_ISOLATE'], '1')
+                self.assertEqual(environment['DERIVED_DATA_PATH'], str((ROOT / '.DerivedData').resolve()))
+                self.assertEqual(environment['RESULTS_DIR'], str((ROOT / '.DerivedData/TestResults').resolve()))
 
-    def test_wrong_or_missing_runtime_fails_without_substituting_storekit_execution(self):
-        for runtime in (dict(self.runtime, buildversion='different'), dict(self.runtime, identifier='different')):
-            with self.subTest(runtime=runtime), \
-                    patch.object(MODULE.subprocess, 'check_output', return_value=MODULE.PURCHASE_CLASS), \
-                    patch.object(MODULE.PROFILES, 'prepare_runtime', return_value=runtime), \
-                    patch.object(MODULE.subprocess, 'call') as execute:
-                self.assertEqual(MODULE.run([MODULE.PURCHASE_CLASS], self.environment), 1)
-                execute.assert_not_called()
-        with patch.object(MODULE.subprocess, 'check_output', return_value=MODULE.PURCHASE_CLASS), \
-                patch.object(MODULE.PROFILES, 'prepare_runtime', side_effect=ValueError('unavailable runtime')), \
-                patch.object(MODULE.subprocess, 'call') as execute:
-            self.assertEqual(MODULE.run([MODULE.PURCHASE_CLASS], self.environment), 1)
-            execute.assert_not_called()
-
-    def test_invalid_or_empty_selection_and_local_execution_fail_before_tests(self):
+    def test_unprepared_runtime_and_invalid_selection_fail_before_execution(self):
         with patch.object(MODULE.subprocess, 'check_output', return_value=' '.join(self.targets)), \
                 patch.object(MODULE.subprocess, 'call') as execute:
-            for targets in ([], ['UnknownUITests'], [MODULE.PURCHASE_CLASS, MODULE.PURCHASE_CLASS]):
+            for targets in ([], ['UnknownUITests'], ['FullGamePurchaseUITests'] * 2):
                 with self.subTest(targets=targets), self.assertRaises(ValueError):
                     MODULE.run(targets, self.environment)
-            with self.assertRaises(ValueError):
-                MODULE.run(self.targets, {'GITHUB_ACTIONS': 'false'})
+            for changes in ({'GITHUB_ACTIONS': 'false'}, {'TRINKET_SIM_OS_MAJOR': '27'},
+                            {'TRINKET_SIM_OS_BUILD': '23C52'}, {'TEST_RUNNER_TRINKET_EXPECTED_OS_BUILD': ''}):
+                with self.subTest(changes=changes), self.assertRaises(ValueError):
+                    MODULE.run(self.targets, {**self.environment, **changes})
             execute.assert_not_called()
 
-    def test_non_purchase_selection_keeps_the_current_runtime(self):
-        with patch.object(MODULE.subprocess, 'check_output', return_value='BattleFlowUITests'), \
-                patch.object(MODULE.PROFILES, 'prepare_runtime') as prepare, \
-                patch.object(MODULE.subprocess, 'call', return_value=0) as execute:
-            self.assertEqual(MODULE.run(['BattleFlowUITests'], self.environment), 0)
-            prepare.assert_not_called()
-            execute.assert_called_once()
-
-    def test_both_exhaustive_workflow_paths_use_the_router_with_the_complete_registry(self):
+    def test_exhaustive_job_uses_the_complete_registry_and_immutable_products(self):
         workflow = (ROOT / '.github/workflows/tests.yml').read_text()
-        for selection in ('steps.ui-matrices.outputs.full-targets', 'steps.ui-targets.outputs.targets'):
-            self.assertIn('command: python3 Scripts/ci-exhaustive-ui.py ${{ ' + selection + ' }}', workflow)
+        exhaustive = workflow.split('  exhaustive-ui:\n', 1)[1].split('  diff-review:\n', 1)[0]
+        self.assertIn('Scripts/check-testplan-sync.py --classes FullUI', exhaustive)
+        self.assertIn('command: python3 Scripts/ci-exhaustive-ui.py ${{ steps.ui-targets.outputs.targets }}', exhaustive)
+        self.assertIn('rebuild-command: \'false\'', exhaustive)
+        self.assertIn('uses: ./.github/actions/setup-functional-ui', exhaustive)

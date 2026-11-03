@@ -113,6 +113,8 @@ def is_code_path(path: str) -> bool:
 
 
 SMOKE_INCLUDES = (
+    "Scripts/ci-ui-profile.py",
+    ".github/actions/setup-functional-ui/**",
     "Scripts/setup-ci-xcode.py",
     "Scripts/config/ci-xcode.json",
     "Trinket/**",

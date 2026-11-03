@@ -218,30 +218,27 @@ xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUND
         for name, following in (('exhaustive-ui', 'diff-review'),):
             with self.subTest(job=name):
                 consumer = workflow.split(f'  {name}:\n', 1)[1].split(f'  {following}:\n', 1)[0]
-                self.assertIn('rebuild-command: ./Scripts/build-for-testing.sh --app-only', consumer)
+                self.assertIn("rebuild-command: 'false'", consumer)
                 self.assertRegex(consumer, r'uses: \./\.github/actions/setup-trinket\n(?:\s+if:.*\n)?\s+with:\n(?:\s+#.*\n)*\s+metal: \'true\'')
 
     def test_full_ui_uses_ready_products_after_smoke_failure_without_masking_it(self):
         workflow = (ROOT / '.github/workflows/tests.yml').read_text()
         build = workflow.split('  build:\n', 1)[1].split('  release-device:\n', 1)[0]
-        smoke = build.split('- name: Run smoke', 1)[1].split('- name: Run exhaustive', 1)[0]
-        inline = build.split('- name: Run exhaustive', 1)[1].split('- name: Preserve required smoke failure', 1)[0]
-        required_smoke = build.split('- name: Preserve required smoke failure', 1)[1]
+        smoke = build.split('- name: Run smoke', 1)[1]
         exhaustive = workflow.split('  exhaustive-ui:\n', 1)[1].split('  diff-review:\n', 1)[0]
         self.assertIn("upload-artifact: 'true'", build)
         self.assertNotIn('build-artifact:', smoke)
         self.assertIn('id: smoke', smoke)
-        self.assertIn('continue-on-error: true', smoke)
+        self.assertNotIn('continue-on-error:', smoke)
+        self.assertNotIn('Run exhaustive UI on the build runner', build)
         self.assertIn('products-outcome: ${{ steps.restore-and-build.outcome }}', build)
-        self.assertIn('[[ "$OUTCOME" == success ]]', exhaustive)
-        self.assertIn('OUTCOME: ${{ needs.build.outputs.inline-ui-outcome }}', exhaustive)
+        self.assertIn('runs-on: xcode-27', exhaustive)
+        self.assertIn('build-artifact: ${{ needs.reuse.outputs.build-artifact || needs.build.outputs.build-artifact }}', exhaustive)
+        self.assertNotIn('inline-ui-outcome', workflow)
         aggregate = workflow.split('  ci-ok:\n', 1)[1].split('  exhaustive-ok:\n', 1)[0]
         self.assertIn('build', aggregate.split('if: always()', 1)[0])
 
-        inline_condition = inline.split('if: ', 1)[1].splitlines()[0]
-        smoke_condition = required_smoke.split('if: ', 1)[1].splitlines()[0]
         summary_condition = exhaustive.split('if: >-\n', 1)[1].split('    continue-on-error:', 1)[0].strip()
-        self.assertIn('always()', inline_condition)
         self.assertIn('always()', summary_condition)
         for products, smoke_outcome, cancelled, requested, reused in (
             ('success', 'success', False, True, False),
@@ -267,13 +264,7 @@ xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUND
                         expression = expression.replace(key, repr(value))
                     return eval(' '.join(expression.replace('&&', 'and').replace('||', 'or').split()), {'__builtins__': {}}, {})
 
-                expected = requested and products == 'success' and not cancelled
-                self.assertEqual(enabled(inline_condition), expected)
                 self.assertEqual(enabled(summary_condition), requested and not cancelled and (products == 'success' or reused))
-                self.assertEqual(enabled(smoke_condition), smoke_outcome == 'failure' and not cancelled)
-        command = required_smoke.split('        run: |\n', 1)[1]
-        result = run_captured(['bash', '-ec', command], cwd=ROOT)
-        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
 
     def test_idempotence_checks_outputs_even_with_a_fresh_stamp(self) -> None:
         for initial, generator, expected in (

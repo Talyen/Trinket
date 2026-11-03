@@ -107,7 +107,7 @@ def prepare_profile(name):
     return prepare_runtime(*PROFILES[name])
 
 
-def prepare_runtime(type_id, major, version=None, *, build=None):
+def prepare_runtime(type_id, major, version=None, *, build=None, download_timeout=1800):
     types = json.loads(simctl('list', 'devicetypes', '-j'))['devicetypes']
     runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
     try:
@@ -120,7 +120,7 @@ def prepare_runtime(type_id, major, version=None, *, build=None):
     requested = download_build or version or '.'.join(map(str, minimum))
     variant = 'arm64' if platform.machine() == 'arm64' else 'universal'
     subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', requested,
-                    '-architectureVariant', variant], check=True, timeout=1800)
+                    '-architectureVariant', variant], check=True, timeout=download_timeout)
     runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
     return select_profile(runtimes, types, type_id, major, version, build=download_build)
 

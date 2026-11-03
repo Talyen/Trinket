@@ -56,17 +56,20 @@ exhausted window fails before consuming the test budget.
 retains its existing attempts. Timeouts remain failures and emit structured receipts. Supervisors terminate only
 their own process groups; existing simulator guest/lease cleanup remains in force.
 
-Combined build/smoke/exhaustive jobs allow 55 minutes so the existing 30-minute UI
-watchdog can run after compilation and smoke; ordinary build/smoke jobs allow 40.
+Build/smoke jobs allow 40 minutes. Exhaustive UI runs independently with a
+55-minute job limit and a 40-minute batch watchdog; compilation and smoke cannot
+consume that batch allowance. Functional runtime downloads are capped at ten minutes.
 The Battle package shard allows 30 minutes (other package shards allow 25), and
 exact-build UI diagnostics allow 30. Each keeps the three-minute diagnostic reserve.
 
-CI Smoke and the explicitly selected qualified release journeys enable XCTest's
-five-minute per-method execution limit. Hosted UI preparation records memory and
-swap counters after boot to distinguish resource pressure from test execution. Their observed baseline methods finish
-below 136 seconds. A stuck method must fail and retain evidence before consuming
-the entire batch watchdog; this does not classify a product timeout as infrastructure.
-Other FullUI, Soak and performance runs retain their existing execution allowances.
+CI Smoke, FullUI and explicitly selected qualified release journeys enable XCTest's
+five-minute per-method execution limit. Exact functional diagnostics additionally cap
+the command at five minutes per selected method, respecting a shorter inherited
+watchdog and the job deadline. Hosted UI preparation records memory and swap counters
+after boot to distinguish resource pressure from test execution. A stuck method must
+fail and retain evidence before consuming the entire batch watchdog; this does not
+classify a product timeout as infrastructure. Native settings profiles, Soak and
+performance runs retain their owned execution allowances.
 After a failure on an ownership-verified simulator, disposable CI retains up to
 four recent Trinket app IPS crash reports (2 MiB each), validating their bundle ID.
 It does not run Xcode sysdiagnose: that collection has stalled result finalization
@@ -120,8 +123,8 @@ generation, and only when content, project, and asset inputs are all unchanged.
 The build job compiles app test products once, runs smoke on that runner, and
 publishes products for exhaustive UI. Exhaustive UI runs every registered FullUI
 class on one runner with one product transfer. It restores the exact-run product
-archive from the retained build artifact and rebuilds when that transfer is missing
-or cannot be validated. Incremental build caches are separate from product transfers.
+archive from the retained build artifact; missing or incompatible products fail
+without rebuilding. Incremental build caches are separate from product transfers.
 The hosted app build prints Xcode's timing summary so compiler tasks can be compared
 with the separately timed cache restore, cache save, and product archive steps.
 Product archives use fast gzip compression; the test transfer retains its existing
@@ -140,20 +143,25 @@ verification does not substitute for it. Native qualification follows the
 [executed-scope contract](#native-pure-logic-qualification). Dispatch
 `scope=qualification` for the focused same-revision comparators, or
 `scope=exhaustive-pilot` to bypass standard reuse and exercise the complete
-portfolio plus inline UI. Normal exhaustive dispatches retain standard reuse.
+portfolio plus independent exhaustive UI. Normal exhaustive dispatches retain standard reuse.
 
-Exhaustive execution retains every registered class. `ci-exhaustive-ui.py` runs
-ordinary FullUI classes on the current selected runtime, then runs the complete
-`FullGamePurchaseUITests` class on the existing qualified iPhone 17 Pro / iOS 26.2
-(23C54) profile. It fails if that exact runtime build is unavailable or any class
-fails; no purchase assertion is skipped. This follows the independently reproduced
-[iOS 27 local StoreKit entitlement defect](Release.md#testflight-troubleshooting).
-Both inline and transferred-product execution use the same router, retaining
-per-invocation results and reporting the purchase runtime in the job summary.
+Functional Smoke, exhaustive FullUI and exact-build UI diagnostics prepare the same
+qualified iPhone 17 Pro / iOS 26.2 (23C54) runtime through `ci-ui-profile.py`.
+Preparation validates the exact runtime build before exporting the device selection;
+newly compiled UI tests also reject execution on another build. The release workflow
+retains its exact-build installer so historical source revisions remain supported.
+Compatibility and native settings profiles keep their independent device/OS coverage.
+The baseline avoids the independently reproduced
+[iOS 27 local StoreKit entitlement defect](Release.md#testflight-troubleshooting)
+without changing ownership behavior or dropping denial/retry assertions.
 
-Upfront full runs execute FullUI on the build/smoke runner and report its outcome
-through a separate advisory status job, eliminating product transfer. Follow-up
-full dispatches with prior standard proof retain the transfer/reuse path.
+Required purchase smoke covers a real Options purchase and unlocked access. The
+complete campaign-gate, purchase, recruited Warlock and battle journey remains in
+`FullGamePurchaseUITests`, alongside every existing recovery case. Exhaustive UI runs
+every registered FullUI class in its own advisory job, using immutable compiled
+products even if smoke failed. Smoke fails its required job directly. Exhaustive
+aggregation reads the actual job conclusions; a masked step success cannot prove
+execution. Each invocation retains its original result and diagnostics.
 
 ### Runner admission and package isolation
 

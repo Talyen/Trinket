@@ -182,7 +182,6 @@ class UIRegistrationTests(unittest.TestCase):
             ('--classes Smoke', '--classes Missing', 'registry-selected smoke'),
             ('steps.ui-matrices.outputs.smoke-targets', 'steps.unrelated.outputs.targets', 'registry-selected smoke'),
             ('--classes FullUI', '--classes Smoke', 'registry-selected FullUI'),
-            ('steps.ui-matrices.outputs.full-targets', 'steps.ui-matrices.outputs.smoke-targets', 'registry-selected FullUI'),
             ('steps.ui-targets.outputs.targets', 'steps.unrelated.outputs.targets', 'registry-selected FullUI'),
         ):
             with self.subTest(bypass=before):

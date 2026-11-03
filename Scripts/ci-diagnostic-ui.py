@@ -68,6 +68,18 @@ def selections(mode: str, text: str) -> list[str]:
     return cases
 
 
+def execution_environment(mode: str, selected: list[str], environment: dict[str, str]) -> dict[str, str]:
+    result = {**environment, 'SKIP_GENERATE': '1', 'TRINKET_TARGETED_UI_RETRY': '1',
+              'TRINKET_UI_PLAN': 'Soak' if mode == 'soak' else 'FullUI'}
+    if mode != 'soak':
+        seconds = 300 * len(selected)
+        inherited = int(environment.get('TRINKET_XCODE_WALL_TIMEOUT_SECONDS', '1200'))
+        if inherited > 0:
+            seconds = min(seconds, inherited)
+        result['TRINKET_XCODE_WALL_TIMEOUT_SECONDS'] = str(seconds)
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='action', required=True)
@@ -96,8 +108,7 @@ def main() -> None:
                          f"`{os.environ.get('SOURCE_SHA')}`; original conclusions remain unchanged.\n\n"
                          + '\n'.join('- ' + target for target in selected) + '\n')
     # Assertion failures remain failures; do not apply infrastructure or assertion retries here.
-    environment = {**os.environ, 'SKIP_GENERATE': '1', 'TRINKET_TARGETED_UI_RETRY': '1',
-                   'TRINKET_UI_PLAN': 'Soak' if args.mode == 'soak' else 'FullUI'}
+    environment = execution_environment(args.mode, selected, dict(os.environ))
     mode = 'smoke' if args.mode == 'smoke' else 'ui'
     raise SystemExit(subprocess.call(['./Scripts/test.sh', mode, '--no-build', *selected], env=environment))
 
