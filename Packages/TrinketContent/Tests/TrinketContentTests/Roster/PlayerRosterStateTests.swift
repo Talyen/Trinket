@@ -180,23 +180,28 @@ struct PlayerRosterStateTests {
         #expect(roster.equipmentLoadout(for: knight).itemID(for: .weapon) == wand.id)
         #expect(roster.equipmentLoadout(for: wizard).itemID(for: .weapon) == nil)
 
-        #expect(roster.applyLoadoutEdit(
+        let equippedBow = roster.applyLoadoutEdit(
             .equipItem(itemID: bow.id, slot: .weapon), for: ranger.id, inventory: [bow, quiver], access: .fullGame,
-        ))
-        #expect(roster.applyLoadoutEdit(
+        )
+        #expect(equippedBow)
+        let equippedQuiver = roster.applyLoadoutEdit(
             .equipItem(itemID: quiver.id, slot: .secondaryWeapon), for: ranger.id, inventory: [bow, quiver], access: .fullGame,
-        ))
-        #expect(roster.applyLoadoutEdit(
+        )
+        #expect(equippedQuiver)
+        let transferredBow = roster.applyLoadoutEdit(
             .equipItem(itemID: bow.id, slot: .weapon), for: knight.id, inventory: [bow, quiver], access: .fullGame,
-        ))
+        )
+        #expect(transferredBow)
         #expect(roster.equipmentLoadout(for: ranger).itemID(for: .weapon) == nil)
         #expect(roster.equipmentLoadout(for: ranger).itemID(for: .secondaryWeapon) == nil)
-        #expect(roster.applyLoadoutEdit(
+        let transferredQuiver = roster.applyLoadoutEdit(
             .equipItem(itemID: quiver.id, slot: .secondaryWeapon), for: knight.id, inventory: [bow, quiver], access: .fullGame,
-        ))
-        #expect(roster.applyLoadoutEdit(
+        )
+        #expect(transferredQuiver)
+        let unequippedBow = roster.applyLoadoutEdit(
             .unequipItem(.weapon), for: knight.id, inventory: [bow, quiver], access: .fullGame,
-        ))
+        )
+        #expect(unequippedBow)
         #expect(roster.equipmentLoadout(for: knight).itemID(for: .weapon) == nil)
         #expect(roster.equipmentLoadout(for: knight).itemID(for: .secondaryWeapon) == nil)
     }
@@ -274,7 +279,8 @@ struct PlayerRosterStateTests {
         #expect(roster.availableTalentPoints(for: knight.id) == 1)
         let rogueTree = try #require(CombatantTalentCatalog.config(for: "rogue").trees.first)
         let rogueNode = try #require(rogueTree.nodes(forRow: 1).first)
-        #expect(!roster.unlockTalent(node: rogueNode, inTree: rogueTree, for: knight.id))
+        let refusedOtherHeroTalent = roster.unlockTalent(node: rogueNode, inTree: rogueTree, for: knight.id)
+        #expect(!refusedOtherHeroTalent)
         #expect(roster.unlockedTalents(for: knight.id).isEmpty)
         let unlockedRow1A = roster.unlockTalent(node: row1A, inTree: tree, for: knight.id)
         #expect(unlockedRow1A)
