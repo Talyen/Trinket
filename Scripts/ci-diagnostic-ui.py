@@ -69,7 +69,10 @@ def selections(mode: str, text: str) -> list[str]:
 
 
 def execution_environment(mode: str, selected: list[str], environment: dict[str, str]) -> dict[str, str]:
-    result = {**environment, 'SKIP_GENERATE': '1', 'TRINKET_TARGETED_UI_RETRY': '1',
+    derived = environment.get('DERIVED_DATA_PATH') or str(Path('.DerivedData').resolve())
+    results = environment.get('RESULTS_DIR') or str(Path(derived) / 'TestResults')
+    result = {**environment, 'TRINKET_ISOLATE': '1', 'DERIVED_DATA_PATH': derived, 'RESULTS_DIR': results,
+              'SKIP_GENERATE': '1', 'TRINKET_TARGETED_UI_RETRY': '1',
               'TRINKET_UI_PLAN': 'Soak' if mode == 'soak' else 'FullUI'}
     if mode != 'soak':
         # Xcode startup/finalization is outside the per-method execution allowance.

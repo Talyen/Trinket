@@ -161,7 +161,9 @@ complete campaign-gate, purchase, recruited Warlock and battle journey remains i
 every registered FullUI class in its own advisory job, using immutable compiled
 products even if smoke failed. Smoke fails its required job directly. Exhaustive
 aggregation reads the actual job conclusions; a masked step success cannot prove
-execution. Each invocation retains its original result and diagnostics.
+execution. Each invocation retains its original result and diagnostics. Exact-build diagnostics
+use managed agent isolation with explicit restored product and result paths, matching
+Smoke and FullUI without moving the transferred products into a new build root.
 
 ### Runner admission and package isolation
 

@@ -68,6 +68,13 @@ printf '%s\\n' "${XCODEBUILD_ARGS[@]}"
                 environment = DIAGNOSTIC.execution_environment(mode, selected,
                     {'TRINKET_XCODE_WALL_TIMEOUT_SECONDS': inherited})
                 self.assertEqual(environment['TRINKET_XCODE_WALL_TIMEOUT_SECONDS'], expected)
+                self.assertEqual(environment['TRINKET_ISOLATE'], '1')
+                self.assertEqual(environment['DERIVED_DATA_PATH'], str((ROOT / '.DerivedData').resolve()))
+                self.assertEqual(environment['RESULTS_DIR'], str((ROOT / '.DerivedData/TestResults').resolve()))
+        environment = DIAGNOSTIC.execution_environment('ui', cases,
+            {'DERIVED_DATA_PATH': '/exact-products', 'RESULTS_DIR': '/exact-evidence'})
+        self.assertEqual(environment['DERIVED_DATA_PATH'], '/exact-products')
+        self.assertEqual(environment['RESULTS_DIR'], '/exact-evidence')
 
     def test_unfinished_localization_bundle_is_skipped_and_complete_bundle_still_exports(self):
         with tempfile.TemporaryDirectory() as directory:
