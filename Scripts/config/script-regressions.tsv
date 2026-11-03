@@ -68,7 +68,7 @@ Scripts/ci-diagnostics.py	test_ci_effort.py,test_ci_improvements.py,test_failure
 Scripts/ci-diagnostics.sh	test_ci_session_scripts.py,test_failure_diagnostics.py,test_test_timing.py
 Scripts/ci-gate.sh	test-lib-args.sh,test_ci_gate_scripts.py,test_ci_handoff_routing.py,test_documentation.py,test_verification_policy.py
 Scripts/ci-infra-rerun.sh	test_policy_scripts.py
-Scripts/ci-path-filter.py	test_ci_effort.py,test_ci_path_filter.py,test_audit_tooling_regressions.py
+Scripts/ci-path-filter.py	test_ci_effort.py,test_ci_path_filter.py,test_audit_tooling_regressions.py,test_ui_stability.py
 Scripts/ci-reuse.py	test_ci_effort.py
 Scripts/deploy-verification.py	test_deploy_verification.py,test_full_ui.py
 Scripts/ci-run-budget.py	test_ci_gate_scripts.py,test_ci_improvements.py
@@ -92,7 +92,7 @@ Scripts/config/ui-tests.tsv	test_build_process.py,test_ci_build_scripts.py,test_
 Scripts/config/uitest-system-query-allowlist.txt	test_swift_style_policy.py,test_ui_policy.py
 Scripts/content-inspect.py	test_content_inspect.py
 Scripts/content_codegen.py	test_codegen_abilities.py,test_codegen_common.py,test_codegen_homestead.py,test_codegen_stages.py,test_codegen_talents.py,test_codegen_triggers.py,test_content_codegen.py,test_content_boundary_regressions.py
-Scripts/coverage_profiles.py	test_player_coverage.py,test_full_ui.py
+Scripts/coverage_profiles.py	test_player_coverage.py,test_full_ui.py,test_ui_stability.py
 Scripts/diagnostic_maintenance.py	test_ci_effort.py,test_ci_session_scripts.py,test_failure_diagnostics.py,test_output_retention.py,test_test_timing.py
 Scripts/ensure-ci-tools.sh	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py
 Scripts/ensure-git-cliff.sh	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py
@@ -173,7 +173,7 @@ Scripts/lib/promote.sh	test_ci_build_scripts.py,test_ci_session_scripts.py,test_
 Scripts/lib/simctl.sh	test-run-env.sh,test_agent_sim_lifetime.py,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py
 Scripts/lib/slots.sh	test-run-env.sh,test_build_process.py,test_ci_build_scripts.py,test_ci_session_scripts.py,test_shared_build_lease.py,test_resource_lease.py
 Scripts/lib/tempdir.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_process.py,test_ci_build_scripts.py
-Scripts/lib/test-helpers.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_metadata.py,test_build_process.py,test_ci_build_scripts.py
+Scripts/lib/test-helpers.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_metadata.py,test_build_process.py,test_ci_build_scripts.py,test_ui_stability.py
 Scripts/lib/test-style.sh	test-lib-args.sh,test-lib-tempdir.sh,test_build_artifacts.py,test_build_process.py,test_ci_build_scripts.py,test_policy_scripts.py
 Scripts/lib/testflight-tools.sh	test_testflight.py
 Scripts/lib/tool-install.sh	test_build_process.py,test_ci_build_scripts.py,test_project_generation.py

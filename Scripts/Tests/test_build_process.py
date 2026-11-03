@@ -184,6 +184,7 @@ printf '%s\\n' "${TRINKET_APP_XCODEBUILD_ARGS[@]}"
                 'ensure_test_simulator_logged() { SIMULATOR_DESTINATION=id=fixture; }\n'
             )
             (scripts / "lib/test-helpers.sh").write_text(
+                'trinket_add_ui_method_timeouts() { :; }\n'
                 'trinket_assert_no_build_is_fresh() { :; }\n'
                 'trinket_assert_targeted_tests_executed() { :; }\ntrinket_record_timing() { :; }\n'
             )
