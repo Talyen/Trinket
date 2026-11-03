@@ -21,6 +21,7 @@ PROFILES = {
     'duo': ('com.apple.CoreSimulator.SimDeviceType.iPhone-Duo', 27),
 }
 MINIMUM_RUNTIME_VERSIONS = {'com.apple.CoreSimulator.SimDeviceType.iPhone-Duo': (27, 1)}
+DEFAULT_DOWNLOAD_VERSIONS = {26: '26.2'}
 TEXT_SIZES = ('large', 'accessibility-extra-extra-extra-large')
 
 
@@ -101,7 +102,7 @@ def prepare_runtime(type_id, major, version=None):
         if not str(error).startswith('unavailable iOS '):
             raise
     minimum = MINIMUM_RUNTIME_VERSIONS.get(type_id, (major, 0))
-    requested = version or '.'.join(map(str, minimum))
+    requested = version or DEFAULT_DOWNLOAD_VERSIONS.get(major, '.'.join(map(str, minimum)))
     variant = 'arm64' if platform.machine() == 'arm64' else 'universal'
     subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', requested,
                     '-architectureVariant', variant], check=True, timeout=1800)

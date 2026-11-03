@@ -645,6 +645,7 @@ jobs:
         with:
           fetch-depth: 2
           filter: blob:none
+          sparse-checkout: Scripts
       - name: Change-budget summary
         env:
           BEFORE: ${{ github.event.before }}

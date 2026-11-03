@@ -62,6 +62,8 @@ or native settings fail visibly; there is no substitute device or OS major.
 Within a requested major, selection uses the newest installed runtime compatible
 with that device; an exact OS-version request remains exact. A newer Duo-only
 runtime must not prevent the iPad profile from using its compatible runtime.
+When iOS 26 is missing, provisioning downloads 26.2, matching the
+purchase-qualification runtime.
 
 Compact phone, iPad and Duo run serially as independent jobs on fresh hosted
 runners. A stalled CoreSimulator service on one device must not prevent the other

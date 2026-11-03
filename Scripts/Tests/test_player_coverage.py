@@ -113,21 +113,23 @@ class PlayerCoverageTests(unittest.TestCase):
                 MODULE.select_profile(runtimes, [dict(identifier='phone')], 'phone', 27, '27.2')
 
     def test_runtime_preparation_installs_missing_major_and_validates_the_result(self):
-        for name, architecture, variant in [('compact', 'arm64', 'arm64'),
-                                             ('ios18', 'x86_64', 'universal')]:
+        for name, architecture, variant, version in [('compact', 'arm64', 'arm64', '26.2'),
+                                                      ('ios18', 'x86_64', 'universal', '18.0')]:
             device, major = MODULE.PROFILES[name]
             types = json.dumps({'devicetypes': [dict(identifier=device)]})
             missing = json.dumps({'runtimes': []})
-            available = json.dumps({'runtimes': [dict(identifier=f'ios-{major}', version=f'{major}.0',
+            available = json.dumps({'runtimes': [dict(identifier=f'ios-{major}', version=version,
                                                        platform='iOS', isAvailable=True)]})
             with self.subTest(profile=name), patch.object(MODULE.platform, 'machine', return_value=architecture), \
                     patch.object(MODULE, 'simctl', side_effect=[types, missing, available]), \
                     patch.object(MODULE.subprocess, 'run') as install:
                 MODULE.prepare_profile(name)
                 install.assert_called_once_with(
-                    ['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', f'{major}.0',
+                    ['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', version,
                      '-architectureVariant', variant], check=True, timeout=1800)
-            with patch.object(MODULE, 'simctl', side_effect=[types, available]), \
+            installed = json.dumps({'runtimes': [dict(identifier=f'ios-{major}', version=f'{major}.0',
+                                                       platform='iOS', isAvailable=True)]})
+            with patch.object(MODULE, 'simctl', side_effect=[types, installed]), \
                     patch.object(MODULE.subprocess, 'run') as install:
                 MODULE.prepare_profile(name)
                 install.assert_not_called()
@@ -139,15 +141,17 @@ class PlayerCoverageTests(unittest.TestCase):
         device = 'com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro'
         types = json.dumps({'devicetypes': [dict(identifier=device)]})
         newer = dict(identifier='ios-26.5', version='26.5', platform='iOS', isAvailable=True)
-        exact = dict(identifier='ios-26.2', version='26.2', buildversion='23C54', platform='iOS', isAvailable=True)
-        with patch.object(MODULE, 'simctl', side_effect=[types, json.dumps({'runtimes': [newer]}),
-                json.dumps({'runtimes': [newer, exact]})]), \
-                patch.object(MODULE.platform, 'machine', return_value='arm64'), \
-                patch.object(MODULE.subprocess, 'run') as install:
-            self.assertEqual(MODULE.prepare_runtime(device, 26, '26.2'), exact)
-            install.assert_called_once_with(
-                ['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '26.2',
-                 '-architectureVariant', 'arm64'], check=True, timeout=1800)
+        for version in ('26.0', '26.2'):
+            exact = dict(identifier=f'ios-{version}', version=version, platform='iOS', isAvailable=True)
+            with self.subTest(version=version), \
+                    patch.object(MODULE, 'simctl', side_effect=[types, json.dumps({'runtimes': [newer]}),
+                        json.dumps({'runtimes': [newer, exact]})]), \
+                    patch.object(MODULE.platform, 'machine', return_value='arm64'), \
+                    patch.object(MODULE.subprocess, 'run') as install:
+                self.assertEqual(MODULE.prepare_runtime(device, 26, version), exact)
+                install.assert_called_once_with(
+                    ['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', version,
+                     '-architectureVariant', 'arm64'], check=True, timeout=1800)
 
     def test_native_text_size_restores_after_body_or_setting_failure(self):
         for fail in ('body', 'setting'):
