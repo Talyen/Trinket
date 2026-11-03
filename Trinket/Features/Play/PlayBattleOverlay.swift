@@ -166,17 +166,6 @@ private struct PlayBattleOverlaySheetsModifier: ViewModifier {
                 NavigationStack {
                     AbilityDetailView(ability: ability)
                         .accessibilityIdentifier(AccessibilityID.Battle.abilityDetail)
-                        .toolbar {
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button {
-                                    battle.overlayAbilityDetail = nil
-                                } label: {
-                                    Label(String(localized: L10n.ui_fullgameofferview_close_7d9eb), systemImage: "xmark")
-                                }
-                                .labelStyle(.iconOnly)
-                                .accessibilityIdentifier(AccessibilityID.Battle.abilityDetailClose)
-                            }
-                        }
                 }
                 .trinketDetailSheet()
             })

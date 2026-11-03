@@ -368,7 +368,6 @@ public enum AccessibilityID {
         public static let battleAgainButton = "Battle Again Button"
         public static let defeatLeaveButton = "Defeat Leave Button"
         public static let abilityDetail = "Battle Ability Detail"
-        public static let abilityDetailClose = "Battle Ability Detail Close"
         public static let abilityDetailEffect = "Battle Ability Detail Effect"
         public static let handCardPrefix = "Battle Hand Card "
 

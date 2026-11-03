@@ -196,8 +196,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         assertExists(AccessibilityID.Battle.abilityDetail)
         try auditProductAccessibility(screen: "card-inspection")
         retainScreenshot(named: "card-inspection")
-        tapButton(AccessibilityID.Battle.abilityDetailClose)
-        assertDoesNotExist(AccessibilityID.Battle.abilityDetail)
+        dismissSheet(AccessibilityID.Battle.abilityDetail)
         let playedCard = battle.frontmostHandCard
         let playedID = playedCard.identifier
         XCTAssertFalse(playedID.isEmpty, "The card-play check must target an actual hand card")
