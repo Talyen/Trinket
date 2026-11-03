@@ -80,7 +80,7 @@ public struct ItemCard<Art: View>: View {
                     case .standard:
                         standardLabel
                     case .reveal:
-                        revealLabel
+                        ItemRevealLabel(item: item, shine: shine)
                     }
                 }
             },
@@ -90,8 +90,14 @@ public struct ItemCard<Art: View>: View {
     private var standardLabel: some View {
         ItemCardLabel(item: item, showsAffixCount: showsAffixCount, shine: shine)
     }
+}
 
-    private var revealLabel: some View {
+struct ItemRevealLabel: View {
+    @Environment(\.locale) private var locale
+    let item: InventoryItem
+    var shine: Shine?
+
+    var body: some View {
         VStack(spacing: TrinketDesign.Spacing.tight) {
             TrinketRarityLabel(
                 rarity: item.rarity,

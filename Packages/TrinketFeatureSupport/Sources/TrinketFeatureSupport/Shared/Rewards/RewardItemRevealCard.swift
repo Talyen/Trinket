@@ -13,14 +13,20 @@ struct RewardItemRevealCard: View {
     }
 
     var body: some View {
-        ItemCard(
-            item: item,
-            showsAffixCount: false,
-            presentation: .reveal,
-        ) {
-            ItemArtwork(item: $0)
+        VStack(spacing: TrinketDesign.Spacing.small) {
+            ItemCard(
+                item: item,
+                showsAffixCount: false,
+                showsName: false,
+            ) {
+                ItemArtwork(item: $0)
+            }
+            .frame(width: artworkHeight * 3.0 / 4.0)
+
+            ItemRevealLabel(item: item)
+                .padding(.horizontal, TrinketDesign.Spacing.extraSmall)
+                .trinketCardLabelSpace()
         }
-        .frame(width: artworkHeight * 3.0 / 4.0)
         .frame(maxWidth: .infinity)
     }
 }
