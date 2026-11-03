@@ -67,6 +67,9 @@ purchase-qualification runtime. Requesting the semantic version alone can downlo
 a different build. Exhaustive purchase tests also pin that build during simulator selection.
 Read-only simulator inventory queries retry one 30-second timeout. Exhausted
 queries still fail; native settings changes are not automatically repeated.
+Simulator identity is recorded after the serial tests and settings restoration,
+so the cold-boot inventory query cannot prevent those tests from starting.
+Missing identity still fails the lane and retains the executed profile receipts.
 
 Compact phone, iPad and Duo run serially as independent jobs on fresh hosted
 runners. A stalled CoreSimulator service on one device must not prevent the other

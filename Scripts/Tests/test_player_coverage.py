@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import subprocess
 import tempfile
+from contextlib import contextmanager
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -264,6 +265,31 @@ class PlayerCoverageTests(unittest.TestCase):
                 self.assertEqual(environment['TEST_RUNNER_TRINKET_PROFILE_REDUCE_MOTION'], '1')
         with self.assertRaisesRegex(ValueError, 'unsupported native audit policy'):
             MODULE.run_profiles('owned', Path('/unused'), 'typo')
+
+    def test_identity_inventory_failure_preserves_executed_profiles_and_restored_settings(self):
+        events = []
+        @contextmanager
+        def settings(*_):
+            try:
+                yield lambda size: events.append(size)
+            finally:
+                events.append('settings restored')
+        def execute(*_, **__):
+            events.append('test')
+            return SimpleNamespace(returncode=0)
+        def identity(*_):
+            events.append('identity')
+            raise subprocess.TimeoutExpired('simctl list devices', 30)
+        with tempfile.TemporaryDirectory() as temporary, \
+                patch.object(MODULE, 'native_text_size', side_effect=settings), \
+                patch.object(MODULE, 'record_identity', side_effect=identity), \
+                patch.object(MODULE.subprocess, 'run', side_effect=execute):
+            output = Path(temporary) / 'profiles'
+            with self.assertRaises(subprocess.TimeoutExpired):
+                MODULE.run_profiles('owned', output)
+            self.assertEqual(events.count('test'), 3)
+            self.assertEqual(events[-2:], ['settings restored', 'identity'])
+            self.assertEqual([row['status'] for row in json.loads((output / 'profiles.json').read_text())], ['passed'] * 3)
 
     def test_profile_artifacts_keep_screenshots_and_fall_back_to_full_bundle(self):
         for category, export_fails in [('passed', False), ('passed', True), ('passed', 'empty'), ('test-failure', False)]:

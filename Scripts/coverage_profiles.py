@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import argparse
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 import json
 import os
 import plistlib
@@ -143,9 +143,11 @@ def run_profiles(udid, output, audit_policy='all'):
     if audit_policy not in ('all', 'representative'):
         raise ValueError(f'unsupported native audit policy: {audit_policy}')
     output.mkdir(parents=True, exist_ok=False)
-    record_identity(udid, output)
     results = []
-    with native_text_size(udid, TEXT_SIZES[0]) as apply_size:
+    with ExitStack() as cleanup:
+        # Capture identity after settings restoration; cold-boot inventory can stall before tests.
+        cleanup.callback(record_identity, udid, output)
+        apply_size = cleanup.enter_context(native_text_size(udid, TEXT_SIZES[0]))
         for name, size, reduced in [('default', TEXT_SIZES[0], False), ('largest', TEXT_SIZES[1], False),
                                      ('largest-reduced', TEXT_SIZES[1], True)]:
             environment = dict(os.environ, TRINKET_UI_PLAN='Profiles', TRINKET_UI_SUCCESS_SCREENSHOTS='1',
