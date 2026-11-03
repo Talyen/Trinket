@@ -501,6 +501,12 @@ class ReporterTests(unittest.TestCase):
             ("PlayTests.swift:42: error: XCTAssertTrue failed - expected 'Unable to boot simulator'", "test-failure"),
             ("Test process crashed: signal SIGABRT", "test-failure"),
             ("Test execution timed out after 60 seconds", "test-failure"),
+            ("Simulator inventory timed out after 30s; retrying once.\n"
+             "Coverage prerequisite/cleanup failure: Command '['xcrun', 'simctl', 'list', 'devices']' timed out after 30 seconds",
+             "simulator-infrastructure"),
+            ("Simulator inventory timed out after 30s; retrying once.\n"
+             "PlayTests.swift:42: error: XCTAssertTrue failed - real game failure",
+             "test-failure"),
             (
                 "Failed to launch app via Xcode: Timed out while launching application via Xcode.",
                 "simulator-infrastructure",
