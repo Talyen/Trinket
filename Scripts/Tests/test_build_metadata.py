@@ -128,6 +128,46 @@ touch_build_stamp results package_TrinketCore
 ''', expected=1)
         self.assertFalse(list((self.root / 'results').glob('*.stamp')))
 
+    def test_selected_sdk_bundle_avoids_xcrun_and_still_rejects_changed_sdk(self):
+        developer = self.root / 'Xcode.app/Contents/Developer'
+        sdk = developer / 'Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk'
+        system = sdk / 'System/Library/CoreServices/SystemVersion.plist'
+        system.parent.mkdir(parents=True)
+        def write(version, build):
+            (sdk / 'SDKSettings.plist').write_bytes(plistlib.dumps({
+                'Version': version, 'CanonicalName': 'iphonesimulator' + version,
+            }))
+            system.write_bytes(plistlib.dumps({'ProductBuildVersion': build}))
+        write('27.1', '24A1')
+        (self.root / 'fake-tools/xcrun').write_text('#!/bin/sh\nexit 99\n')
+        env = {**self.env, 'DEVELOPER_DIR': str(developer)}
+        self.build(env=env)
+        self.check(env=env)
+        for version, build, key in [('27.2', '24A1', 'sdk_version'), ('27.1', '24A2', 'sdk_build')]:
+            with self.subTest(key=key):
+                write(version, build)
+                self.assertIn(key, self.check(expected=1, env=env).stderr)
+
+    def test_sdk_metadata_selection_and_invalid_metadata_fall_back_to_xcrun(self):
+        metadata = load_script('build_metadata_sdk', 'build-metadata.py')
+        developer = self.root / 'Xcode.app/Contents/Developer'
+        with patch.dict(os.environ, {'DEVELOPER_DIR': str(developer)}):
+            for name, platform in [('iphonesimulator', 'iPhoneSimulator'), ('iphoneos', 'iPhoneOS'), ('macosx', 'MacOSX')]:
+                sdk = developer / f'Platforms/{platform}.platform/Developer/SDKs/{platform}.sdk'
+                system = sdk / 'System/Library/CoreServices/SystemVersion.plist'
+                system.parent.mkdir(parents=True)
+                settings = sdk / 'SDKSettings.plist'
+                settings.write_bytes(plistlib.dumps({'Version': '27.1', 'CanonicalName': name + '27.1'}))
+                system.write_bytes(plistlib.dumps({'ProductBuildVersion': '24A1'}))
+                with patch.object(metadata, 'capture', side_effect=AssertionError('unexpected xcrun')):
+                    self.assertEqual(metadata.sdk_identity(name), ('27.1', '24A1'))
+                for content in (b'broken', plistlib.dumps([]), plistlib.dumps({'Version': '27.1', 'CanonicalName': 'other'})):
+                    settings.write_bytes(content)
+                    with patch.object(metadata, 'capture', side_effect=['27.1', '24A1']) as capture:
+                        self.assertEqual(metadata.sdk_identity(name), ('27.1', '24A1'))
+                        self.assertEqual(capture.call_args_list[0].args, ('xcrun', '--sdk', name, '--show-sdk-version'))
+                        self.assertEqual(capture.call_args_list[1].args, ('xcrun', '--sdk', name, '--show-sdk-build-version'))
+
     def test_xcode_sdk_configuration_architecture_and_fingerprint_mismatches(self):
         self.build()
         saved = json.loads(self.metadata().read_text())

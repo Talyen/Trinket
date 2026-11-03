@@ -513,6 +513,8 @@ class ReporterTests(unittest.TestCase):
             ('failed: caught error: "[coverage prerequisite] Could not apply native Reduce Motion"', "configuration"),
             ('failed - [coverage prerequisite] Could not restore native Reduce Motion', "configuration"),
             ("xcode-select: error: toolchain is not configured", "tooling"),
+            ("Build reuse refused: Command '('xcrun', '--sdk', 'iphonesimulator', '--show-sdk-version')' timed out after 120 seconds", "tooling"),
+            ("Build reuse refused: Command '('xcrun', '--sdk', 'iphonesimulator', '--show-sdk-build-version')' timed out after 120 seconds", "tooling"),
         )
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

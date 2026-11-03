@@ -211,6 +211,10 @@ Reuse requires matching Xcode/SDK, architecture policy, configuration, test fing
 and source snapshot; CI additionally requires the same commit. Missing, legacy or
 incompatible metadata/products rebuild and validate again. Invalidate the product
 family's old stamp before compilation so failed work cannot appear reusable.
+For standard iOS simulator, iOS device and macOS SDKs, identity reads the selected
+Xcode bundle's SDK version and system build metadata without starting `xcrun`.
+Missing, invalid or custom SDK metadata falls back to the bounded CLI lookup;
+the same version/build comparisons remain required.
 
 The [metadata owner](../../Scripts/build-metadata.py) fingerprints source edits and
 deletions, authored test plans, generated project and schemes. Markdown, compiler

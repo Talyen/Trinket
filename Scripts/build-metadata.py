@@ -41,6 +41,27 @@ def xcode_identity():
     return capture("xcodebuild", "-version")
 
 
+def sdk_identity(sdk):
+    # SDK identity is installed metadata; xcrun can stall during simulator bootstrap.
+    developer = os.environ.get("DEVELOPER_DIR")
+    platform_name = {"iphonesimulator": "iPhoneSimulator", "iphoneos": "iPhoneOS", "macosx": "MacOSX"}.get(sdk)
+    if developer and platform_name:
+        root = Path(developer) / "Platforms" / f"{platform_name}.platform/Developer/SDKs/{platform_name}.sdk"
+        try:
+            settings = plistlib.loads((root / "SDKSettings.plist").read_bytes())
+            system = plistlib.loads((root / "System/Library/CoreServices/SystemVersion.plist").read_bytes())
+            if not isinstance(settings, dict) or not isinstance(system, dict):
+                raise ValueError("Invalid SDK metadata")
+            version, build = settings.get("Version"), system.get("ProductBuildVersion")
+            if (isinstance(version, str) and version and isinstance(build, str) and build
+                    and settings.get("CanonicalName") == sdk + version):
+                return version, build
+        except (OSError, ValueError, plistlib.InvalidFileException):
+            pass
+    return (capture("xcrun", "--sdk", sdk, "--show-sdk-version"),
+            capture("xcrun", "--sdk", sdk, "--show-sdk-build-version"))
+
+
 def identity(sdk="iphonesimulator", configuration="Debug"):
     ci = is_ci()
     try:
@@ -49,12 +70,13 @@ def identity(sdk="iphonesimulator", configuration="Debug"):
         if ci:
             raise
         commit = None
+    sdk_version, sdk_build = sdk_identity(sdk)
     return {
         "version": 1,
         "xcode": xcode_identity(),
         "sdk": sdk,
-        "sdk_version": capture("xcrun", "--sdk", sdk, "--show-sdk-version"),
-        "sdk_build": capture("xcrun", "--sdk", sdk, "--show-sdk-build-version"),
+        "sdk_version": sdk_version,
+        "sdk_build": sdk_build,
         "host_architecture": platform.machine(),
         "configuration": configuration,
         "architecture_policy": "sdk-default" if ci else "host",

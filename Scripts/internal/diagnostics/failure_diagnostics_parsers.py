@@ -370,7 +370,7 @@ LOG_PATTERNS: tuple[tuple[str, str, str], ...] = (
     (r"\[coverage prerequisite\]", "configuration", "Coverage prerequisite"),
     (r"\*\*\s*(?:TEST )?BUILD FAILED\s*\*\*", "build-failure", "Build failure"),
     (r"(?:undefined symbols for architecture|symbol\(s\) not found|duplicate symbol|linker command failed|ld: .*error|framework .* not found|library .* not found)", "build-failure", "Linker failure"),
-    (r"xcrun.*--show-sdk-version.*timed out", "tooling", "SDK lookup timeout"),
+    (r"xcrun.*--show-sdk-(?:build-)?version.*timed out", "tooling", "SDK lookup timeout"),
     # Canonical simulator vocabulary first so a crash/timeout line that also
     # names the simulator classifies as infrastructure, not test failure.
     (INFRASTRUCTURE_FAILURE_PATTERN, "simulator-infrastructure", "Simulator infrastructure"),
