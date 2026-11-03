@@ -26,6 +26,7 @@ class FullUIRoutingTests(unittest.TestCase):
                          ['BattleFlowUITests', 'LocalizationUITests', MODULE.PURCHASE_CLASS])
         self.assertEqual(calls[0].kwargs['env']['TRINKET_SIM_OS_MAJOR'], '27')
         self.assertEqual(calls[1].kwargs['env']['TRINKET_SIM_OS_VERSION'], '26.2')
+        self.assertEqual(calls[1].kwargs['env']['TRINKET_SIM_OS_BUILD'], MODULE.QUALIFIED_PROFILE['build'])
         self.assertEqual(calls[1].kwargs['env']['TRINKET_SIM_OS_MAJOR'], '26')
         self.assertEqual(calls[1].kwargs['env']['TRINKET_SIM_DEVICE_TYPE'], MODULE.QUALIFIED_PROFILE['device'])
         self.assertEqual(calls[1].kwargs['env']['DEVELOPER_DIR'], '/verified-xcode')
@@ -33,7 +34,8 @@ class FullUIRoutingTests(unittest.TestCase):
             self.assertEqual(call.kwargs['env']['TRINKET_ISOLATE'], '1')
             self.assertEqual(call.kwargs['env']['DERIVED_DATA_PATH'], str((ROOT / '.DerivedData').resolve()))
             self.assertEqual(call.kwargs['env']['RESULTS_DIR'], str((ROOT / '.DerivedData/TestResults').resolve()))
-        prepare.assert_called_once_with(MODULE.QUALIFIED_PROFILE['device'], 26, '26.2')
+        prepare.assert_called_once_with(MODULE.QUALIFIED_PROFILE['device'], 26, '26.2',
+                                        build=MODULE.QUALIFIED_PROFILE['build'])
         self.assertEqual(self.environment['TRINKET_SIM_OS_MAJOR'], '27')
 
     def test_independent_purchase_evidence_runs_after_other_ui_failure_and_either_failure_survives(self):

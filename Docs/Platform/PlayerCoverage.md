@@ -60,10 +60,11 @@ on iOS 27, and iPhone Duo on iOS 27.1 or later in that major. The compatibility 
 uses iPhone SE third generation on iOS 18. Missing or incompatible devices, runtimes
 or native settings fail visibly; there is no substitute device or OS major.
 Within a requested major, selection uses the newest installed runtime compatible
-with that device; an exact OS-version request remains exact. A newer Duo-only
+with that device; exact OS-version and build requests remain exact. A newer Duo-only
 runtime must not prevent the iPad profile from using its compatible runtime.
-When iOS 26 is missing, provisioning downloads 26.2, matching the
-purchase-qualification runtime.
+When iOS 26 is missing, provisioning requests build `23C54` (iOS 26.2), matching the
+purchase-qualification runtime. Requesting the semantic version alone can download
+a different build. Exhaustive purchase tests also pin that build during simulator selection.
 Read-only simulator inventory queries retry one 30-second timeout. Exhausted
 queries still fail; native settings changes are not automatically repeated.
 

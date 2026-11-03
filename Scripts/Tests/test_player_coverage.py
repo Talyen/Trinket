@@ -106,6 +106,12 @@ class PlayerCoverageTests(unittest.TestCase):
                 with self.subTest(inventory=runtimes, version=version):
                     self.assertEqual(MODULE.select_profile(runtimes, [dict(identifier='phone')],
                                                           'phone', 26, version), newer)
+                    self.assertEqual(MODULE.select_profile(runtimes, [dict(identifier='phone')],
+                                                          'phone', 26, version, build='23C52'), older)
+        with self.assertRaisesRegex(ValueError, 'unavailable iOS 26.2 build 23C54'):
+            MODULE.select_profile([older], [dict(identifier='phone')], 'phone', 26, '26.2', build='23C54')
+        with self.assertRaisesRegex(ValueError, 'invalid exact iOS build'):
+            MODULE.select_profile([newer], [dict(identifier='phone')], 'phone', 26, build='invalid')
 
     def test_parallel_runtime_trains_select_the_newest_compatible_minor(self):
         phone = dict(identifier='ios-27.1', version='27.1', buildversion='24A94232',
@@ -127,14 +133,14 @@ class PlayerCoverageTests(unittest.TestCase):
             device, major = MODULE.PROFILES[name]
             types = json.dumps({'devicetypes': [dict(identifier=device)]})
             missing = json.dumps({'runtimes': []})
-            available = json.dumps({'runtimes': [dict(identifier=f'ios-{major}', version=version,
+            available = json.dumps({'runtimes': [dict(identifier=f'ios-{major}', version=version, buildversion='23C54',
                                                        platform='iOS', isAvailable=True)]})
             with self.subTest(profile=name), patch.object(MODULE.platform, 'machine', return_value=architecture), \
                     patch.object(MODULE, 'simctl', side_effect=[types, missing, available]), \
                     patch.object(MODULE.subprocess, 'run') as install:
                 MODULE.prepare_profile(name)
                 install.assert_called_once_with(
-                    ['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', version,
+                    ['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '23C54' if major == 26 else version,
                      '-architectureVariant', variant], check=True, timeout=1800)
             installed = json.dumps({'runtimes': [dict(identifier=f'ios-{major}', version=f'{major}.0',
                                                        platform='iOS', isAvailable=True)]})
@@ -161,6 +167,31 @@ class PlayerCoverageTests(unittest.TestCase):
                 install.assert_called_once_with(
                     ['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', version,
                      '-architectureVariant', 'arm64'], check=True, timeout=1800)
+
+    def test_exact_build_is_installed_and_validated_even_when_the_version_is_present(self):
+        device = 'phone'
+        types = json.dumps({'devicetypes': [dict(identifier=device)]})
+        older = dict(identifier='ios-26.2', version='26.2', buildversion='23C52', platform='iOS', isAvailable=True)
+        qualified = dict(older, buildversion='23C54')
+        for downloaded in (older, qualified):
+            with self.subTest(downloaded=downloaded['buildversion']), \
+                    patch.object(MODULE, 'simctl', side_effect=[types, json.dumps({'runtimes': [older]}),
+                        json.dumps({'runtimes': [downloaded]})]), \
+                    patch.object(MODULE.platform, 'machine', return_value='arm64'), \
+                    patch.object(MODULE.subprocess, 'run') as install:
+                if downloaded == qualified:
+                    self.assertEqual(MODULE.prepare_runtime(device, 26, '26.2', build='23C54'), qualified)
+                else:
+                    with self.assertRaisesRegex(ValueError, 'unavailable iOS 26.2 build 23C54'):
+                        MODULE.prepare_runtime(device, 26, '26.2', build='23C54')
+                install.assert_called_once_with(
+                    ['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '23C54',
+                     '-architectureVariant', 'arm64'], check=True, timeout=1800)
+        with patch.dict(os.environ, dict(TRINKET_SIM_DEVICE_TYPE=device, TRINKET_SIM_OS_VERSION='26.2',
+                                        TRINKET_SIM_OS_BUILD='23C54')), \
+                patch.object(MODULE, 'simctl', side_effect=[json.dumps({'runtimes': [older]}), types]), \
+                self.assertRaisesRegex(ValueError, 'unavailable iOS 26.2 build 23C54'):
+            MODULE.resolve('owned')
 
     def test_native_text_size_restores_after_body_or_setting_failure(self):
         for fail in ('body', 'setting'):

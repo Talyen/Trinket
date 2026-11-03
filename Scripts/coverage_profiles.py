@@ -21,12 +21,13 @@ PROFILES = {
     'duo': ('com.apple.CoreSimulator.SimDeviceType.iPhone-Duo', 27),
 }
 MINIMUM_RUNTIME_VERSIONS = {'com.apple.CoreSimulator.SimDeviceType.iPhone-Duo': (27, 1)}
-DEFAULT_DOWNLOAD_VERSIONS = {26: '26.2'}
+# Match the release-qualified runtime; the semantic 26.2 download resolves to 23C52.
+DEFAULT_DOWNLOAD_BUILDS = {26: '23C54'}
 TEXT_SIZES = ('large', 'accessibility-extra-extra-extra-large')
 
 
-def select_profile(runtimes, device_types, type_id, major, version=None):
-    """Select the newest compatible runtime within the requested major or exact version."""
+def select_profile(runtimes, device_types, type_id, major, version=None, *, build=None):
+    """Select the newest compatible runtime, honoring any exact version and build."""
     def components(value):
         parts = tuple(int(part) for part in value.split('.'))
         return parts + (0,) * (3 - len(parts))
@@ -42,10 +43,15 @@ def select_profile(runtimes, device_types, type_id, major, version=None):
         if not re.fullmatch(r'\d+\.\d+(?:\.\d+)?', version) or int(version.split('.')[0]) != major:
             raise ValueError(f'invalid or conflicting exact iOS version: {version}')
         candidates = [item for item in candidates if components(item['version']) == components(version)]
+    if build is not None:
+        if not re.fullmatch(r'\d+[A-Z]\d+[a-z]?', build):
+            raise ValueError(f'invalid exact iOS build: {build}')
+        candidates = [item for item in candidates if item.get('buildversion') == build]
     if not candidates:
         minimum = MINIMUM_RUNTIME_VERSIONS.get(type_id)
         requested = version or ('.'.join(map(str, minimum)) + '+' if minimum else str(major))
-        raise ValueError(f'unavailable iOS {requested} runtime')
+        detail = f' build {build}' if build else ''
+        raise ValueError(f'unavailable iOS {requested}{detail} runtime')
     compatible = [item for item in candidates if not item.get('supportedDeviceTypes')
                   or any(device.get('identifier') == type_id for device in item['supportedDeviceTypes'])]
     if not compatible:
@@ -89,7 +95,8 @@ def resolve(name):
     version = os.environ.get('TRINKET_SIM_OS_VERSION')
     major = int(os.environ.get('TRINKET_SIM_OS_MAJOR') or (version or '').split('.')[0])
     runtime = select_profile(json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes'],
-                             json.loads(simctl('list', 'devicetypes', '-j'))['devicetypes'], type_id, major, version)
+                             json.loads(simctl('list', 'devicetypes', '-j'))['devicetypes'], type_id, major, version,
+                             build=os.environ.get('TRINKET_SIM_OS_BUILD'))
     devices = json.loads(simctl('list', 'devices', 'available', '-j'))['devices']
     existing = next((item['udid'] for item in devices.get(runtime['identifier'], [])
                      if item.get('name') == name and item.get('deviceTypeIdentifier') == type_id), '')
@@ -100,21 +107,22 @@ def prepare_profile(name):
     return prepare_runtime(*PROFILES[name])
 
 
-def prepare_runtime(type_id, major, version=None):
+def prepare_runtime(type_id, major, version=None, *, build=None):
     types = json.loads(simctl('list', 'devicetypes', '-j'))['devicetypes']
     runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
     try:
-        return select_profile(runtimes, types, type_id, major, version)
+        return select_profile(runtimes, types, type_id, major, version, build=build)
     except ValueError as error:
         if not str(error).startswith('unavailable iOS '):
             raise
     minimum = MINIMUM_RUNTIME_VERSIONS.get(type_id, (major, 0))
-    requested = version or DEFAULT_DOWNLOAD_VERSIONS.get(major, '.'.join(map(str, minimum)))
+    download_build = build or (DEFAULT_DOWNLOAD_BUILDS.get(major) if version is None else None)
+    requested = download_build or version or '.'.join(map(str, minimum))
     variant = 'arm64' if platform.machine() == 'arm64' else 'universal'
     subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', requested,
                     '-architectureVariant', variant], check=True, timeout=1800)
     runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
-    return select_profile(runtimes, types, type_id, major, version)
+    return select_profile(runtimes, types, type_id, major, version, build=download_build)
 
 
 def record_identity(udid, output):

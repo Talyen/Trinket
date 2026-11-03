@@ -38,9 +38,11 @@ def run(targets: list[str], environment: dict[str, str]) -> int:
     qualified = QUALIFIED_PROFILE
     purchase_environment = {**test_environment, 'TRINKET_SIM_DEVICE_TYPE': qualified['device'],
                             'TRINKET_SIM_OS_VERSION': qualified['version'],
+                            'TRINKET_SIM_OS_BUILD': qualified['build'],
                             'TRINKET_SIM_OS_MAJOR': qualified['version'].split('.')[0]}
     try:
-        runtime = PROFILES.prepare_runtime(qualified['device'], int(qualified['version'].split('.')[0]), qualified['version'])
+        runtime = PROFILES.prepare_runtime(qualified['device'], int(qualified['version'].split('.')[0]),
+                                          qualified['version'], build=qualified['build'])
         if runtime.get('identifier') != qualified['runtime'] or runtime.get('buildversion') != qualified['build']:
             raise ValueError(f'StoreKit recovery requires {qualified}; found {runtime}')
         message = (f"FullUI purchase recovery: {qualified['device']}, iOS {runtime['version']} "
