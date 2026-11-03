@@ -170,6 +170,19 @@ class ReporterTests(unittest.TestCase):
             log.write_text("Test.swift:42: error: -[TrinketUITests.ShopTests testPurchase] : failed - Failed to launch Campaign\n")
             self.assertEqual(REPORTER.parse_log(log, 65)[0].kind, "test-failure")
 
+    def test_xctest_system_failure_without_failed_prefix_keeps_test_identity(self):
+        message = "Failed to get matching snapshots: Timed out while evaluating UI query."
+        test = "TrinketUITests.RepeatedPlayUITests testTwentyAudioEnabledContractsKeepOneUsableCareer"
+        with tempfile.TemporaryDirectory() as temporary:
+            log = Path(temporary) / "test.log"
+            log.write_text(f"TrinketUITests/Support/TrinketUITestCase.swift:491: error: -[{test}] : {message}\n")
+            issue = REPORTER.parse_log(log, 65)[0]
+            self.assertEqual(issue.kind, "test-failure")
+            self.assertEqual(issue.test, test)
+            self.assertEqual(issue.message, message)
+            self.assertEqual(issue.file, "TrinketUITests/Support/TrinketUITestCase.swift")
+            self.assertEqual(issue.line, 491)
+
     def test_simulator_capture_verifies_ownership_and_bounds_unavailable_evidence(self):
         udid = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
         for name in ("Trinket Agent 1", "Foreign Simulator"):

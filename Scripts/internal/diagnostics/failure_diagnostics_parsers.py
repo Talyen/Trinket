@@ -390,7 +390,7 @@ def parse_log(log_path: Path, exit_code: int) -> list[IssueObservation]:
     observations: dict[tuple, IssueObservation] = {}
     diagnostic = re.compile(r"^(?P<file>[^\n:]+(?::[^\n:]+)*?):(?P<line>\d+)(?::\d+)?:\s*(?:fatal )?error:\s*(?P<message>.+)$", re.I)
     xctest_failure = re.compile(
-        r"^-\[(?P<test>[^\]]+)\]\s*:\s*failed\s*-\s*(?P<message>.*)$",
+        r"^-\[(?P<test>[^\]]+)\]\s*:\s*(?:failed\s*-\s*)?(?P<message>.*)$",
         re.I,
     )
     try:
