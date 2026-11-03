@@ -135,6 +135,20 @@ class PlayerCoverageTests(unittest.TestCase):
                     patch.object(MODULE.subprocess, 'run'), self.assertRaisesRegex(ValueError, f'unavailable iOS {major}'):
                 MODULE.prepare_profile(name)
 
+    def test_exact_runtime_preparation_installs_the_requested_minor_despite_a_newer_one(self):
+        device = 'com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro'
+        types = json.dumps({'devicetypes': [dict(identifier=device)]})
+        newer = dict(identifier='ios-26.5', version='26.5', platform='iOS', isAvailable=True)
+        exact = dict(identifier='ios-26.2', version='26.2', buildversion='23C54', platform='iOS', isAvailable=True)
+        with patch.object(MODULE, 'simctl', side_effect=[types, json.dumps({'runtimes': [newer]}),
+                json.dumps({'runtimes': [newer, exact]})]), \
+                patch.object(MODULE.platform, 'machine', return_value='arm64'), \
+                patch.object(MODULE.subprocess, 'run') as install:
+            self.assertEqual(MODULE.prepare_runtime(device, 26, '26.2'), exact)
+            install.assert_called_once_with(
+                ['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '26.2',
+                 '-architectureVariant', 'arm64'], check=True, timeout=1800)
+
     def test_native_text_size_restores_after_body_or_setting_failure(self):
         for fail in ('body', 'setting'):
             current, events = ['medium'], []

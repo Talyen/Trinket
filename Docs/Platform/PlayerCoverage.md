@@ -23,6 +23,12 @@ Apple-service readiness.
 | Account change during fetch and offline/retry behavior | `CloudSaveSyncTests`, isolated transport | Persistence package checks |
 | Process exit before/after settlement and after remote commit before acknowledgement | `PlaythroughSweepTests`, `CloudProcessRecovery`, playthrough runner | Weekly/manual crash proof |
 
+Exhaustive FullUI runs the purchase-recovery class on qualified iOS 26.2 (23C54),
+while its other classes use the selected current runtime. The known iOS 27 local
+StoreKit denial defect must not be worked around by granting or filtering signed
+ownership, or by dropping the denial/retry assertions; see
+[StoreKit qualification](Release.md#testflight-troubleshooting).
+
 Existing BattleFeature tests retain draw-followup, overlapping-cast, finishing-tap,
 RNG/reward immutability, and suspension protection. Existing AppState tests retain
 failed writes, duplicate claims, stale callbacks, and talent-token ordering.

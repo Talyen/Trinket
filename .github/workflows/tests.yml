@@ -201,7 +201,7 @@ jobs:
         with:
           artifact-name: exhaustive-ui-inline
           artifact-prefix: ${{ inputs.artifact-prefix }}
-          command: ./Scripts/test.sh ui --no-build ${{ steps.ui-matrices.outputs.full-targets }}
+          command: python3 Scripts/ci-exhaustive-ui.py ${{ steps.ui-matrices.outputs.full-targets }}
 
       - name: Preserve required smoke failure
         if: always() && !cancelled() && steps.smoke.outcome == 'failure'
@@ -630,7 +630,7 @@ jobs:
           artifact-name: exhaustive-ui-All
           artifact-prefix: ${{ inputs.artifact-prefix }}
           rebuild-command: ./Scripts/build-for-testing.sh --app-only
-          command: ./Scripts/test.sh ui --no-build ${{ steps.ui-targets.outputs.targets }}
+          command: python3 Scripts/ci-exhaustive-ui.py ${{ steps.ui-targets.outputs.targets }}
 
 
   diff-review:

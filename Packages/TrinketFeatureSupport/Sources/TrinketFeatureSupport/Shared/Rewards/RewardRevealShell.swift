@@ -20,7 +20,7 @@ public struct RewardRevealShell<Content: View>: View {
     let onPrimaryAction: () -> Void
     var contentTopPadding = TrinketDesign.Layout.contentTopPadding
     var contentStackSpacing = TrinketDesign.Layout.sectionSpacing
-    @ScaledMetric(relativeTo: .body) private var minimumInlineHeight: CGFloat = 600
+    @ScaledMetric(relativeTo: .body) private var minimumInlineHeight: CGFloat = 700
     var primaryActionOpacity: Double = 1
     var primaryActionEntranceOffset: CGFloat = TrinketDesign.Spacing.small
 

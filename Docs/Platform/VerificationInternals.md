@@ -142,6 +142,15 @@ verification does not substitute for it. Native qualification follows the
 `scope=exhaustive-pilot` to bypass standard reuse and exercise the complete
 portfolio plus inline UI. Normal exhaustive dispatches retain standard reuse.
 
+Exhaustive execution retains every registered class. `ci-exhaustive-ui.py` runs
+ordinary FullUI classes on the current selected runtime, then runs the complete
+`FullGamePurchaseUITests` class on the existing qualified iPhone 17 Pro / iOS 26.2
+(23C54) profile. It fails if that exact runtime build is unavailable or any class
+fails; no purchase assertion is skipped. This follows the independently reproduced
+[iOS 27 local StoreKit entitlement defect](Release.md#testflight-troubleshooting).
+Both inline and transferred-product execution use the same router, retaining
+per-invocation results and reporting the purchase runtime in the job summary.
+
 Upfront full runs execute FullUI on the build/smoke runner and report its outcome
 through a separate advisory status job, eliminating product transfer. Follow-up
 full dispatches with prior standard proof retain the transfer/reuse path.

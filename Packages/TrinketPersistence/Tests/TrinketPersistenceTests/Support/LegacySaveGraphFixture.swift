@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import TrinketContent
 import TrinketCore
 @testable import TrinketPersistence
 

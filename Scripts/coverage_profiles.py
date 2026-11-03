@@ -89,21 +89,24 @@ def resolve(name):
 
 
 def prepare_profile(name):
-    type_id, major = PROFILES[name]
+    return prepare_runtime(*PROFILES[name])
+
+
+def prepare_runtime(type_id, major, version=None):
     types = json.loads(simctl('list', 'devicetypes', '-j'))['devicetypes']
-    if not any(item.get('identifier') == type_id for item in types):
-        raise ValueError(f'unavailable device type: {type_id}')
     runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
+    try:
+        return select_profile(runtimes, types, type_id, major, version)
+    except ValueError as error:
+        if not str(error).startswith('unavailable iOS '):
+            raise
     minimum = MINIMUM_RUNTIME_VERSIONS.get(type_id, (major, 0))
-    if not any(item.get('isAvailable') is True and item.get('platform') == 'iOS'
-               and str(item.get('version', '')).split('.')[0] == str(major)
-               and tuple(int(part) for part in item['version'].split('.')) >= minimum for item in runtimes):
-        variant = 'arm64' if platform.machine() == 'arm64' else 'universal'
-        subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '.'.join(map(str, minimum)),
-                        '-architectureVariant', variant],
-                       check=True, timeout=1800)
-        runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
-    select_profile(runtimes, types, type_id, major)
+    requested = version or '.'.join(map(str, minimum))
+    variant = 'arm64' if platform.machine() == 'arm64' else 'universal'
+    subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', requested,
+                    '-architectureVariant', variant], check=True, timeout=1800)
+    runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
+    return select_profile(runtimes, types, type_id, major, version)
 
 
 def record_identity(udid, output):
