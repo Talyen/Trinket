@@ -27,6 +27,9 @@ struct BattleHandView: View {
     let isPlayable: (BattleCard) -> Bool
     let onInspect: (BattleCard) -> Void
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
+    let isPlayInputBlocked: () -> Bool
+    let onBlockedTap: (BattleCard) -> Void
+    let onPress: () -> Void
     let onPlayDenied: (BattleCard) -> Void
     let hapticsEnabled: Bool
     var onFrameChanged: ((CGRect) -> Void)?
@@ -42,6 +45,9 @@ struct BattleHandView: View {
         isPlayable: @escaping (BattleCard) -> Bool,
         onInspect: @escaping (BattleCard) -> Void,
         onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
+        isPlayInputBlocked: @escaping () -> Bool = { false },
+        onBlockedTap: @escaping (BattleCard) -> Void = { _ in },
+        onPress: @escaping () -> Void = {},
         onPlayDenied: @escaping (BattleCard) -> Void,
         hapticsEnabled: Bool,
         onFrameChanged: ((CGRect) -> Void)? = nil,
@@ -54,6 +60,9 @@ struct BattleHandView: View {
         self.isPlayable = isPlayable
         self.onInspect = onInspect
         self.onPlay = onPlay
+        self.isPlayInputBlocked = isPlayInputBlocked
+        self.onBlockedTap = onBlockedTap
+        self.onPress = onPress
         self.onPlayDenied = onPlayDenied
         self.hapticsEnabled = hapticsEnabled
         self.onFrameChanged = onFrameChanged
@@ -93,6 +102,9 @@ struct BattleHandView: View {
                         hapticsEnabled: hapticsEnabled,
                         onInspect: { onInspect(card) },
                         onPlay: { command in onPlay(card, command) },
+                        isPlayInputBlocked: isPlayInputBlocked,
+                        onBlockedTap: { onBlockedTap(card) },
+                        onPress: onPress,
                         onPlayDenied: { onPlayDenied(card) },
                         onInteractionChanged: { isActive in
                             if isActive {

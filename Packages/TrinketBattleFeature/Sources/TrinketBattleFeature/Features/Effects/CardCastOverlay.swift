@@ -8,17 +8,45 @@ import TrinketFeatureSupport
 @MainActor
 @Observable
 final class BattleCastPresentationState {
+    private static let inputQueueWindow: TimeInterval = 0.5
     private(set) var requests: [CardActivationRequest] = []
+    @ObservationIgnored private var queuedInput: (castID: UUID, action: @MainActor () -> Void)?
     var request: CardActivationRequest? {
         requests.last
     }
 
     func blocksAutoBattle(at date: Date) -> Bool {
-        requests.contains { request in
+        queuedInput != nil || requests.contains { request in
             let pacingEnd = request.startedAt.addingTimeInterval(BattleMotion.autoBattleCardInterval)
             let completion = request.completionDate(scheduledCast: playback?.handDeparture(id: request.id))
             return (request.pausedAt ?? date) < max(pacingEnd, completion)
         }
+    }
+
+    func blocksManualInput(at date: Date = .now) -> Bool {
+        requests.contains { request in
+            request.pausedAt != nil || date < request.completionDate(scheduledCast: playback?.handDeparture(id: request.id))
+        }
+    }
+
+    func queueTap(at date: Date = .now, action: @escaping @MainActor () -> Void) {
+        queuedInput = nil
+        guard let request = requests.last else {
+            action()
+            return
+        }
+        guard request.pausedAt == nil else { return }
+        let remaining = request.completionDate(scheduledCast: playback?.handDeparture(id: request.id)).timeIntervalSince(date)
+        if remaining <= 0, !blocksManualInput(at: date) {
+            action()
+            return
+        }
+        guard remaining > 0, remaining <= Self.inputQueueWindow else { return }
+        queuedInput = (request.id, action)
+    }
+
+    func cancelQueuedTap() {
+        queuedInput = nil
     }
 
     var stuckResetDelayOverride: TimeInterval?
@@ -42,10 +70,21 @@ final class BattleCastPresentationState {
         scheduleStuckReset(for: request)
     }
 
-    func remove(id: UUID) {
+    func remove(id: UUID, at date: Date = .now, allowQueuedInput: Bool = true) {
+        let request = requests.first { $0.id == id }
+        let queued = queuedInput?.castID == id ? queuedInput : nil
+        if queued != nil {
+            queuedInput = nil
+        }
+        let completed = request.map {
+            $0.pausedAt == nil && date >= $0.completionDate(scheduledCast: playback?.handDeparture(id: id))
+        } ?? false
         playback?.remove(id: id)
         requests.removeAll { $0.id == id }
         pendingStuckResetTasks.removeValue(forKey: id)?.cancel()
+        if allowQueuedInput, completed, !blocksManualInput(at: date), let queued {
+            queued.action()
+        }
     }
 
     func hideStaleGeometry() {
@@ -55,6 +94,7 @@ final class BattleCastPresentationState {
     }
 
     func reset() {
+        queuedInput = nil
         for request in requests {
             playback?.remove(id: request.id)
         }
@@ -66,6 +106,9 @@ final class BattleCastPresentationState {
     }
 
     func setSuspended(_ suspended: Bool, at date: Date = .now) {
+        if suspended {
+            queuedInput = nil
+        }
         for index in requests.indices {
             if suspended, requests[index].pausedAt == nil {
                 requests[index].pausedAt = date
@@ -227,7 +270,7 @@ struct CardCastEffectsLayer: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let request: CardActivationRequest
     let scheduledCast: BattleRecordedCardCast?
-    let onFinished: (UUID) -> Void
+    let onFinished: (UUID, Bool) -> Void
 
     var body: some View {
         TimelineView(.animation(paused: request.pausedAt != nil)) { timeline in
@@ -242,10 +285,10 @@ struct CardCastEffectsLayer: View {
             let remaining = max(0, completionDate.timeIntervalSinceNow)
             try? await Task.sleep(for: .seconds(remaining))
             guard !Task.isCancelled else { return }
-            onFinished(request.id)
+            onFinished(request.id, true)
         }
         .onDisappear {
-            onFinished(request.id)
+            onFinished(request.id, false)
         }
         .allowsHitTesting(false)
         .battleFramePacingSignpost(
@@ -295,8 +338,8 @@ struct CardCastPresentationLane: View {
     var body: some View {
         ZStack {
             ForEach(presentation.requests) { request in
-                CardCastEffectsLayer(request: request, scheduledCast: playback.handDeparture(id: request.id)) { requestID in
-                    presentation.remove(id: requestID)
+                CardCastEffectsLayer(request: request, scheduledCast: playback.handDeparture(id: request.id)) { requestID, completed in
+                    presentation.remove(id: requestID, allowQueuedInput: completed)
                 }
                 .transition(.opacity)
             }

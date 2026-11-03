@@ -7,6 +7,52 @@ import TrinketContentTestSupport
 
 @MainActor
 struct BattleSessionCardCueTests {
+    @Test func `manual cast input queues only the latest late tap and cancels on interruption`() {
+        let casts = BattleCastPresentationState()
+        defer { casts.reset() }
+        let start = Date(timeIntervalSinceReferenceDate: 100)
+        let request = CardActivationRequest(
+            startedAt: start, artworkName: nil, center: .zero, size: .zero,
+            rotation: 0, verticalTilt: 0, scale: 1, keywords: [],
+        )
+        let end = request.completionDate(scheduledCast: nil)
+        casts.append(request)
+        var played: [Int] = []
+        #expect(casts.blocksManualInput(at: end.addingTimeInterval(-0.6)))
+        casts.queueTap(at: end.addingTimeInterval(-0.6)) { played.append(1) }
+        casts.remove(id: request.id, at: end)
+        #expect(played.isEmpty)
+
+        casts.append(request)
+        casts.queueTap(at: end.addingTimeInterval(-0.4)) { played.append(2) }
+        casts.queueTap(at: end.addingTimeInterval(-0.1)) { played.append(3) }
+        #expect(played.isEmpty)
+        casts.remove(id: request.id, at: end)
+        #expect(played == [3])
+
+        casts.append(request)
+        casts.queueTap(at: end.addingTimeInterval(-0.1)) { played.append(4) }
+        casts.cancelQueuedTap()
+        casts.remove(id: request.id, at: end)
+        #expect(played == [3])
+
+        casts.append(request)
+        casts.queueTap(at: end.addingTimeInterval(-0.1)) { played.append(6) }
+        casts.remove(id: request.id, at: end.addingTimeInterval(-0.05))
+        #expect(played == [3])
+
+        casts.append(request)
+        casts.queueTap(at: end.addingTimeInterval(-0.1)) { played.append(7) }
+        casts.remove(id: request.id, at: end, allowQueuedInput: false)
+        #expect(played == [3])
+
+        casts.append(request)
+        casts.queueTap(at: end.addingTimeInterval(-0.1)) { played.append(5) }
+        casts.setSuspended(true, at: end.addingTimeInterval(-0.05))
+        casts.remove(id: request.id, at: end.addingTimeInterval(1))
+        #expect(played == [3])
+    }
+
     @Test func `retiring hand callbacks cannot play or cancel a replacement battle card`() throws {
         let session = makeSession()
         defer { session.endBattle() }

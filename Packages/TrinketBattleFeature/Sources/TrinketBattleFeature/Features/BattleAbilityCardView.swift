@@ -17,6 +17,9 @@ struct BattleAbilityCardView: View {
     let hapticsEnabled: Bool
     let onInspect: () -> Void
     let onPlay: (CardActivationRequest) -> Bool
+    let isPlayInputBlocked: () -> Bool
+    let onBlockedTap: () -> Void
+    let onPress: () -> Void
     let onPlayDenied: () -> Void
     let onInteractionChanged: (Bool) -> Void
     var onLift: ((BattleCardCuePresentationMode) -> Void)?
@@ -28,6 +31,7 @@ struct BattleAbilityCardView: View {
     @State private var inspectFeedbackToken = 0
     @State private var denyFeedbackToken = 0
     @State private var didReportPlayDenied = false
+    @State private var blockedTouchExceededTapSlop = false
     @GestureState private var isGestureActive = false
     @Environment(\.scenePhase) private var scenePhase
 
@@ -37,13 +41,14 @@ struct BattleAbilityCardView: View {
         case dragging
         case inspecting
         case cancelled
+        case blocked
     }
 
     private var isHeld: Bool {
         switch interactionResolution {
         case .pressing, .dragging, .inspecting:
             true
-        case .idle, .cancelled:
+        case .idle, .cancelled, .blocked:
             false
         }
     }
@@ -187,6 +192,19 @@ struct BattleAbilityCardView: View {
               interactionResolution != .cancelled else { return }
 
         if interactionResolution == .idle {
+            onPress()
+            if isPlayInputBlocked() {
+                interactionResolution = .blocked
+                return
+            }
+        }
+        if interactionResolution == .blocked {
+            blockedTouchExceededTapSlop = blockedTouchExceededTapSlop
+                || BattleCardGesturePolicy.exceedsTapSlop(translation: value.translation)
+            return
+        }
+
+        if interactionResolution == .idle {
             interactionResolution = .pressing
             onInteractionChanged(true)
             announceWindUpIfNeeded(mode: .pressPreview)
@@ -219,6 +237,18 @@ struct BattleAbilityCardView: View {
     }
 
     private func endDrag(_ value: DragGesture.Value) {
+        if interactionResolution == .blocked {
+            interactionResolution = .idle
+            let exceededTapSlop = blockedTouchExceededTapSlop
+            blockedTouchExceededTapSlop = false
+            if BattleCardGesturePolicy.isTapGesture(
+                translation: value.translation, didExceedTapSlop: exceededTapSlop,
+                minimumDistance: BattleCardGesturePolicy.dragMinimumDistance,
+            ) {
+                onBlockedTap()
+            }
+            return
+        }
         guard scenePhase == .active,
               interactionResolution == .pressing || interactionResolution == .dragging else { return }
         dragTranslation = BattleCardGesturePolicy.presentationTranslation(value.translation, isPlayable: isPlayable)
@@ -246,6 +276,10 @@ struct BattleAbilityCardView: View {
     }
 
     private func beginInspection() {
+        if interactionResolution == .blocked {
+            interactionResolution = .cancelled
+            return
+        }
         guard interactionResolution == .pressing else { return }
         presentInspection()
     }
@@ -280,9 +314,10 @@ struct BattleAbilityCardView: View {
         cancelAnnouncedWindUp()
         dragTranslation = .zero
         didReportPlayDenied = false
+        blockedTouchExceededTapSlop = false
     }
 
-    private enum PlayIntent {
+    private enum PlayIntent: Equatable {
         case tap
         case drag
     }
@@ -291,6 +326,14 @@ struct BattleAbilityCardView: View {
         guard scenePhase == .active, !isDetailPresented,
               interactionResolution != .inspecting,
               interactionResolution != .cancelled else { return }
+        onPress()
+        if isPlayInputBlocked() {
+            if intent == .tap {
+                onBlockedTap()
+            }
+            returnDrag()
+            return
+        }
         guard isPlayable else {
             reportPlayDeniedIfNeeded()
             returnDrag()
@@ -314,17 +357,6 @@ struct BattleAbilityCardView: View {
         publishPlay(request)
     }
 
-    private var heldReleaseCenter: CGPoint {
-        BattleHandLayout.releaseCenter(
-            restingCenter: restingCenter,
-            dragTranslation: dragTranslation,
-            cardSize: CGSize(width: width, height: height),
-            rotation: CGFloat(activeRotation * .pi / 180),
-            scale: heldScale.width,
-            in: interactionFrame,
-        )
-    }
-
     private func publishPlay(_ request: CardActivationRequest) {
         guard isPlayable else {
             reportPlayDeniedIfNeeded()
@@ -346,6 +378,17 @@ struct BattleAbilityCardView: View {
 }
 
 private extension BattleAbilityCardView {
+    var heldReleaseCenter: CGPoint {
+        BattleHandLayout.releaseCenter(
+            restingCenter: restingCenter,
+            dragTranslation: dragTranslation,
+            cardSize: CGSize(width: width, height: height),
+            rotation: CGFloat(activeRotation * .pi / 180),
+            scale: heldScale.width,
+            in: interactionFrame,
+        )
+    }
+
     var availabilityBorder: some View {
         TrinketDesign.cardShape
             .strokeBorder(

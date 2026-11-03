@@ -1,11 +1,15 @@
-# Continuous card play
+# Card play
 
 This is the standing product specification for [PD-024](Decisions.md).
 
 ## Tap and keep playing
 
-A valid card plays immediately when the player releases their finger. Its lift
-and dissolve follow the action; no animation completion gates the next tap.
+A valid card plays when the player releases their finger, provided the current
+hand cast has finished. While a cast is playing, card input has no rejection,
+sound, or queue indicator. A tap during its final 0.5 seconds queues that card;
+the latest tap replaces any earlier queued tap. The card plays after the cast
+finishes if it is still available. A later press or interruption cancels the queue.
+Blocked drags and holds do nothing.
 The departing card rises quickly, then eases upward through the artwork's
 dissolve, travelling 55% of its height with the existing departure duration.
 Holding to inspect, dragging to play, and cancelling a drag remain available.
@@ -38,16 +42,14 @@ the card originally pressed, and that card stays steady while surrounding cards
 move. Drawn, returned, and overflow cards are playable while arriving. A returned
 card requires a fresh tap; one gesture cannot play it twice.
 
-Departing manual cards finish independently. Up to six departure visuals may
-overlap; under saturation, the oldest fades out. Decorative cards never
-intercept touches or affect gameplay.
+Decorative cards never intercept touches or affect gameplay.
 
 With the autoplay toggle enabled, cards use the same release geometry, rise,
 dissolve, and particle timing as an ordinary tap. Autoplay waits for the one-second
 card departure before choosing the next card. Equal-scored choices rotate through
 the hand; stronger and battle-finishing choices keep priority. Autoplay pauses for
-manual interaction, while manual plays remain immediate and available during those
-casts. Combat feedback keeps its normal sequencing.
+manual interaction, and the same silent input gate applies during those casts.
+Combat feedback keeps its normal sequencing.
 
 After thirty rounds without new enemy Health depletion, Auto Battle pauses with
 an inline Play Manually / Retreat choice. It preserves the remembered Auto
@@ -66,7 +68,7 @@ reads: **Deal 5 Physical damage. Draw a card from your ally's deck.** Its openin
 hit happens first; normal ally-deck fallback rules apply. Shadowstep reads:
 **Deal 4 Physical damage. Draw 1 card.** Its hit precedes the caster-deck draw;
 it grants neither Dodge nor a card repeat. Neither ability casts its drawn card.
-New and returned cards preserve arrival order and immediate interaction while
+New and returned cards preserve arrival order and normal interaction while
 joining the hand, with the ordinary three-card fan and FIFO overflow promotion.
 
 ## Turns and battlefield effects
@@ -87,8 +89,8 @@ skip preparation and share that swing and recovery.
 Rapid attacks shorten preparation to a 0.08-second cap and overlap recovery to
 keep pace. Dragging holds preparation until release and settles back on cancellation.
 
-Manual cards commit on successful finger release and remain playable through
-ongoing motion. Their floating results, sounds, result haptics, target recoil,
+Manual cards commit on successful finger release or when a queued tap is admitted.
+Their floating results, sounds, result haptics, target recoil,
 status artwork, and resource bars appear together at the action’s apex. Triggered
 cards, counterattacks, enemy actions, and auto-battle use that same impact timing.
 Support results use their scheduled action cue. Victory celebration follows the
@@ -102,7 +104,7 @@ beats only: the engine and current resources never wait for them.
 Automatic end turn keeps the 0.4-second grace period when no cards are playable.
 It does not add a wait for the enemy's attack animation. Ordinary draws,
 equipment/talent draws, hidden-buffer promotion, and returned cards follow the
-same uninterrupted interaction rules.
+same card input rules.
 
 ## Keep tapping through the finish
 
@@ -122,10 +124,8 @@ pauses. Automatic battle stops when the result is settled.
 
 ## Regression protection
 
-Do not classify overlapping casts, immediately playable arriving cards, or
-visual-only finishing taps as defects. Restoring animation locks, shrinking
-automatic artwork, or blocking finishing taps changes approved product behavior
-and requires a new product decision.
+Preserve full-size automatic artwork, the silent cast input gate and queue, and
+visual-only finishing taps. Finishing taps follow the same cast input gate.
 
 [Battle presentation](../AgentContext/battle-presentation.md) owns the engineering
 contract and regression coverage. Combat rules remain in BattleEngine; visual

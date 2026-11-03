@@ -66,11 +66,11 @@ Lyrics and resource bars remain above the artwork. [Boss lyrics](../../Packages/
 owns lyric playback and visibility. The supplied MP4s are finished authored resources
 in the BattleFeature bundle.
 
-## Continuous card input
+## Card input
 
 [Card play](../Product/CardPlay.md) owns PD-024's approved behavior, including
-full-size automatic cards and intentionally visual-only finishing taps. Do not
-restore animation locks or reject finishing taps as a correctness fix.
+the silent hand-cast input gate, full-size automatic cards, and intentionally
+visual-only finishing taps.
 
 Card, opening-hand, and turn commands finish synchronously in BattleEngine.
 BattleFeature publishes their final hand, resources, statuses, and eligibility
@@ -148,8 +148,11 @@ including directional Block recoil and immediate DoT damage resolved by an actio
 Between-turn periodic results cannot suppress an action hit or produce recoil.
 Floating results, sounds, result haptics, recoil, combatant resource bars, status
 artwork, and defeat artwork share impact delivery for manual plays, automatic
-plays, counterattacks, and enemy actions. Hand updates and command admission remain
-immediate. Optional engine playback records event-attributed combatant changes;
+plays, counterattacks, and enemy actions. Hand updates remain immediate. Manual
+card input waits for the current hand cast to finish; taps in its last 0.5 seconds
+silently queue the latest card and revalidate it on completion. Earlier taps and
+blocked drags do nothing. A later press or suspension cancels the pending tap.
+Optional engine playback records event-attributed combatant changes;
 apply only the changed presentation fields at their owning impact. Per-field event
 ordering prevents a nested action from restoring older facts after its parent.
 Final command cleanup belongs to the last event’s cue. Suspension, acceleration,
@@ -250,8 +253,7 @@ contributions retain their accent halo and flash.
 Every admitted chip completes its full animation; there are no pending-count or
 corner-count evictions. Reaction names retain 1.6 seconds. Apply
 sound and hit reactions from committed results immediately, independently of the
-bounded stagger for non-impact text. Card inputs remain immediate; damage
-presentation follows its impact cue.
+bounded stagger for non-impact text. Damage presentation follows its impact cue.
 
 ### Host composition
 
@@ -302,8 +304,8 @@ card play, including consolidation, overlap, and portrait clipping.
 
 ## Display work lifecycle
 
-`BattleCommandState` owns command readiness and suspension. Visual tasks and
-casts never own readiness. Suspension pauses cast and attack clocks, pending
+`BattleCommandState` owns command readiness and suspension. The hand's transient
+cast input gate does not change engine command readiness. Suspension pauses cast and attack clocks, pending
 impacts, and the outcome countdown; ending/replacing a run
 invalidates its startup generation and clears owned cast work without clearing
 the retiring view's final hand or combatants. Callbacks retain their original

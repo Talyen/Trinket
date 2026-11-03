@@ -292,6 +292,7 @@ struct BattleFieldLane: View {
 
                 BattleHandProjectionLane(
                     presentation: presentation,
+                    castPresentation: castPresentation,
                     hapticsEnabled: hapticsEnabled,
                     onFrameChanged: { frame in
                         if let measuredHandFrame, measuredHandFrame != frame {
@@ -409,6 +410,7 @@ private struct BattleHandProjectionLane: View {
     @Environment(BattleSession.self) private var battleSession
 
     let presentation: BattlePresentationState
+    let castPresentation: BattleCastPresentationState
     let hapticsEnabled: Bool
     let onFrameChanged: (CGRect) -> Void
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
@@ -417,6 +419,7 @@ private struct BattleHandProjectionLane: View {
     let onLiftCancel: (BattleCard) -> Void
 
     @State private var cardPlayFeedbackToken = 0
+    @State private var handFrame: CGRect = .zero
 
     private var input: BattleViewInput {
         BattleViewInput(session: battleSession, presentation: presentation)
@@ -442,6 +445,22 @@ private struct BattleHandProjectionLane: View {
                     }
                     return didPlay
                 },
+                isPlayInputBlocked: { castPresentation.blocksManualInput() },
+                onBlockedTap: { card in
+                    castPresentation.queueTap {
+                        guard input.isCurrent, battleSession.canInteractWithHand,
+                              input.perform({ $0.isHandCardPlayable(card) }) == true,
+                              let index = presentation.hand.firstIndex(where: { $0.id == card.id }),
+                              !handFrame.isEmpty else { return }
+                        let request = CardActivationRequest.tapRequest(
+                            for: card, index: index, cardCount: presentation.hand.count, handFrame: handFrame,
+                        )
+                        if onPlay(card, request) {
+                            cardPlayFeedbackToken &+= 1
+                        }
+                    }
+                },
+                onPress: { castPresentation.cancelQueuedTap() },
                 onPlayDenied: { card in
                     input.perform { session in
                         session.denyCardCue(card)
@@ -449,7 +468,10 @@ private struct BattleHandProjectionLane: View {
                     }
                 },
                 hapticsEnabled: hapticsEnabled,
-                onFrameChanged: onFrameChanged,
+                onFrameChanged: { frame in
+                    handFrame = frame
+                    onFrameChanged(frame)
+                },
                 onCardInteractionChanged: onInteractionChanged,
                 onLift: onLift,
                 onLiftCancel: onLiftCancel,
