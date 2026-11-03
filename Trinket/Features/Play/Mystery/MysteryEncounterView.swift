@@ -63,6 +63,7 @@ struct MysteryEncounterView: View {
                     session: session,
                     onCorruptItem: { encounters.corruptMysteryItem(session: session, itemID: $0) },
                     onCancelCorruptSelection: { encounters.cancelMysteryCorruptSelection(session: session) },
+                    onInspectItem: { selectedItem = $0 },
                 )
                 .transition(.opacity)
             } else if session.isCorruptionAltar || session.event.isRecruit {

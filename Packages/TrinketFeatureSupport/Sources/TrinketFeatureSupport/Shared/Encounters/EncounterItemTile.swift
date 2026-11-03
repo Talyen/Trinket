@@ -11,6 +11,7 @@ public struct EncounterItemTile: View {
     var isDisabled: Bool = false
     var accessibilityID: String?
     let onSelect: () -> Void
+    var onInspect: (() -> Void)?
 
     public init(
         item: InventoryItem,
@@ -20,6 +21,7 @@ public struct EncounterItemTile: View {
         isDisabled: Bool = false,
         accessibilityID: String? = nil,
         onSelect: @escaping () -> Void,
+        onInspect: (() -> Void)? = nil,
     ) {
         self.item = item
         self.showsName = showsName
@@ -28,10 +30,11 @@ public struct EncounterItemTile: View {
         self.isDisabled = isDisabled
         self.accessibilityID = accessibilityID
         self.onSelect = onSelect
+        self.onInspect = onInspect
     }
 
     public var body: some View {
-        Button(action: onSelect) {
+        InspectableTapButton(action: onSelect, longPress: onInspect) {
             VStack(spacing: TrinketDesign.Spacing.small) {
                 ItemCard(
                     item: item,

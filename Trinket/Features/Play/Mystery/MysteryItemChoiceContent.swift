@@ -3,6 +3,7 @@ import TrinketAppState
 import TrinketContent
 import TrinketCore
 import TrinketDesignSystem
+import TrinketFeatureAdapters
 import TrinketFeatureSupport
 import TrinketPersistence
 
@@ -14,7 +15,9 @@ struct MysteryScaffold<Footer: View>: View {
     let selectedItemID: String?
     let isDisabled: Bool
     let itemAccessibilityID: (String) -> String
+    let equippedItemOwners: [String: String]
     let onSelectItem: (String) -> Void
+    let onInspectItem: (InventoryItem) -> Void
     @ViewBuilder let footer: () -> Footer
     @State private var visibleItemIDs: Set<String> = []
 
@@ -45,7 +48,13 @@ struct MysteryScaffold<Footer: View>: View {
                             isDisabled: isDisabled,
                             accessibilityID: itemAccessibilityID(item.id),
                             onSelect: { onSelectItem(item.id) },
+                            onInspect: { onInspectItem(item) },
                         )
+                        .overlay(alignment: .topLeading) {
+                            if let wearerName = equippedItemOwners[item.id] {
+                                EquippedItemBadge(wearerName: wearerName)
+                            }
+                        }
                         .onAppear { visibleItemIDs.insert(item.id) }
                         .onDisappear { visibleItemIDs.remove(item.id) }
                     }
@@ -76,9 +85,11 @@ struct MysteryScaffold<Footer: View>: View {
 
 struct MysteryCorruptItemChoiceContent: View {
     @Environment(OptionsStore.self) private var options
+    @Environment(PlayerSaveStore.self) private var playerSave
     @Bindable var session: MysteryEncounterSession
     let onCorruptItem: (String) -> Bool
     let onCancelCorruptSelection: () -> Void
+    let onInspectItem: (InventoryItem) -> Void
     @State private var selectedItemID: String?
     @State private var selectionFeedbackTrigger = 0
 
@@ -91,11 +102,13 @@ struct MysteryCorruptItemChoiceContent: View {
             selectedItemID: selectedItemID,
             isDisabled: session.isResolvingChoice,
             itemAccessibilityID: AccessibilityID.Mystery.corruptItemCard(itemID:),
+            equippedItemOwners: equippedItemOwners,
             onSelectItem: { itemID in
                 guard selectedItemID != itemID else { return }
                 selectedItemID = itemID
                 selectionFeedbackTrigger += 1
             },
+            onInspectItem: onInspectItem,
             footer: {
                 HStack(spacing: TrinketDesign.Spacing.medium) {
                     Button {
@@ -135,5 +148,16 @@ struct MysteryCorruptItemChoiceContent: View {
             enabled: options.hapticsEnabled,
         )
         .animation(TrinketMotion.Interaction.selection, value: selectedItemID)
+    }
+
+    private var equippedItemOwners: [String: String] {
+        var owners: [String: String] = [:]
+        for (combatantID, loadout) in playerSave.roster.equipmentLoadouts {
+            let name = GameContent.combatant(matching: combatantID)?.name ?? combatantID
+            for itemID in loadout.itemIDsBySlot.values {
+                owners[itemID] = name
+            }
+        }
+        return owners
     }
 }
