@@ -2,6 +2,25 @@ import TrinketFeatureSupport
 import XCTest
 
 final class PlayModeNavigationUITests: TrinketUITestCase {
+    func testCorruptionInspectionDoesNotSelectItem() {
+        launchApp(arguments: TestLaunchArg.allForScreen("mystery")
+            + TestLaunchArg.completedStages(["chapter-1-stage-1"])
+            + TestLaunchArg.mysteryRecruit(eventID: "corruption-altar"))
+        tapButtonAfterScroll(AccessibilityID.Mystery.choiceButton(choiceID: "corrupt-item"))
+        tapButton(AccessibilityID.Mystery.confirmChoiceButton)
+        let itemID = "crossbow-basic"
+        let item = button(AccessibilityID.Mystery.corruptItemCard(itemID: itemID))
+        reveal(item)
+        item.press(forDuration: 0.8)
+        let detailID = AccessibilityID.LoadoutPicker.itemDetail(itemID)
+        assertExists(detailID)
+        retainScreenshot(named: "Corruption item inspection")
+        dismissSheet(detailID)
+        XCTAssertFalse(button(AccessibilityID.Mystery.corruptConfirmButton).isEnabled)
+        tapWhenReady(item)
+        XCTAssertTrue(button(AccessibilityID.Mystery.corruptConfirmButton).isEnabled)
+    }
+
     func testRecruitContinueMakesTheCompanionAndNextBattleUsable() {
         launchApp(arguments: TestLaunchArg.allUnseeded()
             + TestLaunchArg.completedStages(["chapter-1-stage-1"])
