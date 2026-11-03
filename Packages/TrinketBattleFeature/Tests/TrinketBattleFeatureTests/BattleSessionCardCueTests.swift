@@ -193,12 +193,12 @@ struct BattleSessionCardCueTests {
         #expect(casts.requests.map(\.id) == [manual.id])
     }
 
-    @Test(arguments: [0, 1, 2])
-    func `automatic tap geometry matches the held manual release`(index: Int) throws {
+    @Test(arguments: [0, 1, 2], [CGSize(width: 375, height: 667), CGSize(width: 669, height: 869)])
+    func `automatic tap geometry matches the held manual release`(index: Int, size: CGSize) throws {
         let session = makeSession()
         defer { session.endBattle() }
         let card = try install(.slash, in: session)
-        let frame = BattleHandLayout.frame(in: CGSize(width: 375, height: 667))
+        let frame = BattleHandLayout.frame(in: size)
         let metrics = BattleHandLayout.metrics(containerWidth: frame.width, cardCount: 3, handHeight: frame.height)
         let start = Date(timeIntervalSinceReferenceDate: 100)
         let auto = CardActivationRequest.tapRequest(for: card, index: index, cardCount: 3, handFrame: frame, startedAt: start)

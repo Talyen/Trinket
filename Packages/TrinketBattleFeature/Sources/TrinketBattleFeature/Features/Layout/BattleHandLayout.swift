@@ -30,7 +30,7 @@ enum BattleHandLayout {
 
     static func battlefieldSize(in containerSize: CGSize) -> CGSize {
         let handFrame = frame(in: containerSize)
-        // Preserve the original phone composition; expanded canvases fit the whole fan.
+        // Preserve the original compact phone composition.
         if containerSize.width <= 500 {
             return CGSize(width: containerSize.width, height: max(0, containerSize.height - reservedPhoneHeight + overlapAllowance))
         }
@@ -131,7 +131,7 @@ enum BattleHandLayout {
         handFrame: CGRect,
     ) -> CGPoint {
         let baseOffsetY = restingOffsetY(index: index, cardCount: cardCount)
-            + (handFrame.width <= 500 ? metrics.cardHeight * restingPhoneYFraction : 0)
+            + restingLowering(cardHeight: metrics.cardHeight, handFrame: handFrame)
         return CGPoint(
             x: handFrame.midX + cardOffsetX(
                 index: index,
@@ -140,6 +140,19 @@ enum BattleHandLayout {
             ),
             y: handFrame.maxY - metrics.cardHeight / 2 + baseOffsetY,
         )
+    }
+
+    private static func restingLowering(cardHeight: CGFloat, handFrame: CGRect) -> CGFloat {
+        if handFrame.width <= 500 {
+            return cardHeight * restingPhoneYFraction
+        }
+        // Keep regular-width and rotated compositions. Ease the phone lowering
+        // out between 680 and 720 points, and as the field approaches square.
+        let widthWeight = min(1, max(0, (720 - handFrame.width) / 40))
+        // Hand frames are in field coordinates, with their bottom raised by bottomRise.
+        let fieldHeight = handFrame.maxY + bottomRise
+        let portraitWeight = min(1, max(0, (fieldHeight / handFrame.width - 1) / 0.15))
+        return cardHeight * restingPhoneYFraction * widthWeight * portraitWeight
     }
 
     static func releaseCenter(

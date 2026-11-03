@@ -13,8 +13,13 @@ Battle lifecycle, presentation, and SwiftUI for Trinket.
 - Ability cards stay **3:4** full-bleed art with no face text. Party portraits stay **3:4**; enemy viewport is **4:3**. Health anchors to the bottom of each combatant’s art. Show mana only when live `maxMana > 0`. No pause control, global crystals, or other top chrome.
 
 - Phone, Duo, and iPad retain the same stacked battlefield above the fanned hand.
-  Hand artwork stays fully visible and bounded by both available dimensions;
-  extra width spreads the fan instead of enlarging cards indefinitely. Wide
+  Compact phones and mid-width portrait fields share the original lowered hand,
+  allowing its bottom artwork to crop at the viewport without stretching cards.
+  The added portrait lowering eases out toward regular-width and square windows;
+  existing compact phone, regular-width, and landscape sizing stays unchanged.
+  Horizontal artwork bounds remain within the usable field. Other expanded
+  layouts keep the fully visible fan. Extra width spreads the fan instead of
+  enlarging cards indefinitely. Wide
   viewports reserve a smaller height share for the hand so combatants stay legible. Manual
   and automatic casts share the measured hand geometry. Held artwork is constrained
   horizontally to the usable field, including its scale and rotation; drawing and

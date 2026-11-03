@@ -51,6 +51,7 @@ struct BattleHandLayoutTests {
 
     @Test func `resting hand leaves party resource bars visible through expanded resizing`() {
         for size in [
+            CGSize(width: 669, height: 869),
             CGSize(width: 669, height: 951),
             CGSize(width: 951, height: 669),
             CGSize(width: 874, height: 402),
@@ -89,9 +90,70 @@ struct BattleHandLayoutTests {
                 let restingTop = center.y + hand.cardHeight / 2 + rotatedCard.minY
                 #expect(partyBottom < restingTop)
                 let restingBottom = center.y + hand.cardHeight / 2 + rotatedCard.maxY
-                #expect(restingBottom <= size.height)
+                let allowedBottomOverflow = size.width == 669 ? hand.cardHeight * 0.20 : 0
+                #expect(restingBottom <= size.height + allowedBottomOverflow)
                 #expect(center.x + rotatedCard.minX >= 0)
                 #expect(center.x + rotatedCard.maxX <= size.width)
+            }
+        }
+    }
+
+    @Test func `mid width portrait keeps hand size and uses the original phone lowering`() {
+        for size in [CGSize(width: 669, height: 869), CGSize(width: 669, height: 951)] {
+            let frame = BattleHandLayout.frame(in: size)
+            for count in 1 ... 3 {
+                let hand = BattleHandLayout.metrics(containerWidth: size.width, cardCount: count, handHeight: frame.height)
+                #expect(hand.cardWidth == 220)
+                #expect(abs(hand.cardHeight - 220 * 4.0 / 3.0) < 0.001)
+                for index in 0 ..< count {
+                    let center = BattleHandLayout.restingCenter(index: index, metrics: hand, cardCount: count, handFrame: frame)
+                    let unloweredY = frame.maxY - hand.cardHeight / 2
+                        + BattleHandLayout.restingOffsetY(index: index, cardCount: count)
+                    #expect(abs(center.y - unloweredY - hand.cardHeight * 0.20) < 0.001)
+                }
+            }
+            let field = BattleCardGridLayout.metrics(in: BattleHandLayout.battlefieldSize(in: size))
+            let oldEnemyWidth: CGFloat = size.height == 869 ? 341.832893678 : 393.926997839
+            #expect(field.enemySize.width > oldEnemyWidth * 1.09)
+            #expect(abs(field.enemySize.width / field.enemySize.height - 4.0 / 3.0) < 0.001)
+            #expect(abs(field.partySize.width / field.partySize.height - 3.0 / 4.0) < 0.001)
+        }
+    }
+
+    @Test func `regular and wide compositions keep their original frame and hand placement`() {
+        let cases: [(CGSize, CGFloat)] = [
+            (CGSize(width: 430, height: 839), 387),
+            (CGSize(width: 951, height: 669), 268.20),
+            (CGSize(width: 874, height: 402), 159.64),
+            (CGSize(width: 618, height: 422), 167.77),
+            (CGSize(width: 891, height: 625), 250.31),
+            (CGSize(width: 744, height: 1000), 425.06),
+            (CGSize(width: 820, height: 1104), 491.13),
+            (CGSize(width: 1024, height: 1280), 602.94),
+        ]
+        for (size, enemyWidth) in cases {
+            let field = BattleCardGridLayout.metrics(in: BattleHandLayout.battlefieldSize(in: size))
+            #expect(abs(field.enemySize.width - enemyWidth) < 0.01)
+            let frame = BattleHandLayout.frame(in: size)
+            let hand = BattleHandLayout.metrics(containerWidth: size.width, cardCount: 3, handHeight: frame.height)
+            let center = BattleHandLayout.restingCenter(index: 1, metrics: hand, cardCount: 3, handFrame: frame)
+            let originalLowering = size.width <= 500 ? hand.cardHeight * 0.20 : 0
+            #expect(abs(center.y - (frame.maxY - hand.cardHeight / 2 + originalLowering)) < 0.001)
+        }
+    }
+
+    @Test func `additional portrait lowering eases out before regular width and square fields`() {
+        for size in [CGSize(width: 680, height: 900), CGSize(width: 720, height: 900), CGSize(width: 669, height: 669)] {
+            func lowering(in canvas: CGSize) -> CGFloat {
+                let frame = BattleHandLayout.frame(in: canvas)
+                let hand = BattleHandLayout.metrics(containerWidth: canvas.width, cardCount: 3, handHeight: frame.height)
+                let center = BattleHandLayout.restingCenter(index: 1, metrics: hand, cardCount: 3, handFrame: frame)
+                // The original portrait/landscape hand-height switch remains unchanged.
+                return center.y - (frame.maxY - hand.cardHeight / 2)
+            }
+            for delta in [CGFloat(-1), 1] {
+                #expect(abs(lowering(in: size) - lowering(in: CGSize(width: size.width + delta, height: size.height))) < 2.5)
+                #expect(abs(lowering(in: size) - lowering(in: CGSize(width: size.width, height: size.height + delta))) < 2.5)
             }
         }
     }

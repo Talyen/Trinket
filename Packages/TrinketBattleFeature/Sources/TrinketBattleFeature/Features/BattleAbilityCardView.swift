@@ -11,7 +11,6 @@ struct BattleAbilityCardView: View {
     let width: CGFloat
     let height: CGFloat
     let restingRotation: CGFloat
-    let restingOffsetY: CGFloat
     let restingCenter: CGPoint
     let interactionFrame: CGRect
     let hapticsEnabled: Bool
@@ -158,7 +157,7 @@ struct BattleAbilityCardView: View {
     private var restingTranslation: CGSize {
         CGSize(
             width: 0,
-            height: restingOffsetY + (interactionFrame.width <= 500 ? height * BattleHandLayout.restingPhoneYFraction : 0),
+            height: restingCenter.y - (interactionFrame.maxY - height / 2),
         )
     }
 

@@ -8,7 +8,6 @@ private struct HeldCardLayoutSnapshot: Equatable {
     var width: CGFloat
     var height: CGFloat
     var restingRotation: CGFloat
-    var restingOffsetY: CGFloat
     var restingCenter: CGPoint
     var fanOffsetX: CGFloat
 }
@@ -96,7 +95,6 @@ struct BattleHandView: View {
                         width: snapshot.width,
                         height: snapshot.height,
                         restingRotation: snapshot.restingRotation,
-                        restingOffsetY: snapshot.restingOffsetY,
                         restingCenter: snapshot.restingCenter,
                         interactionFrame: handFrame,
                         hapticsEnabled: hapticsEnabled,
@@ -164,10 +162,6 @@ struct BattleHandView: View {
             width: layout.cardWidth,
             height: layout.cardHeight,
             restingRotation: BattleHandLayout.rotation(
-                index: index,
-                cardCount: cards.count,
-            ),
-            restingOffsetY: BattleHandLayout.restingOffsetY(
                 index: index,
                 cardCount: cards.count,
             ),
