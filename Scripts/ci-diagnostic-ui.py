@@ -72,7 +72,8 @@ def execution_environment(mode: str, selected: list[str], environment: dict[str,
     result = {**environment, 'SKIP_GENERATE': '1', 'TRINKET_TARGETED_UI_RETRY': '1',
               'TRINKET_UI_PLAN': 'Soak' if mode == 'soak' else 'FullUI'}
     if mode != 'soak':
-        seconds = 300 * len(selected)
+        # Xcode startup/finalization is outside the per-method execution allowance.
+        seconds = 180 + 300 * len(selected)
         inherited = int(environment.get('TRINKET_XCODE_WALL_TIMEOUT_SECONDS', '1200'))
         if inherited > 0:
             seconds = min(seconds, inherited)

@@ -61,8 +61,8 @@ printf '%s\\n' "${XCODEBUILD_ARGS[@]}"
 
     def test_exact_diagnostics_cap_each_selected_case_and_keep_shorter_parent_deadlines(self):
         cases = ['Class/testOne', 'Class/testTwo']
-        for mode, selected, inherited, expected in [('ui', cases[:1], '1800', '300'),
-                ('smoke', cases, '1800', '600'), ('ui', cases, '120', '120'),
+        for mode, selected, inherited, expected in [('ui', cases[:1], '1800', '480'),
+                ('smoke', cases, '1800', '780'), ('ui', cases, '120', '120'),
                 ('soak', cases[:1], '2400', '2400')]:
             with self.subTest(mode=mode, selected=selected, inherited=inherited):
                 environment = DIAGNOSTIC.execution_environment(mode, selected,

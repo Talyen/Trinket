@@ -64,8 +64,8 @@ exact-build UI diagnostics allow 30. Each keeps the three-minute diagnostic rese
 
 CI Smoke, FullUI and explicitly selected qualified release journeys enable XCTest's
 five-minute per-method execution limit. Exact functional diagnostics additionally cap
-the command at five minutes per selected method, respecting a shorter inherited
-watchdog and the job deadline. Hosted UI preparation records memory and swap counters
+the command at five minutes per selected method plus three minutes for Xcode
+startup/finalization, respecting a shorter inherited watchdog and the job deadline. Hosted UI preparation records memory and swap counters
 after boot to distinguish resource pressure from test execution. A stuck method must
 fail and retain evidence before consuming the entire batch watchdog; this does not
 classify a product timeout as infrastructure. Native settings profiles, Soak and
