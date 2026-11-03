@@ -52,7 +52,10 @@ following commands select hosted portfolios:
 Profiles cover iPhone SE third generation on iOS 26, iPad A16 (eleventh generation)
 on iOS 27, and iPhone Duo on iOS 27.1 or later in that major. The compatibility lane
 uses iPhone SE third generation on iOS 18. Missing or incompatible devices, runtimes
-or native settings fail visibly; there is no substitute profile.
+or native settings fail visibly; there is no substitute device or OS major.
+Within a requested major, selection uses the newest installed runtime compatible
+with that device; an exact OS-version request remains exact. A newer Duo-only
+runtime must not prevent the iPad profile from using its compatible runtime.
 
 Each device exercises native default text, largest accessibility text, and largest
 text with Reduce Motion. Verify those settings actually reach SwiftUI and restore

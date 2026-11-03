@@ -131,7 +131,8 @@ ensure_test_simulator
         environment = {key: value for key, value in os.environ.items()
                        if not key.startswith(('TRINKET_', 'SIMULATOR_'))}
         for ci, elapsed, window, override, expected in [
-            ('true', '241', '', '', 1), ('true', '1', '', '', 0), ('false', '241', '', '', 0),
+            ('true', '301', '', '', 0), ('true', '501', '', '', 1), ('true', '241', '360', '', 1),
+            ('true', '1', '', '', 0), ('false', '241', '', '', 0),
             ('true', '241', '720', '', 0), ('true', '501', '720', '', 1),
             ('true', '241', '', '60', 0),
         ]:

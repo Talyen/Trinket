@@ -131,7 +131,7 @@ public struct RewardRevealShell<Content: View>: View {
             if let subtitle {
                 GameLabel(subtitle, balanced: true)
                     .trinketTypography(.secondaryBody)
-                    .foregroundStyle(Color.secondary)
+                    .foregroundStyle(Color.primary)
                     .multilineTextAlignment(.center)
                     .trinketFittedText()
                     .trinketPresentationVisibility(subtitleOpacity >= 1, opacity: subtitleOpacity)

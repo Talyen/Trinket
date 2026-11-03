@@ -133,9 +133,9 @@ struct FullGameOfferView: View {
                 }
             }
             Label(String(localized: L10n.ui_fullgameofferview_family_sharing_ba974), systemImage: "person.2")
+                .trinketTypography(.secondaryBody)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .trinketTypography(.secondaryBody)
         .foregroundStyle(.secondary)
     }
 
@@ -148,6 +148,7 @@ struct FullGameOfferView: View {
                     ProgressView()
                 }
                 Text(L10n.ui_fullgameofferview_restore_purchases_16351)
+                    .trinketTypography(.secondaryBody)
             }
             .frame(minHeight: 44)
             .contentShape(.rect)
@@ -159,6 +160,7 @@ struct FullGameOfferView: View {
     private var privacyLink: some View {
         Link(destination: TrinketPublicPages.privacy) {
             Text(L10n.ui_fullgameofferview_privacy_54a57)
+                .trinketTypography(.secondaryBody)
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(.rect)
         }

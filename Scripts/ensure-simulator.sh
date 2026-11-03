@@ -270,7 +270,7 @@ ensure_test_simulator() {
   local simulator_setup_deadline=""
   if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
     max_attempts=3
-    local setup_window="${TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS:-360}"
+    local setup_window="${TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS:-720}"
     if [[ ! "$setup_window" =~ ^[1-9][0-9]*$ ]]; then
       echo "Error: CI simulator setup window must be a positive number of seconds." >&2
       return 1

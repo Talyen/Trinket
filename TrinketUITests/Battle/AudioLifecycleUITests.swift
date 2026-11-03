@@ -73,10 +73,12 @@ extension TrinketUITestCase {
         battle.assertActive()
         try afterEntry()
         tapWhenReady(battle.autoBattleToggle)
+        let victory = app.staticTexts[AccessibilityID.Battle.victory]
+        let defeat = app.staticTexts[AccessibilityID.Battle.defeat]
         waitUntil("Audio-enabled battle must resolve", timeout: 45) {
-            self.any(AccessibilityID.Battle.victory).exists || self.any(AccessibilityID.Battle.defeat).exists
+            victory.exists || defeat.exists
         }
-        let won = any(AccessibilityID.Battle.victory).exists
+        let won = victory.exists
         let leave = won ? AccessibilityID.Battle.continueButton : AccessibilityID.Battle.defeatLeaveButton
         tapButtonAfterScroll(leave)
         dismissEarnedTalentChoicesIfPresented()

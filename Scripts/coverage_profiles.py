@@ -25,7 +25,7 @@ TEXT_SIZES = ('large', 'accessibility-extra-extra-extra-large')
 
 
 def select_profile(runtimes, device_types, type_id, major, version=None):
-    """Fail closed: a requested runtime/type never falls back to another profile."""
+    """Select the newest compatible runtime within the requested major or exact version."""
     def components(value):
         parts = tuple(int(part) for part in value.split('.'))
         return parts + (0,) * (3 - len(parts))
@@ -45,13 +45,12 @@ def select_profile(runtimes, device_types, type_id, major, version=None):
         minimum = MINIMUM_RUNTIME_VERSIONS.get(type_id)
         requested = version or ('.'.join(map(str, minimum)) + '+' if minimum else str(major))
         raise ValueError(f'unavailable iOS {requested} runtime')
-    newest_version = max(components(item['version']) for item in candidates)
-    latest = [item for item in candidates if components(item['version']) == newest_version]
-    compatible = [item for item in latest if not item.get('supportedDeviceTypes')
+    compatible = [item for item in candidates if not item.get('supportedDeviceTypes')
                   or any(device.get('identifier') == type_id for device in item['supportedDeviceTypes'])]
     if not compatible:
-        raise ValueError(f'{type_id} is incompatible with {latest[0]["identifier"]}')
-    return max(compatible, key=lambda item: item.get('buildversion', ''))
+        newest = max(candidates, key=lambda item: components(item['version']))
+        raise ValueError(f'{type_id} is incompatible with {newest["identifier"]}')
+    return max(compatible, key=lambda item: (components(item['version']), item.get('buildversion', '')))
 
 
 def simctl(*arguments):

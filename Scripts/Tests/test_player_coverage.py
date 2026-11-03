@@ -98,7 +98,7 @@ class PlayerCoverageTests(unittest.TestCase):
                     self.assertEqual(MODULE.select_profile(runtimes, [dict(identifier='phone')],
                                                           'phone', 26, version), newer)
 
-    def test_parallel_runtime_trains_preserve_device_compatibility_without_minor_fallback(self):
+    def test_parallel_runtime_trains_select_the_newest_compatible_minor(self):
         phone = dict(identifier='ios-27.1', version='27.1', buildversion='24A94232',
                      platform='iOS', isAvailable=True, supportedDeviceTypes=[dict(identifier='phone')])
         duo = dict(phone, buildversion='24A94425', supportedDeviceTypes=[dict(identifier='duo')])
@@ -107,8 +107,10 @@ class PlayerCoverageTests(unittest.TestCase):
                 with self.subTest(inventory=runtimes, version=version):
                     self.assertEqual(MODULE.select_profile(runtimes, [dict(identifier='phone')],
                                                           'phone', 27, version), phone)
-        with self.assertRaisesRegex(ValueError, 'incompatible'):
-            MODULE.select_profile([phone, dict(duo, version='27.2')], [dict(identifier='phone')], 'phone', 27)
+        for runtimes in ([phone, dict(duo, version='27.2')], [dict(duo, version='27.2'), phone]):
+            self.assertEqual(MODULE.select_profile(runtimes, [dict(identifier='phone')], 'phone', 27), phone)
+            with self.assertRaisesRegex(ValueError, 'incompatible'):
+                MODULE.select_profile(runtimes, [dict(identifier='phone')], 'phone', 27, '27.2')
 
     def test_runtime_preparation_installs_missing_major_and_validates_the_result(self):
         for name, architecture, variant in [('compact', 'arm64', 'arm64'),

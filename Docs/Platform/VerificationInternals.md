@@ -48,9 +48,10 @@ preparation and serial package work; per-command Xcode watchdogs also cap themse
 against the remaining deadline, preserving a short manifest-finalization allowance.
 CI allows five minutes per cold boot (local default: 150 seconds). Simulator recovery
 admits another boot only when its full watchdog fits
-within the setup recovery window: six minutes for standard lanes, twelve for the
-downloaded qualified release runtime, which has demonstrated a successful erase/boot
-recovery. An exhausted window fails before consuming the test budget.
+within the twelve-minute setup recovery window. This leaves room for an initial
+five-minute timeout, bounded shutdown, and one full erase/boot recovery; the
+downloaded qualified release runtime has demonstrated that recovery path. An
+exhausted window fails before consuming the test budget.
 `TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS` selects that admission window. Local recovery
 retains its existing attempts. Timeouts remain failures and emit structured receipts. Supervisors terminate only
 their own process groups; existing simulator guest/lease cleanup remains in force.
