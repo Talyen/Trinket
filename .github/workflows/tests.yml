@@ -1,7 +1,7 @@
 name: Build and test
 
 # Pushes build and smoke-test on one runner. Manual exhaustive runs reuse
-# exact-commit standard checks; exhaustive UI uses one transfer and simulator.
+# exact-commit standard checks; exhaustive UI shares products across serial runtimes.
 # Build orchestration changes exercise the product jobs; lint-only changes use the gate.
 # Nightly/dispatch also run exhaustive UI outside the push path.
 # The warm cache preserves incremental state; build uploads test products
@@ -643,7 +643,8 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
-          fetch-depth: 0
+          fetch-depth: 2
+          filter: blob:none
       - name: Change-budget summary
         env:
           BEFORE: ${{ github.event.before }}
@@ -660,7 +661,7 @@ jobs:
             fi
           else
             base="$BEFORE"
-            git cat-file -e "$base^{commit}" 2>/dev/null || git fetch --depth=1 origin "$base"
+            git cat-file -e "$base^{commit}" 2>/dev/null || git fetch --filter=blob:none --depth=1 origin "$base"
           fi
           mapfile -t paths < <(git diff --name-only --diff-filter=ACMR "$base" "$SHA" | sed '/^$/d')
           {
