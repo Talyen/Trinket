@@ -148,7 +148,8 @@ portfolio plus independent exhaustive UI. Normal exhaustive dispatches retain st
 Functional Smoke, exhaustive FullUI and exact-build UI diagnostics prepare the same
 qualified iPhone 17 Pro / iOS 26.2 (23C54) runtime through `ci-ui-profile.py`.
 Preparation validates the exact runtime build before exporting the device selection;
-newly compiled UI tests also reject execution on another build. The release workflow
+newly compiled UI tests also reject execution on another build. The preparation
+action stages bounded failure receipts even when tests cannot start. The release workflow
 retains its exact-build installer so historical source revisions remain supported.
 Compatibility and native settings profiles keep their independent device/OS coverage.
 The baseline avoids the independently reproduced

@@ -6,3 +6,15 @@ runs:
     - name: Prepare the release-qualified functional runtime
       shell: bash
       run: python3 Scripts/ci-run-budget.py --phase functional-ui-prerequisite -- python3 Scripts/ci-ui-profile.py prepare
+    - name: Stage functional runtime prerequisite evidence
+      if: failure()
+      shell: bash
+      run: ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/FunctionalUIPrerequisite-artifact
+    - name: Retain functional runtime prerequisite evidence
+      if: failure()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+      with:
+        name: functional-ui-prerequisite-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+        path: .DerivedData/FunctionalUIPrerequisite-artifact/
+        retention-days: 14
+        if-no-files-found: ignore
