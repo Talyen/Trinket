@@ -355,35 +355,16 @@ esac
 
     def test_unavailable_device_runtime_does_not_suppress_other_hosted_profiles(self):
         workflow = (ROOT / '.github/workflows/player-coverage.yml').read_text()
-        step = workflow.split('      - name: Run requested profiles serially', 1)[1]
-        command = step.split('        run: |\n', 1)[1].split('      - name:', 1)[0]
-        command = '\n'.join(line[10:] for line in command.splitlines())
-        with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
-            (root / 'Scripts').mkdir()
-            binaries = root / 'bin'
-            binaries.mkdir()
-            write_executable(binaries / 'python3', '''#!/bin/sh
-printf 'prepare %s\n' "$4" >> "$PWD/calls"
-if [ "$4" = "$FAILED_PREREQUISITE" ]; then exit 2; fi
-''')
-            write_executable(root / 'Scripts/player-coverage.sh', '''#!/bin/sh
-printf 'run %s\n' "$1" >> "$PWD/calls"
-if [ "$1" = "$FAILED_JOURNEY" ]; then exit 1; fi
-''')
-            for prerequisite, journey, expected in [('compact', 'tablet', 1), ('', '', 0)]:
-                with self.subTest(prerequisite=prerequisite, journey=journey):
-                    calls = root / 'calls'
-                    calls.unlink(missing_ok=True)
-                    result = run_captured(['bash', '-ec', command], cwd=root, env={
-                        **os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}',
-                        'FAILED_PREREQUISITE': prerequisite, 'FAILED_JOURNEY': journey,
-                        'GITHUB_STEP_SUMMARY': str(root / 'summary'),
-                    })
-                    self.assertEqual(result.returncode, expected, result.stderr)
-                    self.assertEqual(calls.read_text().splitlines(),
-                                     ['prepare compact'] + ([] if prerequisite else ['run compact'])
-                                     + ['prepare tablet', 'run tablet', 'prepare duo', 'run duo'])
+        profiles = workflow.split('  profiles:\n', 1)[1].split('\n  soak:', 1)[0]
+        self.assertIn('fail-fast: false', profiles)
+        self.assertIn('max-parallel: 1', profiles)
+        self.assertIn('profile: [compact, tablet, duo]', profiles)
+        self.assertNotIn('for profile in', profiles)
+        self.assertIn('PROFILE: ${{ matrix.profile }}', profiles)
+        self.assertIn('Scripts/ci-run-budget.py --phase player-profile-prerequisite -- '
+                      'python3 Scripts/coverage_profiles.py prepare --name "$PROFILE"', profiles)
+        self.assertIn('Scripts/ci-run-budget.py --phase player-profile -- ./Scripts/player-coverage.sh "$PROFILE"', profiles)
+        self.assertIn('player-profiles-${{ matrix.profile }}-${{ github.run_id }}-${{ github.run_attempt }}', profiles)
 
     def test_duo_rotation_still_executes_when_settings_profiles_fail(self):
         with tempfile.TemporaryDirectory() as temporary:

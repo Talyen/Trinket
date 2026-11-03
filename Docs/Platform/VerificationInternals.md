@@ -246,6 +246,14 @@ layout, fonts and packaging.
 
 ## Player profile execution
 
+The hosted compact/tablet/Duo matrix admits one device job at a time, using a
+fresh runner for each profile and continuing after independent failures. This
+contains CoreSimulator boot/shutdown failures that previously poisoned all three
+profiles on one host. Each profile reserves diagnostic time and wraps preparation
+and execution with `ci-run-budget.py`, so a failed prerequisite cannot be reported
+as a passing build-only diagnostic. Native settings remain serial within a device.
+
+
 [Player coverage](PlayerCoverage.md#ci-and-profiles) owns devices, scenarios, cadence
 and acceptance. These mechanics preserve that scope when provisioning or diagnosing
 `player-coverage.sh` and its native-settings helpers.

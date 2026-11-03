@@ -63,6 +63,11 @@ Within a requested major, selection uses the newest installed runtime compatible
 with that device; an exact OS-version request remains exact. A newer Duo-only
 runtime must not prevent the iPad profile from using its compatible runtime.
 
+Compact phone, iPad and Duo run serially as independent jobs on fresh hosted
+runners. A stalled CoreSimulator service on one device must not prevent the other
+profiles from running. Settings stay serial within each device, each artifact
+names its profile, and prerequisite failures retain structured diagnostics.
+
 Each device exercises native default text, largest accessibility text, and largest
 text with Reduce Motion. Verify those settings actually reach SwiftUI and restore
 the original settings even after failure. A failed prerequisite is configuration
