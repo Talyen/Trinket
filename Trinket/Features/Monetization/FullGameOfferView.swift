@@ -18,36 +18,39 @@ struct FullGameOfferView: View {
     let artwork: FullGameOfferArtwork?
 
     var body: some View {
-        GeometryReader { geometry in
-            ScrollView {
-                FullGameOfferContentLayout(
-                    viewportHeight: geometry.size.height,
-                    minimumHeroHeight: minimumHeroHeight,
-                ) {
-                    GeometryReader { hero in
-                        DetailHeroHeader(
-                            eyebrow: String(localized: L10n.ui_fullgameofferview_full_game_497de),
-                            title: String(localized: L10n.ui_fullgameofferview_keep_exploring_2c443),
-                            titleAccessibilityIdentifier: AccessibilityID.FullGame.hero,
-                            baseHeight: hero.size.height,
-                            horizontalPadding: max(0, (hero.size.width - contentWidth) / 2) + TrinketDesign.Layout.contentMargin,
-                            titleScale: 40.0 / 34,
-                            eyebrowScale: 15.0 / 12,
-                        ) {
-                            artwork
+        VStack(spacing: 0) {
+            GeometryReader { geometry in
+                ScrollView {
+                    FullGameOfferContentLayout(
+                        viewportHeight: geometry.size.height,
+                        minimumHeroHeight: minimumHeroHeight,
+                    ) {
+                        GeometryReader { hero in
+                            DetailHeroHeader(
+                                eyebrow: String(localized: L10n.ui_fullgameofferview_full_game_497de),
+                                title: String(localized: L10n.ui_fullgameofferview_keep_exploring_2c443),
+                                titleAccessibilityIdentifier: AccessibilityID.FullGame.hero,
+                                baseHeight: hero.size.height,
+                                horizontalPadding: max(0, (hero.size.width - contentWidth) / 2) + TrinketDesign.Layout.contentMargin,
+                                titleScale: 40.0 / 34,
+                                eyebrowScale: 15.0 / 12,
+                            ) {
+                                artwork
+                            }
                         }
+                        benefits(roomy: geometry.size.width >= 390)
                     }
-                    benefits(roomy: geometry.size.width >= 390)
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
+                .scrollBounceBehavior(.basedOnSize)
+                .clipped()
             }
-            .scrollBounceBehavior(.basedOnSize)
+            purchaseArea
         }
         .trinketScreenBackground()
         .ignoresSafeArea(edges: .top)
         .trinketSoftTopScrollEdge(isHidden: true)
         .toolbar(.hidden, for: .navigationBar)
-        .safeAreaInset(edge: .bottom, spacing: 0) { purchaseArea }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(AccessibilityID.FullGame.offer)
         .task { await store.loadProduct() }

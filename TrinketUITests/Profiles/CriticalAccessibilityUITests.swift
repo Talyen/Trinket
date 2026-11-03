@@ -229,6 +229,19 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         try assertRequestedEnvironment()
         assertExists(AccessibilityID.Battle.victory)
         reveal(button(AccessibilityID.Battle.continueButton))
+        let rewards = any(AccessibilityID.Battle.rewards)
+        let viewport = app.scrollViews.containing(.other, identifier: AccessibilityID.Battle.rewards).firstMatch
+        assertExists(rewards)
+        assertExists(viewport)
+        // iOS 18 contrast auditing also samples clipped descendants beneath the footer.
+        for _ in 0 ..< 8 {
+            if rewards.frame.maxY <= viewport.frame.maxY {
+                break
+            }
+            viewport.swipeUp()
+        }
+        XCTAssertGreaterThan(rewards.frame.maxY, viewport.frame.minY)
+        XCTAssertLessThanOrEqual(rewards.frame.maxY, viewport.frame.maxY, "Wallet rewards must be visible for the native audit")
         try auditProductAccessibility(screen: "reward-claim")
         reveal(button(AccessibilityID.Battle.continueButton))
         retainScreenshot(named: "reward-claim")

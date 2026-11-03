@@ -402,17 +402,24 @@ class TrinketUITestCase: XCTestCase {
 
     func dismissSheet(_ identifier: String) {
         assertExists(identifier)
-        let close = app.buttons["Close"]
-        if close.exists, close.isHittable {
-            tapWhenReady(close)
-        } else {
-            let grabber = app.buttons["Sheet Grabber"].firstMatch
-            let bar = app.navigationBars.allElementsBoundByIndex.last { $0.isHittable }
-            let start = (grabber.exists && grabber.isHittable
-                ? grabber.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)) : nil)
-                ?? bar?.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1))
-                ?? app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.09))
-            start.press(forDuration: 0.1, thenDragTo: sheetDismissDragEnd)
+        // A drag can move a large sheet to a smaller detent before dismissing it.
+        for _ in 0 ..< 2 {
+            let close = app.buttons["Close"]
+            if close.exists, close.isHittable {
+                tapWhenReady(close)
+            } else {
+                let grabber = app.buttons["Sheet Grabber"].firstMatch
+                let bar = app.navigationBars.allElementsBoundByIndex.last { $0.isHittable }
+                let start = (grabber.exists && grabber.isHittable
+                    ? grabber.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)) : nil)
+                    ?? bar?.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1))
+                    ?? app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.09))
+                let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.95))
+                start.press(forDuration: 0.1, thenDragTo: end)
+            }
+            if any(identifier).waitForNonExistence(timeout: Self.defaultTimeout) {
+                return
+            }
         }
         assertDoesNotExist(identifier)
     }
