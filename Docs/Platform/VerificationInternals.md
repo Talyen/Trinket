@@ -58,7 +58,8 @@ their own process groups; existing simulator guest/lease cleanup remains in forc
 
 Build/smoke jobs allow 40 minutes. Exhaustive UI runs independently with a
 55-minute job limit and a 40-minute batch watchdog; compilation and smoke cannot
-consume that batch allowance. Functional runtime downloads are capped at ten minutes.
+consume that batch allowance. Functional runtime downloads are capped at ten minutes;
+selected-runtime dyld cache preparation has a separate five-minute limit.
 The Battle package shard allows 30 minutes (other package shards allow 25), and
 exact-build UI diagnostics allow 30. Each keeps the three-minute diagnostic reserve.
 
@@ -147,8 +148,12 @@ portfolio plus independent exhaustive UI. Normal exhaustive dispatches retain st
 
 Functional Smoke, exhaustive FullUI and exact-build UI diagnostics prepare the same
 qualified iPhone 17 Pro / iOS 26.2 (23C54) runtime through `ci-ui-profile.py`.
-Preparation validates the exact runtime build before exporting the device selection;
-newly compiled UI tests also reject execution on another build. The preparation
+Preparation validates the exact runtime build and waits for its dyld shared cache
+before exporting the device selection. It uses the supported `simctl runtime
+dyld_shared_cache update` command for that runtime, without forcing regeneration.
+Apple documents [cache readiness as a first-boot workaround](https://developer.apple.com/documentation/xcode-release-notes/xcode-26_1-release-notes);
+this preparation makes cache completion explicit on fresh runners.
+Newly compiled UI tests also reject execution on another build. The preparation
 action stages bounded failure receipts even when tests cannot start. The release workflow
 retains its exact-build installer so historical source revisions remain supported.
 Compatibility and native settings profiles keep their independent device/OS coverage.

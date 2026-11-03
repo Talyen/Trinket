@@ -35,6 +35,9 @@ def prepare(environment):
                                       profile['version'], build=profile['build'], download_timeout=600)
     if runtime.get('identifier') != profile['runtime'] or runtime.get('buildversion') != profile['build']:
         raise ValueError(f'Functional UI requires {profile}; found {runtime}')
+    print(f"Preparing simulator dyld cache: iOS {profile['version']} ({profile['build']}).", flush=True)
+    subprocess.run(['xcrun', 'simctl', 'runtime', 'dyld_shared_cache', 'update', profile['runtime']],
+                   check=True, timeout=300)
     with Path(environment['GITHUB_ENV']).open('a') as output:
         output.write(''.join(f'{key}={value}\n' for key, value in profile_environment().items()))
     print(f"Functional UI: {profile['device']}, iOS {profile['version']} ({profile['build']}).", flush=True)

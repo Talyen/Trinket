@@ -27,17 +27,28 @@ class UIStabilityTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'github-env'
             environment = dict(GITHUB_ACTIONS='true', GITHUB_ENV=str(path))
-            with patch.object(PROFILE.PROFILES, 'prepare_runtime', return_value=runtime) as prepare:
+            with patch.object(PROFILE.PROFILES, 'prepare_runtime', return_value=runtime) as prepare, \
+                    patch.object(PROFILE.subprocess, 'run') as cache:
                 PROFILE.prepare(environment)
+            cache.assert_called_once_with(['xcrun', 'simctl', 'runtime', 'dyld_shared_cache', 'update', profile['runtime']],
+                                          check=True, timeout=300)
             prepare.assert_called_once_with(profile['device'], 26, '26.2', build='23C54', download_timeout=600)
             exported = dict(line.split('=', 1) for line in path.read_text().splitlines())
             PROFILE.require_environment(exported)
             self.assertEqual(exported['TEST_RUNNER_TRINKET_EXPECTED_OS_BUILD'], '23C54')
             for wrong in (dict(runtime, buildversion='23C52'), dict(runtime, identifier='different')):
                 path.write_text('unchanged\n')
-                with patch.object(PROFILE.PROFILES, 'prepare_runtime', return_value=wrong), self.assertRaises(ValueError):
+                with patch.object(PROFILE.PROFILES, 'prepare_runtime', return_value=wrong), \
+                        patch.object(PROFILE.subprocess, 'run') as cache, self.assertRaises(ValueError):
                     PROFILE.prepare(environment)
+                cache.assert_not_called()
                 self.assertEqual(path.read_text(), 'unchanged\n')
+            path.write_text('unchanged\n')
+            with patch.object(PROFILE.PROFILES, 'prepare_runtime', return_value=runtime), \
+                    patch.object(PROFILE.subprocess, 'run', side_effect=PROFILE.subprocess.TimeoutExpired('cache', 300)), \
+                    self.assertRaises(PROFILE.subprocess.TimeoutExpired):
+                PROFILE.prepare(environment)
+            self.assertEqual(path.read_text(), 'unchanged\n')
             with patch.object(PROFILE.PROFILES, 'prepare_runtime') as prepare, self.assertRaises(ValueError):
                 PROFILE.prepare(dict(GITHUB_ACTIONS='false', GITHUB_ENV=str(path)))
             prepare.assert_not_called()
