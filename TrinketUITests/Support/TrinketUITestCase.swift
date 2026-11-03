@@ -409,11 +409,13 @@ class TrinketUITestCase: XCTestCase {
                 tapWhenReady(close)
             } else {
                 let grabber = app.buttons["Sheet Grabber"].firstMatch
-                let bar = app.navigationBars.allElementsBoundByIndex.last { $0.isHittable }
-                let start = (grabber.exists && grabber.isHittable
+                // A top-edge grabber can open Notification Center instead of moving the sheet.
+                let minimumStartY = app.frame.minY + app.frame.height * 0.09
+                let bar = app.navigationBars.allElementsBoundByIndex.last { $0.isHittable && $0.frame.midY >= minimumStartY }
+                let start = (grabber.exists && grabber.isHittable && grabber.frame.midY >= minimumStartY
                     ? grabber.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)) : nil)
-                    ?? bar?.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1))
-                    ?? app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.09))
+                    ?? bar?.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                    ?? sheetDismissDragStart
                 let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.95))
                 start.press(forDuration: 0.1, thenDragTo: end)
             }
