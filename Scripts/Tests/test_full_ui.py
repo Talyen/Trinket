@@ -24,14 +24,15 @@ class FullUIRoutingTests(unittest.TestCase):
         calls = execute.call_args_list
         self.assertEqual([target for call in calls for target in call.args[0][5:]],
                          ['BattleFlowUITests', 'LocalizationUITests', MODULE.PURCHASE_CLASS])
-        self.assertEqual(calls[0].kwargs['env'], self.environment)
+        self.assertEqual(calls[0].kwargs['env']['TRINKET_SIM_OS_MAJOR'], '27')
         self.assertEqual(calls[1].kwargs['env']['TRINKET_SIM_OS_VERSION'], '26.2')
         self.assertEqual(calls[1].kwargs['env']['TRINKET_SIM_OS_MAJOR'], '26')
         self.assertEqual(calls[1].kwargs['env']['TRINKET_SIM_DEVICE_TYPE'], MODULE.QUALIFIED_PROFILE['device'])
         self.assertEqual(calls[1].kwargs['env']['DEVELOPER_DIR'], '/verified-xcode')
-        self.assertEqual(calls[1].kwargs['env']['TRINKET_ISOLATE'], '1')
-        self.assertEqual(calls[1].kwargs['env']['DERIVED_DATA_PATH'], str((ROOT / '.DerivedData').resolve()))
-        self.assertEqual(calls[1].kwargs['env']['RESULTS_DIR'], str((ROOT / '.DerivedData/TestResults').resolve()))
+        for call in calls:
+            self.assertEqual(call.kwargs['env']['TRINKET_ISOLATE'], '1')
+            self.assertEqual(call.kwargs['env']['DERIVED_DATA_PATH'], str((ROOT / '.DerivedData').resolve()))
+            self.assertEqual(call.kwargs['env']['RESULTS_DIR'], str((ROOT / '.DerivedData/TestResults').resolve()))
         prepare.assert_called_once_with(MODULE.QUALIFIED_PROFILE['device'], 26, '26.2')
         self.assertEqual(self.environment['TRINKET_SIM_OS_MAJOR'], '27')
 

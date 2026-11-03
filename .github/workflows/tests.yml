@@ -185,6 +185,10 @@ jobs:
         id: smoke
         # Defer this required failure until independent FullUI has used the products.
         continue-on-error: true
+        env:
+          TRINKET_ISOLATE: '1'
+          DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
+          RESULTS_DIR: ${{ github.workspace }}/.DerivedData/TestResults
         uses: ./.github/actions/test-job
         with:
           artifact-name: smoke

@@ -370,6 +370,11 @@ is not automatically qualified. Retain the selected beta/full-release gate.
 Legacy `SKTestTransaction.state` can remain deferred after a correctly resolved denial.
 Detailed qualification runs remain in Git history.
 
+Exhaustive hosted CI routes `FullGamePurchaseUITests` to this runtime. Both FullUI
+phases use one managed simulator slot and the same compiled products; an inline
+run also reuses smoke's slot. Replacing the owned device confirms shutdown before
+booting the purchase runtime.
+
 On iOS 26.2, `setSimulatedError(nil, forAPI: .purchase)` can report nil while the
 server still cancels the next purchase. Use `resetToDefaultState()`, reapply
 `disableDialogs`, preserve transaction history, then verify locked access and a

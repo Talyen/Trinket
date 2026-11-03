@@ -28,17 +28,17 @@ def run(targets: list[str], environment: dict[str, str]) -> int:
         return subprocess.call([sys.executable, 'Scripts/ci_ui_retry.py', './Scripts/test.sh',
                                 'ui', '--no-build', *selected], env=env)
 
-    status = execute(ordinary, environment) if ordinary else 0
+    derived = environment.get('DERIVED_DATA_PATH') or str(Path('.DerivedData').resolve())
+    results = environment.get('RESULTS_DIR') or str(Path(derived) / 'TestResults')
+    test_environment = {**environment, 'TRINKET_ISOLATE': '1',
+                        'DERIVED_DATA_PATH': derived, 'RESULTS_DIR': results}
+    status = execute(ordinary, test_environment) if ordinary else 0
     if PURCHASE_CLASS not in targets:
         return status
     qualified = QUALIFIED_PROFILE
-    derived = environment.get('DERIVED_DATA_PATH') or str(Path('.DerivedData').resolve())
-    results = environment.get('RESULTS_DIR') or str(Path(derived) / 'TestResults')
-    purchase_environment = {**environment, 'TRINKET_SIM_DEVICE_TYPE': qualified['device'],
+    purchase_environment = {**test_environment, 'TRINKET_SIM_DEVICE_TYPE': qualified['device'],
                             'TRINKET_SIM_OS_VERSION': qualified['version'],
-                            'TRINKET_SIM_OS_MAJOR': qualified['version'].split('.')[0],
-                            'TRINKET_ISOLATE': '1',
-                            'DERIVED_DATA_PATH': derived, 'RESULTS_DIR': results}
+                            'TRINKET_SIM_OS_MAJOR': qualified['version'].split('.')[0]}
     try:
         runtime = PROFILES.prepare_runtime(qualified['device'], int(qualified['version'].split('.')[0]), qualified['version'])
         if runtime.get('identifier') != qualified['runtime'] or runtime.get('buildversion') != qualified['build']:

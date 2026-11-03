@@ -63,6 +63,47 @@ if discard_simulator; then exit 93; fi
         result = run_captured(['bash', '-c', script, '_', str(ROOT)], expected=0)
         self.assertNotIn('unexpected-', result.stdout)
 
+    def test_profile_runtime_replacement_requires_isolation_and_shutdown_before_boot(self) -> None:
+        script = r'''source "$1/Scripts/ensure-simulator.sh"
+SIMULATOR_NAME='Trinket Agent 1'
+SIMULATOR_UDID=old-device
+TRINKET_SIM_DEVICE_TYPE=fixture-type
+TRINKET_SIM_OS_MAJOR=26
+TRINKET_SIM_SLOT_PATH="$LEASE_PATH"
+python3() { printf 'fixture-type\tfixture-runtime\t\n'; }
+simulator_udid_for_name() { printf old-device; }
+shutdown_and_wait_simulator() {
+  printf 'shutdown %s\n' "$1" >> "$CALLS"
+  return "$SHUTDOWN_STATUS"
+}
+xcrun() {
+  printf '%s\n' "$*" >> "$CALLS"
+  if [[ "$2" == create ]]; then printf new-device; fi
+  return 0
+}
+if resolve_or_create_simulator; then
+  printf 'boot %s\n' "$SIMULATOR_UDID" >> "$CALLS"
+else
+  exit 1
+fi
+'''
+        with tempfile.TemporaryDirectory() as directory:
+            calls = Path(directory) / 'calls'
+            for isolate, lease, shutdown, expected in [('1', 'owned.slot', '0', 0),
+                    ('0', 'owned.slot', '0', 1), ('1', '', '0', 1), ('1', 'owned.slot', '1', 1)]:
+                with self.subTest(isolate=isolate, lease=lease, shutdown=shutdown):
+                    calls.write_text('')
+                    run_captured(['bash', '-c', script, '_', str(ROOT)], expected=expected,
+                        env={**os.environ, 'CALLS': str(calls), 'TRINKET_ISOLATE': isolate,
+                             'LEASE_PATH': lease, 'SHUTDOWN_STATUS': shutdown})
+                    events = calls.read_text().splitlines()
+                    if expected == 0:
+                        self.assertEqual(events, ['shutdown old-device', 'simctl delete old-device',
+                                                 'simctl create Trinket Agent 1 fixture-type fixture-runtime',
+                                                 'boot new-device'])
+                    else:
+                        self.assertEqual(events, ['shutdown old-device'] if shutdown == '1' else [])
+
     def test_preview_reclaim_does_not_delete_after_failed_shutdown(self) -> None:
         script = r'''source "$1/Scripts/lib/simctl.sh"
 TRINKET_CLEANUP_PREVIEW_SIMS=1
