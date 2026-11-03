@@ -109,7 +109,7 @@ def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
                 else:
                     command = [*lane, './Scripts/handoff.sh', '--route', 'visual',
                                *(['--base', args.base] if args.base else ['--working-tree'] if args.working_tree else ['--paths', *paths])]
-                    label = 'Visual inspection (when the visual gate applies; use a persistent terminal and review the result)'
+                    label = 'Optional visual inspection (use a persistent terminal and review the result)'
                 emit(label, [shlex.join(command), 'Admission wait is up to 900 seconds; preview is not verification evidence.',
                              'Run final static handoff separately; hosted qualification remains pending.'])
         emit('Final task verification (all task changes; --dry-run previews)',

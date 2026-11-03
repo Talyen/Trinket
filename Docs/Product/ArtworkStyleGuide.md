@@ -140,9 +140,9 @@ Before adding or replacing a source:
 6. Run `./Scripts/generate.sh --assets`, review the diff and memory report, then
    use the path-scoped handoff route from `Scripts/README.md`.
 
-Render, review, and refine the installed artwork in its shipping UI under the
-[visual completion gate](../Platform/Verification.md#visual-completion-gate); a
-full-resolution source inspection alone cannot close artistic work.
+When inspecting installed artwork in the shipping UI, follow
+[visual inspection](../Platform/Verification.md#visual-inspection). A source image
+alone does not establish how its shipping crop appears.
 
 Intentional variation is desirable. Repetition of the same pose, rim light,
 fog, pedestal, or glow across a set is a defect even when each image is

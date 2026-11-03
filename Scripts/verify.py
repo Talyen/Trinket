@@ -43,7 +43,7 @@ def save_report(root: Path, route: str, paths: list[str], checks, outcomes: dict
         'checks': [{'id': check.id, 'command': check.command, 'argv': list(check.argv),
                     'outcome': outcomes.get(check.id, 'deferred to CI' if check.deferred else 'not run')}
                    for check in checks],
-        'visual_review': 'separate shipping-UI evidence required when visuals change',
+        'visual_review': 'optional; handoff does not certify rendered appearance',
     })
     print(f'Verification report (preserved during integration): {report}')
     return report
@@ -135,7 +135,7 @@ def report_evidence(checks, outcomes: dict[str, str], *, preview: bool, status: 
         print('Package compilation and behavior: ' + state([check for check in checks if check.id == 'package' or check.id.startswith('package:')]))
         print('UI behavior: ' + state([check for check in checks if check.id == 'smoke']))
     print('Hosted verification: pending until successful hosted evidence is available.')
-    print('Visual review: separate shipping-UI evidence required when visuals change; handoff does not certify it.')
+    print('Visual review: optional; handoff does not certify rendered appearance.')
     if status:
         print('Next: resolve failed/unavailable checks and rerun handoff.')
     elif preview:

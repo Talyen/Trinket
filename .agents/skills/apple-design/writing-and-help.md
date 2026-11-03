@@ -48,8 +48,7 @@ showing it after the player learns the action. Multi-step instruction needs a
 playable explanation rather than an oversized tip. Preserve current onboarding,
 monetization, and save/reset contracts when deciding tip persistence.
 
-When the [visual completion gate](../../../Docs/Platform/Verification.md#visual-completion-gate)
-requires rendered copy review, use actual long names, costs, and the unavailable
+When performing [rendered copy review](../../../Docs/Platform/Verification.md#visual-inspection), use actual long names, costs, and the unavailable
 state. For a changed flow, check that the label predicts the result and that help
 can be dismissed without blocking the action. No new telemetry or player-facing
 tutorial is implied by this reference.

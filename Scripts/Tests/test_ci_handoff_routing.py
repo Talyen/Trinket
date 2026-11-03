@@ -171,6 +171,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
             value = json.loads(report.read_text())
             self.assertEqual(value['exit_status'], 1)
             self.assertEqual([item['outcome'] for item in value['checks']], ['failed', 'deferred to CI', 'not run'])
+            self.assertIn('optional', value['visual_review'])
             self.assertIsNone(value['commit'])
             self.assertTrue(value['inputs']['README.md'])
             report.unlink()
@@ -190,6 +191,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
             with contextlib.redirect_stdout(io.StringIO()) as output:
                 verify.report_evidence(checks, outcomes, preview=preview, status=status)
             text = output.getvalue()
+            self.assertIn('Visual review: optional', text)
             self.assertIn('App compilation: ' + ('deferred to CI' if preview or not status else 'not run'), text)
             self.assertNotIn('App compilation: passed', text)
             self.assertNotIn('Package compilation and behavior: passed', text)

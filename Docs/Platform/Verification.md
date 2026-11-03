@@ -7,8 +7,7 @@ task scope from `main` (commits plus dirty files) and runs lightweight static ch
 Compilation, package tests, simulator suites, generation freshness and performance
 qualification belong to hosted CI, including for directly changed packages and public APIs.
 The ordinary completion path is implementation, static handoff, review and commit,
-then protected local integration. Use judgment about the actual change to select
-any additional local evidence under the visual gate below.
+then protected local integration. Use judgment about the actual change to select any additional local evidence.
 Use `--base <ref>` for another approved base, `--paths <files...>` for an iteration,
 and `--dry-run` to preview without executing anything.
 
@@ -20,7 +19,7 @@ and `--dry-run` to preview without executing anything.
 | Expressly requested local package diagnostic | `TRINKET_ALLOW_HEAVY_LOCAL=1 handoff.sh --package <Package...> --paths <files...>` | Selected package tests, executed serially |
 | Expressly requested local app compilation | `TRINKET_ALLOW_HEAVY_LOCAL=1 handoff.sh --app-only --paths <files...>` | App and unchanged downstream consumers compile |
 | Expressly requested local UI diagnostic | `TRINKET_ALLOW_HEAVY_LOCAL=1 handoff.sh --ui <Class[/method]> --paths <files...>` | The selected registered Smoke/FullUI journey |
-| Inspect changed visuals | `handoff.sh --route visual --paths <files...>` in a persistent terminal | Managed build/launch/capture session; actual image and interaction review still required |
+| Inspect changed visuals | `handoff.sh --route visual --paths <files...>` in a persistent terminal | Optional managed build/launch/capture session; inspect the image and interaction when making visual claims |
 | Requested release qualification | `TRINKET_ALLOW_HEAVY_LOCAL=1 handoff.sh --route release --paths <files...>` | Full release verification without publishing |
 
 Wrap the outermost command for authorized compiled and visual routes as described
@@ -46,8 +45,7 @@ verification needs no additional user approval or manual environment flags.
 Focused/release execution requires `TRINKET_ALLOW_HEAVY_LOCAL=1` locally and either
 the single focused diagnostic exception below or an express user request for that
 local work; selectors alone never enable the override.
-Dry-run previews need no opt-in. The bounded visual route remains authorized by
-the visual completion gate below.
+Dry-run previews need no opt-in. Bounded local visual inspection is optional and authorized under the limits below.
 
 Wrap the outermost authorized local build, compiled test, or simulator/rendered
 inspection command with the shared host admission helper, including when invoking
@@ -73,16 +71,13 @@ command to five minutes.
 | Essential build or simulator inspection | Up to 900 seconds | Five minutes by default; applicable device exceptions follow the shared host policy |
 
 Before landing, follow [review and integration](Development.md#landing-and-review).
-Local integration requires static checks and visual review only when the
-[visual completion gate](#visual-completion-gate) applies. Local compiled evidence
-is not required. Report hosted verification as pending.
+Local integration requires static checks and review. Visual inspection and local compiled evidence are not required. Report hosted verification as pending.
 
 ## Completion states
 
 - **Locally verified:** the selected local checks passed; read the report for its scope.
-- **Locally integrated; hosted verification pending:** reviewed work landed on local main. This completes an authorized local task when no required visual evidence or other local work is missing.
+- **Locally integrated; hosted verification pending:** reviewed work landed on local main. This completes an authorized local task when no other requested local work is missing.
 - **Hosted verified:** required hosted checks actually passed for the intended revision after an authorized push.
-- **Implemented, visually unverified:** required shipping-UI evidence is blocked; report the exact prerequisite and do not claim the visual task complete.
 
 Pushes and publication remain separately authorized. Missing hosted evidence is
 reported without blocking a local-only task or authorizing a push. Task reports
@@ -160,49 +155,21 @@ Smoke obligations automatically. Use the [Testing rubric](Testing.md#ui-keep-dro
 when no existing journey owns the outcome. For a bounded local reproduction, use
 `--ui Class[/method]`; do not run the complete hosted portfolio on the laptop.
 
-### Visual completion gate
+### Visual inspection
 
-Require local rendered review for changes to player-facing layout, styling,
-artwork, motion, or UI interaction, and for a clear text-fit or readability risk.
+Rendered review is optional unless the user requests it; it is not a condition
+for local integration. When inspecting, use the shipping UI and real game content
+on a managed simulator or selected device. Inspect the image at normal presentation
+size and exercise relevant interactions before making claims about appearance or
+behavior. Compare matching states for before/after claims. Record the build, device,
+screen and state, and save useful evidence in `.DerivedData/Deliverables/`.
+Report the scope and any unavailable evidence accurately.
 
-Content, balance, gameplay-rule and copy changes within existing UI follow the
-ordinary static completion path unless they create one of those presentation or
-interaction risks. Text changes still complete localization in the same task;
-compilation and combat tests remain CI-owned. An optional local diagnostic timing
-out does not by itself block integration or make such a task visually incomplete.
-Agents determine whether the gate applies from the actual change; no separate
-approval or checklist is needed.
-
-When the gate applies:
-
-1. Render the changed result using the shipping UI and real game content on a
-   managed simulator or selected device. Save evidence tied to the build/revision,
-   screen, device size, and relevant state. Inspect the actual image; a capture
-   command succeeding, a loading screen, source review, or a generated mockup is
-   not proof of the implemented result.
-2. Review it at normal presentation size against the request and visual references.
-   Identify concrete issues in composition, artwork crop, hierarchy, copy necessity,
-   legibility, and interaction. Compare before/after in matching states when
-   claiming improvement. Exercise changed interactions; use a recording or live
-   inspection for motion.
-3. Fix visible issues, render the revised result, and review again. Continue until
-   the requested result meets the brief. If the first render needs no correction,
-   record what was inspected and why it meets the brief; do not invent edits to
-   satisfy an iteration count.
-4. Link final evidence and summarize the review and refinements in the handoff.
-   Save deliverables in `.DerivedData/Deliverables/`; integration preserves them
-   outside the task checkout before cleanup. Use `agent-worktree.mjs evidence
-   <paths...>` to preserve other task-local files immediately. If a
-   rendering prerequisite is unavailable, report **implemented, visually unverified**
-   with the exact blocker; do not call the visual task done or polished.
-
-Bounded local build/launch/capture and iteration for this gate are authorized
-without separate approval. Use the [simulator skill](../../.agents/skills/ios-simulator/SKILL.md)
+Bounded local build, launch, capture and iteration remain authorized without
+separate approval. Use the [simulator skill](../../.agents/skills/ios-simulator/SKILL.md)
 or [device skill](../../.agents/skills/ios-device/SKILL.md), preserve lease isolation,
-and state the scope before running. This exception does not authorize broad UI,
-performance, or hosted suites locally. Existing evidence is reusable only if it
-shows the final changed result and relevant states; pre-change captures do not
-satisfy the gate. Guidance-only edits use scenario review, not a synthetic UI build.
+and state the scope before running. This does not authorize broad UI, performance,
+or hosted suites locally.
 
 ### Execution limits
 
@@ -215,7 +182,7 @@ checks as pending until an authorized push runs them. Do not push just to obtain
 For an authorized single focused diagnostic or expressly requested local diagnostic/release run, set
 `TRINKET_ALLOW_HEAVY_LOCAL=1` with the selected command. Local package checks then
 execute serially; UI workers remain serialized and app builds use two workers.
-The visual completion gate and interactive play retain their bounded build/launch
+Optional visual inspection and interactive play retain their bounded build/launch
 exceptions. Bare FullUI additionally requires
 `TRINKET_ALLOW_FULL_UI=1`. Never forge `CI`/`GITHUB_ACTIONS` or use flags to bypass
 resource policy. Stubbed script fixtures may simulate these environments without
@@ -254,8 +221,8 @@ same limits; investigate before widening the selector or changing the deadline.
 Preserve logs and report what actually ran. Do not split a larger run into repeated
 diagnostics; a longer or broader run requires an express user request. Continue
 independent source work while waiting for admission. This exception supplies
-diagnostic evidence only; it does not replace final static handoff, hosted
-qualification or required visual review.
+diagnostic evidence only; it does not replace final static handoff or hosted
+qualification.
 
 ### Local play
 
@@ -321,7 +288,7 @@ Integration records the main base, full task scope and local completion state,
 and preserves deliverables outside the checkout. Explicit compiled reports retain
 whole-source and toolchain fingerprints as provenance; integration does not demand
 or trigger local compilation. No manual verification transcript is required.
-Previews establish no execution evidence. Visual artifacts still need capture and review.
+Previews establish no execution evidence. A capture alone does not establish visual review.
 
 `--quiet` prints phase outcomes and bounded failures. Follow the printed full-log
 or documentation-report paths to inspect all relevant failures.

@@ -180,7 +180,8 @@ receipts:
 
 Prepared-media receipt checks and the curated-art memory report do not validate
 these animation resources. Review their bundle declarations and consuming code,
-and use the existing visual gate for changed artwork or playback.
+and consider [visual inspection](../Platform/Verification.md#visual-inspection)
+for changed artwork or playback.
 
 ## Project generation
 

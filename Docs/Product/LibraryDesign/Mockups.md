@@ -14,5 +14,5 @@ Existing [Forge](references/existing-forge-de.png),
 Production artwork is selected through [curated-assets.tsv](../../../ArtManifest/curated-assets.tsv).
 
 The boards approximate crops, typography, icons, dimensions, navigation, and prices.
-Use [Library](../Library.md) and the recipe catalog for current behavior; inspect the
-shipping flow under the [visual gate](../../Platform/Verification.md#visual-completion-gate).
+Use [Library](../Library.md) and the recipe catalog for current behavior; optional
+shipping-flow review follows [visual inspection](../../Platform/Verification.md#visual-inspection).

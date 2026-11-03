@@ -103,7 +103,7 @@ landing checks still run. Keep the plan's actual status and remaining work intac
 Final landing preserves evidence and removes the invoking task checkout when its
 ignored files are classified for safe removal. Use `integrate --keep-worktree` for an intermediate
 landing or when further work needs the checkout. Completion follows
-[Verification](Verification.md#completion-states), including required visual evidence.
+[Verification](Verification.md#completion-states).
 Automatic cleanup stops if ignored files are not classified as preserved deliverables,
 disposable Python bytecode, or byte-identical tools independently present in primary.
 Review and preserve other ignored files before explicit cleanup.

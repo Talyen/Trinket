@@ -118,8 +118,8 @@ uncertain/controller-owned session.
 
 ### Evidence preservation
 
-The skill owns capture commands; [Verification](Verification.md#visual-completion-gate)
-owns review and evidence requirements. If a tool cannot express a gesture's timing,
+The skill owns capture commands; [Verification](Verification.md#visual-inspection)
+owns optional review and evidence guidance. If a tool cannot express a gesture's timing,
 use existing focused coverage or report that limitation without claiming its feel
 was verified. Neither native tools nor Computer Use guarantee Duo display routing.
 

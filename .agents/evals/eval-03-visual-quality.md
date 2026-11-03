@@ -22,15 +22,15 @@ report scenario review separately from an executed rendered trial.
 - Artwork, prices, and purchase choices have a deliberate visible hierarchy.
   Essential rules and consequences survive; redundant subtitles and button
   explanations do not become replacement help panels.
-- The final implemented UI is actually rendered and inspected at phone size,
-  including affordable/unaffordable states and long names. A mockup, successful
-  capture command, lint PASS, or interaction test cannot stand in for that review.
+- If rendered review is chosen or requested, inspect the final UI at phone size,
+  including affordable/unaffordable states and long names. A mockup, capture
+  command, lint PASS, or interaction test cannot stand in for that review.
 - Visible defects lead to a correction and another render/review; a satisfactory
   first render needs a specific review, not a fabricated iteration.
 - Motion claims have interaction/recording evidence. Final artifacts remain
   accessible after worktree cleanup and identify the build and state reviewed.
-- Missing render tools produce an explicit “implemented, visually unverified”
-  blocker, never a claim of visual completion or a request for routine permission.
+- Missing render tools do not block ordinary integration; report the evidence
+  available and do not claim a rendered review took place.
 
 ## Guidance review cases
 
@@ -39,5 +39,5 @@ Trace the instructions for: (1) a new composition with an unresolved direction;
 revision; (4) unavailable render tooling; (5) an attractive source image whose
 shipping crop loses the focal subject; (6) a short enemy-trait description changed
 within an existing detail row, with no clear fit or readability risk. Confirm
-that presentation and interaction changes retain the visual gate, while the
+that rendered review is optional for each case unless requested, while the
 content-only case completes localization and follows ordinary static integration.

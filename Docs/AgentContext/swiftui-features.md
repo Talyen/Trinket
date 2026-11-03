@@ -19,8 +19,8 @@ committed actions.
 
 Artwork stays pinned/prewarmed on first presentation under the
 [pin lifecycle](ui-performance.md#first-paint-pins-and-encounter-transitions).
-Use native SwiftUI sheets. The [visual completion gate](../Platform/Verification.md#visual-completion-gate)
-owns when shipping-UI inspection is required.
+Use native SwiftUI sheets. [Verification](../Platform/Verification.md#visual-inspection)
+owns optional shipping-UI inspection.
 
 ## Implementation contracts
 

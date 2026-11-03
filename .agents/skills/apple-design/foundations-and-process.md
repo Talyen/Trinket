@@ -47,7 +47,7 @@ previously approved Trinket screens. Name the useful properties: artwork scale a
 crop, focal point, text density, spacing, contrast, and material treatment. Do not
 assume an existing screen is approved merely because it ships.
 
-When the direction is unresolved, render two compositions with real game content
+When the direction is unresolved, consider two compositions with real game content
 at the intended portrait size. Vary hierarchy, density, or artwork placement;
 recoloring the same layout is not an alternative. Show a simple A/B comparison
 for the user's preference, without a persuasive design essay. An already selected
@@ -62,8 +62,8 @@ composition, not permission to copy unrelated features.
 
 ## Render, critique, refine
 
-Follow the [visual completion gate](../../../Docs/Platform/Verification.md#visual-completion-gate).
-Review the render before rereading the implementation rationale. State concrete
+When choosing [visual inspection](../../../Docs/Platform/Verification.md#visual-inspection),
+review the render before rereading the implementation rationale. State concrete
 visible defects, such as “the wallet competes with the purchase choice,” and fix
 them; numerical self-scores and “looks polished” are not evidence.
 

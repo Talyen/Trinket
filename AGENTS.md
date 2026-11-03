@@ -44,7 +44,7 @@ The ordinary implementation loop is:
 
 1. Create a task checkout: `node Scripts/agent-worktree.mjs create --task <slug>`.
 2. Locate intended files with `rg`, then run `python3 Scripts/agent-brief.py --status --read --paths <files...>` before editing. Read the affected behavior contracts and inspect overlapping dirty diffs. Reuse unchanged guidance; rerun when entering another owner.
-3. Implement and run `./Scripts/handoff.sh --quiet` for the complete task. Routine local verification is static; compilation, package tests, UI suites and performance runs belong to hosted CI. One task-related [single focused diagnostic](Docs/Platform/Verification.md#single-focused-local-diagnostic) is authorized without approval under its selector, worker and deadline limits. Other local compiled checks or heavy-local overrides require an express user request; bounded shipping-UI inspection follows the visual gate. [Verification](Docs/Platform/Verification.md#confidence-ladder) owns selection, previews, and iteration scope.
+3. Implement and run `./Scripts/handoff.sh --quiet` for the complete task. Routine local verification is static; compilation, package tests, UI suites and performance runs belong to hosted CI. One task-related [single focused diagnostic](Docs/Platform/Verification.md#single-focused-local-diagnostic) is authorized without approval under its selector, worker and deadline limits. Other local compiled checks or heavy-local overrides require an express user request; bounded shipping-UI inspection is optional and follows [Verification](Docs/Platform/Verification.md#visual-inspection). [Verification](Docs/Platform/Verification.md#confidence-ladder) owns selection, previews, and iteration scope.
 4. Review the full task diff, commit task files, then run `node Scripts/agent-worktree.mjs integrate`. If main advanced, review the combined changes and refresh affected verification before retrying. If current main was already reviewed, pass `--reviewed-main <commit>`; a later advance still stops landing.
 5. Report the local result and remaining verification. Retry `cleanup` if automatic cleanup failed, or after a retained checkout is no longer needed.
 
@@ -80,7 +80,7 @@ caused by the change without another approval checkpoint. Stop when complete or
 blocked by a required decision or unavailable prerequisite.
 
 - Add tests only for consequential gaps in existing protection; use the three questions in [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior). Verification does not require new test code.
-- Use the [visual completion gate](Docs/Platform/Verification.md#visual-completion-gate) for presentation or UI interaction changes and clear readability risks. Content and copy changes within existing UI normally follow the static completion path; they do not automatically require a simulator run.
+- Visual inspection is optional unless explicitly requested; report what was actually reviewed and any relevant verification limits.
 - Report the checks that ran and exact blockers/skips using [Verification's completion states](Docs/Platform/Verification.md#completion-states). Pending hosted checks do not block an otherwise complete local task or authorize a push.
 - Save visual artifacts in `.DerivedData/Deliverables/`; [Development](Docs/Platform/Development.md#evidence-and-cleanup) owns evidence preservation and cleanup.
 
