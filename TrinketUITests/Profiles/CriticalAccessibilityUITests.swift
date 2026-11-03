@@ -110,13 +110,17 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         accessibility.tap()
         let motionCell = settings.cells["MOTION_TITLE"].firstMatch
         let motion = motionCell.exists ? motionCell : settings.cells.containing(.staticText, identifier: "Motion").firstMatch
-        try revealSettingsElement(motion, scrolling: settingsContent())
-        let motionButton = settings.buttons["MOTION_TITLE"].firstMatch
-        if motionButton.exists {
-            try revealSettingsElement(motionButton, scrolling: settingsContent())
-            motionButton.tap()
-        } else {
+        // Settings exposes a nested label button that can ignore taps at large text sizes.
+        // Activate the row and verify navigation before retrying that same row once.
+        for _ in 0 ..< 2 {
+            try revealSettingsElement(motion, scrolling: settingsContent())
             motion.tap()
+            if reduceMotionSwitch.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout) {
+                break
+            }
+            if settings.navigationBars["Motion"].exists {
+                break
+            }
         }
         guard reduceMotionSwitch.trinketWaitForExistence(timeout: TrinketUITestCase.defaultTimeout) else {
             throw NativeSettingsFailure(
@@ -192,7 +196,8 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         assertExists(AccessibilityID.Battle.abilityDetail)
         try auditProductAccessibility(screen: "card-inspection")
         retainScreenshot(named: "card-inspection")
-        dismissSheet(AccessibilityID.Battle.abilityDetail)
+        tapButton(AccessibilityID.Battle.abilityDetailClose)
+        assertDoesNotExist(AccessibilityID.Battle.abilityDetail)
         let playedCard = battle.frontmostHandCard
         let playedID = playedCard.identifier
         XCTAssertFalse(playedID.isEmpty, "The card-play check must target an actual hand card")

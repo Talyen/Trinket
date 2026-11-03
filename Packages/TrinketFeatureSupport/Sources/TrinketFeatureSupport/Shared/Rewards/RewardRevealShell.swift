@@ -154,13 +154,7 @@ public struct RewardRevealShell<Content: View>: View {
             onPrimaryAction()
         } label: {
             ZStack {
-                if #available(iOS 26.0, *) {
-                    GameLabel(primaryActionTitle)
-                        .trinketPresentationVisibility(!isPrimaryActionConfirmed)
-                    Label(String(localized: L10n.ui_rewardrevealshell_collected_1533d), systemImage: "checkmark")
-                        .trinketPresentationVisibility(isPrimaryActionConfirmed)
-                } else if isPrimaryActionConfirmed {
-                    // iOS 18 audits invisible label children despite accessibilityHidden.
+                if isPrimaryActionConfirmed {
                     Label(String(localized: L10n.ui_rewardrevealshell_collected_1533d), systemImage: "checkmark")
                         .transition(.opacity)
                 } else {
