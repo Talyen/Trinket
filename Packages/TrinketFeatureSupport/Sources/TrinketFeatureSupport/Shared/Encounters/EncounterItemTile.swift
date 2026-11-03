@@ -34,7 +34,7 @@ public struct EncounterItemTile: View {
     }
 
     public var body: some View {
-        InspectableTapButton(action: onSelect, longPress: onInspect) {
+        Button(action: onSelect) {
             VStack(spacing: TrinketDesign.Spacing.small) {
                 ItemCard(
                     item: item,
@@ -52,6 +52,10 @@ public struct EncounterItemTile: View {
                 }
             }
         }
+        .highPriorityGesture(
+            LongPressGesture(minimumDuration: 0.5).onEnded { _ in onInspect?() },
+            including: onInspect == nil ? .none : .all,
+        )
         .buttonStyle(.plain)
         .disabled(isDisabled)
         .trinketAccessibilityIdentifier(accessibilityID)
