@@ -21,9 +21,18 @@ class PlayerCoverageTests(unittest.TestCase):
         with patch.object(MODULE.subprocess, 'check_output', return_value='inventory\n') as query:
             self.assertEqual(MODULE.simctl('list', 'runtimes', '-j'), 'inventory')
         query.assert_called_once_with(['xcrun', 'simctl', 'list', 'runtimes', '-j'], text=True, timeout=30)
-        with patch.object(MODULE.subprocess, 'check_output', side_effect=subprocess.TimeoutExpired('simctl', 30)):
+        timeout = subprocess.TimeoutExpired('simctl', 30)
+        with patch.object(MODULE.subprocess, 'check_output', side_effect=[timeout, 'inventory\n']) as query:
+            self.assertEqual(MODULE.simctl('list', 'runtimes', '-j'), 'inventory')
+            self.assertEqual([call.kwargs['timeout'] for call in query.call_args_list], [30, 30])
+        with patch.object(MODULE.subprocess, 'check_output', side_effect=[timeout, timeout]) as query:
             with self.assertRaises(subprocess.TimeoutExpired):
                 MODULE.simctl('list', 'runtimes', '-j')
+            self.assertEqual(query.call_count, 2)
+        with patch.object(MODULE.subprocess, 'check_output', side_effect=timeout) as query:
+            with self.assertRaises(subprocess.TimeoutExpired):
+                MODULE.simctl('ui', 'owned', 'content_size', 'large')
+            query.assert_called_once()
 
     def test_runtime_cleanup_preserves_busy_foreign_and_non_deletable_images(self):
         identifiers = [f'00000000-0000-0000-0000-{index:012d}' for index in range(1, 5)]

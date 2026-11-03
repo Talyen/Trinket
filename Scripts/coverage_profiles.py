@@ -55,7 +55,14 @@ def select_profile(runtimes, device_types, type_id, major, version=None):
 
 
 def simctl(*arguments):
-    return subprocess.check_output(['xcrun', 'simctl', *arguments], text=True, timeout=30).strip()
+    command = ['xcrun', 'simctl', *arguments]
+    try:
+        return subprocess.check_output(command, text=True, timeout=30).strip()
+    except subprocess.TimeoutExpired:
+        if not arguments or arguments[0] != 'list':
+            raise
+        print('Simulator inventory timed out after 30s; retrying once.', file=sys.stderr)
+        return subprocess.check_output(command, text=True, timeout=30).strip()
 
 
 @contextmanager

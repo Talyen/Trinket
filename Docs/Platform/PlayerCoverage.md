@@ -64,6 +64,8 @@ with that device; an exact OS-version request remains exact. A newer Duo-only
 runtime must not prevent the iPad profile from using its compatible runtime.
 When iOS 26 is missing, provisioning downloads 26.2, matching the
 purchase-qualification runtime.
+Read-only simulator inventory queries retry one 30-second timeout. Exhausted
+queries still fail; native settings changes are not automatically repeated.
 
 Compact phone, iPad and Duo run serially as independent jobs on fresh hosted
 runners. A stalled CoreSimulator service on one device must not prevent the other
