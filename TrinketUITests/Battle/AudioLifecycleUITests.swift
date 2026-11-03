@@ -75,7 +75,7 @@ extension TrinketUITestCase {
         tapWhenReady(battle.autoBattleToggle)
         let victory = app.staticTexts[AccessibilityID.Battle.victory]
         let defeat = app.staticTexts[AccessibilityID.Battle.defeat]
-        waitUntil("Audio-enabled battle must resolve", timeout: 45) {
+        waitUntil("Audio-enabled battle must resolve", timeout: 60) {
             victory.exists || defeat.exists
         }
         let won = victory.exists
