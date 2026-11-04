@@ -2322,10 +2322,6 @@ enum L10n {
         LocalizedStringResource("authored.2ea4edd70eaa1239", defaultValue: "Ice Shot", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
-    static var authored_2f8579fa0d7c9662: LocalizedStringResource {
-        LocalizedStringResource("authored.2f8579fa0d7c9662", defaultValue: "Bloodboil", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
-    }
-
     static var authored_2fa567236bcc63e8: LocalizedStringResource {
         LocalizedStringResource("authored.2fa567236bcc63e8", defaultValue: "The Unclosing Wound", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }

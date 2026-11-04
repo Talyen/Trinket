@@ -2,7 +2,7 @@ import Foundation
 import TrinketCore
 
 public enum CombatReaction: String, CaseIterable, Hashable, Sendable {
-    case shatter, frostfire, rupture, toxicShock, consecration, bloodboil, venomflash
+    case shatter, frostfire, rupture, toxicShock, consecration, venomflash
 
     public var displayName: String {
         switch self {
@@ -11,7 +11,6 @@ public enum CombatReaction: String, CaseIterable, Hashable, Sendable {
         case .rupture: "Rupture"
         case .toxicShock: "Toxic Shock"
         case .consecration: "Consecration"
-        case .bloodboil: "Bloodboil"
         case .venomflash: "Venomflash"
         }
     }
@@ -26,7 +25,7 @@ public enum CombatReaction: String, CaseIterable, Hashable, Sendable {
         case .rupture: .bleed
         case .consecration: .holy
         case .toxicShock: .poison
-        case .frostfire, .bloodboil, .venomflash: .burn
+        case .frostfire, .venomflash: .burn
         }
     }
 
@@ -34,7 +33,7 @@ public enum CombatReaction: String, CaseIterable, Hashable, Sendable {
         switch self {
         case .shatter, .frostfire: .freeze
         case .rupture, .toxicShock: .stun
-        case .consecration, .bloodboil: .bleed
+        case .consecration: .bleed
         case .venomflash: .poison
         }
     }

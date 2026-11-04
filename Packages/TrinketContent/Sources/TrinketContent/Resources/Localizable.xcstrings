@@ -8121,20 +8121,6 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "寒冰射擊"}}
       }
     },
-    "authored.2f8579fa0d7c9662": {
-      "comment": "Packages/TrinketContent/Sources/TrinketContent/CombatReaction.swift: computed displayName",
-      "extractionState": "manual",
-      "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Siedendes Blut"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Bloodboil"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Sangre hirviente"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Sang bouillonnant"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "沸血"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "끓는 피"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sangue Fervente"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "沸血"}}
-      }
-    },
     "authored.2fa567236bcc63e8": {
       "comment": "Packages/TrinketContent/Sources/TrinketContent/Equipment/UniqueCatalog+Melee.swift: name",
       "extractionState": "manual",

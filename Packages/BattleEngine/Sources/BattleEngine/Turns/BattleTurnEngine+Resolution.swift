@@ -181,10 +181,7 @@ extension BattleTurnEngine {
                 context: &context,
             )
         }
-        var settlement = damageOutcome
-        if let hit = settlement.elementalHit {
-            settlement.elementalHit = ElementalReactionEngine.captureAttachment(hit, outcome: damageOutcome, in: &context)
-        }
+        let settlement = damageOutcome
         return DamageComponentOutcome(
             healthLost: dealt, logDamageKeyword: prepared.logDamageKeyword,
             elementalSettlement: settlement.elementalHit == nil ? nil : settlement,

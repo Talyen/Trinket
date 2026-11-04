@@ -13,6 +13,10 @@ package enum EffectHandlers {
         case .deathsDoor: await advanceDeathsDoor(active, on: target, in: &context)
         default:
             guard active.effect.advancesEachTurn else { return }
+            if target == context.enemy, active.id == context.roster.enemy.reactions.ruptureEffectID,
+               context.roster.enemy.reactions.ruptureAppliedTurn == context.turnCount {
+                return
+            }
             var updated = active
             updated.remainingTurns -= 1
             ActiveEffectMutation.finishTurn(active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context)

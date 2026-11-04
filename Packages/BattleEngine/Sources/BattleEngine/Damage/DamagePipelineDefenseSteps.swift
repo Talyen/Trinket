@@ -3,6 +3,11 @@ import TrinketCore
 
 package extension DamagePipeline {
     static func applyPreparedAttackReduction(to state: inout DamageResolutionState, in context: inout BattleState) {
+        let belongsToAttack = state.options.isPrimaryAttack || (state.provenance != nil
+            && state.provenance == context.resolution.damageProvenance(for: context.enemy.id))
+        if state.sourceActorID == context.enemy.id, belongsToAttack, context.resolution.toxicShockWeakensAttack {
+            state.remaining = CombatRounding.scaled(state.remaining, multiplier: 0.5)
+        }
         guard state.options.isPrimaryAttack else { return }
         state.remaining -= context.resolution.consumeAttackReduction(for: state.sourceActorID, damage: state.remaining)
         applyFinalCompanionEnemyAttackReduction(to: &state, in: &context)

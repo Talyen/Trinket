@@ -60,10 +60,6 @@ package enum EffectTurnEngine {
             else { continue }
             await EffectHandlers.advanceTurn(activeEffect, on: target, in: &context)
         }
-        let completedPhase = context.resolution.naturalReactionPhase
         context.resolution.naturalReactionPhase = previousPhase
-        if isNaturalEnemyPhase, let completedPhase {
-            await ElementalReactionEngine.finishNaturalPhase(completedPhase, in: &context)
-        }
     }
 }

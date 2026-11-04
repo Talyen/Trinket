@@ -287,64 +287,69 @@ keeps its pre-protection checkpoint and spends its one-time heal only while its 
 
 ## Universal reactions
 
-The Hero and Companion share earned reaction progress on the enemy. Store it in
-`CombatantRuntime` with its copy-on-write state; packet snapshots belong to damage
-outcomes, and natural-phase facts belong to `CombatResolution`. Fresh battles reset
-progress. Interrupted battles still restart; no save schema or mid-battle resume is
-introduced.
+The Hero and Companion share reaction preparation on the enemy. Fresh battles reset
+it; battle-state copies retain independent progress. Bloodboil is shelved. The active
+roster is Shatter, Frostfire, Rupture, Toxic Shock, Consecration, and Venomflash.
 
-Only ordinary attacks and full automatic card plays can release attack reactions.
-Toxic Shock instead releases on a fresh successful Stun, including non-damaging
-control; partial buildup and hits against an already Stunned target do not release it.
-Counterattacks, repeats, equipment or talent damage, retaliation, periodic damage,
-and detonations cannot release attack reactions. Their successful control can still
-prepare control bonuses and release Toxic Shock.
-Freeze separately prepares Shatter and Frostfire; Stun prepares Rupture. Each
-stores one quarter of its own packet's actual Health loss, rounded once, minimum
-one. Non-damaging control prepares one. Extensions and turn resets cannot refresh
-these opportunities; removal or recovery expires them.
+Only ordinary attacks and full automatic card plays initiate attack reactions.
+Counterattacks, repeats, equipment/talent damage, retaliation, periodic damage and
+detonations cannot. Toxic Shock releases on a fresh successful Stun from any source.
+One complete action, including nested automatic effects and multi-hit components,
+can release at most one reaction. Other earned opportunities remain unspent.
 
-- Shatter: a positive, undodged Physical attack against a Frozen enemy strips all
-  enemy Block before mitigation, then releases its stored Physical bonus. Ordinary
-  Critical rules remain on the attack; the bonus cannot Critical.
-- Frostfire: a Freeze attack successfully Freezing a Burning enemy, or a Burn hit
-  removing Health from a previously Frozen enemy, releases one stored Burn bonus.
-  These routes share one Freeze opportunity, independent of Shatter.
-- Rupture: a Bleed attack removing Health from an enemy already Stunned before the
-  hit releases the stored Bleed bonus, once per Stun. The bonus adds no Bleed stack.
-- Toxic Shock: positive natural Poison damage from two enemy phases prepares a
-  quarter of their combined Health loss. Successfully becoming Stunned releases all
-  completed pairs as Poison damage, without adding Poison. Unmatched ticks and
-  prepared damage survive Poison ending and being reapplied.
-- Consecration: Holy Health damage against an already Bleeding enemy marks its next
-  natural Bleed phase, releasing one quarter of that phase's Bleed Health loss as
-  Holy damage. Marks do not stack. Capture and consume the mark at the first natural
-  Bleed tick; clearing or detonating Bleed before then cancels it.
-- Bloodboil: positive natural Burn and Bleed Health loss in one phase release one
-  quarter of their combined loss as Burn damage, after Consecration.
-- Venomflash: an eligible Burn hit removes Health and ignites an already Poisoned
-  enemy with no prior Burn, releasing one quarter of pre-hit Poison potency as Burn
-  damage. Ignition is recorded before follow-up detonation can consume the fire.
+DoT finishers require both accumulated positive natural Health damage and current
+combined potency of their preparation keyword to reach 10% of enemy maximum Health
+(rounded, minimum one). Only first normal scheduled ticks count; extra ticks,
+application pulses and detonations do not. Progress can accumulate across turns and
+status gaps. This is an initial rarity threshold, not a hard per-battle reaction cap.
 
-Natural phases retain existing status order and decay. Only the first normal tick
-of each scheduled effect contributes; extra ticks, application pulses, recurring
-damage and detonations do not. Multiple Bleeds contribute one combined phase total.
-Control-skipped enemy turns count. Expired statuses can still contribute the Health
-loss they already dealt. Quarter calculations divide before summing to avoid
-integer overflow and round the combined amount once.
+Successful Freeze separately prepares Shatter and Frostfire; Stun prepares Rupture.
+Each control bonus is 25% of its triggering packet's actual Health loss, rounded,
+minimum one. Non-damaging control prepares one. Removal/recovery expires unused
+opportunities; extensions never refresh them. Reactions preserve existing control.
 
-Reaction damage is already resolved: bypass defenses and outgoing scaling, retain
-survival/Health-threshold handling and once-only kill credit, and do not add status
-stacks, attack riders or recursive reaction damage. Attack payoffs wait for ordinary
-follow-ups and retaliation, and require their triggering ally and enemy to survive.
-Consecration retains its Holy source; Bloodboil uses the last contributing natural
-Bleed source. Fallen sources retain periodic damage but cannot earn personal living
-owner rewards. `ActionEvent.Kind.reaction` announces names separately from numerical
-damage events; rules never infer identity from localized names or event searches.
+- Shatter: a positive, undodged Physical attack against a Frozen enemy removes all
+  Block before mitigation, then pays the stored Physical bonus once per Freeze.
+- Frostfire: a Freeze attack successfully Freezing an enemy with prepared Burn
+  detonates all remaining Burn, adds the stored Burn bonus, and grants one extra
+  frozen action skip. Burn against an already Frozen enemy no longer triggers it.
+- Rupture: a Bleed attack dealing Health damage against an already Stunned enemy
+  with prepared Bleed detonates all remaining Bleed, adds the stored Bleed bonus,
+  and reduces enemy healing by 50% for the next two enemy turns. Its timer preserves
+  both enemy action windows, including control-skipped turns.
+- Toxic Shock: fresh successful Stun against prepared Poison detonates all remaining
+  Poison and adds the Stun packet's control bonus as Poison damage. The enemy's next
+  actual attack deals 50% less damage across all its hits; utility and skipped actions
+  do not consume it. The old two-phase Poison-pair banking is removed.
+- Consecration: Holy Health damage against prepared Bleed immediately detonates all
+  remaining Bleed and adds Holy damage equal to 25% of accumulated natural Bleed
+  damage. Each living ally gains Block equal to 25% of total actual reaction Health
+  damage, rounded, minimum one, through normal Block gain rules. The triggering Holy
+  attack is excluded. There is no delayed mark or passive phase payoff.
+- Venomflash: Burn Health damage against prepared Poison detonates all remaining
+  Poison and Burn, adds Burn damage equal to 25% of accumulated natural Poison
+  damage, and Purges one enemy buff. Existing Burn does not prevent it.
 
-Existing content keeps its saved identifiers and effects: the Shatter affix is
-Brittle, Mana Moth's Frostfire is Cold Flame, Knight's Consecration is Hallowed Guard,
-and Ranger's Wildfire tree is Firecraft.
+Cash-outs reuse native remaining-DoT decay, source, duration, tail and damage-reward
+rules. Ingredients remain available during payout for conditional bonuses, then
+only the selected original effect IDs are removed; fresh effects from callbacks
+survive. Consumed keywords' natural preparation resets before callbacks. Growth and
+preservation rolls remain live-turn benefits rather than promised future damage;
+status-dependent bonuses and natural-only tick rewards can end with consumption.
+The substantial setup requirement, front-loaded payout and unique benefits are the
+compensation; reactions are intended to feel worth triggering, not to guarantee
+strict upside for every build.
+
+The additional reaction bonus bypasses defenses/scaling, cannot Critical, and adds
+no status or attack riders. Native detonation retains its own damage rules. The
+triggering ally must survive ordinary follow-ups and retaliation. Typed reaction
+payoff events include both cash-out damage and bonus under one reaction announcement;
+Consecration uses their actual Health loss, including overkill clamping, without
+reading event history. Kill credit remains once-only.
+
+Existing catalog identifiers remain unchanged: the Shatter affix is Brittle,
+Mana Moth's Frostfire is Cold Flame, Knight's Consecration is Hallowed Guard,
+and Ranger's former Wildfire tree is Firecraft.
 
 ## Quiet item affixes
 

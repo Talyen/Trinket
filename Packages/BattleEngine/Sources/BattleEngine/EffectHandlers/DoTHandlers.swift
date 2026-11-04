@@ -76,9 +76,6 @@ extension EffectHandlers {
             probability: sourceTriggers?.bleedTickCritChancePercent ?? 0,
             using: &context.rng,
         )
-        if target == context.enemy {
-            ElementalReactionEngine.beginBleed(in: &context)
-        }
         let operation = DamageOperation.statusTick(
             scaling: .statsAndItems, natural: target == context.enemy && context.resolution.naturalReactionPhase != nil,
         )

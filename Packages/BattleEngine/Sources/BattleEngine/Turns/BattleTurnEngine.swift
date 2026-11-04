@@ -177,6 +177,11 @@ package enum BattleTurnEngine {
         if checkpoint.allowsContinuation(in: context) {
             UniqueCombatEngine.prepareResolvedAttack(facts, in: &context)
         }
+        if actor.role == .enemy, !facts.damageKeywords.isEmpty,
+           context.roster.enemy.reactions.weakenNextAttack {
+            context.roster.mutateRuntime(for: actor) { $0.reactions.weakenNextAttack = false }
+            context.resolution.weakenCurrentAttack()
+        }
         await executePreparedAction(facts, repeats: repeats, context: &context)
         return true
     }

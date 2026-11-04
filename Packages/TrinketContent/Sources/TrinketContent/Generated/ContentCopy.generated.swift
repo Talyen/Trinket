@@ -1625,8 +1625,6 @@ public enum ContentCopy {
             return (L10n.authored_2d2b232443289796, [])
         case "Your Stun damage ignores enemy Block and gains damage equal to that Block":
             return (L10n.authored_2d432e5eac18f64c, [])
-        case "Bloodboil":
-            return (L10n.authored_2f8579fa0d7c9662, [])
         case "The Unclosing Wound":
             return (L10n.authored_2fa567236bcc63e8, [])
         case "Search Crypt":

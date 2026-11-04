@@ -1,3 +1,4 @@
+import TrinketContent
 import TrinketCore
 
 struct CombatResolution {
@@ -6,6 +7,8 @@ struct CombatResolution {
     var naturalReactionPhase: NaturalReactionPhase?
     var pendingToxicShocks: [ToxicShockPayoff] = []
     var controlDepth = 0
+    var reactionPayoff: CombatReaction?
+    var reactionHealthLost = 0
 
     mutating func beginFeedbackGroup(eventID: Int) -> Int? {
         let previous = feedbackGroupID
@@ -33,9 +36,12 @@ struct CombatResolution {
         var prismaticEdgeKeyword: Keyword?
         var enemyAttack: EnemyTraitEngine.Attack?
         var authoredOperation: Int?
+        var didReleaseReaction = false
+        var toxicShockWeakened = false
     }
 
     private struct Card {
+        var didReleaseReaction = false
         var partyDamageBonus = 0
         var partnerAttackDamageBonus = 0
         var criticalAttackActorIDs: Set<String> = []
@@ -392,6 +398,33 @@ struct CombatResolution {
     }
 }
 
+extension CombatResolution {
+    var canReleaseReaction: Bool {
+        reactionPayoff == nil && !actions.contains(where: \.didReleaseReaction)
+            && !cards.contains(where: \.didReleaseReaction)
+    }
+
+    mutating func claimReaction() -> Bool {
+        guard canReleaseReaction else { return false }
+        for index in actions.indices {
+            actions[index].didReleaseReaction = true
+        }
+        for index in cards.indices {
+            cards[index].didReleaseReaction = true
+        }
+        return true
+    }
+
+    var toxicShockWeakensAttack: Bool {
+        currentAction?.toxicShockWeakened == true
+    }
+
+    mutating func weakenCurrentAttack() {
+        guard !actions.isEmpty else { return }
+        actions[actions.count - 1].toxicShockWeakened = true
+    }
+}
+
 enum CombatResolver {
     static func damage(_ request: DamageRequest, in context: inout BattleState) async -> CombatOutcome {
         guard request.amount > 0, context.roster.health(for: request.target) > 0 else { return .empty }
@@ -431,8 +464,7 @@ enum CombatResolver {
             await ElementalReactionEngine.finishControl(in: &context)
         }
         if request.options.settlesElementalImmediately, let hit = state.elementalHit {
-            let captured = ElementalReactionEngine.captureAttachment(hit, outcome: outcome, in: &context)
-            await ElementalReactionEngine.finish(captured, outcome: outcome, in: &context)
+            await ElementalReactionEngine.finish(hit, outcome: outcome, in: &context)
         }
         return outcome
     }

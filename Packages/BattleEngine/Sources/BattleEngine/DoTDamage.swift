@@ -27,14 +27,21 @@ package enum DoTDamage {
         let damageOutcome = await context.resolveDamage(request)
         guard damageOutcome.healthLost > 0 else { return damageOutcome }
 
+        let reaction = isDetonation ? context.resolution.reactionPayoff : nil
+        if reaction != nil {
+            context.resolution.reactionHealthLost = SaturatedArithmetic.saturatingAdd(
+                context.resolution.reactionHealthLost, damageOutcome.healthLost,
+            )
+        }
         context.nextEvent(
-            kind: .status,
+            kind: reaction == nil ? .status : .abilityDamage,
             source: .init(actorID: sourceActorID, name: keyword.rawValue),
-            abilityName: keyword.rawValue,
+            abilityName: reaction?.displayName ?? keyword.rawValue,
             target: target,
             amount: damageOutcome.healthLost,
             keyword: keyword,
             isCritical: damageOutcome.isCritical,
+            reactionPayoff: reaction,
             isDetonation: isDetonation,
         )
         return damageOutcome
