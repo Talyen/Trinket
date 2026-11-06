@@ -17,8 +17,8 @@ revision. Follow the [standing workflow](../../AGENTS.md#route-and-read) and
 Engineering can start CI triage while the App Store Connect owner checks the
 listing and account. The owner also needs two test devices, disposable saves,
 and sandbox purchase accounts. Agree on the public version and launch territories
-before preparing the release commit. Treat push, TestFlight upload, App Review
-submission, and publication as separately authorized steps.
+before preparing the release commit. TestFlight upload, App Review submission,
+and release publication each require owner authorization.
 
 ## 1. Close the verification failures
 

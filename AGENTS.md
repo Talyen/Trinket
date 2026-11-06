@@ -24,7 +24,7 @@ and do not reopen a task.
 - Read every overlapping dirty file's full diff before editing; preserve unrelated and unfinished work. The briefing below supplies scoped status.
 - Never discard, overwrite, or stash unrelated work, or run destructive Git commands against a dirty tree.
 - Use one isolated worktree and `codex/` task branch per implementation chat, based on committed local `main` unless instructed otherwise. Reuse that chat's suitable worktree; do not inspect other chats to decide whether isolation is needed. Keep the primary checkout on `main` for locked integration only. [Isolated chat workflow](Docs/Platform/Development.md#isolated-chat-workflow) owns commands, locking, and recovery.
-- Implementation tasks authorize task-scoped commits and verified local integration into `main`, unless the user restricts the task. Final landing preserves deliverables and removes the task checkout; use `--keep-worktree` for intermediate landing or unfinished work. Pushes, PRs, and publication need explicit authorization. For Trinket, an authorized publication includes other reviewed, ready commits already on the branch being published; do not request separate approval solely because they originated in another task. Unrelated implementation changes still need authorization; preserve unfinished work and follow explicit publication restrictions. [Development](Docs/Platform/Development.md#isolated-chat-workflow) owns recovery; [TestFlight](Docs/Platform/Release.md#local-testflight-deployment) owns deployment.
+- Implementation tasks authorize task-scoped commits, verified local integration into `main`, and pushing reviewed, ready changes to the configured remote unless the user restricts the task. Follow the repository's pre-push checks and preserve unrelated or unfinished work. Final landing preserves deliverables and removes the task checkout. Use `--keep-worktree` for intermediate landing or unfinished work. Pull requests and release publication require explicit authorization. See [Development](Docs/Platform/Development.md#isolated-chat-workflow) for recovery and [TestFlight](Docs/Platform/Release.md#local-testflight-deployment) for deployment.
 - Edit authored inputs, never generated code/resources, `.DerivedData/`, `.tools/`, or the Xcode project. CI checks generation freshness; `./Scripts/generate.sh` explicitly regenerates.
 - Never kill foreign Xcode/Simulator processes. [Verification](Docs/Platform/Verification.md) owns isolation and diagnostics.
 
@@ -81,7 +81,7 @@ blocked by a required decision or unavailable prerequisite.
 
 - Add tests only for consequential gaps in existing protection; use the three questions in [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior). Verification does not require new test code.
 - Visual inspection is optional unless explicitly requested; report what was actually reviewed and any relevant verification limits.
-- Report the checks that ran and exact blockers/skips using [Verification's completion states](Docs/Platform/Verification.md#completion-states). Pending hosted checks do not block an otherwise complete local task or authorize a push.
+- Report the checks that ran and exact blockers/skips using [Verification's completion states](Docs/Platform/Verification.md#completion-states). Pending hosted checks do not block an otherwise complete local-only task.
 - Save visual artifacts in `.DerivedData/Deliverables/`; [Development](Docs/Platform/Development.md#evidence-and-cleanup) owns evidence preservation and cleanup.
 
 ## Maintain guidance

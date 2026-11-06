@@ -202,7 +202,7 @@ class CIHandoffRoutingTests(ScriptRegressionTestCase):
                 self.assertIn('resolve failed/unavailable', text)
             else:
                 self.assertIn('Static checks: passed', text)
-                self.assertIn('authorized push', text)
+                self.assertIn('inspect hosted CI for deferred checks after pushing', text)
 
     def test_gemfile_changes_select_script_regressions(self) -> None:
         for hosted in (False, True):

@@ -77,11 +77,12 @@ Local integration requires static checks and review. Visual inspection and local
 
 - **Locally verified:** the selected local checks passed; read the report for its scope.
 - **Locally integrated; hosted verification pending:** reviewed work landed on local main. This completes an authorized local task when no other requested local work is missing.
-- **Hosted verified:** required hosted checks actually passed for the intended revision after an authorized push.
+- **Hosted verified:** required hosted checks passed for the intended revision.
 
-Pushes and publication remain separately authorized. Missing hosted evidence is
-reported without blocking a local-only task or authorizing a push. Task reports
-record local landing and pending hosted verification automatically.
+Report missing hosted evidence separately for local-only tasks. Task reports
+record local landing and pending hosted verification automatically. Follow the
+[repository push policy](../../AGENTS.md#protect-the-workspace) and the
+[release procedure](Release.md#shipping) for publication.
 
 ## New iOS release readiness
 
@@ -176,8 +177,8 @@ or hosted suites locally.
 Do not run local compilation, package tests, simulator test journeys, full script
 qualification or performance measurements merely to complete an ordinary task.
 A task request, a failing CI check, or an explicit selector alone is not permission
-to move broad qualification onto this Mac. Use lightweight handoff and report hosted
-checks as pending until an authorized push runs them. Do not push just to obtain CI.
+to move broad qualification onto this Mac. Use lightweight handoff and run hosted
+checks for the reviewed revision when the task calls for hosted verification.
 
 For an authorized single focused diagnostic or expressly requested local diagnostic/release run, set
 `TRINKET_ALLOW_HEAVY_LOCAL=1` with the selected command. Local package checks then
@@ -307,4 +308,4 @@ Test additions/retirement follow [Testing](Testing.md#consolidation-and-retireme
 Read structured invocation reports before raw build logs; use
 [CI diagnostics](../AgentContext/ci-diagnostics.md) for hosted failures. Commit/push
 safeguards follow [Development](Development.md#local-hooks-and-push-discipline); hosted CI
-runs after an authorized push, not as a prerequisite for that push.
+runs after the push.

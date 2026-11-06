@@ -180,7 +180,7 @@ Prepare changed media and include selected masters before an asset-routed push;
 [media preparation](../AgentContext/content-and-manifests.md#media-assets) owns that workflow.
 Pre-push does not regenerate assets or run package tests.
 Select local and hosted checks through the [confidence ladder](Verification.md#confidence-ladder).
-A requested push still requires a green path-scoped
+A push requires a green path-scoped
 handoff for the complete task; successful locked integration supplies the final
 static gate, with compiled qualification deferred to CI. A standalone task must
 run handoff explicitly. Review and include only task-related
@@ -199,7 +199,7 @@ run it manually after commit. Landing policy remains in [AGENTS.md](../../AGENTS
 Direct pushes to `main` retain inexpensive pre-push safeguards: scoped style and
 committed generated-output completeness, plus the asset checks described above.
 The [verification report](Verification.md#failures-and-reporting) lists executed and deferred checks;
-watch CI for the deferred obligations after an authorized push. The hook implements `SKIP_TRINKET_PREPUSH=1` as a
+watch CI for the deferred obligations after pushing. The hook implements `SKIP_TRINKET_PREPUSH=1` as a
 manual bypass, but it does not satisfy the required verification or authorize
 skipping checks during routine agent work. Report blocked checks under
 [Verification.md](Verification.md#failures-and-reporting).

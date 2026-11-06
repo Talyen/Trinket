@@ -237,7 +237,7 @@ def save_task_report(source: Path, base: str, head: str, paths: list[str], *, la
         'verification_reports': sorted(str(path.relative_to(source)) for path in (directory / 'Verification').glob('*.json')),
         'verification_report_retention': 'Routine successful static reports may expire seven days after task cleanup.',
         'completion_state': 'locally integrated; hosted verification pending' if landed else 'local checks passed; landing pending',
-        'limitations': 'Landing checks are static; compiled and visual results are in the referenced reports. Hosted evidence requires an authorized push.',
+        'limitations': 'Landing checks are static. See the referenced reports for compiled and visual results and check CI for hosted evidence.',
     })
     return report
 

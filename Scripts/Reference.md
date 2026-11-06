@@ -144,7 +144,7 @@ doctor and dry-run need no opt-in.
 | `python3 Scripts/profile-device.py --device <UDID> --duration 30` | Physical CPU/hitch capture with retained matching symbols; [profiling](../Docs/Platform/PerformanceInvestigationPlaybook.md#physical-device-profiling-over-wi-fi) owns build/install and interpretation |
 | `python3 Scripts/build-symbols.py --link --archive PATH --ipa PATH --receipt PATH` | Validate symbol UUIDs/payload and preserve a complete release backup |
 | `./Scripts/testflight.sh --verify-symbols BUILD` | Read-only Apple symbol-status check; success requires confirmation |
-| `./Scripts/agent-watch-ci.sh --sha <commit>` | Follow hosted checks and report failures; does not authorize a push |
+| `./Scripts/agent-watch-ci.sh --sha <commit>` | Follow hosted checks and report failures for the given revision |
 | `./Scripts/ci-diagnostics.sh <RESULTS_DIR>` | Aggregate diagnostics; `--cleanup --keep` deliberately retains output. [Retention](#output-retention) owns expiry |
 | `./Scripts/change-budget.sh --paths <files...>` | Advisory surface signals; counts are not justification quotas |
 | `./Scripts/prune-derived-data-cache.sh` | Prune safe old build artifacts |

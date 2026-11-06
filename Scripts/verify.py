@@ -32,7 +32,7 @@ def save_report(root: Path, route: str, paths: list[str], checks, outcomes: dict
     report = directory / f'{route}-{uuid.uuid4().hex}.json'
     write_json_atomic(report, {
         'local_state': 'checks passed' if status == 0 else 'verification incomplete',
-        'hosted_state': 'pending; requires an authorized push and successful hosted checks',
+        'hosted_state': 'pending until the required hosted checks pass for this revision',
         'source_identity': identity, 'toolchain': toolchain,
         'version': 2, 'recorded_at': datetime.now(timezone.utc).isoformat(),
         'route': route, 'exit_status': status,
@@ -143,9 +143,9 @@ def report_evidence(checks, outcomes: dict[str, str], *, preview: bool, status: 
     elif route not in {'static', 'auto'}:
         print('Next: review the captured results; focused verification and inspection do not replace static handoff or hosted qualification.')
     elif any(check.deferred for check in checks):
-        print('Next: local integration is permitted after review; after an authorized push, inspect hosted CI for deferred checks.')
+        print('Next: integrate after review, then inspect hosted CI for deferred checks after pushing.')
     else:
-        print('Next: review the diff and integrate locally; push only when authorized.')
+        print('Next: review the diff and integrate locally.')
 
 
 def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
