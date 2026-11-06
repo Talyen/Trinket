@@ -38,7 +38,7 @@ struct FullGameOfferView: View {
                                 artwork
                             }
                         }
-                        benefits(roomy: geometry.size.width >= 390)
+                        benefits
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -61,27 +61,36 @@ struct FullGameOfferView: View {
         }
     }
 
-    private func benefits(roomy: Bool) -> some View {
-        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
-            benefit(Text(L10n.ui_fullgameofferview_all_chapters_modes_bbd59), icon: .system("map.fill"), roomy: roomy)
-            benefit(Text(L10n.ui_fullgameofferview_every_hero_companion_4d884), icon: .system("person.2.fill"), roomy: roomy)
-            benefit(Text(L10n.ui_fullgameofferview_includes_all_future_content_7311b), icon: .system("sparkles"), roomy: roomy)
+    private var benefits: some View {
+        ViewThatFits(in: .horizontal) {
+            benefitRows(size: 28)
+            benefitRows(size: 26)
+            benefitRows(size: 24)
         }
         .padding(TrinketDesign.Layout.contentMargin)
         .frame(maxWidth: contentWidth, alignment: .leading)
         .frame(maxWidth: .infinity)
     }
 
-    private func benefit(_ title: Text, icon: GameIcon, roomy: Bool) -> some View {
-        HStack(spacing: TrinketDesign.Spacing.medium) {
+    private func benefitRows(size: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: TrinketDesign.Spacing.medium) {
+            benefit(Text(L10n.ui_fullgameofferview_all_chapters_modes_bbd59), icon: .system("map.fill"), size: size)
+            benefit(Text(L10n.ui_fullgameofferview_every_hero_companion_4d884), icon: .system("person.2.fill"), size: size)
+            benefit(Text(L10n.ui_fullgameofferview_includes_all_future_content_7311b), icon: .system("sparkles"), size: size)
+        }
+    }
+
+    private func benefit(_ title: Text, icon: GameIcon, size: CGFloat) -> some View {
+        let iconSize = benefitIconSize * size / 24
+        return HStack(spacing: TrinketDesign.Spacing.medium) {
             GameIconImage(icon)
-                .trinketTypography(.sectionTitle, scale: roomy ? 26.0 / 22 : 24.0 / 22)
+                .trinketTypography(.sectionTitle, scale: size / 22)
                 .imageScale(.small)
                 .foregroundStyle(TrinketDesign.Colors.accent)
-                .frame(width: benefitIconSize * (roomy ? 26.0 / 24 : 1), height: benefitIconSize * (roomy ? 26.0 / 24 : 1))
+                .frame(width: iconSize, height: iconSize)
                 .accessibilityHidden(true)
             title
-                .trinketTypography(.sectionTitle, scale: roomy ? 26.0 / 22 : 24.0 / 22)
+                .trinketTypography(.sectionTitle, scale: size / 22)
                 .fontWeight(.regular)
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)

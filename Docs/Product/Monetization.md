@@ -45,18 +45,17 @@ aspect-fill crop using the prepared image's actual proportions. Preserve complet
 heads, faces, and recognizable features, allowing lower-body cropping. Review
 premium character crops with the heading, fade, display cutout, and sheet grabber
 visible. Scale the shared screen-display heading to 40 points and the eyebrow to
-15 points. Three icon rows use gold icons and primary-color section-title text
-scaled to 26 points in containers at least 390 points wide, or 24 points in narrower
-containers. Keep the complete benefit labels regular weight without bold emphasis. Match the icons visually to
-the bullet text, give each icon the same scaled square slot, align the text column,
-and use equal gaps between rows:
+15 points. Three icon rows use gold icons and regular-weight section-title text
+in the primary color. Scale the text and icons together to the largest size of
+28, 26, or 24 points that fits every benefit label on one line. Give each icon
+the same scaled square slot, align the text column, and use equal gaps between rows.
 
 - All chapters & modes
 - All heroes & companions
 - All future content
 
-Keep benefit rows on one line at standard text sizes, allowing natural wrapping
-for enlarged text. Center the benefits and purchase controls in the same column,
+Allow natural wrapping at the smallest size when labels need more room, including
+at enlarged text sizes. Center the benefits and purchase controls in the same column,
 capped at 520 points including content margins. Keep the artwork full width.
 The artwork absorbs spare vertical space instead of leaving a gap before the
 footer; on short screens or with enlarged text, scroll the artwork and benefits
