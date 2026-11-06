@@ -49,6 +49,9 @@ class PlayerCoverageTests(unittest.TestCase):
             with self.assertRaises(subprocess.TimeoutExpired):
                 MODULE.simctl('list', 'runtimes', '-j')
             self.assertEqual(query.call_count, 2)
+        with patch.object(MODULE.subprocess, 'check_output', side_effect=[timeout, 'large\n']) as query:
+            self.assertEqual(MODULE.simctl('ui', 'owned', 'content_size'), 'large')
+            self.assertEqual([call.kwargs['timeout'] for call in query.call_args_list], [30, 30])
         with patch.object(MODULE.subprocess, 'check_output', side_effect=timeout) as query:
             with self.assertRaises(subprocess.TimeoutExpired):
                 MODULE.simctl('ui', 'owned', 'content_size', 'large')

@@ -65,9 +65,13 @@ def simctl(*arguments):
     try:
         return subprocess.check_output(command, text=True, timeout=30).strip()
     except subprocess.TimeoutExpired:
-        if not arguments or arguments[0] != 'list':
+        if arguments[:1] == ('list',):
+            query = 'Simulator inventory'
+        elif arguments[:1] == ('ui',) and arguments[2:] == ('content_size',):
+            query = 'Simulator text-size query'
+        else:
             raise
-        print('Simulator inventory timed out after 30s; retrying once.', file=sys.stderr)
+        print(f'{query} timed out after 30s; retrying once.', file=sys.stderr)
         return subprocess.check_output(command, text=True, timeout=30).strip()
 
 

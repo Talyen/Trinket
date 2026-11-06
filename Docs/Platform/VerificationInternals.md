@@ -309,6 +309,8 @@ build's results directory/stamps; logs and verdicts identify that directory.
 
 Native text-size setup verifies the requested value, avoids reapplying unchanged
 sizes and restores the original once after the device's profiles, including failures.
+It retries a timed-out text-size read once. Setting changes still require a
+successful command and a verified readback.
 Reduce Motion uses native Settings and restores after each class. Both methods verify
 the actual SwiftUI environment; a launch argument alone is insufficient.
 
