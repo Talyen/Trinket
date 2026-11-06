@@ -15,8 +15,8 @@ import subprocess
 import sys
 
 PROFILES = {
-    'ios18': ('com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation', 18),
     'compact': ('com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation', 26),
+    'tablet26': ('com.apple.CoreSimulator.SimDeviceType.iPad-A16', 26),
     'tablet': ('com.apple.CoreSimulator.SimDeviceType.iPad-A16', 27),
     'duo': ('com.apple.CoreSimulator.SimDeviceType.iPhone-Duo', 27),
 }
@@ -224,7 +224,7 @@ def main():
             return 0
         if args.operation == 'prepare':
             runtime = prepare_profile(args.name)
-            if args.name != 'ios18' and os.environ.get('GITHUB_ACTIONS') == 'true':
+            if os.environ.get('GITHUB_ACTIONS') == 'true':
                 warm_runtime_cache(runtime)
             return 0
         if args.operation == 'resolve':

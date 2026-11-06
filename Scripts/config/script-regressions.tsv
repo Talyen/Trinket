@@ -247,7 +247,6 @@ Scripts/export-localization-screenshots.py	test_localization.py,test_ui_stabilit
 .github/actions/test-job/action.yml	test_ci_effort.py,test_ci_build_scripts.py,test_localization.py
 Scripts/internal/diagnostics/execution_identity.py	test_ci_improvements.py,test_test_timing.py
 Scripts/report-ci-status.py	test_ci_build_scripts.py,test_ci_gate_scripts.py,test_player_coverage.py
-Scripts/ci-runtime-cleanup.py	test_player_coverage.py
 .github/workflows/release-verification.yml	test_deploy_verification.py
 Scripts/internal/verification_evidence.py	test_agent_integration.py,test_ci_handoff_routing.py
 Scripts/internal/localization_runner.py	test_localization.py

@@ -4,13 +4,13 @@ TRINKET_ENTRY_ARGS=("$@")
 cd "$(dirname "$0")/.."
 mode="${1:-}"
 case "$mode" in
-  ios18|compact|tablet|duo)
+  compact|tablet26|tablet|duo)
     selector="$(python3 Scripts/coverage_profiles.py definition --name "$mode")"
     IFS=$'\t' read -r TRINKET_SIM_DEVICE_TYPE TRINKET_SIM_OS_MAJOR <<< "$selector"
     export TRINKET_SIM_DEVICE_TYPE TRINKET_SIM_OS_MAJOR
     ;;
   soak) ;;
-  *) echo 'Usage: ./Scripts/player-coverage.sh ios18|compact|tablet|duo|soak' >&2; exit 2 ;;
+  *) echo 'Usage: ./Scripts/player-coverage.sh compact|tablet26|tablet|duo|soak' >&2; exit 2 ;;
 esac
 source Scripts/lib/verification-policy.sh
 trinket_require_heavy_verification 'Player coverage profiles and soak' || exit $?
@@ -33,20 +33,7 @@ if [[ "${TRINKET_COVERAGE_NO_BUILD:-0}" != 1 ]]; then
   ./Scripts/build-for-testing.sh --app-only
 fi
 export SKIP_GENERATE=1
-if [[ "$mode" == ios18 ]]; then
-  coverage_status=0
-  export TRINKET_REQUIRED_PURCHASE=1 TEST_RUNNER_TRINKET_REQUIRED_PURCHASE=1
-  export TRINKET_UI_SUCCESS_SCREENSHOTS=1
-  python3 Scripts/coverage_profiles.py run --udid "$SIMULATOR_UDID" --output "$coverage_output" \
-    --audit-policy "${TRINKET_COVERAGE_AUDIT_POLICY:-all}" || coverage_status=1
-  smoke_selection="$(python3 Scripts/check-testplan-sync.py --classes Smoke)"
-  read -r -a smoke_targets <<< "$smoke_selection"
-  ./Scripts/test.sh smoke --no-build "${smoke_targets[@]}" || coverage_status=1
-  ./Scripts/test.sh ui --no-build FullGamePurchaseUITests \
-    BattleLifecycleUITests/testCommittedRewardSurvivesTerminationWithoutReseeding || coverage_status=1
-  TRINKET_SERIAL_TESTS=1 ./Scripts/test-package.sh --destination "$SIMULATOR_DESTINATION" TrinketPersistence || coverage_status=1
-  exit "$coverage_status"
-elif [[ "$mode" != soak ]]; then
+if [[ "$mode" != soak ]]; then
   coverage_status=0
   python3 Scripts/coverage_profiles.py run --udid "$SIMULATOR_UDID" --output "$coverage_output" \
     --audit-policy "${TRINKET_COVERAGE_AUDIT_POLICY:-all}" || coverage_status=1

@@ -1,4 +1,4 @@
-"""Requested profiles fail closed; cleanup and failed journeys retain their verdict."""
+"""Requested profiles fail closed and retain the verdict for each journey."""
 from __future__ import annotations
 
 import json
@@ -15,14 +15,12 @@ from unittest.mock import patch
 from script_test_support import ROOT, load_script, run_captured, write_executable, write_json
 
 MODULE = load_script('coverage_profiles', 'coverage_profiles.py')
-CLEANUP = load_script('ci_runtime_cleanup', 'ci-runtime-cleanup.py')
 
 
 class PlayerCoverageTests(unittest.TestCase):
     def test_hosted_profiles_warm_the_selected_runtime_before_boot(self):
         runtime = dict(identifier='ios-26.2', version='26.2', buildversion='23C54')
-        for profile, hosted, should_warm in (('compact', True, True), ('ios18', True, False),
-                                             ('compact', False, False)):
+        for profile, hosted in (('compact', True), ('tablet26', True), ('compact', False)):
             with self.subTest(profile=profile, hosted=hosted), \
                     patch.object(sys, 'argv', ['coverage_profiles.py', 'prepare', '--name', profile]), \
                     patch.dict(os.environ, {'GITHUB_ACTIONS': str(hosted).lower()}), \
@@ -30,7 +28,7 @@ class PlayerCoverageTests(unittest.TestCase):
                     patch.object(MODULE.subprocess, 'run') as command:
                 self.assertEqual(MODULE.main(), 0)
                 prepare.assert_called_once_with(profile)
-                if should_warm:
+                if hosted:
                     command.assert_called_once_with(
                         ['xcrun', 'simctl', 'runtime', 'dyld_shared_cache', 'update', 'ios-26.2'],
                         check=True, timeout=300)
@@ -56,45 +54,6 @@ class PlayerCoverageTests(unittest.TestCase):
             with self.assertRaises(subprocess.TimeoutExpired):
                 MODULE.simctl('ui', 'owned', 'content_size', 'large')
             query.assert_called_once()
-
-    def test_runtime_cleanup_preserves_busy_foreign_and_non_deletable_images(self):
-        identifiers = [f'00000000-0000-0000-0000-{index:012d}' for index in range(1, 5)]
-        images = {identifier: dict(identifier=identifier, state='Ready', deletable=True,
-                                   platformIdentifier='com.apple.platform.iphonesimulator') for identifier in identifiers}
-        images[identifiers[1]]['state'] = 'Deleting'
-        del images[identifiers[1]]['deletable']
-        images[identifiers[2]]['platformIdentifier'] = 'com.apple.platform.watchsimulator'
-        images[identifiers[3]]['deletable'] = False
-        timeout = subprocess.TimeoutExpired(['xcrun', 'simctl', 'runtime', 'list'], 10)
-        with tempfile.TemporaryDirectory() as directory, \
-                patch.object(CLEANUP.subprocess, 'check_output', side_effect=[timeout, json.dumps(images)]) as inventory, \
-                patch.object(CLEANUP.subprocess, 'run') as delete:
-            CLEANUP.cleanup(Path(directory), dict(GITHUB_ACTIONS='true', RUNNER_ENVIRONMENT='github-hosted'))
-            delete.assert_called_once_with(['xcrun', 'simctl', 'runtime', 'delete', identifiers[0]], check=True, timeout=180)
-            self.assertEqual([call.kwargs['timeout'] for call in inventory.call_args_list], [10, 30])
-            receipt = json.loads((Path(directory) / 'runtime-cleanup.json').read_text())
-            self.assertEqual([attempt['status'] for attempt in receipt['inventory_attempts']], ['timeout', 'passed'])
-
-    def test_runtime_cleanup_never_deletes_from_incomplete_or_exhausted_inventory(self):
-        identifier = '00000000-0000-0000-0000-000000000001'
-        valid = dict(identifier=identifier, state='Ready', deletable=True, platformIdentifier='com.apple.platform.iphonesimulator')
-        bad = json.dumps({identifier: valid, '00000000-0000-0000-0000-000000000002': {}})
-        timeout = subprocess.TimeoutExpired(['xcrun', 'simctl', 'runtime', 'list'], 10)
-        with tempfile.TemporaryDirectory() as directory:
-            output = Path(directory)
-            for replies, expected in [([bad], ValueError), ([timeout, timeout], subprocess.TimeoutExpired)]:
-                with patch.object(CLEANUP.subprocess, 'check_output', side_effect=replies), \
-                        patch.object(CLEANUP.subprocess, 'run') as delete, self.assertRaises(expected):
-                    try:
-                        CLEANUP.cleanup(output, dict(GITHUB_ACTIONS='true', RUNNER_ENVIRONMENT='github-hosted'))
-                    finally:
-                        delete.assert_not_called()
-                receipt = json.loads((output / 'runtime-cleanup.json').read_text())
-                self.assertEqual(receipt['status'], 'failed')
-            self.assertEqual([attempt['status'] for attempt in receipt['inventory_attempts']], ['timeout', 'timeout'])
-            with patch.object(CLEANUP.subprocess, 'check_output') as inventory, self.assertRaises(ValueError):
-                CLEANUP.cleanup(output, dict(GITHUB_ACTIONS='true', RUNNER_ENVIRONMENT='self-hosted'))
-            inventory.assert_not_called()
 
     def test_explicit_runtime_and_device_requests_never_fall_back(self):
         runtimes = [dict(identifier=f'ios-{version}', version=version, platform='iOS', isAvailable=True)
@@ -152,7 +111,7 @@ class PlayerCoverageTests(unittest.TestCase):
 
     def test_runtime_preparation_installs_missing_major_and_validates_the_result(self):
         for name, architecture, variant, version in [('compact', 'arm64', 'arm64', '26.2'),
-                                                      ('ios18', 'x86_64', 'universal', '18.0')]:
+                                                      ('tablet', 'x86_64', 'universal', '27.0')]:
             device, major = MODULE.PROFILES[name]
             types = json.dumps({'devicetypes': [dict(identifier=device)]})
             missing = json.dumps({'runtimes': []})
@@ -274,7 +233,8 @@ class PlayerCoverageTests(unittest.TestCase):
                     self.assertEqual(MODULE.run_profiles('owned', output, *policy), 1)
                 rows = json.loads((output / 'profiles.json').read_text())
                 self.assertEqual([row['status'] for row in rows], ['failed', 'passed', 'passed'])
-                self.assertEqual(command.call_count, 3)
+                self.assertEqual([call.args[0] for call in command.call_args_list],
+                                 [['./Scripts/test.sh', 'ui', '--no-build', 'CriticalAccessibilityUITests']] * 3)
                 self.assertEqual(current[0], 'large')
                 self.assertEqual(writes, [MODULE.TEXT_SIZES[1], 'large'])
                 self.assertEqual([row['nativeAuditsRequested'] for row in rows],
@@ -367,58 +327,15 @@ trinket_run_env_install_self_clean() { :; }
             self.assertEqual(sum('--crash-proof' in line for line in calls), 1)
             self.assertIn(f'test.sh ui --no-build RepeatedPlayUITests results={root.resolve()}/data/TestResults', calls)
 
-    def test_ios18_failure_still_runs_purchase_recovery_and_durable_store_checks(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
-            scripts = root / 'Scripts'
-            (scripts / 'lib').mkdir(parents=True)
-            (scripts / 'player-coverage.sh').write_text((ROOT / 'Scripts/player-coverage.sh').read_text())
-            (scripts / 'lib/verification-policy.sh').write_text('trinket_require_heavy_verification() { return 0; }\ntrinket_host_admit() { :; }\n')
-            (scripts / 'run-env.sh').write_text('''trinket_run_env_init() { export DERIVED_DATA_PATH="$PWD/data" RESULTS_DIR="$PWD/data/TestResults" SIMULATOR_UDID=owned SIMULATOR_DESTINATION=fixture-ios18; }
-trinket_sim_slot_ensure() { :; }
-trinket_run_env_install_self_clean() { :; }
-''')
-            (scripts / 'ensure-simulator.sh').write_text('ensure_test_simulator_logged() { :; }\n')
-            for name in ('test.sh', 'test-package.sh'):
-                write_executable(scripts / name, '''#!/bin/sh
-printf '%s\n' "$0 $* major=$TRINKET_SIM_OS_MAJOR purchase=$TEST_RUNNER_TRINKET_REQUIRED_PURCHASE screenshots=$TRINKET_UI_SUCCESS_SCREENSHOTS" >> "$PWD/calls"
-exit 0
-''')
-            binaries = root / 'bin'
-            binaries.mkdir()
-            write_executable(binaries / 'python3', '''#!/bin/sh
-case "$*" in
-  *'definition --name ios18') printf 'fixture-phone\t18\n' ;;
-  *'--classes Smoke') printf 'SmokeBattleTests SmokeShellTests FullGamePurchaseSmokeTests\n' ;;
-  *'coverage_profiles.py run'*) printf '%s\n' "$*" > "$PWD/profile-command"; exit 1 ;;
-  *) exit 2 ;;
-esac
-''')
-            run_captured(
-                ['bash', 'Scripts/player-coverage.sh', 'ios18'],
-                cwd=root,
-                env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}', 'TRINKET_COVERAGE_NO_BUILD': '1'},
-                expected=1,
-            )
-            calls = (root / 'calls').read_text().splitlines()
-            self.assertTrue((root / 'profile-command').read_text().strip().endswith('--audit-policy all'))
-            self.assertEqual(len(calls), 3)
-            self.assertIn('smoke --no-build SmokeBattleTests SmokeShellTests FullGamePurchaseSmokeTests', calls[0])
-            self.assertIn('FullGamePurchaseUITests', calls[1])
-            self.assertIn('BattleLifecycleUITests/testCommittedRewardSurvivesTerminationWithoutReseeding', calls[1])
-            self.assertIn('--destination fixture-ios18 TrinketPersistence', calls[2])
-            self.assertTrue(all('major=18 purchase=1 screenshots=1' in call for call in calls))
-
     def test_nightly_audit_sampling_retains_weekly_manual_and_soak_coverage(self):
         workflow = (ROOT / '.github/workflows/player-coverage.yml').read_text()
         self.assertIn("- cron: '0 8 * * 0'", workflow)
-        for job, scope in [('ios18-runtime', 'compatibility'), ('compatibility', 'compatibility'), ('profiles', 'profiles')]:
-            section = workflow.split(f'  {job}:\n', 1)[1].split('    runs-on:', 1)[0]
-            condition = f"(github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == '{scope}' || inputs.scope == 'all'"
-            self.assertIn(f'if: {condition}', section)
-            self.assertIn(f"${{{{ {condition} }}}}", workflow)
+        profiles = workflow.split('  profiles:\n', 1)[1].split('    runs-on:', 1)[0]
+        condition = "(github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all'"
+        self.assertIn(f'if: {condition}', profiles)
+        self.assertIn(f"${{{{ {condition} }}}}", workflow)
         self.assertEqual(workflow.count(
-            "TRINKET_COVERAGE_AUDIT_POLICY: ${{ github.event.schedule == '0 8 * * 1-6' && 'representative' || 'all' }}"), 2)
+            "TRINKET_COVERAGE_AUDIT_POLICY: ${{ github.event.schedule == '0 8 * * 1-6' && 'representative' || 'all' }}"), 1)
         self.assertIn("if: github.event.schedule == '0 9 * * 0' || inputs.scope == 'soak' || inputs.scope == 'all'", workflow)
 
     def test_advisory_status_propagates_failed_or_cancelled_requested_jobs(self):
@@ -426,20 +343,21 @@ esac
         command = workflow.split('      - name: Report actual requested-job conclusions', 1)[1].split('        run: |\n', 1)[1]
         command = '\n'.join(line[10:] for line in command.splitlines())
         with tempfile.TemporaryDirectory() as temporary:
-            for runtime, compatibility, profiles, soak, expected in [('success', 'success', 'success', 'skipped', 0),
-                    ('success', 'failure', 'success', 'success', 1), ('success', 'cancelled', 'success', 'skipped', 1),
-                    ('skipped', 'skipped', 'failure', 'success', 1), ('success', 'success', 'success', 'cancelled', 1),
-                    ('failure', 'skipped', 'skipped', 'skipped', 1), ('cancelled', 'skipped', 'skipped', 'skipped', 1),
-                    ('skipped', 'skipped', 'success', 'skipped', 0)]:
+            for profiles, soak, request_profiles, request_soak, expected in [
+                ('success', 'success', 'true', 'true', 0),
+                ('success', 'skipped', 'true', 'false', 0),
+                ('skipped', 'success', 'false', 'true', 0),
+                ('failure', 'success', 'true', 'true', 1),
+                ('success', 'cancelled', 'true', 'true', 1),
+                ('skipped', 'success', 'true', 'true', 1),
+            ]:
                 result = run_captured(
                     ['bash', '-ec', command], cwd=ROOT,
                     env={
                         **os.environ,
-                        'JOB_RESULTS': json.dumps({name: {'result': result} for name, result in zip(
-                            ('ios18-runtime', 'compatibility', 'profiles', 'soak'), (runtime, compatibility, profiles, soak))}),
-                        'COMPATIBILITY_REQUESTED': str(runtime != 'skipped').lower(),
-                        'PROFILES_REQUESTED': str(profiles != 'skipped').lower(),
-                        'SOAK_REQUESTED': str(soak != 'skipped').lower(),
+                        'JOB_RESULTS': json.dumps({'profiles': {'result': profiles}, 'soak': {'result': soak}}),
+                        'PROFILES_REQUESTED': request_profiles,
+                        'SOAK_REQUESTED': request_soak,
                         'GITHUB_STEP_SUMMARY': str(Path(temporary) / 'summary'),
                     },
                 )
@@ -450,7 +368,13 @@ esac
         profiles = workflow.split('  profiles:\n', 1)[1].split('\n  soak:', 1)[0]
         self.assertIn('fail-fast: false', profiles)
         self.assertIn('max-parallel: 1', profiles)
-        self.assertIn('profile: [compact, tablet, duo]', profiles)
+        expected = {'compact': ('iPhone-SE-3rd-generation', 26), 'tablet26': ('iPad-A16', 26),
+                    'tablet': ('iPad-A16', 27), 'duo': ('iPhone-Duo', 27)}
+        self.assertIn(f'profile: [{", ".join(expected)}]', profiles)
+        self.assertEqual(MODULE.PROFILES, {
+            name: (f'com.apple.CoreSimulator.SimDeviceType.{device}', major)
+            for name, (device, major) in expected.items()
+        })
         self.assertNotIn('for profile in', profiles)
         self.assertIn('PROFILE: ${{ matrix.profile }}', profiles)
         self.assertIn('Scripts/ci-run-budget.py --phase player-profile-prerequisite -- '

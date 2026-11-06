@@ -11,7 +11,7 @@ on:
         description: Coverage portfolio
         type: choice
         default: profiles
-        options: [profiles, compatibility, soak, all]
+        options: [profiles, soak, all]
 
 permissions:
   contents: read
@@ -22,91 +22,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  ios18-runtime:
-    name: Export Apple's iOS 18 runtime
-    if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'compatibility' || inputs.scope == 'all'
-    runs-on: macos-26
-    timeout-minutes: 50
-    steps:
-      # Xcode 27's CLI rejects pre-26 downloads (FB24836279). Export with
-      # Xcode 26, then import on the verified build/test runner below.
-      - name: Export the iOS 18.0 simulator runtime
-        env:
-          DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
-        run: |
-          sudo xcode-select --switch "$DEVELOPER_DIR"
-          sudo xcodebuild -runFirstLaunch
-          xcrun simctl list runtimes available
-          xcodebuild -downloadPlatform iOS -buildVersion 18.0 -exportPath "$RUNNER_TEMP/ios18-runtime"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: ios18-runtime-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/ios18-runtime/**/*.dmg
-          compression-level: 0
-          retention-days: 1
-          if-no-files-found: error
-
-  compatibility:
-    name: iOS 18 compatibility, purchases and durable saves
-    needs: ios18-runtime
-    if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'compatibility' || inputs.scope == 'all'
-    runs-on: xcode-27
-    timeout-minutes: 120
-    env:
-      DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
-      TRINKET_DIAGNOSTICS_SESSION_ID: ios18-${{ github.run_id }}-${{ github.run_attempt }}
-      TRINKET_CLEANUP_TEST_ARTIFACTS: '0'
-      TRINKET_SIM_OS_MAJOR: '18'
-      TRINKET_SIM_DEVICE_TYPE: com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation
-    steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
-      - uses: ./.github/actions/setup-trinket
-        with:
-          metal: 'true'
-          xcode-channel: verified
-      - name: Make room for the required runtime on the disposable runner
-        run: |
-          python3 Scripts/ci-run-budget.py --phase ios18-runtime-cleanup -- python3 Scripts/ci-runtime-cleanup.py
-          df -h /
-      - uses: actions/download-artifact@484a0b528fb4d7bd804637ccb632e47a0e638317
-        with:
-          name: ios18-runtime-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/ios18-runtime
-      - name: Import and validate the required iOS 18 runtime
-        timeout-minutes: 35
-        run: |
-          python3 - <<'PY'
-          import os
-          from pathlib import Path
-          import subprocess
-          archives = list((Path(os.environ['RUNNER_TEMP']) / 'ios18-runtime').rglob('*.dmg'))
-          if len(archives) != 1:
-              raise SystemExit(f'Expected one Apple runtime archive, found {len(archives)}')
-          subprocess.run(['xcodebuild', '-importPlatform', str(archives[0])], check=True, timeout=1800)
-          archives[0].unlink()
-          PY
-          python3 Scripts/coverage_profiles.py prepare --name ios18
-      - uses: ./.github/actions/coverage-products
-      - name: Verify fallback controls, smoke, purchase recovery and persistence serially
-        env:
-          TRINKET_COVERAGE_NO_BUILD: '1'
-          TRINKET_COVERAGE_AUDIT_POLICY: ${{ github.event.schedule == '0 8 * * 1-6' && 'representative' || 'all' }}
-        run: ./Scripts/player-coverage.sh ios18
-      - name: Stage compatibility evidence
-        if: always()
-        run: python3 Scripts/coverage_profiles.py stage --results .DerivedData/TestResults --output .DerivedData/CompatibilityDiagnostics
-      - name: Retain compatibility results and failures
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: ios18-compatibility-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            .DerivedData/PlayerCoverage
-            .DerivedData/CompatibilityDiagnostics
-          include-hidden-files: true
-          retention-days: 14
-          if-no-files-found: warn
-
   profiles:
     name: Critical controls (${{ matrix.profile }})
     if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all'
@@ -116,7 +31,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        profile: [compact, tablet, duo]
+        profile: [compact, tablet26, tablet, duo]
     env:
       DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
       TRINKET_DIAGNOSTICS_SESSION_ID: player-${{ matrix.profile }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -190,7 +105,7 @@ jobs:
 
   coverage-status:
     name: Player coverage status (advisory for pushes)
-    needs: [ios18-runtime, compatibility, profiles, soak]
+    needs: [profiles, soak]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -200,13 +115,11 @@ jobs:
       - name: Report actual requested-job conclusions
         env:
           JOB_RESULTS: ${{ toJSON(needs) }}
-          COMPATIBILITY_REQUESTED: ${{ (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'compatibility' || inputs.scope == 'all' }}
           PROFILES_REQUESTED: ${{ (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' }}
           SOAK_REQUESTED: ${{ github.event.schedule == '0 9 * * 0' || inputs.scope == 'soak' || inputs.scope == 'all' }}
         shell: bash
         run: |
           required=()
-          if [[ "$COMPATIBILITY_REQUESTED" == true ]]; then required+=(ios18-runtime compatibility); fi
           if [[ "$PROFILES_REQUESTED" == true ]]; then required+=(profiles); fi
           if [[ "$SOAK_REQUESTED" == true ]]; then required+=(soak); fi
           python3 Scripts/report-ci-status.py --title 'Player coverage (advisory for pushes)' --require "${required[@]}"

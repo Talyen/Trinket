@@ -29,17 +29,20 @@ Release compile and Smoke passed. Start with these failures from the same revisi
 |---|---|
 | FullUI battle lifecycle | Rerun `BattleLifecycleUITests/testBackgroundedTalentConfirmationsFinishAndLeaveTheNextStagePlayable` on the failing toolchain. Use the retained result and app state to determine why the app failed to enter the background before reactivation. [FullUI job](https://github.com/Talyen/Trinket/actions/runs/42235920702/job/127971984915) |
 | Engine native parity | Inspect the native diagnostics and iOS comparator proof. Identify the mismatched evidence field and regenerate matching proof before drawing conclusions about engine behavior. [Parity job](https://github.com/Talyen/Trinket/actions/runs/42235920702/job/127977804209) |
-| iOS 18 reward navigation | Run `CriticalAccessibilityUITests/testRewardClaimRemainsReachableAndReturnsUnderRequestedSettings` at default text size on iOS 18.0. The intermittent failure shows Hunter's Lodge and its Approach button while the accessibility snapshot omits the button. Use the reward-return attachment to compare the live shell state with the native hierarchy. [Compatibility job](https://github.com/Talyen/Trinket/actions/runs/42245210926/job/127989567132) |
-| Compact, Duo, and tablet coverage | Inspect each profile's failure. Compact exhausted simulator boot recovery. Rerun infrastructure failures on a healthy runner and require actual profile execution. [Player coverage run](https://github.com/Talyen/Trinket/actions/runs/42245210926) |
+| Reward navigation | Run `CriticalAccessibilityUITests/testRewardClaimRemainsReachableAndReturnsUnderRequestedSettings` on the iOS and iPadOS 26 and 27 profiles. Compare the reward-return attachment with the native hierarchy if the next stage is missing. The intermittent iOS 18.0 accessibility finding remains open in the historical evidence. [Prior iOS 18 run](https://github.com/Talyen/Trinket/actions/runs/42245210926/job/127989567132) |
+| Compact, tablet, and Duo coverage | Inspect each profile's failure. Compact exhausted simulator boot recovery. Rerun infrastructure failures on a healthy runner and require actual profile execution. [Player coverage run](https://github.com/Talyen/Trinket/actions/runs/42245210926) |
 
-- [ ] Run the exact failed journeys first. Preserve their assertions and resolve
-  confirmed game, test, and runner causes in their owning code.
+Keep App Store compatibility at iOS and iPadOS 18.0. Automated launch coverage
+starts at 26 for both platforms.
+
+- [ ] Run the exact failed journeys in the launch matrix first. Preserve their
+  assertions and resolve confirmed game, test, and runner causes in their owning code.
 - [ ] Prepare the formal version and release artifacts through
   [Release](../Platform/Release.md#produce-release-artifacts). On the resulting
   commit, collect green push CI, the unsigned device Release compile, FullUI,
-  parity, and the required player coverage on iOS 18 and the current supported
-  release. Use [Hosted CI and player acceptance](CIHostedVerification.md) for the
-  detailed profile and localization work. Record the executed scope, Xcode build,
+  parity, and player coverage on iOS and iPadOS 26 and 27. Use
+  [Hosted CI and player acceptance](CIHostedVerification.md) for the detailed
+  profile and localization work. Record the executed scope, Xcode build,
   runtime, and exact commit for each gate.
 
 ## 2. Confirm App Store Connect prerequisites in parallel

@@ -9,14 +9,13 @@ Apple-service readiness.
 
 | Player risk | Executable owner | Cadence |
 |---|---|---|
-| iOS 18 fallback controls, onboarding, combat, purchases/restore and durable saves | `player-coverage.sh ios18`: Profiles, registry Smoke, Full Game recovery, interrupted reward and Persistence package tests | Nightly/manual compatibility lane |
 | Collected reward interrupted; duplicate Continue | Campaign `SmokeBattleTests` with a committed-reward checkpoint | Required routed push smoke |
 | Normal-speed rapid cards/drag, background return and retreat | `SmokeBattleTests` | Required routed push smoke |
 | Accepted claim termination; failed-write Leave; talent confirmation | `BattleLifecycleUITests`, AppState integration, BattleFeature card-play tests | Package checks plus nightly/manual FullUI |
 | Voyage, Spires, Labyrinth inspector | `PlayModeNavigationUITests` | Nightly/manual FullUI |
 | Homestead displayed cost/tier; Reset cancellation and confirmed erasure | `HomesteadControlsUITests`, `OptionsUITests`; Homestead durability in `PlayerHomesteadStoreTests` | Nightly/manual FullUI plus package checks |
 | Pending approvals active/terminated, decline, populated purchase recovery, revocation | `FullGamePurchaseUITests`; cancellation in `FullGameStoreTests` | Nightly/manual FullUI plus package checks; ordinary purchase smoke remains required |
-| Critical controls under native text sizes and Reduce Motion | `CriticalAccessibilityUITests` in Profiles | Nightly/manual Player coverage workflow |
+| Critical controls and reward claim → return → next stage under native text sizes and Reduce Motion | `CriticalAccessibilityUITests` in Profiles on iOS and iPadOS 26 and 27 | Nightly/manual Player coverage workflow |
 | Real audio backend routing through battle, foreground and relaunch | `AudioLifecycleUITests`; existing audio backend tests | Nightly/manual FullUI |
 | Repeated UI ownership and progress | `RepeatedPlayUITests` in Soak | Weekly/manual Player coverage workflow |
 | Populated schema-two migration, equipped gear, talents, maps, pinned offers and frozen cloud requests | `CloudSaveOutboxTests` | Persistence package checks |
@@ -28,8 +27,8 @@ the qualified iPhone 17 Pro / iOS 26.2 (23C54) baseline. Required purchase smoke
 checks a real Options purchase and unlocked access; FullUI retains the complete
 campaign/purchase/recruited-Warlock/battle journey and every recovery case.
 Exhaustive UI runs independently of compilation/smoke using exact-commit products.
-Compatibility and native settings lanes retain their separate OS/device coverage. The known iOS 27 local
-StoreKit denial defect must not be worked around by granting or filtering signed
+Native settings profiles cover additional OS and device combinations. The known
+iOS 27 local StoreKit denial defect must not be worked around by granting or filtering signed
 ownership, or by dropping the denial/retry assertions; see
 [StoreKit qualification](Release.md#testflight-troubleshooting).
 
@@ -41,28 +40,29 @@ No per-mechanic UI matrix duplicates those owners.
 ## CI and profiles
 
 [Player coverage workflow](../../.github/workflows/player-coverage.yml) uses the
-verified toolchain. iOS 18 compatibility and critical settings profiles run nightly;
-Sunday's nightly run retains the complete native audit matrix; the separate weekly
-run owns soak/recovery. Manual dispatch selects
-compatibility, profiles, soak, or all. Results are advisory for pushes, but requested-job failures produce a failed coverage aggregate. Requested FullUI also fails its advisory aggregate on failed, skipped, or unavailable execution; CI OK remains independent. Skipped
-jobs mean unrequested portfolios, not executed coverage.
+verified toolchain. Hosted simulator coverage starts at iOS and iPadOS 26. The
+[App Store compatibility floor](ApplePlatformReference.md#platform-support) remains
+18.0. Critical settings profiles run nightly. Sunday's nightly run retains the
+complete native audit matrix, and the separate weekly run owns soak/recovery.
+Manual dispatch selects profiles, soak, or all. A requested job must succeed for
+its coverage aggregate to pass. CI OK remains independent of the player coverage
+and FullUI aggregates.
 
 [Verification](Verification.md#execution-limits) owns local authorization, selectors
 and resource limits, including its single focused diagnostic exception. The
 following commands select hosted portfolios:
 
 ```sh
-./Scripts/player-coverage.sh ios18
 ./Scripts/player-coverage.sh compact
+./Scripts/player-coverage.sh tablet26
 ./Scripts/player-coverage.sh tablet
 ./Scripts/player-coverage.sh duo
 ./Scripts/player-coverage.sh soak
 ```
 
 Profiles cover iPhone SE third generation on iOS 26, iPad A16 (eleventh generation)
-on iOS 27, and iPhone Duo on iOS 27.1 or later in that major. The compatibility lane
-uses iPhone SE third generation on iOS 18. Missing or incompatible devices, runtimes
-or native settings fail visibly; there is no substitute device or OS major.
+on iPadOS 26 and 27, and iPhone Duo on iOS 27.1 or later in that major. Missing or
+incompatible devices, runtimes or native settings fail the requested profile.
 Within a requested major, selection uses the newest installed runtime compatible
 with that device; exact OS-version and build requests remain exact. A newer Duo-only
 runtime must not prevent the iPad profile from using its compatible runtime.
@@ -75,7 +75,7 @@ Simulator identity is recorded after the serial tests and settings restoration,
 so the cold-boot inventory query cannot prevent those tests from starting.
 Missing identity still fails the lane and retains the executed profile receipts.
 
-Compact phone, iPad and Duo run serially as independent jobs on fresh hosted
+The four profiles run serially as independent jobs on fresh hosted
 runners. A stalled CoreSimulator service on one device must not prevent the other
 profiles from running. Settings stay serial within each device, each artifact
 names its profile, and prerequisite failures retain structured diagnostics.
@@ -87,10 +87,9 @@ failure, not completed product coverage.
 
 On six nightly runs per week, all interactions and actual native-environment checks
 remain on every settings profile, while all seven native audit types run on each
-device's largest-text profile without Reduce Motion. This reduces audit calls from
-420 to 140 before retries; settings-specific violations outside that profile may
-be detected later. Sunday's nightly run, manual dispatch and direct scripts retain
-the full native audit matrix. Only sampled CI runs explicitly request
+device's largest-text profile without Reduce Motion. This runs one third of the
+full audit matrix before retries. Sunday's nightly run, manual dispatch and direct
+scripts retain the full native audit matrix. Only sampled CI runs explicitly request
 `TRINKET_COVERAGE_AUDIT_POLICY=representative`; the script default is `all`.
 Each profile receipt records whether native audits were requested. Product violations
 still fail without blanket suppression.
@@ -103,11 +102,10 @@ restoration, checking actual geometry, retained hand,
 usable controls and a card play. Folding during held input, inspection, automatic
 casts or reward reveal still needs managed Device Hub inspection.
 
-The iOS 18 lane additionally runs every registry Smoke class, Full Game purchase/
-recovery, committed-reward termination recovery and the Persistence package suite.
-Missing purchase execution cannot count as compatibility success. Passing automation
-still needs physical-device artwork, icon, frame, memory and thermal review before
-release-readiness claims. [Profile execution](VerificationInternals.md#player-profile-execution)
+Registry Smoke, Full Game purchase and recovery, committed-reward termination
+recovery, and the Persistence package suite run through their CI owners above.
+Physical-device artwork, icon, frame, memory and thermal review remain separate
+release checks. [Profile execution](VerificationInternals.md#player-profile-execution)
 owns runtime preparation, product reuse, native-settings mechanics and diagnostics.
 
 Weekly UI soak uses one audio-enabled store for twenty Contracts, visiting

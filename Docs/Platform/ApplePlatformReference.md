@@ -21,8 +21,9 @@ major does not automatically raise the minimum. Review support cost and critical
 capabilities before explicitly changing the minimum, preserve saves, and explain
 any changed requirement in player-facing release notes. iOS 26+ keeps native glass
 and scroll-edge treatments; shared controls use native bordered styles and material
-surfaces on iOS 18. The explicit minimum-OS lane in [Player coverage](PlayerCoverage.md)
-owns older-runtime evidence.
+surfaces on iOS 18. Keep the iOS and iPadOS 18.0 App Store compatibility floor.
+The [hosted test matrix](PlayerCoverage.md#ci-and-profiles) starts at iOS and
+iPadOS 26.
 
 Availability also applies to Swift standard-library conformances and concurrency
 runtime features. Indexed rows follow the [ForEach guidance](../../.agents/skills/swiftui-specialist/references/foreach.md);

@@ -269,7 +269,7 @@ layout, fonts and packaging.
 
 ## Player profile execution
 
-The hosted compact/tablet/Duo matrix admits one device job at a time, using a
+The hosted player profile matrix admits one job at a time, using a
 fresh runner for each profile and continuing after independent failures. This
 contains CoreSimulator boot/shutdown failures that previously poisoned all three
 profiles on one host. Each profile reserves diagnostic time and wraps preparation
@@ -283,17 +283,7 @@ and acceptance. These mechanics preserve that scope when provisioning or diagnos
 
 ### Runtime and product preparation
 
-Xcode 27's command-line downloader rejects pre-26 runtimes
-([FB24836279](https://developer.apple.com/forums/thread/847134)). CI exports iOS 18.0
-using Xcode 26.6 on `macos-26`, transfers it with one-day retention, and imports it
-on the verified Xcode 27 runner. Compilation/tests still use the verified toolchain.
-The disposable compatibility runner removes eligible preinstalled iOS images before
-transfer and the archive after import. `ci-runtime-cleanup.py` validates the complete
-inventory, preserves busy/non-iOS images and retains receipts. Only read-only
-inventory gets one timeout retry; deletion errors fail with the
-`ios18-runtime-cleanup` phase. Both build and test request the iOS 18 profile.
-
-The compact, tablet, and Duo jobs prepare the selected runtime's dyld cache before
+Each profile job prepares the selected runtime's dyld cache before
 boot. Profiles install a compatible runtime when absent using the configured
 download build or minimum version. Use Apple's `arm64` variant on Apple silicon and
 `universal` on Intel; forcing universal can reject an available Apple-silicon release.
