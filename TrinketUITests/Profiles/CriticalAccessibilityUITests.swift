@@ -228,8 +228,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
     }
 
     func testRewardClaimRemainsReachableAndReturnsUnderRequestedSettings() throws {
-        launchApp(arguments: TestLaunchArg.productionTiming()
-            + TestLaunchArg.screen("battle-victory") + ["-coverage-diagnostics"])
+        launchRewardReturnFixture()
         try assertRequestedEnvironment()
         assertExists(AccessibilityID.Battle.victory)
         reveal(button(AccessibilityID.Battle.continueButton))
@@ -237,7 +236,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         let viewport = app.scrollViews.containing(.other, identifier: AccessibilityID.Battle.rewards).firstMatch
         assertExists(rewards)
         assertExists(viewport)
-        // iOS 18 contrast auditing also samples clipped descendants beneath the footer.
+        // Keep clipped reward descendants out of the native audit snapshot.
         for _ in 0 ..< 8 {
             if rewards.frame.maxY <= viewport.frame.maxY {
                 break
@@ -249,17 +248,7 @@ final class CriticalAccessibilityUITests: FullGameStoreKitUITestCase {
         try auditProductAccessibility(screen: "reward-claim")
         reveal(button(AccessibilityID.Battle.continueButton))
         retainScreenshot(named: "reward-claim")
-        tapButton(AccessibilityID.Battle.continueButton)
-        play.assertCampaignLoaded()
-        let state = try coverageReport()
-        let keys = ["selectedTab", "playPath", "pendingPlayDestination", "gameplayActive", "completedStages"]
-        let summary = keys.map { key in "\(key)=\(String(describing: state[key]))" }.joined(separator: "\n")
-        let attachment = XCTAttachment(string: summary)
-        attachment.name = "reward-return-state"
-        attachment.lifetime = .keepAlways
-        add(attachment)
-        tapButtonAfterScroll(AccessibilityID.Play.stageAction(chapter: 1, stage: 2))
-        assertExists(AccessibilityID.Mystery.encounterTitle)
+        try claimRewardAndEnterNextStage()
     }
 
     private func assertRequestedEnvironment() throws {

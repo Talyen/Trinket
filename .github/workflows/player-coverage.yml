@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   profiles:
-    name: Critical controls (${{ matrix.profile }})
+    name: ${{ matrix.check }} (${{ matrix.profile }})
     if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all'
     runs-on: xcode-27
     timeout-minutes: 120
@@ -31,10 +31,17 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        profile: [compact, tablet26, tablet, duo]
+        include:
+          - {profile: compact, check: reward-return}
+          - {profile: tablet, check: reward-return}
+          - {profile: compact, check: profiles}
+          - {profile: tablet26, check: profiles}
+          - {profile: tablet, check: profiles}
+          - {profile: duo, check: profiles}
+          - {profile: duo, check: rotation}
     env:
       DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
-      TRINKET_DIAGNOSTICS_SESSION_ID: player-${{ matrix.profile }}-${{ github.run_id }}-${{ github.run_attempt }}
+      TRINKET_DIAGNOSTICS_SESSION_ID: player-${{ matrix.check }}-${{ matrix.profile }}-${{ github.run_id }}-${{ github.run_attempt }}
       TRINKET_CLEANUP_TEST_ARTIFACTS: '0'
       TRINKET_REQUIRED_PURCHASE: '1'
       TEST_RUNNER_TRINKET_REQUIRED_PURCHASE: '1'
@@ -52,12 +59,14 @@ jobs:
         env:
           PROFILE: ${{ matrix.profile }}
         run: python3 Scripts/ci-run-budget.py --phase player-profile-prerequisite -- python3 Scripts/coverage_profiles.py prepare --name "$PROFILE"
-      - name: Run requested profile
+      - name: Run requested check
         env:
           PROFILE: ${{ matrix.profile }}
+          COVERAGE_CHECK: ${{ matrix.check }}
+          TRINKET_XCODE_WALL_TIMEOUT_SECONDS: ${{ matrix.check == 'reward-return' && '300' || '' }}
           TRINKET_COVERAGE_NO_BUILD: '1'
           TRINKET_COVERAGE_AUDIT_POLICY: ${{ github.event.schedule == '0 8 * * 1-6' && 'representative' || 'all' }}
-        run: python3 Scripts/ci-run-budget.py --phase player-profile -- ./Scripts/player-coverage.sh "$PROFILE"
+        run: python3 Scripts/ci-run-budget.py --phase player-profile -- ./Scripts/player-coverage.sh "$PROFILE" "$COVERAGE_CHECK"
       - name: Stage bounded profile evidence
         if: always()
         run: python3 Scripts/coverage_profiles.py stage --results .DerivedData/TestResults --output .DerivedData/ProfileDiagnostics
@@ -65,7 +74,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: player-profiles-${{ matrix.profile }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: player-${{ matrix.check }}-${{ matrix.profile }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             .DerivedData/PlayerCoverage
             .DerivedData/ProfileDiagnostics

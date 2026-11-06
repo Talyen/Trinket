@@ -186,12 +186,13 @@ class PlayerCoverageTests(unittest.TestCase):
                         raise RuntimeError('failed setter')
                 return current[0]
             with self.subTest(fail=fail), self.assertRaises(RuntimeError):
-                with MODULE.native_text_size('owned', 'large', run):
+                with MODULE.native_text_size('owned', run) as apply:
+                    apply('large')
                     raise RuntimeError('journey failed')
             self.assertEqual(current[0], 'medium')
             self.assertIn(('ui', 'owned', 'content_size', 'medium'), events)
         with self.assertRaisesRegex(ValueError, 'unavailable'):
-            with MODULE.native_text_size('owned', 'large', lambda *args: 'unsupported'):
+            with MODULE.native_text_size('owned', lambda *args: 'unsupported'):
                 self.fail('must not start unsupported profile')
 
     def test_duo_preparation_requires_27_1_even_when_27_0_is_installed(self):
@@ -214,11 +215,13 @@ class PlayerCoverageTests(unittest.TestCase):
 
     def test_failed_profile_is_recorded_and_other_settings_still_execute(self):
         for policy in [(), ('all',), ('representative',)]:
-            current, writes = ['large'], []
+            current, writes, reads = ['large'], [], []
             def run(*args):
                 if len(args) == 4:
                     current[0] = args[-1]
                     writes.append(args[-1])
+                else:
+                    reads.append(current[0])
                 return current[0]
             with tempfile.TemporaryDirectory() as temporary, patch.dict(os.environ, {'RESULTS_DIR': '/fixture/built-results'}), \
                     patch.object(MODULE, 'record_identity'), \
@@ -228,7 +231,7 @@ class PlayerCoverageTests(unittest.TestCase):
                 # Default arguments bind at definition time: inject the native-setting
                 # context through its real implementation with the controlled runner.
                 native = MODULE.native_text_size
-                with patch.object(MODULE, 'native_text_size', side_effect=lambda udid, size: native(udid, size, run)):
+                with patch.object(MODULE, 'native_text_size', side_effect=lambda udid: native(udid, run)):
                     output = Path(temporary) / 'profiles'
                     self.assertEqual(MODULE.run_profiles('owned', output, *policy), 1)
                 rows = json.loads((output / 'profiles.json').read_text())
@@ -237,6 +240,7 @@ class PlayerCoverageTests(unittest.TestCase):
                                  [['./Scripts/test.sh', 'ui', '--no-build', 'CriticalAccessibilityUITests']] * 3)
                 self.assertEqual(current[0], 'large')
                 self.assertEqual(writes, [MODULE.TEXT_SIZES[1], 'large'])
+                self.assertEqual(reads, ['large', MODULE.TEXT_SIZES[1], 'large'])
                 self.assertEqual([row['nativeAuditsRequested'] for row in rows],
                                  [False, True, False] if policy == ('representative',) else [True] * 3)
                 self.assertEqual([call.kwargs['env']['TEST_RUNNER_TRINKET_PROFILE_AUDIT_POLICY']
@@ -370,7 +374,11 @@ trinket_run_env_install_self_clean() { :; }
         self.assertIn('max-parallel: 1', profiles)
         expected = {'compact': ('iPhone-SE-3rd-generation', 26), 'tablet26': ('iPad-A16', 26),
                     'tablet': ('iPad-A16', 27), 'duo': ('iPhone-Duo', 27)}
-        self.assertIn(f'profile: [{", ".join(expected)}]', profiles)
+        for name in expected:
+            self.assertIn(f'{{profile: {name}, check: profiles}}', profiles)
+        for name in ('compact', 'tablet'):
+            self.assertIn(f'{{profile: {name}, check: reward-return}}', profiles)
+        self.assertIn('{profile: duo, check: rotation}', profiles)
         self.assertEqual(MODULE.PROFILES, {
             name: (f'com.apple.CoreSimulator.SimDeviceType.{device}', major)
             for name, (device, major) in expected.items()
@@ -379,10 +387,10 @@ trinket_run_env_install_self_clean() { :; }
         self.assertIn('PROFILE: ${{ matrix.profile }}', profiles)
         self.assertIn('Scripts/ci-run-budget.py --phase player-profile-prerequisite -- '
                       'python3 Scripts/coverage_profiles.py prepare --name "$PROFILE"', profiles)
-        self.assertIn('Scripts/ci-run-budget.py --phase player-profile -- ./Scripts/player-coverage.sh "$PROFILE"', profiles)
-        self.assertIn('player-profiles-${{ matrix.profile }}-${{ github.run_id }}-${{ github.run_attempt }}', profiles)
+        self.assertIn('Scripts/ci-run-budget.py --phase player-profile -- ./Scripts/player-coverage.sh "$PROFILE" "$COVERAGE_CHECK"', profiles)
+        self.assertIn('player-${{ matrix.check }}-${{ matrix.profile }}-${{ github.run_id }}-${{ github.run_attempt }}', profiles)
 
-    def test_duo_rotation_still_executes_when_settings_profiles_fail(self):
+    def test_reward_and_rotation_run_without_native_settings(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             scripts = root / 'Scripts'
@@ -401,15 +409,35 @@ printf '%s\\n' "$* plan=$TRINKET_UI_PLAN duo=$TEST_RUNNER_TRINKET_DUO_PROFILE" >
             binaries.mkdir()
             write_executable(binaries / 'python3', '''#!/bin/sh
 case "$*" in
-  *'definition --name duo') printf 'fixture-duo\\t27\\n' ;;
-  *'coverage_profiles.py run'*) printf '%s\\n' "$*" > "$PWD/profile-command"; exit 1 ;;
+  *'definition --name '*) printf 'fixture-phone\\t27\\n' ;;
+  *'coverage_profiles.py ready --udid owned') exit 0 ;;
+  *'coverage_profiles.py run'*) exit 9 ;;
   *) exit 2 ;;
 esac
 ''')
-            run_captured(['bash', 'Scripts/player-coverage.sh', 'duo'], cwd=root,
-                         env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}',
-                              'TRINKET_COVERAGE_NO_BUILD': '1', 'TRINKET_UI_PLAN': 'Profiles',
-                              'TRINKET_COVERAGE_AUDIT_POLICY': 'representative'}, expected=1)
-            self.assertTrue((root / 'profile-command').read_text().strip().endswith('--audit-policy representative'))
-            self.assertEqual((root / 'calls').read_text().strip(),
-                             'ui --no-build DuoRotationUITests/testDuoRotationPreservesBattleAndCardPlay plan=Profiles duo=1')
+            for profile, check, selector, duo in [
+                ('compact', 'reward-return', 'RewardReturnUITests/testClaimReturnsToCampaignAndOpensNextStage', ''),
+                ('tablet', 'reward-return', 'RewardReturnUITests/testClaimReturnsToCampaignAndOpensNextStage', ''),
+                ('duo', 'rotation', 'DuoRotationUITests/testDuoRotationPreservesBattleAndCardPlay', '1'),
+            ]:
+                with self.subTest(profile=profile, check=check):
+                    (root / 'calls').unlink(missing_ok=True)
+                    run_captured(['bash', 'Scripts/player-coverage.sh', profile, check], cwd=root,
+                                 env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}',
+                                      'TRINKET_COVERAGE_NO_BUILD': '1'}, expected=0)
+                    self.assertEqual((root / 'calls').read_text().strip(),
+                                     f'ui --no-build {selector} plan=Profiles duo={duo}')
+
+    def test_text_size_readiness_timeout_stops_before_test_or_inventory(self):
+        timeout = subprocess.TimeoutExpired('simctl ui content_size', 30)
+        native = MODULE.native_text_size
+        with tempfile.TemporaryDirectory() as temporary, \
+                patch.object(MODULE, 'native_text_size', side_effect=lambda udid: native(udid, probe)), \
+                patch.object(MODULE.subprocess, 'run') as execute, \
+                patch.object(MODULE, 'record_identity') as identity:
+            def probe(*_):
+                raise timeout
+            with self.assertRaisesRegex(MODULE.SimulatorPrerequisiteTimeout, 'text-size-readiness'):
+                MODULE.run_profiles('owned', Path(temporary) / 'profiles')
+            execute.assert_not_called()
+            identity.assert_not_called()

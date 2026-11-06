@@ -11,14 +11,17 @@ cd "$(dirname "$0")/.."
 source ./Scripts/lib/infrastructure-patterns.sh
 
 RUN_ID=""
+PLAYER_JOB=""
 DO_RERUN=false
 
 usage() {
   cat <<'EOF'
-Usage: ./Scripts/ci-infra-rerun.sh --run-id <id> [--rerun]
+Usage: ./Scripts/ci-infra-rerun.sh --run-id <id> [--player-job <id>] [--rerun]
 
 Exits 0 when every failed job has simulator/XCUITest launch infrastructure evidence.
 With --rerun, also runs `gh run rerun <id> --failed` once.
+With --player-job, consider only that completed Player coverage job on attempt 1.
+A verified prerequisite timeout can rerun that job on a fresh runner.
 
 Without --rerun, exit 1 means "not infra" (or could not classify).
 EOF
@@ -28,6 +31,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --run-id)
       RUN_ID="${2:-}"
+      shift 2
+      ;;
+    --player-job)
+      PLAYER_JOB="${2:-}"
       shift 2
       ;;
     --rerun)
@@ -79,6 +86,28 @@ failure_looks_like_simulator_infrastructure() {
     grep -iqE "$pattern" <<< "$evidence" || return 1
   done <<< "$failed_jobs"
 }
+
+if [[ -n "$PLAYER_JOB" ]]; then
+  [[ "$RUN_ID" =~ ^[0-9]+$ && "$PLAYER_JOB" =~ ^[0-9]+$ ]] || exit 2
+  eligible="$(gh run view "$RUN_ID" --json name,attempt,status,jobs --jq "
+    .name == \"Player coverage\" and .attempt == 1 and .status == \"completed\" and
+    any(.jobs[]; .databaseId == $PLAYER_JOB and .conclusion == \"failure\" and
+        (.name | test(\"^(profiles|reward-return|rotation) [(]\"))
+    )
+  ")" || exit 1
+  [[ "$eligible" == true ]] || exit 1
+  evidence="$(gh run view "$RUN_ID" --job "$PLAYER_JOB" --log-failed)" || exit 1
+  if grep -iqE "$(trinket_product_test_failure_pattern)" <<< "$evidence" ||
+     ! grep -qE 'Player coverage simulator prerequisite timed out: (runtime-selection|dyld-cache|text-size-readiness|launch-service):' <<< "$evidence"; then
+    echo "Player coverage job $PLAYER_JOB has no confirmed pre-test simulator timeout."
+    exit 1
+  fi
+  echo "Player coverage job $PLAYER_JOB exhausted a simulator prerequisite."
+  if [[ "$DO_RERUN" == true ]]; then
+    gh run rerun "$RUN_ID" --job "$PLAYER_JOB"
+  fi
+  exit 0
+fi
 
 if ! failure_looks_like_simulator_infrastructure "$RUN_ID"; then
   echo "Run $RUN_ID failures do not look like simulator/XCUITest infrastructure."

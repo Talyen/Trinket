@@ -57,7 +57,8 @@ an executing module.
 ## Player coverage automation
 
 `player-coverage.sh compact|tablet26|tablet|duo|soak` owns native settings profiles
-on iOS and iPadOS 26 and 27, and weekly functional soak/recovery. It is CI-owned and respects the heavy-local policy.
+on iOS and iPadOS 26 and 27, and weekly functional soak/recovery. Optional
+`reward-return` and `rotation` selectors run their individual XCTest journeys. It is CI-owned and respects the heavy-local policy.
 [Player coverage](../Docs/Platform/PlayerCoverage.md) owns scenarios, cadence,
 explicit profile prerequisites, and evidence limitations. UI membership is authored
 in `config/ui-tests.tsv`; Profiles and Soak stay outside routine FullUI.

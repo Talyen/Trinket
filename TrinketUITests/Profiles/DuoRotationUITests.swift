@@ -14,25 +14,24 @@ final class DuoRotationUITests: TrinketUITestCase {
         let originalCards = handCardIDs
         XCTAssertFalse(originalCards.isEmpty)
 
+        let window = app.windows.firstMatch
         for orientation in [UIDeviceOrientation.landscapeLeft, .portrait, .landscapeRight] {
             device.orientation = orientation
-            let settled = trinketWaitUntil(timeout: Self.defaultTimeout) {
-                let frame = self.app.frame
-                let resized = orientation.isLandscape ? frame.width > frame.height : frame.height > frame.width
-                return resized && self.handCardIDs == originalCards
-                    && self.battle.autoBattleToggle.isHittable && self.battle.actionsMenu.isHittable
+            let resized = trinketWaitUntil(timeout: Self.defaultTimeout) {
+                let frame = window.exists ? window.frame : .null
+                return frame.width > 0 && frame.height > 0
+                    && (orientation.isLandscape ? frame.width > frame.height : frame.height > frame.width)
             }
-            if !settled {
-                retainScreenshot(named: "duo-rotation-failure-\(orientation.rawValue)")
-                let frame = app.frame
-                XCTFail(
-                    "Rotation must preserve the hand and usable battle controls: "
-                        + "orientation=\(orientation.rawValue), frame=\(frame), "
-                        + "hand=\(handCardIDs.sorted()), originalHand=\(originalCards.sorted()), "
-                        + "auto=\(battle.autoBattleToggle.isHittable), actions=\(battle.actionsMenu.isHittable)",
-                )
+            let frame = window.exists ? window.frame : .null
+            retainScreenshot(named: "duo-window-\(orientation.rawValue)")
+            let resizedFrame = try XCTUnwrap(
+                resized ? frame : nil,
+                "Duo window did not resize: requested=\(orientation.rawValue), device=\(device.orientation.rawValue), window=\(frame)",
+            )
+            XCTContext.runActivity(named: "Duo window resized: requested=\(orientation.rawValue), window=\(resizedFrame)") { _ in }
+            waitUntil("Duo rotation must preserve the hand and usable battle controls") {
+                self.handCardIDs == originalCards && self.battle.autoBattleToggle.isHittable && self.battle.actionsMenu.isHittable
             }
-            retainScreenshot(named: "duo-battle-\(orientation.rawValue)")
         }
 
         let card = battle.frontmostHandCard

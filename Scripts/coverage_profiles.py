@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import argparse
-from contextlib import ExitStack, contextmanager
+from contextlib import contextmanager
 import json
 import os
 import plistlib
@@ -75,23 +75,57 @@ def simctl(*arguments):
         return subprocess.check_output(command, text=True, timeout=30).strip()
 
 
+class SimulatorPrerequisiteTimeout(RuntimeError):
+    """A simulator command exhausted its deadline before any XCTest ran."""
+
+
+def prerequisite(phase, command, *args, **kwargs):
+    try:
+        return command(*args, **kwargs)
+    except subprocess.TimeoutExpired as error:
+        raise SimulatorPrerequisiteTimeout(f'{phase}: {error}') from error
+
+
+def verify_launch_service(udid):
+    home = prerequisite('launch-service', simctl, 'getenv', udid, 'HOME')
+    if not home.startswith('/'):
+        raise ValueError(f'simulator launch service returned an invalid HOME for {udid}')
+
+
 @contextmanager
-def native_text_size(udid, size, run=simctl):
-    previous = run('ui', udid, 'content_size')
+def native_text_size(udid, run=simctl):
+    previous = prerequisite('text-size-readiness', run, 'ui', udid, 'content_size')
     if previous not in (*TEXT_SIZES, 'extra-small', 'small', 'medium', 'extra-large', 'extra-extra-large',
                         'extra-extra-extra-large', 'accessibility-medium', 'accessibility-large',
                         'accessibility-extra-large', 'accessibility-extra-extra-large'):
         raise ValueError(f'native content size unavailable: {previous}')
+
+    current = previous
+
     def apply(requested):
-        if run('ui', udid, 'content_size') != requested:
+        nonlocal current
+        if current == requested:
+            return
+        current = None  # A command that times out may have applied the setting.
+        try:
             run('ui', udid, 'content_size', requested)
-        if run('ui', udid, 'content_size') != requested:
-            raise ValueError('native content-size setting was not applied')
+            observed = run('ui', udid, 'content_size')
+        except subprocess.SubprocessError as error:
+            raise ValueError(f'native text-size transition to {requested}: {error}') from error
+        if observed != requested:
+            raise ValueError(f'native text-size transition to {requested} reported {observed}')
+        current = observed
+
     try:
-        apply(size)
         yield apply
     finally:
-        apply(previous)
+        prior_error = sys.exc_info()[0]
+        try:
+            apply(previous)
+        except (ValueError, subprocess.SubprocessError) as error:
+            print(f'Native text-size restoration failed: {error}', file=sys.stderr)
+            if prior_error is None:
+                raise
 
 
 def resolve(name):
@@ -154,10 +188,7 @@ def run_profiles(udid, output, audit_policy='all'):
         raise ValueError(f'unsupported native audit policy: {audit_policy}')
     output.mkdir(parents=True, exist_ok=False)
     results = []
-    with ExitStack() as cleanup:
-        # Capture identity after settings restoration; cold-boot inventory can stall before tests.
-        cleanup.callback(record_identity, udid, output)
-        apply_size = cleanup.enter_context(native_text_size(udid, TEXT_SIZES[0]))
+    with native_text_size(udid) as apply_size:
         for name, size, reduced in [('default', TEXT_SIZES[0], False), ('largest', TEXT_SIZES[1], False),
                                      ('largest-reduced', TEXT_SIZES[1], True)]:
             environment = dict(os.environ, TRINKET_UI_PLAN='Profiles', TRINKET_UI_SUCCESS_SCREENSHOTS='1',
@@ -180,6 +211,8 @@ def run_profiles(udid, output, audit_policy='all'):
                                 reduceMotionSource='native Settings control with class restoration',
                                 status='passed' if result.returncode == 0 else 'failed', exitCode=result.returncode))
             (output / 'profiles.json').write_text(json.dumps(results, indent=2))
+    # A failed readiness probe must not trigger an inventory request that can obscure it.
+    record_identity(udid, output)
     return 0 if all(item['exitCode'] == 0 for item in results) else 1
 
 
@@ -205,7 +238,7 @@ def stage_results(results, output):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('operation', choices=('definition', 'prepare', 'resolve', 'run', 'stage'))
+    parser.add_argument('operation', choices=('definition', 'prepare', 'resolve', 'ready', 'run', 'stage'))
     parser.add_argument('--name')
     parser.add_argument('--audit-policy', choices=('all', 'representative'), default='all')
     parser.add_argument('--udid')
@@ -223,16 +256,24 @@ def main():
             print(f'{type_id}\t{major}')
             return 0
         if args.operation == 'prepare':
-            runtime = prepare_profile(args.name)
+            runtime = prerequisite('runtime-selection', prepare_profile, args.name)
             if os.environ.get('GITHUB_ACTIONS') == 'true':
-                warm_runtime_cache(runtime)
+                prerequisite('dyld-cache', warm_runtime_cache, runtime)
             return 0
         if args.operation == 'resolve':
             resolve(args.name)
             return 0
-        if not args.udid or not args.output:
-            parser.error('run requires --udid and --output')
+        if not args.udid:
+            parser.error(f'{args.operation} requires --udid')
+        if args.operation == 'ready':
+            verify_launch_service(args.udid)
+            return 0
+        if not args.output:
+            parser.error('run requires --output')
         return run_profiles(args.udid, args.output, args.audit_policy)
+    except SimulatorPrerequisiteTimeout as error:
+        print(f'Player coverage simulator prerequisite timed out: {error}', file=sys.stderr)
+        return 2
     except (ValueError, KeyError, subprocess.SubprocessError) as error:
         print(f'Coverage prerequisite/cleanup failure: {error}', file=sys.stderr)
         return 2

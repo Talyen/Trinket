@@ -79,9 +79,10 @@ logs = json.loads(os.environ['FIXTURE_LOGS'])
 if args[:2] == ['repo', 'view']:
     print('fixture/repo')
 elif args[:2] == ['run', 'rerun']:
-    open(os.environ['FIXTURE_RERUN'], 'w').write('rerun')
+    open(os.environ['FIXTURE_RERUN'], 'w').write(' '.join(args[2:]))
 elif '--json' in args:
-    payload = {'jobs': [dict(j, databaseId=j['id'], conclusion=j.get('conclusion', 'failure')) for j in jobs]}
+    payload = {'jobs': [dict(j, databaseId=j['id'], conclusion=j.get('conclusion', 'failure')) for j in jobs],
+               'name': 'Player coverage', 'status': 'completed', 'attempt': int(os.environ.get('FIXTURE_ATTEMPT', '1'))}
     result = subprocess.run(['jq', '-r', args[args.index('--jq') + 1]],
                             input=json.dumps(payload), text=True)
     sys.exit(result.returncode)
@@ -139,6 +140,29 @@ else:
                     )
                     self.assertEqual(result.returncode, 0 if retry else 1, result.stdout + result.stderr)
                     self.assertEqual(rerun.exists(), retry)
+
+            jobs = [{'id': 1, 'name': 'profiles (tablet)'}, {'id': 2, 'name': 'reward-return (compact)'}]
+            infra = "Player coverage simulator prerequisite timed out: text-size-readiness: Command timed out"
+            for attempt, evidence, retry in [
+                (1, infra, True),
+                (2, infra, False),
+                (1, "Simulator text-size query timed out after 30s; retrying once.", False),
+                (1, infra + "\nXCTAssertEqual failed", False),
+            ]:
+                with self.subTest(attempt=attempt, evidence=evidence):
+                    rerun.unlink(missing_ok=True)
+                    result = run_captured(
+                        [str(ROOT / 'Scripts/ci-infra-rerun.sh'), '--run-id', '123', '--player-job', '1', '--rerun'],
+                        cwd=ROOT,
+                        env={**os.environ, 'PATH': f"{root}:{os.environ['PATH']}", 'FIXTURE_JOBS': json.dumps(jobs),
+                             'FIXTURE_LOGS': json.dumps({'1': evidence, '2': 'XCTAssertEqual failed'}),
+                             'FIXTURE_ATTEMPT': str(attempt), 'FIXTURE_RERUN': str(rerun)},
+                    )
+                    self.assertEqual(result.returncode, 0 if retry else 1, result.stdout + result.stderr)
+                    if retry:
+                        self.assertEqual(rerun.read_text(), '123 --job 1')
+                    else:
+                        self.assertFalse(rerun.exists())
 
     def test_shell_policy_checks_reject_search_errors(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

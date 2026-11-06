@@ -3,14 +3,15 @@ set -euo pipefail
 TRINKET_ENTRY_ARGS=("$@")
 cd "$(dirname "$0")/.."
 mode="${1:-}"
-case "$mode" in
-  compact|tablet26|tablet|duo)
+coverage_check="${2:-profiles}"
+case "$mode:$coverage_check" in
+  compact:profiles|tablet26:profiles|tablet:profiles|duo:profiles|compact:reward-return|tablet:reward-return|duo:rotation)
     selector="$(python3 Scripts/coverage_profiles.py definition --name "$mode")"
     IFS=$'\t' read -r TRINKET_SIM_DEVICE_TYPE TRINKET_SIM_OS_MAJOR <<< "$selector"
     export TRINKET_SIM_DEVICE_TYPE TRINKET_SIM_OS_MAJOR
     ;;
-  soak) ;;
-  *) echo 'Usage: ./Scripts/player-coverage.sh compact|tablet26|tablet|duo|soak' >&2; exit 2 ;;
+  soak:profiles) ;;
+  *) echo 'Usage: ./Scripts/player-coverage.sh compact|tablet26|tablet|duo|soak [profiles|reward-return|rotation]' >&2; exit 2 ;;
 esac
 source Scripts/lib/verification-policy.sh
 trinket_require_heavy_verification 'Player coverage profiles and soak' || exit $?
@@ -21,7 +22,7 @@ source Scripts/ensure-simulator.sh
 trinket_run_env_init
 trinket_sim_slot_ensure
 trinket_run_env_install_self_clean
-coverage_output="$DERIVED_DATA_PATH/PlayerCoverage/$mode-$(date -u +%Y%m%dT%H%M%SZ)"
+coverage_output="$DERIVED_DATA_PATH/PlayerCoverage/$mode-$coverage_check-$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$(dirname "$coverage_output")"
 if ! ensure_test_simulator_logged; then
   mkdir -p "$coverage_output"
@@ -33,15 +34,19 @@ if [[ "${TRINKET_COVERAGE_NO_BUILD:-0}" != 1 ]]; then
   ./Scripts/build-for-testing.sh --app-only
 fi
 export SKIP_GENERATE=1
-if [[ "$mode" != soak ]]; then
-  coverage_status=0
-  python3 Scripts/coverage_profiles.py run --udid "$SIMULATOR_UDID" --output "$coverage_output" \
-    --audit-policy "${TRINKET_COVERAGE_AUDIT_POLICY:-all}" || coverage_status=1
-  if [[ "$mode" == duo ]]; then
-    TEST_RUNNER_TRINKET_DUO_PROFILE=1 TRINKET_UI_SUCCESS_SCREENSHOTS=1 TRINKET_UI_PLAN=Profiles \
-      ./Scripts/test.sh ui --no-build DuoRotationUITests/testDuoRotationPreservesBattleAndCardPlay || coverage_status=1
+if [[ "$coverage_check" == reward-return || "$coverage_check" == rotation ]]; then
+  python3 Scripts/coverage_profiles.py ready --udid "$SIMULATOR_UDID"
+  export TRINKET_UI_PLAN=Profiles TRINKET_UI_SUCCESS_SCREENSHOTS=1
+  if [[ "$coverage_check" == reward-return ]]; then
+    export TRINKET_XCODE_WALL_TIMEOUT_SECONDS="${TRINKET_XCODE_WALL_TIMEOUT_SECONDS:-300}"
+    ./Scripts/test.sh ui --no-build RewardReturnUITests/testClaimReturnsToCampaignAndOpensNextStage
+  else
+    TEST_RUNNER_TRINKET_DUO_PROFILE=1 \
+      ./Scripts/test.sh ui --no-build DuoRotationUITests/testDuoRotationPreservesBattleAndCardPlay
   fi
-  exit "$coverage_status"
+elif [[ "$mode" != soak ]]; then
+  python3 Scripts/coverage_profiles.py run --udid "$SIMULATOR_UDID" --output "$coverage_output" \
+    --audit-policy "${TRINKET_COVERAGE_AUDIT_POLICY:-all}"
 else
   mkdir -p "$coverage_output"
   export TRINKET_UI_PLAN=Soak

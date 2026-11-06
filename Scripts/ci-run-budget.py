@@ -38,6 +38,14 @@ def preparation_observations(log: Path, status: int, output: str, phase: str) ->
                         or not any(marker in item.message for marker in inventory_messages)
                         or re.search(r'XCTAssert|XCTFail|[Aa]ssertion failed|[Ee]xpectation failed|Issue recorded:', item.message)]
         observations.append(IssueObservation('tooling', 'Preparation inventory', output.strip()[-2000:]))
+    profile_timeout = re.search(r'^Player coverage simulator prerequisite timed out: ([-a-z]+): (.*)$',
+                                output, re.M)
+    if phase.startswith('player-profile') and profile_timeout:
+        phase = profile_timeout[1]
+        observations = [item for item in observations
+                        if not item.message.startswith('Simulator text-size query timed out after ')]
+        observations.append(IssueObservation('simulator-infrastructure', 'Player coverage prerequisite',
+                                             profile_timeout[2]))
     if phase == 'toolchain':
         observations = [IssueObservation('tooling', 'Xcode preparation', output.strip()[-2000:])]
     return phase, observations

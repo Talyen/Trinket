@@ -15,6 +15,7 @@ Apple-service readiness.
 | Voyage, Spires, Labyrinth inspector | `PlayModeNavigationUITests` | Nightly/manual FullUI |
 | Homestead displayed cost/tier; Reset cancellation and confirmed erasure | `HomesteadControlsUITests`, `OptionsUITests`; Homestead durability in `PlayerHomesteadStoreTests` | Nightly/manual FullUI plus package checks |
 | Pending approvals active/terminated, decline, populated purchase recovery, revocation | `FullGamePurchaseUITests`; cancellation in `FullGameStoreTests` | Nightly/manual FullUI plus package checks; ordinary purchase smoke remains required |
+| Reward claim, Campaign return, and next stage | `RewardReturnUITests` on compact iOS 26 and iPadOS 27 | Independent nightly/manual Player coverage jobs |
 | Critical controls and reward claim → return → next stage under native text sizes and Reduce Motion | `CriticalAccessibilityUITests` in Profiles on iOS and iPadOS 26 and 27 | Nightly/manual Player coverage workflow |
 | Real audio backend routing through battle, foreground and relaunch | `AudioLifecycleUITests`; existing audio backend tests | Nightly/manual FullUI |
 | Repeated UI ownership and progress | `RepeatedPlayUITests` in Soak | Weekly/manual Player coverage workflow |
@@ -57,6 +58,9 @@ following commands select hosted portfolios:
 ./Scripts/player-coverage.sh tablet26
 ./Scripts/player-coverage.sh tablet
 ./Scripts/player-coverage.sh duo
+./Scripts/player-coverage.sh compact reward-return
+./Scripts/player-coverage.sh tablet reward-return
+./Scripts/player-coverage.sh duo rotation
 ./Scripts/player-coverage.sh soak
 ```
 
@@ -75,9 +79,9 @@ Simulator identity is recorded after the serial tests and settings restoration,
 so the cold-boot inventory query cannot prevent those tests from starting.
 Missing identity still fails the lane and retains the executed profile receipts.
 
-The four profiles run serially as independent jobs on fresh hosted
-runners. A stalled CoreSimulator service on one device must not prevent the other
-profiles from running. Settings stay serial within each device, each artifact
+Reward return, the four native settings profiles, and Duo rotation run as separate
+serial jobs on fresh hosted runners. A stalled CoreSimulator service in one job
+must not prevent another check from running. Settings stay serial within each device, each artifact
 names its profile, and prerequisite failures retain structured diagnostics.
 
 Each device exercises native default text, largest accessibility text, and largest
@@ -97,9 +101,10 @@ still fail without blanket suppression.
 Profiles exercise the real reward claim/next-stage access and visible Homestead tier
 change. Earned combat stays smoke-owned; displayed debits belong to
 `HomesteadControlsUITests`, with durable costs/tiers in `PlayerHomesteadStoreTests`.
-The Duo profile also runs `DuoRotationUITests` from Profiles once after settings
-restoration, checking actual geometry, retained hand,
-usable controls and a card play. Folding during held input, inspection, automatic
+The standalone reward test uses the same claim and navigation assertions without
+opening Settings or running native audits. The separate Duo rotation job waits
+for the app window to resize, then checks retained hand, usable controls and a
+card play. Folding during held input, inspection, automatic
 casts or reward reveal still needs managed Device Hub inspection.
 
 Registry Smoke, Full Game purchase and recovery, committed-reward termination

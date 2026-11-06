@@ -297,10 +297,12 @@ build's results directory/stamps; logs and verdicts identify that directory.
 
 ### Native settings and failure evidence
 
-Native text-size setup verifies the requested value, avoids reapplying unchanged
-sizes and restores the original once after the device's profiles, including failures.
-It retries a timed-out text-size read once. Setting changes still require a
-successful command and a verified readback.
+Reward return and rotation check that the booted guest answers a launch-service
+query before invoking XCTest. Native profiles check the text-size service before
+any tests. They read the original value once, verify each setting change with one
+readback and restore the original value after the profiles. A timed-out read gets
+one retry. A failed readiness probe keeps its own phase and skips post-test
+inventory.
 Reduce Motion uses native Settings and restores after each class. Both methods verify
 the actual SwiftUI environment; a launch argument alone is insufficient.
 
@@ -316,6 +318,10 @@ still fails. A native-audit timeout gets one immediate retry; a repeated timeout
 Each attempt retains profile, screen, audit type, runtime, issue/error attachments and
 foreground captures. Scroll reward actions into view before auditing and restore
 reachability afterward because the audit may move the viewport.
+
+For a confirmed prerequisite timeout, `ci-infra-rerun.sh --run-id <id>
+--player-job <job-id> --rerun` retries one selected first-attempt job on a fresh
+runner. A test assertion or an unconfirmed failure requires triage.
 
 Publish each profile's log/status before starting the next. Keep failed profiles,
 soak, careers and recovery verdicts individually visible while independent checks
