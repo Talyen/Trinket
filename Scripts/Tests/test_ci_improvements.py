@@ -320,6 +320,12 @@ class CIImprovementsTests(unittest.TestCase):
                        tests=[dict(id=proof['executed_tests'][0], result='Passed', arguments=['Passed'])])
             transfer = NATIVE.ios_transfer('TrinketCore', [row], identity)
             self.assertEqual(NATIVE.compare_transfer(native, transfer, identity)['matched_tests'], 1)
+            other_toolchain = {**identity, 'XCODE_BUILD': '27A9269'}
+            earlier_row = {**row, 'execution_identity': other_toolchain}
+            earlier_proof = NATIVE.ios_transfer('TrinketCore', [earlier_row], other_toolchain)
+            self.assertEqual(NATIVE.transferred_ios(earlier_proof, 'TrinketCore', identity), earlier_proof)
+            with self.assertRaisesRegex(ValueError, 'toolchain'):
+                NATIVE.compare_transfer(native, earlier_proof, identity)
             for key, value in [('commit', 'b' * 40), ('GITHUB_REPOSITORY', 'fork/repo'), ('GITHUB_RUN_ID', '11'),
                                ('GITHUB_RUN_ATTEMPT', '1'), ('XCODE_VERSION', '27.2'), ('XCODE_BUILD', '27B5028f')]:
                 with self.subTest(key=key):
@@ -330,6 +336,11 @@ class CIImprovementsTests(unittest.TestCase):
                         NATIVE.compare_transfer({**native, 'execution_identity': wrong}, transfer, identity)
                     with self.assertRaises(ValueError):
                         NATIVE.ios_transfer('TrinketCore', [{**row, 'execution_identity': wrong}], identity)
+                    if not key.startswith('XCODE_'):
+                        foreign_row = {**row, 'commit': wrong['commit'], 'execution_identity': wrong}
+                        foreign_proof = NATIVE.ios_transfer('TrinketCore', [foreign_row], wrong)
+                        with self.assertRaises(ValueError):
+                            NATIVE.transferred_ios(foreign_proof, 'TrinketCore', identity)
             for altered in ([], [row, row], [{**row, 'tests': []}],
                             [{**row, 'scope_validated': False}],
                             [{**row, 'scope_validated': 'true'}],
@@ -383,6 +394,11 @@ class CIImprovementsTests(unittest.TestCase):
         self.assertIn('+ 25 * 60 - 180', parity)
         self.assertIn("if: always() && !cancelled() && github.event_name != 'push' && !inputs.native-logic && needs.unit.result != 'skipped'", parity)
         self.assertIn('ios-parity-${{ matrix.source-shard }}-${{ github.run_id }}-${{ github.run_attempt }}', parity)
+        self.assertIn("if: steps.comparator.outputs.matches == 'false' && inputs.xcode-build == ''", parity)
+        steps = ['check-ios-toolchain', 'command: ./Scripts/test-package.sh', 'export-ios',
+                 'command: ./Scripts/test-package-host.sh --compare-ios']
+        offsets = [parity.index(step) for step in steps]
+        self.assertEqual(offsets, sorted(offsets))
         self.assertIn('unit, native-parity]', workflow.split('  ci-ok:\n', 1)[1])
         self.assertIn("github.event_name != 'push' && !inputs.native-logic && needs.unit.result != 'skipped'", workflow.split('  ci-ok:\n', 1)[1])
 

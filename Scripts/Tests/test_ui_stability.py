@@ -23,7 +23,7 @@ RETRY = load_script('stable_ui_cases', 'ci_ui_retry.py')
 class UIStabilityTests(unittest.TestCase):
     def test_qualified_runtime_is_validated_before_exporting_environment(self):
         profile = PROFILE.QUALIFIED_PROFILE
-        runtime = dict(identifier=profile['runtime'], buildversion=profile['build'])
+        runtime = dict(identifier=profile['runtime'], buildversion=profile['build'], version=profile['version'])
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'github-env'
             environment = dict(GITHUB_ACTIONS='true', GITHUB_ENV=str(path))

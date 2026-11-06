@@ -22,6 +22,9 @@ on the same revision. Native comparators run in separate 25-minute hosted jobs,
 with three minutes reserved for diagnostics. The iOS lane transfers compact
 successful execution proof bound to repository, commit, run, attempt, package and
 selected Xcode identity; missing, incomplete or mismatched proof fails comparison.
+When an unpinned job selects a different Xcode during a runner image rollout,
+the native job verifies the producer's scope and reruns that package on iOS
+with its own Xcode before comparing. Both proofs remain available for diagnosis.
 Retain a complete comparator proof even if another package in its shard fails.
 Unrelated unit failures do not skip requested parity; those unit failures still fail
 `CI OK` independently.
@@ -290,8 +293,9 @@ inventory, preserves busy/non-iOS images and retains receipts. Only read-only
 inventory gets one timeout retry; deletion errors fail with the
 `ios18-runtime-cleanup` phase. Both build and test request the iOS 18 profile.
 
-Other profiles install the requested minimum runtime when absent: Duo's required
-minor, otherwise the major's `.0`. Use Apple's `arm64` variant on Apple silicon and
+The compact, tablet, and Duo jobs prepare the selected runtime's dyld cache before
+boot. Profiles install a compatible runtime when absent using the configured
+download build or minimum version. Use Apple's `arm64` variant on Apple silicon and
 `universal` on Intel; forcing universal can reject an available Apple-silicon release.
 Recheck runtime/device compatibility after preparation; failed provisioning fails
 the requested aggregate while independent device portfolios continue.

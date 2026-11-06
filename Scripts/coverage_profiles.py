@@ -107,6 +107,12 @@ def prepare_profile(name):
     return prepare_runtime(*PROFILES[name])
 
 
+def warm_runtime_cache(runtime):
+    print(f"Preparing simulator dyld cache: iOS {runtime['version']} ({runtime['buildversion']}).", flush=True)
+    subprocess.run(['xcrun', 'simctl', 'runtime', 'dyld_shared_cache', 'update', runtime['identifier']],
+                   check=True, timeout=300)
+
+
 def prepare_runtime(type_id, major, version=None, *, build=None, download_timeout=1800):
     types = json.loads(simctl('list', 'devicetypes', '-j'))['devicetypes']
     runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
@@ -213,7 +219,9 @@ def main():
             print(f'{type_id}\t{major}')
             return 0
         if args.operation == 'prepare':
-            prepare_profile(args.name)
+            runtime = prepare_profile(args.name)
+            if args.name != 'ios18' and os.environ.get('GITHUB_ACTIONS') == 'true':
+                warm_runtime_cache(runtime)
             return 0
         if args.operation == 'resolve':
             resolve(args.name)

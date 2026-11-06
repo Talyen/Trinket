@@ -242,7 +242,7 @@ class TrinketUITestCase: XCTestCase {
     }
 
     func backgroundAndActivate() {
-        XCUIApplication(bundleIdentifier: "com.apple.springboard").activate()
+        XCUIDevice.shared.press(.home)
         waitUntil("App must enter the background before reactivation") {
             let state = self.app.state
             return state == .runningBackground || state == .runningBackgroundSuspended
@@ -396,7 +396,7 @@ class TrinketUITestCase: XCTestCase {
         )
         XCTAssertTrue(
             visible,
-            "Element '\(element.identifier)' not visible after scroll (hittable required: \(requireHittable))",
+            "Element not visible after scroll (exists: \(element.exists), hittable required: \(requireHittable))",
             file: file,
             line: line,
         )

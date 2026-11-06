@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 from contextlib import contextmanager
 from types import SimpleNamespace
@@ -18,6 +19,24 @@ CLEANUP = load_script('ci_runtime_cleanup', 'ci-runtime-cleanup.py')
 
 
 class PlayerCoverageTests(unittest.TestCase):
+    def test_hosted_profiles_warm_the_selected_runtime_before_boot(self):
+        runtime = dict(identifier='ios-26.2', version='26.2', buildversion='23C54')
+        for profile, hosted, should_warm in (('compact', True, True), ('ios18', True, False),
+                                             ('compact', False, False)):
+            with self.subTest(profile=profile, hosted=hosted), \
+                    patch.object(sys, 'argv', ['coverage_profiles.py', 'prepare', '--name', profile]), \
+                    patch.dict(os.environ, {'GITHUB_ACTIONS': str(hosted).lower()}), \
+                    patch.object(MODULE, 'prepare_profile', return_value=runtime) as prepare, \
+                    patch.object(MODULE.subprocess, 'run') as command:
+                self.assertEqual(MODULE.main(), 0)
+                prepare.assert_called_once_with(profile)
+                if should_warm:
+                    command.assert_called_once_with(
+                        ['xcrun', 'simctl', 'runtime', 'dyld_shared_cache', 'update', 'ios-26.2'],
+                        check=True, timeout=300)
+                else:
+                    command.assert_not_called()
+
     def test_profile_simctl_queries_have_a_deadline(self):
         with patch.object(MODULE.subprocess, 'check_output', return_value='inventory\n') as query:
             self.assertEqual(MODULE.simctl('list', 'runtimes', '-j'), 'inventory')

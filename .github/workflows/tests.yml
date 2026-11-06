@@ -498,6 +498,35 @@ jobs:
         with:
           name: ${{ inputs.artifact-prefix }}ios-parity-${{ matrix.source-shard }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: .DerivedData/Comparator
+      - name: Check the producer's execution proof and toolchain
+        id: comparator
+        env:
+          PACKAGE: ${{ matrix.package }}
+        shell: bash
+        run: |
+          matches="$(python3 Scripts/native-test-results.py check-ios-toolchain "$PACKAGE" "$TRINKET_IOS_COMPARATOR_PROOF")"
+          echo "matches=$matches" >> "$GITHUB_OUTPUT"
+      - name: Prepare Metal for a fresh Content comparator
+        if: steps.comparator.outputs.matches == 'false' && inputs.xcode-build == '' && matrix.name == 'Content'
+        shell: bash
+        run: python3 Scripts/ci-run-budget.py --phase toolchain -- python3 Scripts/setup-ci-xcode.py --channel latest --build "$XCODE_BUILD" --metal
+      - name: Rerun the iOS comparator on this runner after an Xcode rollout
+        if: steps.comparator.outputs.matches == 'false' && inputs.xcode-build == ''
+        uses: ./.github/actions/test-job
+        with:
+          artifact-name: comparator-${{ matrix.name }}
+          artifact-prefix: ${{ inputs.artifact-prefix }}
+          defer-cleanup: 'true'
+          command: ./Scripts/test-package.sh ${{ matrix.package }}
+      - name: Bind fresh iOS proof to the selected Xcode
+        if: steps.comparator.outputs.matches == 'false' && inputs.xcode-build == ''
+        env:
+          PACKAGE: ${{ matrix.package }}
+        shell: bash
+        run: |
+          matched="$GITHUB_WORKSPACE/.DerivedData/Comparator/ios-matched.json"
+          python3 Scripts/native-test-results.py export-ios "$PACKAGE" .DerivedData/TestResults/timing-log.jsonl "$matched"
+          echo "TRINKET_IOS_COMPARATOR_PROOF=$matched" >> "$GITHUB_ENV"
       - name: Verify native execution and iOS parity
         uses: ./.github/actions/test-job
         with:
@@ -514,7 +543,7 @@ jobs:
             .DerivedData/TestResults/native-*
             .DerivedData/TestResults/verification-budget-*
             .DerivedData/TestResults/ci-diagnostics.json
-            .DerivedData/Comparator/ios.json
+            .DerivedData/Comparator/*.json
           retention-days: 14
           if-no-files-found: error
       - name: Clean retained comparator diagnostics

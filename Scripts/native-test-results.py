@@ -174,14 +174,23 @@ def ios_transfer(package: str, rows: list[dict], identity: dict) -> dict:
     return {'schema_version': 1, 'package': package, 'execution_identity': identity, 'ios': row}
 
 
-def compare_transfer(native: dict, transfer: dict, identity: dict) -> dict:
+def transferred_ios(transfer: dict, package: str, identity: dict) -> dict:
+    if not isinstance(transfer, dict):
+        raise ValueError('Expected an iOS comparator proof object')
+    producer = transfer.get('execution_identity')
+    require_hosted_identity(producer)
     require_hosted_identity(identity)
     if (type(transfer.get('schema_version')) is not int or transfer['schema_version'] != 1
-            or transfer.get('execution_identity') != identity or native.get('execution_identity') != identity
-            or transfer.get('package') not in PACKAGES
-            or native.get('native_test', {}).get('package') != transfer['package']):
+            or package not in PACKAGES or transfer.get('package') != package
+            or any(producer[key] != identity[key] for key in identity if key not in ('XCODE_VERSION', 'XCODE_BUILD'))):
         raise ValueError('Parity evidence differs in repository, revision, run, attempt, toolchain or package')
-    validated = ios_transfer(transfer['package'], [transfer['ios']], identity)
+    return ios_transfer(package, [transfer['ios']], producer)
+
+
+def compare_transfer(native: dict, transfer: dict, identity: dict) -> dict:
+    validated = transferred_ios(transfer, native.get('native_test', {}).get('package'), identity)
+    if validated['execution_identity'] != identity or native.get('execution_identity') != identity:
+        raise ValueError('Parity evidence differs in repository, revision, run, attempt, toolchain or package')
     return compare(native, [validated['ios']], identity['commit'])
 
 
@@ -208,12 +217,22 @@ def main() -> None:
     transfer.add_argument('package', choices=PACKAGES)
     transfer.add_argument('timing', type=Path)
     transfer.add_argument('output', type=Path)
+    check = sub.add_parser('check-ios-toolchain')
+    check.add_argument('package', choices=PACKAGES)
+    check.add_argument('ios', type=Path)
     transferred = sub.add_parser('compare-transfer')
     for name in ('native', 'ios', 'output'):
         transferred.add_argument(name, type=Path)
     args = parser.parse_args()
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
     identity = execution_identity(commit)
+    if args.action == 'check-ios-toolchain':
+        try:
+            proof = transferred_ios(json.loads(args.ios.read_text()), args.package, identity)
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            raise SystemExit(f'iOS comparator preflight failed: {error}') from error
+        print('true' if proof['execution_identity'] == identity else 'false')
+        return
     if args.action == 'export-ios':
         result = ios_transfer(args.package, [json.loads(line) for line in args.timing.read_text().splitlines()], identity)
         args.output.parent.mkdir(parents=True, exist_ok=True)
