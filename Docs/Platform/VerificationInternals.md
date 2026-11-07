@@ -176,8 +176,8 @@ dyld_shared_cache update` command for that runtime, without forcing regeneration
 Apple documents [cache readiness as a first-boot workaround](https://developer.apple.com/documentation/xcode-release-notes/xcode-26_1-release-notes);
 this preparation makes cache completion explicit on fresh runners.
 Newly compiled UI tests also reject execution on another build. The preparation
-action stages bounded failure receipts even when tests cannot start. The release workflow
-retains its exact-build installer so historical source revisions remain supported.
+action stages bounded failure receipts even when tests cannot start. Qualified
+release journeys use this same action and exact runtime profile.
 Compatibility and native settings profiles keep their independent device/OS coverage.
 The baseline avoids the independently reproduced
 [iOS 27 local StoreKit entitlement defect](Release.md#testflight-troubleshooting)

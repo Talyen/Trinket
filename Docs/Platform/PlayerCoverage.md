@@ -41,11 +41,13 @@ No per-mechanic UI matrix duplicates those owners.
 ## CI and profiles
 
 [Player coverage workflow](../../.github/workflows/player-coverage.yml) uses the
-verified toolchain. Hosted simulator coverage starts at iOS and iPadOS 26. The
+verified toolchain by default. Hosted simulator coverage starts at iOS and iPadOS 26. The
 [App Store compatibility floor](ApplePlatformReference.md#platform-support) remains
 18.0. Critical settings profiles run nightly. Sunday's nightly run retains the
 complete native audit matrix, and the separate weekly run owns soak/recovery.
-Manual dispatch selects profiles, soak, or all. A requested job must succeed for
+Manual dispatch selects profiles, soak, all, or the single Duo rotation journey.
+The optional latest toolchain selects a diagnostic candidate without qualifying
+it for ordinary CI or release. A requested job must succeed for
 its coverage aggregate to pass. CI OK remains independent of the player coverage
 and FullUI aggregates.
 

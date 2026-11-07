@@ -341,7 +341,7 @@ trinket_run_env_install_self_clean() { :; }
         workflow = (ROOT / '.github/workflows/player-coverage.yml').read_text()
         self.assertIn("- cron: '0 8 * * 0'", workflow)
         profiles = workflow.split('  profiles:\n', 1)[1].split('    runs-on:', 1)[0]
-        condition = "(github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all'"
+        condition = "(github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' || inputs.scope == 'rotation'"
         self.assertIn(f'if: {condition}', profiles)
         self.assertIn(f"${{{{ {condition} }}}}", workflow)
         self.assertEqual(workflow.count(
@@ -380,11 +380,18 @@ trinket_run_env_install_self_clean() { :; }
         self.assertIn('max-parallel: 1', profiles)
         expected = {'compact': ('iPhone-SE-3rd-generation', 26), 'tablet26': ('iPad-A16', 26),
                     'tablet': ('iPad-A16', 27), 'duo': ('iPhone-Duo', 27)}
-        for name in expected:
-            self.assertIn(f'{{profile: {name}, check: profiles}}', profiles)
-        for name in ('compact', 'tablet'):
-            self.assertIn(f'{{profile: {name}, check: reward-return}}', profiles)
-        self.assertIn('{profile: duo, check: rotation}', profiles)
+        entries = [dict(profile=name, check='reward-return') for name in ('compact', 'tablet')]
+        entries += [dict(profile=name, check='profiles') for name in expected]
+        entries.append(dict(profile='duo', check='rotation'))
+        for scope in ('profiles', 'all'):
+            self.assertEqual(MODULE.coverage_matrix(scope), dict(include=entries))
+        self.assertEqual(MODULE.coverage_matrix('rotation'), dict(include=[entries[-1]]))
+        with self.assertRaises(ValueError):
+            MODULE.coverage_matrix('unknown')
+        self.assertIn('needs: plan', profiles)
+        self.assertIn('matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}', profiles)
+        self.assertIn('Scripts/coverage_profiles.py matrix --scope "$COVERAGE_SCOPE"', workflow)
+        self.assertIn("xcode-channel: ${{ inputs.toolchain || 'verified' }}", profiles)
         self.assertEqual(MODULE.PROFILES, {
             name: (f'com.apple.CoreSimulator.SimDeviceType.{device}', major)
             for name, (device, major) in expected.items()

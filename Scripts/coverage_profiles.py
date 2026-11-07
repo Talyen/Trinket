@@ -28,6 +28,17 @@ DEFAULT_DOWNLOAD_BUILDS = {26: '23C54'}
 TEXT_SIZES = ('large', 'accessibility-extra-extra-extra-large')
 
 
+def coverage_matrix(scope):
+    entries = [dict(profile=name, check='reward-return') for name in ('compact', 'tablet')]
+    entries += [dict(profile=name, check='profiles') for name in PROFILES]
+    entries.append(dict(profile='duo', check='rotation'))
+    if scope == 'rotation':
+        entries = [entry for entry in entries if entry['check'] == 'rotation']
+    elif scope not in ('profiles', 'all'):
+        raise ValueError(f'unsupported profile matrix scope: {scope}')
+    return dict(include=entries)
+
+
 def select_profile(runtimes, device_types, type_id, major, version=None, *, build=None):
     """Select the newest compatible runtime, honoring any exact version and build."""
     def components(value):
@@ -237,7 +248,8 @@ def stage_results(results, output):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('operation', choices=('definition', 'prepare', 'resolve', 'run', 'stage'))
+    parser.add_argument('operation', choices=('matrix', 'definition', 'prepare', 'resolve', 'run', 'stage'))
+    parser.add_argument('--scope', default='profiles')
     parser.add_argument('--name')
     parser.add_argument('--audit-policy', choices=('all', 'representative'), default='all')
     parser.add_argument('--udid')
@@ -245,6 +257,9 @@ def main():
     parser.add_argument('--output', type=Path)
     args = parser.parse_args()
     try:
+        if args.operation == 'matrix':
+            print('matrix=' + json.dumps(coverage_matrix(args.scope), separators=(',', ':')))
+            return 0
         if args.operation == 'stage':
             if not args.results or not args.output:
                 parser.error('stage requires --results and --output')

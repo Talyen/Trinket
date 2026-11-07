@@ -11,7 +11,12 @@ on:
         description: Coverage portfolio
         type: choice
         default: profiles
-        options: [profiles, soak, all]
+        options: [profiles, soak, all, rotation]
+      toolchain:
+        description: Xcode channel for the requested coverage
+        type: choice
+        default: verified
+        options: [verified, latest]
 
 permissions:
   contents: read
@@ -22,23 +27,31 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  plan:
+    if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' || inputs.scope == 'rotation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          sparse-checkout: Scripts
+      - id: matrix
+        env:
+          COVERAGE_SCOPE: ${{ inputs.scope || 'profiles' }}
+        run: python3 Scripts/coverage_profiles.py matrix --scope "$COVERAGE_SCOPE" >> "$GITHUB_OUTPUT"
+
   profiles:
+    needs: plan
     name: ${{ matrix.check }} (${{ matrix.profile }})
-    if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all'
+    if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' || inputs.scope == 'rotation'
     runs-on: xcode-27
     timeout-minutes: 120
     strategy:
       fail-fast: false
       max-parallel: 1
-      matrix:
-        include:
-          - {profile: compact, check: reward-return}
-          - {profile: tablet, check: reward-return}
-          - {profile: compact, check: profiles}
-          - {profile: tablet26, check: profiles}
-          - {profile: tablet, check: profiles}
-          - {profile: duo, check: profiles}
-          - {profile: duo, check: rotation}
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     env:
       DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
       TRINKET_DIAGNOSTICS_SESSION_ID: player-${{ matrix.check }}-${{ matrix.profile }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -72,7 +85,7 @@ jobs:
       - uses: ./.github/actions/setup-trinket
         with:
           metal: 'true'
-          xcode-channel: verified
+          xcode-channel: ${{ inputs.toolchain || 'verified' }}
       - uses: ./.github/actions/coverage-products
       - name: Prepare requested profile
         env:
@@ -129,7 +142,7 @@ jobs:
       - uses: ./.github/actions/setup-trinket
         with:
           metal: 'true'
-          xcode-channel: verified
+          xcode-channel: ${{ inputs.toolchain || 'verified' }}
       - uses: ./.github/actions/coverage-products
       - name: Serial soak, twenty careers, and interrupted settlement recovery
         env:
@@ -156,7 +169,7 @@ jobs:
       - name: Report actual requested-job conclusions
         env:
           JOB_RESULTS: ${{ toJSON(needs) }}
-          PROFILES_REQUESTED: ${{ (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' }}
+          PROFILES_REQUESTED: ${{ (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' || inputs.scope == 'rotation' }}
           SOAK_REQUESTED: ${{ github.event.schedule == '0 9 * * 0' || inputs.scope == 'soak' || inputs.scope == 'all' }}
         shell: bash
         run: |
