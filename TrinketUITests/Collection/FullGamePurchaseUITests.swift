@@ -9,7 +9,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         try skipUnavailablePurchaseAutomation()
         try startStoreSession()
         let freeStages = GameContent.chapters.filter { $0.number <= 3 }.flatMap { $0.stages.map(\.id) }
-        launchApp(arguments: TestLaunchArg.allForTab("play") + TestLaunchArg.completedStages(freeStages))
+        launchApp(arguments: TestLaunchArg.allForTab("play") + TestLaunchArg.completedStages(freeStages) + ["-coverage-diagnostics"])
         play.openCampaign(number: 4)
         let unlock = AccessibilityID.Play.stageAction(chapter: 4, stage: 1)
         tapButtonAfterScroll(unlock)
@@ -19,7 +19,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         tabBar.select(.options)
         openOptionsOffer()
         tapButton(AccessibilityID.FullGame.purchase)
-        assertDoesNotExist(AccessibilityID.FullGame.offer, timeout: 10)
+        assertPurchaseCompletes()
         assertDoesNotExist(AccessibilityID.FullGame.options, timeout: 10)
         assertDoesNotExist(AccessibilityID.FullGame.restore)
         revealWarlock()
@@ -46,7 +46,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         tapButton(AccessibilityID.FullGame.options)
         assertPurchaseProductLoaded()
         tapButton(AccessibilityID.FullGame.purchase)
-        assertDoesNotExist(AccessibilityID.FullGame.offer)
+        assertPurchaseCompletes()
         assertFullGameAccess(true)
     }
 
@@ -96,7 +96,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         session.askToBuyEnabled = false
         assertPurchaseProductLoaded()
         tapButton(AccessibilityID.FullGame.purchase)
-        assertDoesNotExist(AccessibilityID.FullGame.offer)
+        assertPurchaseCompletes()
         assertWarlockAccessible()
     }
 
@@ -108,8 +108,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         let completed = try XCTUnwrap(before["completedStages"] as? [String])
         XCTAssertTrue(completed.contains("chapter-1-stage-1"), "Refund recovery requires earned progress")
         tapButton(AccessibilityID.FullGame.purchase)
-        // StoreKit delivery can outlast the ordinary UI interaction deadline.
-        assertDoesNotExist(AccessibilityID.FullGame.offer, timeout: 60)
+        assertPurchaseCompletes()
         assertFullGameAccess(true)
         let session = try XCTUnwrap(storeSession)
         let transaction = try XCTUnwrap(session.allTransactions().first)
@@ -127,7 +126,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         assertExists(AccessibilityID.FullGame.offer)
         assertPurchaseProductLoaded()
         tapButton(AccessibilityID.FullGame.purchase)
-        assertDoesNotExist(AccessibilityID.FullGame.offer)
+        assertPurchaseCompletes()
         assertWarlockAccessible()
     }
 

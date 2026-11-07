@@ -3,6 +3,7 @@ import UIKit
 import XCTest
 
 final class DuoRotationUITests: TrinketUITestCase {
+    @MainActor
     func testDuoRotationPreservesBattleAndCardPlay() throws {
         try XCTSkipUnless(ProcessInfo.processInfo.environment["TRINKET_DUO_PROFILE"] == "1", "Requires the Duo coverage profile")
         let device = XCUIDevice.shared
@@ -40,7 +41,7 @@ final class DuoRotationUITests: TrinketUITestCase {
         waitUntil("The rotated battle must still accept card play") { !self.button(playedID).exists }
     }
 
-    private var handCardIDs: Set<String> {
+    @MainActor private var handCardIDs: Set<String> {
         let cards = battle.handCards
         return trinketOnMainActor {
             Set(cards.allElementsBoundByIndex.map(\.identifier))

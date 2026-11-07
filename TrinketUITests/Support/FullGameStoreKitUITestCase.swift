@@ -44,8 +44,27 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
         assertPurchaseProductLoaded()
     }
 
-    func assertFullGameAccess(_ expected: Bool, file: StaticString = #filePath, line: UInt = #line) {
-        let matched = trinketWaitUntil(timeout: Self.defaultTimeout) {
+    func assertPurchaseCompletes(file: StaticString = #filePath, line: UInt = #line) {
+        // StoreKit delivery is asynchronous; ownership is the completion signal.
+        assertFullGameAccess(true, timeout: 60, file: file, line: line)
+        let offer = any(AccessibilityID.FullGame.offer)
+        let window = app.windows.firstMatch
+        let dismissed = trinketWaitUntil(timeout: Self.defaultTimeout) {
+            trinketOnMainActor {
+                guard window.exists, window.frame.width > 0, window.frame.height > 0 else { return false }
+                guard offer.exists else { return true }
+                // SwiftUI may retain a dismissed sheet below the window in AX.
+                let visible = offer.frame.intersection(window.frame)
+                return visible.isNull || visible.width <= 0 || visible.height <= 0
+            }
+        }
+        XCTAssertTrue(dismissed, "Full Game offer must leave the window after ownership is granted", file: file, line: line)
+    }
+
+    func assertFullGameAccess(
+        _ expected: Bool, timeout: TimeInterval = defaultTimeout, file: StaticString = #filePath, line: UInt = #line,
+    ) {
+        let matched = trinketWaitUntil(timeout: timeout) {
             do { return try self.coverageReport()["fullGameAccess"] as? Bool == expected }
             catch { return false }
         }
