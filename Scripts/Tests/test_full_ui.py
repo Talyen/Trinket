@@ -13,7 +13,40 @@ class FullUIRoutingTests(unittest.TestCase):
     def setUp(self):
         self.targets = ['BattleFlowUITests', 'FullGamePurchaseUITests', 'LocalizationUITests']
         self.environment = {'GITHUB_ACTIONS': 'true', 'DEVELOPER_DIR': '/verified-xcode',
+                            'TRINKET_CI_FULL_LOCALIZATION': '1',
                             **MODULE.PROFILE.profile_environment()}
+
+    def test_bounded_localizations_rotate_all_configurations_and_account_for_gaps(self):
+        cases = MODULE.UI_RESULTS.expected_cases(['LocalizationUITests'])
+        english = 'LocalizationUITests/testEnglishScreenshots'
+        alternatives = set(cases) - {english}
+        self.assertGreater(len(alternatives), 1)
+        seen = set()
+        for number in range(len(alternatives)):
+            environment = {**self.environment, 'TRINKET_CI_FULL_LOCALIZATION': '0',
+                           'GITHUB_RUN_NUMBER': str(number)}
+            with patch.object(MODULE, 'record_coverage') as record:
+                selected = MODULE.bounded_localizations(self.targets, environment)
+            self.assertEqual(selected[:2], self.targets[:2])
+            self.assertEqual(selected[2], english)
+            self.assertEqual(len(selected), 4)
+            seen.add(selected[3])
+            details = record.call_args.kwargs['details']
+            self.assertEqual(record.call_args.args[:2], ('localization-matrix', 'unavailable'))
+            self.assertEqual(set(details['selected_selectors']), set(selected[2:]))
+            self.assertEqual(set(details['deferred_selectors']), set(cases) - set(selected[2:]))
+        self.assertEqual(seen, alternatives)
+
+    def test_bounded_localization_preserves_execution_failure_and_rejects_unknown_scope(self):
+        environment = {**self.environment, 'TRINKET_CI_FULL_LOCALIZATION': '0'}
+        with patch.object(MODULE.subprocess, 'check_output', return_value=' '.join(self.targets)), \
+                patch.object(MODULE, 'record_coverage'), \
+                patch.object(MODULE.subprocess, 'call', return_value=65) as execute:
+            self.assertEqual(MODULE.run(self.targets, environment), 65)
+        self.assertEqual(len(execute.call_args.args[0][5:]), 4)
+        with patch.object(MODULE.UI_RESULTS, 'expected_cases', return_value=[]), \
+                self.assertRaises(ValueError):
+            MODULE.bounded_localizations(self.targets, environment)
 
     def test_all_requested_classes_execute_once_together_and_preserve_failure(self):
         for status in (0, 65):
@@ -68,3 +101,6 @@ class FullUIRoutingTests(unittest.TestCase):
         self.assertIn('command: python3 Scripts/ci-exhaustive-ui.py ${{ steps.ui-targets.outputs.targets }}', exhaustive)
         self.assertIn("rebuild-command: './Scripts/build-for-testing.sh --reuse --app-only'", exhaustive)
         self.assertIn('uses: ./.github/actions/setup-functional-ui', exhaustive)
+        self.assertIn("TRINKET_CI_FULL_LOCALIZATION: ${{ inputs.full-localization && '1' || '0' }}", exhaustive)
+        caller = (ROOT / '.github/workflows/ci.yml').read_text()
+        self.assertIn('full-localization: ${{ inputs.full-localization || false }}', caller)

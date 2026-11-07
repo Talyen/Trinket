@@ -406,6 +406,9 @@ def parse_log(log_path: Path, exit_code: int) -> list[IssueObservation]:
             # failed assertions; they are not runtime failure observations.
             if re.match(r"^(?:\d+\s*\||\||.*:\d+(?::\d+)?:\s*(?:warning|note):)", line_text):
                 continue
+            # Invocation flags such as -test-timeouts-enabled are not failures.
+            if re.match(r"^(?:\S+/)?xcodebuild\s", line_text):
+                continue
             match = diagnostic.search(line_text)
             if match:
                 message = match.group("message").strip()

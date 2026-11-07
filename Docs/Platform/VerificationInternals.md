@@ -65,7 +65,12 @@ their own process groups; existing simulator guest/lease cleanup remains in forc
 
 Build/smoke jobs allow 40 minutes. Exhaustive UI runs independently with a
 55-minute job limit and a 40-minute batch watchdog; compilation and smoke cannot
-consume that batch allowance. Functional runtime downloads are capped at ten minutes;
+consume that batch allowance. Ordinary FullUI captures English plus one rotating
+localization configuration, retaining every deferred selector as a coverage gap.
+Dispatch with `full-localization=true` for the complete diagnostic matrix.
+Routine XCTest teardown releases its app proxy; the next `launch()` replaces the
+existing app; managed host cleanup still owns remaining XCTest guests. Explicit lifecycle
+termination tests retain their shutdown actions. Functional runtime downloads are capped at ten minutes;
 selected-runtime dyld cache preparation has a separate five-minute limit.
 The Battle package shard allows 30 minutes (other package shards allow 25), and
 exact-build UI diagnostics allow 30. Each keeps the three-minute diagnostic reserve.
@@ -136,9 +141,9 @@ generation, and only when content, project, and asset inputs are all unchanged.
 
 The build job compiles app test products once, runs smoke on that runner, and
 publishes products for exhaustive UI. Exhaustive UI runs every registered FullUI
-class on one runner with one product transfer. It restores the exact-run product
-archive from the retained build artifact; missing or incompatible products fail
-without rebuilding. Incremental build caches are separate from product transfers.
+class on one runner with one product transfer and bounded localization sampling.
+It validates the retained build artifact and may rebuild missing or incompatible
+products from the current checkout. Incremental build caches are separate from product transfers.
 The hosted app build prints Xcode's timing summary so compiler tasks can be compared
 with the separately timed cache restore, cache save, and product archive steps.
 Gate and player coverage checkouts use shallow sparse transfers. The pinned
@@ -174,8 +179,9 @@ ordinary purchase Smoke stay selected; shipping ownership behavior is unchanged.
 Required purchase smoke covers a real Options purchase and unlocked access. The
 complete campaign-gate, purchase, recruited Warlock and battle journey remains in
 `FullGamePurchaseUITests`, alongside every existing recovery case. Exhaustive UI runs
-every registered FullUI class in its own advisory job, using immutable compiled
-products even if smoke failed. Smoke fails its required job directly. Exhaustive
+every registered FullUI class in its own advisory job, using compatible compiled
+products even if smoke failed. Localization sampling and unavailable cases remain
+explicit gaps. Smoke fails its required job directly. Exhaustive
 aggregation reads the actual job conclusions; a masked step success cannot prove
 execution. Each invocation retains its original result and diagnostics. Exact-build diagnostics
 use managed agent isolation with explicit restored product and result paths, matching

@@ -29,7 +29,7 @@ gap reported. Device and service acceptance remains in [Player coverage](../Plat
 | Ask to Buy denial/retry | Keep the assertion available for qualified-runtime diagnostics and live sandbox acceptance. Defer the known defective simulator case on other builds without changing signed ownership behavior. |
 | Player profiles | Run the [adaptive iPhone/iPad portfolio](../Platform/PlayerCoverage.md#ci-and-profiles), retain substitutions and unavailable scope, and inspect rendered captures and accessibility results. |
 | Extended play | Complete FullUI/profile/Soak and `player-coverage.yml` with `scope=all`. Preserve successful repeated-play/crash-recovery evidence without treating it as current-source or whole-portfolio qualification. Distinguish game duration from UI-query and scheduling delays before changing deadlines. |
-| Localization | Complete talent-reward/compact-phone display, Options/Play navigation and rendered acceptance for every currently configured language. Earlier five-language and double-English passes do not cover the current language set. Check complete text and reachable controls; hittability alone does not establish visual acceptance. |
+| Localization | Ordinary FullUI covers English plus one rotating configuration to fit runner resources; reports identify deferred selectors. Use `full-localization=true` for the complete diagnostic matrix. Candidate rendered acceptance must state the actual language set reviewed. Check complete text and reachable controls; hittability alone does not establish visual acceptance. |
 
 ## Known diagnostic constraint
 

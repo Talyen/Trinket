@@ -56,6 +56,7 @@ qualifying the public candidate.
 | Full Game purchase, refund and repurchase | Purchase tests require actual ownership and visible offer dismissal. Keep purchase, approval, restore and refund cases. Record the known denial-service case as unavailable outside its qualified runtime; retain it for diagnostics and live sandbox acceptance. |
 | Reward return and native profiles | Prefer compact iOS 26 and iPadOS 27 environments, substitute compatible installed models/versions, and report any missing requested coverage. Missing runtimes do not block the whole portfolio. Separate the five-minute reward method limit from its ten-minute Xcode startup/execution/finalization budget. |
 | Duo rotation | Manual Device Hub rotation and card play passed. Keep the automated resize assertion available on demand, but omit unsupported Duo automation from default CI. No new toolchain claim follows from a probe that stopped before tests. |
+| FullUI capacity | Remove redundant app termination after each test; each launch replaces the existing app and managed host cleanup retains ownership of XCTest guests. Capture English and one rotating localization configuration per ordinary run, retain deferred selectors, and keep the complete localization matrix available on demand. |
 
 Keep App Store compatibility at iOS and iPadOS 18.0. Automated launch coverage
 starts at 26 for both platforms.

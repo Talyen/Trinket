@@ -31,8 +31,12 @@ on:
         type: boolean
         default: false
       include-exhaustive:
-        description: Also run every registered exhaustive UI class
+        description: Assess every registered exhaustive UI class with bounded localization sampling
         required: false
+        type: boolean
+        default: false
+      full-localization:
+        description: Capture every localization configuration instead of a rotating sample
         type: boolean
         default: false
       artifact-prefix:
@@ -596,6 +600,7 @@ jobs:
     timeout-minutes: 55
     env:
       TRINKET_XCODE_WALL_TIMEOUT_SECONDS: '2400'
+      TRINKET_CI_FULL_LOCALIZATION: ${{ inputs.full-localization && '1' || '0' }}
     steps:
       - name: Reserve diagnostic time
         shell: bash

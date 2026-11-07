@@ -32,6 +32,10 @@ on:
           - exhaustive
           - exhaustive-pilot
           - qualification
+      full-localization:
+        description: Capture every localization instead of the bounded rotating sample
+        type: boolean
+        default: false
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -55,3 +59,4 @@ jobs:
       # The explicit qualification scope retains that diagnostic comparison.
       native-logic: ${{ inputs.scope != 'qualification' }}
       include-exhaustive: ${{ github.event_name == 'schedule' || inputs.scope == 'exhaustive' || inputs.scope == 'exhaustive-pilot' }}
+      full-localization: ${{ inputs.full-localization || false }}

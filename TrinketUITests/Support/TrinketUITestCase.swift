@@ -215,7 +215,8 @@ class TrinketUITestCase: XCTestCase {
     }
 
     override func tearDownWithError() throws {
-        app?.terminate()
+        // launch() already replaces a running app.
+        // A redundant debugger termination here can stall XCTest after assertions pass.
         app = nil
         try super.tearDownWithError()
     }

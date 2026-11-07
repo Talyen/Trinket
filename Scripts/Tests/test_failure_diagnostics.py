@@ -550,6 +550,20 @@ class ReporterTests(unittest.TestCase):
             self.assertTrue(any(issue.file == "Sources/Test.swift" and issue.line == 42 for issue in report.issues))
             self.assertFalse(any(issue.kind == "test-failure" for issue in report.issues))
 
+    def test_xcode_timeout_flags_are_not_runtime_failures(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            log = Path(temporary) / 'invocation.log'
+            for command in ('xcodebuild', '/Applications/Xcode_27.1.app/Contents/Developer/usr/bin/xcodebuild'):
+                log.write_text(f'{command} test-without-building -test-timeouts-enabled YES\n')
+                observations = REPORTER.parse_log(log, 65)
+                self.assertEqual(len(observations), 1)
+                self.assertEqual(observations[0].kind, 'unknown')
+                with log.open('a') as output:
+                    output.write('PlayTests.swift:42: error: XCTAssertTrue failed - actual assertion\n')
+                observations = REPORTER.parse_log(log, 65)
+                self.assertEqual(len(observations), 1)
+                self.assertEqual(observations[0].kind, 'test-failure')
+
     def test_github_annotations_and_step_summary_are_emitted(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
