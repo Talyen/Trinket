@@ -62,6 +62,13 @@ starts at 26 for both platforms.
 - [ ] Finish screenshots, the Full Game review image and candidate build
   association. Recheck exported encryption and Production entitlements with the
   signed archive. Keep the app and purchase out of App Review.
+- [x] Verify the requested iPad sizing before store capture. The 13-inch iPad Pro
+  simulator on iPadOS 27.0 showed the larger hand, the center card barely clipping
+  the bottom edge, and combatants clear of the fan. Seven focused layout tests
+  passed, including existing phone and Duo checks. Playing all three cards dealt
+  the next hand with normal turn timing. The screenshot launch's sixty-second
+  turn delay is intentional; it is not the shipping default. Refresh hosted
+  qualification after landing these layout changes.
 
 ## 3. Qualify the signed candidate on devices
 

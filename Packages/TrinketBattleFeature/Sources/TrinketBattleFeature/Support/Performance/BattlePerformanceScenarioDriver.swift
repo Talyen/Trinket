@@ -73,7 +73,8 @@ struct BattlePerformanceScenarioDriver {
             for: card,
             index: index,
             cardCount: max(1, hand.count),
-            handFrame: BattleHandLayout.frame(in: battleSize),
+            handFrame: BattleHandLayout.frame(in: battleSize, isPad: BattleHandLayout.usesPadSizing),
+            isPad: BattleHandLayout.usesPadSizing,
         )
     }
 }

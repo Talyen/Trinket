@@ -17,7 +17,10 @@ struct AutomaticCardCastView: View {
     /// side. This is intentionally not the hand resting center used by
     /// manual casts in `CardCastEffectsLayer`.
     var body: some View {
-        let metrics = BattleHandLayout.metrics(containerWidth: handFrame.width, cardCount: 3, handHeight: handFrame.height)
+        let metrics = BattleHandLayout.metrics(
+            containerWidth: handFrame.width, cardCount: 3, handHeight: handFrame.height,
+            isPad: BattleHandLayout.usesPadSizing,
+        )
         let keywords = cast.card.ability.presentationKeywords
         let card = BattleAbilityCardFace(artworkName: cast.card.ability.artReference?.imageName)
         let center = CGPoint(

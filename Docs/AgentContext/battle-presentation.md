@@ -326,7 +326,11 @@ commands. Battlefield metrics receive the available battlefield area; the parent
 composition owns any space reserved for the hand. Phone canvases through 500 points
 wide retain the original 224-point hand reservation and lowered fan; fitting the
 entire fan above the bottom edge must not shrink their combatants. Expanded
-canvases fit the rotated hand within their available height.
+phone canvases fit the rotated hand within their available height. iPad uses a
+larger hand, with the center card's bottom two points beyond the field's bottom
+edge. Its combatants fill the available width or height up to eight points above
+the rotated resting fan. iPad sizing follows the device idiom, including resized
+windows; expanded iPhone and Duo canvases keep their existing composition.
 
 Holding a hand card to inspect it preserves its held appearance and foreground
 ordering through detail-sheet presentation until dismissal. It keeps its resting

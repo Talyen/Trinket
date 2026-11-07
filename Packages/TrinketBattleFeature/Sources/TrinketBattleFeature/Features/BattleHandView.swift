@@ -77,6 +77,7 @@ struct BattleHandView: View {
                 containerWidth: geometry.size.width,
                 cardCount: cards.count,
                 handHeight: geometry.size.height,
+                isPad: BattleHandLayout.usesPadSizing,
             )
             ZStack(alignment: .bottom) {
                 ForEach(Array(cards.enumerated()), id: \.element.id) { index, card in

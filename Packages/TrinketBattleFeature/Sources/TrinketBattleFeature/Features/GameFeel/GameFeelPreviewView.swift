@@ -89,7 +89,7 @@ public struct GameFeelPreviewView: View {
             BattleTransitionLabCanvas(fixture: fixture)
                 .overlay {
                     GeometryReader { geometry in
-                        let hand = BattleHandLayout.frame(in: geometry.size)
+                        let hand = BattleHandLayout.frame(in: geometry.size, isPad: BattleHandLayout.usesPadSizing)
                         ForEach(fixture.session.cardPlayback.automaticCasts) { cast in
                             AutomaticCardCastView(
                                 cast: cast,

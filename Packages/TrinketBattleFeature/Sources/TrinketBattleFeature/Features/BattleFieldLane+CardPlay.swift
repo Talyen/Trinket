@@ -44,6 +44,7 @@ extension BattleFieldLane {
             index: index,
             cardCount: hand.count,
             handFrame: handFrame,
+            isPad: BattleHandLayout.usesPadSizing,
         )
     }
 }

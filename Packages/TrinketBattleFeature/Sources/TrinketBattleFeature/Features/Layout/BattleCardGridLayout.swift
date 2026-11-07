@@ -16,7 +16,7 @@ enum BattleCardGridLayout {
         let cardSpacing: CGFloat
     }
 
-    static func metrics(in containerSize: CGSize) -> Metrics {
+    static func metrics(in containerSize: CGSize, scale: CGFloat = Self.combatantScale) -> Metrics {
         let innerWidth = max(containerSize.width - 2 * outerPadding, 0)
         let innerHeight = max(
             containerSize.height - 2 * outerPadding,
@@ -42,7 +42,7 @@ enum BattleCardGridLayout {
         )
         let fullPartyWidth = min(maxPartyWidthForAvailableWidth, maxPartyWidthForAvailableHeight)
         let fullPartyRowWidth = min(innerWidth, 2 * fullPartyWidth + cardSpacing)
-        let rowWidth = fullPartyRowWidth * combatantScale
+        let rowWidth = fullPartyRowWidth * scale
         let partyWidth = max((rowWidth - cardSpacing) / 2, 0)
         let partyHeight = partyWidth / partyAspectRatio
 

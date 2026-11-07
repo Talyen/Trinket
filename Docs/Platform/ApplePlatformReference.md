@@ -47,7 +47,9 @@ and orientations; regenerate through the managed build workflow after changes.
 iOS 27.1 and later use the native SwiftUI scene root so display transitions,
 window geometry, and framework safe areas reach the game directly. All four
 orientations are declared for iPhone and iPad. Layout follows current container
-geometry rather than device orientation or identity. Keep enemy-above-party
+geometry rather than device orientation. iPad's larger battle cards still fit the
+current window; device identity never substitutes for available dimensions. Keep
+enemy-above-party
 battle arrangements and vertically stacked hubs in compact and expanded windows.
 Bound shelf cards and hub widths so expansion reveals choices instead of indefinitely
 enlarging artwork. Detail artwork uses the current usable viewport height as well

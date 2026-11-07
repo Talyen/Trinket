@@ -3,6 +3,42 @@ import Testing
 @testable import TrinketBattleFeature
 
 struct BattleHandLayoutTests {
+    @Test func `iPad fills the battlefield above a larger bottom anchored hand through resizing`() {
+        for size in [
+            CGSize(width: 744, height: 1000),
+            CGSize(width: 820, height: 1104),
+            CGSize(width: 1032, height: 1304),
+            CGSize(width: 1376, height: 960),
+            CGSize(width: 507, height: 1000),
+            CGSize(width: 320, height: 700),
+        ] {
+            let frame = BattleHandLayout.frame(in: size, isPad: true)
+            let hand = BattleHandLayout.metrics(containerWidth: size.width, cardCount: 3, handHeight: frame.height, isPad: true)
+            let center = BattleHandLayout.restingCenter(index: 1, metrics: hand, cardCount: 3, handFrame: frame)
+            #expect(abs(center.y + hand.cardHeight / 2 - size.height - 2) < 0.001)
+            if size.width >= 744 {
+                let originalFrame = BattleHandLayout.frame(in: size)
+                let originalHand = BattleHandLayout.metrics(containerWidth: size.width, cardCount: 3, handHeight: originalFrame.height)
+                #expect(hand.cardWidth > originalHand.cardWidth)
+            }
+
+            let field = BattleCardGridLayout.metrics(in: BattleHandLayout.battlefieldSize(in: size, isPad: true), scale: 1)
+            let partyBottom = field.enemySize.height + field.cardSpacing + field.partySize.height
+            var lowestHandTop = CGFloat.greatestFiniteMagnitude
+            for index in 0 ..< 3 {
+                let resting = BattleHandLayout.restingCenter(index: index, metrics: hand, cardCount: 3, handFrame: frame)
+                let bounds = CGRect(x: -hand.cardWidth / 2, y: -hand.cardHeight, width: hand.cardWidth, height: hand.cardHeight)
+                    .applying(CGAffineTransform(rotationAngle: BattleHandLayout.rotation(index: index, cardCount: 3) * .pi / 180))
+                lowestHandTop = min(lowestHandTop, resting.y + hand.cardHeight / 2 + bounds.minY)
+                #expect(resting.x + bounds.minX >= 0)
+                #expect(resting.x + bounds.maxX <= size.width)
+            }
+            let gap = lowestHandTop - partyBottom
+            #expect(gap >= 8 - 0.001)
+            #expect(gap <= 8 + 0.001 || abs(field.enemySize.width - size.width) < 0.001)
+        }
+    }
+
     @Test func `held card and cast origin stay clear of either side bar without changing upward drag distance`() {
         let size = CGSize(width: 150, height: 200)
         let scale: CGFloat = 1.035

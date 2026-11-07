@@ -215,9 +215,11 @@ struct CardActivationRequest: Equatable, Identifiable {
         cardCount: Int,
         handFrame: CGRect,
         startedAt: Date = .now,
+        isPad: Bool = false,
     ) -> Self {
         let metrics = BattleHandLayout.metrics(
             containerWidth: handFrame.width, cardCount: cardCount, handHeight: handFrame.height,
+            isPad: isPad,
         )
         let size = CGSize(width: metrics.cardWidth, height: metrics.cardHeight)
         let rotation = BattleHandLayout.rotation(index: index, cardCount: cardCount) * .pi / 180
@@ -240,11 +242,13 @@ struct CardActivationRequest: Equatable, Identifiable {
         cardCount: Int,
         handFrame: CGRect,
         startedAt: Date = .now,
+        isPad: Bool = false,
     ) -> Self {
         let metrics = BattleHandLayout.metrics(
             containerWidth: handFrame.width,
             cardCount: cardCount,
             handHeight: handFrame.height,
+            isPad: isPad,
         )
         let restingCenter = BattleHandLayout.restingCenter(
             index: index,
