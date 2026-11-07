@@ -191,6 +191,8 @@ xcode_runner_execute_watched() {
     inferred="$(xcode_runner_infer_exit_from_log "$log_file")"
     if [[ "$inferred" -eq 124 ]]; then
       echo "xcode-runner: no TEST/BUILD result in log; treating as timeout (exit 124)." >&2
+      XCODE_RUNNER_COMPLETION_SOURCE="watchdog-timeout"
+      export XCODE_RUNNER_COMPLETION_SOURCE
     else
       echo "xcode-runner: inferred exit $inferred from log after hang kill." >&2
       XCODE_RUNNER_COMPLETION_SOURCE="watchdog-log-inference"

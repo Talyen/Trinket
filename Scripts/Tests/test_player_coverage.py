@@ -455,7 +455,7 @@ trinket_run_env_install_self_clean() { :; }
 ''')
             (scripts / 'ensure-simulator.sh').write_text('ensure_test_simulator_logged() { :; }\n')
             write_executable(scripts / 'test.sh', '''#!/bin/sh
-printf '%s\\n' "$* plan=$TRINKET_UI_PLAN duo=$TEST_RUNNER_TRINKET_DUO_PROFILE" >> "$PWD/calls"
+printf '%s\\n' "$* plan=$TRINKET_UI_PLAN duo=$TEST_RUNNER_TRINKET_DUO_PROFILE wall=$TRINKET_XCODE_WALL_TIMEOUT_SECONDS cases=$TRINKET_DEPLOY_EXPECTED_CASES" >> "$PWD/calls"
 ''')
             binaries = root / 'bin'
             binaries.mkdir()
@@ -466,18 +466,22 @@ case "$*" in
   *) exit 2 ;;
 esac
 ''')
-            for profile, check, selector, duo in [
-                ('compact', 'reward-return', 'RewardReturnUITests/testClaimReturnsToCampaignAndOpensNextStage', ''),
-                ('tablet', 'reward-return', 'RewardReturnUITests/testClaimReturnsToCampaignAndOpensNextStage', ''),
-                ('duo', 'rotation', 'DuoRotationUITests/testDuoRotationPreservesBattleAndCardPlay', '1'),
+            for profile, check, selector, duo, inherited_wall, expected_wall in [
+                ('compact', 'reward-return', 'RewardReturnUITests/testClaimReturnsToCampaignAndOpensNextStage', '', '', '600'),
+                ('tablet', 'reward-return', 'RewardReturnUITests/testClaimReturnsToCampaignAndOpensNextStage', '', '', '600'),
+                ('compact', 'reward-return', 'RewardReturnUITests/testClaimReturnsToCampaignAndOpensNextStage', '', '120', '120'),
+                ('duo', 'rotation', 'DuoRotationUITests/testDuoRotationPreservesBattleAndCardPlay', '1', '', ''),
             ]:
                 with self.subTest(profile=profile, check=check):
                     (root / 'calls').unlink(missing_ok=True)
                     run_captured(['bash', 'Scripts/player-coverage.sh', profile, check], cwd=root,
                                  env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}',
+                                      'TRINKET_XCODE_WALL_TIMEOUT_SECONDS': inherited_wall,
+                                      'TRINKET_DEPLOY_EXPECTED_CASES': '',
                                       'TRINKET_COVERAGE_NO_BUILD': '1'}, expected=0)
+                    expected_cases = json.dumps([selector], separators=(',', ':')) if check == 'reward-return' else ''
                     self.assertEqual((root / 'calls').read_text().strip(),
-                                     f'ui --no-build {selector} plan=Profiles duo={duo}')
+                                     f'ui --no-build {selector} plan=Profiles duo={duo} wall={expected_wall} cases={expected_cases}')
             (root / 'calls').unlink()
             (scripts / 'ensure-simulator.sh').write_text('ensure_test_simulator_logged() { return 78; }\n')
             run_captured(['bash', 'Scripts/player-coverage.sh', 'compact', 'reward-return'], cwd=root,

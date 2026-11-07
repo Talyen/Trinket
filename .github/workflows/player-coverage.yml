@@ -95,7 +95,7 @@ jobs:
         env:
           PROFILE: ${{ matrix.profile }}
           COVERAGE_CHECK: ${{ matrix.check }}
-          TRINKET_XCODE_WALL_TIMEOUT_SECONDS: ${{ matrix.check == 'reward-return' && '300' || '' }}
+          TRINKET_XCODE_WALL_TIMEOUT_SECONDS: ${{ matrix.check == 'reward-return' && '600' || '' }}
           TRINKET_COVERAGE_NO_BUILD: '1'
           TRINKET_COVERAGE_AUDIT_POLICY: ${{ github.event.schedule == '0 8 * * 1-6' && 'representative' || 'all' }}
         run: python3 Scripts/ci-test-capability.py --scope "$PROFILE-$COVERAGE_CHECK" --requires-simulator -- ./Scripts/player-coverage.sh "$PROFILE" "$COVERAGE_CHECK"

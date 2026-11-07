@@ -303,16 +303,16 @@ run_watchdog_case() (
     mixed-incomplete)
       export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=3
       expected=124
-      completion=process-exit ;;
+      completion=watchdog-timeout ;;
     selected|zero|zero-options|swift-summary)
       expected=124
-      completion=process-exit ;;
+      completion=watchdog-timeout ;;
     failure|late-failure) expected=65 ;;
     silent|verbose-silent|growing)
       export TRINKET_XCODE_WALL_TIMEOUT_SECONDS=2
       export TRINKET_XCODE_IDLE_TIMEOUT_SECONDS=0
       expected=124
-      completion=process-exit ;;
+      completion=watchdog-timeout ;;
   esac
   source "$RUNNER"
   command_args=("$TMP_DIR/fake-watched-command" test)

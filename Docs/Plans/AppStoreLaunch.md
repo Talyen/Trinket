@@ -40,8 +40,10 @@ executed scope rather than imply every device and OS was tested.
 - [x] Distinguish unavailable runner capabilities from product failures in
   workflow results and retained coverage reports. Never reuse unavailable
   coverage as passing test evidence.
-- [ ] Update candidate verification to consume the actual adaptable hosted
-  scope, then push and complete hosted CI and player coverage.
+- [x] Update candidate verification to consume the actual adaptable hosted
+  scope and identify every executed selector and explicit capability gap.
+- [ ] Complete hosted CI and player coverage, including the reward-return
+  command-budget repair, and retain the source identity of each result.
 
 The November 7 candidate includes the reviewed iPad layout and CI reliability
 repairs. Qualify the resulting revision; earlier green runs do not establish
@@ -52,7 +54,7 @@ qualifying the public candidate.
 |---|---|
 | Script gate and simulator preparation | Corrected the boot completion check and isolated script fixtures. Use installed compatible environments, Apple's command exit status, one owned boot attempt, and explicit capability receipts. Require fresh hosted verification of the adaptive workflow. |
 | Full Game purchase, refund and repurchase | Purchase tests require actual ownership and visible offer dismissal. Keep purchase, approval, restore and refund cases. Record the known denial-service case as unavailable outside its qualified runtime; retain it for diagnostics and live sandbox acceptance. |
-| Reward return and native profiles | Prefer compact iOS 26 and iPadOS 27 environments, substitute compatible installed models/versions, and report any missing requested coverage. Missing runtimes do not block the whole portfolio. |
+| Reward return and native profiles | Prefer compact iOS 26 and iPadOS 27 environments, substitute compatible installed models/versions, and report any missing requested coverage. Missing runtimes do not block the whole portfolio. Separate the five-minute reward method limit from its ten-minute Xcode startup/execution/finalization budget. |
 | Duo rotation | Manual Device Hub rotation and card play passed. Keep the automated resize assertion available on demand, but omit unsupported Duo automation from default CI. No new toolchain claim follows from a probe that stopped before tests. |
 
 Keep App Store compatibility at iOS and iPadOS 18.0. Automated launch coverage

@@ -42,8 +42,10 @@ if [[ "$coverage_check" == reward-return || "$coverage_check" == rotation ]]; th
   # actual launch session; simctl getenv can hang on an otherwise booted iPad.
   export TRINKET_UI_PLAN=Profiles TRINKET_UI_SUCCESS_SCREENSHOTS=1
   if [[ "$coverage_check" == reward-return ]]; then
-    export TRINKET_XCODE_WALL_TIMEOUT_SECONDS="${TRINKET_XCODE_WALL_TIMEOUT_SECONDS:-300}"
-    ./Scripts/test.sh ui --no-build RewardReturnUITests/testClaimReturnsToCampaignAndOpensNextStage
+    export TRINKET_XCODE_WALL_TIMEOUT_SECONDS="${TRINKET_XCODE_WALL_TIMEOUT_SECONDS:-600}"
+    reward_selector=RewardReturnUITests/testClaimReturnsToCampaignAndOpensNextStage
+    export TRINKET_DEPLOY_EXPECTED_CASES="[\"$reward_selector\"]"
+    ./Scripts/test.sh ui --no-build "$reward_selector"
   else
     TEST_RUNNER_TRINKET_DUO_PROFILE=1 \
       ./Scripts/test.sh ui --no-build DuoRotationUITests/testDuoRotationPreservesBattleAndCardPlay
