@@ -2,9 +2,31 @@
 from __future__ import annotations
 
 import os
+import json
 from pathlib import Path
 import subprocess
 import sys
+
+
+def recover_runtime_mount(udid, environment=None):
+    environment = dict(os.environ) if environment is None else environment
+    if environment.get('GITHUB_ACTIONS') != 'true':
+        return
+    payload = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'devices', udid, '-j'],
+                                                env=environment, text=True, timeout=30))
+    devices = [device for group in payload['devices'].values() for device in group
+               if device.get('udid') == udid]
+    if len(devices) != 1:
+        raise ValueError('Cannot establish the failed simulator identity for runtime recovery.')
+    device = devices[0]
+    if device.get('isAvailable') is not False or 'runtime profile not found' not in device.get('availabilityError', ''):
+        return
+    # A service restart can leave a downloaded image unmounted. Re-register
+    # installed images before the caller's existing owned-device boot recovery.
+    print(f'Recovering missing CI runtime mount for {udid}: {device["availabilityError"]}',
+          file=sys.stderr, flush=True)
+    subprocess.run(['xcrun', 'simctl', 'runtime', 'scan-and-mount'], env=environment,
+                   timeout=30, check=True, stdout=sys.stderr)
 
 
 def prepare_components(environment):

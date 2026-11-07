@@ -254,6 +254,22 @@ boot_simulator() {
     echo "Error: Simulator boot failed" >&2
     return 1
   }
+  # bootstatus can exit zero with terminal status UINT_MAX after a failed boot.
+  # Require the device postcondition before passing its destination to Xcode.
+  state="$(list_simulator_devices "$SIMULATOR_UDID" -j \
+    | trinket_simctl_json state-for-udid "$SIMULATOR_UDID" 2>/dev/null || echo "Unknown")"
+  if [[ "$state" != "Booted" ]]; then
+    echo "Error: Simulator boot completed without a booted device (state: $state)." >&2
+    if [[ "${GITHUB_ACTIONS:-}" == true ]]; then
+      python3 - "$SIMULATOR_UDID" <<'PY_RUNTIME'
+import sys
+sys.path.insert(0, 'Scripts')
+from internal.ci_simulator_services import recover_runtime_mount
+recover_runtime_mount(sys.argv[1])
+PY_RUNTIME
+    fi
+    return 1
+  fi
   echo "$SIMULATOR_NAME ($SIMULATOR_UDID) booted successfully."
 }
 

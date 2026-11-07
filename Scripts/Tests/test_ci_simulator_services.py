@@ -2,6 +2,7 @@
 from pathlib import Path
 from contextlib import redirect_stdout, redirect_stderr
 import io
+import json
 import subprocess
 import sys
 import tempfile
@@ -19,7 +20,33 @@ class CISimulatorServicesTests(unittest.TestCase):
         with patch.object(SERVICES.subprocess, 'run') as run:
             SERVICES.prepare_components({'GITHUB_ACTIONS': 'false'})
             SERVICES.start_device_ui({'GITHUB_ACTIONS': 'false'})
+            SERVICES.recover_runtime_mount('owned', {'GITHUB_ACTIONS': 'false'})
         run.assert_not_called()
+
+    def test_missing_runtime_recovery_is_bounded_and_requires_exact_failure_evidence(self):
+        environment = dict(GITHUB_ACTIONS='true', DEVELOPER_DIR='/selected')
+        missing = dict(udid='owned', isAvailable=False, availabilityError='runtime profile not found using System match policy')
+        for device, recover in [(missing, True), (dict(missing, isAvailable=True), False),
+                                (dict(missing, availabilityError='other failure'), False)]:
+            with self.subTest(device=device), patch.object(SERVICES.subprocess, 'check_output',
+                    return_value=json.dumps(dict(devices={'runtime': [device]}))) as query, \
+                    patch.object(SERVICES.subprocess, 'run') as run:
+                SERVICES.recover_runtime_mount('owned', environment)
+                query.assert_called_once_with(['xcrun', 'simctl', 'list', 'devices', 'owned', '-j'],
+                                              env=environment, text=True, timeout=30)
+                self.assertEqual(run.call_count, int(recover))
+                if recover:
+                    run.assert_called_once_with(['xcrun', 'simctl', 'runtime', 'scan-and-mount'],
+                                                env=environment, timeout=30, check=True, stdout=sys.stderr)
+        with patch.object(SERVICES.subprocess, 'check_output', return_value='{"devices":{}}'), \
+                patch.object(SERVICES.subprocess, 'run') as run, self.assertRaises(ValueError):
+            SERVICES.recover_runtime_mount('owned', environment)
+        run.assert_not_called()
+        with patch.object(SERVICES.subprocess, 'check_output',
+                return_value=json.dumps(dict(devices={'runtime': [missing]}))), \
+                patch.object(SERVICES.subprocess, 'run', side_effect=subprocess.TimeoutExpired('scan', 30)), \
+                self.assertRaises(subprocess.TimeoutExpired):
+            SERVICES.recover_runtime_mount('owned', environment)
 
     def test_component_repair_uses_the_selected_xcode_and_checks_completion(self):
         environment = dict(GITHUB_ACTIONS='true', DEVELOPER_DIR='/Applications/Selected Xcode.app/Contents/Developer')

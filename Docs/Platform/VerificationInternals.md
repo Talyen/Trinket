@@ -63,6 +63,11 @@ within the twelve-minute setup recovery window. This leaves room for an initial
 five-minute timeout, bounded shutdown, and one full erase/boot recovery; the
 downloaded qualified release runtime has demonstrated that recovery path. An
 exhausted window fails before consuming the test budget.
+After `bootstatus` exits, preparation independently requires a `Booted` device;
+a zero exit can also report a terminal failed boot. When disposable CI reports
+that device's runtime profile missing, a bounded `scan-and-mount` re-registers
+installed images before the existing owned-device recovery. Local runs never
+perform that host runtime recovery, and its command success is not a test pass.
 `TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS` selects that admission window. Local recovery
 retains its existing attempts. Timeouts remain failures and emit structured receipts. Supervisors terminate only
 their own process groups; existing simulator guest/lease cleanup remains in force.
