@@ -35,7 +35,8 @@ if [[ "${TRINKET_COVERAGE_NO_BUILD:-0}" != 1 ]]; then
 fi
 export SKIP_GENERATE=1
 if [[ "$coverage_check" == reward-return || "$coverage_check" == rotation ]]; then
-  python3 Scripts/coverage_profiles.py ready --udid "$SIMULATOR_UDID"
+  # Apple's bootstatus already qualified the device. Let XCTest establish its
+  # actual launch session; simctl getenv can hang on an otherwise booted iPad.
   export TRINKET_UI_PLAN=Profiles TRINKET_UI_SUCCESS_SCREENSHOTS=1
   if [[ "$coverage_check" == reward-return ]]; then
     export TRINKET_XCODE_WALL_TIMEOUT_SECONDS="${TRINKET_XCODE_WALL_TIMEOUT_SECONDS:-300}"

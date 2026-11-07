@@ -421,7 +421,6 @@ printf '%s\\n' "$* plan=$TRINKET_UI_PLAN duo=$TEST_RUNNER_TRINKET_DUO_PROFILE" >
             write_executable(binaries / 'python3', '''#!/bin/sh
 case "$*" in
   *'definition --name '*) printf 'fixture-phone\\t27\\n' ;;
-  *'coverage_profiles.py ready --udid owned') exit 0 ;;
   *'coverage_profiles.py run'*) exit 9 ;;
   *) exit 2 ;;
 esac

@@ -102,7 +102,9 @@ Profiles exercise the real reward claim/next-stage access and visible Homestead 
 change. Earned combat stays smoke-owned; displayed debits belong to
 `HomesteadControlsUITests`, with durable costs/tiers in `PlayerHomesteadStoreTests`.
 The standalone reward test uses the same claim and navigation assertions without
-opening Settings or running native audits. The separate Duo rotation job waits
+opening Settings or running native audits. Both standalone journeys proceed from
+Apple's boot-status check directly to XCTest's launch session; a separate
+`simctl getenv` probe can stall without exercising the game. The separate Duo rotation job waits
 for the app window to resize, then checks retained hand, usable controls and a
 card play. Folding during held input, inspection, automatic
 casts or reward reveal still needs managed Device Hub inspection.

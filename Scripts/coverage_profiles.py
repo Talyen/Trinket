@@ -67,8 +67,6 @@ def simctl(*arguments):
     except subprocess.TimeoutExpired:
         if arguments[:1] == ('list',):
             query = 'Simulator inventory'
-        elif arguments[:1] == ('getenv',):
-            query = 'Simulator launch-service query'
         elif arguments[:1] == ('ui',) and arguments[2:] == ('content_size',):
             query = 'Simulator text-size query'
         else:
@@ -86,12 +84,6 @@ def prerequisite(phase, command, *args, **kwargs):
         return command(*args, **kwargs)
     except subprocess.TimeoutExpired as error:
         raise SimulatorPrerequisiteTimeout(f'{phase}: {error}') from error
-
-
-def verify_launch_service(udid):
-    home = prerequisite('launch-service', simctl, 'getenv', udid, 'HOME')
-    if not home.startswith('/'):
-        raise ValueError(f'simulator launch service returned an invalid HOME for {udid}')
 
 
 @contextmanager
@@ -241,7 +233,7 @@ def stage_results(results, output):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('operation', choices=('definition', 'prepare', 'resolve', 'ready', 'run', 'stage'))
+    parser.add_argument('operation', choices=('definition', 'prepare', 'resolve', 'run', 'stage'))
     parser.add_argument('--name')
     parser.add_argument('--audit-policy', choices=('all', 'representative'), default='all')
     parser.add_argument('--udid')
@@ -268,9 +260,6 @@ def main():
             return 0
         if not args.udid:
             parser.error(f'{args.operation} requires --udid')
-        if args.operation == 'ready':
-            verify_launch_service(args.udid)
-            return 0
         if not args.output:
             parser.error('run requires --output')
         return run_profiles(args.udid, args.output, args.audit_policy)
