@@ -280,6 +280,54 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
         retry = load_script('beta_selector_check', 'ci_ui_retry.py')
         self.assertEqual(set(retry.expected_cases(list(DEPLOY.CRITICAL_CASES.values()))), set(DEPLOY.CRITICAL_CASES.values()))
 
+    def test_full_ui_requires_latest_executed_verified_job_and_actual_test_step(self):
+        run = dict(id=10, head_sha='abc', head_branch='main', event='workflow_dispatch',
+                   display_title='Trinket CI (verified)', status='completed', conclusion='success')
+        job = dict(id=20, name='tests / Exhaustive UI (All)', conclusion='success', steps=[
+            dict(name='Read exhaustive test classes', conclusion='success'),
+            dict(name='Run ./.github/actions/test-job', conclusion='success')])
+
+        def status(runs, jobs):
+            def api(path):
+                if '/workflows/' in path:
+                    return [dict(workflow_runs=runs)]
+                return [dict(jobs=jobs.get(int(path.split('/runs/')[1].split('/')[0]), []))]
+            with patch.object(DEPLOY.REUSE, 'api', side_effect=api):
+                return DEPLOY.full_ui_ci_status('owner/repo', 'abc', 'main')
+
+        self.assertTrue(status([run], {10: [job]})['passed'])
+        for changed in ({'head_sha': 'old'}, {'head_branch': 'other'}, {'event': 'schedule'},
+                        {'display_title': 'Trinket CI (latest)'}):
+            self.assertEqual(status([{**run, **changed}], {10: [job]})['status'], 'missing')
+        for changed in ({'conclusion': 'failure'}, {'conclusion': 'cancelled'}, {'conclusion': None},
+                        {'steps': []}, {'steps': [job['steps'][0]]}):
+            self.assertFalse(status([run], {10: [{**job, **changed}]})['passed'])
+        for jobs in ([], [{**job, 'conclusion': 'skipped'}]):
+            self.assertEqual(status([run], {10: jobs})['status'], 'missing')
+        newer = {**run, 'id': 11}
+        self.assertFalse(status([run, newer], {10: [job], 11: [{**job, 'conclusion': 'failure'}]})['passed'])
+        self.assertTrue(status([run, newer], {10: [job], 11: [{**job, 'conclusion': 'skipped'}]})['passed'])
+
+    def test_beta_full_ui_gate_records_hosted_proof_and_never_runs_local_suites(self):
+        with tempfile.TemporaryDirectory() as directory:
+            identity = dict(build=dict(commit='abc'))
+            execute = []
+            verification = DEPLOY.Verification(Path(directory) / 'proof.json', identity, True,
+                execute=lambda command, **_: execute.append(command))
+            args = type('Args', (), dict(ci_only=False, focused_only=False, require_full_ui=True))()
+            with patch.object(DEPLOY, 'wait_for_beta_ci', return_value=dict(smoke=True)), \
+                    patch.object(DEPLOY, 'wait_for_release_ci', return_value=dict(run_id=1)), \
+                    patch.object(DEPLOY, 'release_receipt', return_value=dict(identity=identity)), \
+                    patch.object(DEPLOY, 'require_hosted_full_ui', return_value=dict(run_id=2)) as full, \
+                    patch.object(DEPLOY, 'capture', side_effect=lambda *c: 'abc' if c[:2] == ('git', 'rev-parse') else ''):
+                DEPLOY.verify_beta(args, verification, identity)
+                full.assert_called_once_with('abc')
+                self.assertIn('hosted-full-ui', verification.completed)
+                full.side_effect = ValueError('FullUI failed')
+                with self.assertRaisesRegex(ValueError, 'FullUI failed'):
+                    DEPLOY.verify_beta(args, verification, identity)
+            self.assertEqual(execute, [])
+
     def test_beta_ci_requires_latest_exact_commit_gate_and_actual_smoke_step(self):
         run = dict(id=10, head_sha='abc', head_branch='main', event='push', status='completed', conclusion='success')
         jobs = [dict(id=1, name='tests / CI OK', conclusion='success'),

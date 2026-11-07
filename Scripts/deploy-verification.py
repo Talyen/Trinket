@@ -94,6 +94,39 @@ def beta_ci_status(repository, commit, branch):
     return result
 
 
+def full_ui_ci_status(repository, commit, branch):
+    pages = REUSE.api(f'repos/{repository}/actions/workflows/ci.yml/runs?head_sha={commit}&per_page=20')
+    runs = [run for page in pages for run in page.get('workflow_runs', [])
+            if run.get('head_sha') == commit and run.get('head_branch') == branch
+            and (run.get('event') == 'push' or (run.get('event') == 'workflow_dispatch'
+                 and run.get('display_title') == 'Trinket CI (verified)'))]
+    for run in sorted(runs, key=lambda item: int(item['id']), reverse=True):
+        pages = REUSE.api(f'repos/{repository}/actions/runs/{run["id"]}/jobs?filter=latest&per_page=100')
+        jobs = [job for page in pages for job in page.get('jobs', [])
+                if job.get('name') == 'tests / Exhaustive UI (All)' and job.get('conclusion') != 'skipped']
+        if not jobs:
+            continue
+        job = max(jobs, key=lambda item: int(item['id']))
+        steps = {step['name']: step.get('conclusion') for step in job.get('steps', [])}
+        passed = run.get('conclusion') == 'success' and job.get('conclusion') == 'success' and all(
+            steps.get(name) == 'success' for name in ('Read exhaustive test classes', 'Run ./.github/actions/test-job'))
+        return dict(status=run['status'], conclusion='success' if passed else job.get('conclusion'),
+                    passed=passed, run_id=run['id'], job_id=job['id'])
+    return dict(status='missing', passed=False)
+
+
+def require_hosted_full_ui(commit):
+    remote = capture('git', 'remote', 'get-url', 'origin')
+    match = re.fullmatch(r'(?:https://github.com/|git@github.com:)([^/]+/[^/]+?)(?:\.git)?', remote)
+    if not match:
+        raise ValueError('FullUI release verification requires a GitHub origin.')
+    branch = capture('git', 'symbolic-ref', '--short', 'refs/remotes/origin/HEAD').removeprefix('origin/')
+    status = full_ui_ci_status(match[1], commit, branch)
+    if not status['passed']:
+        raise ValueError(f'Exact-commit hosted FullUI has not passed ({status}); run verified exhaustive CI, then resume.')
+    return status
+
+
 def failed_ui_cases(repository, jobs):
     cases = set()
     for job in jobs:
@@ -272,6 +305,9 @@ def verify_beta(args, verification, identity):
             raise ValueError('Exact-commit CI and qualified proof lack Smoke coverage; local fallback is disabled.')
         verification.phase('ci', [], {'github': status})
         verification.phase('smoke', [], {'github': status, 'qualified_hosted_smoke': qualified})
+    if getattr(args, 'require_full_ui', False):
+        status = require_hosted_full_ui(identity['build']['commit'])
+        verification.phase('hosted-full-ui', [], {'github': status})
 
 
 def capture(*command):
@@ -462,11 +498,14 @@ def main():
     parser.add_argument('--mode', choices=('beta', 'hosted-beta', 'ui', 'smoke'), default='ui')
     parser.add_argument('--no-build', action='store_true')
     parser.add_argument('--compile-only', action='store_true')
+    parser.add_argument('--require-full-ui', action='store_true')
     parser.add_argument('--preflight', action='store_true')
     phases = parser.add_mutually_exclusive_group()
     phases.add_argument('--focused-only', action='store_true')
     phases.add_argument('--ci-only', action='store_true')
     args = parser.parse_args()
+    if args.require_full_ui and (args.mode != 'beta' or args.compile_only or args.focused_only or args.ci_only):
+        parser.error('--require-full-ui requires complete --mode beta verification')
     if args.no_build and args.compile_only:
         parser.error('--compile-only cannot be combined with --no-build')
     if (args.focused_only or args.ci_only) and args.mode not in ('beta', 'hosted-beta'):

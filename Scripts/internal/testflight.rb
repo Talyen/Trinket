@@ -244,7 +244,7 @@ module TrinketTestFlight
           build unless @receipt['stage'] == 'exported'
           command('verification-ci', verification_env, './Scripts/test-deploy.sh', '--mode', 'beta', '--ci-only')
         else
-          command('verification', verification_env, './Scripts/test-deploy.sh', '--mode', 'ui')
+          command('verification', verification_env, './Scripts/test-deploy.sh', '--mode', 'beta', '--require-full-ui')
         end
         raise Failure, 'Source changed during verification; start again from a clean checkout.' unless clean_commit == @receipt['commit']
         @receipt['verified'] = true

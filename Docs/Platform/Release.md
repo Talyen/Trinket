@@ -176,8 +176,10 @@ signed artifacts while awaiting CI. Signing credentials remain on the Mac.
 owns proof identity, selector checkpoints and cache mechanics.
 
 FullUI runs nightly and on demand. Use `--full-ui` before an App Store/release
-candidate or for a deliberate complete local UI pass. A known relevant FullUI
-failure still needs triage and resolution before a beta; moving the suite nightly
+candidate. It requires successful verified hosted FullUI on the exact source
+commit, alongside qualified journeys and green CI; it never falls back to a local
+suite. Use `test-deploy.sh --mode ui` for an explicitly requested local pass.
+A known relevant FullUI failure still needs triage and resolution before a beta; moving the suite nightly
 does not authorize ignoring a known regression. No UI assertion is relaxed by
 the beta policy.
 

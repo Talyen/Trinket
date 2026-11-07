@@ -194,7 +194,7 @@ begin
     full.execute
     assert(full.receipt['verification_mode'] == 'ui')
     assert(full.commands.map(&:first) == ['verification', 'build'])
-    assert(full.commands.first.last == ['./Scripts/test-deploy.sh', '--mode', 'ui'])
+    assert(full.commands.first.last == ['./Scripts/test-deploy.sh', '--mode', 'beta', '--require-full-ui'])
   end
 
   Dir.mktmpdir do |root|

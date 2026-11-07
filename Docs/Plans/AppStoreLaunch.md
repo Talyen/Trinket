@@ -48,18 +48,20 @@ starts at 26 for both platforms.
 
 ## 2. Confirm App Store Connect prerequisites in parallel
 
-- [ ] Open the existing app `6811284921` and Full Game product `6811501717`.
-  Inventory which fields, assets, and approvals are complete and which need
-  owner action. Confirm the Paid Apps Agreement, banking and tax status, product
-  availability, localized price, and Family Sharing against the
-  [purchase checklist](../Platform/Purchases.md#before-release). Resolve account
-  or product blockers before the device purchase pass.
-- [ ] Confirm the listing and purchase localizations, review contact, age rating,
-  content rights, export compliance, and applicable regional declarations.
-  The support and privacy URLs were reachable on November 6. Reconcile their
-  content and the App Privacy answers with the candidate's purchases, iCloud
-  behavior, and diagnostics. Use the existing
-  [submission draft](../Platform/AppStoreMetadata.md) for field ownership.
+- [x] Audit app `6811284921` and Full Game product `6811501717`. The Paid Apps
+  Agreement, banking, tax and trader status are active. The owner accepted the
+  updated Developer Program License Agreement on November 7. Full Game is $4.99
+  in the U.S., with Family Sharing enabled. The draft app is free and available
+  in the U.S. on release, matching the existing purchase storefront.
+- [x] Prepare version `1.0.0` with manual release, all nine listing and purchase
+  localizations, review contact and cloud-enabled review notes. The owner
+  confirmed content rights; the portal declaration is saved. Age-rating answers
+  are complete. App Privacy reports Data Not Collected, consistent with local
+  data, private iCloud sync and Apple-managed purchases/diagnostics. Support and
+  privacy URLs are configured. [Field ownership](../Platform/AppStoreMetadata.md)
+- [ ] Finish screenshots, the Full Game review image and candidate build
+  association. Recheck exported encryption and Production entitlements with the
+  signed archive. Keep the app and purchase out of App Review.
 
 ## 3. Qualify the signed candidate on devices
 

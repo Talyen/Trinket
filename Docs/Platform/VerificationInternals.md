@@ -342,7 +342,9 @@ high-risk journeys selected against the last available beta. FullUI remains
 nightly/on-demand; `testflight.sh --full-ui` and `release.sh` retain the complete
 portfolio. Use `--mode smoke` for the optional local canary. Beta selectors batch
 by Smoke/FullUI plan with StoreKit configuration and exact-method execution proof;
-formal FullUI release verification retains per-class phases.
+`testflight.sh --full-ui` requires the latest executed exact-commit verified
+FullUI job and its test execution step to pass, alongside ordinary beta evidence.
+The optional local UI command retains per-class phases.
 
 Successful journey inputs and failed-class markers are retained in a hosted cache.
 Reuse compares committed app, resources, configuration, tooling, shared helpers,

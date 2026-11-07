@@ -20,7 +20,8 @@ MODE="ui"
 NO_BUILD=false
 COMPILE_ONLY=false
 PHASE=()
-TEST_DEPLOY_USAGE="Usage: $0 [--mode beta|smoke|ui] [--no-build] [--compile-only] [--focused-only|--ci-only]"
+FULL_UI=()
+TEST_DEPLOY_USAGE="Usage: $0 [--mode beta|smoke|ui] [--require-full-ui] [--no-build] [--compile-only] [--focused-only|--ci-only]"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --help|-h)
@@ -53,6 +54,10 @@ while [[ $# -gt 0 ]]; do
       PHASE+=("$1")
       shift
       ;;
+    --require-full-ui)
+      FULL_UI=(--require-full-ui)
+      shift
+      ;;
     --)
       shift
       trinket_die "Unexpected argument: ${1:-}" "$TEST_DEPLOY_USAGE"
@@ -71,4 +76,4 @@ fi
 verification_args=(--mode "$MODE")
 [[ "$NO_BUILD" != true ]] || verification_args+=(--no-build)
 [[ "$COMPILE_ONLY" != true ]] || verification_args+=(--compile-only)
-exec python3 Scripts/deploy-verification.py "${verification_args[@]}" "${PHASE[@]}"
+exec python3 Scripts/deploy-verification.py "${verification_args[@]}" "${PHASE[@]}" "${FULL_UI[@]}"
