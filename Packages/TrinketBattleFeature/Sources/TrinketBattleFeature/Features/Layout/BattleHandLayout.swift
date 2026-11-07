@@ -11,8 +11,8 @@ enum BattleHandLayout {
     static let minCardWidth: CGFloat = 156
     static let maxCardWidth: CGFloat = 220
     static let maxPadCardWidth: CGFloat = 280
-    static let padBottomClip: CGFloat = 2
-    static let padBattlefieldClearance: CGFloat = 8
+    static let bottomClip: CGFloat = 2
+    static let battlefieldClearance: CGFloat = 8
     /// Portrait height-to-width ratio for cards (4:3 portrait, height = width * aspectRatio).
     static let aspectRatio: CGFloat = 4.0 / 3.0
     static let widthRatio: CGFloat = 0.45
@@ -20,11 +20,7 @@ enum BattleHandLayout {
     static let maxOverlapRatio: CGFloat = 0.70
     static let fanAngleStep: CGFloat = 9
     static let fanLiftStep: CGFloat = 10
-    static let bottomRise: CGFloat = 30
-    static let reservedPhoneHeight: CGFloat = 224
-    static let restingPhoneYFraction: CGFloat = 0.20
     static let fanClearance: CGFloat = 28
-    static let overlapAllowance: CGFloat = 56
 
     @MainActor static var usesPadSizing: Bool {
         UIDevice.current.userInterfaceIdiom == .pad
@@ -35,17 +31,10 @@ enum BattleHandLayout {
         let cardHeight: CGFloat
         let overlap: CGFloat
         let startX: CGFloat
-        let isPad: Bool
     }
 
     static func battlefieldSize(in containerSize: CGSize, isPad: Bool = false) -> CGSize {
         let handFrame = frame(in: containerSize, isPad: isPad)
-        // Preserve the original compact phone composition.
-        if !isPad, containerSize.width <= 500 {
-            return CGSize(width: containerSize.width, height: max(0, containerSize.height - reservedPhoneHeight + overlapAllowance))
-        }
-        let existingHeight = containerSize.height - handFrame.height + overlapAllowance
-
         // The battlefield must leave the party's resource bars above
         // the resting fan, including its rotation about each card's bottom.
         let metrics = metrics(containerWidth: containerSize.width, cardCount: 3, handHeight: handFrame.height, isPad: isPad)
@@ -62,21 +51,10 @@ enum BattleHandLayout {
             ))
             return center.y + metrics.cardHeight / 2 + rotatedBounds.minY
         }.min() ?? handFrame.minY
-        if isPad {
-            return CGSize(width: containerSize.width, height: max(0, handTop - padBattlefieldClearance))
-        }
-        return CGSize(width: containerSize.width, height: max(0, min(existingHeight, handTop)))
+        return CGSize(width: containerSize.width, height: max(0, handTop - battlefieldClearance))
     }
 
     static func frame(in containerSize: CGSize, isPad: Bool = false) -> CGRect {
-        if !isPad, containerSize.width <= 500 {
-            return CGRect(
-                x: 0,
-                y: containerSize.height - reservedPhoneHeight - bottomRise,
-                width: containerSize.width,
-                height: reservedPhoneHeight,
-            )
-        }
         let desiredWidth = min(
             isPad ? maxPadCardWidth : maxCardWidth,
             max(minCardWidth, containerSize.width * (isPad ? 0.30 : widthRatio)),
@@ -85,7 +63,7 @@ enum BattleHandLayout {
         let height = min(desiredWidth * aspectRatio + fanClearance, max(0, containerSize.height * heightRatio))
         return CGRect(
             x: 0,
-            y: containerSize.height - height + (isPad ? padBottomClip : -bottomRise),
+            y: containerSize.height - height + bottomClip,
             width: containerSize.width,
             height: height,
         )
@@ -97,20 +75,6 @@ enum BattleHandLayout {
         handHeight: CGFloat,
         isPad: Bool = false,
     ) -> Metrics {
-        if !isPad, containerWidth <= 500 {
-            let cardWidth = min(maxCardWidth, max(minCardWidth, containerWidth * widthRatio))
-            let overlap = cardCount > 1
-                ? min(cardWidth * 0.45, (containerWidth - cardWidth - horizontalInset * 2) / CGFloat(cardCount - 1))
-                : 0
-            let totalWidth = cardWidth + overlap * CGFloat(max(cardCount - 1, 0))
-            return Metrics(
-                cardWidth: cardWidth,
-                cardHeight: cardWidth * aspectRatio,
-                overlap: overlap,
-                startX: (containerWidth - totalWidth) / 2,
-                isPad: false,
-            )
-        }
         let cardWidth = max(0, min(
             isPad ? maxPadCardWidth : maxCardWidth,
             max(0, containerWidth - horizontalInset * 2),
@@ -135,7 +99,6 @@ enum BattleHandLayout {
             cardHeight: cardHeight,
             overlap: overlap,
             startX: startX,
-            isPad: isPad,
         )
     }
 
@@ -150,7 +113,6 @@ enum BattleHandLayout {
         handFrame: CGRect,
     ) -> CGPoint {
         let baseOffsetY = restingOffsetY(index: index, cardCount: cardCount)
-            + (metrics.isPad ? 0 : restingLowering(cardHeight: metrics.cardHeight, handFrame: handFrame))
         return CGPoint(
             x: handFrame.midX + cardOffsetX(
                 index: index,
@@ -159,19 +121,6 @@ enum BattleHandLayout {
             ),
             y: handFrame.maxY - metrics.cardHeight / 2 + baseOffsetY,
         )
-    }
-
-    private static func restingLowering(cardHeight: CGFloat, handFrame: CGRect) -> CGFloat {
-        if handFrame.width <= 500 {
-            return cardHeight * restingPhoneYFraction
-        }
-        // Keep regular-width and rotated compositions. Ease the phone lowering
-        // out between 680 and 720 points, and as the field approaches square.
-        let widthWeight = min(1, max(0, (720 - handFrame.width) / 40))
-        // Hand frames are in field coordinates, with their bottom raised by bottomRise.
-        let fieldHeight = handFrame.maxY + bottomRise
-        let portraitWeight = min(1, max(0, (fieldHeight / handFrame.width - 1) / 0.15))
-        return cardHeight * restingPhoneYFraction * widthWeight * portraitWeight
     }
 
     static func releaseCenter(

@@ -9,6 +9,10 @@ enum BattleCardGridLayout {
     static let cardSpacing: CGFloat = 12
     static let combatantScale: CGFloat = 0.90
 
+    static func scale(in containerSize: CGSize, isPad: Bool) -> CGFloat {
+        isPad || containerSize.width > containerSize.height ? 1 : combatantScale
+    }
+
     struct Metrics: Equatable {
         let enemySize: CGSize
         let partySize: CGSize
@@ -31,7 +35,10 @@ enum BattleCardGridLayout {
             )
         }
 
-        let maxPartyWidthForAvailableWidth = max((innerWidth - cardSpacing) / 2, 0)
+        // The margin limits width, not height. Short canvases should use all
+        // space above the hand without shrinking an already height-limited stack.
+        let maxRowWidth = innerWidth * scale
+        let maxPartyWidthForAvailableWidth = max((maxRowWidth - cardSpacing) / 2, 0)
         let maxPartyWidthForAvailableHeight = max(
             (
                 innerHeight - cardSpacing * (1 + 1 / enemyAspectRatio)
@@ -41,8 +48,7 @@ enum BattleCardGridLayout {
             0,
         )
         let fullPartyWidth = min(maxPartyWidthForAvailableWidth, maxPartyWidthForAvailableHeight)
-        let fullPartyRowWidth = min(innerWidth, 2 * fullPartyWidth + cardSpacing)
-        let rowWidth = fullPartyRowWidth * scale
+        let rowWidth = min(maxRowWidth, 2 * fullPartyWidth + cardSpacing)
         let partyWidth = max((rowWidth - cardSpacing) / 2, 0)
         let partyHeight = partyWidth / partyAspectRatio
 

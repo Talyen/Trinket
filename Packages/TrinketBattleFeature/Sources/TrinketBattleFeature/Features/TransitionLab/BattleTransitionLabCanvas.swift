@@ -61,7 +61,10 @@ struct BattleTransitionLabCanvas: View {
             let isPad = BattleHandLayout.usesPadSizing
             let handFrame = BattleHandLayout.frame(in: geometry.size, isPad: isPad)
             let battlefieldSize = BattleHandLayout.battlefieldSize(in: geometry.size, isPad: isPad)
-            let layout = BattleCardGridLayout.metrics(in: battlefieldSize, scale: isPad ? 1 : BattleCardGridLayout.combatantScale)
+            let layout = BattleCardGridLayout.metrics(
+                in: battlefieldSize,
+                scale: BattleCardGridLayout.scale(in: geometry.size, isPad: isPad),
+            )
             ZStack(alignment: .bottom) {
                 BattlefieldView(
                     layout: layout,
