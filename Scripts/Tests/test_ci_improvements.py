@@ -472,6 +472,7 @@ class CIImprovementsTests(unittest.TestCase):
         # Exercise dispatcher defaults independently of the runner's selected backend.
         routing_env = {key: value for key, value in os.environ.items()
                        if key not in {'TRINKET_CI_NATIVE_PACKAGES', 'TRINKET_CI_NATIVE_LOGIC',
+                                      'TRINKET_CI_SIMULATOR_AVAILABLE', 'TRINKET_CI_ADAPTIVE',
                                       'NATIVE_STATUS', 'IOS_STATUS'}}
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

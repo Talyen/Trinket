@@ -6,9 +6,11 @@ mode="${1:-}"
 coverage_check="${2:-profiles}"
 case "$mode:$coverage_check" in
   compact:profiles|tablet26:profiles|tablet:profiles|duo:profiles|compact:reward-return|tablet:reward-return|duo:rotation)
-    selector="$(python3 Scripts/coverage_profiles.py definition --name "$mode")"
-    IFS=$'\t' read -r TRINKET_SIM_DEVICE_TYPE TRINKET_SIM_OS_MAJOR <<< "$selector"
-    export TRINKET_SIM_DEVICE_TYPE TRINKET_SIM_OS_MAJOR
+    if [[ "${GITHUB_ACTIONS:-}" != true || "${TRINKET_CI_ADAPTIVE:-}" != 1 ]]; then
+      selector="$(python3 Scripts/coverage_profiles.py definition --name "$mode")"
+      IFS=$'\t' read -r TRINKET_SIM_DEVICE_TYPE TRINKET_SIM_OS_MAJOR <<< "$selector"
+      export TRINKET_SIM_DEVICE_TYPE TRINKET_SIM_OS_MAJOR
+    fi
     ;;
   soak:profiles) ;;
   *) echo 'Usage: ./Scripts/player-coverage.sh compact|tablet26|tablet|duo|soak [profiles|reward-return|rotation]' >&2; exit 2 ;;

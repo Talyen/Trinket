@@ -218,7 +218,7 @@ xcode_runner_run --quiet --label unit --result-bundle "$XCODE_RUNNER_RESULT_BUND
         for name, following in (('exhaustive-ui', 'diff-review'),):
             with self.subTest(job=name):
                 consumer = workflow.split(f'  {name}:\n', 1)[1].split(f'  {following}:\n', 1)[0]
-                self.assertIn("rebuild-command: 'false'", consumer)
+                self.assertIn("rebuild-command: './Scripts/build-for-testing.sh --reuse --app-only'", consumer)
                 self.assertRegex(consumer, r'uses: \./\.github/actions/setup-trinket\n(?:\s+if:.*\n)?\s+with:\n(?:\s+#.*\n)*\s+metal: \'true\'')
 
     def test_full_ui_uses_ready_products_after_smoke_failure_without_masking_it(self):

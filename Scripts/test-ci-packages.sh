@@ -35,6 +35,10 @@ status=0
 if (( ${#native[@]} )); then
   ./Scripts/test-package-host.sh "${native[@]}" || status=$?
 fi
+if (( ${#ios[@]} )) && [[ "${GITHUB_ACTIONS:-}" == true && "${TRINKET_CI_SIMULATOR_AVAILABLE:-}" == false ]]; then
+  python3 Scripts/ci-test-capability.py --scope "ios-packages:${ios[*]}" --unavailable 'No compatible installed iOS simulator was prepared.'
+  exit "$status"
+fi
 # Purchase cancellation contracts have a deliberate one-minute limit. Run them
 # separately from heavy MainActor save/career tests, retaining both disjoint sets.
 regular_ios=()

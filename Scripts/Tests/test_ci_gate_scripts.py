@@ -177,6 +177,20 @@ trinket_run_full_gate
         self.assertRegex(text, r"diff-review:\n(?:.*\n){0,8}    continue-on-error: true")
         self.assertNotRegex(text, r"ci-ok:\n(?:.*\n)*?needs:.*diff-review")
 
+    def test_adaptive_exhaustive_report_accepts_only_explicit_capability_gaps(self):
+        with tempfile.TemporaryDirectory() as directory:
+            jobs = Path(directory) / 'jobs.json'
+            job = dict(name='tests / Exhaustive UI (All)', conclusion='success', status='completed',
+                       html_url='https://example.com/job',
+                       steps=[dict(name='Record assessed exhaustive coverage', conclusion='success')])
+            for conclusion, expected in [('success', 0), ('failure', 1), ('cancelled', 1)]:
+                write_json(jobs, [dict(jobs=[{**job, 'conclusion': conclusion}])])
+                result = run_captured(['python3', str(ROOT / 'Scripts/report-exhaustive-ci.py'), str(jobs),
+                                       '--require-execution', '--allow-unavailable'])
+                self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+                if conclusion == 'success':
+                    self.assertIn('partial / unavailable', result.stdout)
+
     def test_artifact_consumers_defer_run_env_cleanup(self) -> None:
         performance = (ROOT / "Scripts" / "performance.sh").read_text(encoding="utf-8")
         self.assertIn(

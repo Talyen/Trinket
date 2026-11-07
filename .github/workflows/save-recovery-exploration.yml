@@ -41,12 +41,19 @@ jobs:
       - uses: ./.github/actions/setup-trinket
         with:
           xcode-channel: verified
+      - uses: ./.github/actions/setup-functional-ui
       - name: Run generated cases
+        id: generated
+        shell: bash
+        run: python3 Scripts/ci-test-capability.py --scope generated-save --requires-simulator -- ./Scripts/test-package.sh --only-suite GeneratedSaveRecoveryTests TrinketPersistence
+      - name: Run Voyage replay cases
+        id: voyage
+        shell: bash
+        run: python3 Scripts/ci-test-capability.py --scope voyage-replay --requires-simulator -- ./Scripts/test-package.sh --only-suite CloudVoyageActionReplayTests TrinketPersistence
+      - name: Verify generated case counts
+        if: steps.generated.outputs.executed == 'true' && steps.voyage.outputs.executed == 'true'
         shell: bash
         run: |
-          set -euo pipefail
-          python3 Scripts/ci-run-budget.py -- ./Scripts/test-package.sh --only-suite GeneratedSaveRecoveryTests TrinketPersistence
-          python3 Scripts/ci-run-budget.py -- ./Scripts/test-package.sh --only-suite CloudVoyageActionReplayTests TrinketPersistence
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -68,7 +75,9 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           name: generated-save-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .DerivedData/GeneratedSaveResults/
+          path: |
+            .DerivedData/GeneratedSaveResults/
+            .DerivedData/CICoverage/
           include-hidden-files: true
           retention-days: 14
           if-no-files-found: warn

@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 import json
+import io
 import os
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
-from contextlib import contextmanager
+from contextlib import contextmanager, redirect_stdout
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -19,6 +20,9 @@ MODULE = load_script('coverage_profiles', 'coverage_profiles.py')
 
 class PlayerCoverageTests(unittest.TestCase):
     def setUp(self):
+        environment = patch.dict(os.environ, {'GITHUB_ACTIONS': 'false'})
+        environment.start()
+        self.addCleanup(environment.stop)
         components = patch.object(MODULE, 'prepare_components')
         components.start()
         self.addCleanup(components.stop)
@@ -60,6 +64,30 @@ class PlayerCoverageTests(unittest.TestCase):
             with self.assertRaises(subprocess.TimeoutExpired):
                 MODULE.simctl('ui', 'owned', 'content_size', 'large')
             query.assert_called_once()
+
+    def test_hosted_missing_runtime_does_not_start_a_download(self):
+        with patch.dict(os.environ, {'GITHUB_ACTIONS': 'true'}), \
+                patch.object(MODULE, 'simctl', side_effect=[json.dumps({'devicetypes': [dict(identifier='phone')]}),
+                                                           json.dumps({'runtimes': []})]), \
+                patch.object(MODULE.subprocess, 'run') as download, \
+                self.assertRaises(MODULE.CapabilityUnavailable):
+            MODULE.prepare_runtime('phone', 26)
+        download.assert_not_called()
+
+    def test_hosted_resolution_reuses_a_runner_device_and_keeps_id_stdout_clean(self):
+        runtime = dict(identifier='ios-26', version='26.2', platform='iOS', isAvailable=True, buildversion='23C54')
+        inventory = [json.dumps(dict(runtimes=[runtime])), json.dumps(dict(devicetypes=[dict(identifier='phone')])),
+                     json.dumps(dict(devices={'ios-26': [dict(udid='stock', name='Stock iPhone',
+                                                             deviceTypeIdentifier='phone', state='Booted')]}))]
+        output = io.StringIO()
+        with patch.dict(os.environ, GITHUB_ACTIONS='true', TRINKET_SIM_DEVICE_TYPE='phone',
+                        TRINKET_SIM_OS_MAJOR='26', TRINKET_SIM_OS_VERSION='26.2', TRINKET_SIM_OS_BUILD='23C54'), \
+                patch.object(MODULE, 'simctl', side_effect=inventory), \
+                patch.object(MODULE.subprocess, 'run') as rename, redirect_stdout(output):
+            MODULE.resolve('Trinket Agent 1')
+        self.assertEqual(output.getvalue(), 'phone\tios-26\tstock\n')
+        rename.assert_called_once_with(['xcrun', 'simctl', 'rename', 'stock', 'Trinket Agent 1'],
+                                       check=True, timeout=30, stdout=sys.stderr)
 
     def test_explicit_runtime_and_device_requests_never_fall_back(self):
         runtimes = [dict(identifier=f'ios-{version}', version=version, platform='iOS', isAvailable=True)
@@ -381,11 +409,10 @@ trinket_run_env_install_self_clean() { :; }
         expected = {'compact': ('iPhone-SE-3rd-generation', 26), 'tablet26': ('iPad-A16', 26),
                     'tablet': ('iPad-A16', 27), 'duo': ('iPhone-Duo', 27)}
         entries = [dict(profile=name, check='reward-return') for name in ('compact', 'tablet')]
-        entries += [dict(profile=name, check='profiles') for name in expected]
-        entries.append(dict(profile='duo', check='rotation'))
+        entries += [dict(profile=name, check='profiles') for name in ('compact', 'tablet')]
         for scope in ('profiles', 'all'):
             self.assertEqual(MODULE.coverage_matrix(scope), dict(include=entries))
-        self.assertEqual(MODULE.coverage_matrix('rotation'), dict(include=[entries[-1]]))
+        self.assertEqual(MODULE.coverage_matrix('rotation'), dict(include=[dict(profile='duo', check='rotation')]))
         with self.assertRaises(ValueError):
             MODULE.coverage_matrix('unknown')
         self.assertIn('needs: plan', profiles)
@@ -399,9 +426,9 @@ trinket_run_env_install_self_clean() { :; }
         })
         self.assertNotIn('for profile in', profiles)
         self.assertIn('PROFILE: ${{ matrix.profile }}', profiles)
-        self.assertIn('Scripts/ci-run-budget.py --phase player-profile-prerequisite -- '
+        self.assertIn('Scripts/ci-test-capability.py --scope "prepare-$PROFILE" -- '
                       'python3 Scripts/coverage_profiles.py prepare --name "$PROFILE"', profiles)
-        self.assertIn('Scripts/ci-run-budget.py --phase player-profile -- ./Scripts/player-coverage.sh "$PROFILE" "$COVERAGE_CHECK"', profiles)
+        self.assertIn('Scripts/ci-test-capability.py --scope "$PROFILE-$COVERAGE_CHECK" --requires-simulator -- ./Scripts/player-coverage.sh "$PROFILE" "$COVERAGE_CHECK"', profiles)
         self.assertIn('player-${{ matrix.check }}-${{ matrix.profile }}-${{ github.run_id }}-${{ github.run_attempt }}', profiles)
 
     def test_player_upload_retries_only_the_artifact_transfer(self):

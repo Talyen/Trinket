@@ -15,6 +15,7 @@ import uuid
 from internal.cli import ROOT, load_sibling, primary_worktree_root, write_json_atomic
 from internal.deploy_cache import Inputs, PhaseCache
 from internal.ui_registration import registrations
+from internal.ci_capabilities import available_ui_selectors, record_coverage, unavailable_failure
 
 BUILD = load_sibling('deploy_build_metadata', 'build-metadata.py')
 REUSE = load_sibling('deploy_ci_reuse', 'ci-reuse.py')
@@ -88,9 +89,9 @@ def beta_ci_status(repository, commit, branch):
     if latest.get('tests / CI OK', {}).get('conclusion') != 'success':
         raise ValueError('Green workflow has no successful CI OK gate; refusing release proof.')
     build = latest.get('tests / Build and smoke UI', {})
-    result['smoke'] = build.get('conclusion') == 'success' and any(
-        step.get('name') == 'Run smoke on the build runner' and step.get('conclusion') == 'success'
-        for step in build.get('steps', []))
+    result['smoke'] = build.get('conclusion') == 'success' and all(any(
+        step.get('name') == name and step.get('conclusion') == 'success'
+        for step in build.get('steps', [])) for name in ('Run smoke on the build runner', 'Record completed Smoke execution'))
     return result
 
 
@@ -109,9 +110,11 @@ def full_ui_ci_status(repository, commit, branch):
         job = max(jobs, key=lambda item: int(item['id']))
         steps = {step['name']: step.get('conclusion') for step in job.get('steps', [])}
         passed = run.get('conclusion') == 'success' and job.get('conclusion') == 'success' and all(
-            steps.get(name) == 'success' for name in ('Read exhaustive test classes', 'Run ./.github/actions/test-job'))
+            steps.get(name) == 'success' for name in ('Read exhaustive test classes', 'Run ./.github/actions/test-job',
+                                                     'Record assessed exhaustive coverage'))
         return dict(status=run['status'], conclusion='success' if passed else job.get('conclusion'),
-                    passed=passed, run_id=run['id'], job_id=job['id'])
+                    passed=passed, coverage_complete=steps.get('Record completed exhaustive execution') == 'success',
+                    run_id=run['id'], job_id=job['id'])
     return dict(status='missing', passed=False)
 
 
@@ -182,6 +185,13 @@ def verify_hosted_beta(args, verification, identity):
         classes = {name for name in early if '/' not in name}
         targets = list(dict.fromkeys(early + [name for name in targets if name.split('/')[0] not in classes]))
         targets = [name for name in targets if '/' not in name or name.split('/')[0] not in classes]
+        if verification.adaptive:
+            targets, deferred = available_ui_selectors(targets, identity['profile'], UI_RESULTS.expected_cases)
+            verification.defer(deferred, 'storekit-denial-unqualified',
+                               'The installed runtime lacks qualified StoreKit denial-service behavior.')
+            if identity['profile'].get('unavailable'):
+                verification.defer(targets, 'runner-unavailable', 'No installed compatible simulator was available.')
+                targets = []
         print(f'Early changed/failed/Smoke UI selectors: {len(early)}', flush=True)
         for name in targets:
             verification.reuse(f'ui:{name}')
@@ -223,7 +233,7 @@ def hosted_release_status(repository, commit, branch):
         jobs = [job for page in pages for job in page.get('jobs', [])]
         qualified = [job for job in jobs if job.get('name') == 'Qualified release journeys']
         if len(qualified) != 1 or qualified[0].get('conclusion') != 'success' or not any(
-                step.get('name') == 'Verify all critical journeys on iOS 26.2'
+                step.get('name') in ('Verify all critical journeys on iOS 26.2', 'Verify available critical journeys')
                 and step.get('conclusion') == 'success' for step in qualified[0].get('steps', [])):
             raise ValueError('Hosted release run lacks successful qualified journey evidence.')
     return result
@@ -267,6 +277,29 @@ def validate_release_receipt(saved, identity):
     actual = saved['identity']
     if not isinstance(actual.get('build'), dict):
         raise ValueError('Hosted release proof lacks build identity.')
+    if saved.get('schema') == 2:
+        if (saved.get('coverage_policy') != 'runner-available-v1'
+                or actual['build'].get('commit') != identity['build'].get('commit')):
+            raise ValueError('Adaptive hosted evidence has a different source commit or coverage policy.')
+        if any(not actual['build'].get(key) for key in ('xcode', 'sdk', 'sdk_version', 'sdk_build', 'host_architecture')):
+            raise ValueError('Adaptive hosted evidence lacks its actual toolchain identity.')
+        profile = actual.get('profile', {})
+        version = str(profile.get('version', '')).split('.')[0]
+        if not profile.get('unavailable') and (not version.isdigit() or int(version) < 26 or not profile.get('build')):
+            raise ValueError('Adaptive hosted evidence lacks its actual iOS 26+ runtime identity.')
+        completed, gaps = saved.get('completed'), saved.get('coverage_gaps')
+        if not isinstance(completed, dict) or not isinstance(gaps, dict) or any(
+                not isinstance(gap, dict) or gap.get('kind') not in ('runner-unavailable', 'storekit-denial-unqualified')
+                or not gap.get('reason') for gap in gaps.values()):
+            raise ValueError('Adaptive hosted coverage is malformed.')
+        if any(gap['kind'] == 'storekit-denial-unqualified' and selector != f'ui:{CRITICAL_CASES["purchase"]}'
+               for selector, gap in gaps.items()):
+            raise ValueError('A StoreKit denial capability gap cannot replace another journey.')
+        requested = [*required_smoke_classes(), *CRITICAL_CASES.values()]
+        if any(f'ui:{case}' not in completed and f'ui:{case.split("/")[0]}' not in completed
+               and f'ui:{case}' not in gaps and f'ui:{case.split("/")[0]}' not in gaps for case in requested):
+            raise ValueError('Adaptive hosted evidence has unaccounted critical coverage.')
+        return
     required = ('commit', 'xcode', 'sdk', 'sdk_version', 'sdk_build', 'host_architecture')
     if saved.get('schema') != 1 or any(actual.get('build', {}).get(key) != identity['build'].get(key) for key in required):
         raise ValueError('Hosted release proof has a different commit, toolchain, SDK, or architecture.')
@@ -297,14 +330,20 @@ def verify_beta(args, verification, identity):
     if not args.ci_only:
         status = wait_for_release_ci(identity['build']['commit'])
         proof = release_receipt(status, identity)
-        verification.phase('hosted-focused', [], {'github': status, 'identity': proof['identity'], 'qualified_smoke': True})
+        if verification.adaptive:
+            verification.gaps = dict(proof.get('coverage_gaps', {}))
+            verification.completed.pop('hosted-focused', None)
+        smoke_complete = all(f'ui:{name}' in proof['completed'] for name in required_smoke_classes())
+        verification.phase('hosted-focused', [], {'github': status, 'identity': proof['identity'],
+                                                 'qualified_smoke': smoke_complete, 'coverage_gaps': proof.get('coverage_gaps', {})})
     if not args.focused_only:
         status = wait_for_beta_ci(identity['build']['commit'])
         qualified = verification.completed.get('hosted-focused', {}).get('evidence', {}).get('qualified_smoke') is True
-        if not status['smoke'] and not qualified:
+        if not status['smoke'] and not qualified and not verification.adaptive:
             raise ValueError('Exact-commit CI and qualified proof lack Smoke coverage; local fallback is disabled.')
         verification.phase('ci', [], {'github': status})
-        verification.phase('smoke', [], {'github': status, 'qualified_hosted_smoke': qualified})
+        verification.phase('hosted-smoke-assessment' if verification.adaptive else 'smoke', [],
+                           {'github': status, 'qualified_hosted_smoke': qualified})
     if getattr(args, 'require_full_ui', False):
         status = require_hosted_full_ui(identity['build']['commit'])
         verification.phase('hosted-full-ui', [], {'github': status})
@@ -356,20 +395,33 @@ def verify_ui_runtime(manifest_path, expected_build):
 
 
 class Verification:
-    def __init__(self, state, identity, reusable, execute=None, cache=None):
+    def __init__(self, state, identity, reusable, execute=None, cache=None, adaptive=False):
         self.state, self.identity, self.reusable = state, identity, reusable
         self.cache = cache if reusable else None
         self.execute = execute or subprocess.run
         self.completed = {}
+        self.adaptive, self.gaps, self.runtime_unavailable = adaptive, {}, False
         if reusable and state.is_file():
             saved = json.loads(state.read_text())
-            if saved.get('identity') == identity and saved.get('schema') == 1:
+            if saved.get('identity') == identity and saved.get('schema') == (2 if adaptive else 1):
                 self.completed = saved.get('completed', {})
+                self.gaps = saved.get('coverage_gaps', {})
 
     def save(self):
         if self.reusable:
             self.state.parent.mkdir(parents=True, exist_ok=True)
-            write_json_atomic(self.state, dict(schema=1, identity=self.identity, completed=self.completed))
+            payload = dict(schema=2 if self.adaptive else 1, identity=self.identity, completed=self.completed)
+            if self.adaptive:
+                payload.update(coverage_policy='runner-available-v1', coverage_gaps=self.gaps)
+            write_json_atomic(self.state, payload)
+
+    def defer(self, selectors, kind, reason):
+        if not selectors:
+            return
+        for selector in selectors:
+            self.gaps[f'ui:{selector}'] = dict(kind=kind, reason=reason)
+        self.save()
+        record_coverage('release-journeys', 'unavailable', reason, details={'selectors': selectors})
 
     def reuse(self, name):
         if name not in self.completed and self.cache:
@@ -386,6 +438,9 @@ class Verification:
         pending = [selector for selector in selectors if f'ui:{selector}' not in self.completed]
         if not pending:
             return
+        if self.adaptive and self.runtime_unavailable:
+            self.defer(pending, 'runner-unavailable', 'The runner simulator failed earlier in this portfolio.')
+            return
         root = self.cache.inputs.root if self.cache else ROOT
         expected = {selector: UI_RESULTS.expected_cases([selector], root / 'TrinketUITests') for selector in pending}
         if any(not cases for cases in expected.values()):
@@ -394,9 +449,12 @@ class Verification:
         session = 'release-ui-' + uuid.uuid4().hex
         results = Path(os.environ.get('RESULTS_DIR', '.DerivedData/TestResults')).resolve()
         before = set(results.glob('*-invocation.json'))
+        before_times = {path: path.stat().st_mtime_ns for path in results.rglob('*-invocation.json')}
         failures = {selector: self.cache.read(self.cache.path(f'ui:{selector}', '-failed'))
                     for selector in pending} if self.cache else {}
         command = ['./Scripts/test.sh', mode, '--no-build', *pending]
+        if self.adaptive:
+            command = ['python3', 'Scripts/ci-run-budget.py', '--', *command]
         started = time.monotonic()
         error = None
         passed = set()
@@ -442,6 +500,10 @@ class Verification:
                 self.cache.failed(name)
         print(f'{mode} batch: {len(passed)}/{len(pending)} selectors passed ({elapsed}s)', flush=True)
         if error is not None:
+            if self.adaptive and (reason := unavailable_failure(results, before_times)):
+                self.runtime_unavailable = True
+                self.defer([selector for selector in pending if selector not in passed], 'runner-unavailable', reason)
+                return
             raise error
 
     def phase(self, name, command, evidence=None):
@@ -471,6 +533,7 @@ class Verification:
         if self.reusable and capture('git', 'rev-parse', 'HEAD') != self.identity['build']['commit']:
             raise ValueError('Source commit changed during verification.')
         self.completed[name] = dict(seconds=round(time.monotonic() - started, 2), evidence=evidence or 'local')
+        self.gaps.pop(name, None)
         if self.cache and evidence is None:
             self.cache.passed(name, dict(**self.completed[name], commit=self.identity['build']['commit']), failure)
         self.save()
@@ -512,16 +575,20 @@ def main():
         parser.error('Phase selection requires --mode beta')
     if args.mode == 'hosted-beta' and os.environ.get('GITHUB_ACTIONS') != 'true':
         raise ValueError('hosted-beta is restricted to GitHub Actions; beta consumes hosted evidence locally.')
-    selected = dict(QUALIFIED_PROFILE) if args.mode == 'beta' else profile()
-    if args.mode == 'hosted-beta' and selected != QUALIFIED_PROFILE:
-        raise ValueError(f'Hosted beta requires the qualified simulator profile {QUALIFIED_PROFILE}; found {selected}.')
+    selected = (dict(selection='runner-available') if args.mode == 'beta' else
+                dict(selection='runner-available', unavailable=True)
+                if args.mode == 'hosted-beta' and os.environ.get('TRINKET_CI_SIMULATOR_AVAILABLE') == 'false' else profile())
+    if args.mode == 'hosted-beta' and not selected.get('unavailable'):
+        version = str(selected.get('version', '')).split('.')[0]
+        if not version.isdigit() or int(version) < 26 or not selected.get('build'):
+            raise ValueError('Hosted beta requires an installed iOS 26+ runtime with build identity.')
     # The beta client does not query or install local simulator runtimes.
     if args.preflight:
         return
     identity = dict(build=BUILD.identity(), profile=selected, root=str(ROOT))
     clean = not capture('git', 'status', '--porcelain', '--untracked-files=all')
     state = Path(os.environ.get('TRINKET_DEPLOY_VERIFICATION_STATE', ROOT / '.DerivedData/deploy-verification.json'))
-    verification = Verification(state, identity, clean)
+    verification = Verification(state, identity, clean, adaptive=args.mode in ('beta', 'hosted-beta'))
     if args.mode in ('beta', 'hosted-beta') and not args.compile_only:
         if not clean:
             raise ValueError('Beta verification requires a clean committed checkout.')

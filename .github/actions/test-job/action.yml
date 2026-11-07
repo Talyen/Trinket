@@ -27,6 +27,17 @@ inputs:
     description: Optional prefix for the within-run build artifact name
     required: false
     default: ''
+  requires-simulator:
+    description: Skip execution with a coverage gap when simulator preparation was unavailable
+    default: 'true'
+
+outputs:
+  executed:
+    description: The complete requested scope executed successfully
+    value: ${{ steps.execution.outputs.executed }}
+  coverage-status:
+    description: Passed, partial, unavailable, or failed actual coverage
+    value: ${{ steps.execution.outputs.coverage-status }}
 
 runs:
   using: composite
@@ -60,24 +71,29 @@ runs:
         ./Scripts/restore-ci-test-products.sh "${restore_args[@]}" -- ${{ inputs.rebuild-command }}
 
     - name: Run tests
+      id: execution
       shell: bash
       env:
         SKIP_GENERATE: 1
         CI: true
         TRINKET_CLEANUP_TEST_ARTIFACTS: 0
+        COVERAGE_SCOPE: ${{ inputs.artifact-name }}
+        REQUIRES_SIMULATOR: ${{ inputs.requires-simulator }}
       run: |
         # The test wrapper is the sole simulator preparation/recovery owner.
         # UI recovery keeps completed cases and retries only classified launch
         # failures. Other commands pass through unchanged.
-        python3 Scripts/ci-run-budget.py -- python3 Scripts/ci_ui_retry.py ${{ inputs.command }}
+        capability_args=()
+        if [[ "$REQUIRES_SIMULATOR" == true ]]; then capability_args+=(--requires-simulator); fi
+        python3 Scripts/ci-test-capability.py --scope "$COVERAGE_SCOPE" "${capability_args[@]}" -- python3 Scripts/ci_ui_retry.py ${{ inputs.command }}
 
     - name: Export localization screenshots and accessibility hierarchies
-      if: always() && contains(inputs.command, 'LocalizationUITests')
+      if: always() && steps.execution.outputs.ready == 'true' && contains(inputs.command, 'LocalizationUITests')
       shell: bash
       run: python3 Scripts/export-localization-screenshots.py .DerivedData/TestResults .DerivedData/LocalizationScreenshots
 
     - name: Retain localization screenshots for agent visual review
-      if: always() && contains(inputs.command, 'LocalizationUITests')
+      if: always() && steps.execution.outputs.ready == 'true' && contains(inputs.command, 'LocalizationUITests')
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
       with:
         name: ${{ inputs.artifact-prefix }}${{ inputs.artifact-name }}-localization-${{ github.run_id }}-${{ github.run_attempt }}
@@ -112,6 +128,7 @@ runs:
           .DerivedData/TestResults-artifact/timing-log.jsonl
           .DerivedData/TestResults-artifact/phase-timing.jsonl
           .DerivedData/TestResults-artifact/ci-diagnostics.json
+          .DerivedData/CICoverage/
         retention-days: 14
         if-no-files-found: ignore
 

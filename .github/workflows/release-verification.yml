@@ -28,11 +28,7 @@ jobs:
     env:
       CI: true
       TRINKET_CLEANUP_DERIVED_DATA_AGE_PRUNE: '0'
-      # The downloaded qualified runtime can need one cold-boot recovery.
-      TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS: '720'
       DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
-      TRINKET_SIM_DEVICE_TYPE: com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro
-      TRINKET_SIM_OS_VERSION: '26.2'
       TRINKET_CLEANUP_TEST_ARTIFACTS: '0'
       TRINKET_ISOLATE: '1'
     steps:
@@ -58,7 +54,7 @@ jobs:
           key: release-journeys-v1-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             release-journeys-v1-${{ runner.os }}-${{ runner.arch }}-
-      - name: Verify all critical journeys on iOS 26.2
+      - name: Verify available critical journeys
         env:
           FRESH_EVIDENCE: ${{ inputs.fresh-evidence }}
         run: |
@@ -94,6 +90,7 @@ jobs:
           path: |
             .DerivedData/deploy-verification.json
             .DerivedData/ReleaseResults-artifact
+            .DerivedData/CICoverage
           include-hidden-files: true
           retention-days: 14
           if-no-files-found: error

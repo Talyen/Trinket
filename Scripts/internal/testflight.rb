@@ -466,7 +466,7 @@ module TrinketTestFlight
       opts.on('--config FILE', 'Local JSON (default ~/.config/trinket/testflight.json)') { |value| options[:config] = value }
       opts.on('--notes FILE', 'UTF-8 What to Test notes, at most 4000 characters') { |value| options[:notes] = File.expand_path(value) }
       opts.on('--cloud-sync YES|NO', %w[YES NO], 'Explicit override; YES requires CloudKit readiness gates') { |value| options[:cloud] = value }
-      opts.on('--full-ui', 'Require the complete FullUI portfolio for this pre-release candidate') { options[:full_ui] = true }
+      opts.on('--full-ui', 'Require an exact-source hosted FullUI assessment with explicit coverage gaps') { options[:full_ui] = true }
       opts.on('--timeout SECONDS', Integer, 'Processing/distribution timeout (default 1800)') { |value| options[:timeout] = value }
       opts.on('-h', '--help') { puts opts; return 0 }
     end

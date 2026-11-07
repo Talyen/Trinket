@@ -23,14 +23,12 @@ Apple-service readiness.
 | Account change during fetch and offline/retry behavior | `CloudSaveSyncTests`, isolated transport | Persistence package checks |
 | Process exit before/after settlement and after remote commit before acknowledgement | `PlaythroughSweepTests`, `CloudProcessRecovery`, playthrough runner | Weekly/manual crash proof |
 
-Required functional Smoke, exhaustive FullUI and exact-build diagnostics all use
-the qualified iPhone 17 Pro / iOS 26.2 (23C54) baseline. Required purchase smoke
-checks a real Options purchase and unlocked access; FullUI retains the complete
-campaign/purchase/recruited-Warlock/battle journey and every recovery case.
-Exhaustive UI runs independently of compilation/smoke using exact-commit products.
-Native settings profiles cover additional OS and device combinations. The known
-iOS 27 local StoreKit denial defect must not be worked around by granting or filtering signed
-ownership, or by dropping the denial/retry assertions; see
+Functional Smoke and FullUI use compatible installed iOS 26+ environments,
+with exact source identities and actual runtime/toolchain receipts. Missing runner
+capabilities become explicit coverage gaps. Ordinary purchase Smoke and the
+purchase, approval, restore and refund methods remain selected. Only the known
+StoreKit denial-service case is deferred outside its qualified runtime; its
+assertions and shipping entitlement handling remain intact. See
 [StoreKit qualification](Release.md#testflight-troubleshooting).
 
 Existing BattleFeature tests retain draw-followup, overlapping-cast, finishing-tap,
@@ -47,8 +45,8 @@ verified toolchain by default. Hosted simulator coverage starts at iOS and iPadO
 complete native audit matrix, and the separate weekly run owns soak/recovery.
 Manual dispatch selects profiles, soak, all, or the single Duo rotation journey.
 The optional latest toolchain selects a diagnostic candidate without qualifying
-it for ordinary CI or release. A requested job must succeed for
-its coverage aggregate to pass. CI OK remains independent of the player coverage
+it for ordinary CI or release. A requested job must either execute successfully or report an explicit capability
+gap; real assertions and unknown failures still fail its aggregate. CI OK remains independent of the player coverage
 and FullUI aggregates.
 
 [Verification](Verification.md#execution-limits) owns local authorization, selectors
@@ -66,25 +64,22 @@ following commands select hosted portfolios:
 ./Scripts/player-coverage.sh soak
 ```
 
-Profiles cover iPhone SE third generation on iOS 26, iPad A16 (eleventh generation)
-on iPadOS 26 and 27, and iPhone Duo on iOS 27.1 or later in that major. Missing or
-incompatible devices, runtimes or native settings fail the requested profile.
-Within a requested major, selection uses the newest installed runtime compatible
-with that device; exact OS-version and build requests remain exact. A newer Duo-only
-runtime must not prevent the iPad profile from using its compatible runtime.
-When iOS 26 is missing, provisioning requests build `23C54` (iOS 26.2), matching the
-purchase-qualification runtime. Requesting the semantic version alone can download
-a different build. All functional UI tests pin that build during simulator selection.
-Read-only simulator inventory queries retry one 30-second timeout. Exhausted
-queries still fail; native settings changes are not automatically repeated.
-Simulator identity is recorded after the serial tests and settings restoration,
-so the cold-boot inventory query cannot prevent those tests from starting.
-Missing identity still fails the lane and retains the executed profile receipts.
+The default portfolio prefers a compact iPhone on iOS 26 and an iPad on iPadOS 27,
+with independent reward-return and native-settings journeys. It can substitute a
+compatible installed model or OS at version 26 or later. No runtime download is
+required. Receipts identify substitutions and missing requested coverage. Booted
+and reusable devices are preferred over repeated cold creation; one unavailable
+runtime must not suppress another job.
 
-Reward return, the four native settings profiles, and Duo rotation run as separate
-serial jobs on fresh hosted runners. A stalled CoreSimulator service in one job
-must not prevent another check from running. Settings stay serial within each device, each artifact
-names its profile, and prerequisite failures retain structured diagnostics.
+The duplicate iPadOS 26 settings lane and Duo settings/rotation are omitted from
+the default matrix to reduce runtime and accessibility-tool dependencies. The
+`tablet26`, `duo` and `rotation` selectors remain diagnostic options; rotation
+still requires actual window resizing and card play. Its unsupported automation
+is not an ordinary CI gate. Manual Device Hub verification remains separate.
+
+Read-only inventory queries retry one bounded timeout. Tests record the actual
+simulator identity after settings restoration. Coverage gaps and executed test
+results remain distinct in retained CICoverage and profile artifacts.
 
 Each device exercises native default text, largest accessibility text, and largest
 text with Reduce Motion. Verify those settings actually reach SwiftUI and restore

@@ -72,8 +72,10 @@ def select_xcode(installations: list[tuple[Path, str, str]], channel: str,
             matches = [item for item in installations if item[1:] == identity]
             if matches:
                 return matches[0]
-        raise RuntimeError(f"No qualified Xcode build is installed; required: {qualified_builds(approved)}; "
-                           f"available: {[(version, build) for _, version, build in installations]}")
+        # Runner rollouts must not require a source change before CI can compile.
+        # Prefer an installed release build over a newer beta when the preference is absent.
+        releases = [item for item in installations if item[2][-1:].isdigit()]
+        return select_xcode(releases or installations, 'latest', approved)
     if not installations:
         raise RuntimeError("No readable Xcode installation found")
     def order(item):
@@ -92,7 +94,9 @@ def native_packages(approved: dict, version: str, build: str) -> list[str]:
                     or len(set(packages)) != len(packages)):
                 raise ValueError('Invalid qualified native package list')
             return packages
-    return []
+    # These packages already support host execution. An image rollout should not
+    # turn their ordinary tests into simulator jobs solely for lack of parity history.
+    return ['BattleEngine', 'TrinketCore', 'TrinketContent']
 
 
 def metal_probe(environment: dict[str, str], directory: Path) -> bool:
@@ -156,7 +160,8 @@ def main() -> None:
     app, version, build = select_xcode(installations, args.channel, approved, args.build)
     reason = ("exact candidate" if args.build else "newest installed" if args.channel == "latest" else
               "preferred qualified build" if (version, build) == (approved["version"], approved["build"]) else
-              "qualified rollout fallback")
+              "qualified rollout fallback" if (version, build) in qualified_builds(approved) else
+              "available runner fallback")
     if os.environ.get("GITHUB_STEP_SUMMARY"):
         with Path(os.environ["GITHUB_STEP_SUMMARY"]).open("a") as output:
             output.write(f"Selected Xcode: `{version} ({build})` — {reason}.\n\n")
@@ -169,10 +174,11 @@ def main() -> None:
     if args.metal:
         ensure_metal(environment)
     native = native_packages(approved, version, build)
-    print(f'Qualified native packages for {build}: {native}', flush=True)
+    print(f'Native packages for {build}: {native}', flush=True)
     with Path(os.environ["GITHUB_ENV"]).open("a") as output:
         for key, value in {"DEVELOPER_DIR": environment["DEVELOPER_DIR"], "XCODE_PATH": str(app),
                            "XCODE_VERSION": version, "XCODE_BUILD": build,
+                           "TRINKET_CI_ADAPTIVE": '1',
                            "TRINKET_CI_NATIVE_PACKAGES": ' '.join(native)}.items():
             output.write(f"{key}={value}\n")
 

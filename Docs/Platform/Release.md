@@ -160,28 +160,27 @@ The default beta path requires no local simulator runtime, test build, simulator
 boot, or heavy-local override. Doctor checks Apple access and signing prerequisites.
 
 The deployment command dispatches `release-verification.yml` on the pushed default
-branch commit when no run exists. That workflow installs the qualified iPhone 17
-Pro / iOS 26.2 (23C54) runtime if needed, reuses compatible products or the shared warm
-build cache, and runs qualified Smoke plus purchase denial/retry, durable rewards, battle/background
-lifecycle, navigation, and real audio recovery. Changed functional UI classes
-since the preceding commit and previously failed classes are selected alongside Smoke. The authored
-Smoke/FullUI registry bounds selection; Profiles and Soak are excluded. A selected
-full class covers its critical methods once. These checks protect a critical
-subset, not every FullUI scenario.
+branch commit when no run exists. The workflow selects a compatible installed
+simulator, reuses products or the warm build cache, and attempts Smoke plus
+critical purchase, durable-reward, battle/background, navigation and audio journeys.
+Changed and previously failed functional classes are selected alongside Smoke.
+The authored Smoke/FullUI registry bounds selection; Profiles and Soak are separate.
 
-Upload requires matching exact-commit CI and qualified journey proof. Missing,
-failed, cancelled, expired or incompatible evidence blocks upload; resume retains
-signed artifacts while awaiting CI. Signing credentials remain on the Mac.
+The owner's November 7 CI policy accepts unavailable runner coverage. The hosted
+receipt must account for every critical selector as executed or explicitly
+unavailable and identify its actual toolchain/runtime. It must match the source
+commit; the runner compiler need not match the local signing compiler. Product
+assertions, compiler errors and unknown failures still block. Missing, failed,
+cancelled, expired or malformed assessments block upload; resume retains signed
+artifacts while awaiting CI. Signing credentials remain on the Mac.
 [Verification internals](VerificationInternals.md#testflight-evidence-and-reuse)
 owns proof identity, selector checkpoints and cache mechanics.
 
-FullUI runs nightly and on demand. Use `--full-ui` before an App Store/release
-candidate. It requires successful verified hosted FullUI on the exact source
-commit, alongside qualified journeys and green CI; it never falls back to a local
-suite. Use `test-deploy.sh --mode ui` for an explicitly requested local pass.
-A known relevant FullUI failure still needs triage and resolution before a beta; moving the suite nightly
-does not authorize ignoring a known regression. No UI assertion is relaxed by
-the beta policy.
+FullUI runs nightly and on demand. Use `--full-ui` before an App Store candidate
+to require the exact-source hosted portfolio assessment alongside critical-journey
+assessment and green CI. Capability gaps are retained as gaps, not passed tests;
+known game/save/purchase defects still need resolution. There is no automatic
+local test fallback. Use `test-deploy.sh --mode ui` for an explicitly requested local pass.
 
 The command preserves the marketing version and allocates a build number above
 Apple's existing builds for that version, the project baseline, and retained
@@ -366,16 +365,12 @@ App Store defect. Preserve valid signed entitlements and the denial/retry assert
 Apple's [Ask to Buy contract](https://developer.apple.com/documentation/storekit/testing-ask-to-buy-in-xcode)
 says denial delivers no transaction to the app.
 
-Until requalified, hosted beta proof must record that exact runtime. Bounded local
-diagnostics may select it with an explicit managed runtime/type pair; a newer runtime
-is not automatically qualified. Retain the selected beta/full-release gate.
-Legacy `SKTestTransaction.state` can remain deferred after a correctly resolved denial.
-Detailed qualification runs remain in Git history.
-
-Exhaustive hosted CI routes `FullGamePurchaseUITests` to this runtime. Both FullUI
-phases use one managed simulator slot and the same compiled products; an inline
-run also reuses smoke's slot. Replacing the owned device confirms shutdown before
-booting the purchase runtime.
+CI does not download that runtime solely for this case. On another installed
+build, selector planning records denial simulation as unavailable and runs the
+remaining purchase methods. The denial assertion remains available for an explicit
+qualified-runtime diagnostic or live sandbox acceptance; a CI gap is not live
+purchase proof. Legacy `SKTestTransaction.state` can remain deferred after a
+correctly resolved denial. Detailed qualification evidence remains in Git history.
 
 On iOS 26.2, `setSimulatedError(nil, forAPI: .purchase)` can report nil while the
 server still cancels the next purchase. Use `resetToDefaultState()`, reapply

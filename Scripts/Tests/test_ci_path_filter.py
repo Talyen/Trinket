@@ -115,6 +115,7 @@ class CIPathFilterTests(unittest.TestCase):
         self.assertEqual(select(['Packages/TrinketContent/Sources/TrinketContentTestSupport/Fixture.swift'], graph),
                          self.filter.all_packages() - {'TrinketCore', 'TrinketDesignSystem'})
         for path in ('Scripts/test.sh', 'Scripts/setup-ci-xcode.py', 'Scripts/config/ci-xcode.json',
+                     'Scripts/internal/ci_capabilities.py', 'Scripts/ci-test-capability.py',
                      'Packages/Unknown/Sources/Rule.swift', 'Packages/BattleEngine/Package.swift'):
             self.assertEqual(select([path], graph), self.filter.all_packages())
         self.assertEqual(select(['Packages/TrinketPersistence/Sources/Store.swift'], {}), self.filter.all_packages())
@@ -255,6 +256,8 @@ let package = Package(name: "TrinketCore",
             "Smoke.xctestplan": True,
             "Scripts/test.sh": True,
             "Scripts/setup-ci-xcode.py": True,
+            "Scripts/internal/ci_capabilities.py": True,
+            "Scripts/ci-test-capability.py": True,
             "Scripts/config/ci-xcode.json": True,
             "Scripts/build-freshness.sh": True,
             "Scripts/build-metadata.py": True,

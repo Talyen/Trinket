@@ -90,9 +90,11 @@ class CIEffortTests(unittest.TestCase):
         run = dict(id=10, head_sha='abc', head_branch='main', event='push', status='completed', conclusion='success')
         names = ['tests / CI OK', 'tests / gate / Generate and style', 'tests / Build and smoke UI']
         jobs = [dict(name=name, conclusion='success') for name in names]
-        jobs[-1].update(run_attempt=1, head_sha='abc', steps=[dict(name='Restore warm cache and build', conclusion='success')])
+        jobs[-1].update(run_attempt=1, head_sha='abc', steps=[dict(name='Restore warm cache and build', conclusion='success'),
+                                                          dict(name='Record completed Smoke execution', conclusion='success')])
         jobs += [dict(name=f'tests / Unit tests ({shard})', conclusion='success',
-                      steps=[dict(name=f'Test packages ({" ".join(packages)})', conclusion='success')])
+                      steps=[dict(name=f'Test packages ({" ".join(packages)})', conclusion='success'),
+                             dict(name='Record completed package execution', conclusion='success')])
                  for shard, packages in REUSE.SHARDS.items()]
         return run, jobs, [dict(name='build-derived-data-10-1', expired=False)]
 

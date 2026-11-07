@@ -90,7 +90,7 @@ jobs:
       - name: Prepare requested profile
         env:
           PROFILE: ${{ matrix.profile }}
-        run: python3 Scripts/ci-run-budget.py --phase player-profile-prerequisite -- python3 Scripts/coverage_profiles.py prepare --name "$PROFILE"
+        run: python3 Scripts/ci-test-capability.py --scope "prepare-$PROFILE" -- python3 Scripts/coverage_profiles.py prepare --name "$PROFILE"
       - name: Run requested check
         env:
           PROFILE: ${{ matrix.profile }}
@@ -98,7 +98,7 @@ jobs:
           TRINKET_XCODE_WALL_TIMEOUT_SECONDS: ${{ matrix.check == 'reward-return' && '300' || '' }}
           TRINKET_COVERAGE_NO_BUILD: '1'
           TRINKET_COVERAGE_AUDIT_POLICY: ${{ github.event.schedule == '0 8 * * 1-6' && 'representative' || 'all' }}
-        run: python3 Scripts/ci-run-budget.py --phase player-profile -- ./Scripts/player-coverage.sh "$PROFILE" "$COVERAGE_CHECK"
+        run: python3 Scripts/ci-test-capability.py --scope "$PROFILE-$COVERAGE_CHECK" --requires-simulator -- ./Scripts/player-coverage.sh "$PROFILE" "$COVERAGE_CHECK"
       - name: Stage bounded profile evidence
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
         run: python3 Scripts/coverage_profiles.py stage --results .DerivedData/TestResults --output .DerivedData/ProfileDiagnostics
@@ -110,6 +110,7 @@ jobs:
           path: |
             .DerivedData/PlayerCoverage
             .DerivedData/ProfileDiagnostics
+            .DerivedData/CICoverage
 
   soak:
     name: Weekly repeated play and crash recovery
@@ -144,10 +145,11 @@ jobs:
           metal: 'true'
           xcode-channel: ${{ inputs.toolchain || 'verified' }}
       - uses: ./.github/actions/coverage-products
+      - uses: ./.github/actions/setup-functional-ui
       - name: Serial soak, twenty careers, and interrupted settlement recovery
         env:
           TRINKET_COVERAGE_NO_BUILD: '1'
-        run: ./Scripts/player-coverage.sh soak
+        run: python3 Scripts/ci-test-capability.py --scope soak --requires-simulator -- ./Scripts/player-coverage.sh soak
       - name: Retain raw stores, journals, reports and result bundles
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
         uses: ./.github/actions/player-evidence
@@ -156,6 +158,7 @@ jobs:
           path: |
             .DerivedData/PlayerCoverage
             .DerivedData/TestResults
+            .DerivedData/CICoverage
 
   coverage-status:
     name: Player coverage status (advisory for pushes)

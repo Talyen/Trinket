@@ -6,19 +6,15 @@ when changing or diagnosing the verification machinery.
 
 ## Native pure-logic qualification
 
-Hosted iOS/native qualification gates native activation. Push and standard verified CI run
-`BattleEngine`, `TrinketCore`, and qualified `TrinketContent` natively after that qualification agrees. Persistence
-and State independently verify saves and AppState on iOS, and smoke keeps the real simulator/app path. Native
-execution must complete every independently discovered function and parameterized
-case without skips or issues; a positive aggregate count is insufficient.
-Activation follows the selected build's `native_packages` in
-[ci-xcode.json](../../Scripts/config/ci-xcode.json). Add a package only after exact-build
-qualification succeeds; unqualified fallback builds retain that package's iOS tests.
-DesignSystem's packaged color and contrast checks stay on iOS.
+Ordinary push, manual and nightly CI run portable `BattleEngine`, `TrinketCore`
+and `TrinketContent` tests natively. Known compiler entries may retain a smaller
+native set; newly installed compilers use the portable default. Persistence and
+State verify saves and AppState on available iOS simulators, and Smoke exercises
+the app. Native execution must complete every discovered function and parameterized
+case without skips or issues. DesignSystem color and contrast checks stay on iOS.
 
-Qualification, exhaustive, latest-toolchain and nightly runs keep the full iOS package scopes and compare native
-Engine/Core/Content executed identities, expanded parameterized case counts, and results
-on the same revision. Native comparators run in separate 25-minute hosted jobs,
+The explicit `qualification` diagnostic retains the iOS/native comparison.
+Native comparators run in separate 25-minute hosted jobs,
 with three minutes reserved for diagnostics. The iOS lane transfers compact
 successful execution proof bound to repository, commit, run, attempt, package and
 selected Xcode identity; missing, incomplete or mismatched proof fails comparison.
@@ -31,8 +27,7 @@ Unrelated unit failures do not skip requested parity; those unit failures still 
 Partial reruns must include the producing iOS lanes as well as native comparators;
 an earlier attempt's proof cannot qualify a new attempt.
 Requested parity remains part of `CI OK`. Standard checks reused by an ordinary
-manual follow-up do not request a new comparator; `qualification`, latest-toolchain
-and exhaustive-pilot runs bypass that reuse. The manual
+manual follow-up do not request a new comparator; `qualification` runs bypass that reuse. The manual
 `qualification` scope runs only those three native/iOS comparator lanes; it does not
 establish app, UI, Release, or other-package proof. Qualification mismatches fail
 the run. Structured proof uses the versioned
@@ -57,21 +52,15 @@ job timeout for diagnostic classification and upload. The shorter generation/sty
 gate reserves two minutes. The command supervisor includes simulator
 preparation and serial package work; per-command Xcode watchdogs also cap themselves
 against the remaining deadline, preserving a short manifest-finalization allowance.
-CI allows five minutes per cold boot (local default: 150 seconds). Simulator recovery
-admits another boot only when its full watchdog fits
-within the twelve-minute setup recovery window. This leaves room for an initial
-five-minute timeout, bounded shutdown, and one full erase/boot recovery; the
-downloaded qualified release runtime has demonstrated that recovery path. An
-exhausted window fails before consuming the test budget.
-`bootstatus -b` owns boot and readiness. Preparation rejects its explicit terminal
-migration-failure and stopped-boot results even when the command exits zero. It
-does not query global device inventory just after boot: that service can stall
-while migration settles, and a query timeout must not trigger an erase/reboot cycle.
-After an explicit failed boot, disposable CI may use bounded `scan-and-mount`
-recovery when that device reports a missing runtime profile. Local runs never
-perform that host runtime recovery; a ready simulator is not test execution proof.
-`TRINKET_CI_SIMULATOR_SETUP_WINDOW_SECONDS` selects that admission window. Local recovery
-retains its existing attempts. Timeouts remain failures and emit structured receipts. Supervisors terminate only
+CI allows five minutes for its selected device to boot (local default: 150 seconds).
+Adaptive CI attempts that device once and retains a capability gap if boot fails;
+it does not repeatedly erase a runtime or remount host images. `bootstatus -b`
+owns readiness, using Apple's exit status instead of interpreting console status
+numbers. XCTest establishes the actual launch session; no global inventory query
+follows boot. Local recovery retains its existing attempts.
+`ci-test-capability.py` preserves failures and records proven simulator infrastructure
+as unavailable coverage. Assertions, compiler failures and unknown errors remain
+fatal; a gap is never passed test evidence. Supervisors terminate only
 their own process groups; existing simulator guest/lease cleanup remains in force.
 
 Build/smoke jobs allow 40 minutes. Exhaustive UI runs independently with a
@@ -170,20 +159,14 @@ verification does not substitute for it. Native qualification follows the
 `scope=exhaustive-pilot` to bypass standard reuse and exercise the complete
 portfolio plus independent exhaustive UI. Normal exhaustive dispatches retain standard reuse.
 
-Functional Smoke, exhaustive FullUI and exact-build UI diagnostics prepare the same
-qualified iPhone 17 Pro / iOS 26.2 (23C54) runtime through `ci-ui-profile.py`.
-Preparation validates the exact runtime build and waits for its dyld shared cache
-before exporting the device selection. It uses the supported `simctl runtime
-dyld_shared_cache update` command for that runtime, without forcing regeneration.
-Apple documents [cache readiness as a first-boot workaround](https://developer.apple.com/documentation/xcode-release-notes/xcode-26_1-release-notes);
-this preparation makes cache completion explicit on fresh runners.
-Newly compiled UI tests also reject execution on another build. The preparation
-action stages bounded failure receipts even when tests cannot start. Qualified
-release journeys use this same action and exact runtime profile.
-Compatibility and native settings profiles keep their independent device/OS coverage.
-The baseline avoids the independently reproduced
-[iOS 27 local StoreKit entitlement defect](Release.md#testflight-troubleshooting)
-without changing ownership behavior or dropping denial/retry assertions.
+Functional UI, packages and release journeys select installed compatible iOS 26+
+runtimes through `ci-ui-profile.py`. Selection prefers booted devices, the requested
+OS major, SDK compatibility and reusable instances. It records the actual model,
+OS and build, prepares the dyld cache, and never downloads a runtime in CI.
+Missing prerequisites produce receipts under `.DerivedData/CICoverage`.
+Only the demonstrated [StoreKit denial-service defect](Release.md#testflight-troubleshooting)
+defers that individual case on unqualified builds. Remaining purchase methods and
+ordinary purchase Smoke stay selected; shipping ownership behavior is unchanged.
 
 Required purchase smoke covers a real Options purchase and unlocked access. The
 complete campaign-gate, purchase, recruited Warlock and battle journey remains in
@@ -305,14 +288,13 @@ and acceptance. These mechanics preserve that scope when provisioning or diagnos
 ### Runtime and product preparation
 
 Each profile job prepares the selected runtime's dyld cache before
-boot. Profiles install a compatible runtime when absent using the configured
-download build or minimum version. Use Apple's `arm64` variant on Apple silicon and
-`universal` on Intel; forcing universal can reject an available Apple-silicon release.
-Hosted package tests warm their selected default runtime before creating or
-booting its device. During recovery, a stalled guest process stop cannot consume
+boot. Hosted profiles use installed compatible runtimes; missing versions become coverage gaps.
+Explicit local provisioning retains its architecture-aware download path.
+Hosted package tests use installed-runtime selection before creating or
+booting their device. During recovery, a stalled guest process stop cannot consume
 the host shutdown deadline. Erase and delete still require confirmed shutdown.
-Recheck runtime/device compatibility after preparation; failed provisioning fails
-the requested aggregate while independent device portfolios continue.
+Recheck runtime/device compatibility after preparation. Unavailable CI scope is
+reported separately while independent portfolios continue.
 
 Reuse only compatible exact-commit products. Missing/incompatible products rebuild,
 using warm caches when available. One architecture's products can serve multiple
@@ -373,16 +355,19 @@ on the next candidate. Pending selectors share one invocation per test plan;
 complete passed selectors remain checkpointed if another selector fails.
 Unknown shared helpers invalidate conservatively.
 
-Deployment consumes the exact-commit workflow's successful qualified job and
-proof artifact. Its receipt must match the release commit, Xcode, SDK, host
-architecture, and qualified simulator profile, including runtime build 23C54 for
-iOS 26.2, and cover every critical journey. Runtime build changes invalidate
-cached journey evidence even when the displayed OS version is unchanged.
+Deployment consumes an exact-commit workflow assessment and proof artifact.
+Adaptive schema-two receipts match the release commit, identify the actual runner
+compiler, SDK, architecture and iOS 26+ profile, and account for every critical
+selector as completed or explicitly unavailable. The owner's November 7 policy
+permits these gaps; they do not imply physical-device or live-service acceptance.
+The local signing toolchain need not equal the runner's installed compiler.
+Runtime build changes still invalidate cached journey evidence.
 Before checkpointing a UI batch, its completed xcresult must report that same
 guest OS build; an installed runtime listing alone does not establish execution.
 The standard CI `CI OK` gate must also succeed for that commit. Smoke is
-proven by the complete qualified hosted classes, or an actual standard CI Smoke
-execution; a skipped standard Smoke job does not force unrelated package reruns. Missing, failed, cancelled, unreadable, expired, or mismatched proof
+proven by completed hosted classes or actual standard CI execution. Unavailable
+Smoke remains a gap. Standard reuse requires completed execution markers; a green
+job containing a capability gap cannot certify full coverage. Missing, failed, cancelled, unreadable, expired, or mismatched proof
 blocks upload; there is no automatic local test fallback. Resume retains signed
 artifacts while awaiting CI. Signing keys and App Store Connect credentials stay
 on the Mac; simulator CI needs no Apple distribution credentials.

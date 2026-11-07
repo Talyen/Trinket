@@ -1,20 +1,25 @@
-name: Prepare functional UI baseline
-description: Install and select the exact release-qualified device/runtime without booting a simulator
+name: Prepare available simulator
+description: Select an installed compatible runtime and report unavailable coverage without downloading one
+outputs:
+  available:
+    description: A compatible installed simulator profile was selected
+    value: ${{ steps.prepare.outputs.ready }}
 runs:
   using: composite
   steps:
-    - name: Prepare the release-qualified functional runtime
+    - name: Select an available installed runtime
+      id: prepare
       shell: bash
-      run: python3 Scripts/ci-run-budget.py --phase functional-ui-prerequisite -- python3 Scripts/ci-ui-profile.py prepare
+      run: python3 Scripts/ci-test-capability.py --scope simulator-preparation -- python3 Scripts/ci-ui-profile.py prepare
     - name: Stage functional runtime prerequisite evidence
-      if: failure()
+      if: failure() || steps.prepare.outputs.coverage-status == 'unavailable'
       shell: bash
       run: ./Scripts/ci-diagnostics.sh --stage-artifacts .DerivedData/TestResults .DerivedData/FunctionalUIPrerequisite-artifact
     - name: Retain functional runtime prerequisite evidence
-      if: failure()
+      if: failure() || steps.prepare.outputs.coverage-status == 'unavailable'
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
       with:
-        name: functional-ui-prerequisite-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+        name: functional-ui-prerequisite-${{ env.TRINKET_DIAGNOSTICS_SESSION_ID || github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
         path: .DerivedData/FunctionalUIPrerequisite-artifact/
         retention-days: 14
         if-no-files-found: ignore

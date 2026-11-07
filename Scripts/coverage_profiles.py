@@ -15,6 +15,7 @@ import subprocess
 import sys
 
 from internal.ci_simulator_services import prepare_components, start_device_ui
+from internal.ci_capabilities import CapabilityUnavailable, UNAVAILABLE_MARKER, available_profiles, record_coverage
 
 PROFILES = {
     'compact': ('com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation', 26),
@@ -30,10 +31,9 @@ TEXT_SIZES = ('large', 'accessibility-extra-extra-extra-large')
 
 def coverage_matrix(scope):
     entries = [dict(profile=name, check='reward-return') for name in ('compact', 'tablet')]
-    entries += [dict(profile=name, check='profiles') for name in PROFILES]
-    entries.append(dict(profile='duo', check='rotation'))
+    entries += [dict(profile=name, check='profiles') for name in ('compact', 'tablet')]
     if scope == 'rotation':
-        entries = [entry for entry in entries if entry['check'] == 'rotation']
+        entries = [dict(profile='duo', check='rotation')]
     elif scope not in ('profiles', 'all'):
         raise ValueError(f'unsupported profile matrix scope: {scope}')
     return dict(include=entries)
@@ -145,11 +145,44 @@ def resolve(name):
     devices = json.loads(simctl('list', 'devices', 'available', '-j'))['devices']
     existing = next((item['udid'] for item in devices.get(runtime['identifier'], [])
                      if item.get('name') == name and item.get('deviceTypeIdentifier') == type_id), '')
+    if not existing and os.environ.get('GITHUB_ACTIONS') == 'true':
+        reusable = [item for item in devices.get(runtime['identifier'], [])
+                    if item.get('deviceTypeIdentifier') == type_id and item.get('isAvailable', True)]
+        reusable.sort(key=lambda item: (item.get('state') != 'Booted', item.get('udid', '')))
+        if reusable:
+            existing = reusable[0]['udid']
+            subprocess.run(['xcrun', 'simctl', 'rename', existing, name], check=True, timeout=30, stdout=sys.stderr)
     print('\t'.join((type_id, runtime['identifier'], existing)))
 
 
 def prepare_profile(name):
-    return prepare_runtime(*PROFILES[name])
+    if os.environ.get('GITHUB_ACTIONS') != 'true':
+        return prepare_runtime(*PROFILES[name])
+    prepare_components(dict(os.environ))
+    type_id, major = PROFILES[name]
+    runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
+    types = json.loads(simctl('list', 'devicetypes', '-j'))['devicetypes']
+    devices = json.loads(simctl('list', 'devices', 'available', '-j'))['devices']
+    family = 'Duo' if name == 'duo' else 'iPad' if 'iPad' in type_id else 'iPhone'
+    choices = available_profiles(runtimes, types, devices, family=family, preferred_device=type_id,
+                                 major=major, sdk_version=os.environ.get('XCODE_VERSION', ''))
+    if not choices:
+        raise CapabilityUnavailable(f'No compatible installed {family} runtime at iOS 26 or later.')
+    selected = choices[0]
+    runtime = next(item for item in runtimes if item['identifier'] == selected['runtime']
+                   and item.get('buildversion', '') == selected['build'])
+    if selected['device'] != type_id or int(selected['version'].split('.')[0]) != major:
+        record_coverage(f'requested-profile:{name}', 'unavailable',
+                        f'Requested {type_id} / iOS {major}; using an installed compatible alternative.', details=selected)
+    if path := os.environ.get('GITHUB_ENV'):
+        with Path(path).open('a') as output:
+            for key, value in dict(TRINKET_SIM_DEVICE_TYPE=selected['device'],
+                                   TRINKET_SIM_OS_MAJOR=selected['version'].split('.')[0],
+                                   TRINKET_SIM_OS_VERSION=selected['version'], TRINKET_SIM_OS_BUILD=selected['build'],
+                                   TRINKET_CI_ADAPTIVE='1', TRINKET_CI_SIMULATOR_AVAILABLE='true').items():
+                output.write(f'{key}={value}\n')
+    record_coverage(f'profile-selection:{name}', 'available', details=selected)
+    return runtime
 
 
 def warm_runtime_cache(runtime, *, stdout=None):
@@ -169,6 +202,8 @@ def prepare_runtime(type_id, major, version=None, *, build=None, download_timeou
     except ValueError as error:
         if not str(error).startswith('unavailable iOS '):
             raise
+    if os.environ.get('GITHUB_ACTIONS') == 'true':
+        raise CapabilityUnavailable(f'No compatible installed runtime for {type_id} / iOS {version or major}; CI does not download runtimes.')
     minimum = MINIMUM_RUNTIME_VERSIONS.get(type_id, (major, 0))
     download_build = build or (DEFAULT_DOWNLOAD_BUILDS.get(major) if version is None else None)
     requested = download_build or version or '.'.join(map(str, minimum))
@@ -259,6 +294,13 @@ def main():
     try:
         if args.operation == 'matrix':
             print('matrix=' + json.dumps(coverage_matrix(args.scope), separators=(',', ':')))
+            if os.environ.get('GITHUB_ACTIONS') == 'true' and (summary := os.environ.get('GITHUB_STEP_SUMMARY')):
+                with Path(summary).open('a') as output:
+                    output.write('### Planned player coverage\n\n' +
+                                 ('One on-demand Duo rotation diagnostic.\n' if args.scope == 'rotation' else
+                                  'Available iPhone and iPad reward-return and native-settings journeys. '
+                                  'Duo automation and duplicate iPadOS 26 settings are omitted from the default matrix. '
+                                  'Actual OS/model substitutions and unavailable scope are retained in CICoverage receipts.\n'))
             return 0
         if args.operation == 'stage':
             if not args.results or not args.output:
@@ -282,9 +324,12 @@ def main():
         if not args.output:
             parser.error('run requires --output')
         return run_profiles(args.udid, args.output, args.audit_policy)
-    except SimulatorPrerequisiteTimeout as error:
-        print(f'Player coverage simulator prerequisite timed out: {error}', file=sys.stderr)
-        return 2
+    except (CapabilityUnavailable, SimulatorPrerequisiteTimeout) as error:
+        if path := os.environ.get('GITHUB_ENV'):
+            with Path(path).open('a') as output:
+                output.write('TRINKET_CI_SIMULATOR_AVAILABLE=false\nTRINKET_CI_ADAPTIVE=1\n')
+        print(f'{UNAVAILABLE_MARKER} {error}', file=sys.stderr)
+        return 78
     except (ValueError, KeyError, subprocess.SubprocessError) as error:
         print(f'Coverage prerequisite/cleanup failure: {error}', file=sys.stderr)
         return 2

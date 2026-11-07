@@ -62,6 +62,7 @@ on iOS and iPadOS 26 and 27, and weekly functional soak/recovery. Optional
 [Player coverage](../Docs/Platform/PlayerCoverage.md) owns scenarios, cadence,
 explicit profile prerequisites, and evidence limitations. UI membership is authored
 in `config/ui-tests.tsv`; Profiles and Soak stay outside routine FullUI.
-`ci-ui-profile.py prepare` selects the exact release-qualified functional runtime
-for hosted Smoke, independent FullUI and exact-build diagnostics. Those functional
+`ci-ui-profile.py prepare` selects a compatible installed iOS 26+ runtime without
+a download. `ci-test-capability.py` records unavailable coverage separately from
+real test failures for hosted portfolios. Those functional
 methods have five-minute deadlines; native profiles and Soak retain their own limits.

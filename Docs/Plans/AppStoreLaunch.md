@@ -22,6 +22,27 @@ territories guide candidate preparation.
 
 ## 1. Close the verification failures
 
+The owner approved adapting the entire CI suite to the runner's available
+toolchains, runtimes and working capabilities on November 7, including reduced
+coverage. Prefer installed compatible environments over exact pins or mandatory
+downloads. Record unavailable coverage explicitly; compiler errors, game assertions
+and save/purchase defects still need fixes. A green CI run must identify its
+executed scope rather than imply every device and OS was tested.
+
+- [x] Correct the boot guard: `4294967295 / Finished` is normal completion;
+  command completion and the actual XCTest launch own readiness.
+- [x] Let ordinary CI use installed Xcode and iOS/iPadOS 26+ runtimes, with
+  compatible device choices and bounded fallback. Keep explicit diagnostic
+  selectors exact, and preserve App Store compatibility at 18.0.
+- [x] Remove mandatory runtime downloads, duplicate parity qualification and
+  unsupported device/automation requirements from ordinary CI. Keep useful
+  diagnostics available on demand.
+- [x] Distinguish unavailable runner capabilities from product failures in
+  workflow results and retained coverage reports. Never reuse unavailable
+  coverage as passing test evidence.
+- [ ] Update candidate verification to consume the actual adaptable hosted
+  scope, then push and complete hosted CI and player coverage.
+
 The November 7 candidate includes the reviewed iPad layout and CI reliability
 repairs. Qualify the resulting revision; earlier green runs do not establish
 current-source launch coverage. Close the remaining failures below before
@@ -29,10 +50,10 @@ qualifying the public candidate.
 
 | Failure | Current repair and required evidence |
 |---|---|
-| Script gate and simulator preparation | The watchdog fixture retains its one-second deadline with a separate fixture bound. Shared setup keeps diagnostics off device-ID stdout, rejects explicit failed boot results, and avoids post-boot global inventory queries that caused unnecessary recovery cycles. Missing runtime profiles have bounded mount recovery. Automatic watchers refuse obsolete-commit retries. Require fresh hosted execution. |
-| Full Game purchase, refund and repurchase | Product lookup and purchase completion use StoreKit service deadlines. Purchase tests require actual ownership and an offer outside the visible window; a retained offscreen accessibility element is not a visible offer. The complete refund, denial/retry and repurchase journeys still require FullUI proof. [Latest diagnosed Smoke failure](https://github.com/Talyen/Trinket/actions/runs/42402771273) |
-| Reward return and native profiles | Compact reward return passed; tablet reward return and native settings profiles stopped on simulator prerequisites. Require actual execution on iOS/iPadOS 26 and 27. Retry a confirmed prerequisite failure once on a fresh runner. [Player coverage run](https://github.com/Talyen/Trinket/actions/runs/42382791768) |
-| Duo rotation | Local diagnosis confirmed that XCTest changes its reported orientation while the app receives the previous physical orientation and unchanged geometry, with its orientation lock off. Manual Device Hub rotation and card play passed. Main-actor API calls do not resolve automation. Preserve the resize assertion. The [latest-Xcode probe](https://github.com/Talyen/Trinket/actions/runs/42405322361) stopped during simulator migration; repeat after the boot repair before drawing a toolchain conclusion. |
+| Script gate and simulator preparation | Corrected the boot completion check and isolated script fixtures. Use installed compatible environments, Apple's command exit status, one owned boot attempt, and explicit capability receipts. Require fresh hosted verification of the adaptive workflow. |
+| Full Game purchase, refund and repurchase | Purchase tests require actual ownership and visible offer dismissal. Keep purchase, approval, restore and refund cases. Record the known denial-service case as unavailable outside its qualified runtime; retain it for diagnostics and live sandbox acceptance. |
+| Reward return and native profiles | Prefer compact iOS 26 and iPadOS 27 environments, substitute compatible installed models/versions, and report any missing requested coverage. Missing runtimes do not block the whole portfolio. |
+| Duo rotation | Manual Device Hub rotation and card play passed. Keep the automated resize assertion available on demand, but omit unsupported Duo automation from default CI. No new toolchain claim follows from a probe that stopped before tests. |
 
 Keep App Store compatibility at iOS and iPadOS 18.0. Automated launch coverage
 starts at 26 for both platforms.
@@ -41,10 +62,10 @@ starts at 26 for both platforms.
   assertions and resolve confirmed game, test, and runner causes in their owning code.
 - [ ] Prepare the formal version and release artifacts through
   [Release](../Platform/Release.md#produce-release-artifacts). On the resulting
-  commit, collect green push CI, the unsigned device Release compile, FullUI,
-  parity, and player coverage on iOS and iPadOS 26 and 27. Use
+  commit, collect green push CI, the unsigned device Release compile, and
+  available FullUI and player coverage. Native parity is an optional diagnostic. Use
   [Hosted CI and player acceptance](CIHostedVerification.md) for the detailed
-  profile and localization work. Record the executed scope, Xcode build,
+  profile and localization work under this adaptive policy. Record executed scope, gaps, Xcode build,
   runtime, and exact commit for each gate.
 
 ## 2. Confirm App Store Connect prerequisites in parallel

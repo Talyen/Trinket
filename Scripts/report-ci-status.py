@@ -22,7 +22,8 @@ def report(jobs: dict, title: str, required: list[str]) -> tuple[str, bool]:
         name = name.replace('|', '\\|').replace('\n', ' ')
         lines.append(f"| {name} | {job['result']} |")
     lines += ['', f"Failed jobs: {len(failed)}. Cancelled jobs: {len(cancelled)}.",
-              'Skipped jobs provide no execution evidence.']
+              'Skipped jobs provide no execution evidence.',
+              'Successful jobs may contain explicit capability gaps; inspect the retained CICoverage receipts for executed scope.']
     if missing:
         lines.append('Requested execution missing: ' + ', '.join(missing))
     return '\n'.join(lines) + '\n', bool(failed or cancelled or missing)

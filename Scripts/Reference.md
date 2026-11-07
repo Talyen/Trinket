@@ -208,27 +208,25 @@ regression inputs fall back to the full suite through `script_test_selection.py`
 
 ## Toolchain ladder
 
-Required push CI and default manual/performance runs select an explicitly qualified
-Xcode version/product-build pair in [ci-xcode.json](config/ci-xcode.json). The top-level
-`version`/`build` is preferred; `qualified_builds` lists the approved alternatives
-in fallback order. A runner without the preferred build selects the first installed
-qualified pair; no qualified pair fails setup. Runner image/version, installed
-identities and selection reason appear in logs and the job summary. Nightly CI and manual
-`toolchain=latest` runs validate the newest installed Xcode independently; they
-cannot reuse the required toolchain's verification. Local scripts honor
-`DEVELOPER_DIR`, otherwise inheriting the Mac's selected Xcode.
+Ordinary CI prefers the known Xcode entries in [ci-xcode.json](config/ci-xcode.json).
+If none is installed, it uses the newest installed release build, or the newest
+installed beta when that is the only choice. An image rollout does not require a
+pin update before CI can run. Actual image, compiler identity and selection reason
+appear in logs and summaries. `toolchain=latest` selects the newest installed
+compiler independently. Local scripts honor `DEVELOPER_DIR`, otherwise using the
+Mac's selected Xcode. Cache/product reuse still verifies the actual compiler.
 
 Manual `toolchain=latest` runs can set `xcode-build` to an exact candidate product
 build (for example `27A9275`). Every job must find that build installed or fail;
-the selector never substitutes the newest beta or changes the verified pin.
+the explicit diagnostic selector never substitutes another build.
 Leave the field blank for normal newest-installed validation.
 
 Admit or prefer a newer build in `ci-xcode.json` only after exact-candidate `toolchain=latest` CI proves
 that exact build's Metal readiness, app/smoke, package tests and device Release
 compilation. Commit the qualified list and verify its push; a marketing version alone cannot
 distinguish two betas. Confirm that every relevant job reports the same product
-build; mixed-build results cannot qualify a candidate. Ordinary verified CI may
-use different qualified builds across runners during a rollout; caches and product
+build; mixed-build results cannot qualify a candidate. Ordinary CI may
+use different installed builds across runners during a rollout; caches and product
 transfers still require their actual selected compiler identity.
 [setup-ci-xcode.py](setup-ci-xcode.py) reads the product
 version plist, logs the exact build, and exports job-local `DEVELOPER_DIR` without

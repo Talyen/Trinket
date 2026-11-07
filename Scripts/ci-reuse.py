@@ -97,15 +97,18 @@ def proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, branch: 
     for shard, packages in SHARDS.items():
         steps = successful[f"tests / Unit tests ({shard})"].get("steps", [])
         scope = f"Test packages ({' '.join(packages)})"
-        if not isinstance(steps, list) or not any(
+        if not isinstance(steps, list) or not all(any(
             isinstance(step, dict) and step.get("name") == scope and step.get("conclusion") == "success"
             for step in steps
-        ):
+        ) for scope in (scope, 'Record completed package execution')):
             return None
     # A skipped build/unit suite cannot prove product verification. A missing or
     # expired artifact also forces the ordinary build+smoke path, not a false pass.
     build = successful.get('tests / Build and smoke UI') or successful.get('tests / Build for testing')
     if not successful_build_step(build, sha):
+        return None
+    if not any(step.get('name') == 'Record completed Smoke execution' and step.get('conclusion') == 'success'
+               for step in successful.get('tests / Build and smoke UI', {}).get('steps', [])):
         return None
     producers = [job for job in (history if history is not None else jobs)
                  if job.get('name') == build['name']]

@@ -24,6 +24,9 @@ jobs:
     runs-on: xcode-27
     timeout-minutes: 90
     steps:
+      - name: Reserve diagnostic time
+        shell: bash
+        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 90 * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           sparse-checkout: |
@@ -43,6 +46,7 @@ jobs:
       - uses: ./.github/actions/setup-trinket
         with:
           metal: 'true'
+      - uses: ./.github/actions/setup-functional-ui
       - name: Measure selected workloads
         env:
           PERFORMANCE_GROUP: ${{ inputs.group }}
@@ -51,13 +55,15 @@ jobs:
         run: |
           args=()
           if [[ -n "$PERFORMANCE_GROUP" ]]; then args=(--group "$PERFORMANCE_GROUP"); fi
-          ./Scripts/performance.sh "${args[@]}"
+          python3 Scripts/ci-test-capability.py --scope performance --requires-simulator -- ./Scripts/performance.sh "${args[@]}"
       - name: Keep measurements and failure evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           name: performance-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .DerivedData/PerformanceResults
+          path: |
+            .DerivedData/PerformanceResults
+            .DerivedData/CICoverage
           include-hidden-files: true
           retention-days: 1
           if-no-files-found: ignore

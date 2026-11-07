@@ -48,12 +48,11 @@ if args[1] == 'list':
                              'SHUTDOWN_CASE': mode, 'TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS': '1'})
                     self.assertEqual(result.returncode, 0 if mode in ('complete', 'stalled-guest') else 1, result.stderr)
 
-    def test_bootstatus_rejects_terminal_failures_even_with_zero_exit_without_inventory_queries(self) -> None:
+    def test_bootstatus_uses_exit_status_without_inventory_or_console_heuristics(self) -> None:
         script = r'''source "$1/Scripts/ensure-simulator.sh"
 SIMULATOR_UDID=owned
 trinket_watch_agent_simulator() { :; }
 list_simulator_devices() { echo unexpected-inventory >&2; return 91; }
-grep() { if [[ "$BOOT_OUTPUT" == unreadable-log ]]; then return 2; fi; command grep "$@"; }
 xcrun() {
   if [[ "$2" != bootstatus || "$4" != -b ]]; then echo unexpected-boot >&2; return 92; fi
   printf '%s\n' "$BOOT_OUTPUT"
@@ -63,8 +62,8 @@ if boot_simulator; then exit 0; else exit 1; fi
 '''
         cases = [('Status=4294967295, isTerminal=YES, Elapsed=00:59.\n\tFinished', '0', 0),
                  ('Device already booted, nothing to do.', '0', 0),
-                 ('Status=3, isTerminal=YES, Data Migration Failed', '0', 1),
-                 ('boot error', '70', 1), ('unreadable-log', '0', 1)]
+                 ('Status=3, isTerminal=YES, Data Migration Failed', '0', 0),
+                 ('boot error', '70', 1)]
         for output, status, expected in cases:
             with self.subTest(output=output, status=status):
                 result = run_captured(['bash', '-c', script, '_', str(ROOT)], timeout=10,
@@ -72,6 +71,23 @@ if boot_simulator; then exit 0; else exit 1; fi
                 self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
                 self.assertNotIn('unexpected-', result.stdout + result.stderr)
                 self.assertEqual('booted successfully' in result.stdout, expected == 0)
+
+    def test_adaptive_ci_records_an_unavailable_boot_without_erase_loops(self):
+        script = r'''source "$1/Scripts/ensure-simulator.sh"
+SIMULATOR_UDID=owned
+simulator_matches_name() { return 0; }
+boot_simulator() { echo boot-attempt; return 1; }
+erase_and_boot_simulator() { echo unexpected-erase; return 1; }
+discard_simulator() { echo unexpected-delete; return 1; }
+ensure_test_simulator
+'''
+        environment = {key: value for key, value in os.environ.items()
+                       if not key.startswith(('TRINKET_', 'SIMULATOR_'))}
+        result = run_captured(['bash', '-c', script, '_', str(ROOT)],
+                             env={**environment, 'GITHUB_ACTIONS': 'true', 'TRINKET_CI_ADAPTIVE': '1'})
+        self.assertEqual(result.returncode, 78, result.stdout + result.stderr)
+        self.assertEqual(result.stdout.count('boot-attempt'), 1)
+        self.assertNotIn('unexpected-', result.stdout + result.stderr)
 
     def test_failed_shutdown_prevents_erase_and_delete_even_in_conditionals(self) -> None:
         script = r'''source "$1/Scripts/ensure-simulator.sh"

@@ -3,7 +3,7 @@ description: Select the verified or latest Xcode and validate its required compo
 
 inputs:
   xcode-channel:
-    description: verified selects an explicitly qualified build; latest validates the newest installed Xcode
+    description: verified prefers known builds with installed-toolchain fallback; latest selects the newest installed Xcode
     required: false
     default: 'verified'
   xcode-build:

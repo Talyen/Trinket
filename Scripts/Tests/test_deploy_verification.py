@@ -1,6 +1,7 @@
 """Release retries must retain only proven phases for unchanged inputs."""
 import copy
 import json
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -206,7 +207,8 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
                 args = type('Args', (), dict(ci_only=False, focused_only=False, no_build=False))()
                 with patch.object(DEPLOY, 'wait_for_beta_ci', return_value=dict(smoke=hosted_smoke, run_id=42)), \
                         patch.object(DEPLOY, 'wait_for_release_ci', return_value=dict(run_id=43)), \
-                        patch.object(DEPLOY, 'release_receipt', return_value=dict(identity=identity)), \
+                        patch.object(DEPLOY, 'release_receipt', return_value=dict(identity=identity,
+                            completed={f'ui:{name}': {} for name in DEPLOY.required_smoke_classes()})), \
                         patch.object(DEPLOY, 'capture', side_effect=lambda *c: 'abc' if c[:2] == ('git', 'rev-parse') else ''):
                     DEPLOY.verify_beta(args, verification, identity)
                     self.assertEqual(set(verification.completed), {'hosted-focused', 'ci', 'smoke'})
@@ -251,6 +253,57 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
         with self.assertRaisesRegex(ValueError, 'missing critical'):
             DEPLOY.validate_release_receipt(saved, identity)
 
+    def test_adaptive_release_receipt_accounts_for_every_gap_without_requiring_matching_runner_tools(self):
+        identity = dict(build=dict(commit='abc', xcode='local'), profile=dict(selection='runner-available'))
+        actual = dict(build=dict(commit='abc', xcode='runner', sdk='iphonesimulator', sdk_version='27.2',
+                                 sdk_build='runner-sdk', host_architecture='arm64'),
+                      profile=dict(version='27.2', build='24B8117'))
+        selectors = [*DEPLOY.required_smoke_classes(), *DEPLOY.CRITICAL_CASES.values()]
+        denial = DEPLOY.CRITICAL_CASES['purchase']
+        proof = dict(schema=2, coverage_policy='runner-available-v1', identity=actual,
+                     completed={f'ui:{name}': {} for name in selectors if name != denial},
+                     coverage_gaps={f'ui:{denial}': dict(kind='storekit-denial-unqualified', reason='Known test-service defect')})
+        DEPLOY.validate_release_receipt(proof, identity)
+        for mutation in ('foreign-commit', 'unaccounted', 'unknown-gap', 'old-runtime'):
+            invalid = copy.deepcopy(proof)
+            if mutation == 'foreign-commit':
+                invalid['identity']['build']['commit'] = 'other'
+            elif mutation == 'unaccounted':
+                invalid['coverage_gaps'] = {}
+            elif mutation == 'unknown-gap':
+                invalid['coverage_gaps'][f'ui:{denial}']['kind'] = 'test-failure'
+            else:
+                invalid['identity']['profile']['version'] = '18.0'
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                DEPLOY.validate_release_receipt(invalid, identity)
+
+    def test_adaptive_ui_defer_requires_real_infrastructure_evidence(self):
+        for infrastructure in (True, False):
+            with self.subTest(infrastructure=infrastructure), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                results = root / 'results'
+                results.mkdir()
+                def execute(command, **options):
+                    log = root / 'failure.log'
+                    log.write_text('Simulator boot timed out after 240s' if infrastructure else 'XCTAssertTrue failed - lost reward')
+                    (results / 'fixture-invocation.json').write_text(json.dumps(dict(
+                        session_id=options['env']['TRINKET_DIAGNOSTICS_SESSION_ID'], status='failed', exit_code=1,
+                        classification='simulator-infrastructure' if infrastructure else 'test-failure',
+                        raw_log_path=str(log))))
+                    raise subprocess.CalledProcessError(1, command)
+                verification = DEPLOY.Verification(root / 'proof.json', dict(profile=dict(build='24B8117')), True,
+                                                    execute=execute, adaptive=True)
+                with patch.dict(os.environ, RESULTS_DIR=str(results), DERIVED_DATA_PATH=str(root),
+                                GITHUB_STEP_SUMMARY='', GITHUB_OUTPUT=''):
+                    if infrastructure:
+                        verification.ui_batch('smoke', ['SmokeShellTests'])
+                        self.assertIn('ui:SmokeShellTests', verification.gaps)
+                        self.assertNotIn('ui:SmokeShellTests', verification.completed)
+                    else:
+                        with self.assertRaises(subprocess.CalledProcessError):
+                            verification.ui_batch('smoke', ['SmokeShellTests'])
+                        self.assertEqual(verification.gaps, {})
+
     def test_release_proof_requires_exact_commit_branch_and_successful_qualified_step(self):
         run = dict(id=10, head_sha='abc', head_branch='main', event='workflow_dispatch',
                    status='completed', conclusion='success')
@@ -285,7 +338,8 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
                    display_title='Trinket CI (verified)', status='completed', conclusion='success')
         job = dict(id=20, name='tests / Exhaustive UI (All)', conclusion='success', steps=[
             dict(name='Read exhaustive test classes', conclusion='success'),
-            dict(name='Run ./.github/actions/test-job', conclusion='success')])
+            dict(name='Run ./.github/actions/test-job', conclusion='success'),
+            dict(name='Record assessed exhaustive coverage', conclusion='success')])
 
         def status(runs, jobs):
             def api(path):
@@ -317,7 +371,8 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
             args = type('Args', (), dict(ci_only=False, focused_only=False, require_full_ui=True))()
             with patch.object(DEPLOY, 'wait_for_beta_ci', return_value=dict(smoke=True)), \
                     patch.object(DEPLOY, 'wait_for_release_ci', return_value=dict(run_id=1)), \
-                    patch.object(DEPLOY, 'release_receipt', return_value=dict(identity=identity)), \
+                    patch.object(DEPLOY, 'release_receipt', return_value=dict(identity=identity,
+                        completed={f'ui:{name}': {} for name in DEPLOY.required_smoke_classes()})), \
                     patch.object(DEPLOY, 'require_hosted_full_ui', return_value=dict(run_id=2)) as full, \
                     patch.object(DEPLOY, 'capture', side_effect=lambda *c: 'abc' if c[:2] == ('git', 'rev-parse') else ''):
                 DEPLOY.verify_beta(args, verification, identity)
@@ -332,7 +387,8 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
         run = dict(id=10, head_sha='abc', head_branch='main', event='push', status='completed', conclusion='success')
         jobs = [dict(id=1, name='tests / CI OK', conclusion='success'),
                 dict(id=2, name='tests / Build and smoke UI', conclusion='success',
-                     steps=[dict(name='Run smoke on the build runner', conclusion='success')])]
+                     steps=[dict(name='Run smoke on the build runner', conclusion='success'),
+                            dict(name='Record completed Smoke execution', conclusion='success')])]
         def status(runs, selected=jobs):
             with patch.object(DEPLOY.REUSE, 'api', side_effect=[[dict(workflow_runs=runs)], [dict(jobs=selected)]]):
                 return DEPLOY.beta_ci_status('owner/repo', 'abc', 'main')
@@ -435,7 +491,7 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
             with self.assertRaisesRegex(ValueError, 'unavailable iOS 18.0'):
                 DEPLOY.profile()
 
-    def test_hosted_preflight_rejects_an_old_or_missing_runtime_build(self):
+    def test_hosted_preflight_accepts_available_builds_and_rejects_missing_identity(self):
         for build in ('23C52', None):
             selected = dict(DEPLOY.QUALIFIED_PROFILE)
             if build is None:
@@ -447,7 +503,10 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
                     patch.object(sys, 'argv', ['deploy-verification.py', '--mode', 'hosted-beta', '--preflight']), \
                     patch.object(DEPLOY, 'profile', return_value=selected), \
                     patch.object(DEPLOY.BUILD, 'identity', side_effect=AssertionError('native build queried')):
-                with self.assertRaisesRegex(ValueError, 'qualified simulator profile'):
+                if build is None:
+                    with self.assertRaisesRegex(ValueError, 'runtime with build identity'):
+                        DEPLOY.main()
+                else:
                     DEPLOY.main()
 
     def test_ui_batch_cannot_checkpoint_passes_from_an_old_or_unknown_guest_build(self):

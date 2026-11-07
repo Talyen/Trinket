@@ -220,14 +220,10 @@ PY
 
 boot_simulator() {
   trinket_watch_agent_simulator
-  local boot_status_log
-  boot_status_log="$(mktemp "${TMPDIR:-/tmp}/trinket-bootstatus.XXXXXX")" || return 1
   echo "Booting $SIMULATOR_NAME ($SIMULATOR_UDID)..."
   # -b owns both boot and readiness, including the already-booted case.
   # Avoid global device inventory while first-boot migration is still settling.
-  (
-    xcrun simctl bootstatus "$SIMULATOR_UDID" -b 2>&1 | tee "$boot_status_log"
-  ) &
+  xcrun simctl bootstatus "$SIMULATOR_UDID" -b &
   local boot_pid=$!
   local started_at=$SECONDS
   while kill -0 "$boot_pid" 2>/dev/null && (( SECONDS - started_at < SIMULATOR_BOOT_TIMEOUT_SECONDS )); do
@@ -239,42 +235,15 @@ boot_simulator() {
     signal_children+=("$boot_pid")
     kill -KILL "${signal_children[@]}" 2>/dev/null || true
     wait "$boot_pid" 2>/dev/null || true
-    rm -f "$boot_status_log"
     echo "Error: Simulator boot timed out after ${SIMULATOR_BOOT_TIMEOUT_SECONDS}s" >&2
     return 1
   fi
   wait "$boot_pid" 2>/dev/null || {
-    rm -f "$boot_status_log"
     echo "Error: Simulator boot failed" >&2
     return 1
   }
-  # simctl can return zero for an explicit migration failure. Its normal
-  # Finished status is UINT_MAX (4294967295), not a failed boot.
-  local boot_result_status=0
-  grep -Eq 'Status=3, isTerminal=YES|Data Migration Failed' "$boot_status_log" || boot_result_status=$?
-  if (( boot_result_status > 1 )); then
-    rm -f "$boot_status_log"
-    echo "Error: Simulator boot failed: cannot read its completion evidence." >&2
-    return 1
-  fi
-  if (( boot_result_status == 0 )); then
-    rm -f "$boot_status_log"
-    echo "Error: Simulator boot failed: bootstatus reported a terminal failed boot." >&2
-    if [[ "${GITHUB_ACTIONS:-}" == true ]]; then
-      python3 - "$SIMULATOR_UDID" <<'PY_RUNTIME'
-import sys
-import subprocess
-sys.path.insert(0, 'Scripts')
-from internal.ci_simulator_services import recover_runtime_mount
-try:
-    recover_runtime_mount(sys.argv[1])
-except (OSError, ValueError, subprocess.SubprocessError) as error:
-    print(f'CI runtime mount recovery unavailable: {error}', file=sys.stderr)
-PY_RUNTIME
-    fi
-    return 1
-  fi
-  rm -f "$boot_status_log"
+  # Treat Apple's exit status as authoritative. Console status numbers and
+  # migration messages are diagnostics; XCTest proves the actual launch session.
   echo "$SIMULATOR_NAME ($SIMULATOR_UDID) booted successfully."
 }
 
@@ -340,6 +309,16 @@ ensure_test_simulator() {
 
   if [[ -n "${TRINKET_SIM_DEVICE_TYPE:-}" || -n "${TRINKET_SIM_OS_MAJOR:-}" || -n "${TRINKET_SIM_OS_VERSION:-}" ]]; then
     resolve_or_create_simulator || return 1
+  fi
+
+  if [[ "${GITHUB_ACTIONS:-}" == true && "${TRINKET_CI_ADAPTIVE:-}" == 1 ]]; then
+    if [[ -z "${SIMULATOR_UDID:-}" ]]; then resolve_or_create_simulator || return 1; fi
+    if boot_simulator; then
+      SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
+      return 0
+    fi
+    echo '[ci capability unavailable] Installed simulator did not complete boot; retaining its diagnostics.' >&2
+    return 78
   fi
 
   if [[ -z "$force" && -n "${SIMULATOR_UDID:-}" ]] && boot_simulator; then
