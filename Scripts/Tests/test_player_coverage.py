@@ -389,7 +389,8 @@ trinket_run_env_install_self_clean() { :; }
         with self.assertRaises(ValueError):
             MODULE.coverage_matrix('unknown')
         self.assertIn('needs: plan', profiles)
-        self.assertIn('matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}', profiles)
+        # GitHub validates a matrix even when the soak-only plan is skipped.
+        self.assertIn("""matrix: ${{ fromJSON(needs.plan.outputs.matrix || '{"include":[{"profile":"compact","check":"profiles"}]}') }}""", profiles)
         self.assertIn('Scripts/coverage_profiles.py matrix --scope "$COVERAGE_SCOPE"', workflow)
         self.assertIn("xcode-channel: ${{ inputs.toolchain || 'verified' }}", profiles)
         self.assertEqual(MODULE.PROFILES, {

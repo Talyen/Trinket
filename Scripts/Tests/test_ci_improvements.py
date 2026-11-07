@@ -254,6 +254,16 @@ class CIImprovementsTests(unittest.TestCase):
             self.assertEqual(compiler['line'], 132)
             self.assertIn("no member 'kind'", compiler['message'])
 
+    def test_terminal_failed_boot_is_infrastructure_without_masking_product_assertions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            message = 'Status=3, isTerminal=YES\nData Migration Failed\nError: Simulator boot failed: bootstatus reported a terminal failed boot.\n'
+            for extra, expected in [('', 'simulator-infrastructure'),
+                                    ('\nFlow.swift:10: error: XCTAssertTrue failed - locked content', 'test-failure')]:
+                BUDGET.preparation_report(['player-coverage'], root, {}, 2, 60, message + extra, 'player-profile')
+                report = max(root.glob('*-diagnostics.json'), key=lambda path: path.stat().st_mtime_ns)
+                self.assertEqual(json.loads(report.read_text())['classification'], expected)
+
     def test_preparation_failures_record_phase_command_and_environment_without_fake_test_evidence(self):
         with tempfile.TemporaryDirectory() as directory:
             results = Path(directory)

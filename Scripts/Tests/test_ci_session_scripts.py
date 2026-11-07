@@ -47,35 +47,31 @@ if args[1] == 'list':
                              'SHUTDOWN_CASE': mode, 'TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS': '1'})
                     self.assertEqual(result.returncode, 0 if mode in ('complete', 'stalled-guest') else 1, result.stderr)
 
-    def test_zero_exit_bootstatus_still_requires_a_booted_device(self) -> None:
+    def test_bootstatus_rejects_terminal_failures_even_with_zero_exit_without_inventory_queries(self) -> None:
         script = r'''source "$1/Scripts/ensure-simulator.sh"
 SIMULATOR_UDID=owned
 trinket_watch_agent_simulator() { :; }
-list_simulator_devices() {
-  if [[ ! -e "$BOOT_FINISHED" ]]; then
-    printf '{"devices":{"runtime":[{"udid":"owned","state":"Shutdown"}]}}'
-  elif [[ "$FINAL_STATE" == missing ]]; then
-    printf '{"devices":{}}'
-  elif [[ "$FINAL_STATE" == unreadable ]]; then
-    return 1
-  else
-    printf '{"devices":{"runtime":[{"udid":"owned","state":"%s"}]}}' "$FINAL_STATE"
-  fi
+list_simulator_devices() { echo unexpected-inventory >&2; return 91; }
+grep() { if [[ "$BOOT_OUTPUT" == unreadable-log ]]; then return 2; fi; command grep "$@"; }
+xcrun() {
+  if [[ "$2" != bootstatus || "$4" != -b ]]; then echo unexpected-boot >&2; return 92; fi
+  printf '%s\n' "$BOOT_OUTPUT"
+  return "$BOOT_EXIT"
 }
-xcrun() { if [[ "$2" == bootstatus ]]; then touch "$BOOT_FINISHED"; fi; }
 if boot_simulator; then exit 0; else exit 1; fi
 '''
-        with tempfile.TemporaryDirectory() as directory:
-            finished = Path(directory) / 'booted'
-            for state in ('Booted', 'Shutdown', 'Booting', 'missing', 'unreadable'):
-                with self.subTest(state=state):
-                    finished.unlink(missing_ok=True)
-                    result = run_captured(['bash', '-c', script, '_', str(ROOT)], timeout=10,
-                        env={**os.environ, 'GITHUB_ACTIONS': 'false', 'FINAL_STATE': state,
-                             'BOOT_FINISHED': str(finished)})
-                    self.assertEqual(result.returncode, 0 if state == 'Booted' else 1,
-                                     result.stdout + result.stderr)
-                    self.assertEqual('booted successfully' in result.stdout, state == 'Booted')
+        cases = [('Status=0, isTerminal=YES, Finished', '0', 0),
+                 ('Device already booted, nothing to do.', '0', 0),
+                 ('Status=3, isTerminal=YES, Data Migration Failed', '0', 1),
+                 ('Status=4294967295, isTerminal=YES, Finished', '0', 1),
+                 ('boot error', '70', 1), ('unreadable-log', '0', 1)]
+        for output, status, expected in cases:
+            with self.subTest(output=output, status=status):
+                result = run_captured(['bash', '-c', script, '_', str(ROOT)], timeout=10,
+                    env={**os.environ, 'GITHUB_ACTIONS': 'false', 'BOOT_OUTPUT': output, 'BOOT_EXIT': status})
+                self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
+                self.assertNotIn('unexpected-', result.stdout + result.stderr)
+                self.assertEqual('booted successfully' in result.stdout, expected == 0)
 
     def test_failed_shutdown_prevents_erase_and_delete_even_in_conditionals(self) -> None:
         script = r'''source "$1/Scripts/ensure-simulator.sh"

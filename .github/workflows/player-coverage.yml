@@ -51,7 +51,7 @@ jobs:
     strategy:
       fail-fast: false
       max-parallel: 1
-      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix || '{"include":[{"profile":"compact","check":"profiles"}]}') }}
     env:
       DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
       TRINKET_DIAGNOSTICS_SESSION_ID: player-${{ matrix.check }}-${{ matrix.profile }}-${{ github.run_id }}-${{ github.run_attempt }}

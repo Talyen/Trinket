@@ -22,16 +22,17 @@ territories guide candidate preparation.
 
 ## 1. Close the verification failures
 
-The November 7 baseline is `0e554659c`. Push CI passed. The latest nightly
-passed the device Release compile, Smoke, all package suites and engine native
-parity. Close the remaining failures below before qualifying the public candidate.
+The November 7 candidate includes the reviewed iPad layout and CI reliability
+repairs. Qualify the resulting revision; earlier green runs do not establish
+current-source launch coverage. Close the remaining failures below before
+qualifying the public candidate.
 
-| Failure | First diagnostic |
+| Failure | Current repair and required evidence |
 |---|---|
-| Script gate | The stalled-boot fixture failed its five-second wall-time assertion after the watchdog correctly returned a timeout. Retain the one-second boot deadline and bound the fixture independently. [Gate job](https://github.com/Talyen/Trinket/actions/runs/42377855957/job/128419073576) |
-| Full Game refund and repurchase | The test confirmed revoked access and preserved progress, then exhausted its eight-second product-lookup wait after relaunch. The offer attachment shows loading. Verify the complete journey with a StoreKit service deadline. [FullUI job](https://github.com/Talyen/Trinket/actions/runs/42377855957/job/128424861387) |
+| Script gate and simulator preparation | The watchdog fixture retains its one-second deadline with a separate fixture bound. Shared setup keeps diagnostics off device-ID stdout, rejects explicit failed boot results, and avoids post-boot global inventory queries that caused unnecessary recovery cycles. Missing runtime profiles have bounded mount recovery. Automatic watchers refuse obsolete-commit retries. Require fresh hosted execution. |
+| Full Game purchase, refund and repurchase | Product lookup and purchase completion use StoreKit service deadlines. Purchase tests require actual ownership and an offer outside the visible window; a retained offscreen accessibility element is not a visible offer. The complete refund, denial/retry and repurchase journeys still require FullUI proof. [Latest diagnosed Smoke failure](https://github.com/Talyen/Trinket/actions/runs/42402771273) |
 | Reward return and native profiles | Compact reward return passed; tablet reward return and native settings profiles stopped on simulator prerequisites. Require actual execution on iOS/iPadOS 26 and 27. Retry a confirmed prerequisite failure once on a fresh runner. [Player coverage run](https://github.com/Talyen/Trinket/actions/runs/42382791768) |
-| Duo rotation | The requested orientation changed while the app window stayed portrait. Establish actual geometry through the supported simulator controls; preserve the window-resize assertion. [Rotation job](https://github.com/Talyen/Trinket/actions/runs/42382791768/job/128433767903) |
+| Duo rotation | Local diagnosis confirmed that XCTest changes its reported orientation while the app receives the previous physical orientation and unchanged geometry, with its orientation lock off. Manual Device Hub rotation and card play passed. Main-actor API calls do not resolve automation. Preserve the resize assertion. The [latest-Xcode probe](https://github.com/Talyen/Trinket/actions/runs/42405322361) stopped during simulator migration; repeat after the boot repair before drawing a toolchain conclusion. |
 
 Keep App Store compatibility at iOS and iPadOS 18.0. Automated launch coverage
 starts at 26 for both platforms.

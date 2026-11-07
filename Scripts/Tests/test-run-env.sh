@@ -745,7 +745,7 @@ fixture = r'''
     stalled_phase="$2"
     if boot_simulator; then exit 1; fi
 '''
-for stalled in ('boot', 'bootstatus'):
+for stalled in ('bootstatus',):
     # Exercise the real one-second watchdog without making loaded CI workers
     # satisfy a five-second performance assertion. Bound the fixture separately.
     process = subprocess.Popen(

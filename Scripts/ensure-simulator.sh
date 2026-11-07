@@ -220,21 +220,13 @@ PY
 
 boot_simulator() {
   trinket_watch_agent_simulator
-  local state
-  state="$(list_simulator_devices "$SIMULATOR_UDID" -j \
-    | trinket_simctl_json state-for-udid "$SIMULATOR_UDID" 2>/dev/null || echo "Unknown")"
-
-  if [[ "$state" == "Booted" ]]; then
-    echo "$SIMULATOR_NAME ($SIMULATOR_UDID) is already booted."
-    return 0
-  fi
-
+  local boot_status_log
+  boot_status_log="$(mktemp "${TMPDIR:-/tmp}/trinket-bootstatus.XXXXXX")" || return 1
   echo "Booting $SIMULATOR_NAME ($SIMULATOR_UDID)..."
-  # Both boot and bootstatus can stall in CoreSimulator. Supervise the whole
-  # sequence so boot cannot prevent the timeout from starting.
+  # -b owns both boot and readiness, including the already-booted case.
+  # Avoid global device inventory while first-boot migration is still settling.
   (
-    xcrun simctl boot "$SIMULATOR_UDID" 2>/dev/null || true
-    xcrun simctl bootstatus "$SIMULATOR_UDID" -b
+    xcrun simctl bootstatus "$SIMULATOR_UDID" -b 2>&1 | tee "$boot_status_log"
   ) &
   local boot_pid=$!
   local started_at=$SECONDS
@@ -247,29 +239,42 @@ boot_simulator() {
     signal_children+=("$boot_pid")
     kill -KILL "${signal_children[@]}" 2>/dev/null || true
     wait "$boot_pid" 2>/dev/null || true
+    rm -f "$boot_status_log"
     echo "Error: Simulator boot timed out after ${SIMULATOR_BOOT_TIMEOUT_SECONDS}s" >&2
     return 1
   fi
   wait "$boot_pid" 2>/dev/null || {
+    rm -f "$boot_status_log"
     echo "Error: Simulator boot failed" >&2
     return 1
   }
-  # bootstatus can exit zero with terminal status UINT_MAX after a failed boot.
-  # Require the device postcondition before passing its destination to Xcode.
-  state="$(list_simulator_devices "$SIMULATOR_UDID" -j \
-    | trinket_simctl_json state-for-udid "$SIMULATOR_UDID" 2>/dev/null || echo "Unknown")"
-  if [[ "$state" != "Booted" ]]; then
-    echo "Error: Simulator boot completed without a booted device (state: $state)." >&2
+  # simctl can return zero for terminal migration failure or a stopped boot.
+  # Its completed result distinguishes those from a busy inventory service.
+  local boot_result_status=0
+  grep -Eq 'Status=(3|4294967295), isTerminal=YES|Data Migration Failed' "$boot_status_log" || boot_result_status=$?
+  if (( boot_result_status > 1 )); then
+    rm -f "$boot_status_log"
+    echo "Error: Simulator boot failed: cannot read its completion evidence." >&2
+    return 1
+  fi
+  if (( boot_result_status == 0 )); then
+    rm -f "$boot_status_log"
+    echo "Error: Simulator boot failed: bootstatus reported a terminal failed boot." >&2
     if [[ "${GITHUB_ACTIONS:-}" == true ]]; then
       python3 - "$SIMULATOR_UDID" <<'PY_RUNTIME'
 import sys
+import subprocess
 sys.path.insert(0, 'Scripts')
 from internal.ci_simulator_services import recover_runtime_mount
-recover_runtime_mount(sys.argv[1])
+try:
+    recover_runtime_mount(sys.argv[1])
+except (OSError, ValueError, subprocess.SubprocessError) as error:
+    print(f'CI runtime mount recovery unavailable: {error}', file=sys.stderr)
 PY_RUNTIME
     fi
     return 1
   fi
+  rm -f "$boot_status_log"
   echo "$SIMULATOR_NAME ($SIMULATOR_UDID) booted successfully."
 }
 
