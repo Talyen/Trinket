@@ -174,11 +174,11 @@ seconds = int(configured) if configured.isascii() and configured.isdigit() else 
 deadline = time.monotonic() + (seconds or 45)
 command = ["xcrun", "simctl", *shlex.split(device_set)]
 
-def run(*args, capture=False):
+def run(*args, capture=False, limit=None):
     remaining = deadline - time.monotonic()
     if remaining <= 0:
         raise TimeoutError("shutdown deadline exhausted")
-    return subprocess.run([*command, *args], timeout=remaining, text=True,
+    return subprocess.run([*command, *args], timeout=min(remaining, limit) if limit else remaining, text=True,
                           stdout=subprocess.PIPE if capture else subprocess.DEVNULL,
                           stderr=subprocess.DEVNULL, check=False)
 
@@ -186,7 +186,11 @@ try:
     if not udid:
         raise ValueError("missing simulator UDID")
     if udid != "all":
-        run("spawn", udid, "launchctl", "stop", "com.apple.PosterBoard")
+        # A wedged guest must not use up the host's shutdown deadline.
+        try:
+            run("spawn", udid, "launchctl", "stop", "com.apple.PosterBoard", limit=min(5, (seconds or 45) / 4))
+        except subprocess.TimeoutExpired:
+            print(f"Simulator {udid} did not stop PosterBoard in time; requesting shutdown.", file=sys.stderr)
     run("shutdown", udid)
     while seconds:
         result = run("list", "devices", udid if udid != "all" else "available", "-j", capture=True)

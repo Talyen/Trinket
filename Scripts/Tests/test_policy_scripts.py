@@ -145,6 +145,7 @@ else:
             infra = "Player coverage simulator prerequisite timed out: text-size-readiness: Command timed out"
             for attempt, evidence, retry in [
                 (1, infra, True),
+                (1, "Failed to establish communication with the test runner. (Underlying Error: Timed out waiting 120 seconds for simulator to boot)", True),
                 (2, infra, False),
                 (1, "Simulator text-size query timed out after 30s; retrying once.", False),
                 (1, infra + "\nXCTAssertEqual failed", False),

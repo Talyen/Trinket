@@ -1,6 +1,7 @@
 # input	suites (comma-separated basenames)
 .githooks/pre-push	test_ci_gate_scripts.py,test_pre_push.py,test_project_generation.py
 .github/actions/build-cache-key/action.yml	test_ci_improvements.py
+.github/actions/player-evidence/action.yml	test_player_coverage.py
 .github/actions/restore-and-build/action.yml	test_build_source_times.py,test_ci_improvements.py
 .github/actions/coverage-products/action.yml	test_player_coverage.py,test_ci_effort.py
 .github/actions/package-cache/action.yml	test_ci_improvements.py,test_build_source_times.py

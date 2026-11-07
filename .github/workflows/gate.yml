@@ -22,15 +22,15 @@ jobs:
         shell: bash
         run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 20 * 60 - 120 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        id: checkout
         timeout-minutes: 10
+        env:
+          GIT_HTTP_LOW_SPEED_LIMIT: '1024'
+          GIT_HTTP_LOW_SPEED_TIME: '60'
         with:
-          # Depth-1 history suffices for changelog validation. blob:limit=1g
-          # keeps every blob (validation reads cone-external blobs; sparse
-          # checkouts otherwise default to blob:none) while the cone below
-          # keeps the working tree lean. Raise the limit if a >=1GB blob
-          # ever lands (largest today is tens of MB).
+          # The pinned git-cliff skips diff statistics for our template, so
+          # changelog validation works with the default sparse blob filter.
           fetch-depth: 1
-          filter: blob:limit=1g
           sparse-checkout-cone-mode: true
           # Cone mode keeps root files (project.yml, *.xctestplan). AssetSources masters are omitted from sparse build jobs.
           # Docs, Performance baselines, .agents, Website, and
@@ -49,6 +49,7 @@ jobs:
             SoundManifest
             Docs
             Performance
+            ReleaseNotes
             Website
             .agents
             .githooks
@@ -67,10 +68,10 @@ jobs:
           mkdir -p "$RESULTS_DIR"
           python3 Scripts/ci-run-budget.py -- ./Scripts/ci-gate.sh 2>&1 | tee "$RESULTS_DIR/gate.log"
       - name: Stage bounded gate failure diagnostics
-        if: failure()
+        if: ${{ failure() && steps.checkout.outcome == 'success' }}
         run: ./Scripts/ci-diagnostics.sh --stage-gate-artifacts .DerivedData/TestResults .DerivedData/GateResults-artifact
       - name: Upload gate failure diagnostics
-        if: failure()
+        if: ${{ failure() && steps.checkout.outcome == 'success' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           name: gate-failure-${{ github.run_id }}-${{ github.run_attempt }}

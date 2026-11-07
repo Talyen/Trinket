@@ -30,7 +30,8 @@ class CISessionScriptTests(ScriptRegressionTestCase):
 import json, os, sys, time
 mode = os.environ['SHUTDOWN_CASE']
 args = sys.argv[1:]
-if (mode == 'stalled-shutdown' and args[1] == 'shutdown') or (mode == 'stalled-list' and args[1] == 'list'):
+if ((mode == 'stalled-shutdown' and args[1] == 'shutdown') or
+    (mode == 'stalled-list' and args[1] == 'list') or (mode == 'stalled-guest' and args[1] == 'spawn')):
     time.sleep(20)
 if args[1] == 'list':
     if mode == 'failed-list': raise SystemExit(1)
@@ -38,13 +39,13 @@ if args[1] == 'list':
     records = [] if mode == 'missing' else [{'udid': 'owned', 'state': 'Shutdown'}]
     print(json.dumps({'devices': {'runtime': records}}))
 """)
-            for mode in ('complete', 'missing', 'failed-list', 'invalid-list', 'stalled-shutdown', 'stalled-list'):
+            for mode in ('complete', 'missing', 'failed-list', 'invalid-list', 'stalled-shutdown', 'stalled-list', 'stalled-guest'):
                 with self.subTest(mode=mode):
                     result = run_captured(['bash', '-c', 'source "$1/Scripts/lib/simctl.sh"; trinket_sim_shutdown_wait owned',
                                           '_', str(ROOT)], timeout=5,
                         env={**os.environ, 'PATH': str(root) + os.pathsep + os.environ['PATH'],
                              'SHUTDOWN_CASE': mode, 'TRINKET_SIMULATOR_SHUTDOWN_TIMEOUT_SECONDS': '1'})
-                    self.assertEqual(result.returncode, 0 if mode == 'complete' else 1, result.stderr)
+                    self.assertEqual(result.returncode, 0 if mode in ('complete', 'stalled-guest') else 1, result.stderr)
 
     def test_failed_shutdown_prevents_erase_and_delete_even_in_conditionals(self) -> None:
         script = r'''source "$1/Scripts/ensure-simulator.sh"
@@ -144,7 +145,11 @@ if args[:3] == ['simctl', 'list', 'devices']:
     print((root / 'devices.json').read_text())
 elif args[:3] == ['simctl', 'list', 'runtimes']:
     print((root / 'runtimes.json').read_text())
+elif args[:4] == ['simctl', 'runtime', 'dyld_shared_cache', 'update']:
+    (root / 'warmed.txt').write_text(args[4])
+    print('cache warmed')
 elif args[:2] == ['simctl', 'create']:
+    assert (root / 'warmed.txt').read_text() == args[-1]
     (root / 'created.json').write_text(json.dumps(args[2:]))
     print('created-pro')
 else:

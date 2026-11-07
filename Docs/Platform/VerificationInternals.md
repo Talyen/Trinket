@@ -131,6 +131,9 @@ archive from the retained build artifact; missing or incompatible products fail
 without rebuilding. Incremental build caches are separate from product transfers.
 The hosted app build prints Xcode's timing summary so compiler tasks can be compared
 with the separately timed cache restore, cache save, and product archive steps.
+Gate and player coverage checkouts use shallow sparse transfers. The pinned
+changelog tool can validate the gate without downloading the omitted raw asset
+blobs. A stalled HTTPS fetch returns control to checkout's retry logic.
 Product archives use fast gzip compression; the test transfer retains its existing
 product and build-stamp validation before reuse.
 Pushes select owning packages for edits confined to their `Tests/` directories.
@@ -287,6 +290,9 @@ Each profile job prepares the selected runtime's dyld cache before
 boot. Profiles install a compatible runtime when absent using the configured
 download build or minimum version. Use Apple's `arm64` variant on Apple silicon and
 `universal` on Intel; forcing universal can reject an available Apple-silicon release.
+Hosted package tests warm their selected default runtime before creating or
+booting its device. During recovery, a stalled guest process stop cannot consume
+the host shutdown deadline. Erase and delete still require confirmed shutdown.
 Recheck runtime/device compatibility after preparation; failed provisioning fails
 the requested aggregate while independent device portfolios continue.
 
@@ -325,7 +331,8 @@ runner. A test assertion or an unconfirmed failure requires triage.
 
 Publish each profile's log/status before starting the next. Keep failed profiles,
 soak, careers and recovery verdicts individually visible while independent checks
-continue; screenshot export failure retains the original bundle. [Evidence limits](PlayerCoverage.md#evidence-and-remaining-gates)
+continue. Screenshot export failure retains the original bundle. A failed
+player artifact upload gets one retry using the same evidence files. [Evidence limits](PlayerCoverage.md#evidence-and-remaining-gates)
 still distinguish automated execution from visual, hardware and live-service proof.
 
 ## TestFlight evidence and reuse

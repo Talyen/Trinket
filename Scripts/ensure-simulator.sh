@@ -34,8 +34,25 @@ discard_simulator() {
   SIMULATOR_UDID=""
 }
 
+list_simulator_devices() {
+  if [[ "${GITHUB_ACTIONS:-}" != true ]]; then
+    xcrun simctl list devices "$@" 2>/dev/null
+    return
+  fi
+  python3 - "$@" <<'PY_INVENTORY'
+import subprocess
+import sys
+
+try:
+    result = subprocess.run(["xcrun", "simctl", "list", "devices", *sys.argv[1:]], timeout=30)
+    sys.exit(result.returncode)
+except subprocess.TimeoutExpired:
+    sys.exit("Simulator inventory timed out after 30s")
+PY_INVENTORY
+}
+
 simulator_udid_for_name() {
-  xcrun simctl list devices available -j 2>/dev/null \
+  list_simulator_devices available -j \
     | trinket_simctl_json udid-for-name "$1" 2>/dev/null || true
 }
 
@@ -87,11 +104,11 @@ resolve_or_create_simulator() {
   echo "Creating new simulator named '$SIMULATOR_NAME'..."
 
   local resolved
-  resolved="$(python3 - "$SIMULATOR_NAME" <<'PY'
+  resolved="$(python3 - "$SIMULATOR_NAME" "$(dirname "${BASH_SOURCE[0]}")" <<'PY'
 import json, os, subprocess, sys
 
 def simctl_json(*args):
-    return json.loads(subprocess.check_output(["xcrun", "simctl", *args], text=True))
+    return json.loads(subprocess.check_output(["xcrun", "simctl", *args], text=True, timeout=30))
 
 devices_payload = simctl_json("list", "devices", "available", "-j")
 runtimes_payload = simctl_json("list", "runtimes", "available", "-j")
@@ -168,11 +185,19 @@ if is_ci:
         if existing_udid:
             break
 
+if os.environ.get("GITHUB_ACTIONS") == "true":
+    sys.path.insert(0, sys.argv[2])
+    from coverage_profiles import warm_runtime_cache
+    try:
+        warm_runtime_cache(selected_runtime, stdout=sys.stderr)
+    except subprocess.TimeoutExpired as error:
+        sys.exit(f"Simulator dyld cache preparation timed out: {error}")
+
 if existing_udid:
-    subprocess.check_call(["xcrun", "simctl", "rename", existing_udid, sim_name])
+    subprocess.check_call(["xcrun", "simctl", "rename", existing_udid, sim_name], timeout=30)
     udid = existing_udid
 else:
-    udid = subprocess.check_output(["xcrun", "simctl", "create", sim_name, chosen_type_id, runtime_id], text=True).strip()
+    udid = subprocess.check_output(["xcrun", "simctl", "create", sim_name, chosen_type_id, runtime_id], text=True, timeout=30).strip()
 
 print(f"{udid}\t{chosen_type_id}\t{runtime_id}\t{runtime_build}")
 PY
@@ -196,7 +221,7 @@ PY
 boot_simulator() {
   trinket_watch_agent_simulator
   local state
-  state="$(xcrun simctl list devices "$SIMULATOR_UDID" -j 2>/dev/null \
+  state="$(list_simulator_devices "$SIMULATOR_UDID" -j \
     | trinket_simctl_json state-for-udid "$SIMULATOR_UDID" 2>/dev/null || echo "Unknown")"
 
   if [[ "$state" == "Booted" ]]; then
@@ -236,7 +261,7 @@ simulator_matches_name() {
   local udid="$1"
   local expected_name="$2"
   local actual_name
-  actual_name="$(xcrun simctl list devices "$udid" -j 2>/dev/null \
+  actual_name="$(list_simulator_devices "$udid" -j \
     | trinket_simctl_json name-for-udid "$udid" 2>/dev/null || true)"
   [[ -n "$actual_name" && "$actual_name" == "$expected_name" ]]
 }

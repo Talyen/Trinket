@@ -67,6 +67,8 @@ def simctl(*arguments):
     except subprocess.TimeoutExpired:
         if arguments[:1] == ('list',):
             query = 'Simulator inventory'
+        elif arguments[:1] == ('getenv',):
+            query = 'Simulator launch-service query'
         elif arguments[:1] == ('ui',) and arguments[2:] == ('content_size',):
             query = 'Simulator text-size query'
         else:
@@ -145,10 +147,11 @@ def prepare_profile(name):
     return prepare_runtime(*PROFILES[name])
 
 
-def warm_runtime_cache(runtime):
-    print(f"Preparing simulator dyld cache: iOS {runtime['version']} ({runtime['buildversion']}).", flush=True)
+def warm_runtime_cache(runtime, *, stdout=None):
+    print(f"Preparing simulator dyld cache: iOS {runtime['version']} ({runtime.get('buildversion', '?')}).",
+          file=stdout, flush=True)
     subprocess.run(['xcrun', 'simctl', 'runtime', 'dyld_shared_cache', 'update', runtime['identifier']],
-                   check=True, timeout=300)
+                   check=True, timeout=300, stdout=stdout)
 
 
 def prepare_runtime(type_id, major, version=None, *, build=None, download_timeout=1800):

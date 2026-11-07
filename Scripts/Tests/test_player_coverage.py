@@ -31,7 +31,7 @@ class PlayerCoverageTests(unittest.TestCase):
                 if hosted:
                     command.assert_called_once_with(
                         ['xcrun', 'simctl', 'runtime', 'dyld_shared_cache', 'update', 'ios-26.2'],
-                        check=True, timeout=300)
+                        check=True, timeout=300, stdout=None)
                 else:
                     command.assert_not_called()
 
@@ -389,6 +389,17 @@ trinket_run_env_install_self_clean() { :; }
                       'python3 Scripts/coverage_profiles.py prepare --name "$PROFILE"', profiles)
         self.assertIn('Scripts/ci-run-budget.py --phase player-profile -- ./Scripts/player-coverage.sh "$PROFILE" "$COVERAGE_CHECK"', profiles)
         self.assertIn('player-${{ matrix.check }}-${{ matrix.profile }}-${{ github.run_id }}-${{ github.run_attempt }}', profiles)
+
+    def test_player_upload_retries_only_the_artifact_transfer(self):
+        workflow = (ROOT / '.github/workflows/player-coverage.yml').read_text()
+        self.assertEqual(workflow.count('uses: ./.github/actions/player-evidence'), 2)
+        action = (ROOT / '.github/actions/player-evidence/action.yml').read_text()
+        first, retry = action.split('    - name: Retry player evidence upload')
+        self.assertIn('continue-on-error: true', first)
+        self.assertNotIn('continue-on-error', retry)
+        self.assertIn("!cancelled() && steps.upload.outcome == 'failure'", retry)
+        self.assertIn('overwrite: true', retry)
+        self.assertEqual(action.count('uses: actions/upload-artifact@'), 2)
 
     def test_reward_and_rotation_run_without_native_settings(self):
         with tempfile.TemporaryDirectory() as temporary:

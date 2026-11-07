@@ -1,0 +1,32 @@
+name: Retain player coverage evidence
+description: Retry a failed artifact upload once without running the tests again.
+inputs:
+  name:
+    description: Artifact name for this job and attempt.
+    required: true
+  path:
+    description: Files or directories to retain.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Upload player evidence
+      id: upload
+      continue-on-error: true
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        include-hidden-files: true
+        retention-days: 14
+        if-no-files-found: warn
+    - name: Retry player evidence upload
+      if: ${{ !cancelled() && steps.upload.outcome == 'failure' }}
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        include-hidden-files: true
+        retention-days: 14
+        if-no-files-found: warn
+        overwrite: true

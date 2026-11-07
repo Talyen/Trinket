@@ -97,8 +97,9 @@ if [[ -n "$PLAYER_JOB" ]]; then
   ")" || exit 1
   [[ "$eligible" == true ]] || exit 1
   evidence="$(gh run view "$RUN_ID" --job "$PLAYER_JOB" --log-failed)" || exit 1
+  player_timeout='Player coverage simulator prerequisite timed out: (runtime-selection|dyld-cache|text-size-readiness|launch-service):|Failed to establish communication with the test runner.*Timed out waiting [0-9]+ seconds for simulator to boot'
   if grep -iqE "$(trinket_product_test_failure_pattern)" <<< "$evidence" ||
-     ! grep -qE 'Player coverage simulator prerequisite timed out: (runtime-selection|dyld-cache|text-size-readiness|launch-service):' <<< "$evidence"; then
+     ! grep -iqE "$player_timeout" <<< "$evidence"; then
     echo "Player coverage job $PLAYER_JOB has no confirmed pre-test simulator timeout."
     exit 1
   fi

@@ -50,6 +50,25 @@ jobs:
         shell: bash
         run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 120 * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        id: checkout
+        env:
+          GIT_HTTP_LOW_SPEED_LIMIT: '1024'
+          GIT_HTTP_LOW_SPEED_TIME: '60'
+        with:
+          # Test products use committed resources. The raw asset library is outside this cone.
+          sparse-checkout: |
+            Scripts
+            Packages
+            Trinket
+            TrinketUITests
+            Trinket.xcodeproj
+            StoreKit
+            ContentManifest
+            Localization
+            ArtManifest
+            MusicManifest
+            SoundManifest
+            .github
       - uses: ./.github/actions/setup-trinket
         with:
           metal: 'true'
@@ -68,19 +87,16 @@ jobs:
           TRINKET_COVERAGE_AUDIT_POLICY: ${{ github.event.schedule == '0 8 * * 1-6' && 'representative' || 'all' }}
         run: python3 Scripts/ci-run-budget.py --phase player-profile -- ./Scripts/player-coverage.sh "$PROFILE" "$COVERAGE_CHECK"
       - name: Stage bounded profile evidence
-        if: always()
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
         run: python3 Scripts/coverage_profiles.py stage --results .DerivedData/TestResults --output .DerivedData/ProfileDiagnostics
       - name: Retain profile results and failures
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
+        uses: ./.github/actions/player-evidence
         with:
           name: player-${{ matrix.check }}-${{ matrix.profile }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             .DerivedData/PlayerCoverage
             .DerivedData/ProfileDiagnostics
-          include-hidden-files: true
-          retention-days: 14
-          if-no-files-found: warn
 
   soak:
     name: Weekly repeated play and crash recovery
@@ -91,6 +107,25 @@ jobs:
       DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        id: checkout
+        env:
+          GIT_HTTP_LOW_SPEED_LIMIT: '1024'
+          GIT_HTTP_LOW_SPEED_TIME: '60'
+        with:
+          # Test products use committed resources. The raw asset library is outside this cone.
+          sparse-checkout: |
+            Scripts
+            Packages
+            Trinket
+            TrinketUITests
+            Trinket.xcodeproj
+            StoreKit
+            ContentManifest
+            Localization
+            ArtManifest
+            MusicManifest
+            SoundManifest
+            .github
       - uses: ./.github/actions/setup-trinket
         with:
           metal: 'true'
@@ -101,16 +136,13 @@ jobs:
           TRINKET_COVERAGE_NO_BUILD: '1'
         run: ./Scripts/player-coverage.sh soak
       - name: Retain raw stores, journals, reports and result bundles
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
+        uses: ./.github/actions/player-evidence
         with:
           name: player-soak-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             .DerivedData/PlayerCoverage
             .DerivedData/TestResults
-          include-hidden-files: true
-          retention-days: 14
-          if-no-files-found: warn
 
   coverage-status:
     name: Player coverage status (advisory for pushes)
