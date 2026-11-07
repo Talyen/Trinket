@@ -1,4 +1,4 @@
-"""FullUI retains every requested class on one prepared functional runtime."""
+"""FullUI uses installed runtimes while retaining supported requested cases."""
 from __future__ import annotations
 
 import unittest
@@ -37,16 +37,34 @@ class FullUIRoutingTests(unittest.TestCase):
             for targets in ([], ['UnknownUITests'], ['FullGamePurchaseUITests'] * 2):
                 with self.subTest(targets=targets), self.assertRaises(ValueError):
                     MODULE.run(targets, self.environment)
-            for changes in ({'GITHUB_ACTIONS': 'false'}, {'TRINKET_SIM_OS_MAJOR': '27'},
-                            {'TRINKET_SIM_OS_BUILD': '23C52'}, {'TEST_RUNNER_TRINKET_EXPECTED_OS_BUILD': ''}):
+            for changes in ({'GITHUB_ACTIONS': 'false'}, {'TRINKET_SIM_DEVICE_TYPE': ''},
+                            {'TRINKET_SIM_OS_VERSION': '25.4'}, {'TRINKET_SIM_OS_VERSION': ''},
+                            {'TRINKET_SIM_OS_BUILD': ''}):
                 with self.subTest(changes=changes), self.assertRaises(ValueError):
                     MODULE.run(self.targets, {**self.environment, **changes})
             execute.assert_not_called()
 
-    def test_exhaustive_job_uses_the_complete_registry_and_immutable_products(self):
+    def test_installed_alternative_routes_supported_cases_and_records_denial_gap(self):
+        environment = {**self.environment, 'TRINKET_SIM_OS_MAJOR': '27',
+                       'TRINKET_SIM_OS_VERSION': '27.1', 'TRINKET_SIM_OS_BUILD': '24A123',
+                       'TEST_RUNNER_TRINKET_EXPECTED_OS_BUILD': '24A123'}
+        supported = 'FullGamePurchaseUITests/testPurchase'
+        deferred = 'FullGamePurchaseUITests/testDeclinedAskToBuyRemainsLockedAndAllowsAnotherPurchase'
+        with patch.object(MODULE.subprocess, 'check_output', return_value=' '.join(self.targets)), \
+                patch.object(MODULE.UI_RESULTS, 'expected_cases', return_value=[supported, deferred]), \
+                patch.object(MODULE, 'record_coverage') as record, \
+                patch.object(MODULE.subprocess, 'call', return_value=65) as execute:
+            self.assertEqual(MODULE.run(self.targets, environment), 65)
+        self.assertEqual(execute.call_args.args[0][5:],
+                         ['BattleFlowUITests', supported, 'LocalizationUITests'])
+        self.assertEqual(execute.call_args.kwargs['env']['TRINKET_SIM_OS_BUILD'], '24A123')
+        self.assertEqual(record.call_args.args[:2], ('StoreKit denial simulation', 'unavailable'))
+        self.assertEqual(record.call_args.kwargs['details']['deferred_selectors'], [deferred])
+
+    def test_exhaustive_job_uses_complete_registry_and_can_rebuild_compatible_products(self):
         workflow = (ROOT / '.github/workflows/tests.yml').read_text()
         exhaustive = workflow.split('  exhaustive-ui:\n', 1)[1].split('  diff-review:\n', 1)[0]
         self.assertIn('Scripts/check-testplan-sync.py --classes FullUI', exhaustive)
         self.assertIn('command: python3 Scripts/ci-exhaustive-ui.py ${{ steps.ui-targets.outputs.targets }}', exhaustive)
-        self.assertIn('rebuild-command: \'false\'', exhaustive)
+        self.assertIn("rebuild-command: './Scripts/build-for-testing.sh --reuse --app-only'", exhaustive)
         self.assertIn('uses: ./.github/actions/setup-functional-ui', exhaustive)
