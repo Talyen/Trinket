@@ -47,15 +47,21 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
     func assertPurchaseCompletes(file: StaticString = #filePath, line: UInt = #line) {
         // StoreKit delivery is asynchronous; ownership is the completion signal.
         assertFullGameAccess(true, timeout: 60, file: file, line: line)
-        let offer = any(AccessibilityID.FullGame.offer)
-        let window = app.windows.firstMatch
         let dismissed = trinketWaitUntil(timeout: Self.defaultTimeout) {
             trinketOnMainActor {
-                guard window.exists, window.frame.width > 0, window.frame.height > 0 else { return false }
-                guard offer.exists else { return true }
-                // SwiftUI may retain a dismissed sheet below the window in AX.
-                let visible = offer.frame.intersection(window.frame)
-                return visible.isNull || visible.width <= 0 || visible.height <= 0
+                guard let window = try? app.windows.firstMatch.snapshot(), !window.frame.isEmpty else { return false }
+                // Read one snapshot: the offer can disappear between live exists/frame queries.
+                var pending = [window]
+                while let element = pending.popLast() {
+                    pending.append(contentsOf: element.children)
+                    guard element.identifier == AccessibilityID.FullGame.offer else { continue }
+                    // SwiftUI may retain a dismissed sheet below the window in AX.
+                    let visible = element.frame.intersection(window.frame)
+                    if !visible.isNull, visible.width > 0, visible.height > 0 {
+                        return false
+                    }
+                }
+                return true
             }
         }
         XCTAssertTrue(dismissed, "Full Game offer must leave the window after ownership is granted", file: file, line: line)
