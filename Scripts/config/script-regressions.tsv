@@ -72,7 +72,8 @@ Scripts/ci-infra-rerun.sh	test_policy_scripts.py
 Scripts/ci-path-filter.py	test_ci_effort.py,test_ci_path_filter.py,test_audit_tooling_regressions.py,test_ui_stability.py
 Scripts/ci-reuse.py	test_ci_effort.py
 Scripts/deploy-verification.py	test_deploy_verification.py,test_full_ui.py
-Scripts/ci-run-budget.py	test_ci_gate_scripts.py,test_ci_improvements.py
+Scripts/ci-run-budget.py	test_ci_gate_scripts.py,test_ci_improvements.py,test_ci_capabilities.py
+Scripts/ci-test-capability.py	test_ci_capabilities.py
 Scripts/ci_ui_retry.py	test_ci_effort.py,test_deploy_verification.py
 Scripts/cleanup-outputs.py	test_output_retention.py,test_release_retention.py,test_retired_releases.py,test_expiring_evidence.py,test_worktree_retention.py
 Scripts/compact-evidence.py	test_evidence_compaction.py
@@ -123,6 +124,7 @@ Scripts/report-profile-inventory.py	test_profile_inventory.py
 Scripts/internal/change_routing.py	test_agent_context.py,test_ci_handoff_routing.py,test_ui_registration.py
 Scripts/internal/cli.py	test_ci_effort.py,test_internal_cli.py,test_localization.py,test_testflight.py,test_release_retention.py,test_build_size.py
 Scripts/internal/ci_simulator_services.py	test_ci_simulator_services.py,test_ci_xcode.py,test_player_coverage.py,test_ui_stability.py
+Scripts/internal/ci_capabilities.py	test_ci_capabilities.py,test_full_ui.py,test_deploy_verification.py,test_player_coverage.py
 Scripts/internal/deploy_cache.py	test_deploy_verification.py
 Scripts/internal/content/abilities.py	test_codegen_abilities.py,test_content_codegen.py,test_content_inspect.py
 Scripts/internal/content/affix_rolling.py	test_codegen_common.py,test_codegen_homestead.py,test_codegen_stages.py,test_codegen_talents.py,test_codegen_triggers.py,test_content_codegen.py,test_content_inspect.py
@@ -261,5 +263,5 @@ Scripts/internal/device_selection.py	test_profile_device.py
 Scripts/internal/worktree_retention.py	test_worktree_retention.py
 Scripts/internal/diagnostic_retention.py	test_diagnostic_retention.py
 Scripts/ci-exhaustive-ui.py	test_full_ui.py
-Scripts/ci-ui-profile.py	test_ui_stability.py,test_full_ui.py,test_deploy_verification.py
+Scripts/ci-ui-profile.py	test_ui_stability.py,test_full_ui.py,test_deploy_verification.py,test_ci_capabilities.py
 .github/actions/setup-functional-ui/action.yml	test_ui_stability.py,test_full_ui.py
