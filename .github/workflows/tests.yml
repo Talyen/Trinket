@@ -201,7 +201,7 @@ jobs:
     # remain required CI OK inputs; do not serialize independent compilation.
     needs: [changes, reuse]
     if: >-
-      always() && !inputs.qualify-native && needs.reuse.result == 'success' &&
+      always() && !cancelled() && !inputs.qualify-native && needs.reuse.result == 'success' &&
       (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
     runs-on: xcode-27
     timeout-minutes: 30
