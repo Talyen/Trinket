@@ -91,6 +91,9 @@ The infrastructure rerun helper checks every failed concrete job and vetoes
 product assertions, compiler errors and other gate failures. The derived CI OK
 failure does not block that classification; rerunning failed jobs still rechecks
 CI OK. The watch command attempts one such recovery, not a blanket test retry.
+Before any automatic rerun or dispatch, it verifies that the remote branch still
+points at the watched commit. An advanced or unreadable ref stops that mutation;
+an obsolete push rerun must not cancel newer verification through concurrency.
 
 ## Gate composition
 

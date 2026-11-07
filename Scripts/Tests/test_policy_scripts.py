@@ -28,6 +28,8 @@ elif args[:2] == ['run', 'view']:
         sys.exit(1)
     else:
         print(os.environ['FIXTURE_JOBS'])
+elif args[:1] == ['api']:
+    print(os.environ['FIXTURE_SHA'])
 elif args[:2] == ['workflow', 'run']:
     open(os.environ['FIXTURE_DISPATCH'], 'w').write('dispatched')
     sys.exit(77)
@@ -62,11 +64,63 @@ else:
                     result = run_captured(
                         [str(ROOT / 'Scripts/agent-watch-ci.sh'), '--ref', 'fixture-branch', '--no-infra-rerun', '--poll-seconds', '1'],
                         cwd=ROOT,
-                        env={**os.environ, 'PATH': f"{root}:{os.environ['PATH']}", 'FIXTURE_JOBS': jobs, 'FIXTURE_DISPATCH': str(dispatched)},
+                        env={**os.environ, 'PATH': f"{root}:{os.environ['PATH']}", 'FIXTURE_JOBS': jobs, 'FIXTURE_DISPATCH': str(dispatched),
+                             'FIXTURE_SHA': run_captured(['git', 'rev-parse', 'HEAD'], cwd=ROOT, expected=0).stdout.strip()},
                         timeout=10,
                     )
                     self.assertEqual(result.returncode, status, result.stdout + result.stderr)
                     self.assertEqual(dispatched.exists(), dispatch)
+
+    def test_ci_watch_mutates_only_the_current_remote_commit(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.make_repo_fixture(directory, ('Scripts/agent-watch-ci.sh',))
+            tools = root / 'tools'
+            tools.mkdir()
+            sha = 'a' * 40
+            write_executable(tools / 'git', '#!/bin/sh\necho ' + sha + '\n')
+            write_executable(tools / 'sleep', '#!/bin/sh\nexit 0\n')
+            write_executable(root / 'Scripts/ci-infra-rerun.sh', '#!/bin/sh\nexit 0\n')
+            write_executable(tools / 'gh', '''#!/usr/bin/env python3
+import json, os, sys
+from pathlib import Path
+args = sys.argv[1:]
+if args[:2] == ['repo', 'view']:
+    print('fixture/repo')
+elif args[:1] == ['api']:
+    if '/commits/' in args[1]:
+        if os.environ['FIXTURE_HEAD'] == 'unavailable':
+            sys.exit(1)
+        print(os.environ['FIXTURE_HEAD'])
+elif args[:2] == ['run', 'list']:
+    if os.environ['FIXTURE_MODE'] != 'missing':
+        print('10')
+elif args[:2] == ['run', 'view'] and '--json' in args:
+    if args[args.index('--json') + 1] == 'status,conclusion,jobs':
+        print(json.dumps(dict(status='completed', conclusion=(
+            'failure' if os.environ['FIXTURE_MODE'] == 'retry' else 'success'), jobs=[])))
+    elif '--jq' not in args:
+        print(json.dumps(dict(jobs=[dict(name='changes / Path filter', conclusion='success')])))
+elif args[:2] in (['workflow', 'run'], ['run', 'rerun']):
+    Path(os.environ['FIXTURE_MUTATION']).write_text(' '.join(args[:2]))
+    sys.exit(77)
+''')
+            for mode in ('retry', 'filtered', 'missing'):
+                for head in (sha, 'b' * 40, 'unavailable', ''):
+                    with self.subTest(mode=mode, head=head):
+                        mutated = root / 'mutated'
+                        mutated.unlink(missing_ok=True)
+                        result = run_captured([str(root / 'Scripts/agent-watch-ci.sh'),
+                            '--ref', 'fixture-branch', '--sha', sha, '--poll-seconds', '1'],
+                            env={**os.environ, 'PATH': f"{tools}:{os.environ['PATH']}",
+                                 'FIXTURE_MODE': mode, 'FIXTURE_HEAD': head,
+                                 'FIXTURE_MUTATION': str(mutated)}, timeout=10)
+                        self.assertEqual(result.returncode, 77 if head == sha and mode != 'retry' else 1,
+                                         result.stdout + result.stderr)
+                        self.assertEqual(mutated.exists(), head == sha)
+                        if mode == 'retry':
+                            self.assertEqual(result.stdout.count('Polling CI run'), 1)
+                        if head != sha:
+                            self.assertIn('no CI mutation attempted', result.stderr)
 
     def test_ci_infrastructure_retry_requires_evidence_for_every_failed_job(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

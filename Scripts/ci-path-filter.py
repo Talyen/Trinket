@@ -36,6 +36,7 @@ CODE_INCLUDES = (
 # Build/test/generate scripts must still run macos jobs; lint/CI glue stays infra.
 CODE_SCRIPT_INCLUDES = (
     "Scripts/setup-ci-xcode.py",
+    "Scripts/internal/ci_simulator_services.py",
     "Scripts/config/ci-xcode.json",
     "Scripts/build.sh",
     "Scripts/build-metadata.py",
@@ -113,6 +114,7 @@ def is_code_path(path: str) -> bool:
 
 
 SMOKE_INCLUDES = (
+    "Scripts/internal/ci_simulator_services.py",
     "Scripts/ci-ui-profile.py",
     ".github/actions/setup-functional-ui/**",
     "Scripts/setup-ci-xcode.py",

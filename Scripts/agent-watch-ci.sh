@@ -30,6 +30,8 @@ failed job names, check-run annotations (SwiftLint / compiler), and a short log
 excerpt. If the run only executed the path-
 filter job, optionally dispatches a full workflow_dispatch run and watches that.
 Simulator/XCUITest launch flakes get one automatic `gh run rerun --failed`.
+Automatic reruns and dispatches require the remote branch to still point at the
+watched commit; an obsolete watcher cannot supersede newer verification.
 
 Options:
   --ref <branch>           Branch to watch (default: current branch)
@@ -131,6 +133,20 @@ fi
 
 repo_slug() {
   gh repo view --json nameWithOwner -q .nameWithOwner
+}
+
+require_current_ref() {
+  local repo encoded_ref current_sha
+  repo="$(repo_slug)" || return 1
+  encoded_ref="$(jq -rn --arg ref "$REF" '$ref | @uri')"
+  if ! current_sha="$(gh api "repos/${repo}/commits/${encoded_ref}" --jq .sha)"; then
+    echo "Could not verify the current remote $REF; no CI mutation attempted." >&2
+    return 1
+  fi
+  if [[ "$current_sha" != "$SHA" ]]; then
+    echo "Remote $REF no longer points at $SHA; no CI mutation attempted (current: $current_sha)." >&2
+    return 1
+  fi
 }
 
 wait_for_run_id() {
@@ -306,8 +322,9 @@ watch_with_infra_retry() {
     return 1
   fi
 
+  require_current_ref || return 1
   echo "Failed jobs look like simulator/XCUITest launch infrastructure; rerunning failed jobs once..."
-  gh run rerun "$run_id" --failed
+  gh run rerun "$run_id" --failed || return $?
   sleep "$POLL_SECONDS"
   watch_run "$run_id"
 }
@@ -317,6 +334,7 @@ echo "=== Agent CI watch: ref=$REF sha=${SHA:0:12} ==="
 echo "Waiting for Actions run for $SHA ..."
 if ! RUN_ID="$(wait_for_run_id "$SHA")"; then
   echo "No Actions run found for commit $SHA within timeout." >&2
+  require_current_ref || exit 1
   echo "Triggering workflow_dispatch on $REF ..."
   gh workflow run "$WORKFLOW_NAME" --ref "$REF" -f "scope=$SCOPE"
   sleep "$POLL_SECONDS"
@@ -349,6 +367,7 @@ if (( filter_status == 0 )); then
     gh run list --branch "$REF" --workflow "$WORKFLOW_NAME" --limit 1 --json databaseId,createdAt \
       --jq '.[0].databaseId // empty'
   )"
+  require_current_ref || exit 1
   gh workflow run "$WORKFLOW_NAME" --ref "$REF" -f "scope=$SCOPE"
   DISPATCH_ID=""
   attempts=0

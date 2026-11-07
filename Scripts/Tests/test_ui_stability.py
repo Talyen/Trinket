@@ -111,8 +111,12 @@ printf '%s\\n' "${XCODEBUILD_ARGS[@]}"
             self.assertFalse(any(str(incomplete) in call.args[0] for call in run.call_args_list))
 
     def test_runtime_policy_changes_request_smoke_and_deep_purchase_journey_is_retained(self):
-        for path in ('Scripts/ci-ui-profile.py', '.github/actions/setup-functional-ui/action.yml'):
+        for path in ('Scripts/ci-ui-profile.py', '.github/actions/setup-functional-ui/action.yml',
+                     'Scripts/internal/ci_simulator_services.py'):
             self.assertTrue(FILTER.needs_smoke([path]), path)
+        path = 'Scripts/internal/ci_simulator_services.py'
+        self.assertTrue(FILTER.is_code_path(path))
+        self.assertEqual(FILTER.affected_packages([path], lambda: {}), FILTER.all_packages())
         self.assertEqual(RETRY.expected_cases(['FullGamePurchaseSmokeTests']),
                          ['FullGamePurchaseSmokeTests/testOptionsPurchaseUnlocksFullGame'])
         self.assertIn('FullGamePurchaseUITests/testCampaignAndOptionsPurchaseUnlockRecruitedWarlock',
