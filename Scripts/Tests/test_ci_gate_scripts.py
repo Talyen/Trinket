@@ -115,7 +115,7 @@ trinket_run_full_gate
             run_captured(['bash', '-c', command], cwd=root, env={**os.environ, 'RESULTS_DIR': str(results)}, expected=65)
             self.assertIn('original failure', (results / 'gate.log').read_text())
         stage = workflow.split('      - name: Stage bounded gate failure diagnostics', 1)[1]
-        self.assertIn('if: failure()', stage)
+        self.assertEqual(stage.count("if: ${{ failure() && steps.checkout.outcome == 'success' }}"), 2)
         self.assertIn('--stage-gate-artifacts', stage)
         self.assertIn('retention-days: 14', stage)
 

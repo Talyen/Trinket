@@ -9,7 +9,7 @@
 .github/workflows/changes.yml	test_ci_path_filter.py
 .github/workflows/ci.yml	test_ci_gate_scripts.py,test_ci_xcode.py
 .github/workflows/diagnostic-ui.yml	test_ci_improvements.py
-.github/workflows/gate.yml	test_ci_improvements.py,test_ci_xcode.py
+.github/workflows/gate.yml	test_ci_gate_scripts.py,test_ci_improvements.py,test_ci_xcode.py
 .github/workflows/player-coverage.yml	test_player_coverage.py
 .github/workflows/release.yml	test_ci_gate_scripts.py
 .github/workflows/tests.yml	test_ci_effort.py,test_ci_improvements.py,test_ci_xcode.py,test_full_ui.py
