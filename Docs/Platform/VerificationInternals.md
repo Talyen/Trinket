@@ -321,8 +321,8 @@ build's results directory/stamps; logs and verdicts identify that directory.
 
 ### Native settings and failure evidence
 
-Reward return and rotation check that the booted guest answers a launch-service
-query before invoking XCTest. Native profiles check the text-size service before
+Reward return and rotation proceed from boot readiness directly to XCTest,
+which owns the app launch session. Native profiles check the text-size service before
 any tests. They read the original value once, verify each setting change with one
 readback and restore the original value after the profiles. A timed-out read gets
 one retry. A failed readiness probe keeps its own phase and skips post-test

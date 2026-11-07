@@ -7,6 +7,7 @@ import contextlib
 import io
 import os
 import subprocess
+import sys
 import tempfile
 import time
 import unittest
@@ -60,10 +61,9 @@ xcrun() {
 }
 if boot_simulator; then exit 0; else exit 1; fi
 '''
-        cases = [('Status=0, isTerminal=YES, Finished', '0', 0),
+        cases = [('Status=4294967295, isTerminal=YES, Elapsed=00:59.\n\tFinished', '0', 0),
                  ('Device already booted, nothing to do.', '0', 0),
                  ('Status=3, isTerminal=YES, Data Migration Failed', '0', 1),
-                 ('Status=4294967295, isTerminal=YES, Finished', '0', 1),
                  ('boot error', '70', 1), ('unreadable-log', '0', 1)]
         for output, status, expected in cases:
             with self.subTest(output=output, status=status):
@@ -181,11 +181,15 @@ elif args[:2] == ['simctl', 'create']:
 else:
     raise SystemExit('Unexpected simulator mutation: ' + repr(args))
 ''')
+            developer = root / 'Selected.app/Contents/Developer'
+            (developer.parent / 'Applications/DeviceHub.app').mkdir(parents=True)
+            write_executable(binaries / 'open', '#!/bin/sh\nexit 0\n')
+            (binaries / 'python3').symlink_to(Path(sys.executable).resolve())
             environment = {key: value for key, value in os.environ.items()
                            if not key.startswith(('TRINKET_', 'SIMULATOR_'))}
             run_captured(['bash', '-ec', 'source "$1/Scripts/ensure-simulator.sh"; resolve_or_create_simulator',
                           '_', str(ROOT)], cwd=root,
-                         env={**environment, 'GITHUB_ACTIONS': 'true',
+                         env={**environment, 'GITHUB_ACTIONS': 'true', 'DEVELOPER_DIR': str(developer),
                               'PATH': str(binaries) + os.pathsep + os.environ['PATH']}, expected=0)
             self.assertEqual(json.loads((root / 'created.json').read_text()), ['Trinket Run', phone, runtime])
 
@@ -1110,6 +1114,8 @@ if sys.argv[1:4] == ["simctl", "list", "devices"]:
         {"name": "Trinket Agent 2", "udid": "peer", "state": "Booted"}]}}))
 elif sys.argv[1:3] == ["simctl", "install"]:
     sys.exit(int(os.environ["INSTALL_STATUS"]))
+elif sys.argv[1:] == ["simctl", "bootstatus", "human", "-b"]:
+    print("Device already booted, nothing to do.")
 else:
     sys.exit(92)
 ''')

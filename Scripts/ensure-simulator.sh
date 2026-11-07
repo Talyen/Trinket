@@ -248,10 +248,10 @@ boot_simulator() {
     echo "Error: Simulator boot failed" >&2
     return 1
   }
-  # simctl can return zero for terminal migration failure or a stopped boot.
-  # Its completed result distinguishes those from a busy inventory service.
+  # simctl can return zero for an explicit migration failure. Its normal
+  # Finished status is UINT_MAX (4294967295), not a failed boot.
   local boot_result_status=0
-  grep -Eq 'Status=(3|4294967295), isTerminal=YES|Data Migration Failed' "$boot_status_log" || boot_result_status=$?
+  grep -Eq 'Status=3, isTerminal=YES|Data Migration Failed' "$boot_status_log" || boot_result_status=$?
   if (( boot_result_status > 1 )); then
     rm -f "$boot_status_log"
     echo "Error: Simulator boot failed: cannot read its completion evidence." >&2
