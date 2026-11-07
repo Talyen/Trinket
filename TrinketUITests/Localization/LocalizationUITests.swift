@@ -3,6 +3,10 @@ import TrinketFeatureSupport
 import XCTest
 
 final class LocalizationUITests: FullGameStoreKitUITestCase {
+    func testEnglishScreenshots() throws {
+        try captureJourney(language: "en", region: "en_US")
+    }
+
     func testJapaneseScreenshots() throws {
         try captureJourney(language: "ja", region: "ja_JP")
     }

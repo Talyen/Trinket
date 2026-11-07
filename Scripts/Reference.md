@@ -130,9 +130,10 @@ and complete examples. These entries do not authorize publishing.
 | `./Scripts/test-deploy.sh --compile-only` | Compile every test target without release certification; help lists beta/smoke/ui modes and checkpoint options |
 | `./Scripts/release.sh --dry-run` | Preview release artifacts; isolated preparation uses `--no-tag`, then tags the verified integrated commit under [the release procedure](../Docs/Platform/Release.md#produce-release-artifacts) |
 
-Requested local deploy suites and `testflight.sh --full-ui` use the heavy-local
-flag. Default beta consumes hosted proof and never falls back to local tests;
-doctor and dry-run need no opt-in.
+Requested local deploy suites use the heavy-local flag. TestFlight consumes hosted
+proof; `--full-ui` also requires the exact-commit hosted FullUI result and never
+falls back to local tests. Doctor and dry-run need no opt-in. Archive/export still
+use the shared host lane under the release procedure.
 
 ### Diagnostics
 
