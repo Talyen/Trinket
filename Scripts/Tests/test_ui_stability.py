@@ -21,39 +21,45 @@ RETRY = load_script('stable_ui_cases', 'ci_ui_retry.py')
 
 
 class UIStabilityTests(unittest.TestCase):
-    def test_qualified_runtime_is_validated_before_exporting_environment(self):
+    def test_installed_runtime_is_warmed_before_exporting_environment(self):
         profile = PROFILE.QUALIFIED_PROFILE
-        runtime = dict(identifier=profile['runtime'], buildversion=profile['build'], version=profile['version'])
+        runtime = dict(identifier=profile['runtime'], buildversion=profile['build'], version=profile['version'],
+                       platform='iOS', isAvailable=True,
+                       supportedDeviceTypes=[dict(identifier=profile['device'])])
+        def inventory(selected):
+            return [json.dumps(dict(runtimes=[selected])),
+                    json.dumps(dict(devicetypes=[dict(identifier=profile['device'], name='iPhone 17 Pro')])),
+                    json.dumps(dict(devices={}))]
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'github-env'
             environment = dict(GITHUB_ACTIONS='true', GITHUB_ENV=str(path))
-            with patch.object(PROFILE.PROFILES, 'prepare_runtime', return_value=runtime) as prepare, \
+            with patch.object(PROFILE.PROFILES, 'simctl', side_effect=inventory(runtime)), \
                     patch.object(PROFILE, 'prepare_components'), \
-                    patch.object(PROFILE.PROFILES, 'start_device_ui'), \
-                    patch.object(PROFILE.subprocess, 'run') as cache:
+                    patch.object(PROFILE.PROFILES, 'warm_runtime_cache') as cache, \
+                    patch.object(PROFILE.PROFILES, 'prepare_runtime', side_effect=AssertionError('download attempted')):
                 PROFILE.prepare(environment)
-            cache.assert_called_once_with(['xcrun', 'simctl', 'runtime', 'dyld_shared_cache', 'update', profile['runtime']],
-                                          check=True, timeout=300, stdout=None)
-            prepare.assert_called_once_with(profile['device'], 26, '26.2', build='23C54', download_timeout=600)
+            cache.assert_called_once_with(runtime)
             exported = dict(line.split('=', 1) for line in path.read_text().splitlines())
             PROFILE.require_environment(exported)
             self.assertEqual(exported['TEST_RUNNER_TRINKET_EXPECTED_OS_BUILD'], '23C54')
-            for wrong in (dict(runtime, buildversion='23C52'), dict(runtime, identifier='different')):
+            for unavailable in (dict(runtime, isAvailable=False), dict(runtime, version='18.0')):
                 path.write_text('unchanged\n')
-                with patch.object(PROFILE.PROFILES, 'prepare_runtime', return_value=wrong), \
+                with patch.object(PROFILE.PROFILES, 'simctl', side_effect=inventory(unavailable)), \
                         patch.object(PROFILE, 'prepare_components'), \
-                        patch.object(PROFILE.subprocess, 'run') as cache, self.assertRaises(ValueError):
+                        patch.object(PROFILE.PROFILES, 'warm_runtime_cache') as cache, \
+                        self.assertRaises(PROFILE.CapabilityUnavailable):
                     PROFILE.prepare(environment)
                 cache.assert_not_called()
                 self.assertEqual(path.read_text(), 'unchanged\n')
             path.write_text('unchanged\n')
-            with patch.object(PROFILE.PROFILES, 'prepare_runtime', return_value=runtime), \
+            with patch.object(PROFILE.PROFILES, 'simctl', side_effect=inventory(runtime)), \
                     patch.object(PROFILE, 'prepare_components'), \
-                    patch.object(PROFILE.subprocess, 'run', side_effect=PROFILE.subprocess.TimeoutExpired('cache', 300)), \
+                    patch.object(PROFILE.PROFILES, 'warm_runtime_cache',
+                                 side_effect=PROFILE.subprocess.TimeoutExpired('cache', 300)), \
                     self.assertRaises(PROFILE.subprocess.TimeoutExpired):
                 PROFILE.prepare(environment)
             self.assertEqual(path.read_text(), 'unchanged\n')
-            with patch.object(PROFILE.PROFILES, 'prepare_runtime') as prepare, self.assertRaises(ValueError):
+            with patch.object(PROFILE.PROFILES, 'simctl') as prepare, self.assertRaises(ValueError):
                 PROFILE.prepare(dict(GITHUB_ACTIONS='false', GITHUB_ENV=str(path)))
             prepare.assert_not_called()
 
