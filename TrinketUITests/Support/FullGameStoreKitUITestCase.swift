@@ -49,7 +49,7 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
         assertFullGameAccess(true, timeout: 60, file: file, line: line)
         let dismissed = trinketWaitUntil(timeout: Self.defaultTimeout) {
             trinketOnMainActor {
-                guard let window = try? app.windows.firstMatch.snapshot(), !window.frame.isEmpty else { return false }
+                guard let window = try? self.app.windows.firstMatch.snapshot(), !window.frame.isEmpty else { return false }
                 // Read one snapshot: the offer can disappear between live exists/frame queries.
                 var pending = [window]
                 while let element = pending.popLast() {
