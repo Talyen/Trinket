@@ -14,6 +14,8 @@ from pathlib import Path
 import subprocess
 import sys
 
+from internal.ci_simulator_services import prepare_components, start_device_ui
+
 PROFILES = {
     'compact': ('com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation', 26),
     'tablet26': ('com.apple.CoreSimulator.SimDeviceType.iPad-A16', 26),
@@ -144,9 +146,11 @@ def warm_runtime_cache(runtime, *, stdout=None):
           file=stdout, flush=True)
     subprocess.run(['xcrun', 'simctl', 'runtime', 'dyld_shared_cache', 'update', runtime['identifier']],
                    check=True, timeout=300, stdout=stdout)
+    start_device_ui()
 
 
 def prepare_runtime(type_id, major, version=None, *, build=None, download_timeout=1800):
+    prepare_components(dict(os.environ))
     types = json.loads(simctl('list', 'devicetypes', '-j'))['devicetypes']
     runtimes = json.loads(simctl('list', 'runtimes', 'available', '-j'))['runtimes']
     try:

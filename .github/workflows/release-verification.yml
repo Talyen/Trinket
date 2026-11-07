@@ -34,6 +34,7 @@ jobs:
       TRINKET_SIM_DEVICE_TYPE: com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro
       TRINKET_SIM_OS_VERSION: '26.2'
       TRINKET_CLEANUP_TEST_ARTIFACTS: '0'
+      TRINKET_ISOLATE: '1'
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
@@ -47,22 +48,7 @@ jobs:
         with:
           metal: 'true'
           xcode-channel: verified
-      - name: Install the qualified runtime if absent
-        timeout-minutes: 35
-        run: |
-          python3 - <<'PY'
-          import json
-          import platform
-          import subprocess
-          runtimes = json.loads(subprocess.check_output(['xcrun', 'simctl', 'list', 'runtimes', 'available', '-j']))['runtimes']
-          if not any(item.get('isAvailable') and item.get('platform') == 'iOS'
-                     and item.get('version') in ('26.2', '26.2.0')
-                     and item.get('buildversion') == '23C54' for item in runtimes):
-              subprocess.run(['xcodebuild', '-downloadPlatform', 'iOS', '-buildVersion', '23C54',
-                              '-architectureVariant', 'arm64' if platform.machine() == 'arm64' else 'universal'],
-                             check=True, timeout=1800)
-          PY
-          python3 Scripts/deploy-verification.py --mode hosted-beta --preflight
+      - uses: ./.github/actions/setup-functional-ui
       - uses: ./.github/actions/coverage-products
       - name: Restore content-verified journey evidence
         if: ${{ !inputs.fresh-evidence }}

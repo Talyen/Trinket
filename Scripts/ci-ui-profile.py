@@ -8,6 +8,7 @@ from pathlib import Path
 import subprocess
 
 from internal.cli import load_sibling
+from internal.ci_simulator_services import prepare_components
 
 PROFILES = load_sibling('qualified_ui_profiles', 'coverage_profiles.py')
 QUALIFIED_PROFILE = dict(device='com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro',
@@ -30,6 +31,7 @@ def require_environment(environment):
 def prepare(environment):
     if environment.get('GITHUB_ACTIONS') != 'true' or not environment.get('GITHUB_ENV'):
         raise ValueError('Functional UI provisioning requires GitHub Actions and its environment file.')
+    prepare_components(environment)
     profile = QUALIFIED_PROFILE
     runtime = PROFILES.prepare_runtime(profile['device'], int(profile['version'].split('.')[0]),
                                       profile['version'], build=profile['build'], download_timeout=600)

@@ -82,6 +82,7 @@ class CIXcodeTests(unittest.TestCase):
                 with self.subTest(build=build), patch.object(SETUP, 'ROOT', root), \
                         patch.object(SETUP, 'installed_xcodes', return_value=[(root / 'Xcode.app', version, build)]), \
                         patch.object(SETUP.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0)), \
+                        patch.object(SETUP, 'prepare_components'), \
                         patch.dict(os.environ, GITHUB_ENV=str(output), GITHUB_STEP_SUMMARY=''), \
                         patch.object(sys, 'argv', ['setup-ci-xcode.py', '--channel', 'latest']):
                     SETUP.main()

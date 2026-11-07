@@ -43,6 +43,14 @@ establish completed native execution.
 
 ## Execution deadlines
 
+CI checks first-launch component readiness for the selected Xcode before using
+its SDKs. Missing components install with a three-minute bound and must pass the
+readiness check afterward. Runtime preparation starts that Xcode's Device Hub
+(or Simulator) in the background after preparing its dyld cache, retaining a
+device-service client for the job. Local invocations never install components or
+open apps through this CI path. Qualified release journeys use the same runtime
+preparation action and isolated simulator ownership as functional CI.
+
 Standard build, package, UI, asset, and unsigned Release jobs record an absolute
 execution deadline in their first step, reserving three minutes before the GitHub
 job timeout for diagnostic classification and upload. The shorter generation/style

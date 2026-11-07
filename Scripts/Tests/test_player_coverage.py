@@ -18,6 +18,11 @@ MODULE = load_script('coverage_profiles', 'coverage_profiles.py')
 
 
 class PlayerCoverageTests(unittest.TestCase):
+    def setUp(self):
+        components = patch.object(MODULE, 'prepare_components')
+        components.start()
+        self.addCleanup(components.stop)
+
     def test_hosted_profiles_warm_the_selected_runtime_before_boot(self):
         runtime = dict(identifier='ios-26.2', version='26.2', buildversion='23C54')
         for profile, hosted in (('compact', True), ('tablet26', True), ('compact', False)):
@@ -25,6 +30,7 @@ class PlayerCoverageTests(unittest.TestCase):
                     patch.object(sys, 'argv', ['coverage_profiles.py', 'prepare', '--name', profile]), \
                     patch.dict(os.environ, {'GITHUB_ACTIONS': str(hosted).lower()}), \
                     patch.object(MODULE, 'prepare_profile', return_value=runtime) as prepare, \
+                    patch.object(MODULE, 'start_device_ui'), \
                     patch.object(MODULE.subprocess, 'run') as command:
                 self.assertEqual(MODULE.main(), 0)
                 prepare.assert_called_once_with(profile)

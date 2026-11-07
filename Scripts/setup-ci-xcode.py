@@ -12,6 +12,8 @@ import subprocess
 import tempfile
 import time
 
+from internal.ci_simulator_services import prepare_components
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -161,6 +163,7 @@ def main() -> None:
     environment = {**os.environ, "DEVELOPER_DIR": str(app / "Contents/Developer")}
     print(f"Selecting Xcode: {app} ({version}, build {build}, channel {args.channel}; {reason})", flush=True)
     subprocess.run(["xcodebuild", "-version"], env=environment, timeout=30, check=True)
+    prepare_components(environment)
     subprocess.run(["xcrun", "--sdk", "iphonesimulator", "--show-sdk-version"],
                    env=environment, timeout=30, check=True)
     if args.metal:

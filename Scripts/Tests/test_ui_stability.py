@@ -28,6 +28,8 @@ class UIStabilityTests(unittest.TestCase):
             path = Path(directory) / 'github-env'
             environment = dict(GITHUB_ACTIONS='true', GITHUB_ENV=str(path))
             with patch.object(PROFILE.PROFILES, 'prepare_runtime', return_value=runtime) as prepare, \
+                    patch.object(PROFILE, 'prepare_components'), \
+                    patch.object(PROFILE.PROFILES, 'start_device_ui'), \
                     patch.object(PROFILE.subprocess, 'run') as cache:
                 PROFILE.prepare(environment)
             cache.assert_called_once_with(['xcrun', 'simctl', 'runtime', 'dyld_shared_cache', 'update', profile['runtime']],
@@ -39,12 +41,14 @@ class UIStabilityTests(unittest.TestCase):
             for wrong in (dict(runtime, buildversion='23C52'), dict(runtime, identifier='different')):
                 path.write_text('unchanged\n')
                 with patch.object(PROFILE.PROFILES, 'prepare_runtime', return_value=wrong), \
+                        patch.object(PROFILE, 'prepare_components'), \
                         patch.object(PROFILE.subprocess, 'run') as cache, self.assertRaises(ValueError):
                     PROFILE.prepare(environment)
                 cache.assert_not_called()
                 self.assertEqual(path.read_text(), 'unchanged\n')
             path.write_text('unchanged\n')
             with patch.object(PROFILE.PROFILES, 'prepare_runtime', return_value=runtime), \
+                    patch.object(PROFILE, 'prepare_components'), \
                     patch.object(PROFILE.subprocess, 'run', side_effect=PROFILE.subprocess.TimeoutExpired('cache', 300)), \
                     self.assertRaises(PROFILE.subprocess.TimeoutExpired):
                 PROFILE.prepare(environment)
