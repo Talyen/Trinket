@@ -382,14 +382,16 @@ class CIImprovementsTests(unittest.TestCase):
                                 for path in results.glob('preparation-*-diagnostics.json')))
 
     def test_player_prerequisite_timeout_has_its_own_infrastructure_phase(self):
-        with tempfile.TemporaryDirectory() as directory:
-            results = Path(directory)
-            output = ("Simulator text-size query timed out after 30s; retrying once.\n"
-                      "Player coverage simulator prerequisite timed out: text-size-readiness: simctl timed out")
-            BUDGET.preparation_report(['profiles'], results, {}, 2, 60, output, 'player-profile')
-            report = json.loads(next(results.glob('*-diagnostics.json')).read_text())
-            self.assertEqual(report['phase'], 'text-size-readiness')
-            self.assertEqual(report['classification'], 'simulator-infrastructure')
+        for phase in ('text-size-readiness', 'launch-service'):
+            with self.subTest(phase=phase), tempfile.TemporaryDirectory() as directory:
+                results = Path(directory)
+                service = phase.removesuffix('-readiness')
+                output = (f"Simulator {service} query timed out after 30s; retrying once.\n"
+                          f"Player coverage simulator prerequisite timed out: {phase}: simctl timed out")
+                BUDGET.preparation_report(['profiles'], results, {}, 2, 60, output, 'player-profile')
+                report = json.loads(next(results.glob('*-diagnostics.json')).read_text())
+                self.assertEqual(report['phase'], phase)
+                self.assertEqual(report['classification'], 'simulator-infrastructure')
 
     def test_unit_and_parity_jobs_keep_sessions_and_separate_execution_deadlines(self):
         workflow = (ROOT / '.github/workflows/tests.yml').read_text()

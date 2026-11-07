@@ -42,8 +42,6 @@ def preparation_observations(log: Path, status: int, output: str, phase: str) ->
                                 output, re.M)
     if phase.startswith('player-profile') and profile_timeout:
         phase = profile_timeout[1]
-        observations = [item for item in observations
-                        if not item.message.startswith('Simulator text-size query timed out after ')]
         observations.append(IssueObservation('simulator-infrastructure', 'Player coverage prerequisite',
                                              profile_timeout[2]))
     if phase == 'toolchain':
