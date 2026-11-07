@@ -2,7 +2,7 @@
 type: execution-plan
 status: active
 created: 2026-11-06
-updated: 2026-11-06
+updated: 2026-11-07
 expires: 2026-11-20
 ---
 
@@ -14,23 +14,24 @@ that close a release gate, then refresh the affected evidence on the resulting
 revision. Follow the [standing workflow](../../AGENTS.md#route-and-read) and
 [verification policy](../Platform/Verification.md).
 
-Engineering can start CI triage while the App Store Connect owner checks the
-listing and account. The owner also needs two test devices, disposable saves,
-and sandbox purchase accounts. Agree on the public version and launch territories
-before preparing the release commit. TestFlight upload, App Review submission,
-and release publication each require owner authorization.
+Engineering and App Store Connect preparation are authorized, including TestFlight
+distribution. App Review submission remains pending at the owner's request.
+Use the existing iCloud test results and deliberate test saves for candidate checks.
+A second physical device is not a release gate. The existing storefront
+territories guide candidate preparation.
 
 ## 1. Close the verification failures
 
-The November 6 baseline is `19efbb435`. Push CI passed, and the nightly device
-Release compile and Smoke passed. Start with these failures from the same revision.
+The November 7 baseline is `0e554659c`. Push CI passed. The latest nightly
+passed the device Release compile, Smoke, all package suites and engine native
+parity. Close the remaining failures below before qualifying the public candidate.
 
 | Failure | First diagnostic |
 |---|---|
-| FullUI battle lifecycle | Rerun `BattleLifecycleUITests/testBackgroundedTalentConfirmationsFinishAndLeaveTheNextStagePlayable` on the failing toolchain. Use the retained result and app state to determine why the app failed to enter the background before reactivation. [FullUI job](https://github.com/Talyen/Trinket/actions/runs/42235920702/job/127971984915) |
-| Engine native parity | Inspect the native diagnostics and iOS comparator proof. Identify the mismatched evidence field and regenerate matching proof before drawing conclusions about engine behavior. [Parity job](https://github.com/Talyen/Trinket/actions/runs/42235920702/job/127977804209) |
-| Reward navigation | Require the independent `RewardReturnUITests` jobs on iOS 26 and iPadOS 27 and retain the native accessibility profile results. Compare the reward-return attachment with the native hierarchy if the next stage is missing. The intermittent iOS 18.0 accessibility finding remains open in the historical evidence. [Prior iOS 18 run](https://github.com/Talyen/Trinket/actions/runs/42245210926/job/127989567132) |
-| Compact, tablet, and Duo coverage | Inspect each profile's failure. Compact exhausted simulator boot recovery. Require actual profile execution and a separate Duo rotation result. Retry a confirmed simulator prerequisite failure once on a fresh runner. [Player coverage run](https://github.com/Talyen/Trinket/actions/runs/42245210926) |
+| Script gate | The stalled-boot fixture failed its five-second wall-time assertion after the watchdog correctly returned a timeout. Retain the one-second boot deadline and bound the fixture independently. [Gate job](https://github.com/Talyen/Trinket/actions/runs/42377855957/job/128419073576) |
+| Full Game refund and repurchase | The test confirmed revoked access and preserved progress, then exhausted its eight-second product-lookup wait after relaunch. The offer attachment shows loading. Verify the complete journey with a StoreKit service deadline. [FullUI job](https://github.com/Talyen/Trinket/actions/runs/42377855957/job/128424861387) |
+| Reward return and native profiles | Compact reward return passed; tablet reward return and native settings profiles stopped on simulator prerequisites. Require actual execution on iOS/iPadOS 26 and 27. Retry a confirmed prerequisite failure once on a fresh runner. [Player coverage run](https://github.com/Talyen/Trinket/actions/runs/42382791768) |
+| Duo rotation | The requested orientation changed while the app window stayed portrait. Establish actual geometry through the supported simulator controls; preserve the window-resize assertion. [Rotation job](https://github.com/Talyen/Trinket/actions/runs/42382791768/job/128433767903) |
 
 Keep App Store compatibility at iOS and iPadOS 18.0. Automated launch coverage
 starts at 26 for both platforms.
@@ -62,10 +63,10 @@ starts at 26 for both platforms.
 
 ## 3. Qualify the signed candidate on devices
 
-The local receipt for cloud-enabled TestFlight `0.1.0 (66)` records an upload from
-`50139150e` with beta verification. Confirm its availability and suitability as
-an upgrade source. Identify the new candidate by source commit, marketing version,
-build number, and signed archive.
+Cloud-enabled TestFlight `0.1.0 (66)` from `50139150e` is processed and assigned
+to Personal Testing. The connected iPhone currently has `0.1.0 (6)` installed;
+preserve its existing save as the upgrade source. Identify the new candidate by
+source commit, marketing version, build number, and signed archive.
 
 - [ ] Use the [TestFlight workflow](../Platform/Release.md#local-testflight-deployment)
   for the exact candidate, with qualified hosted journey proof and the documented
@@ -78,12 +79,11 @@ build number, and signed archive.
   battle or terminating after a reward claim. Review matching TestFlight feedback,
   crash reports, and physical-device artwork, frame, memory, and thermal evidence.
   Use [player coverage](../Platform/PlayerCoverage.md) for the device scope.
-- [ ] Compare prior CloudKit results with the candidate and list the cases that
-  need fresh evidence. Keep Development and Production observations separate.
-  On two devices, verify import and merge of independently earned progress,
-  offline reconnect, and preservation of accepted actions. Close applicable gaps
-  around account changes, reset and offline rejoin, Homestead, and rollback with
-  disposable saves. [CloudKit release checks](../Platform/CloudKitPreShipChecklist.md)
+- [x] Reuse the existing iCloud test results, confirmed by the owner on November 7.
+  Source review found no sync, schema or merge behavior changes since build 66.
+  Keep Development and Production observations identifiable in the handoff;
+  investigate affected save-preservation behavior if candidate changes invalidate it.
+  [CloudKit release checks](../Platform/CloudKitPreShipChecklist.md)
 - [ ] On the signed candidate, load the real sandbox offer in **Options → Unlock
   Full Game**, purchase, relaunch, and restore. Confirm that the offer works from
   free play, access survives a progress reset, and restore works independently
@@ -91,7 +91,7 @@ build number, and signed archive.
   and refund or revocation using the applicable live sandbox paths.
   [StoreKit release checks](../Platform/Purchases.md#before-release)
 
-## 4. Submit and release
+## 4. Prepare the handoff; hold submission
 
 - [ ] Capture representative portrait gameplay from the signed candidate. Start
   with battle, Campaign, and a progression screen on iPhone and iPad. Add the

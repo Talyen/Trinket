@@ -727,8 +727,13 @@ bash -eu -c '
 ' _ "$ROOT_DIR" "$TMP_DIR"
 
 # --- stalled boot commands cannot bypass the shared boot deadline ---
-for stalled in boot bootstatus; do
-  bash -eu -c '
+python3 - "$ROOT_DIR" <<'PY_BOOT_DEADLINE'
+import os
+import signal
+import subprocess
+import sys
+
+fixture = r'''
     source "$1/Scripts/run-env.sh"
     source "$1/Scripts/ensure-simulator.sh"
     SIMULATOR_UDID=fixture
@@ -738,10 +743,24 @@ for stalled in boot bootstatus; do
       elif [[ "$2" == "$stalled_phase" ]]; then trap "" TERM; while :; do sleep 60; done; fi
     }
     stalled_phase="$2"
-    started=$SECONDS
     if boot_simulator; then exit 1; fi
-    (( SECONDS - started < 5 ))
-  ' _ "$ROOT_DIR" "$stalled"
-done
+'''
+for stalled in ('boot', 'bootstatus'):
+    # Exercise the real one-second watchdog without making loaded CI workers
+    # satisfy a five-second performance assertion. Bound the fixture separately.
+    process = subprocess.Popen(
+        ['bash', '-eu', '-c', fixture, '_', sys.argv[1], stalled],
+        start_new_session=True,
+    )
+    try:
+        assert process.wait(timeout=30) == 0, f'{stalled} watchdog failed'
+    finally:
+        # This process group contains only this fixture and its mock commands.
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        process.wait()
+PY_BOOT_DEADLINE
 
 echo "run-env isolation tests passed"

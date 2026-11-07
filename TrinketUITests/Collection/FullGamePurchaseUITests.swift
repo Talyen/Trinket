@@ -108,7 +108,7 @@ final class FullGamePurchaseUITests: FullGameStoreKitUITestCase {
         let completed = try XCTUnwrap(before["completedStages"] as? [String])
         XCTAssertTrue(completed.contains("chapter-1-stage-1"), "Refund recovery requires earned progress")
         tapButton(AccessibilityID.FullGame.purchase)
-        // iOS 18's StoreKit test service can still be processing after the ordinary UI deadline.
+        // StoreKit delivery can outlast the ordinary UI interaction deadline.
         assertDoesNotExist(AccessibilityID.FullGame.offer, timeout: 60)
         assertFullGameAccess(true)
         let session = try XCTUnwrap(storeSession)

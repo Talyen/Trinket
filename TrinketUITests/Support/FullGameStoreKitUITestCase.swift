@@ -81,7 +81,9 @@ class FullGameStoreKitUITestCase: TrinketUITestCase {
     }
 
     func assertPurchaseProductLoaded() {
-        XCTAssertTrue(waitForProductLoaded(timeout: 8), "Full Game purchase product did not load")
+        // Product lookup after a refund/relaunch uses the StoreKit service, just
+        // like purchase delivery; return promptly when pricing becomes available.
+        XCTAssertTrue(waitForProductLoaded(timeout: 60), "Full Game purchase product did not load")
     }
 
     func startStoreSession() throws {
