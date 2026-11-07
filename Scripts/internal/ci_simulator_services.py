@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 import subprocess
+import sys
 
 
 def prepare_components(environment):
@@ -13,13 +14,13 @@ def prepare_components(environment):
     if not developer:
         raise ValueError('CI simulator preparation requires an explicitly selected Xcode.')
     status = subprocess.run(['xcodebuild', '-checkFirstLaunchStatus'], env=environment,
-                            timeout=30, check=False)
+                            timeout=30, check=False, stdout=sys.stderr)
     if status.returncode:
-        print('Initializing system components for the selected Xcode.', flush=True)
+        print('Initializing system components for the selected Xcode.', file=sys.stderr, flush=True)
         subprocess.run(['sudo', 'env', f'DEVELOPER_DIR={developer}', 'xcodebuild', '-runFirstLaunch'],
-                       env=environment, timeout=180, check=True)
+                       env=environment, timeout=180, check=True, stdout=sys.stderr)
         subprocess.run(['xcodebuild', '-checkFirstLaunchStatus'], env=environment,
-                       timeout=30, check=True)
+                       timeout=30, check=True, stdout=sys.stderr)
 
 
 def start_device_ui(environment=None):
@@ -34,5 +35,5 @@ def start_device_ui(environment=None):
     # Keep a client of this Xcode's device services alive after provisioning.
     # SDK discovery and a completed boot alone do not establish that lifecycle.
     subprocess.run(['open', '-g', '-j', '-a', str(application)], env=environment,
-                   timeout=30, check=True)
-    print(f'CI device services: {application}', flush=True)
+                   timeout=30, check=True, stdout=sys.stderr)
+    print(f'CI device services: {application}', file=sys.stderr, flush=True)

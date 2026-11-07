@@ -1,5 +1,7 @@
 """CI initializes its selected Xcode without changing a developer's Mac."""
 from pathlib import Path
+from contextlib import redirect_stdout, redirect_stderr
+import io
 import subprocess
 import sys
 import tempfile
@@ -46,9 +48,14 @@ class CISimulatorServicesTests(unittest.TestCase):
             environment = dict(GITHUB_ACTIONS='true', DEVELOPER_DIR=str(developer))
             app = developer.parent / 'Applications/DeviceHub.app'
             app.mkdir(parents=True)
-            with patch.object(SERVICES.subprocess, 'run') as run:
+            output, diagnostics = io.StringIO(), io.StringIO()
+            with patch.object(SERVICES.subprocess, 'run') as run, \
+                    redirect_stdout(output), redirect_stderr(diagnostics):
                 SERVICES.start_device_ui(environment)
-            run.assert_called_once_with(['open', '-g', '-j', '-a', str(app)], env=environment, timeout=30, check=True)
+            self.assertEqual(output.getvalue(), '')
+            self.assertIn('CI device services:', diagnostics.getvalue())
+            run.assert_called_once_with(['open', '-g', '-j', '-a', str(app)], env=environment,
+                                        timeout=30, check=True, stdout=diagnostics)
             with patch.object(SERVICES.subprocess, 'run', side_effect=subprocess.TimeoutExpired('open', 30)), \
                     self.assertRaises(subprocess.TimeoutExpired):
                 SERVICES.start_device_ui(environment)
