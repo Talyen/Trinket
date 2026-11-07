@@ -78,7 +78,7 @@ case "$COMMAND" in
     ;;
   prepend)
     [[ -n "$TAG" ]] || { echo "prepend requires a tag (e.g. v0.2.0)" >&2; exit 1; }
-    "${CLIFF[@]}" --config "$CONFIG" --tag "$TAG" --prepend CHANGELOG.md
+    "${CLIFF[@]}" --config "$CONFIG" --unreleased --tag "$TAG" --prepend CHANGELOG.md
     python3 "$ROOT/Scripts/release-notes-user.py" --strip-unreleased CHANGELOG.md
     ;;
   github-body)
