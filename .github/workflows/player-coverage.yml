@@ -120,6 +120,9 @@ jobs:
     env:
       DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
     steps:
+      - name: Reserve diagnostic time
+        shell: bash
+        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 120 * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         id: checkout
         env:

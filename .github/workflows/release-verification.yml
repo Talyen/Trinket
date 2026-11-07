@@ -32,6 +32,9 @@ jobs:
       TRINKET_CLEANUP_TEST_ARTIFACTS: '0'
       TRINKET_ISOLATE: '1'
     steps:
+      - name: Reserve diagnostic time
+        shell: bash
+        run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 75 * 60 - 180 ))" >> "$GITHUB_ENV"
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           ref: ${{ inputs.commit }}
