@@ -478,11 +478,40 @@ esac
                                       'TRINKET_COVERAGE_NO_BUILD': '1'}, expected=0)
                     self.assertEqual((root / 'calls').read_text().strip(),
                                      f'ui --no-build {selector} plan=Profiles duo={duo}')
+            (root / 'calls').unlink()
+            (scripts / 'ensure-simulator.sh').write_text('ensure_test_simulator_logged() { return 78; }\n')
+            run_captured(['bash', 'Scripts/player-coverage.sh', 'compact', 'reward-return'], cwd=root,
+                         env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}',
+                              'TRINKET_COVERAGE_NO_BUILD': '1'}, expected=78)
+            self.assertFalse((root / 'calls').exists())
+
+    def test_hosted_text_size_failure_keeps_baseline_and_preserves_its_failures(self):
+        for status in (0, 65):
+            with self.subTest(status=status), tempfile.TemporaryDirectory() as temporary, \
+                    patch.dict(os.environ, {'GITHUB_ACTIONS': 'true', 'TRINKET_CI_ADAPTIVE': '1'}), \
+                    patch.object(MODULE, 'native_text_size',
+                                 side_effect=MODULE.SimulatorPrerequisiteTimeout('text-size-readiness')), \
+                    patch.object(MODULE, 'record_coverage') as coverage, \
+                    patch.object(MODULE, 'record_identity') as identity, \
+                    patch.object(MODULE.subprocess, 'run', return_value=SimpleNamespace(returncode=status)) as execute:
+                output = Path(temporary) / 'profiles'
+                self.assertEqual(MODULE.run_profiles('owned', output), int(status != 0))
+                execute.assert_called_once()
+                self.assertEqual(execute.call_args.args[0], ['./Scripts/test.sh', 'smoke', '--no-build'])
+                self.assertEqual(execute.call_args.kwargs['env']['TRINKET_UI_PLAN'], 'Smoke')
+                self.assertEqual(coverage.call_args.args[:2], ('native-settings', 'unavailable'))
+                identity.assert_not_called()
+                row, = json.loads((output / 'profiles.json').read_text())
+                self.assertEqual(row['status'], 'passed' if status == 0 else 'failed')
+                self.assertEqual(row['textSize'], 'uncontrolled')
+                self.assertIsNone(row['reduceMotion'])
+                self.assertFalse(row['nativeAuditsRequested'])
 
     def test_text_size_readiness_timeout_stops_before_test_or_inventory(self):
         timeout = subprocess.TimeoutExpired('simctl ui content_size', 30)
         native = MODULE.native_text_size
         with tempfile.TemporaryDirectory() as temporary, \
+                patch.dict(os.environ, {'TRINKET_CI_ADAPTIVE': '0'}), \
                 patch.object(MODULE, 'native_text_size', side_effect=lambda udid: native(udid, probe)), \
                 patch.object(MODULE.subprocess, 'run') as execute, \
                 patch.object(MODULE, 'record_identity') as identity:

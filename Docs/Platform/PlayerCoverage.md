@@ -83,8 +83,12 @@ results remain distinct in retained CICoverage and profile artifacts.
 
 Each device exercises native default text, largest accessibility text, and largest
 text with Reduce Motion. Verify those settings actually reach SwiftUI and restore
-the original settings even after failure. A failed prerequisite is configuration
-failure, not completed product coverage.
+the original settings even after failure. If the initial text-size probe is
+unavailable in adaptive CI, run the Smoke plan in the available environment instead.
+Record native settings and audits as uncovered; the baseline is not evidence for
+default or largest text. A setting failure after a transition begins remains a
+failure, and baseline assertions still fail the job. Local explicit diagnostics
+retain strict prerequisite checks.
 
 On six nightly runs per week, all interactions and actual native-environment checks
 remain on every settings profile, while all seven native audit types run on each

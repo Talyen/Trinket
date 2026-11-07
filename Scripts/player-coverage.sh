@@ -26,11 +26,12 @@ trinket_sim_slot_ensure
 trinket_run_env_install_self_clean
 coverage_output="$DERIVED_DATA_PATH/PlayerCoverage/$mode-$coverage_check-$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "$(dirname "$coverage_output")"
-if ! ensure_test_simulator_logged; then
+ensure_test_simulator_logged || {
+  prerequisite_status=$?
   mkdir -p "$coverage_output"
   printf '{"status":"unavailable","profile":"%s","reason":"simulator prerequisite failed"}\n' "$mode" > "$coverage_output/prerequisite.json"
-  exit 2
-fi
+  exit "$prerequisite_status"
+}
 # One build per architecture, reused across all three settings profiles.
 if [[ "${TRINKET_COVERAGE_NO_BUILD:-0}" != 1 ]]; then
   ./Scripts/build-for-testing.sh --app-only

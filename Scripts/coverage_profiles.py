@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import argparse
-from contextlib import contextmanager
+from contextlib import contextmanager, ExitStack
 import json
 import os
 import plistlib
@@ -228,12 +228,43 @@ def record_identity(udid, output):
     (output / 'identity.json').write_text(json.dumps(identity, indent=2))
 
 
+def execute_profile(output, name, environment, command):
+    log_path = output / f'{name}.log'
+    print(f'Running settings profile: {name}', flush=True)
+    with log_path.open('w') as log:
+        result = subprocess.run(command, env=environment, stdout=log, stderr=subprocess.STDOUT)
+    print(log_path.read_text(), end='', flush=True)
+    print(f'Settings profile {name}: {"passed" if result.returncode == 0 else "failed"}', flush=True)
+    if result.returncode and os.environ.get('GITHUB_ACTIONS') == 'true':
+        print(f'::error::Settings profile {name} failed; see its diagnostics above.', flush=True)
+    return dict(profile=name, log=f'{name}.log', resultsDirectory=environment.get('RESULTS_DIR'),
+                status='passed' if result.returncode == 0 else 'failed', exitCode=result.returncode)
+
+
+def run_available_baseline(output, error):
+    record_coverage('native-settings', 'unavailable',
+                    f'Native text-size controls are unavailable: {error}. Running Smoke in the available environment; '
+                    'largest text, Reduce Motion and native accessibility audits remain uncovered.')
+    environment = dict(os.environ, TRINKET_UI_PLAN='Smoke', TRINKET_UI_SUCCESS_SCREENSHOTS='1')
+    row = execute_profile(output, 'available-environment', environment,
+                          ['./Scripts/test.sh', 'smoke', '--no-build'])
+    row.update(plan='Smoke', textSize='uncontrolled', reduceMotion=None, nativeAuditsRequested=False)
+    (output / 'profiles.json').write_text(json.dumps([row], indent=2))
+    return 0 if row['exitCode'] == 0 else 1
+
+
 def run_profiles(udid, output, audit_policy='all'):
     if audit_policy not in ('all', 'representative'):
         raise ValueError(f'unsupported native audit policy: {audit_policy}')
     output.mkdir(parents=True, exist_ok=False)
     results = []
-    with native_text_size(udid) as apply_size:
+    with ExitStack() as settings:
+        try:
+            apply_size = settings.enter_context(native_text_size(udid))
+        except (SimulatorPrerequisiteTimeout, ValueError, subprocess.SubprocessError) as error:
+            if os.environ.get('GITHUB_ACTIONS') == 'true' and os.environ.get('TRINKET_CI_ADAPTIVE') == '1':
+                return run_available_baseline(output, error)
+            raise
         for name, size, reduced in [('default', TEXT_SIZES[0], False), ('largest', TEXT_SIZES[1], False),
                                      ('largest-reduced', TEXT_SIZES[1], True)]:
             environment = dict(os.environ, TRINKET_UI_PLAN='Profiles', TRINKET_UI_SUCCESS_SCREENSHOTS='1',
@@ -242,19 +273,11 @@ def run_profiles(udid, output, audit_policy='all'):
                                TEST_RUNNER_TRINKET_PROFILE_LARGE_TEXT=str(int(size != 'large')),
                                TEST_RUNNER_TRINKET_PROFILE_REDUCE_MOTION=str(int(reduced)))
             apply_size(size)
-            log_path = output / f'{name}.log'
-            print(f'Running native settings profile: {name}', flush=True)
-            with log_path.open('w') as log:
-                result = subprocess.run(['./Scripts/test.sh', 'ui', '--no-build', 'CriticalAccessibilityUITests'],
-                                        env=environment, stdout=log, stderr=subprocess.STDOUT)
-            print(log_path.read_text(), end='', flush=True)
-            print(f'Native settings profile {name}: {"passed" if result.returncode == 0 else "failed"}', flush=True)
-            if result.returncode and os.environ.get('GITHUB_ACTIONS') == 'true':
-                print(f'::error::Native settings profile {name} failed; see its diagnostics above.', flush=True)
-            results.append(dict(profile=name, log=f'{name}.log', resultsDirectory=os.environ.get('RESULTS_DIR'),
+            row = execute_profile(output, name, environment,
+                                  ['./Scripts/test.sh', 'ui', '--no-build', 'CriticalAccessibilityUITests'])
+            results.append(dict(**row,
                                 textSize=size, reduceMotion=reduced, nativeAuditsRequested=audit_policy == 'all' or name == 'largest',
-                                reduceMotionSource='native Settings control with class restoration',
-                                status='passed' if result.returncode == 0 else 'failed', exitCode=result.returncode))
+                                reduceMotionSource='native Settings control with class restoration'))
             (output / 'profiles.json').write_text(json.dumps(results, indent=2))
     # A failed readiness probe must not trigger an inventory request that can obscure it.
     record_identity(udid, output)
