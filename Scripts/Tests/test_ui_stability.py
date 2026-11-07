@@ -31,7 +31,7 @@ class UIStabilityTests(unittest.TestCase):
                     patch.object(PROFILE.subprocess, 'run') as cache:
                 PROFILE.prepare(environment)
             cache.assert_called_once_with(['xcrun', 'simctl', 'runtime', 'dyld_shared_cache', 'update', profile['runtime']],
-                                          check=True, timeout=300)
+                                          check=True, timeout=300, stdout=None)
             prepare.assert_called_once_with(profile['device'], 26, '26.2', build='23C54', download_timeout=600)
             exported = dict(line.split('=', 1) for line in path.read_text().splitlines())
             PROFILE.require_environment(exported)
