@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Mac unlock is pending for gallery capture and physical-device acceptance; App Review remains on owner hold.
+reason: Gallery approval and signed-candidate device acceptance remain pending; App Review remains on owner hold.
 created: 2026-11-06
 updated: 2026-11-07
 expires: 2026-11-20
@@ -68,7 +68,10 @@ automated coverage starts at 26 for both platforms.
 - [x] Associate candidate build `1.0.0 (8)` with the draft store version. Readback
   confirms Prepare for Submission and manual release. The signed archive/export
   passed encryption, signature and Production entitlement checks with iCloud enabled.
-- [ ] Finish gallery screenshots. Keep the app and purchase out of App Review.
+- [x] Capture 40 native gallery candidates for owner review, 20 each on iPhone and
+  iPad. Retain the numbered review gallery, full-resolution originals and manifest.
+- [ ] Upload only the owner's approved gallery selections. Keep the app and
+  purchase out of App Review.
 - [x] Verify the requested iPad sizing before store capture. The 13-inch iPad Pro
   simulator on iPadOS 27.0 showed the larger hand, the center card barely clipping
   the bottom edge, and combatants clear of the fan. Seven focused layout tests
@@ -80,9 +83,11 @@ automated coverage starts at 26 for both platforms.
 ## 3. Qualify the signed candidate on devices
 
 Cloud-enabled TestFlight `1.0.0 (8)` from `64b9053db` is processed and assigned
-to Personal Testing with Apple-confirmed symbols. The connected iPhone last had
-`0.1.0 (6)` installed. Preserve its existing save as the upgrade source. Identify the new candidate by
-source commit, marketing version, build number, and signed archive.
+to Personal Testing with Apple-confirmed symbols. The connected iPhone now has
+`1.0.0 (8)` installed. The owner waived preservation of their personal beta save;
+it is not an acceptance prerequisite. Use deliberate test saves for remaining
+save checks. Identify the candidate by source commit, marketing version, build
+number, and signed archive.
 
 - [x] Use the [TestFlight workflow](../Platform/Release.md#local-testflight-deployment)
   for the exact candidate, with qualified hosted journey proof and the documented
@@ -90,7 +95,8 @@ source commit, marketing version, build number, and signed archive.
   [Apple's upload requirements](https://developer.apple.com/news/upcoming-requirements/).
   Verify the exported Production entitlements and cloud setting. Confirm Apple
   processing and internal availability, and retain the receipt, archive and matching dSYMs.
-- [ ] Install the candidate and upgrade a populated beta save in place. Verify
+- [x] Confirm installation of candidate `1.0.0 (8)` on the connected iPhone.
+- [ ] With deliberate test data, verify
   Campaign progress, party, equipment, Homestead, offline play, relaunch and recovery after interrupting a
   battle or terminating after a reward claim. Review matching TestFlight feedback,
   crash reports, and physical-device artwork, frame, memory, and thermal evidence.
@@ -109,12 +115,15 @@ source commit, marketing version, build number, and signed archive.
 
 ## 4. Prepare the handoff; hold submission
 
-- [ ] Capture representative native portrait gameplay from the candidate's game
-  revision. Start with battle, Campaign and a progression screen on iPhone and
-  iPad. The separate Full Game review image is uploaded. Review the captured
-  languages and upload gallery assets in the required device slots; retained CI
-  images alone do not establish rendered acceptance. Record simulator and physical
-  captures separately. Mac unlock is pending for this work and device interaction.
+- [x] Prepare 40 numbered native portrait captures across iPhone and iPad, covering
+  combat, the Merchant, Play, Labyrinth, Collection, Homestead and character details.
+  The review gallery and manifest are retained with the AppStoreLaunch-Nov7 release
+  deliverables. Capture source `7f7a02022` has the same game and UI source as
+  candidate `64b9053db`; these are simulator captures from the hosted Debug product.
+- [ ] Obtain the owner's gallery selections, then upload the approved images in
+  the required device slots. The separate Full Game review image is uploaded.
+  Xcode's interaction tool currently lists only simulators, so physical interaction
+  and purchase acceptance remain unverified.
   [Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/)
 - [ ] Review one candidate handoff with the owner. Record the commit and Apple
   build ID, linked CI runs, device and OS results, reused evidence, screenshots,
