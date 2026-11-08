@@ -43,9 +43,14 @@ verified toolchain by default. Hosted simulator coverage starts at iOS and iPadO
 [App Store compatibility floor](ApplePlatformReference.md#platform-support) remains
 18.0. Critical settings profiles run nightly. Sunday's nightly run retains the
 complete native audit matrix, and the separate weekly run owns soak/recovery.
-Manual dispatch selects profiles, reward-return only, soak, all, or the single Duo rotation journey.
+Manual dispatch selects profiles, reward-return only, native-settings only, soak,
+all, or the single Duo rotation journey.
 Use `scope=reward-return` to verify a reward regression on iPhone and iPad without
 repeating native-settings and soak work.
+Use `scope=native-settings` to refresh just the iPhone and iPad settings assessments.
+When native controls are unavailable, the fallback runs battle, navigation and
+merchant Smoke checks. StoreKit purchase automation stays in standard Smoke and
+release verification; its omission from this fallback is an explicit coverage gap.
 The optional latest toolchain selects a diagnostic candidate without qualifying
 it for ordinary CI or release. A requested job must either execute successfully or report an explicit capability
 gap; real assertions and unknown failures still fail its aggregate. CI OK remains independent of the player coverage

@@ -335,6 +335,8 @@ ensure_test_simulator() {
       SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
       prepared_identity="$(trinket_ci_prepared_simulator_identity)" || prepared_identity=""
       if [[ -n "$prepared_identity" ]]; then
+        # Nested wrappers need the verified device as well as its receipt.
+        export SIMULATOR_UDID SIMULATOR_DESTINATION
         export TRINKET_CI_PREPARED_SIMULATOR_IDENTITY="$prepared_identity"
       fi
       return 0

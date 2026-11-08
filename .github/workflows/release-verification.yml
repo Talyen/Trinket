@@ -31,6 +31,7 @@ jobs:
       DERIVED_DATA_PATH: ${{ github.workspace }}/.DerivedData
       TRINKET_CLEANUP_TEST_ARTIFACTS: '0'
       TRINKET_ISOLATE: '1'
+      TRINKET_CI_DISPOSABLE_GUESTS: '1'
     steps:
       - name: Reserve diagnostic time
         shell: bash

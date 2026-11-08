@@ -18,6 +18,8 @@ jobs:
       TRINKET_DIAGNOSTICS_SESSION_ID: generated-save-${{ github.run_id }}-${{ github.run_attempt }}
       SKIP_GENERATE: '1'
     steps:
+      - name: Use disposable hosted guest lifetime
+        run: echo 'TRINKET_CI_DISPOSABLE_GUESTS=1' >> "$GITHUB_ENV"
       - name: Reserve diagnostic time
         shell: bash
         run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 40 * 60 - 180 ))" >> "$GITHUB_ENV"

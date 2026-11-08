@@ -129,7 +129,18 @@ trinket_track_test_guests_locked() {
   mv "$record.tmp" "$record"
 }
 
+trinket_disposable_ci_guest_lifecycle() {
+  [[ "${GITHUB_ACTIONS:-}" == true && "${RUNNER_ENVIRONMENT:-}" == github-hosted &&
+     "${TRINKET_CI_DISPOSABLE_GUESTS:-}" == 1 ]]
+}
+
 trinket_track_test_guests() {
+  # These VMs are discarded after the job; shared-Mac orphan inspection can
+  # stall and is unnecessary when no guest processes will be reused afterward.
+  if trinket_disposable_ci_guest_lifecycle; then
+    echo "Using disposable runner guest lifecycle; shared-host process inventory omitted."
+    return 0
+  fi
   local lease="${TRINKET_SIM_SLOT_PATH:-${TRINKET_SHARED_SIM_SLOT_PATH:-}}"
   local owner record status=0
   [[ -n "${SIMULATOR_UDID:-}" && -f "$lease" ]] || return 0
@@ -143,6 +154,7 @@ trinket_track_test_guests() {
 }
 
 trinket_cleanup_test_guests() {
+  trinket_disposable_ci_guest_lifecycle && return 0
   local lease owner record_owner
   for lease in "${TRINKET_SIM_SLOT_PATH:-}" "${TRINKET_SHARED_SIM_SLOT_PATH:-}"; do
     [[ -f "$lease" ]] || continue

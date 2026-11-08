@@ -43,8 +43,9 @@ executed scope rather than imply every device and OS was tested.
 - [x] Update candidate verification to consume the actual adaptable hosted
   scope and identify every executed selector and explicit capability gap.
 - [ ] Complete hosted CI and player coverage, including the reward-return
-  command-budget and nested runtime-inventory repairs, and retain the source
-  identity of each result. Use reward-only reruns for focused infrastructure fixes.
+  command-budget, nested runtime-inventory and disposable-runner preparation
+  repairs, and retain the source identity of each result. Use reward-only and
+  native-settings-only reruns for focused infrastructure fixes.
 
 The November 7 candidate includes the reviewed iPad layout and CI reliability
 repairs. Qualify the resulting revision; earlier green runs do not establish
@@ -54,10 +55,11 @@ qualifying the public candidate.
 | Failure | Current repair and required evidence |
 |---|---|
 | Script gate and simulator preparation | Corrected the boot completion check and isolated script fixtures. Use installed compatible environments, Apple's command exit status, one owned boot attempt, and explicit capability receipts. Require fresh hosted verification of the adaptive workflow. |
+| Hosted process inventory | Disposable GitHub VMs use job disposal instead of shared-Mac orphan tracking. Local and self-hosted ownership checks remain active. A proven pre-test process-inventory timeout records unavailable scope; it is not passing package evidence. |
 | Full Game purchase, refund and repurchase | Purchase tests require actual ownership and visible offer dismissal. Keep purchase, approval, restore and refund cases. Record the known denial-service case as unavailable outside its qualified runtime; retain it for diagnostics and live sandbox acceptance. |
-| Reward return and native profiles | Prefer compact iOS 26 and iPadOS 27 environments, substitute compatible installed models/versions, and report any missing requested coverage. Missing runtimes do not block the whole portfolio. Separate the five-minute reward method limit from its ten-minute Xcode startup/execution/finalization budget. |
+| Reward return and native profiles | Prefer compact iOS 26 and iPadOS 27 environments, substitute compatible installed models/versions, and report any missing requested coverage. Missing runtimes do not block the whole portfolio. Separate the five-minute reward method limit from its ten-minute Xcode startup/execution/finalization budget. When native controls are unavailable, limit the uncontrolled fallback to battle, navigation and merchant checks; retain purchase automation in standard Smoke and release verification. |
 | Duo rotation | Manual Device Hub rotation and card play passed. Keep the automated resize assertion available on demand, but omit unsupported Duo automation from default CI. No new toolchain claim follows from a probe that stopped before tests. |
-| FullUI capacity | Remove redundant app termination after each test; each launch replaces the existing app and managed host cleanup retains ownership of XCTest guests. Capture English and one rotating localization configuration per ordinary run, retain deferred selectors, and keep the complete localization matrix available on demand. |
+| FullUI capacity | Remove redundant app termination after each test; each launch replaces the existing app. Capture English and one rotating localization configuration per ordinary run, retain deferred selectors, and keep the complete localization matrix available on demand. |
 
 Keep App Store compatibility at iOS and iPadOS 18.0. Automated launch coverage
 starts at 26 for both platforms.

@@ -14,6 +14,26 @@ from script_test_support import ROOT, ScriptRegressionTestCase, run_captured, wr
 from pathlib import Path
 
 class CIBuildScriptTests(ScriptRegressionTestCase):
+    def test_deploy_wrapper_handles_empty_optional_arrays_on_system_bash(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            scripts = root / 'Scripts'
+            (scripts / 'lib').mkdir(parents=True)
+            (scripts / 'test-deploy.sh').write_text((ROOT / 'Scripts/test-deploy.sh').read_text())
+            (scripts / 'lib/args.sh').write_text('trinket_ensure_diagnostics_session() { :; }\n')
+            (scripts / 'lib/verification-policy.sh').write_text('trinket_require_heavy_verification() { :; }\n')
+            binaries = root / 'bin'
+            binaries.mkdir()
+            write_executable(binaries / 'python3', '#!/bin/sh\nprintf "%s\\n" "$@" > "$CALLS"\n')
+            for arguments in ([], ['--require-full-ui'], ['--focused-only'], ['--ci-only', '--require-full-ui']):
+                with self.subTest(arguments=arguments):
+                    run_captured(['/bin/bash', 'Scripts/test-deploy.sh', '--mode', 'beta', *arguments],
+                                 cwd=root, expected=0,
+                                 env={**os.environ, 'PATH': f'{binaries}:{os.environ["PATH"]}',
+                                      'CALLS': str(root / 'calls')})
+                    self.assertEqual((root / 'calls').read_text().splitlines(),
+                                     ['Scripts/deploy-verification.py', '--mode', 'beta', *arguments])
+
     def test_each_requested_ui_filter_requires_executed_cases(self) -> None:
         def case(identifier, result="Passed"):
             return {"nodeType": "Test Case", "nodeIdentifier": identifier, "result": result}

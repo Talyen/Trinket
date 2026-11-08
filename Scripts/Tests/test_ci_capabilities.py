@@ -15,6 +15,29 @@ PROFILE = load_script('available_ui_profile_test', 'ci-ui-profile.py')
 
 
 class CICapabilityTests(unittest.TestCase):
+    def test_process_inventory_timeout_skips_only_its_unstarted_scope(self):
+        message = "Simulator guest process inspection failed: Command '['ps', '-axo', 'pid=,command=']' timed out after 30 seconds"
+        known = dict(kind='tooling', title='Preparation inventory', message=message)
+        cases = [({}, message, [known], True),
+                 ({'phase': 'output-inventory'}, message, [known], False),
+                 ({'action': 'test'}, message, [known], False),
+                 ({}, message.replace("'ps'", "'xcrun'"), [known], False),
+                 ({}, 'Simulator guest process inspection failed: permission denied', [known], False),
+                 ({}, message, [known, dict(kind='tooling', title='SDK failure')], False),
+                 ({}, message + '\nXCTAssertTrue failed - reward lost', [known], False),
+                 ({}, message + '\nEngine.swift:4: error: invalid source', [known], False)]
+        for changes, log_text, issues, expected in cases:
+            with self.subTest(changes=changes, log=log_text), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                log = root / 'raw.log'
+                log.write_text(log_text)
+                receipt = dict(status='failed', exit_code=1, action='prepare',
+                               phase='simulator-process-inventory', classification='tooling',
+                               raw_log_path=str(log), issues=issues)
+                receipt.update(changes)
+                (root / 'preparation-invocation.json').write_text(json.dumps(receipt))
+                self.assertEqual(unavailable_failure(root, {}) is not None, expected)
+
     def test_xcode_linked_diagnostics_distinguish_runtime_loss_from_a_real_crash(self):
         missing = dict(kind='simulator-infrastructure',
                        message='Unable to boot device because we cannot determine the runtime bundle.')

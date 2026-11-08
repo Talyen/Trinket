@@ -369,7 +369,7 @@ trinket_run_env_install_self_clean() { :; }
         workflow = (ROOT / '.github/workflows/player-coverage.yml').read_text()
         self.assertIn("- cron: '0 8 * * 0'", workflow)
         profiles = workflow.split('  profiles:\n', 1)[1].split('    runs-on:', 1)[0]
-        condition = "(github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' || inputs.scope == 'rotation' || inputs.scope == 'reward-return'"
+        condition = "(github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' || inputs.scope == 'rotation' || inputs.scope == 'reward-return' || inputs.scope == 'native-settings'"
         self.assertIn(f'if: {condition}', profiles)
         self.assertIn(f"${{{{ {condition} }}}}", workflow)
         self.assertEqual(workflow.count(
@@ -414,6 +414,7 @@ trinket_run_env_install_self_clean() { :; }
             self.assertEqual(MODULE.coverage_matrix(scope), dict(include=entries))
         self.assertEqual(MODULE.coverage_matrix('rotation'), dict(include=[dict(profile='duo', check='rotation')]))
         self.assertEqual(MODULE.coverage_matrix('reward-return'), dict(include=entries[:2]))
+        self.assertEqual(MODULE.coverage_matrix('native-settings'), dict(include=entries[2:]))
         with self.assertRaises(ValueError):
             MODULE.coverage_matrix('unknown')
         self.assertIn('needs: plan', profiles)
@@ -503,10 +504,13 @@ esac
                 output = Path(temporary) / 'profiles'
                 self.assertEqual(MODULE.run_profiles('owned', output), int(status != 0))
                 execute.assert_called_once()
-                self.assertEqual(execute.call_args.args[0], ['./Scripts/test.sh', 'smoke', '--no-build'])
+                self.assertEqual(execute.call_args.args[0], ['./Scripts/test.sh', 'smoke', '--no-build',
+                                                            'SmokeBattleTests', 'SmokeShellTests', 'SmokeShopTests'])
                 self.assertEqual(execute.call_args.kwargs['env']['TRINKET_UI_PLAN'], 'Smoke')
                 self.assertEqual(execute.call_args.kwargs['env']['TRINKET_XCODE_WALL_TIMEOUT_SECONDS'], '2100')
-                self.assertEqual(coverage.call_args.args[:2], ('native-settings', 'unavailable'))
+                self.assertEqual([call.args[:2] for call in coverage.call_args_list],
+                                 [('native-settings', 'unavailable'), ('native-fallback-storekit', 'unavailable')])
+                self.assertEqual(coverage.call_args.kwargs['details']['deferred_selectors'], ['FullGamePurchaseSmokeTests'])
                 identity.assert_not_called()
                 row, = json.loads((output / 'profiles.json').read_text())
                 self.assertEqual(row['status'], 'passed' if status == 0 else 'failed')

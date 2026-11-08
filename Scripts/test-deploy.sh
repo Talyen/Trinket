@@ -76,4 +76,5 @@ fi
 verification_args=(--mode "$MODE")
 [[ "$NO_BUILD" != true ]] || verification_args+=(--no-build)
 [[ "$COMPILE_ONLY" != true ]] || verification_args+=(--compile-only)
-exec python3 Scripts/deploy-verification.py "${verification_args[@]}" "${PHASE[@]}" "${FULL_UI[@]}"
+# System Bash 3.2 needs guarded expansion for empty arrays under nounset.
+exec python3 Scripts/deploy-verification.py "${verification_args[@]}" ${PHASE[@]+"${PHASE[@]}"} ${FULL_UI[@]+"${FULL_UI[@]}"}

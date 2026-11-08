@@ -24,6 +24,34 @@ import signal
 import select
 
 class CISessionScriptTests(ScriptRegressionTestCase):
+    def test_disposable_guest_lifetime_requires_hosted_runner_and_workload_opt_in(self):
+        script = r'''source "$1/Scripts/lib/simctl.sh"
+TRINKET_SIM_SLOT_PATH="$LEASE"
+SIMULATOR_UDID=owned
+printf '%s fixture\n' "$$" > "$LEASE"
+trinket_dir_lock_acquire() { :; }
+trinket_dir_lock_release() { :; }
+trinket_track_test_guests_locked() { echo tracked >> "$CALLS"; }
+trinket_test_guest_cleanup_file() { echo cleaned >> "$CALLS"; }
+trinket_track_test_guests
+printf '%s owned\n' "$$" > "$LEASE.guest-tests"
+trinket_cleanup_test_guests
+'''
+        for hosted, runner, enabled, expected in [('true', 'github-hosted', '1', []),
+                                                ('true', 'self-hosted', '1', ['tracked', 'cleaned']),
+                                                ('false', 'github-hosted', '1', ['tracked', 'cleaned']),
+                                                ('true', 'github-hosted', '0', ['tracked', 'cleaned'])]:
+            with self.subTest(hosted=hosted, runner=runner, enabled=enabled), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                calls = root / 'calls'
+                calls.touch()
+                environment = {key: value for key, value in os.environ.items() if not key.startswith('TRINKET_')}
+                run_captured(['bash', '-c', script, '_', str(ROOT)], expected=0,
+                             env={**environment, 'GITHUB_ACTIONS': hosted, 'RUNNER_ENVIRONMENT': runner,
+                                  'TRINKET_CI_DISPOSABLE_GUESTS': enabled,
+                                  'LEASE': str(root / 'lease'), 'CALLS': str(calls)})
+                self.assertEqual(calls.read_text().splitlines(), expected)
+
     def test_shutdown_requires_evidence_and_bounds_stalled_commands(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -124,6 +152,32 @@ if [[ "$CHANGE" == force ]]; then ensure_test_simulator force; else ensure_test_
                 self.assertEqual(calls.count('boot'), 2)
                 self.assertEqual(calls.count('metadata'), 1 if change == 'none' else 2)
                 self.assertEqual(calls.count('resolve'), 1 if change == 'none' else 2)
+
+    def test_verified_ci_device_identity_survives_a_real_child_shell(self):
+        script = r'''source "$1/Scripts/ensure-simulator.sh"
+export TRINKET_RUN_ID=fixture TRINKET_SIM_SLOT_OWNER_PID="$$:0"
+printf '%s fixture original\n' "$$" > "$TRINKET_SIM_SLOT_PATH"
+resolve_or_create_simulator() { echo resolve >> "$CALLS"; SIMULATOR_UDID=owned; }
+boot_simulator() { echo boot >> "$CALLS"; return 0; }
+ensure_test_simulator
+bash -c 'source "$1/Scripts/ensure-simulator.sh"
+simulator_matches_name() { echo unexpected-metadata >> "$CALLS"; return 91; }
+resolve_or_create_simulator() { echo unexpected-resolve >> "$CALLS"; return 92; }
+boot_simulator() { echo boot >> "$CALLS"; return 0; }
+ensure_test_simulator
+[[ "$SIMULATOR_UDID" == owned && "$SIMULATOR_DESTINATION" == "platform=iOS Simulator,id=owned" ]]
+' _ "$1"
+'''
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            environment = {key: value for key, value in os.environ.items()
+                           if not key.startswith(('TRINKET_', 'SIMULATOR_'))}
+            run_captured(['bash', '-c', script, '_', str(ROOT)], expected=0,
+                env={**environment, 'GITHUB_ACTIONS': 'true', 'GITHUB_RUN_ID': 'hosted',
+                     'TRINKET_CI_ADAPTIVE': '1', 'TRINKET_ISOLATE': '1',
+                     'TRINKET_SIM_SLOT_PATH': str(root / 'lease'), 'TRINKET_SIM_DEVICE_TYPE': 'fixture-type',
+                     'CALLS': str(root / 'calls')})
+            self.assertEqual((root / 'calls').read_text().splitlines(), ['resolve', 'boot', 'boot'])
 
     def test_cached_ci_preparation_still_requires_a_successful_boot(self):
         script = r'''source "$1/Scripts/ensure-simulator.sh"

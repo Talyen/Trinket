@@ -24,6 +24,8 @@ jobs:
     runs-on: xcode-27
     timeout-minutes: 90
     steps:
+      - name: Use disposable hosted guest lifetime
+        run: echo 'TRINKET_CI_DISPOSABLE_GUESTS=1' >> "$GITHUB_ENV"
       - name: Reserve diagnostic time
         shell: bash
         run: echo "TRINKET_CI_DEADLINE_EPOCH=$(( $(date +%s) + 90 * 60 - 180 ))" >> "$GITHUB_ENV"

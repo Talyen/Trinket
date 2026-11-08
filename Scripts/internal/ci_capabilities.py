@@ -137,9 +137,19 @@ def unavailable_failure(results, before, additional_roots=()):
         typed_unavailable = receipt.get('exit_code') == 78 and UNAVAILABLE_MARKER in log
         lost_runtime_only = runtime_lost and all(issue.get('kind') == 'simulator-infrastructure' or termination(issue)
                                                 for issue in issues)
-        if receipt.get('classification') != 'simulator-infrastructure' and not typed_unavailable and not lost_runtime_only:
+        inventory_timeout = re.search(
+            r"^Simulator guest process inspection failed: Command '\['ps', [^\n]+timed out after [\d.]+ seconds$",
+            log, re.M)
+        inventory_unavailable = bool(
+            receipt.get('action') == 'prepare' and receipt.get('phase') == 'simulator-process-inventory'
+            and receipt.get('classification') == 'tooling' and inventory_timeout and issues
+            and all(issue.get('kind') == 'tooling' and issue.get('title') == 'Preparation inventory'
+                    for issue in issues))
+        if (receipt.get('classification') != 'simulator-infrastructure' and not typed_unavailable
+                and not lost_runtime_only and not inventory_unavailable):
             return None
-        detail = next((issue.get('message', '') for issue in issues if issue.get('message')), '')
+        detail = inventory_timeout[0] if inventory_unavailable else next(
+            (issue.get('message', '') for issue in issues if issue.get('message')), '')
         if not detail:
             detail = next((line for line in log.splitlines() if UNAVAILABLE_MARKER in line or 'Error:' in line), '')
         reasons.append(receipt.get('label', 'simulator environment') + ': ' + ' '.join(detail.split())[:500])

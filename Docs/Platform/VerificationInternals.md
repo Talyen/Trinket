@@ -63,6 +63,11 @@ managed lease, device, requested runtime/profile and toolchain identity remain
 unchanged. They recheck `bootstatus -b` without repeating global runtime inventory;
 XCTest still checks the actual guest build. Explicit re-preparation, changed
 identities, missing leases and local runs retain full validation.
+Hosted test workloads on disposable GitHub runners use VM disposal for guest
+lifetime instead of shared-Mac process inventory and orphan cleanup. The shortcut
+requires both the hosted-runner identity and workload opt-in; local and self-hosted
+ownership checks remain active. A proven pre-test process-inventory timeout in
+other environments stops the affected scope with a capability gap.
 `ci-test-capability.py` preserves failures and records proven simulator infrastructure
 as unavailable coverage. Assertions, compiler failures and unknown errors remain
 fatal; a gap is never passed test evidence. Supervisors terminate only
