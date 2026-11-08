@@ -68,8 +68,10 @@ automated coverage starts at 26 for both platforms.
 - [x] Associate candidate build `1.0.0 (8)` with the draft store version. Readback
   confirms Prepare for Submission and manual release. The signed archive/export
   passed encryption, signature and Production entitlement checks with iCloud enabled.
-- [x] Capture 40 native gallery candidates for owner review, 20 each on iPhone and
-  iPad. Retain the numbered review gallery, full-resolution originals and manifest.
+- [x] Prepare 40 native gallery candidates for owner review. Rate every original
+  for composition, readability, game clarity, artwork and variety; replace the
+  lowest 20 with new captures. Retain the App Store-style carousel, individual
+  ratings, full-resolution originals and manifest.
 - [ ] Upload only the owner's approved gallery selections. Keep the app and
   purchase out of App Review.
 - [x] Verify the requested iPad sizing before store capture. The 13-inch iPad Pro
@@ -116,7 +118,12 @@ number, and signed archive.
 ## 4. Prepare the handoff; hold submission
 
 - [x] Prepare 40 numbered native portrait captures across iPhone and iPad, covering
-  combat, the Merchant, Play, Labyrinth, Collection, Homestead and character details.
+  combat, the Merchant, Play, Labyrinth, Collection, Homestead, character details,
+  Mystery choices and equipment traits. The revised pool has 25 phone and 15 tablet
+  alternatives. All 40 originals and 24 replacement attempts have individual
+  marketing ratings; four new tablet item sheets were rejected before retaining
+  the final 20 replacements. The preview preserves native aspect ratios without
+  added image padding and keeps rejected captures out of the selection pool.
   The review gallery and manifest are retained with the AppStoreLaunch-Nov7 release
   deliverables. Capture source `7f7a02022` has the same game and UI source as
   candidate `64b9053db`; these are simulator captures from the hosted Debug product.
