@@ -200,7 +200,8 @@ struct CollectionView: View {
             case let .collectionItem(itemID):
                 if let owned = playerSave.inventory.item(matching: itemID) {
                     salvageDetail.select(owned, inventory: playerSave.inventory.items)
-                } else if let template = GameContent.itemTemplate(matching: itemID) {
+                } else if let template = GameContent.itemTemplate(matching: itemID)
+                    ?? GameContent.unique(matching: itemID) {
                     salvageDetail.select(template, inventory: playerSave.inventory.items)
                 } else {
                     return

@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Ten iPhone screenshots approved; final ordering, iPad selection and signed-candidate device acceptance are pending; App Review remains on owner hold.
+reason: Eleven iPhone screenshots approved for review; final ten-image subset, ordering, iPad selection and signed-candidate device acceptance are pending; App Review remains on owner hold.
 created: 2026-11-06
 updated: 2026-11-08
 expires: 2026-11-20
@@ -68,10 +68,10 @@ automated coverage starts at 26 for both platforms.
 - [x] Associate candidate build `1.0.0 (8)` with the draft store version. Readback
   confirms Prepare for Submission and manual release. The signed archive/export
   passed encryption, signature and Production entitlement checks with iCloud enabled.
-- [x] Retain 27 gallery candidates: ten approved iPhone images and 17 new Unique
-  and talent views awaiting owner review. Rate all 138 capture attempts for
+- [x] Retain 21 gallery candidates: eleven approved iPhone images, two Collection
+  Unique details and eight talent views awaiting owner review. Rate all 140 capture attempts for
   composition, readability, game clarity, artwork and variety. Remove older
-  unapproved images at the owner's request; preserve the ten approved originals,
+  unapproved images at the owner's request; preserve the eleven approved originals,
   App Store-style carousel, current review package and audit metadata.
 - [ ] Upload only the owner's approved gallery selections. Keep the app and
   purchase out of App Review.
@@ -121,27 +121,33 @@ number, and signed archive.
 - [x] Lock the owner's updated November 8 iPhone selection: `01` Battle,
   `08` Ranger, `10` Rogue, `16` Wolf, `72` Blacksmith, `77` Crucible,
   `86` The Blood Countess detail, `88` Explore on Ryan's iPhone,
-  `98` Living Armor moment 02, and `105` Fox inspect. Remove Bear (`17`).
+  `98` Living Armor moment 02, `105` Fox inspect, and `133` Ranger talent categories.
+  Remove Bear (`17`).
   Preserve byte-identical originals and selected copies in the release
   deliverables, with hashes in `selected-screenshots.json`. Final ordering and
-  the iPad set remain open; new choices can replace existing iPhone selections.
-- [x] Capture eight Unique detail previews (`122`–`129`) through the Wishing Well:
-  Bloodfire Signet, Rimeheart Locket, Blackfletch, Twin Casting, Saintfall Plate,
-  Golden Verdict, The Unclosing Wound and Kingbreaker. Add talent category views
-  for Knight, Ranger and Fox, plus two individual nodes for each (`130`–`138`).
-  All 17 new images retain native 1206×2622 pixels and individual marketing ratings.
-  Keep these new captures for the next owner review.
+  the iPad set remain open. The approved review pool has eleven iPhone images;
+  choose the final ten-image store subset and ordering before upload.
+- [x] Replace the incorrect Wishing Well previews (`122`–`129`) with exactly two
+  standard Collection Unique details: `139` Blackfletch and `140` Kingbreaker.
+  Correct Collection's existing item launch route to resolve the Unique catalog.
+  Verify both pages without a Wish action in the updated local Debug build.
+  Retain the Knight, Ranger and Fox talent categories and six node views (`130`–`138`);
+  `133` is approved and the other eight remain pending. Native 1206×2622 images
+  have individual marketing ratings and await the next owner review.
 - [x] Prune older unapproved gallery images and superseded review archives, as
   authorized by the owner. Rebuild the approved package and gallery around the
-  ten approved originals and 17 new candidates. Preserve audit metadata for all
-  138 attempts, recording which image files were deleted. Retain the separate
+  eleven approved originals and ten pending candidates. Preserve audit metadata for all
+  140 attempts, including the 119 removed images. Retain the separate
   purchase review image, recordings, release artifacts and CI diagnostics.
 - [x] Preserve capture provenance. Most retained images use hosted Debug source
   `7f7a02022`, whose game and UI source match signed candidate `64b9053db`.
   Explore (`88`) is an unchanged native 1179×2556 capture from the owner's iPhone
   14 Pro, with installed TestFlight `1.0.0 (8)` verified. It establishes the
   visible Explore layout; signed-candidate gameplay and purchase acceptance
-  remain open. The carousel preserves native aspect ratios without image padding.
+  remain open. The two corrected Unique captures use a local build from `7007e47e6`
+  plus the Collection launch-route fix; their source patch and build metadata are
+  retained separately. This route correction is not in signed candidate build 8.
+  The carousel preserves native aspect ratios without image padding.
 - [ ] Complete the owner's gallery selections, then upload the approved images in
   the required device slots. The separate Full Game review image is uploaded.
   Xcode's interaction tool currently lists only simulators, so physical interaction
