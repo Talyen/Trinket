@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Twelve iPhone screenshots approved for review; final ten-image subset, ordering, iPad selection and signed-candidate device acceptance are pending; App Review remains on owner hold.
+reason: Nine iPhone screenshots approved; more battle captures, final ordering, iPad selection and signed-candidate device acceptance are pending; App Review remains on owner hold.
 created: 2026-11-06
 updated: 2026-11-08
 expires: 2026-11-20
@@ -68,10 +68,10 @@ automated coverage starts at 26 for both platforms.
 - [x] Associate candidate build `1.0.0 (8)` with the draft store version. Readback
   confirms Prepare for Submission and manual release. The signed archive/export
   passed encryption, signature and Production entitlement checks with iCloud enabled.
-- [x] Retain 21 gallery candidates: twelve approved iPhone images, Kingbreaker and
+- [x] Retain 18 gallery candidates: nine approved iPhone images, Kingbreaker and
   eight talent views awaiting owner review. Rate all 140 capture attempts for
   composition, readability, game clarity, artwork and variety. Remove older
-  unapproved images at the owner's request; preserve the twelve approved originals,
+  unapproved images at the owner's request; preserve the nine approved originals,
   App Store-style carousel, current review package and audit metadata.
 - [ ] Upload only the owner's approved gallery selections. Keep the app and
   purchase out of App Review.
@@ -118,28 +118,27 @@ number, and signed archive.
 
 ## 4. Prepare the handoff; hold submission
 
-- [x] Lock the owner's updated November 8 iPhone selection: `01` Battle,
-  `08` Ranger, `10` Rogue, `16` Wolf, `72` Blacksmith, `77` Crucible,
+- [x] Lock the owner's updated November 8 iPhone selection:
+  `08` Ranger, `10` Rogue, `16` Wolf, `72` Blacksmith,
   `86` The Blood Countess detail, `88` Explore on Ryan's iPhone,
-  `98` Living Armor moment 02, `105` Fox inspect, `133` Ranger talent categories,
+  `98` Living Armor moment 02, `105` Fox inspect,
   and `139` Blackfletch Unique detail.
-  Remove Bear (`17`).
+  Remove Slime Battle (`01`), Bear (`17`), Crucible (`77`) and Ranger talent categories (`133`).
   Preserve byte-identical originals and selected copies in the release
   deliverables, with hashes in `selected-screenshots.json`. Final ordering and
-  the iPad set remain open. The approved review pool has twelve iPhone images;
-  choose the final ten-image store subset and ordering before upload.
+  the iPad set remain open. The approved review pool has nine iPhone images.
 - [x] Replace the incorrect Wishing Well previews (`122`–`129`) with exactly two
   standard Collection Unique details: `139` Blackfletch and `140` Kingbreaker.
   Correct Collection's existing item launch route to resolve the Unique catalog.
   Verify both pages without a Wish action in the updated local Debug build.
-  Retain the Knight, Ranger and Fox talent categories and six node views (`130`–`138`);
-  `133` is approved and the other eight remain pending. Native 1206×2622 images
+  Retain the Knight and Fox talent categories and six node views (`130`–`138`, excluding `133`).
+  These eight talent views remain pending. Native 1206×2622 images
   have individual marketing ratings. Blackfletch (`139`) is approved;
   Kingbreaker (`140`) remains pending alongside the eight other talent views.
 - [x] Prune older unapproved gallery images and superseded review archives, as
   authorized by the owner. Rebuild the approved package and gallery around the
-  twelve approved originals and nine pending candidates. Preserve audit metadata for all
-  140 attempts, including the 119 removed images. Retain the separate
+  nine approved originals and nine pending candidates. Preserve audit metadata for all
+  140 attempts, including the 122 removed images. Retain the separate
   purchase review image, recordings, release artifacts and CI diagnostics.
 - [x] Preserve capture provenance. Most retained images use hosted Debug source
   `7f7a02022`, whose game and UI source match signed candidate `64b9053db`.
@@ -150,6 +149,9 @@ number, and signed archive.
   plus the Collection launch-route fix; their source patch and build metadata are
   retained separately. This route correction is not in signed candidate build 8.
   The carousel preserves native aspect ratios without image padding.
+- [ ] Choose enemies for the next battle captures. Recommended options include
+  The Seraph, Fire Elemental and Mimic for visual variety; The Frostwarden and
+  Banshee are alternatives. Capture new battle moments after enemy selection.
 - [ ] Complete the owner's gallery selections, then upload the approved images in
   the required device slots. The separate Full Game review image is uploaded.
   Xcode's interaction tool currently lists only simulators, so physical interaction
