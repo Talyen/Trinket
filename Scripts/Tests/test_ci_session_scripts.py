@@ -25,7 +25,7 @@ import select
 
 class CISessionScriptTests(ScriptRegressionTestCase):
     def test_disposable_guest_lifetime_requires_hosted_runner_and_workload_opt_in(self):
-        script = r'''source "$1/Scripts/lib/simctl.sh"
+        script = r'''source "$1/Scripts/run-env.sh"
 TRINKET_SIM_SLOT_PATH="$LEASE"
 SIMULATOR_UDID=owned
 printf '%s fixture\n' "$$" > "$LEASE"
@@ -36,11 +36,15 @@ trinket_test_guest_cleanup_file() { echo cleaned >> "$CALLS"; }
 trinket_track_test_guests
 printf '%s owned\n' "$$" > "$LEASE.guest-tests"
 trinket_cleanup_test_guests
+trinket_preview_sims_reclaim() { echo previews >> "$CALLS"; }
+trinket_simulator_enforce_single_warm_booted() { echo warm >> "$CALLS"; }
+trinket_derived_data_age_prune() { echo outputs >> "$CALLS"; }
+trinket_run_env_self_clean_hygiene
 '''
         for hosted, runner, enabled, expected in [('true', 'github-hosted', '1', []),
-                                                ('true', 'self-hosted', '1', ['tracked', 'cleaned']),
-                                                ('false', 'github-hosted', '1', ['tracked', 'cleaned']),
-                                                ('true', 'github-hosted', '0', ['tracked', 'cleaned'])]:
+                                                ('true', 'self-hosted', '1', ['tracked', 'cleaned', 'previews', 'warm', 'outputs']),
+                                                ('false', 'github-hosted', '1', ['tracked', 'cleaned', 'previews', 'warm', 'outputs']),
+                                                ('true', 'github-hosted', '0', ['tracked', 'cleaned', 'previews', 'warm', 'outputs'])]:
             with self.subTest(hosted=hosted, runner=runner, enabled=enabled), tempfile.TemporaryDirectory() as temporary:
                 root = Path(temporary)
                 calls = root / 'calls'

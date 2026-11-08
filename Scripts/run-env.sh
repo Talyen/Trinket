@@ -54,6 +54,7 @@ source "$_TRINKET_RUN_ENV_LIB_DIR/derived-data.sh"
 unset _TRINKET_RUN_ENV_LIB_DIR
 
 trinket_run_env_self_clean_hygiene() {
+  trinket_disposable_ci_guest_lifecycle && return 0
   trinket_preview_sims_reclaim
   trinket_simulator_enforce_single_warm_booted
   if [[ "${TRINKET_RUN_ENV_HYGIENE_PRUNE:-1}" == "1" ]]; then

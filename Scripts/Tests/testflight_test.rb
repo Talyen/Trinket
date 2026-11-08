@@ -462,6 +462,23 @@ if ARGV.include?('--fastlane')
                'key_filepath' => key_path, 'internal_group_id' => 'group' }
     portal = TrinketTestFlight::Portal.new(config, 'com.example.Trinket')
     assert(Spaceship::ConnectAPI.token.text.split('.').length == 3)
+    Spaceship::ConnectAPI.define_singleton_method(:patch_beta_build_localizations) { |**_arguments| nil }
+    build = OpenStruct.new(id: 'new-build', get_beta_build_localizations: [OpenStruct.new(id: 'notes', locale: 'en-US')])
+    assignments = 0
+    build.define_singleton_method(:add_beta_groups) do |beta_groups:|
+      raise 'Automatic groups reject manual assignment' if beta_groups.first.has_access_to_all_builds
+      assignments += 1
+    end
+    group.fetch_builds = []
+    group.has_access_to_all_builds = true
+    portal.distribute(build, 'Candidate notes')
+    assert(assignments == 0, 'Automatic distribution must wait for Apple group propagation')
+    group.has_access_to_all_builds = false
+    portal.distribute(build, 'Candidate notes')
+    assert(assignments == 1, 'A manual internal group still requires explicit assignment')
+    group.fetch_builds = [build]
+    portal.distribute(build, 'Candidate notes')
+    assert(assignments == 1, 'An existing assignment must not be duplicated')
     bundle = Spaceship::ConnectAPI::BuildBundle.new('bundle', { 'bundleId' => 'com.example.Trinket', 'includesSymbols' => true })
     assert(portal.symbol_status(OpenStruct.new(build_bundles: [bundle]), 'com.example.Trinket') == true)
     assert(portal.symbol_status(OpenStruct.new(build_bundles: [bundle]), 'other.app').nil?)

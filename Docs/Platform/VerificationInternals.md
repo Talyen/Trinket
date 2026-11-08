@@ -64,7 +64,8 @@ unchanged. They recheck `bootstatus -b` without repeating global runtime invento
 XCTest still checks the actual guest build. Explicit re-preparation, changed
 identities, missing leases and local runs retain full validation.
 Hosted test workloads on disposable GitHub runners use VM disposal for guest
-lifetime instead of shared-Mac process inventory and orphan cleanup. The shortcut
+lifetime instead of shared-Mac process inventory, orphan cleanup, preview cleanup
+and output-age housekeeping. Those global scans can stall on a booted test VM. The shortcut
 requires both the hosted-runner identity and workload opt-in; local and self-hosted
 ownership checks remain active. A proven pre-test process-inventory timeout in
 other environments stops the affected scope with a capability gap.

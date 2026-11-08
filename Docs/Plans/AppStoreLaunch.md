@@ -87,9 +87,13 @@ starts at 26 for both platforms.
   are complete. App Privacy reports Data Not Collected, consistent with local
   data, private iCloud sync and Apple-managed purchases/diagnostics. Support and
   privacy URLs are configured. [Field ownership](../Platform/AppStoreMetadata.md)
-- [ ] Finish screenshots, the Full Game review image and candidate build
-  association. Recheck exported encryption and Production entitlements with the
-  signed archive. Keep the app and purchase out of App Review.
+- [x] Upload the Full Game review image. Apple processed the native English
+  offer capture with a matching checksum and the purchase is Ready to Submit.
+  The purchase remains unsubmitted.
+- [x] Associate candidate build `1.0.0 (8)` with the draft store version. Readback
+  confirms Prepare for Submission and manual release. The signed archive/export
+  passed encryption, signature and Production entitlement checks with iCloud enabled.
+- [ ] Finish gallery screenshots. Keep the app and purchase out of App Review.
 - [x] Verify the requested iPad sizing before store capture. The 13-inch iPad Pro
   simulator on iPadOS 27.0 showed the larger hand, the center card barely clipping
   the bottom edge, and combatants clear of the fan. Seven focused layout tests
@@ -100,18 +104,18 @@ starts at 26 for both platforms.
 
 ## 3. Qualify the signed candidate on devices
 
-Cloud-enabled TestFlight `0.1.0 (66)` from `50139150e` is processed and assigned
-to Personal Testing. The connected iPhone currently has `0.1.0 (6)` installed;
+Cloud-enabled TestFlight `1.0.0 (8)` from `64b9053db` is processed and assigned
+to Personal Testing with Apple-confirmed symbols. The connected iPhone currently has `0.1.0 (6)` installed;
 preserve its existing save as the upgrade source. Identify the new candidate by
 source commit, marketing version, build number, and signed archive.
 
-- [ ] Use the [TestFlight workflow](../Platform/Release.md#local-testflight-deployment)
+- [x] Use the [TestFlight workflow](../Platform/Release.md#local-testflight-deployment)
   for the exact candidate, with qualified hosted journey proof and the documented
   FullUI release gate. Use a shipping Xcode and SDK that satisfy
   [Apple's upload requirements](https://developer.apple.com/news/upcoming-requirements/).
   Verify the exported Production entitlements and cloud setting. Confirm Apple
-  processing and installation, and retain the receipt, archive, and matching dSYMs.
-- [ ] Upgrade a populated beta save in place. Verify Campaign progress, party,
+  processing and internal availability, and retain the receipt, archive, and matching dSYMs.
+- [ ] Install the candidate and upgrade a populated beta save in place. Verify Campaign progress, party,
   equipment, Homestead, offline play, relaunch, and recovery after interrupting a
   battle or terminating after a reward claim. Review matching TestFlight feedback,
   crash reports, and physical-device artwork, frame, memory, and thermal evidence.

@@ -98,7 +98,8 @@ module TrinketTestFlight
       else
         Spaceship::ConnectAPI.post_beta_build_localizations(build_id: build.id, attributes: { locale: 'en-US', whatsNew: notes })
       end
-      build.add_beta_groups(beta_groups: [group]) unless assigned?(build)
+      # Automatic groups attach asynchronously and reject manual assignment.
+      build.add_beta_groups(beta_groups: [group]) unless group.has_access_to_all_builds || assigned?(build)
     end
 
     def assigned?(build)
