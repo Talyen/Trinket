@@ -278,6 +278,17 @@ simulator_recovery_has_time() {
   fi
 }
 
+trinket_ci_prepared_simulator_identity() {
+  local lease_pid lease_run lease_details
+  [[ "${GITHUB_ACTIONS:-}" == true && "${TRINKET_CI_ADAPTIVE:-}" == 1 && "${TRINKET_ISOLATE:-}" == 1 &&
+     -n "${GITHUB_RUN_ID:-}" && -n "${TRINKET_RUN_ID:-}" && -n "${SIMULATOR_UDID:-}" &&
+     -n "${TRINKET_SIM_SLOT_OWNER_PID:-}" && -f "${TRINKET_SIM_SLOT_PATH:-}" ]] || return 1
+  read -r lease_pid lease_run lease_details < "$TRINKET_SIM_SLOT_PATH" || return 1
+  [[ "$lease_pid" =~ ^[0-9]+$ && "$lease_pid" == "${TRINKET_SIM_SLOT_OWNER_PID%%:*}" &&
+     "$lease_run" == "$TRINKET_RUN_ID" ]] || return 1
+  printf '%s\n' "$GITHUB_RUN_ID|${GITHUB_RUN_ATTEMPT:-}|$TRINKET_RUN_ID|$TRINKET_SIM_SLOT_PATH|$lease_pid|$lease_run|$lease_details|${TRINKET_SIMULATOR_NAME:-Trinket Run}|$SIMULATOR_UDID|${TRINKET_SIM_DEVICE_TYPE:-}|${TRINKET_SIM_OS_MAJOR:-}|${TRINKET_SIM_OS_VERSION:-}|${TRINKET_SIM_OS_BUILD:-}|${DEVELOPER_DIR:-}|${XCODE_BUILD:-}"
+}
+
 ensure_test_simulator() {
   local force="${1:-}"
   local attempt=1
@@ -297,17 +308,24 @@ ensure_test_simulator() {
     fi
   fi
   local owned_name="${TRINKET_SIMULATOR_NAME:-Trinket Run}"
+  local prepared_identity="" reuse_prepared=false
+  prepared_identity="$(trinket_ci_prepared_simulator_identity)" || prepared_identity=""
+  if [[ -z "$force" && -n "$prepared_identity" && "${TRINKET_CI_PREPARED_SIMULATOR_IDENTITY:-}" == "$prepared_identity" ]]; then
+    reuse_prepared=true
+  fi
+  unset TRINKET_CI_PREPARED_SIMULATOR_IDENTITY
 
   # Never shut down or delete a device that does not belong to this run's
   # name. Resolve the actual UDID metadata instead of trusting a caller's
-  # cached SIMULATOR_NAME environment value.
-  if [[ -n "${SIMULATOR_UDID:-}" ]] && ! simulator_matches_name "$SIMULATOR_UDID" "$owned_name"; then
+  # cached name. Nested CI callers may reuse the same verified lease/profile;
+  # bootstatus still checks readiness without another global runtime inventory.
+  if [[ "$reuse_prepared" != true && -n "${SIMULATOR_UDID:-}" ]] && ! simulator_matches_name "$SIMULATOR_UDID" "$owned_name"; then
     echo "Warning: ignoring foreign or unknown simulator $SIMULATOR_UDID; using $owned_name." >&2
     SIMULATOR_UDID=""
   fi
   SIMULATOR_NAME="$owned_name"
 
-  if [[ -n "${TRINKET_SIM_DEVICE_TYPE:-}" || -n "${TRINKET_SIM_OS_MAJOR:-}" || -n "${TRINKET_SIM_OS_VERSION:-}" ]]; then
+  if [[ "$reuse_prepared" != true ]] && [[ -n "${TRINKET_SIM_DEVICE_TYPE:-}" || -n "${TRINKET_SIM_OS_MAJOR:-}" || -n "${TRINKET_SIM_OS_VERSION:-}" ]]; then
     resolve_or_create_simulator || return 1
   fi
 
@@ -315,6 +333,10 @@ ensure_test_simulator() {
     if [[ -z "${SIMULATOR_UDID:-}" ]]; then resolve_or_create_simulator || return 1; fi
     if boot_simulator; then
       SIMULATOR_DESTINATION="platform=iOS Simulator,id=$SIMULATOR_UDID"
+      prepared_identity="$(trinket_ci_prepared_simulator_identity)" || prepared_identity=""
+      if [[ -n "$prepared_identity" ]]; then
+        export TRINKET_CI_PREPARED_SIMULATOR_IDENTITY="$prepared_identity"
+      fi
       return 0
     fi
     echo '[ci capability unavailable] Installed simulator did not complete boot; retaining its diagnostics.' >&2

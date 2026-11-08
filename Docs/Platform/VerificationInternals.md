@@ -58,6 +58,11 @@ it does not repeatedly erase a runtime or remount host images. `bootstatus -b`
 owns readiness, using Apple's exit status instead of interpreting console status
 numbers. XCTest establishes the actual launch session; no global inventory query
 follows boot. Local recovery retains its existing attempts.
+Nested CI wrappers reuse a successful preparation only while the same run,
+managed lease, device, requested runtime/profile and toolchain identity remain
+unchanged. They recheck `bootstatus -b` without repeating global runtime inventory;
+XCTest still checks the actual guest build. Explicit re-preparation, changed
+identities, missing leases and local runs retain full validation.
 `ci-test-capability.py` preserves failures and records proven simulator infrastructure
 as unavailable coverage. Assertions, compiler failures and unknown errors remain
 fatal; a gap is never passed test evidence. Supervisors terminate only
@@ -86,6 +91,8 @@ after boot to distinguish resource pressure from test execution. A stuck method 
 fail and retain evidence before consuming the entire batch watchdog; this does not
 classify a product timeout as infrastructure. Native settings profiles, Soak and
 performance runs retain their owned execution allowances.
+An uncontrolled Smoke fallback uses a maximum 35-minute action budget, respecting
+a shorter caller limit, instead of inheriting the full native-profile job budget.
 After a failure on an ownership-verified simulator, disposable CI retains up to
 four recent Trinket app IPS crash reports (2 MiB each), validating their bundle ID.
 It does not run Xcode sysdiagnose: that collection has stalled result finalization

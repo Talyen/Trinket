@@ -43,7 +43,8 @@ executed scope rather than imply every device and OS was tested.
 - [x] Update candidate verification to consume the actual adaptable hosted
   scope and identify every executed selector and explicit capability gap.
 - [ ] Complete hosted CI and player coverage, including the reward-return
-  command-budget repair, and retain the source identity of each result.
+  command-budget and nested runtime-inventory repairs, and retain the source
+  identity of each result. Use reward-only reruns for focused infrastructure fixes.
 
 The November 7 candidate includes the reviewed iPad layout and CI reliability
 repairs. Qualify the resulting revision; earlier green runs do not establish

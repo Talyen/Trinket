@@ -31,10 +31,11 @@ TEXT_SIZES = ('large', 'accessibility-extra-extra-extra-large')
 
 def coverage_matrix(scope):
     entries = [dict(profile=name, check='reward-return') for name in ('compact', 'tablet')]
-    entries += [dict(profile=name, check='profiles') for name in ('compact', 'tablet')]
-    if scope == 'rotation':
+    if scope in ('profiles', 'all'):
+        entries += [dict(profile=name, check='profiles') for name in ('compact', 'tablet')]
+    elif scope == 'rotation':
         entries = [dict(profile='duo', check='rotation')]
-    elif scope not in ('profiles', 'all'):
+    elif scope != 'reward-return':
         raise ValueError(f'unsupported profile matrix scope: {scope}')
     return dict(include=entries)
 
@@ -246,9 +247,14 @@ def run_available_baseline(output, error):
                     f'Native text-size controls are unavailable: {error}. Running Smoke in the available environment; '
                     'largest text, Reduce Motion and native accessibility audits remain uncovered.')
     environment = dict(os.environ, TRINKET_UI_PLAN='Smoke', TRINKET_UI_SUCCESS_SCREENSHOTS='1')
+    # A fallback must not inherit the entire native-profile job's execution budget.
+    inherited = environment.get('TRINKET_XCODE_WALL_TIMEOUT_SECONDS', '')
+    seconds = min(2100, int(inherited)) if inherited.isdecimal() and int(inherited) > 0 else 2100
+    environment['TRINKET_XCODE_WALL_TIMEOUT_SECONDS'] = str(seconds)
     row = execute_profile(output, 'available-environment', environment,
                           ['./Scripts/test.sh', 'smoke', '--no-build'])
-    row.update(plan='Smoke', textSize='uncontrolled', reduceMotion=None, nativeAuditsRequested=False)
+    row.update(plan='Smoke', textSize='uncontrolled', reduceMotion=None, nativeAuditsRequested=False,
+               wallBudgetSeconds=seconds)
     (output / 'profiles.json').write_text(json.dumps([row], indent=2))
     return 0 if row['exitCode'] == 0 else 1
 
@@ -321,6 +327,7 @@ def main():
                 with Path(summary).open('a') as output:
                     output.write('### Planned player coverage\n\n' +
                                  ('One on-demand Duo rotation diagnostic.\n' if args.scope == 'rotation' else
+                                  'Available iPhone and iPad reward-return journeys only.\n' if args.scope == 'reward-return' else
                                   'Available iPhone and iPad reward-return and native-settings journeys. '
                                   'Duo automation and duplicate iPadOS 26 settings are omitted from the default matrix. '
                                   'Actual OS/model substitutions and unavailable scope are retained in CICoverage receipts.\n'))

@@ -11,7 +11,7 @@ on:
         description: Coverage portfolio
         type: choice
         default: profiles
-        options: [profiles, soak, all, rotation]
+        options: [profiles, reward-return, soak, all, rotation]
       toolchain:
         description: Xcode channel for the requested coverage
         type: choice
@@ -28,7 +28,7 @@ concurrency:
 
 jobs:
   plan:
-    if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' || inputs.scope == 'rotation'
+    if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' || inputs.scope == 'rotation' || inputs.scope == 'reward-return'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -45,7 +45,7 @@ jobs:
   profiles:
     needs: plan
     name: ${{ matrix.check }} (${{ matrix.profile }})
-    if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' || inputs.scope == 'rotation'
+    if: (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' || inputs.scope == 'rotation' || inputs.scope == 'reward-return'
     runs-on: xcode-27
     timeout-minutes: 120
     strategy:
@@ -175,7 +175,7 @@ jobs:
       - name: Report actual requested-job conclusions
         env:
           JOB_RESULTS: ${{ toJSON(needs) }}
-          PROFILES_REQUESTED: ${{ (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' || inputs.scope == 'rotation' }}
+          PROFILES_REQUESTED: ${{ (github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' || inputs.scope == 'rotation' || inputs.scope == 'reward-return' }}
           SOAK_REQUESTED: ${{ github.event.schedule == '0 9 * * 0' || inputs.scope == 'soak' || inputs.scope == 'all' }}
         shell: bash
         run: |

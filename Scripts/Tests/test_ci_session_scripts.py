@@ -89,6 +89,66 @@ ensure_test_simulator
         self.assertEqual(result.stdout.count('boot-attempt'), 1)
         self.assertNotIn('unexpected-', result.stdout + result.stderr)
 
+    def test_nested_ci_reuses_only_the_same_verified_lease_and_profile(self):
+        script = r'''source "$1/Scripts/ensure-simulator.sh"
+export SIMULATOR_UDID=owned TRINKET_RUN_ID=fixture TRINKET_SIM_SLOT_OWNER_PID="$$:0"
+printf '%s fixture original\n' "$$" > "$TRINKET_SIM_SLOT_PATH"
+simulator_matches_name() { echo metadata >> "$CALLS"; return 0; }
+resolve_or_create_simulator() { echo resolve >> "$CALLS"; SIMULATOR_UDID=owned; }
+boot_simulator() { echo boot >> "$CALLS"; return 0; }
+ensure_test_simulator
+[[ -n "$TRINKET_CI_PREPARED_SIMULATOR_IDENTITY" ]]
+case "$CHANGE" in
+  runtime) TRINKET_SIM_OS_BUILD=changed ;;
+  device) SIMULATOR_UDID=other ;;
+  name) TRINKET_SIMULATOR_NAME=other ;;
+  lease) printf '%s fixture replaced\n' "$$" > "$TRINKET_SIM_SLOT_PATH" ;;
+  toolchain) DEVELOPER_DIR=other ;;
+  local) GITHUB_ACTIONS=false ;;
+  unleased) rm "$TRINKET_SIM_SLOT_PATH" ;;
+esac
+if [[ "$CHANGE" == force ]]; then ensure_test_simulator force; else ensure_test_simulator; fi
+'''
+        for change in ('none', 'runtime', 'device', 'name', 'lease', 'toolchain', 'local', 'unleased', 'force'):
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                environment = {key: value for key, value in os.environ.items()
+                               if not key.startswith(('TRINKET_', 'SIMULATOR_'))}
+                result = run_captured(['bash', '-c', script, '_', str(ROOT)], expected=0,
+                    env={**environment, 'GITHUB_ACTIONS': 'true', 'GITHUB_RUN_ID': 'hosted',
+                         'TRINKET_CI_ADAPTIVE': '1', 'TRINKET_ISOLATE': '1',
+                         'TRINKET_SIM_SLOT_PATH': str(root / 'lease'),
+                         'TRINKET_SIM_DEVICE_TYPE': 'fixture-type', 'TRINKET_SIM_OS_BUILD': 'fixture-build',
+                         'CHANGE': change, 'CALLS': str(root / 'calls')})
+                calls = (root / 'calls').read_text().splitlines()
+                self.assertEqual(calls.count('boot'), 2)
+                self.assertEqual(calls.count('metadata'), 1 if change == 'none' else 2)
+                self.assertEqual(calls.count('resolve'), 1 if change == 'none' else 2)
+
+    def test_cached_ci_preparation_still_requires_a_successful_boot(self):
+        script = r'''source "$1/Scripts/ensure-simulator.sh"
+export SIMULATOR_UDID=owned TRINKET_RUN_ID=fixture TRINKET_SIM_SLOT_OWNER_PID="$$:0"
+printf '%s fixture original\n' "$$" > "$TRINKET_SIM_SLOT_PATH"
+simulator_matches_name() { return 0; }
+boot_simulator() { return 0; }
+ensure_test_simulator
+simulator_matches_name() { echo unexpected-inventory; return 91; }
+resolve_or_create_simulator() { echo unexpected-resolve; return 92; }
+boot_simulator() { return 1; }
+status=0
+ensure_test_simulator || status=$?
+[[ "$status" == 78 && -z "${TRINKET_CI_PREPARED_SIMULATOR_IDENTITY:-}" ]]
+'''
+        with tempfile.TemporaryDirectory() as temporary:
+            environment = {key: value for key, value in os.environ.items()
+                           if not key.startswith(('TRINKET_', 'SIMULATOR_'))}
+            result = run_captured(['bash', '-c', script, '_', str(ROOT)], expected=0,
+                env={**environment, 'GITHUB_ACTIONS': 'true', 'GITHUB_RUN_ID': 'hosted',
+                     'TRINKET_CI_ADAPTIVE': '1', 'TRINKET_ISOLATE': '1',
+                     'TRINKET_SIM_SLOT_PATH': str(Path(temporary) / 'lease')})
+            self.assertIn('[ci capability unavailable]', result.stdout + result.stderr)
+            self.assertNotIn('unexpected-', result.stdout + result.stderr)
+
     def test_failed_shutdown_prevents_erase_and_delete_even_in_conditionals(self) -> None:
         script = r'''source "$1/Scripts/ensure-simulator.sh"
 SIMULATOR_UDID=owned

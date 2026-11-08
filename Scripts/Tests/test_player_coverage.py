@@ -369,7 +369,7 @@ trinket_run_env_install_self_clean() { :; }
         workflow = (ROOT / '.github/workflows/player-coverage.yml').read_text()
         self.assertIn("- cron: '0 8 * * 0'", workflow)
         profiles = workflow.split('  profiles:\n', 1)[1].split('    runs-on:', 1)[0]
-        condition = "(github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' || inputs.scope == 'rotation'"
+        condition = "(github.event_name == 'schedule' && github.event.schedule != '0 9 * * 0') || inputs.scope == 'profiles' || inputs.scope == 'all' || inputs.scope == 'rotation' || inputs.scope == 'reward-return'"
         self.assertIn(f'if: {condition}', profiles)
         self.assertIn(f"${{{{ {condition} }}}}", workflow)
         self.assertEqual(workflow.count(
@@ -413,6 +413,7 @@ trinket_run_env_install_self_clean() { :; }
         for scope in ('profiles', 'all'):
             self.assertEqual(MODULE.coverage_matrix(scope), dict(include=entries))
         self.assertEqual(MODULE.coverage_matrix('rotation'), dict(include=[dict(profile='duo', check='rotation')]))
+        self.assertEqual(MODULE.coverage_matrix('reward-return'), dict(include=entries[:2]))
         with self.assertRaises(ValueError):
             MODULE.coverage_matrix('unknown')
         self.assertIn('needs: plan', profiles)
@@ -492,7 +493,8 @@ esac
     def test_hosted_text_size_failure_keeps_baseline_and_preserves_its_failures(self):
         for status in (0, 65):
             with self.subTest(status=status), tempfile.TemporaryDirectory() as temporary, \
-                    patch.dict(os.environ, {'GITHUB_ACTIONS': 'true', 'TRINKET_CI_ADAPTIVE': '1'}), \
+                    patch.dict(os.environ, {'GITHUB_ACTIONS': 'true', 'TRINKET_CI_ADAPTIVE': '1',
+                                            'TRINKET_XCODE_WALL_TIMEOUT_SECONDS': '7200'}), \
                     patch.object(MODULE, 'native_text_size',
                                  side_effect=MODULE.SimulatorPrerequisiteTimeout('text-size-readiness')), \
                     patch.object(MODULE, 'record_coverage') as coverage, \
@@ -503,6 +505,7 @@ esac
                 execute.assert_called_once()
                 self.assertEqual(execute.call_args.args[0], ['./Scripts/test.sh', 'smoke', '--no-build'])
                 self.assertEqual(execute.call_args.kwargs['env']['TRINKET_UI_PLAN'], 'Smoke')
+                self.assertEqual(execute.call_args.kwargs['env']['TRINKET_XCODE_WALL_TIMEOUT_SECONDS'], '2100')
                 self.assertEqual(coverage.call_args.args[:2], ('native-settings', 'unavailable'))
                 identity.assert_not_called()
                 row, = json.loads((output / 'profiles.json').read_text())
@@ -510,6 +513,16 @@ esac
                 self.assertEqual(row['textSize'], 'uncontrolled')
                 self.assertIsNone(row['reduceMotion'])
                 self.assertFalse(row['nativeAuditsRequested'])
+                self.assertEqual(row['wallBudgetSeconds'], 2100)
+
+    def test_available_baseline_budget_defaults_and_respects_a_shorter_caller(self):
+        for inherited, expected in (('', 2100), ('90', 90)):
+            with self.subTest(inherited=inherited), tempfile.TemporaryDirectory() as temporary, \
+                    patch.dict(os.environ, {'TRINKET_XCODE_WALL_TIMEOUT_SECONDS': inherited}), \
+                    patch.object(MODULE, 'record_coverage'), \
+                    patch.object(MODULE.subprocess, 'run', return_value=SimpleNamespace(returncode=0)) as execute:
+                self.assertEqual(MODULE.run_available_baseline(Path(temporary), ValueError('unavailable')), 0)
+                self.assertEqual(execute.call_args.kwargs['env']['TRINKET_XCODE_WALL_TIMEOUT_SECONDS'], str(expected))
 
     def test_text_size_readiness_timeout_stops_before_test_or_inventory(self):
         timeout = subprocess.TimeoutExpired('simctl ui content_size', 30)
