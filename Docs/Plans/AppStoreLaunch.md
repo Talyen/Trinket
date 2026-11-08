@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Seven iPhone screenshots approved; remaining gallery selection and signed-candidate device acceptance are pending; App Review remains on owner hold.
+reason: Ten iPhone screenshots approved; final ordering, iPad selection and signed-candidate device acceptance are pending; App Review remains on owner hold.
 created: 2026-11-06
 updated: 2026-11-08
 expires: 2026-11-20
@@ -68,12 +68,11 @@ automated coverage starts at 26 for both platforms.
 - [x] Associate candidate build `1.0.0 (8)` with the draft store version. Readback
   confirms Prepare for Submission and manual release. The signed archive/export
   passed encryption, signature and Production entitlement checks with iCloud enabled.
-- [x] Prepare 95 gallery candidates for owner review. Rate every original
-  for composition, readability, game clarity, artwork and variety; replace the
-  lowest 20 with new captures. Retain the App Store-style carousel, individual
-  ratings, full-resolution originals and manifest. Add Homestead nodes and
-  features, trinkets, Uniques, boss detail, Blood Countess combat with visible
-  lyrics, and live combat frames with floating damage and attack motion.
+- [x] Retain 27 gallery candidates: ten approved iPhone images and 17 new Unique
+  and talent views awaiting owner review. Rate all 138 capture attempts for
+  composition, readability, game clarity, artwork and variety. Remove older
+  unapproved images at the owner's request; preserve the ten approved originals,
+  App Store-style carousel, current review package and audit metadata.
 - [ ] Upload only the owner's approved gallery selections. Keep the app and
   purchase out of App Review.
 - [x] Verify the requested iPad sizing before store capture. The 13-inch iPad Pro
@@ -119,45 +118,30 @@ number, and signed archive.
 
 ## 4. Prepare the handoff; hold submission
 
-- [x] Prepare 95 numbered portrait candidates across iPhone and iPad, covering
-  combat, the Merchant, Play, Labyrinth, Collection, Homestead, character details,
-  Mystery choices and equipment traits. The expanded pool has 80 phone and 15 tablet
-  alternatives. All 40 originals, 24 replacement attempts and 23 requested feature
-  captures have individual marketing ratings; four new tablet item sheets were
-  rejected before retaining
-  the final 20 replacements. The feature pass retained 21 additions, including
-  Wheat Field, Blacksmith, Crucible, Wishing Well, crafting and wishing screens,
-  three trinkets, two Uniques, the Blood Countess detail and her live lyrics.
-  Two unmodified native video frames show floating combat text during attacks;
-  the recordings and frame timestamps are retained. Two weaker feature captures
-  were excluded. The preview preserves native aspect ratios without
-  added image padding and keeps rejected captures out of the selection pool.
-  The review gallery and manifest are retained with the AppStoreLaunch-Nov7 release
-  deliverables. Capture source `7f7a02022` has the same game and UI source as
-  candidate `64b9053db`; these are simulator captures from the hosted Debug product.
-- [x] Capture the November 8 additions: eight random autoplay battle moments each
-  against The Blight Treant (`89`–`96`) and Living Armor (`97`–`104`), plus the
-  owner's current Explore screen on their physical iPhone 14 Pro (`88`). Native
-  `devicectl` capture produced the unchanged 1179×2556 phone image; installed
-  TestFlight version `1.0.0 (8)` was verified. The battle images are unchanged
-  1206×2622 native simulator video frames. All 104 capture attempts are rated;
-  retain all 16 requested random battle moments, including weaker transitions,
-  for owner review. Recordings, sampling seeds and timestamps are retained in
-  the AppStoreLaunch-Nov8 deliverables. The phone capture establishes the visible
-  Explore layout; signed-candidate gameplay and purchase acceptance remain open.
-- [x] Add Fox's expanded inspect pane (`105`) and 16 random Knight/Fox autoplay
-  moments against The Blood Countess on Sanguine Court floor 10 (`106`–`121`).
-  Boss Lyrics and Auto Battle were enabled; lyrics are visible in 15 frames,
-  with one captured between phrases. All 17 images retain native 1206×2622
-  pixels. Preserve the recording, sampling seed and timestamps with the
-  Knight/Fox deliverables. All 121 marketing capture attempts have individual
-  ratings; retain the requested random samples for owner review.
-- [x] Retain the initial owner-approved iPhone selection from November 7:
-  `01` Battle, `08` Ranger, `10` Rogue, `16` Wolf, `17` Bear,
-  `72` Blacksmith, and `86` The Blood Countess detail. The selected originals and
-  hashes are preserved in `selected-screenshots.json` and `selected-iphone/`
-  within the release deliverables. Keep these seven selected when capture and
-  review resume November 8; final ordering and the iPad selection remain open.
+- [x] Lock the owner's updated November 8 iPhone selection: `01` Battle,
+  `08` Ranger, `10` Rogue, `16` Wolf, `72` Blacksmith, `77` Crucible,
+  `86` The Blood Countess detail, `88` Explore on Ryan's iPhone,
+  `98` Living Armor moment 02, and `105` Fox inspect. Remove Bear (`17`).
+  Preserve byte-identical originals and selected copies in the release
+  deliverables, with hashes in `selected-screenshots.json`. Final ordering and
+  the iPad set remain open; new choices can replace existing iPhone selections.
+- [x] Capture eight Unique detail previews (`122`–`129`) through the Wishing Well:
+  Bloodfire Signet, Rimeheart Locket, Blackfletch, Twin Casting, Saintfall Plate,
+  Golden Verdict, The Unclosing Wound and Kingbreaker. Add talent category views
+  for Knight, Ranger and Fox, plus two individual nodes for each (`130`–`138`).
+  All 17 new images retain native 1206×2622 pixels and individual marketing ratings.
+  Keep these new captures for the next owner review.
+- [x] Prune older unapproved gallery images and superseded review archives, as
+  authorized by the owner. Rebuild the approved package and gallery around the
+  ten approved originals and 17 new candidates. Preserve audit metadata for all
+  138 attempts, recording which image files were deleted. Retain the separate
+  purchase review image, recordings, release artifacts and CI diagnostics.
+- [x] Preserve capture provenance. Most retained images use hosted Debug source
+  `7f7a02022`, whose game and UI source match signed candidate `64b9053db`.
+  Explore (`88`) is an unchanged native 1179×2556 capture from the owner's iPhone
+  14 Pro, with installed TestFlight `1.0.0 (8)` verified. It establishes the
+  visible Explore layout; signed-candidate gameplay and purchase acceptance
+  remain open. The carousel preserves native aspect ratios without image padding.
 - [ ] Complete the owner's gallery selections, then upload the approved images in
   the required device slots. The separate Full Game review image is uploaded.
   Xcode's interaction tool currently lists only simulators, so physical interaction
