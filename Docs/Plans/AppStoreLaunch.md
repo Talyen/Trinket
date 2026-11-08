@@ -68,7 +68,7 @@ automated coverage starts at 26 for both platforms.
 - [x] Associate candidate build `1.0.0 (8)` with the draft store version. Readback
   confirms Prepare for Submission and manual release. The signed archive/export
   passed encryption, signature and Production entitlement checks with iCloud enabled.
-- [x] Prepare 78 gallery candidates for owner review. Rate every original
+- [x] Prepare 95 gallery candidates for owner review. Rate every original
   for composition, readability, game clarity, artwork and variety; replace the
   lowest 20 with new captures. Retain the App Store-style carousel, individual
   ratings, full-resolution originals and manifest. Add Homestead nodes and
@@ -119,9 +119,9 @@ number, and signed archive.
 
 ## 4. Prepare the handoff; hold submission
 
-- [x] Prepare 78 numbered portrait candidates across iPhone and iPad, covering
+- [x] Prepare 95 numbered portrait candidates across iPhone and iPad, covering
   combat, the Merchant, Play, Labyrinth, Collection, Homestead, character details,
-  Mystery choices and equipment traits. The expanded pool has 63 phone and 15 tablet
+  Mystery choices and equipment traits. The expanded pool has 80 phone and 15 tablet
   alternatives. All 40 originals, 24 replacement attempts and 23 requested feature
   captures have individual marketing ratings; four new tablet item sheets were
   rejected before retaining
@@ -145,6 +145,13 @@ number, and signed archive.
   for owner review. Recordings, sampling seeds and timestamps are retained in
   the AppStoreLaunch-Nov8 deliverables. The phone capture establishes the visible
   Explore layout; signed-candidate gameplay and purchase acceptance remain open.
+- [x] Add Fox's expanded inspect pane (`105`) and 16 random Knight/Fox autoplay
+  moments against The Blood Countess on Sanguine Court floor 10 (`106`–`121`).
+  Boss Lyrics and Auto Battle were enabled; lyrics are visible in 15 frames,
+  with one captured between phrases. All 17 images retain native 1206×2622
+  pixels. Preserve the recording, sampling seed and timestamps with the
+  Knight/Fox deliverables. All 121 marketing capture attempts have individual
+  ratings; retain the requested random samples for owner review.
 - [x] Retain the initial owner-approved iPhone selection from November 7:
   `01` Battle, `08` Ranger, `10` Rogue, `16` Wolf, `17` Bear,
   `72` Blacksmith, and `86` The Blood Countess detail. The selected originals and
