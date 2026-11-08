@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Eleven iPhone screenshots approved for review; final ten-image subset, ordering, iPad selection and signed-candidate device acceptance are pending; App Review remains on owner hold.
+reason: Twelve iPhone screenshots approved for review; final ten-image subset, ordering, iPad selection and signed-candidate device acceptance are pending; App Review remains on owner hold.
 created: 2026-11-06
 updated: 2026-11-08
 expires: 2026-11-20
@@ -68,10 +68,10 @@ automated coverage starts at 26 for both platforms.
 - [x] Associate candidate build `1.0.0 (8)` with the draft store version. Readback
   confirms Prepare for Submission and manual release. The signed archive/export
   passed encryption, signature and Production entitlement checks with iCloud enabled.
-- [x] Retain 21 gallery candidates: eleven approved iPhone images, two Collection
-  Unique details and eight talent views awaiting owner review. Rate all 140 capture attempts for
+- [x] Retain 21 gallery candidates: twelve approved iPhone images, Kingbreaker and
+  eight talent views awaiting owner review. Rate all 140 capture attempts for
   composition, readability, game clarity, artwork and variety. Remove older
-  unapproved images at the owner's request; preserve the eleven approved originals,
+  unapproved images at the owner's request; preserve the twelve approved originals,
   App Store-style carousel, current review package and audit metadata.
 - [ ] Upload only the owner's approved gallery selections. Keep the app and
   purchase out of App Review.
@@ -121,11 +121,12 @@ number, and signed archive.
 - [x] Lock the owner's updated November 8 iPhone selection: `01` Battle,
   `08` Ranger, `10` Rogue, `16` Wolf, `72` Blacksmith, `77` Crucible,
   `86` The Blood Countess detail, `88` Explore on Ryan's iPhone,
-  `98` Living Armor moment 02, `105` Fox inspect, and `133` Ranger talent categories.
+  `98` Living Armor moment 02, `105` Fox inspect, `133` Ranger talent categories,
+  and `139` Blackfletch Unique detail.
   Remove Bear (`17`).
   Preserve byte-identical originals and selected copies in the release
   deliverables, with hashes in `selected-screenshots.json`. Final ordering and
-  the iPad set remain open. The approved review pool has eleven iPhone images;
+  the iPad set remain open. The approved review pool has twelve iPhone images;
   choose the final ten-image store subset and ordering before upload.
 - [x] Replace the incorrect Wishing Well previews (`122`–`129`) with exactly two
   standard Collection Unique details: `139` Blackfletch and `140` Kingbreaker.
@@ -133,10 +134,11 @@ number, and signed archive.
   Verify both pages without a Wish action in the updated local Debug build.
   Retain the Knight, Ranger and Fox talent categories and six node views (`130`–`138`);
   `133` is approved and the other eight remain pending. Native 1206×2622 images
-  have individual marketing ratings and await the next owner review.
+  have individual marketing ratings. Blackfletch (`139`) is approved;
+  Kingbreaker (`140`) remains pending alongside the eight other talent views.
 - [x] Prune older unapproved gallery images and superseded review archives, as
   authorized by the owner. Rebuild the approved package and gallery around the
-  eleven approved originals and ten pending candidates. Preserve audit metadata for all
+  twelve approved originals and nine pending candidates. Preserve audit metadata for all
   140 attempts, including the 119 removed images. Retain the separate
   purchase review image, recordings, release artifacts and CI diagnostics.
 - [x] Preserve capture provenance. Most retained images use hosted Debug source
