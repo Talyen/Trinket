@@ -124,7 +124,7 @@ unreadable vertical icon. Do not recreate system menus, popovers or StoreKit chr
 | --- | --- |
 | Launch/recovery and empty states | Full canvas; safe-area title, progress and recovery controls in `TrinketApp` and `LaunchWarmupView` |
 | Starter hero/companion selection | Full plasma background; safe-area selected card/name/action, horizontal wheel underlap, vertical overflow scrolling in `StarterRouletteScreen` |
-| Play, Explore and Spires hubs | Bounded stacked cards inside the safe area in `HubGridScaffold`; regular-width Explore fills the usable width and fits its first two cards vertically |
+| Play, Explore and Spires hubs | Bounded stacked cards inside the safe area in `HubGridScaffold`; wide Explore fits its first two cards vertically with 40-point side margins and extra vertical breathing room |
 | Campaign, Contracts, Voyage and Spire routes | Extended scenic header; safe-width stage rows, modifiers and party/actions in `StageSelectScreen` and `StageSelectList` |
 | Labyrinth | Safe-width actionable map and bottom inspector in `LabyrinthMapView`; decorative background may underlap |
 | Collection and party shelves | Native horizontal underlap, content margins and view-aligned snapping in `CategoryBrowseShelf` |

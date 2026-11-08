@@ -32,10 +32,13 @@ struct HubGridScaffold<Content: View>: View {
     var body: some View {
         GeometryReader { geometry in
             let expandsCards = fillsAvailableWidth && geometry.size.width > 600
-            let availableWidth = max(0, geometry.size.width - 2 * TrinketDesign.Layout.contentMargin)
+            let horizontalPadding = TrinketDesign.Layout.contentMargin * (expandsCards ? 2 : 1)
+            let verticalPadding = expandsCards ? TrinketDesign.Spacing.large : 0
+            let availableWidth = max(0, geometry.size.width - 2 * horizontalPadding)
             let cardWidth = expandsCards ? availableWidth : HubArtworkLayout.width(in: geometry.size)
+            let cardHeight = max(0, HubArtworkLayout.twoCardHeight(in: geometry.size) - verticalPadding)
             let aspectRatio = expandsCards
-                ? max(HubArtworkLayout.aspectRatio, availableWidth / max(1, HubArtworkLayout.twoCardHeight(in: geometry.size)))
+                ? max(HubArtworkLayout.aspectRatio, availableWidth / max(1, cardHeight))
                 : HubArtworkLayout.aspectRatio
 
             ScrollView {
@@ -48,9 +51,9 @@ struct HubGridScaffold<Content: View>: View {
                 .environment(\.hubArtworkAspectRatio, aspectRatio)
                 .frame(maxWidth: cardWidth)
                 .frame(maxWidth: .infinity)
-                .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-                .padding(.top, TrinketDesign.Layout.compactContentTopPadding)
-                .padding(.bottom, TrinketDesign.Spacing.extraLarge)
+                .padding(.horizontal, horizontalPadding)
+                .padding(.top, TrinketDesign.Layout.compactContentTopPadding + verticalPadding)
+                .padding(.bottom, TrinketDesign.Spacing.extraLarge + verticalPadding)
             }
         }
         .scrollIndicators(.hidden)
