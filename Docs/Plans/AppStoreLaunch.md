@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Final ten iPhone screenshots approved; 24 portrait iPad candidates await owner selection; ordering and signed-candidate device acceptance remain pending; App Review remains on owner hold.
+reason: Final ten iPhone screenshots approved; iPad layout fixes need refreshed screenshot selection; ordering and signed-candidate device acceptance remain pending; App Review remains on owner hold.
 created: 2026-11-06
 updated: 2026-11-08
 expires: 2026-11-20
@@ -176,9 +176,22 @@ number, and signed archive.
   Preserve the actual centered inspector sheets and card animations. The ten
   approved iPhone originals remain byte-identical. There are now 180 historical
   ratings, 34 retained images, and 146 historical deletions.
-- [ ] Have the owner approve the eight static iPad counterparts and choose one
-  Living Armor variant (`165`–`172`) and one Mud Elemental variant (`173`–`180`).
-  Finalize the ten-image order for each device family.
+- [ ] After refreshing affected captures, have the owner approve the eight static
+  iPad counterparts and choose one variant of each battle. Finalize the ten-image
+  order for each device family.
+- [x] Correct the iPad layout issues exposed during screenshot review. Replace
+  fixed inspection detents with native `.page` sizing; the 13-inch simulator now
+  presents a 928×1312-point detail page instead of a 580×660-point form.
+  Expand Explore to the usable width while fitting Spires and Labyrinth above
+  the tab bar. Scale floating combat feedback and its raster resolution with
+  actual portrait dimensions while retaining peak-footprint fitting.
+  Verify the Ranger inspection, both Explore cards, native drag dismissal and
+  live Living Armor autoplay feedback on iPadOS 27.0. Preserve before/after
+  examples and the recording separately from owner-approved marketing images.
+- [ ] Refresh the affected iPad marketing candidates after review of these layout
+  corrections. The earlier `157`–`180` batch remains comparison evidence and
+  must not be treated as captures of the corrected UI. The signed release
+  candidate also needs these source changes before final acceptance.
 - [ ] Upload the final approved gallery in
   the required device slots. Use the native portrait 2064×2752 iPad originals in
   Apple's required 13-inch set and let smaller iPad display sets inherit Apple's

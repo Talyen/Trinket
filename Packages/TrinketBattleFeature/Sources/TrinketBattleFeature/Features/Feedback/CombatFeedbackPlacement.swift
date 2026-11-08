@@ -5,12 +5,17 @@ struct CombatFeedbackPlacement {
     let center: CGPoint
     let fitScale: CGFloat
 
+    static func preferredScale(in bounds: CGRect) -> CGFloat {
+        max(1, min(bounds.width / 180, bounds.height / 240))
+    }
+
     static func resolve(size: CGSize, region: CombatFeedbackRegion, bounds: CGRect, bottomInset: CGFloat) -> Self? {
         guard size.width > 0, size.height > 0 else { return nil }
+        let preferredScale = preferredScale(in: bounds)
         if region == .announcement {
             let cellWidth = max(0, bounds.width - 16)
-            let rowHeight = min(100, bounds.height * 0.30)
-            let fit = min(1, max(0, cellWidth - 8) / (size.width * 1.35), rowHeight / (size.height * 1.35))
+            let rowHeight = min(100 * preferredScale, bounds.height * 0.30)
+            let fit = min(preferredScale, max(0, cellWidth - 8) / (size.width * 1.35), rowHeight / (size.height * 1.35))
             // Preserve the original rectangle midpoint arithmetic, including rounding.
             let width = size.width * fit
             let height = size.height * fit
@@ -31,7 +36,7 @@ struct CombatFeedbackPlacement {
         let sizeScale = 1.2 * (region == .impact ? 1 : CombatFeedbackMotionSampler.statusSizeScale)
         let size = CGSize(width: size.width * sizeScale, height: size.height * sizeScale)
         let maximumScale = region == .impact ? 1.9 * 1.10 : CombatFeedbackMotionSampler.statusPeakScale
-        let fit = min(1, area.width / (size.width * maximumScale), area.height / (size.height * maximumScale))
+        let fit = min(preferredScale, area.width / (size.width * maximumScale), area.height / (size.height * maximumScale))
         let fitted = CGSize(width: size.width * fit, height: size.height * fit)
         let halfWidth = fitted.width * maximumScale / 2
         let x = switch region {

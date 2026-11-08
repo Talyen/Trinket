@@ -83,6 +83,8 @@ owns scroll-driven prefetch. Launch retention follows
 [UI performance](../../Docs/AgentContext/ui-performance.md); memory budgets follow
 the [performance playbook](../../Docs/Platform/PerformanceInvestigationPlaybook.md).
 
+Shared inspection sheets use native `.page` presentation sizing so iPad details
+have room for artwork and information instead of the default form size.
 `HeroHeaderLayout` and `DetailHeroScrollShell` share full-bleed detail heroes,
 overscroll, and scrim blending. Portrait, square, cinematic and talent-tree headers are bounded
 by usable viewport height so their summaries and following content remain visible.

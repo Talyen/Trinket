@@ -189,6 +189,13 @@ and overflow into one number, including at full Health.
 
 ### Placement and motion
 
+Floating feedback scales continuously with its actual combatant viewport relative
+to a 180×240-point portrait, retaining the phone-sized base in smaller canvases.
+Impact, corner status and reaction-name fitting share this preferred scale and
+their existing peak-footprint bounds. Raster resolution grows with that scale so
+larger iPad feedback remains sharp. Resizing refits live feedback without changing
+its launch, timing or expiry; Reduce Motion uses the same adaptive sizing.
+
 Central chips use Balanced: an 85 ms pop to 1.85×, settle to 1.55× by 170 ms,
 then shrink toward 1.2×. A portrait-bounded 52-point cubic ease-out rise starts at
 240 ms. Numeric lifetime is 1.05 seconds, including a final 280 ms fade.

@@ -12,6 +12,7 @@ struct ExploreHubView: View {
         HubGridScaffold(
             title: String(localized: L10n.ui_explorehubview_explore_3b739),
             accessibilityIdentifier: AccessibilityID.Play.exploreHub,
+            fillsAvailableWidth: true,
         ) {
             HubArtworkNavigationLink(
                 destination: PlayLaunchDestination.spiresHub,

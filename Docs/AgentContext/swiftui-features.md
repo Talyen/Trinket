@@ -58,9 +58,11 @@ the top safe area so inspection roots and pushed details share the artwork heigh
 Apply that footer's safe-area inset directly to the scroll view so final traits
 remain reachable above the fixed action.
 
-Sheets use standard native SwiftUI motion throughout the app. Do not
+Sheets use standard native SwiftUI motion throughout the app. Shared inspection
+sheets use `.page` presentation sizing without fixed detents, allowing native
+iPad pages to expand instead of remaining in the small form frame. Do not
 attach source-linked zoom transitions to sheets; interactive zoom dismissal can
-visibly jump on physical devices. Preserve the existing detents, native drag to
+visibly jump on physical devices. Preserve each sheet's intended sizing, native drag to
 dismiss, artwork preparation, and dismissal cleanup. Navigation-stack pushes keep
 their existing transitions.
 

@@ -7,11 +7,18 @@ enum HubArtworkLayout {
     static let aspectRatio: CGFloat = 1.35
 
     static func width(in containerSize: CGSize) -> CGFloat {
+        min(500, twoCardHeight(in: containerSize) * aspectRatio)
+    }
+
+    static func twoCardHeight(in containerSize: CGSize) -> CGFloat {
         let verticalSpacing = TrinketDesign.Layout.compactContentTopPadding
             + TrinketDesign.Spacing.extraLarge + TrinketDesign.Spacing.large
-        let fittedWidth = max(0, (containerSize.height - verticalSpacing) / 2) * aspectRatio
-        return min(500, fittedWidth)
+        return max(0, (containerSize.height - verticalSpacing) / 2)
     }
+}
+
+private extension EnvironmentValues {
+    @Entry var hubArtworkAspectRatio: CGFloat = HubArtworkLayout.aspectRatio
 }
 
 struct HubGridScaffold<Content: View>: View {
@@ -19,10 +26,18 @@ struct HubGridScaffold<Content: View>: View {
 
     let title: String
     let accessibilityIdentifier: String
+    var fillsAvailableWidth = false
     @ViewBuilder let content: () -> Content
 
     var body: some View {
         GeometryReader { geometry in
+            let expandsCards = fillsAvailableWidth && geometry.size.width > 600
+            let availableWidth = max(0, geometry.size.width - 2 * TrinketDesign.Layout.contentMargin)
+            let cardWidth = expandsCards ? availableWidth : HubArtworkLayout.width(in: geometry.size)
+            let aspectRatio = expandsCards
+                ? max(HubArtworkLayout.aspectRatio, availableWidth / max(1, HubArtworkLayout.twoCardHeight(in: geometry.size)))
+                : HubArtworkLayout.aspectRatio
+
             ScrollView {
                 LazyVGrid(
                     columns: TrinketDesign.Layout.hubGridItems(for: horizontalSizeClass),
@@ -30,7 +45,8 @@ struct HubGridScaffold<Content: View>: View {
                 ) {
                     content()
                 }
-                .frame(maxWidth: HubArtworkLayout.width(in: geometry.size))
+                .environment(\.hubArtworkAspectRatio, aspectRatio)
+                .frame(maxWidth: cardWidth)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, TrinketDesign.Layout.contentMargin)
                 .padding(.top, TrinketDesign.Layout.compactContentTopPadding)
@@ -108,6 +124,8 @@ struct HubArtworkCard: View {
 }
 
 struct HubArtworkNavigationLink<Destination: Hashable>: View {
+    @Environment(\.hubArtworkAspectRatio) private var aspectRatio
+
     let destination: Destination
     let title: String
     let subtitle: String?
@@ -126,6 +144,7 @@ struct HubArtworkNavigationLink<Destination: Hashable>: View {
                 artID: artID,
                 fallbackArtID: fallbackArtID,
                 isLocked: isLocked,
+                aspectRatio: aspectRatio,
             )
         }
         .trinketArtworkCardButtonStyle()

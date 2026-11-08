@@ -24,7 +24,7 @@ private struct TrinketDetailSheetModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .trinketSheetSurface()
-            .presentationDetents([.large])
+            .presentationSizing(.page)
             .presentationContentInteraction(.scrolls)
             .presentationDragIndicator(dragIndicator)
             .interactiveDismissDisabled(!allowsInteractiveDismiss)
