@@ -2,11 +2,13 @@ import CoreGraphics
 
 /// The fixed initial footprint of one independently scheduled chip.
 struct CombatFeedbackPlacement {
+    static let rasterScaleMultiplier: CGFloat = 2
+
     let center: CGPoint
     let fitScale: CGFloat
 
     static func preferredScale(in bounds: CGRect) -> CGFloat {
-        max(1, min(bounds.width / 180, bounds.height / 240))
+        max(1, min(rasterScaleMultiplier, bounds.width / 180, bounds.height / 240))
     }
 
     static func resolve(size: CGSize, region: CombatFeedbackRegion, bounds: CGRect, bottomInset: CGFloat) -> Self? {

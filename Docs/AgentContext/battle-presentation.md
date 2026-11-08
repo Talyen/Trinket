@@ -189,11 +189,12 @@ and overflow into one number, including at full Health.
 
 ### Placement and motion
 
-Floating feedback scales continuously with its actual combatant viewport relative
-to a 180×240-point portrait, retaining the phone-sized base in smaller canvases.
+Floating feedback scales continuously up to 2× with its actual combatant viewport
+relative to a 180×240-point portrait, retaining the phone-sized base in smaller canvases.
 Impact, corner status and reaction-name fitting share this preferred scale and
-their existing peak-footprint bounds. Raster resolution grows with that scale so
-larger iPad feedback remains sharp. Resizing refits live feedback without changing
+their existing peak-footprint bounds. Prewarming and rendering share a stable
+2× display-resolution raster vocabulary so enlarged feedback remains sharp without
+rebuilding it at each window size. Resizing refits live feedback without changing
 its launch, timing or expiry; Reduce Motion uses the same adaptive sizing.
 
 Central chips use Balanced: an 85 ms pop to 1.85×, settle to 1.55× by 170 ms,

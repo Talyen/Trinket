@@ -13,17 +13,14 @@ struct CombatFeedbackRasterSlot: View {
     let bottomInset: CGFloat
 
     var body: some View {
-        GeometryReader { geometry in
-            let scale = CombatFeedbackPlacement.preferredScale(in: CGRect(origin: .zero, size: geometry.size))
-            CombatFeedbackRasterHost(
-                bridge: battleSession.feedback.chipBridge,
-                combatantID: combatantID,
-                layoutDirection: layoutDirection,
-                displayScale: displayScale * scale,
-                bottomInset: bottomInset,
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
+        CombatFeedbackRasterHost(
+            bridge: battleSession.feedback.chipBridge,
+            combatantID: combatantID,
+            layoutDirection: layoutDirection,
+            displayScale: displayScale * CombatFeedbackPlacement.rasterScaleMultiplier,
+            bottomInset: bottomInset,
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

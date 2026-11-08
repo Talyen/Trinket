@@ -9,7 +9,7 @@ public enum BattlePresentationWarmup {
             cutAngleDegrees: CombatantSliceGeometry.angleDegrees,
         )
         async let feedbackRasters: Void = CombatFeedbackRasterPool.shared.prewarmInfrastructureAndWait(
-            displayScale: displayScale,
+            displayScale: displayScale * CombatFeedbackPlacement.rasterScaleMultiplier,
         )
         _ = await (standardDissolve, slicedDissolve, feedbackRasters)
     }
