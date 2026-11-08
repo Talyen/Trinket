@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Nine iPhone screenshots approved; new battle captures await review; final ordering, iPad selection and signed-candidate device acceptance are pending; App Review remains on owner hold.
+reason: Final ten iPhone screenshots approved; ordering, iPad screenshots and signed-candidate device acceptance remain pending; App Review remains on owner hold.
 created: 2026-11-06
 updated: 2026-11-08
 expires: 2026-11-20
@@ -68,12 +68,19 @@ automated coverage starts at 26 for both platforms.
 - [x] Associate candidate build `1.0.0 (8)` with the draft store version. Readback
   confirms Prepare for Submission and manual release. The signed archive/export
   passed encryption, signature and Production entitlement checks with iCloud enabled.
-- [x] Retain 34 gallery candidates: nine approved iPhone images, sixteen new
-  battle moments, Kingbreaker and eight talent views awaiting owner review.
-  Rate all 156 capture attempts for
+- [x] Finalize the owner's ten iPhone screenshots, including Mud Elemental moment
+  `146`. Remove all remaining unapproved alternatives. Rate all 156 capture attempts for
   composition, readability, game clarity, artwork and variety. Remove older
-  unapproved images at the owner's request; preserve the nine approved originals,
+  unapproved images at the owner's request; preserve the ten approved originals,
   App Store-style carousel, current review package and audit metadata.
+- [x] Prepare ten iPhone upload assets. Remove fully opaque alpha channels from
+  `88`, `105` and `139`, preserving every decoded RGB pixel and the native dimensions.
+  Keep byte-identical originals separately. The selected 1179×2556 and 1206×2622
+  images match Apple's Dynamic Island medium-display category.
+  [Current screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/)
+- [ ] Set the final iPhone ordering and capture the iPad set. Apple's current
+  required iPad category is 13-inch; at least one native iPad screenshot is needed.
+  Recreate the approved compositions in the iPad layout and review the resulting set.
 - [ ] Upload only the owner's approved gallery selections. Keep the app and
   purchase out of App Review.
 - [x] Verify the requested iPad sizing before store capture. The 13-inch iPad Pro
@@ -123,23 +130,22 @@ number, and signed archive.
   `08` Ranger, `10` Rogue, `16` Wolf, `72` Blacksmith,
   `86` The Blood Countess detail, `88` Explore on Ryan's iPhone,
   `98` Living Armor moment 02, `105` Fox inspect,
-  and `139` Blackfletch Unique detail.
+  `139` Blackfletch Unique detail, and `146` Knight/Bear versus Mud Elemental moment 06.
   Remove Slime Battle (`01`), Bear (`17`), Crucible (`77`) and Ranger talent categories (`133`).
   Preserve byte-identical originals and selected copies in the release
   deliverables, with hashes in `selected-screenshots.json`. Final ordering and
-  the iPad set remain open. The approved review pool has nine iPhone images.
+  the iPad set remain open. The ten-image iPhone selection is complete.
 - [x] Replace the incorrect Wishing Well previews (`122`–`129`) with exactly two
   standard Collection Unique details: `139` Blackfletch and `140` Kingbreaker.
   Correct Collection's existing item launch route to resolve the Unique catalog.
   Verify both pages without a Wish action in the updated local Debug build.
-  Retain the Knight and Fox talent categories and six node views (`130`–`138`, excluding `133`).
-  These eight talent views remain pending. Native 1206×2622 images
-  have individual marketing ratings. Blackfletch (`139`) is approved;
-  Kingbreaker (`140`) remains pending alongside the eight other talent views.
+  Blackfletch (`139`) is in the final set. Kingbreaker (`140`) and all talent
+  alternatives were removed when the owner finalized the ten images. Preserve
+  their ratings and deletion records as historical evidence.
 - [x] Prune older unapproved gallery images and superseded review archives, as
   authorized by the owner. Rebuild the approved package and gallery around the
-  nine approved originals and 25 pending candidates. Preserve audit metadata for all
-  156 attempts, including the 122 removed images. Retain the separate
+  ten approved originals and no unapproved alternatives. Preserve audit metadata for all
+  156 attempts, including the 146 removed images. Retain the separate
   purchase review image, recordings, release artifacts and CI diagnostics.
 - [x] Preserve capture provenance. Most retained images use hosted Debug source
   `7f7a02022`, whose game and UI source match signed candidate `64b9053db`.
@@ -157,10 +163,10 @@ number, and signed archive.
   Mud Elemental frames (`141`–`148`) and eight Wizard/Library Owl versus
   Plague Doctor frames (`149`–`156`). Use Campaign Stage 1-3 and Serpent Hollow
   Floor 4, respectively, with native party selection and Auto Battle enabled.
-  Retain the native 1206×2622 recording frames, recordings, random sampling windows
-  and seeds, individual marketing ratings and review package. All sixteen await
-  owner review; preserve the nine existing approvals.
-- [ ] Complete the owner's gallery selections, then upload the approved images in
+  The owner selected `146`; remove the other fifteen marketing frames and the
+  obsolete batch package. Retain the recordings, sampling windows and seeds,
+  individual ratings, and the selected native frame in the final package.
+- [ ] Upload the final approved gallery in
   the required device slots. The separate Full Game review image is uploaded.
   Xcode's interaction tool currently lists only simulators, so physical interaction
   and purchase acceptance remain unverified.
