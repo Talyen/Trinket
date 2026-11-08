@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Nine iPhone screenshots approved; more battle captures, final ordering, iPad selection and signed-candidate device acceptance are pending; App Review remains on owner hold.
+reason: Nine iPhone screenshots approved; new battle captures await review; final ordering, iPad selection and signed-candidate device acceptance are pending; App Review remains on owner hold.
 created: 2026-11-06
 updated: 2026-11-08
 expires: 2026-11-20
@@ -68,8 +68,9 @@ automated coverage starts at 26 for both platforms.
 - [x] Associate candidate build `1.0.0 (8)` with the draft store version. Readback
   confirms Prepare for Submission and manual release. The signed archive/export
   passed encryption, signature and Production entitlement checks with iCloud enabled.
-- [x] Retain 18 gallery candidates: nine approved iPhone images, Kingbreaker and
-  eight talent views awaiting owner review. Rate all 140 capture attempts for
+- [x] Retain 34 gallery candidates: nine approved iPhone images, sixteen new
+  battle moments, Kingbreaker and eight talent views awaiting owner review.
+  Rate all 156 capture attempts for
   composition, readability, game clarity, artwork and variety. Remove older
   unapproved images at the owner's request; preserve the nine approved originals,
   App Store-style carousel, current review package and audit metadata.
@@ -137,8 +138,8 @@ number, and signed archive.
   Kingbreaker (`140`) remains pending alongside the eight other talent views.
 - [x] Prune older unapproved gallery images and superseded review archives, as
   authorized by the owner. Rebuild the approved package and gallery around the
-  nine approved originals and nine pending candidates. Preserve audit metadata for all
-  140 attempts, including the 122 removed images. Retain the separate
+  nine approved originals and 25 pending candidates. Preserve audit metadata for all
+  156 attempts, including the 122 removed images. Retain the separate
   purchase review image, recordings, release artifacts and CI diagnostics.
 - [x] Preserve capture provenance. Most retained images use hosted Debug source
   `7f7a02022`, whose game and UI source match signed candidate `64b9053db`.
@@ -148,10 +149,17 @@ number, and signed archive.
   remain open. The two corrected Unique captures use a local build from `7007e47e6`
   plus the Collection launch-route fix; their source patch and build metadata are
   retained separately. This route correction is not in signed candidate build 8.
+  The new battle frames use local source `b83553691`, whose app source matches
+  `586eb15f5`: hosted app compilation, all seven package shards and six Smoke cases
+  passed. Keep that source identity separate from the signed candidate.
   The carousel preserves native aspect ratios without image padding.
-- [ ] Choose enemies for the next battle captures. Recommended options include
-  The Seraph, Fire Elemental and Mimic for visual variety; The Frostwarden and
-  Banshee are alternatives. Capture new battle moments after enemy selection.
+- [x] Capture sixteen mid-battle autoplay moments: eight Knight/Bear versus
+  Mud Elemental frames (`141`–`148`) and eight Wizard/Library Owl versus
+  Plague Doctor frames (`149`–`156`). Use Campaign Stage 1-3 and Serpent Hollow
+  Floor 4, respectively, with native party selection and Auto Battle enabled.
+  Retain the native 1206×2622 recording frames, recordings, random sampling windows
+  and seeds, individual marketing ratings and review package. All sixteen await
+  owner review; preserve the nine existing approvals.
 - [ ] Complete the owner's gallery selections, then upload the approved images in
   the required device slots. The separate Full Game review image is uploaded.
   Xcode's interaction tool currently lists only simulators, so physical interaction
