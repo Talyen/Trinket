@@ -3,7 +3,7 @@ type: execution-plan
 status: blocked
 reason: Seven iPhone screenshots approved; remaining gallery selection and signed-candidate device acceptance are pending; App Review remains on owner hold.
 created: 2026-11-06
-updated: 2026-11-07
+updated: 2026-11-08
 expires: 2026-11-20
 ---
 
@@ -68,7 +68,7 @@ automated coverage starts at 26 for both platforms.
 - [x] Associate candidate build `1.0.0 (8)` with the draft store version. Readback
   confirms Prepare for Submission and manual release. The signed archive/export
   passed encryption, signature and Production entitlement checks with iCloud enabled.
-- [x] Prepare 61 native gallery candidates for owner review. Rate every original
+- [x] Prepare 78 gallery candidates for owner review. Rate every original
   for composition, readability, game clarity, artwork and variety; replace the
   lowest 20 with new captures. Retain the App Store-style carousel, individual
   ratings, full-resolution originals and manifest. Add Homestead nodes and
@@ -119,9 +119,9 @@ number, and signed archive.
 
 ## 4. Prepare the handoff; hold submission
 
-- [x] Prepare 61 numbered native portrait candidates across iPhone and iPad, covering
+- [x] Prepare 78 numbered portrait candidates across iPhone and iPad, covering
   combat, the Merchant, Play, Labyrinth, Collection, Homestead, character details,
-  Mystery choices and equipment traits. The expanded pool has 46 phone and 15 tablet
+  Mystery choices and equipment traits. The expanded pool has 63 phone and 15 tablet
   alternatives. All 40 originals, 24 replacement attempts and 23 requested feature
   captures have individual marketing ratings; four new tablet item sheets were
   rejected before retaining
@@ -135,6 +135,16 @@ number, and signed archive.
   The review gallery and manifest are retained with the AppStoreLaunch-Nov7 release
   deliverables. Capture source `7f7a02022` has the same game and UI source as
   candidate `64b9053db`; these are simulator captures from the hosted Debug product.
+- [x] Capture the November 8 additions: eight random autoplay battle moments each
+  against The Blight Treant (`89`–`96`) and Living Armor (`97`–`104`), plus the
+  owner's current Explore screen on their physical iPhone 14 Pro (`88`). Native
+  `devicectl` capture produced the unchanged 1179×2556 phone image; installed
+  TestFlight version `1.0.0 (8)` was verified. The battle images are unchanged
+  1206×2622 native simulator video frames. All 104 capture attempts are rated;
+  retain all 16 requested random battle moments, including weaker transitions,
+  for owner review. Recordings, sampling seeds and timestamps are retained in
+  the AppStoreLaunch-Nov8 deliverables. The phone capture establishes the visible
+  Explore layout; signed-candidate gameplay and purchase acceptance remain open.
 - [x] Retain the initial owner-approved iPhone selection from November 7:
   `01` Battle, `08` Ranger, `10` Rogue, `16` Wolf, `17` Bear,
   `72` Blacksmith, and `86` The Blood Countess detail. The selected originals and
