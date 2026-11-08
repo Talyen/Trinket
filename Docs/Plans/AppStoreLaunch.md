@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Final ten iPhone screenshots approved; ordering, iPad screenshots and signed-candidate device acceptance remain pending; App Review remains on owner hold.
+reason: Final ten iPhone screenshots approved; 24 portrait iPad candidates await owner selection; ordering and signed-candidate device acceptance remain pending; App Review remains on owner hold.
 created: 2026-11-06
 updated: 2026-11-08
 expires: 2026-11-20
@@ -144,8 +144,8 @@ number, and signed archive.
   their ratings and deletion records as historical evidence.
 - [x] Prune older unapproved gallery images and superseded review archives, as
   authorized by the owner. Rebuild the approved package and gallery around the
-  ten approved originals and no unapproved alternatives. Preserve audit metadata for all
-  156 attempts, including the 146 removed images. Retain the separate
+  ten approved originals and no older unapproved alternatives. Preserve audit metadata for all
+  156 earlier attempts, including the 146 removed images. Retain the separate
   purchase review image, recordings, release artifacts and CI diagnostics.
 - [x] Preserve capture provenance. Most retained images use hosted Debug source
   `7f7a02022`, whose game and UI source match signed candidate `64b9053db`.
@@ -166,8 +166,26 @@ number, and signed archive.
   The owner selected `146`; remove the other fifteen marketing frames and the
   obsolete batch package. Retain the recordings, sampling windows and seeds,
   individual ratings, and the selected native frame in the final package.
+- [x] Recreate the same ten scenes on iPad in portrait, as chosen by the owner.
+  Retain 24 native 2064×2752 candidates (`157`–`180`): eight static counterparts,
+  eight Ranger/Wolf versus Living Armor autoplay variants, and eight Knight/Bear
+  versus Mud Elemental autoplay variants. Individually inspect and rate every
+  image; preserve random sampling windows, seeds and native recordings.
+  The 13-inch iPad Pro simulator runs iPadOS 27.0 with local Debug source
+  `f0a40f9c1`, whose app source matches hosted-verified `586eb15f5`.
+  Preserve the actual centered inspector sheets and card animations. The ten
+  approved iPhone originals remain byte-identical. There are now 180 historical
+  ratings, 34 retained images, and 146 historical deletions.
+- [ ] Have the owner approve the eight static iPad counterparts and choose one
+  Living Armor variant (`165`–`172`) and one Mud Elemental variant (`173`–`180`).
+  Finalize the ten-image order for each device family.
 - [ ] Upload the final approved gallery in
-  the required device slots. The separate Full Game review image is uploaded.
+  the required device slots. Use the native portrait 2064×2752 iPad originals in
+  Apple's required 13-inch set and let smaller iPad display sets inherit Apple's
+  automatic scaling. Preserve aspect ratios and full pixels; do not stretch,
+  crop, pad or create unnecessary resized alternatives. Check the inherited
+  previews in App Store Connect after upload; this scaling strategy is prepared,
+  not yet configured in the portal. The separate Full Game review image is uploaded.
   Xcode's interaction tool currently lists only simulators, so physical interaction
   and purchase acceptance remain unverified.
   [Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/)
