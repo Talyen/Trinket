@@ -1,6 +1,7 @@
 ---
 type: execution-plan
-status: active
+status: blocked
+reason: Mac unlock is pending for gallery capture and physical-device acceptance; App Review remains on owner hold.
 created: 2026-11-06
 updated: 2026-11-07
 expires: 2026-11-20
@@ -20,59 +21,33 @@ Use the existing iCloud test results and deliberate test saves for candidate che
 A second physical device is not a release gate. The existing storefront
 territories guide candidate preparation.
 
-## 1. Close the verification failures
+## 1. Maintain the verified launch scope
 
 The owner approved adapting the entire CI suite to the runner's available
 toolchains, runtimes and working capabilities on November 7, including reduced
 coverage. Prefer installed compatible environments over exact pins or mandatory
 downloads. Record unavailable coverage explicitly; compiler errors, game assertions
-and save/purchase defects still need fixes. A green CI run must identify its
-executed scope rather than imply every device and OS was tested.
+and save/purchase defects remain failures. Never reuse unavailable scope as
+passing test evidence. App Store compatibility remains at iOS and iPadOS 18.0;
+automated coverage starts at 26 for both platforms.
 
-- [x] Correct the boot guard: `4294967295 / Finished` is normal completion;
-  command completion and the actual XCTest launch own readiness.
-- [x] Let ordinary CI use installed Xcode and iOS/iPadOS 26+ runtimes, with
-  compatible device choices and bounded fallback. Keep explicit diagnostic
-  selectors exact, and preserve App Store compatibility at 18.0.
-- [x] Remove mandatory runtime downloads, duplicate parity qualification and
-  unsupported device/automation requirements from ordinary CI. Keep useful
-  diagnostics available on demand.
-- [x] Distinguish unavailable runner capabilities from product failures in
-  workflow results and retained coverage reports. Never reuse unavailable
-  coverage as passing test evidence.
-- [x] Update candidate verification to consume the actual adaptable hosted
-  scope and identify every executed selector and explicit capability gap.
-- [ ] Complete hosted CI and player coverage, including the reward-return
-  command-budget, nested runtime-inventory and disposable-runner preparation
-  repairs, and retain the source identity of each result. Use reward-only and
-  native-settings-only reruns for focused infrastructure fixes.
-
-The November 7 candidate includes the reviewed iPad layout and CI reliability
-repairs. Qualify the resulting revision; earlier green runs do not establish
-current-source launch coverage. Close the remaining failures below before
-qualifying the public candidate.
-
-| Failure | Current repair and required evidence |
-|---|---|
-| Script gate and simulator preparation | Corrected the boot completion check and isolated script fixtures. Use installed compatible environments, Apple's command exit status, one owned boot attempt, and explicit capability receipts. Require fresh hosted verification of the adaptive workflow. |
-| Hosted process inventory | Disposable GitHub VMs use job disposal instead of shared-Mac orphan tracking. Local and self-hosted ownership checks remain active. A proven pre-test process-inventory timeout records unavailable scope; it is not passing package evidence. |
-| Full Game purchase, refund and repurchase | Purchase tests require actual ownership and visible offer dismissal. Keep purchase, approval, restore and refund cases. Record the known denial-service case as unavailable outside its qualified runtime; retain it for diagnostics and live sandbox acceptance. |
-| Reward return and native profiles | Prefer compact iOS 26 and iPadOS 27 environments, substitute compatible installed models/versions, and report any missing requested coverage. Missing runtimes do not block the whole portfolio. Separate the five-minute reward method limit from its ten-minute Xcode startup/execution/finalization budget. When native controls are unavailable, limit the uncontrolled fallback to battle, navigation and merchant checks; retain purchase automation in standard Smoke and release verification. |
-| Duo rotation | Manual Device Hub rotation and card play passed. Keep the automated resize assertion available on demand, but omit unsupported Duo automation from default CI. No new toolchain claim follows from a probe that stopped before tests. |
-| FullUI capacity | Remove redundant app termination after each test; each launch replaces the existing app. Capture English and one rotating localization configuration per ordinary run, retain deferred selectors, and keep the complete localization matrix available on demand. |
-
-Keep App Store compatibility at iOS and iPadOS 18.0. Automated launch coverage
-starts at 26 for both platforms.
-
-- [ ] Run the exact failed journeys in the launch matrix first. Preserve their
-  assertions and resolve confirmed game, test, and runner causes in their owning code.
-- [ ] Prepare the formal version and release artifacts through
-  [Release](../Platform/Release.md#produce-release-artifacts). On the resulting
-  commit, collect green push CI, the unsigned device Release compile, and
-  available FullUI and player coverage. Native parity is an optional diagnostic. Use
-  [Hosted CI and player acceptance](CIHostedVerification.md) for the detailed
-  profile and localization work under this adaptive policy. Record executed scope, gaps, Xcode build,
-  runtime, and exact commit for each gate.
+- [x] Land and verify the iPad layout and CI repairs. Final hosted CI completed
+  all seven package shards and six Smoke cases. The candidate also has an unsigned
+  device Release compile, critical release proof and a FullUI assessment with
+  23 passing cases. Retain exact source identities for these different runs.
+- [x] Complete phone and tablet reward-return journeys and native-settings
+  assessments. Each reward journey passed; each uncontrolled settings fallback
+  passed five gameplay/navigation/merchant cases. Native text-size, Reduce Motion
+  and native audits remain explicitly uncovered on the assessed runners.
+- [x] Record installed runtime/model substitutions, English plus one rotating
+  FullUI localization, deferred configurations and the known StoreKit denial-service
+  gap. Keep complete localization and Duo rotation diagnostics available on demand.
+  Live sandbox denial/retry and rendered language acceptance remain in sections 3–4.
+- [x] Produce the signed candidate through [Release](../Platform/Release.md#produce-release-artifacts).
+  The retained handoff identifies the candidate, executed scope, gaps, Xcode build,
+  runtime and commit for each gate. Later CI-only repairs leave the candidate's
+  game source unchanged. [CI policy](../Platform/VerificationInternals.md)
+  · [Player coverage](../Platform/PlayerCoverage.md#ci-and-profiles)
 
 ## 2. Confirm App Store Connect prerequisites in parallel
 
@@ -99,14 +74,14 @@ starts at 26 for both platforms.
   the bottom edge, and combatants clear of the fan. Seven focused layout tests
   passed, including existing phone and Duo checks. Playing all three cards dealt
   the next hand with normal turn timing. The screenshot launch's sixty-second
-  turn delay is intentional; it is not the shipping default. Refresh hosted
-  qualification after landing these layout changes.
+  turn delay is intentional; it is not the shipping default. Hosted qualification
+  passed after the layout changes landed.
 
 ## 3. Qualify the signed candidate on devices
 
 Cloud-enabled TestFlight `1.0.0 (8)` from `64b9053db` is processed and assigned
-to Personal Testing with Apple-confirmed symbols. The connected iPhone currently has `0.1.0 (6)` installed;
-preserve its existing save as the upgrade source. Identify the new candidate by
+to Personal Testing with Apple-confirmed symbols. The connected iPhone last had
+`0.1.0 (6)` installed. Preserve its existing save as the upgrade source. Identify the new candidate by
 source commit, marketing version, build number, and signed archive.
 
 - [x] Use the [TestFlight workflow](../Platform/Release.md#local-testflight-deployment)
@@ -114,9 +89,9 @@ source commit, marketing version, build number, and signed archive.
   FullUI release gate. Use a shipping Xcode and SDK that satisfy
   [Apple's upload requirements](https://developer.apple.com/news/upcoming-requirements/).
   Verify the exported Production entitlements and cloud setting. Confirm Apple
-  processing and internal availability, and retain the receipt, archive, and matching dSYMs.
-- [ ] Install the candidate and upgrade a populated beta save in place. Verify Campaign progress, party,
-  equipment, Homestead, offline play, relaunch, and recovery after interrupting a
+  processing and internal availability, and retain the receipt, archive and matching dSYMs.
+- [ ] Install the candidate and upgrade a populated beta save in place. Verify
+  Campaign progress, party, equipment, Homestead, offline play, relaunch and recovery after interrupting a
   battle or terminating after a reward claim. Review matching TestFlight feedback,
   crash reports, and physical-device artwork, frame, memory, and thermal evidence.
   Use [player coverage](../Platform/PlayerCoverage.md) for the device scope.
@@ -134,10 +109,13 @@ source commit, marketing version, build number, and signed archive.
 
 ## 4. Prepare the handoff; hold submission
 
-- [ ] Capture representative portrait gameplay from the signed candidate. Start
-  with battle, Campaign, and a progression screen on iPhone and iPad. Add the
-  separate Full Game offer screenshot for review. Check localized text and upload
-  the assets in the required device slots. [Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/)
+- [ ] Capture representative native portrait gameplay from the candidate's game
+  revision. Start with battle, Campaign and a progression screen on iPhone and
+  iPad. The separate Full Game review image is uploaded. Review the captured
+  languages and upload gallery assets in the required device slots; retained CI
+  images alone do not establish rendered acceptance. Record simulator and physical
+  captures separately. Mac unlock is pending for this work and device interaction.
+  [Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/)
 - [ ] Review one candidate handoff with the owner. Record the commit and Apple
   build ID, linked CI runs, device and OS results, reused evidence, screenshots,
   and portal status. Hold submission for missing required coverage, unresolved
