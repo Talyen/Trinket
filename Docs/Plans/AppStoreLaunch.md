@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Final ten iPhone screenshots approved; 24 refreshed iPad candidates await owner selection; ordering and signed-candidate device acceptance remain pending; App Review remains on owner hold.
+reason: Ten iPhone and ten iPad screenshots approved; final ordering and signed-candidate device acceptance remain pending; App Review remains on owner hold.
 created: 2026-11-06
 updated: 2026-11-08
 expires: 2026-11-20
@@ -78,9 +78,10 @@ automated coverage starts at 26 for both platforms.
   Keep byte-identical originals separately. The selected 1179×2556 and 1206×2622
   images match Apple's Dynamic Island medium-display category.
   [Current screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/)
-- [ ] Set the final iPhone ordering and capture the iPad set. Apple's current
-  required iPad category is 13-inch; at least one native iPad screenshot is needed.
-  Recreate the approved compositions in the iPad layout and review the resulting set.
+- [x] Capture and obtain owner approval for ten native portrait iPad counterparts.
+  Prepare the 2064×2752 originals for Apple's required 13-inch display category.
+- [ ] Finalize screenshot ordering for both device families. Preserve the owner's
+  supplied selection order until a final App Store order is approved.
 - [ ] Upload only the owner's approved gallery selections. Keep the app and
   purchase out of App Review.
 - [x] Verify the requested iPad sizing before store capture. The 13-inch iPad Pro
@@ -175,12 +176,18 @@ number, and signed archive.
   `71b00f851`. Hosted run `42527753265` passed app compilation, all seven package
   groups and Smoke, with successful executed-coverage markers. Preserve native
   page inspections and card animations. The ten approved iPhone originals remain
-  byte-identical. There are now 204 historical ratings, 34 current gallery
-  candidates, 24 superseded iPad originals retained for comparison, and 146
-  historical deletions.
-- [ ] Have the owner approve static iPad counterparts `181`–`188`, choose one
-  Living Armor variant from `189`–`196` and one Mud Elemental variant from
-  `197`–`204`. Finalize the ten-image order for each device family.
+  byte-identical. There are now 204 historical ratings, 20 approved current gallery
+  images, 38 inactive iPad originals retained as evidence, and 146 historical
+  deletions.
+- [x] Record the owner's approval of static iPad counterparts `181`, `182`, `183`,
+  `187`, `188`, `184`, `186`, `185`, Living Armor variant `191` and Mud Elemental
+  variant `197`. Preserve this supplied selection order; final store ordering
+  remains open. Each device family now has ten approved images.
+- [x] Prepare the ten approved iPad upload assets. Remove fully opaque alpha
+  channels from the eight static PNG copies, preserving every decoded RGB pixel
+  and native 2064×2752 dimensions. Keep both battle PNGs and all selected originals
+  byte-identical. Rebuild the twenty-image approved-original package and separate
+  upload packages; remove unselected battle variants from the active gallery.
 - [x] Correct the iPad layout issues exposed during screenshot review. Replace
   fixed inspection detents with native `.page` sizing; the 13-inch simulator now
   presents a 928×1312-point detail page instead of a 580×660-point form.
