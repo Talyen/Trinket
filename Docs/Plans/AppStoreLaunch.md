@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Gallery approval and signed-candidate device acceptance remain pending; App Review remains on owner hold.
+reason: Seven iPhone screenshots approved; remaining gallery selection and signed-candidate device acceptance are pending; App Review remains on owner hold.
 created: 2026-11-06
 updated: 2026-11-07
 expires: 2026-11-20
@@ -135,7 +135,13 @@ number, and signed archive.
   The review gallery and manifest are retained with the AppStoreLaunch-Nov7 release
   deliverables. Capture source `7f7a02022` has the same game and UI source as
   candidate `64b9053db`; these are simulator captures from the hosted Debug product.
-- [ ] Obtain the owner's gallery selections, then upload the approved images in
+- [x] Retain the initial owner-approved iPhone selection from November 7:
+  `01` Battle, `08` Ranger, `10` Rogue, `16` Wolf, `17` Bear,
+  `72` Blacksmith, and `86` The Blood Countess detail. The selected originals and
+  hashes are preserved in `selected-screenshots.json` and `selected-iphone/`
+  within the release deliverables. Keep these seven selected when capture and
+  review resume November 8; final ordering and the iPad selection remain open.
+- [ ] Complete the owner's gallery selections, then upload the approved images in
   the required device slots. The separate Full Game review image is uploaded.
   Xcode's interaction tool currently lists only simulators, so physical interaction
   and purchase acceptance remain unverified.
