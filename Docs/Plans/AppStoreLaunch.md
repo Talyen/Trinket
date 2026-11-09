@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Both screenshot sets and their order are approved. The updated signed candidate, device acceptance, and gallery upload remain pending. App Review remains on owner hold.
+reason: Signed build 9 is available in TestFlight and selected in the App Store draft with both galleries processed. Physical-device acceptance and inherited preview inspection remain pending. App Review remains on owner hold.
 created: 2026-11-06
 updated: 2026-11-08
 expires: 2026-11-20
@@ -31,10 +31,11 @@ and save/purchase defects remain failures. Never reuse unavailable scope as
 passing test evidence. App Store compatibility remains at iOS and iPadOS 18.0;
 automated coverage starts at 26 for both platforms.
 
-- [x] Land and verify the iPad layout and CI repairs. Final hosted CI completed
-  all seven package shards and six Smoke cases. The candidate also has an unsigned
-  device Release compile, critical release proof and a FullUI assessment with
-  23 passing cases. Retain exact source identities for these different runs.
+- [x] Land and verify the iPad layout and CI repairs. Build 9 source `89c876218`
+  passed all seven package groups, Smoke, unsigned device Release compilation,
+  and the selected FullUI scope in hosted run `42544727912`. Critical journey
+  assessment `42544727773` passed on the same revision. FullUI captured English
+  and French; retain its other localization and StoreKit denial gaps explicitly.
 - [x] Complete phone and tablet reward-return journeys and native-settings
   assessments. Each reward journey passed; each uncontrolled settings fallback
   passed five gameplay/navigation/merchant cases. Native text-size, Reduce Motion
@@ -65,7 +66,7 @@ automated coverage starts at 26 for both platforms.
 - [x] Upload the Full Game review image. Apple processed the native English
   offer capture with a matching checksum and the purchase is Ready to Submit.
   The purchase remains unsubmitted.
-- [x] Associate candidate build `1.0.0 (8)` with the draft store version. Readback
+- [x] Associate candidate build `1.0.0 (9)` with the draft store version. Readback
   confirms Prepare for Submission and manual release. The signed archive/export
   passed encryption, signature and Production entitlement checks with iCloud enabled.
 - [x] Finalize the owner's ten iPhone screenshots, including Mud Elemental moment
@@ -84,8 +85,9 @@ automated coverage starts at 26 for both platforms.
   filenames in the upload packages.
   - iPhone: `146`, `105`, `08`, `88`, `86`, `98`, `72`, `139`, `10`, `16`.
   - iPad: `191`, `187`, `181`, `186`, `185`, `197`, `184`, `188`, `182`, `183`.
-- [ ] Upload only the owner's approved gallery selections. Keep the app and
-  purchase out of App Review.
+- [x] Upload the owner's two ordered galleries to the primary English draft.
+  App Store Connect processed all twenty assets in the approved order with
+  matching checksums and native dimensions. App Review remains on hold.
 - [x] Verify the requested iPad sizing before store capture. The 13-inch iPad Pro
   simulator on iPadOS 27.0 showed the larger hand, the center card barely clipping
   the bottom edge, and combatants clear of the fan. Seven focused layout tests
@@ -96,12 +98,11 @@ automated coverage starts at 26 for both platforms.
 
 ## 3. Qualify the signed candidate on devices
 
-Cloud-enabled TestFlight `1.0.0 (8)` from `64b9053db` is processed and assigned
-to Personal Testing with Apple-confirmed symbols. The connected iPhone now has
-`1.0.0 (8)` installed. The owner waived preservation of their personal beta save;
-it is not an acceptance prerequisite. Use deliberate test saves for remaining
-save checks. Identify the candidate by source commit, marketing version, build
-number, and signed archive.
+Cloud-enabled TestFlight `1.0.0 (9)` from `89c876218` is available in Personal
+Testing with Apple-confirmed symbols. App Store Connect identifies it as
+`24b7d195-eeaf-450b-90f9-dcab20e59ced`; the signed export and Apple readback
+both report minimum OS 18.0. Use deliberate test saves for acceptance. The owner
+waived preservation of their personal beta save.
 
 - [x] Use the [TestFlight workflow](../Platform/Release.md#local-testflight-deployment)
   for the exact candidate, with qualified hosted journey proof and the documented
@@ -109,7 +110,10 @@ number, and signed archive.
   [Apple's upload requirements](https://developer.apple.com/news/upcoming-requirements/).
   Verify the exported Production entitlements and cloud setting. Confirm Apple
   processing and internal availability, and retain the receipt, archive and matching dSYMs.
-- [x] Confirm installation of candidate `1.0.0 (8)` on the connected iPhone.
+- [ ] Install candidate `1.0.0 (9)` on the connected iPhone and confirm the build
+  through CoreDevice. The previous build 8 was observed on the iPhone 14 Pro.
+  Xcode's interaction tool exposes only simulators, so physical play and purchase
+  interactions need owner observation.
 - [ ] With deliberate test data, verify
   Campaign progress, party, equipment, Homestead, offline play, relaunch and recovery after interrupting a
   battle or terminating after a reward claim. Review matching TestFlight feedback,
@@ -203,18 +207,14 @@ number, and signed archive.
   Review every image and retain individual ratings, native recordings and random
   sampling provenance. The earlier `157`–`180` batch remains comparison evidence
   and must not be treated as captures of the corrected UI.
-- [ ] Include the Collection route and iPad layout corrections in the signed
-  release candidate before final device and purchase acceptance. Existing signed
-  build 8 predates these source changes.
-- [ ] Upload the final approved gallery in
-  the required device slots. Use the native portrait 2064×2752 iPad originals in
-  Apple's required 13-inch set and let smaller iPad display sets inherit Apple's
-  automatic scaling. Preserve aspect ratios and full pixels; do not stretch,
-  crop, pad or create unnecessary resized alternatives. Check the inherited
-  previews in App Store Connect after upload; this scaling strategy is prepared,
-  not yet configured in the portal. The separate Full Game review image is uploaded.
-  Xcode's interaction tool currently lists only simulators, so physical interaction
-  and purchase acceptance remain unverified.
+- [x] Include the Collection route and iPad layout corrections in signed build 9.
+- [x] Verify the two uploaded display sets through App Store Connect readback.
+  The iPad gallery uses native 2064×2752 portrait assets in the 13-inch set.
+  Apple generated smaller renditions of both lead screenshots at their native
+  aspect ratios. Other localizations have no uploaded screenshot overrides.
+- [ ] Inspect the inherited display previews in App Store Connect Media Manager.
+  The API readback verifies the uploaded assets and sample renditions. The
+  signed-in preview's effective inheritance still needs visual confirmation.
   [Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/)
 - [ ] Review one candidate handoff with the owner. Record the commit and Apple
   build ID, linked CI runs, device and OS results, reused evidence, screenshots,
