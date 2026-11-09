@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Signed build 9 is selected in the App Store draft with both galleries processed. Physical battle return and reward recovery passed over Wi-Fi. Offline play, live purchase and restore, and inherited previews remain open. App Review remains on owner hold.
+reason: Build 9 is selected for manual release. Device gameplay and inherited screenshot previews were checked. Reuse the owner's prior purchase and restore checks. Final owner review and submission authorization remain open.
 created: 2026-11-06
 updated: 2026-11-08
 expires: 2026-11-20
@@ -117,12 +117,19 @@ waived preservation of their personal beta save.
 - [x] Resume Campaign Stage 1-6 after returning from the Home Screen. Claim the
   victory, then terminate and reopen the app. Gold went from 8 to 14 and stayed
   at 14 after relaunch. Campaign stayed on the newly unlocked Stage 1-7.
-- [ ] Verify offline play and battle interruption on the device. The iPhone's
-  only connection to the Mac is Wi-Fi, which was active for the completed run.
-- [ ] With deliberate test data, verify party, equipment and Homestead.
-  Review matching TestFlight feedback, crash reports, and physical-device
-  artwork, frame, memory, and thermal evidence. Use
-  [player coverage](../Platform/PlayerCoverage.md) for the device scope.
+- [x] The owner verified offline battle return on the installed build. With
+  Airplane Mode on and Wi-Fi off, they returned from the Home Screen and played
+  a card. XCTest separately verified battle return and reward persistence over
+  Wi-Fi.
+- [x] On the signed build, switch the active Campaign hero from Ranger to Knight
+  and back. Equip and unequip a weapon through Ranger's loadout. Open the
+  Homestead wallet, Farming, Wheat Field, and its upgrade cost sheet.
+- [x] Review available build 9 TestFlight evidence. App Store Connect returned
+  zero screenshot feedback entries, crash feedback entries, and diagnostic
+  signatures. The performance endpoint returned no metric categories. Device
+  screenshots show artwork in the tested flows. Frame timing, memory and
+  thermal measurements remain unavailable for this signed-device run.
+  [Player coverage](../Platform/PlayerCoverage.md)
 - [x] Reuse the existing iCloud test results, confirmed by the owner on November 7.
   Source review found no sync, schema or merge behavior changes since build 66.
   Keep Development and Production observations identifiable in the handoff;
@@ -130,12 +137,13 @@ waived preservation of their personal beta save.
   [CloudKit release checks](../Platform/CloudKitPreShipChecklist.md)
 - [x] Verify that the existing **Full Game** entitlement remains unlocked after
   cold relaunch of the signed candidate. The iPhone already had Full Game access.
-- [ ] Use an unowned sandbox state on the signed candidate to load the real
-  offer in **Options → Unlock Full Game**, purchase, relaunch, and restore.
-  Confirm that the offer works from free play, access survives a progress reset,
-  and restore works independently of iCloud. Verify eligible Family Sharing,
-  pending approval and denial/retry, and refund or revocation using the
-  applicable live sandbox paths.
+- [x] Reuse the prior Full Game purchase and restore checks confirmed by the
+  owner. StoreKit transaction and entitlement code has not changed since
+  `c25602f09`, and build 9 passed hosted purchase smoke. The build 9 device run
+  exercised existing ownership.
+- [ ] Review the coverage limits in the candidate handoff. Build 9 lacks fresh
+  live transaction evidence for Family Sharing, pending approval and denial,
+  refunds or revocation, and ownership across a progress reset.
   [StoreKit release checks](../Platform/Purchases.md#before-release)
 
 ## 4. Prepare the handoff; hold submission
@@ -219,9 +227,10 @@ waived preservation of their personal beta save.
   The iPad gallery uses native 2064×2752 portrait assets in the 13-inch set.
   Apple generated smaller renditions of both lead screenshots at their native
   aspect ratios. Other localizations have no uploaded screenshot overrides.
-- [ ] Inspect the inherited display previews in App Store Connect Media Manager.
-  The API readback verifies the uploaded assets and sample renditions. The
-  signed-in preview's effective inheritance still needs visual confirmation.
+- [x] Inspect the signed-in Media Manager previews. The medium Face ID and
+  Home Button iPhone groups use the existing approved iPhone assets. The
+  11-inch iPad group uses the approved 13-inch iPad assets. Retain the rendered
+  previews and App Store Connect readback with the candidate handoff.
   [Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/)
 - [ ] Review one candidate handoff with the owner. Record the commit and Apple
   build ID, linked CI runs, device and OS results, reused evidence, screenshots,
