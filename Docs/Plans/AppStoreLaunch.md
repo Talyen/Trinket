@@ -110,10 +110,11 @@ waived preservation of their personal beta save.
   [Apple's upload requirements](https://developer.apple.com/news/upcoming-requirements/).
   Verify the exported Production entitlements and cloud setting. Confirm Apple
   processing and internal availability, and retain the receipt, archive and matching dSYMs.
-- [ ] Install candidate `1.0.0 (9)` on the connected iPhone and confirm the build
-  through CoreDevice. The previous build 8 was observed on the iPhone 14 Pro.
-  Xcode's interaction tool exposes only simulators, so physical play and purchase
-  interactions need owner observation.
+- [x] Confirm candidate `1.0.0 (9)` through CoreDevice on the connected iPhone
+  14 Pro running iOS 27.2. The installed app is the owner's TestFlight update.
+- [ ] Complete iPhone UI Automation authentication. The separate XCTest runner
+  reached the on-device passcode prompt before any app test executed. Connect the
+  iPhone via USB before switching off its network connections for offline testing.
 - [ ] With deliberate test data, verify
   Campaign progress, party, equipment, Homestead, offline play, relaunch and recovery after interrupting a
   battle or terminating after a reward claim. Review matching TestFlight feedback,
