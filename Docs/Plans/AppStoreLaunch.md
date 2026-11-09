@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Ten iPhone and ten iPad screenshots approved; final ordering and signed-candidate device acceptance remain pending; App Review remains on owner hold.
+reason: Both screenshot sets and their order are approved. The updated signed candidate, device acceptance, and gallery upload remain pending. App Review remains on owner hold.
 created: 2026-11-06
 updated: 2026-11-08
 expires: 2026-11-20
@@ -80,8 +80,10 @@ automated coverage starts at 26 for both platforms.
   [Current screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/)
 - [x] Capture and obtain owner approval for ten native portrait iPad counterparts.
   Prepare the 2064×2752 originals for Apple's required 13-inch display category.
-- [ ] Finalize screenshot ordering for both device families. Preserve the owner's
-  supplied selection order until a final App Store order is approved.
+- [x] Record the owner's final order for each device family and use numbered
+  filenames in the upload packages.
+  - iPhone: `146`, `105`, `08`, `88`, `86`, `98`, `72`, `139`, `10`, `16`.
+  - iPad: `191`, `187`, `181`, `186`, `185`, `197`, `184`, `188`, `182`, `183`.
 - [ ] Upload only the owner's approved gallery selections. Keep the app and
   purchase out of App Review.
 - [x] Verify the requested iPad sizing before store capture. The 13-inch iPad Pro
@@ -134,8 +136,7 @@ number, and signed archive.
   `139` Blackfletch Unique detail, and `146` Knight/Bear versus Mud Elemental moment 06.
   Remove Slime Battle (`01`), Bear (`17`), Crucible (`77`) and Ranger talent categories (`133`).
   Preserve byte-identical originals and selected copies in the release
-  deliverables, with hashes in `selected-screenshots.json`. Final ordering and
-  the iPad set remain open. The ten-image iPhone selection is complete.
+  deliverables, with hashes in `selected-screenshots.json`.
 - [x] Replace the incorrect Wishing Well previews (`122`–`129`) with exactly two
   standard Collection Unique details: `139` Blackfletch and `140` Kingbreaker.
   Correct Collection's existing item launch route to resolve the Unique catalog.
@@ -181,8 +182,8 @@ number, and signed archive.
   deletions.
 - [x] Record the owner's approval of static iPad counterparts `181`, `182`, `183`,
   `187`, `188`, `184`, `186`, `185`, Living Armor variant `191` and Mud Elemental
-  variant `197`. Preserve this supplied selection order; final store ordering
-  remains open. Each device family now has ten approved images.
+  variant `197`. Each device family has ten approved images in the final order
+  recorded above.
 - [x] Prepare the ten approved iPad upload assets. Remove fully opaque alpha
   channels from the eight static PNG copies, preserving every decoded RGB pixel
   and native 2064×2752 dimensions. Keep both battle PNGs and all selected originals
