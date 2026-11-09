@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Build 9 is selected for manual release. Device gameplay and inherited screenshot previews were checked. Reuse the owner's prior purchase and restore checks. Final owner review and submission authorization remain open.
+reason: Apple has build 9 and Full Game in Waiting for Review. Manual release requires Apple approval and owner sign-off.
 created: 2026-11-06
 updated: 2026-11-08
 expires: 2026-11-20
@@ -15,8 +15,8 @@ that close a release gate, then refresh the affected evidence on the resulting
 revision. Follow the [standing workflow](../../AGENTS.md#route-and-read) and
 [verification policy](../Platform/Verification.md).
 
-Engineering and App Store Connect preparation are authorized, including TestFlight
-distribution. App Review submission remains pending at the owner's request.
+The owner authorized App Review submission of build 9 and Full Game on November 8.
+Publication requires a separate owner decision after approval.
 Use the existing iCloud test results and deliberate test saves for candidate checks.
 A second physical device is not a release gate. The existing storefront
 territories guide candidate preparation.
@@ -60,14 +60,13 @@ automated coverage starts at 26 for both platforms.
 - [x] Prepare version `1.0.0` with manual release, all nine listing and purchase
   localizations, review contact and cloud-enabled review notes. The owner
   confirmed content rights; the portal declaration is saved. Age-rating answers
-  are complete. App Privacy reports Data Not Collected, consistent with local
-  data, private iCloud sync and Apple-managed purchases/diagnostics. Support and
-  privacy URLs are configured. [Field ownership](../Platform/AppStoreMetadata.md)
+  are complete. Publish the App Privacy response, Data Not Collected, consistent
+  with local data, private iCloud sync and Apple-managed purchases and diagnostics.
+  Support and privacy URLs are configured. [Field ownership](../Platform/AppStoreMetadata.md)
 - [x] Upload the Full Game review image. Apple processed the native English
-  offer capture with a matching checksum and the purchase is Ready to Submit.
-  The purchase remains unsubmitted.
+  offer capture with a matching checksum before submission.
 - [x] Associate candidate build `1.0.0 (9)` with the draft store version. Readback
-  confirms Prepare for Submission and manual release. The signed archive/export
+  confirms build 9 and manual release. The signed archive and export
   passed encryption, signature and Production entitlement checks with iCloud enabled.
 - [x] Finalize the owner's ten iPhone screenshots, including Mud Elemental moment
   `146`. Remove all remaining unapproved alternatives. Rate all 156 capture attempts for
@@ -87,7 +86,7 @@ automated coverage starts at 26 for both platforms.
   - iPad: `191`, `187`, `181`, `186`, `185`, `197`, `184`, `188`, `182`, `183`.
 - [x] Upload the owner's two ordered galleries to the primary English draft.
   App Store Connect processed all twenty assets in the approved order with
-  matching checksums and native dimensions. App Review remains on hold.
+  matching checksums and native dimensions.
 - [x] Verify the requested iPad sizing before store capture. The 13-inch iPad Pro
   simulator on iPadOS 27.0 showed the larger hand, the center card barely clipping
   the bottom edge, and combatants clear of the fan. Seven focused layout tests
@@ -141,12 +140,12 @@ waived preservation of their personal beta save.
   owner. StoreKit transaction and entitlement code has not changed since
   `c25602f09`, and build 9 passed hosted purchase smoke. The build 9 device run
   exercised existing ownership.
-- [ ] Review the coverage limits in the candidate handoff. Build 9 lacks fresh
+- [x] Record the coverage limits in the candidate handoff. Build 9 lacks fresh
   live transaction evidence for Family Sharing, pending approval and denial,
   refunds or revocation, and ownership across a progress reset.
   [StoreKit release checks](../Platform/Purchases.md#before-release)
 
-## 4. Prepare the handoff; hold submission
+## 4. Prepare the handoff and submit for review
 
 - [x] Lock the owner's updated November 8 iPhone selection:
   `08` Ranger, `10` Rogue, `16` Wolf, `72` Blacksmith,
@@ -232,18 +231,19 @@ waived preservation of their personal beta save.
   11-inch iPad group uses the approved 13-inch iPad assets. Retain the rendered
   previews and App Store Connect readback with the candidate handoff.
   [Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/)
-- [ ] Review one candidate handoff with the owner. Record the commit and Apple
-  build ID, linked CI runs, device and OS results, reused evidence, screenshots,
-  and portal status. Hold submission for missing required coverage, unresolved
-  save or purchase failures, or a portal blocker. If the build changes, recheck
-  its identity and refresh the gates affected by the change.
-- [ ] With submission authorized, select the verified build on the matching app
-  version and include the first Full Game non-consumable in the same submission.
-  Give App Review the Options path to the offer and explain offline play. Select
-  manual release, then publish after approval and owner sign-off. Verify the live
-  listing in the intended storefronts and triage reports against the shipped build.
+- [x] Deliver the candidate handoff with the source commit, Apple build ID,
+  linked CI runs, device and OS results, reused evidence, screenshots and portal
+  status. The owner authorized submitting this candidate.
+- [x] Submit iOS `1.0.0 (9)` and the first Full Game non-consumable together
+  for App Review. Apple returned **Waiting for Review** for both items in
+  submission `6a94d8c4-a0b4-4527-ba55-e739cb90be4c` and confirmed manual
+  release. The review notes cover offline play and the Options path to Full Game.
   [Apple purchase submission](https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-in-app-purchase/)
-  · [Trinket release procedure](../Platform/Release.md#shipping)
+- [ ] After Apple approves the app and purchase, obtain owner sign-off for manual
+  release. Verify the live listing in the intended storefronts and triage reports
+  against the shipped build. If review requires a new build, refresh the affected
+  qualification before resubmission.
+  [Trinket release procedure](../Platform/Release.md#shipping)
 
 Retain the candidate handoff with the release evidence. After launch verification,
 move durable changes into their canonical owners and remove this plan.
