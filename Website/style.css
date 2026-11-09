@@ -17,3 +17,7 @@ li + li { margin-top: 10px; }
 .contact h2 { margin-top: 0; }
 footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid #35312a; color: #a8a49c; font-size: 14px; }
 @media (max-width: 400px) { nav { gap: 12px; } nav a { margin-left: 10px; } body { padding-inline: 18px; } }
+.language { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 14px; font-size: 14px; }
+.language[hidden] { display: none; }
+.language select { max-width: 60%; padding: 6px; font: inherit; color: inherit; background: #171614; border: 1px solid #51452b; border-radius: 5px; }
+.language select:focus-visible { outline: 2px solid #dfb75d; outline-offset: 3px; }
