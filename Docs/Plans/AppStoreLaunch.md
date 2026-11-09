@@ -1,7 +1,7 @@
 ---
 type: execution-plan
 status: blocked
-reason: Signed build 9 is available in TestFlight and selected in the App Store draft with both galleries processed. Physical-device acceptance and inherited preview inspection remain pending. App Review remains on owner hold.
+reason: Signed build 9 is selected in the App Store draft with both galleries processed. Physical battle return and reward recovery passed over Wi-Fi. Offline play, live purchase and restore, and inherited previews remain open. App Review remains on owner hold.
 created: 2026-11-06
 updated: 2026-11-08
 expires: 2026-11-20
@@ -112,24 +112,30 @@ waived preservation of their personal beta save.
   processing and internal availability, and retain the receipt, archive and matching dSYMs.
 - [x] Confirm candidate `1.0.0 (9)` through CoreDevice on the connected iPhone
   14 Pro running iOS 27.2. The installed app is the owner's TestFlight update.
-- [ ] Complete iPhone UI Automation authentication. The separate XCTest runner
-  reached the on-device passcode prompt before any app test executed. Connect the
-  iPhone via USB before switching off its network connections for offline testing.
-- [ ] With deliberate test data, verify
-  Campaign progress, party, equipment, Homestead, offline play, relaunch and recovery after interrupting a
-  battle or terminating after a reward claim. Review matching TestFlight feedback,
-  crash reports, and physical-device artwork, frame, memory, and thermal evidence.
-  Use [player coverage](../Platform/PlayerCoverage.md) for the device scope.
+- [x] Authorize the separate XCTest runner on the iPhone. It exercised the
+  installed TestFlight candidate over Wi-Fi.
+- [x] Resume Campaign Stage 1-6 after returning from the Home Screen. Claim the
+  victory, then terminate and reopen the app. Gold went from 8 to 14 and stayed
+  at 14 after relaunch. Campaign stayed on the newly unlocked Stage 1-7.
+- [ ] Verify offline play and battle interruption on the device. The iPhone's
+  only connection to the Mac is Wi-Fi, which was active for the completed run.
+- [ ] With deliberate test data, verify party, equipment and Homestead.
+  Review matching TestFlight feedback, crash reports, and physical-device
+  artwork, frame, memory, and thermal evidence. Use
+  [player coverage](../Platform/PlayerCoverage.md) for the device scope.
 - [x] Reuse the existing iCloud test results, confirmed by the owner on November 7.
   Source review found no sync, schema or merge behavior changes since build 66.
   Keep Development and Production observations identifiable in the handoff;
   investigate affected save-preservation behavior if candidate changes invalidate it.
   [CloudKit release checks](../Platform/CloudKitPreShipChecklist.md)
-- [ ] On the signed candidate, load the real sandbox offer in **Options → Unlock
-  Full Game**, purchase, relaunch, and restore. Confirm that the offer works from
-  free play, access survives a progress reset, and restore works independently
-  of iCloud. Verify eligible Family Sharing, pending approval and denial/retry,
-  and refund or revocation using the applicable live sandbox paths.
+- [x] Verify that the existing **Full Game** entitlement remains unlocked after
+  cold relaunch of the signed candidate. The iPhone already had Full Game access.
+- [ ] Use an unowned sandbox state on the signed candidate to load the real
+  offer in **Options → Unlock Full Game**, purchase, relaunch, and restore.
+  Confirm that the offer works from free play, access survives a progress reset,
+  and restore works independently of iCloud. Verify eligible Family Sharing,
+  pending approval and denial/retry, and refund or revocation using the
+  applicable live sandbox paths.
   [StoreKit release checks](../Platform/Purchases.md#before-release)
 
 ## 4. Prepare the handoff; hold submission
