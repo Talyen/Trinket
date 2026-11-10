@@ -4,12 +4,13 @@ This is the standing product specification for [PD-024](Decisions.md).
 
 ## Tap and keep playing
 
-A valid card plays when the player releases their finger, provided the current
-hand cast has finished. While a cast is playing, card input has no rejection,
-sound, or queue indicator. A tap during its final 0.5 seconds queues that card;
-the latest tap replaces any earlier queued tap. The card plays after the cast
-finishes if it is still available. A later press or interruption cancels the queue.
-Blocked drags and holds do nothing.
+A valid card plays on release, or joins an ordered queue if another hand cast
+started less than 0.5 seconds ago. Queued cards lift in the hand and give immediate
+haptic feedback; each plays once when its turn arrives if it is still available.
+A queued card that remains in the hand but is no longer playable settles back with a denial sound.
+A queued card does not carry over to a later turn.
+Each cast keeps its full one-second departure animation, overlapping the next cast
+rather than shortening the animation. Repeated taps on a queued card do not queue it twice.
 The departing card rises quickly, then eases upward through the artwork's
 dissolve, travelling 55% of its height with the existing departure duration.
 Holding to inspect, dragging to play, and cancelling a drag remain available.
@@ -48,7 +49,7 @@ With the autoplay toggle enabled, cards use the same release geometry, rise,
 dissolve, and particle timing as an ordinary tap. Autoplay waits for the one-second
 card departure before choosing the next card. Equal-scored choices rotate through
 the hand; stronger and battle-finishing choices keep priority. Autoplay pauses for
-manual interaction, and the same silent input gate applies during those casts.
+manual interaction and queued manual cards; manual cards use the same queue during those casts.
 Combat feedback keeps its normal sequencing.
 
 After thirty rounds without new enemy Health depletion, Auto Battle pauses with
@@ -124,8 +125,8 @@ pauses. Automatic battle stops when the result is settled.
 
 ## Regression protection
 
-Preserve full-size automatic artwork, the silent cast input gate and queue, and
-visual-only finishing taps. Finishing taps follow the same cast input gate.
+Preserve full-size automatic artwork, ordered responsive manual input, complete
+cast animations, and visual-only finishing taps.
 
 [Battle presentation](../AgentContext/battle-presentation.md) owns the engineering
 contract and regression coverage. Combat rules remain in BattleEngine; visual

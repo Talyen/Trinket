@@ -69,7 +69,7 @@ in the BattleFeature bundle.
 ## Card input
 
 [Card play](../Product/CardPlay.md) owns PD-024's approved behavior, including
-the silent hand-cast input gate, full-size automatic cards, and intentionally
+the ordered manual card queue, full-size automatic cards, and intentionally
 visual-only finishing taps.
 
 Card, opening-hand, and turn commands finish synchronously in BattleEngine.
@@ -149,9 +149,9 @@ Between-turn periodic results cannot suppress an action hit or produce recoil.
 Floating results, sounds, result haptics, recoil, combatant resource bars, status
 artwork, and defeat artwork share impact delivery for manual plays, automatic
 plays, counterattacks, and enemy actions. Hand updates remain immediate. Manual
-card input waits for the current hand cast to finish; taps in its last 0.5 seconds
-silently queue the latest card and revalidate it on completion. Earlier taps and
-blocked drags do nothing. A later press or suspension cancels the pending tap.
+card input queues in order during the first 0.5 seconds of a hand cast. Queued
+cards lift immediately and are revalidated before play. Casts can overlap without
+shortening their one-second departures. Suspension clears pending input.
 Optional engine playback records event-attributed combatant changes;
 apply only the changed presentation fields at their owning impact. Per-field event
 ordering prevents a nested action from restoring older facts after its parent.
@@ -313,7 +313,7 @@ card play, including consolidation, overlap, and portrait clipping.
 ## Display work lifecycle
 
 `BattleCommandState` owns command readiness and suspension. The hand's transient
-cast input gate does not change engine command readiness. Suspension pauses cast and attack clocks, pending
+card queue does not change engine command readiness. Suspension pauses cast and attack clocks, pending
 impacts, and the outcome countdown; ending/replacing a run
 invalidates its startup generation and clears owned cast work without clearing
 the retiring view's final hand or combatants. Callbacks retain their original

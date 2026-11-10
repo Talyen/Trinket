@@ -7,50 +7,67 @@ import TrinketContentTestSupport
 
 @MainActor
 struct BattleSessionCardCueTests {
-    @Test func `manual cast input queues only the latest late tap and cancels on interruption`() {
+    @Test func `queued cards keep tap order skip invalid cards and clear on suspension`() {
         let casts = BattleCastPresentationState()
         defer { casts.reset() }
-        let start = Date(timeIntervalSinceReferenceDate: 100)
+        let start = Date.now
         let request = CardActivationRequest(
             startedAt: start, artworkName: nil, center: .zero, size: .zero,
             rotation: 0, verticalTilt: 0, scale: 1, keywords: [],
         )
-        let end = request.completionDate(scheduledCast: nil)
         casts.append(request)
+        #expect(casts.shouldQueueManualInput(at: start))
+        #expect(!casts.shouldQueueManualInput(at: start.addingTimeInterval(BattleMotion.manualCardInterval)))
         var played: [Int] = []
-        #expect(casts.blocksManualInput(at: end.addingTimeInterval(-0.6)))
-        casts.queueTap(at: end.addingTimeInterval(-0.6)) { played.append(1) }
-        casts.remove(id: request.id, at: end)
-        #expect(played.isEmpty)
+        casts.queueCard(id: 1) { played.append(1); return true }
+        casts.queueCard(id: 2) { played.append(2); return false }
+        casts.queueCard(id: 3) { played.append(3); return true }
+        casts.queueCard(id: 1) { played.append(99); return true }
+        #expect(casts.queuedCardIDs == [1, 2, 3])
+        #expect(casts.blocksAutoBattle(at: start.addingTimeInterval(10)))
+        casts.playNextQueuedCard()
+        #expect(played == [1])
+        #expect(casts.queuedCardIDs == [2, 3])
+        casts.playNextQueuedCard()
+        #expect(played == [1, 2, 3])
+        #expect(casts.queuedCardIDs.isEmpty)
+        casts.queueCard(id: 4) { played.append(4); return true }
+        casts.setSuspended(true, at: start)
+        casts.playNextQueuedCard()
+        #expect(played == [1, 2, 3])
+        #expect(casts.queuedCardIDs.isEmpty)
+    }
 
-        casts.append(request)
-        casts.queueTap(at: end.addingTimeInterval(-0.4)) { played.append(2) }
-        casts.queueTap(at: end.addingTimeInterval(-0.1)) { played.append(3) }
-        #expect(played.isEmpty)
-        casts.remove(id: request.id, at: end)
-        #expect(played == [3])
-
-        casts.append(request)
-        casts.queueTap(at: end.addingTimeInterval(-0.1)) { played.append(4) }
-        casts.cancelQueuedTap()
-        casts.remove(id: request.id, at: end)
-        #expect(played == [3])
-
-        casts.append(request)
-        casts.queueTap(at: end.addingTimeInterval(-0.1)) { played.append(6) }
-        casts.remove(id: request.id, at: end.addingTimeInterval(-0.05))
-        #expect(played == [3])
-
-        casts.append(request)
-        casts.queueTap(at: end.addingTimeInterval(-0.1)) { played.append(7) }
-        casts.remove(id: request.id, at: end, allowQueuedInput: false)
-        #expect(played == [3])
-
-        casts.append(request)
-        casts.queueTap(at: end.addingTimeInterval(-0.1)) { played.append(5) }
-        casts.setSuspended(true, at: end.addingTimeInterval(-0.05))
-        casts.remove(id: request.id, at: end.addingTimeInterval(1))
-        #expect(played == [3])
+    @Test func `queued cards start on cadence while prior casts remain visible`() async throws {
+        let casts = BattleCastPresentationState()
+        defer { casts.reset() }
+        let start = Date.now
+        func request(at date: Date) -> CardActivationRequest {
+            CardActivationRequest(
+                startedAt: date, artworkName: nil, center: .zero, size: .zero,
+                rotation: 0, verticalTilt: 0, scale: 1, keywords: [],
+            )
+        }
+        casts.append(request(at: start))
+        var starts: [Date] = []
+        for id in 1 ... 2 {
+            casts.queueCard(id: id) {
+                let date = Date.now
+                starts.append(date)
+                casts.append(request(at: date))
+                return true
+            }
+        }
+        let deadline = start.addingTimeInterval(3)
+        while starts.count < 2, Date.now < deadline {
+            try await Task.sleep(for: .milliseconds(25))
+        }
+        #expect(starts.count == 2)
+        if starts.count == 2 {
+            #expect(starts[0].timeIntervalSince(start) >= BattleMotion.manualCardInterval - 0.02)
+            #expect(starts[1].timeIntervalSince(starts[0]) >= BattleMotion.manualCardInterval - 0.02)
+            #expect(BattleMotion.manualCardInterval < BattleMotion.cardActivationDuration)
+        }
     }
 
     @Test func `retiring hand callbacks cannot play or cancel a replacement battle card`() throws {

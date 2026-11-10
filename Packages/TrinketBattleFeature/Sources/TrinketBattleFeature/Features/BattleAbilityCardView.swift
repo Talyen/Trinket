@@ -16,9 +16,7 @@ struct BattleAbilityCardView: View {
     let hapticsEnabled: Bool
     let onInspect: () -> Void
     let onPlay: (CardActivationRequest) -> Bool
-    let isPlayInputBlocked: () -> Bool
-    let onBlockedTap: () -> Void
-    let onPress: () -> Void
+    let isQueued: Bool
     let onPlayDenied: () -> Void
     let onInteractionChanged: (Bool) -> Void
     var onLift: ((BattleCardCuePresentationMode) -> Void)?
@@ -30,7 +28,6 @@ struct BattleAbilityCardView: View {
     @State private var inspectFeedbackToken = 0
     @State private var denyFeedbackToken = 0
     @State private var didReportPlayDenied = false
-    @State private var blockedTouchExceededTapSlop = false
     @GestureState private var isGestureActive = false
     @Environment(\.scenePhase) private var scenePhase
 
@@ -40,14 +37,13 @@ struct BattleAbilityCardView: View {
         case dragging
         case inspecting
         case cancelled
-        case blocked
     }
 
     private var isHeld: Bool {
         switch interactionResolution {
         case .pressing, .dragging, .inspecting:
             true
-        case .idle, .cancelled, .blocked:
+        case .idle, .cancelled:
             false
         }
     }
@@ -157,7 +153,7 @@ struct BattleAbilityCardView: View {
     private var restingTranslation: CGSize {
         CGSize(
             width: 0,
-            height: restingCenter.y - (interactionFrame.maxY - height / 2),
+            height: restingCenter.y - (interactionFrame.maxY - height / 2) - (isQueued ? height * 0.08 : 0),
         )
     }
 
@@ -189,19 +185,6 @@ struct BattleAbilityCardView: View {
         guard scenePhase == .active,
               interactionResolution != .inspecting,
               interactionResolution != .cancelled else { return }
-
-        if interactionResolution == .idle {
-            onPress()
-            if isPlayInputBlocked() {
-                interactionResolution = .blocked
-                return
-            }
-        }
-        if interactionResolution == .blocked {
-            blockedTouchExceededTapSlop = blockedTouchExceededTapSlop
-                || BattleCardGesturePolicy.exceedsTapSlop(translation: value.translation)
-            return
-        }
 
         if interactionResolution == .idle {
             interactionResolution = .pressing
@@ -236,18 +219,6 @@ struct BattleAbilityCardView: View {
     }
 
     private func endDrag(_ value: DragGesture.Value) {
-        if interactionResolution == .blocked {
-            interactionResolution = .idle
-            let exceededTapSlop = blockedTouchExceededTapSlop
-            blockedTouchExceededTapSlop = false
-            if BattleCardGesturePolicy.isTapGesture(
-                translation: value.translation, didExceedTapSlop: exceededTapSlop,
-                minimumDistance: BattleCardGesturePolicy.dragMinimumDistance,
-            ) {
-                onBlockedTap()
-            }
-            return
-        }
         guard scenePhase == .active,
               interactionResolution == .pressing || interactionResolution == .dragging else { return }
         dragTranslation = BattleCardGesturePolicy.presentationTranslation(value.translation, isPlayable: isPlayable)
@@ -275,10 +246,6 @@ struct BattleAbilityCardView: View {
     }
 
     private func beginInspection() {
-        if interactionResolution == .blocked {
-            interactionResolution = .cancelled
-            return
-        }
         guard interactionResolution == .pressing else { return }
         presentInspection()
     }
@@ -313,10 +280,9 @@ struct BattleAbilityCardView: View {
         cancelAnnouncedWindUp()
         dragTranslation = .zero
         didReportPlayDenied = false
-        blockedTouchExceededTapSlop = false
     }
 
-    private enum PlayIntent: Equatable {
+    private enum PlayIntent {
         case tap
         case drag
     }
@@ -325,11 +291,7 @@ struct BattleAbilityCardView: View {
         guard scenePhase == .active, !isDetailPresented,
               interactionResolution != .inspecting,
               interactionResolution != .cancelled else { return }
-        onPress()
-        if isPlayInputBlocked() {
-            if intent == .tap {
-                onBlockedTap()
-            }
+        guard !isQueued else {
             returnDrag()
             return
         }

@@ -443,29 +443,35 @@ private struct BattleHandProjectionLane: View {
                     input.perform { $0.presentAbilityDetail(card.ability) }
                 },
                 onPlay: { card, request in
+                    if castPresentation.shouldQueueManualInput() {
+                        guard !castPresentation.queuedCardIDs.contains(card.id) else { return false }
+                        onLiftCancel(card)
+                        let queuedTurn = battleSession.engineState?.turnCount
+                        castPresentation.queueCard(id: card.id) {
+                            guard input.isCurrent, battleSession.canInteractWithHand,
+                                  let index = presentation.hand.firstIndex(where: { $0.id == card.id }),
+                                  !handFrame.isEmpty else { return false }
+                            guard presentation.isBattleOver || battleSession.engineState?.turnCount == queuedTurn,
+                                  input.perform({ $0.isHandCardPlayable(card) }) == true else {
+                                input.perform { $0.playPresentationSFX(SFXID.uiDeny) }
+                                return false
+                            }
+                            let queuedRequest = CardActivationRequest.tapRequest(
+                                for: card, index: index, cardCount: presentation.hand.count, handFrame: handFrame,
+                                isPad: BattleHandLayout.usesPadSizing,
+                            )
+                            return onPlay(card, queuedRequest)
+                        }
+                        cardPlayFeedbackToken &+= 1
+                        return true
+                    }
                     let didPlay = onPlay(card, request)
                     if didPlay {
                         cardPlayFeedbackToken &+= 1
                     }
                     return didPlay
                 },
-                isPlayInputBlocked: { castPresentation.blocksManualInput() },
-                onBlockedTap: { card in
-                    castPresentation.queueTap {
-                        guard input.isCurrent, battleSession.canInteractWithHand,
-                              input.perform({ $0.isHandCardPlayable(card) }) == true,
-                              let index = presentation.hand.firstIndex(where: { $0.id == card.id }),
-                              !handFrame.isEmpty else { return }
-                        let request = CardActivationRequest.tapRequest(
-                            for: card, index: index, cardCount: presentation.hand.count, handFrame: handFrame,
-                            isPad: BattleHandLayout.usesPadSizing,
-                        )
-                        if onPlay(card, request) {
-                            cardPlayFeedbackToken &+= 1
-                        }
-                    }
-                },
-                onPress: { castPresentation.cancelQueuedTap() },
+                isQueued: { castPresentation.queuedCardIDs.contains($0.id) },
                 onPlayDenied: { card in
                     input.perform { session in
                         session.denyCardCue(card)

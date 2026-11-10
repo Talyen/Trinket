@@ -85,8 +85,8 @@ their own temporary acquisitions. Shared cache and budget policy remain owned by
 
 ## Card interaction cues
 
-Cards remain artwork-only. Manual taps commit on release or after the silent
-late-tap queue; dragging and Auto Battle use the begin/commit/cancel cue lifecycle.
+Cards remain artwork-only. Manual plays commit on release or after the ordered
+card queue; dragging and Auto Battle use the begin/commit/cancel cue lifecycle.
 The [card input contract](../../Docs/AgentContext/battle-presentation.md#card-input)
 owns cast pacing and intentional visual-only finishing taps. Dragging a card
 shows no portrait recipient light; lifted cards keep the attacker's wind-up

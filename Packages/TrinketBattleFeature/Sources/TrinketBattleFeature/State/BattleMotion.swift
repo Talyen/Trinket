@@ -5,6 +5,7 @@ import TrinketDesignSystem
 
 enum BattleMotion {
     static let cardActivationDuration = TrinketMotion.Content.cardDissolveDuration
+    static let manualCardInterval: TimeInterval = 0.5
     static let autoBattleCardInterval: TimeInterval = cardActivationDuration
     static let cardActivationStuckSlack: TimeInterval = 0.35
     static let combatantSliceDuration: TimeInterval = 1.25
