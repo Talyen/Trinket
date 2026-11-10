@@ -414,18 +414,20 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
         artifacts = [dict(name='build-derived-data-10-1', expired=False)]
         responses = [[dict(workflow_runs=[run])], [dict(jobs=jobs)], [dict(artifacts=artifacts)]]
         with patch.object(DEPLOY.REUSE, 'api', side_effect=responses), \
+                patch.object(DEPLOY.REUSE, 'screenshot_only_failure', return_value=True), \
                 patch.object(DEPLOY.REUSE, 'proof', return_value={'standard': 'true'}) as proof:
             result = DEPLOY.beta_ci_status('owner/repo', 'abc', 'main')
         self.assertEqual(result['conclusion'], 'failure')
         self.assertTrue(result['standard_passed'])
         self.assertTrue(result['smoke'])
-        proof.assert_called_once_with(run, jobs, artifacts, 'abc', 'main', history=jobs)
+        proof.assert_called_once_with(run, jobs, artifacts, 'abc', 'main', history=jobs, screenshot_failure=True)
 
         with patch.object(DEPLOY, 'capture', side_effect=['https://github.com/owner/repo.git', 'origin/main']), \
                 patch.object(DEPLOY, 'beta_ci_status', return_value=result):
             self.assertEqual(DEPLOY.wait_for_beta_ci('abc'), result)
         responses = [[dict(workflow_runs=[run])], [dict(jobs=jobs)], [dict(artifacts=artifacts)]]
         with patch.object(DEPLOY.REUSE, 'api', side_effect=responses), \
+                patch.object(DEPLOY.REUSE, 'screenshot_only_failure', return_value=True), \
                 patch.object(DEPLOY.REUSE, 'proof', return_value=None), \
                 patch.object(DEPLOY, 'failed_ui_cases', return_value=[]):
             self.assertFalse(DEPLOY.beta_ci_status('owner/repo', 'abc', 'main')['standard_passed'])

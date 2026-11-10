@@ -6,6 +6,7 @@ import json
 import argparse
 import os
 from pathlib import Path
+import re
 import subprocess
 
 from internal.cli import load_sibling
@@ -33,6 +34,27 @@ def only_advisory_ui_failed(jobs: list[dict]) -> bool:
     advisory = {'tests / Exhaustive UI (All)', 'tests / Exhaustive OK (advisory)'}
     failed = [job for job in jobs if job.get('conclusion') not in ('success', 'skipped')]
     return bool(failed) and all(job.get('name') in advisory and job.get('conclusion') == 'failure' for job in failed)
+
+
+def screenshot_only_failure(repository: str, jobs: list[dict]) -> bool:
+    """Accept only fully identified screenshot-journey failures; unknown evidence blocks reuse."""
+    if not only_advisory_ui_failed(jobs):
+        return False
+    ui = [job for job in jobs if job.get('name') == 'tests / Exhaustive UI (All)' and job.get('conclusion') == 'failure']
+    if len(ui) != 1 or type(ui[0].get('id')) is not int:
+        return False
+    try:
+        log = subprocess.check_output(['gh', 'api', f'repos/{repository}/actions/jobs/{ui[0]["id"]}/logs'],
+                                      text=True, timeout=90)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    classifications = re.findall(r'Classification:\s*(\S+)', log)
+    counts = re.findall(r'Issues:\s*(\d+)\s*\(showing at most\s*(\d+)\)', log)
+    issues = re.findall(r'\d+\.\s+test-failure:\s+TrinketUITests\s+\((LocalizationUITests/test\w+Screenshots\(\))\)', log)
+    return (classifications == ['test-failure'] and len(counts) == 1
+            and int(counts[0][0]) > 0 and int(counts[0][0]) <= int(counts[0][1])
+            and len(issues) == int(counts[0][0])
+            and all(re.fullmatch(r'LocalizationUITests/test\w+Screenshots\(\)', issue) for issue in issues))
 
 
 def successful_build_step(build: dict, sha: str) -> bool:
@@ -92,13 +114,12 @@ def product_proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, 
 
 
 def proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, branch: str,
-          *, history: list[dict] | None = None) -> dict[str, str] | None:
+          *, history: list[dict] | None = None, screenshot_failure: bool = False) -> dict[str, str] | None:
     if not matching_run(run, sha, branch):
         return None
     if run.get('conclusion') == 'failure':
-        # An advisory UI failure does not invalidate an independently green CI OK.
-        # Unknown, cancelled, or required-job failures must still fail closed.
-        if not only_advisory_ui_failed(jobs):
+        # Only a fully identified screenshot failure may coexist with green standard proof.
+        if not screenshot_failure or not only_advisory_ui_failed(jobs):
             return None
     successful = {job.get("name"): job for job in jobs if job.get("conclusion") == "success"}
     required = {"tests / CI OK", "tests / gate / Generate and style"}
@@ -155,8 +176,12 @@ def find_proof(repository: str, sha: str, branch: str, run_id: str, products_onl
                 latest = {job["name"]: job for job in jobs}
                 pages = api(f"repos/{repository}/actions/runs/{run['id']}/artifacts?per_page=100")
                 artifacts = [item for page in pages for item in page.get("artifacts", [])]
-                checker = product_proof if products_only else proof
-                candidate = checker(run, list(latest.values()), artifacts, sha, branch, history=jobs)
+                if products_only:
+                    candidate = product_proof(run, list(latest.values()), artifacts, sha, branch, history=jobs)
+                else:
+                    screenshots = run.get('conclusion') == 'failure' and screenshot_only_failure(repository, list(latest.values()))
+                    candidate = proof(run, list(latest.values()), artifacts, sha, branch,
+                                      history=jobs, screenshot_failure=screenshots)
                 if candidate:
                     return candidate
             except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError, AttributeError) as error:

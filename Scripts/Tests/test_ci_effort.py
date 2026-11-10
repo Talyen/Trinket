@@ -124,22 +124,38 @@ class CIEffortTests(unittest.TestCase):
                       'conclusion': 'failure'}
         advisory = [dict(name='tests / Exhaustive UI (All)', conclusion='failure'),
                     dict(name='tests / Exhaustive OK (advisory)', conclusion='failure')]
-        self.assertEqual(REUSE.proof(failed_run, jobs + advisory, artifacts, 'abc', 'main')['standard'], 'true')
+        self.assertEqual(REUSE.proof(failed_run, jobs + advisory, artifacts, 'abc', 'main', screenshot_failure=True)['standard'], 'true')
+        self.assertIsNone(REUSE.proof(failed_run, jobs + advisory, artifacts, 'abc', 'main'))
         for extra in (dict(name='tests / Unit tests (Battle)', conclusion='failure'),
                       dict(name='unknown job', conclusion='failure'),
                       dict(name='tests / Exhaustive UI (All)', conclusion='cancelled')):
-            self.assertIsNone(REUSE.proof(failed_run, jobs + advisory + [extra], artifacts, 'abc', 'main'))
+            self.assertIsNone(REUSE.proof(failed_run, jobs + advisory + [extra], artifacts, 'abc', 'main', screenshot_failure=True))
         for changes in ({'display_title': 'Trinket CI (latest)'}, {'event': 'schedule'},
                         {'status': 'in_progress'}, {'conclusion': 'cancelled'}):
-            self.assertIsNone(REUSE.proof({**failed_run, **changes}, jobs + advisory, artifacts, 'abc', 'main'))
+            self.assertIsNone(REUSE.proof({**failed_run, **changes}, jobs + advisory, artifacts, 'abc', 'main', screenshot_failure=True))
         altered = copy.deepcopy(jobs)
         next(job for job in altered if job['name'] == 'tests / CI OK')['conclusion'] = 'failure'
-        self.assertIsNone(REUSE.proof(failed_run, altered + advisory, artifacts, 'abc', 'main'))
-        self.assertIsNone(REUSE.proof(failed_run, jobs, artifacts, 'abc', 'main'))
+        self.assertIsNone(REUSE.proof(failed_run, altered + advisory, artifacts, 'abc', 'main', screenshot_failure=True))
+        self.assertIsNone(REUSE.proof(failed_run, jobs, artifacts, 'abc', 'main', screenshot_failure=True))
 
         responses = [[{'workflow_runs': [failed_run]}], [{'jobs': jobs + advisory}], [{'artifacts': artifacts}]]
-        with patch.object(REUSE, 'api', side_effect=responses):
+        with patch.object(REUSE, 'api', side_effect=responses), patch.object(REUSE, 'screenshot_only_failure', return_value=True):
             self.assertEqual(REUSE.find_proof('owner/repo', 'abc', 'main', '20')['run-id'], '10')
+
+    def test_screenshot_failure_requires_complete_explicit_low_value_evidence(self):
+        jobs = [dict(id=10, name='tests / Exhaustive UI (All)', conclusion='failure')]
+        log = ('Classification: test-failure\nIssues: 1 (showing at most 12)\n'
+               '1. test-failure: TrinketUITests (LocalizationUITests/testEnglishScreenshots())\n')
+        with patch.object(REUSE.subprocess, 'check_output', return_value=log):
+            self.assertTrue(REUSE.screenshot_only_failure('owner/repo', jobs))
+        for altered in (log.replace('Issues: 1', 'Issues: 2'),
+                        log.replace('Classification: test-failure', 'Classification: build-failure'),
+                        log.replace('testEnglishScreenshots', 'testPurchaseRecovery'),
+                        log.replace('Issues: 1 (showing at most 12)', 'Issues: 13 (showing at most 12)'), ''):
+            with patch.object(REUSE.subprocess, 'check_output', return_value=altered):
+                self.assertFalse(REUSE.screenshot_only_failure('owner/repo', jobs))
+        with patch.object(REUSE.subprocess, 'check_output', side_effect=subprocess.CalledProcessError(1, 'gh')):
+            self.assertFalse(REUSE.screenshot_only_failure('owner/repo', jobs))
 
     def test_reuse_reads_successful_prior_attempts_but_latest_failure_wins(self):
         run, jobs, artifacts = self.proof_fixture()

@@ -232,9 +232,10 @@ verification. Asset verification is reused only with its own successful job evid
 standard manual device Release compilation still runs. New pushes supersede obsolete branch runs.
 See [ci-reuse.py](../../Scripts/ci-reuse.py) for the proof contract. A completed
 verified exact-commit run with a green standard gate may reuse its independently
-proven standard jobs and build product even if only exhaustive UI advisory jobs
-failed. Missing, failed, or cancelled required jobs still reject reuse; advisory
-coverage is never reported as passed by this reuse. Exact shards, artifact contracts, cache inputs, and remaining advisory
+proven standard jobs and build product when the only failures are explicitly
+identified localization screenshot journeys. Missing logs, other UI failures,
+and missing, failed, or cancelled required jobs reject reuse. The screenshot
+failure remains recorded rather than reported as passed. Exact shards, artifact contracts, cache inputs, and remaining advisory
 job behavior belong to the checked-in workflows ([tests.yml](../../.github/workflows/tests.yml) and
 related workflow files); update this guide only when the verification policy
 changes.
@@ -371,7 +372,7 @@ by Smoke/FullUI plan with StoreKit configuration and exact-method execution proo
 `testflight.sh --full-ui` requires the latest executed exact-commit verified
 FullUI job and its test execution step to pass, alongside ordinary beta evidence.
 The optional local UI command retains per-class phases.
-An advisory-only FullUI failure can coexist with independently proven standard CI;
+An explicitly identified screenshot-only FullUI failure can coexist with independently proven standard CI;
 the deployment receipt retains the workflow's failure and the separate standard
 proof rather than reporting the advisory portfolio as passed.
 

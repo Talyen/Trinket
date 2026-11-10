@@ -84,10 +84,11 @@ def beta_ci_status(repository, commit, branch):
     history = [job for page in pages for job in page.get('jobs', [])]
     latest = {job['name']: job for job in sorted(history, key=lambda job: int(job['id']))}
     if run.get('conclusion') != 'success':
-        if run.get('conclusion') == 'failure' and REUSE.only_advisory_ui_failed(list(latest.values())):
+        if run.get('conclusion') == 'failure' and REUSE.screenshot_only_failure(repository, list(latest.values())):
             pages = REUSE.api(f'repos/{repository}/actions/runs/{run["id"]}/artifacts?per_page=100')
             artifacts = [artifact for page in pages for artifact in page.get('artifacts', [])]
-            result['standard_passed'] = bool(REUSE.proof(run, list(latest.values()), artifacts, commit, branch, history=history))
+            result['standard_passed'] = bool(REUSE.proof(run, list(latest.values()), artifacts, commit, branch,
+                                                         history=history, screenshot_failure=True))
         if not result.get('standard_passed'):
             result['failed_cases'] = failed_ui_cases(repository, latest.values())
             return result
@@ -167,7 +168,7 @@ def wait_for_beta_ci(commit, cache=None):
                     for selector in status.get('failed_cases', []):
                         cache.failed(f'ui:{selector}')
                 raise ValueError(f'Exact-commit CI {status.get("run_id")} failed: {status.get("conclusion")}')
-            label = 'Standard CI passed; advisory UI failed' if status.get('standard_passed') else 'Green CI'
+            label = 'Standard CI passed; screenshot assessment failed' if status.get('standard_passed') else 'Green CI'
             print(f'{label}: https://github.com/{match[1]}/actions/runs/{status["run_id"]}', flush=True)
             return status
         if time.monotonic() >= deadline:
