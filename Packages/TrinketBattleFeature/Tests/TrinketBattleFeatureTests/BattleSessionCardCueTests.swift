@@ -19,10 +19,10 @@ struct BattleSessionCardCueTests {
         #expect(casts.shouldQueueManualInput(at: start))
         #expect(!casts.shouldQueueManualInput(at: start.addingTimeInterval(BattleMotion.manualCardInterval)))
         var played: [Int] = []
-        casts.queueCard(id: 1) { played.append(1); return true }
-        casts.queueCard(id: 2) { played.append(2); return false }
-        casts.queueCard(id: 3) { played.append(3); return true }
-        casts.queueCard(id: 1) { played.append(99); return true }
+        casts.queueCard(id: 1) { _ in played.append(1); return true }
+        casts.queueCard(id: 2) { _ in played.append(2); return false }
+        casts.queueCard(id: 3) { _ in played.append(3); return true }
+        casts.queueCard(id: 1) { _ in played.append(99); return true }
         #expect(casts.queuedCardIDs == [1, 2, 3])
         #expect(casts.blocksAutoBattle(at: start.addingTimeInterval(10)))
         casts.playNextQueuedCard()
@@ -31,7 +31,7 @@ struct BattleSessionCardCueTests {
         casts.playNextQueuedCard()
         #expect(played == [1, 2, 3])
         #expect(casts.queuedCardIDs.isEmpty)
-        casts.queueCard(id: 4) { played.append(4); return true }
+        casts.queueCard(id: 4) { _ in played.append(4); return true }
         casts.setSuspended(true, at: start)
         casts.playNextQueuedCard()
         #expect(played == [1, 2, 3])
@@ -51,7 +51,7 @@ struct BattleSessionCardCueTests {
         casts.append(request(at: start))
         var starts: [Date] = []
         for id in 1 ... 2 {
-            casts.queueCard(id: id) {
+            casts.queueCard(id: id) { _ in
                 let date = Date.now
                 starts.append(date)
                 casts.append(request(at: date))
