@@ -8,9 +8,28 @@ import TrinketFeatureSupport
 @MainActor
 @Observable
 final class BattleCastPresentationState {
+    struct QueuedCard {
+        let id: Int
+        let enqueuedAt: Date
+        let expectedStart: Date
+
+        var duration: TimeInterval {
+            max(0, expectedStart.timeIntervalSince(enqueuedAt))
+        }
+
+        func progress(at date: Date) -> CGFloat {
+            guard duration > 0 else { return 1 }
+            return CGFloat(min(max(date.timeIntervalSince(enqueuedAt) / duration, 0), 1))
+        }
+    }
+
     private(set) var requests: [CardActivationRequest] = []
-    private(set) var queuedCardIDs: [Int] = []
-    @ObservationIgnored private var queuedActions: [@MainActor () -> Bool] = []
+    private(set) var queuedCards: [QueuedCard] = []
+    var queuedCardIDs: [Int] {
+        queuedCards.map(\.id)
+    }
+
+    @ObservationIgnored private var queuedActions: [@MainActor (CGFloat) -> Bool] = []
     @ObservationIgnored private var queueTask: Task<Void, Never>?
     var request: CardActivationRequest? {
         requests.last
@@ -30,9 +49,11 @@ final class BattleCastPresentationState {
         }
     }
 
-    func queueCard(id: Int, action: @escaping @MainActor () -> Bool) {
+    func queueCard(id: Int, at date: Date = .now, action: @escaping @MainActor (CGFloat) -> Bool) {
         guard !queuedCardIDs.contains(id) else { return }
-        queuedCardIDs.append(id)
+        let firstStart = requests.map { $0.startedAt.addingTimeInterval(BattleMotion.manualCardInterval) }.max() ?? date
+        let expectedStart = max(firstStart, date).addingTimeInterval(Double(queuedCards.count) * BattleMotion.manualCardInterval)
+        queuedCards.append(QueuedCard(id: id, enqueuedAt: date, expectedStart: expectedStart))
         queuedActions.append(action)
         scheduleQueuedCard()
     }
@@ -51,11 +72,11 @@ final class BattleCastPresentationState {
         }
     }
 
-    func playNextQueuedCard() {
+    func playNextQueuedCard(at date: Date = .now) {
         while !queuedCardIDs.isEmpty {
-            queuedCardIDs.removeFirst()
+            let queuedCard = queuedCards.removeFirst()
             let action = queuedActions.removeFirst()
-            if action() {
+            if action(queuedCard.progress(at: date)) {
                 break
             }
         }
@@ -65,7 +86,7 @@ final class BattleCastPresentationState {
     private func clearQueuedCards() {
         queueTask?.cancel()
         queueTask = nil
-        queuedCardIDs.removeAll()
+        queuedCards.removeAll()
         queuedActions.removeAll()
     }
 
@@ -275,6 +296,26 @@ struct CardActivationRequest: Equatable, Identifiable {
             scale: 1,
             perspective: BattleMotion.cardPerspective,
             keywords: card.ability.presentationKeywords,
+        )
+    }
+
+    static func queuedRequest(
+        for card: BattleCard,
+        index: Int,
+        cardCount: Int,
+        handFrame: CGRect,
+        liftProgress: CGFloat,
+        isPad: Bool = false,
+    ) -> Self {
+        let metrics = BattleHandLayout.metrics(
+            containerWidth: handFrame.width, cardCount: cardCount, handHeight: handFrame.height, isPad: isPad,
+        )
+        var center = BattleHandLayout.restingCenter(index: index, metrics: metrics, cardCount: cardCount, handFrame: handFrame)
+        center.y -= metrics.cardHeight * BattleMotion.queuedCardLiftFraction * liftProgress
+        return handRequest(
+            for: card, center: center, size: CGSize(width: metrics.cardWidth, height: metrics.cardHeight),
+            rotation: BattleHandLayout.rotation(index: index, cardCount: cardCount) * .pi / 180,
+            verticalTilt: 0, scale: CGFloat(BattleMotion.cardHeldScale),
         )
     }
 }

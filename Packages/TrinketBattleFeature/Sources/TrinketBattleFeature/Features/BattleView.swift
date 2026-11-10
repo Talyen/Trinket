@@ -447,7 +447,7 @@ private struct BattleHandProjectionLane: View {
                         guard !castPresentation.queuedCardIDs.contains(card.id) else { return false }
                         onLiftCancel(card)
                         let queuedTurn = battleSession.engineState?.turnCount
-                        castPresentation.queueCard(id: card.id) {
+                        castPresentation.queueCard(id: card.id) { liftProgress in
                             guard input.isCurrent, battleSession.canInteractWithHand,
                                   let index = presentation.hand.firstIndex(where: { $0.id == card.id }),
                                   !handFrame.isEmpty else { return false }
@@ -456,8 +456,9 @@ private struct BattleHandProjectionLane: View {
                                 input.perform { $0.playPresentationSFX(SFXID.uiDeny) }
                                 return false
                             }
-                            let queuedRequest = CardActivationRequest.tapRequest(
+                            let queuedRequest = CardActivationRequest.queuedRequest(
                                 for: card, index: index, cardCount: presentation.hand.count, handFrame: handFrame,
+                                liftProgress: liftProgress,
                                 isPad: BattleHandLayout.usesPadSizing,
                             )
                             return onPlay(card, queuedRequest)
@@ -471,7 +472,7 @@ private struct BattleHandProjectionLane: View {
                     }
                     return didPlay
                 },
-                isQueued: { castPresentation.queuedCardIDs.contains($0.id) },
+                queuedDuration: { card in castPresentation.queuedCards.first { $0.id == card.id }?.duration },
                 onPlayDenied: { card in
                     input.perform { session in
                         session.denyCardCue(card)

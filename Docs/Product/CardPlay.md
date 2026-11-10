@@ -5,12 +5,13 @@ This is the standing product specification for [PD-024](Decisions.md).
 ## Tap and keep playing
 
 A valid card plays on release, or joins an ordered queue if another hand cast
-started less than 0.5 seconds ago. Queued cards lift in the hand and give immediate
+started less than 0.5 seconds ago. Queued cards keep rising in the hand until their turn and give immediate
 haptic feedback; each plays once when its turn arrives if it is still available.
 A queued card that remains in the hand but is no longer playable settles back with a denial sound.
 A queued card does not carry over to a later turn.
 Each cast keeps its full one-second departure animation, overlapping the next cast
-rather than shortening the animation. Repeated taps on a queued card do not queue it twice.
+rather than shortening the animation. The cast continues from the queued card's current position,
+including when an earlier queued card is skipped. Repeated taps on a queued card do not queue it twice.
 The departing card rises quickly, then eases upward through the artwork's
 dissolve, travelling 55% of its height with the existing departure duration.
 Holding to inspect, dragging to play, and cancelling a drag remain available.

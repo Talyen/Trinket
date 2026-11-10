@@ -379,3 +379,43 @@ struct BattleSessionCardCueTests {
         return card
     }
 }
+
+extension BattleSessionCardCueTests {
+    @Test func `queued lift advances until its expected turn and preserves an early handoff`() throws {
+        let start = Date(timeIntervalSinceReferenceDate: 100)
+        let casts = BattleCastPresentationState()
+        defer { casts.reset() }
+        casts.append(CardActivationRequest(
+            startedAt: start, artworkName: nil, center: .zero, size: .zero,
+            rotation: 0, verticalTilt: 0, scale: 1, keywords: [],
+        ))
+        var handedOffProgress: CGFloat?
+        casts.queueCard(id: 1, at: start) { _ in false }
+        casts.queueCard(id: 2, at: start) { progress in
+            handedOffProgress = progress
+            return true
+        }
+        let first = try #require(casts.queuedCards.first)
+        let second = try #require(casts.queuedCards.last)
+        #expect(first.duration == BattleMotion.manualCardInterval)
+        #expect(second.duration == 2 * BattleMotion.manualCardInterval)
+        #expect(second.progress(at: start) == 0)
+        #expect(second.progress(at: first.expectedStart) == 0.5)
+        #expect(second.progress(at: second.expectedStart) == 1)
+        casts.playNextQueuedCard(at: first.expectedStart)
+        #expect(handedOffProgress == 0.5)
+
+        let session = makeSession()
+        defer { session.endBattle() }
+        let card = try install(.slash, in: session)
+        let frame = BattleHandLayout.frame(in: CGSize(width: 375, height: 667))
+        let resting = CardActivationRequest.restingRequest(for: card, index: 0, cardCount: 3, handFrame: frame)
+        let early = CardActivationRequest.queuedRequest(
+            for: card, index: 0, cardCount: 3, handFrame: frame, liftProgress: 0.5,
+        )
+        #expect(early.center.x == resting.center.x)
+        #expect(early.center.y == resting.center.y - resting.size.height * BattleMotion.queuedCardLiftFraction * 0.5)
+        #expect(early.rotation == resting.rotation)
+        #expect(early.scale == CGFloat(BattleMotion.cardHeldScale))
+    }
+}

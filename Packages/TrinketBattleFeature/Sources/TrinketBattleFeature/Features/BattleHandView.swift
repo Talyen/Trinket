@@ -26,7 +26,7 @@ struct BattleHandView: View {
     let isPlayable: (BattleCard) -> Bool
     let onInspect: (BattleCard) -> Void
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
-    let isQueued: (BattleCard) -> Bool
+    let queuedDuration: (BattleCard) -> TimeInterval?
     let onPlayDenied: (BattleCard) -> Void
     let hapticsEnabled: Bool
     var onFrameChanged: ((CGRect) -> Void)?
@@ -42,7 +42,7 @@ struct BattleHandView: View {
         isPlayable: @escaping (BattleCard) -> Bool,
         onInspect: @escaping (BattleCard) -> Void,
         onPlay: @escaping (BattleCard, CardActivationRequest) -> Bool,
-        isQueued: @escaping (BattleCard) -> Bool = { _ in false },
+        queuedDuration: @escaping (BattleCard) -> TimeInterval? = { _ in nil },
         onPlayDenied: @escaping (BattleCard) -> Void,
         hapticsEnabled: Bool,
         onFrameChanged: ((CGRect) -> Void)? = nil,
@@ -55,7 +55,7 @@ struct BattleHandView: View {
         self.isPlayable = isPlayable
         self.onInspect = onInspect
         self.onPlay = onPlay
-        self.isQueued = isQueued
+        self.queuedDuration = queuedDuration
         self.onPlayDenied = onPlayDenied
         self.hapticsEnabled = hapticsEnabled
         self.onFrameChanged = onFrameChanged
@@ -95,7 +95,7 @@ struct BattleHandView: View {
                         hapticsEnabled: hapticsEnabled,
                         onInspect: { onInspect(card) },
                         onPlay: { command in onPlay(card, command) },
-                        isQueued: isQueued(card),
+                        queuedDuration: queuedDuration(card),
                         onPlayDenied: { onPlayDenied(card) },
                         onInteractionChanged: { isActive in
                             if isActive {

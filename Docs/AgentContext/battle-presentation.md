@@ -150,7 +150,9 @@ Floating results, sounds, result haptics, recoil, combatant resource bars, statu
 artwork, and defeat artwork share impact delivery for manual plays, automatic
 plays, counterattacks, and enemy actions. Hand updates remain immediate. Manual
 card input queues in order during the first 0.5 seconds of a hand cast. Queued
-cards lift immediately and are revalidated before play. Casts can overlap without
+cards rise continuously toward their expected start and are revalidated before play.
+When an earlier card is skipped, the next cast starts from its current queued lift.
+Casts can overlap without
 shortening their one-second departures. Suspension clears pending input.
 Optional engine playback records event-attributed combatant changes;
 apply only the changed presentation fields at their owning impact. Per-field event
