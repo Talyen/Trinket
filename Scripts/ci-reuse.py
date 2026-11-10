@@ -184,8 +184,12 @@ def find_proof(repository: str, sha: str, branch: str, run_id: str, products_onl
                                       history=jobs, screenshot_failure=screenshots)
                 if candidate:
                     return candidate
+                if not products_only and run.get('conclusion') == 'failure':
+                    return fallback
             except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError, AttributeError) as error:
                 print(f"Cannot use verification run {run.get('id', 'unknown')}: {error}")
+                if not products_only and run.get('conclusion') == 'failure':
+                    return fallback
     except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError) as error:
         print(f"Cannot establish prior verification; running ordinary checks: {error}")
     return fallback

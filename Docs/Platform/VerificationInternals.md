@@ -235,7 +235,8 @@ verified exact-commit run with a green standard gate may reuse its independently
 proven standard jobs and build product when the only failures are explicitly
 identified localization screenshot journeys. Missing logs, other UI failures,
 and missing, failed, or cancelled required jobs reject reuse. The screenshot
-failure remains recorded rather than reported as passed. Exact shards, artifact contracts, cache inputs, and remaining advisory
+failure remains recorded rather than reported as passed. A newer unproven failed
+run blocks reuse of an older success for the same commit. Exact shards, artifact contracts, cache inputs, and remaining advisory
 job behavior belong to the checked-in workflows ([tests.yml](../../.github/workflows/tests.yml) and
 related workflow files); update this guide only when the verification policy
 changes.

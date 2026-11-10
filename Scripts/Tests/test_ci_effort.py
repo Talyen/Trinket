@@ -157,6 +157,15 @@ class CIEffortTests(unittest.TestCase):
         with patch.object(REUSE.subprocess, 'check_output', side_effect=subprocess.CalledProcessError(1, 'gh')):
             self.assertFalse(REUSE.screenshot_only_failure('owner/repo', jobs))
 
+    def test_newer_unproven_failure_blocks_older_standard_proof(self):
+        run, jobs, artifacts = self.proof_fixture()
+        failed = {**run, 'id': 11, 'conclusion': 'failure'}
+        jobs = [{**job, 'id': index + 1} for index, job in enumerate(jobs)]
+        failed_jobs = [*jobs, dict(id=100, name='tests / Unit tests (Battle)', conclusion='failure')]
+        responses = [[{'workflow_runs': [failed, run]}], [{'jobs': failed_jobs}], [{'artifacts': artifacts}]]
+        with patch.object(REUSE, 'api', side_effect=responses):
+            self.assertEqual(REUSE.find_proof('owner/repo', 'abc', 'main', '20')['standard'], 'false')
+
     def test_reuse_reads_successful_prior_attempts_but_latest_failure_wins(self):
         run, jobs, artifacts = self.proof_fixture()
         jobs = [{**job, 'id': index + 1} for index, job in enumerate(jobs)]
