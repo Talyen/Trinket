@@ -7,15 +7,9 @@ import TrinketPersistence
 
 struct WishingWellView: View {
     @Environment(PlayerSaveStore.self) private var playerSave
-    @Environment(OptionsStore.self) private var options
-    @Environment(\.playSFX) private var playSFX
-    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @State private var showsTrinkets = false
-    @State private var isPending = false
-    @State private var successCount = 0
-    @State private var errorTrigger = 0
-    @State private var isVisible = false
+    @State private var didSelectInitialCategory = false
     @State private var visibleIDs: Set<String> = []
 
     private var missing: [InventoryItem] {
@@ -32,24 +26,6 @@ struct WishingWellView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: TrinketDesign.Spacing.large) {
-                Text(L10n.homestead_wish_choose)
-                Text(L10n.homestead_wish_help(50)).foregroundStyle(.secondary)
-                Text(L10n.homestead_wish_rates).foregroundStyle(.secondary)
-                Text(L10n.homestead_wish_last).foregroundStyle(.secondary)
-                if let id = playerSave.homestead.wishedTemplateID,
-                   let item = GameContent.uniqueItems.first(where: { $0.templateID == id })
-                   ?? GameContent.trinketItems.first(where: { $0.templateID == id }) {
-                    Text(L10n.homestead_wishing_for(item.localizedDisplayName(locale: locale))).trinketTypography(.rowTitle)
-                    Button(action: clearWish) {
-                        HStack {
-                            if isPending {
-                                ProgressView()
-                            }
-                            Text(L10n.homestead_clear_wish)
-                        }
-                    }.disabled(isPending)
-                        .accessibilityIdentifier(AccessibilityID.Homestead.clearWish)
-                }
                 if hasMissingItems {
                     Picker(selection: $showsTrinkets) {
                         Text(L10n.homestead_uniques).tag(false)
@@ -61,7 +37,7 @@ struct WishingWellView: View {
                             NavigationLink {
                                 WishItemDetail(item: item)
                             } label: {
-                                ProductCardShell {
+                                ProductCardShell(isSelected: playerSave.homestead.wishedTemplateID == item.templateID) {
                                     ItemArtwork(item: item, variant: .thumbnail)
                                 } label: {
                                     ItemCardLabel(item: item, showsAffixCount: false)
@@ -69,6 +45,7 @@ struct WishingWellView: View {
                             }
                             .trinketArtworkCardButtonStyle()
                             .accessibilityLabel(item.localizedDisplayName(locale: locale))
+                            .accessibilityAddTraits(playerSave.homestead.wishedTemplateID == item.templateID ? .isSelected : [])
                             .accessibilityIdentifier(AccessibilityID.Homestead.wishItem(item.templateID))
                             .onAppear { visibleIDs.insert(item.id) }
                             .onDisappear { visibleIDs.remove(item.id) }
@@ -83,8 +60,6 @@ struct WishingWellView: View {
         .trinketScreenBackground()
         .trinketSoftTopScrollEdge()
         .navigationTitle(String(localized: L10n.homestead_make_wish))
-        .trinketSensoryFeedback(.success, trigger: successCount, enabled: options.hapticsEnabled)
-        .trinketSensoryFeedback(.error, trigger: errorTrigger, enabled: options.hapticsEnabled)
         .task(id: visibleIDs) {
             await ArtworkViewportPrewarm.prewarm(
                 orderedItems: missing, visibleIDs: visibleIDs, currentVisibleIDs: { visibleIDs },
@@ -93,26 +68,10 @@ struct WishingWellView: View {
                 estimatedColumns: ArtworkViewportPrewarm.collectionEstimatedColumns,
             )
         }
-        .onAppear { isVisible = true }
-        .onDisappear { isVisible = false }
-    }
-
-    private func clearWish() {
-        guard !isPending else { return }
-        isPending = true
-        let generation = playerSave.sessionGeneration
-        Task {
-            let outcome = await playerSave.setItemWish(nil)
-            isPending = false
-            guard generation == playerSave.sessionGeneration, isVisible, scenePhase == .active else { return }
-            switch outcome {
-            case .success:
-                successCount += 1
-                playSFX(SFXID.uiConfirm, options.effectsVolume)
-            case .failure:
-                errorTrigger += 1
-                playSFX(SFXID.uiDeny, options.effectsVolume)
-            }
+        .onAppear {
+            guard !didSelectInitialCategory else { return }
+            didSelectInitialCategory = true
+            showsTrinkets = GameContent.trinketItems.contains { $0.templateID == playerSave.homestead.wishedTemplateID }
         }
     }
 }
@@ -134,8 +93,9 @@ private struct WishItemDetail: View {
     var body: some View {
         ItemDetailView(
             item: item,
-            primaryActionTitle: LibraryCopy.localized(L10n.homestead_wish_for(item.localizedDisplayName(locale: locale)), locale: locale),
+            primaryActionTitle: LibraryCopy.localized(L10n.homestead_wish_for, locale: locale),
             primaryActionAccessibilityID: AccessibilityID.Homestead.wish,
+            isPrimaryActionCompact: true,
             onPrimaryAction: makeWish,
         )
         .disabled(isPending || ItemWish.validTarget(item.templateID, inventory: playerSave.inventory.items) == nil)

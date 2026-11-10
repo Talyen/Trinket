@@ -604,17 +604,17 @@
       }
     },
     "homestead.wish.for": {
-      "comment": "Homestead activities: exact costs, eligibility, and results. Wishes affect only eligible same-category battle drops. Inscription changes one permanent affix position.",
+      "comment": "Button that selects the item currently being inspected as the player's Wishing Well wish.",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "%1$@ wünschen"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Wish for %1$@"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Desear %1$@"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Souhaiter %1$@"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "%1$@を願う"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "%1$@ 소원 빌기"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Desejar %1$@"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "許願獲得 %1$@"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Wünschen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Wish"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Desear"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Souhaiter"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "願う"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "소원 빌기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Desejar"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "許願"}}
       }
     },
     "homestead.wish.help": {

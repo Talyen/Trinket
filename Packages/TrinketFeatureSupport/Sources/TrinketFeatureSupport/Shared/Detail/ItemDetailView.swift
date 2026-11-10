@@ -66,12 +66,14 @@ public struct ItemDetailView: View {
         item: InventoryItem,
         primaryActionTitle: String,
         primaryActionAccessibilityID: String? = nil,
+        isPrimaryActionCompact: Bool = false,
         onPrimaryAction: @escaping () -> Void,
     ) {
         self.item = item
         primaryAction = DetailPrimaryAction(
             title: primaryActionTitle,
             accessibilityIdentifier: primaryActionAccessibilityID,
+            isCompact: isPrimaryActionCompact,
             action: onPrimaryAction,
         )
         salvage = nil

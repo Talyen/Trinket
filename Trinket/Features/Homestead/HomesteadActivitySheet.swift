@@ -145,8 +145,6 @@ struct CrucibleTransmuteView: View {
 
 struct HomesteadActivityEntry: View {
     @Environment(PlayerSaveStore.self) private var playerSave
-    @State private var isClearingWish = false
-    @Environment(\.locale) private var locale
     let nodeID: HomesteadNodeID
     let isBuilt: Bool
     let onOpen: () -> Void
@@ -186,28 +184,6 @@ struct HomesteadActivityEntry: View {
             .buttonStyle(.plain)
             .disabled(!isBuilt)
             .accessibilityIdentifier(AccessibilityID.Homestead.activity(nodeID.rawValue))
-            if nodeID == .wishingWell, let id = playerSave.homestead.wishedTemplateID,
-               let item = (GameContent.uniqueItems + GameContent.trinketItems).first(where: { $0.templateID == id }) {
-                Text(L10n.homestead_wishing_for(item.localizedDisplayName(locale: locale)))
-                    .trinketTypography(.body)
-                Button {
-                    guard !isClearingWish else { return }
-                    isClearingWish = true
-                    Task {
-                        _ = await playerSave.setItemWish(nil)
-                        isClearingWish = false
-                    }
-                } label: {
-                    HStack {
-                        if isClearingWish {
-                            ProgressView()
-                        }
-                        Text(L10n.homestead_clear_wish)
-                    }
-                }
-                .disabled(isClearingWish || !isBuilt)
-                .accessibilityIdentifier(AccessibilityID.Homestead.clearWish)
-            }
         }
         .padding(TrinketDesign.Spacing.large)
         .trinketMaterial(.frostedPanel, cornerRadius: TrinketDesign.Corners.card)

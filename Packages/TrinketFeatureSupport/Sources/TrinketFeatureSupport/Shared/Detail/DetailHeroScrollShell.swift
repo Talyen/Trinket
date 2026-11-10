@@ -221,6 +221,7 @@ struct DetailPrimaryAction {
     let title: String
     var accessibilityIdentifier: String?
     var isDisabled: Bool = false
+    var isCompact: Bool = false
     let action: () -> Void
 }
 
@@ -228,15 +229,28 @@ struct DetailPrimaryActionFooter: View {
     let primaryAction: DetailPrimaryAction
 
     var body: some View {
-        Button(action: primaryAction.action) {
-            GameLabel(primaryAction.title)
-                .frame(maxWidth: .infinity)
+        Group {
+            if primaryAction.isCompact {
+                HStack {
+                    Spacer(minLength: 0)
+                    button
+                    Spacer(minLength: 0)
+                }
+            } else {
+                button.trinketCenteredPrimaryAction()
+            }
         }
-        .trinketPrimaryActionButton(accessibilityIdentifier: primaryAction.accessibilityIdentifier ?? primaryAction.title)
-        .trinketCenteredPrimaryAction()
-        .disabled(primaryAction.isDisabled)
         .padding(.horizontal, TrinketDesign.Layout.contentMargin)
         .padding(.vertical, TrinketDesign.Spacing.medium)
         .trinketSheetChromeIgnoresDismissDrag()
+    }
+
+    private var button: some View {
+        Button(action: primaryAction.action) {
+            GameLabel(primaryAction.title)
+                .frame(minWidth: primaryAction.isCompact ? 96 : 0, maxWidth: primaryAction.isCompact ? nil : .infinity)
+        }
+        .trinketPrimaryActionButton(accessibilityIdentifier: primaryAction.accessibilityIdentifier ?? primaryAction.title)
+        .disabled(primaryAction.isDisabled)
     }
 }

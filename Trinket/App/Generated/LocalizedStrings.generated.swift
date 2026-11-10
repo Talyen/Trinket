@@ -175,8 +175,8 @@ enum L10n {
         LocalizedStringResource("homestead.wish.choose", defaultValue: "Choose an unowned Unique or Trinket", table: "Localizable", bundle: .main)
     }
 
-    static func homestead_wish_for(_ value1: String) -> LocalizedStringResource {
-        LocalizedStringResource("homestead.wish.for", defaultValue: "Wish for \(ContentCopy.localized(value1))", table: "Localizable", bundle: .main)
+    static var homestead_wish_for: LocalizedStringResource {
+        LocalizedStringResource("homestead.wish.for", defaultValue: "Wish", table: "Localizable", bundle: .main)
     }
 
     static func homestead_wish_help(_ value1: Int) -> LocalizedStringResource {

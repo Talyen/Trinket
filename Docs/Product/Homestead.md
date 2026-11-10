@@ -255,8 +255,9 @@ Retries retain the rolled candidate and reject changed source items without spen
 
 Built Wishing Well exposes **Make a Wish**, or **Change Wish** with a selection.
 Choose an unowned Unique/Trinket from native category browsing with read-only item
-inspection. Selection, replacement and clearing are free. **Wishing for {item}**
-shows the current target. There is no progress, timer, expiry or claim action.
+inspection. Selecting or replacing a wish is free, and the current target has a
+selection border in the grid. Players cannot clear a wish manually. The item's **Wish** action sets
+it as the target. There is no progress, timer, expiry or claim action.
 Battle loot rolls its category normally. An eligible wish receives exactly half
 of its category's choices; the other half excludes it. A Unique wish cannot change
 a Trinket roll. If no other eligible candidate remains, the wished item is guaranteed
