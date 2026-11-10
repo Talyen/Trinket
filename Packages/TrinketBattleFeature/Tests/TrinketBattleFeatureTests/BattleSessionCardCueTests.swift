@@ -58,7 +58,8 @@ struct BattleSessionCardCueTests {
                 return true
             }
         }
-        let deadline = start.addingTimeInterval(3)
+        // Parallel simulator tests can delay the main actor well beyond the cast cadence.
+        let deadline = start.addingTimeInterval(15)
         while starts.count < 2, Date.now < deadline {
             try await Task.sleep(for: .milliseconds(25))
         }
