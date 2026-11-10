@@ -81,11 +81,16 @@ def beta_ci_status(repository, commit, branch):
     if run['status'] != 'completed':
         return result
     pages = REUSE.api(f'repos/{repository}/actions/runs/{run["id"]}/jobs?filter=all&per_page=100')
-    latest = {job['name']: job for job in sorted(
-        (job for page in pages for job in page.get('jobs', [])), key=lambda job: int(job['id']))}
+    history = [job for page in pages for job in page.get('jobs', [])]
+    latest = {job['name']: job for job in sorted(history, key=lambda job: int(job['id']))}
     if run.get('conclusion') != 'success':
-        result['failed_cases'] = failed_ui_cases(repository, latest.values())
-        return result
+        if run.get('conclusion') == 'failure' and REUSE.only_advisory_ui_failed(list(latest.values())):
+            pages = REUSE.api(f'repos/{repository}/actions/runs/{run["id"]}/artifacts?per_page=100')
+            artifacts = [artifact for page in pages for artifact in page.get('artifacts', [])]
+            result['standard_passed'] = bool(REUSE.proof(run, list(latest.values()), artifacts, commit, branch, history=history))
+        if not result.get('standard_passed'):
+            result['failed_cases'] = failed_ui_cases(repository, latest.values())
+            return result
     if latest.get('tests / CI OK', {}).get('conclusion') != 'success':
         raise ValueError('Green workflow has no successful CI OK gate; refusing release proof.')
     build = latest.get('tests / Build and smoke UI', {})
@@ -157,12 +162,13 @@ def wait_for_beta_ci(commit, cache=None):
     while True:
         status = beta_ci_status(match[1], commit, branch)
         if status['status'] == 'completed':
-            if status.get('conclusion') != 'success':
+            if status.get('conclusion') != 'success' and not status.get('standard_passed'):
                 if cache:
                     for selector in status.get('failed_cases', []):
                         cache.failed(f'ui:{selector}')
                 raise ValueError(f'Exact-commit CI {status.get("run_id")} failed: {status.get("conclusion")}')
-            print(f'Green CI: https://github.com/{match[1]}/actions/runs/{status["run_id"]}', flush=True)
+            label = 'Standard CI passed; advisory UI failed' if status.get('standard_passed') else 'Green CI'
+            print(f'{label}: https://github.com/{match[1]}/actions/runs/{status["run_id"]}', flush=True)
             return status
         if time.monotonic() >= deadline:
             raise ValueError('Exact-commit CI is not green yet; resume this retained deployment after CI completes.')

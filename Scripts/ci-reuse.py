@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reuse only completed exact-commit standard checks with available UI products."""
+"""Reuse completed exact-commit standard checks with available UI products."""
 from __future__ import annotations
 
 import json
@@ -22,9 +22,17 @@ def api(endpoint: str) -> list[dict]:
 
 
 def matching_run(run: dict, sha: str, branch: str) -> bool:
-    required = {"head_sha": sha, "head_branch": branch, "event": "push",
-                "status": "completed", "conclusion": "success"}
-    return all(run.get(key) == value for key, value in required.items())
+    required = {"head_sha": sha, "head_branch": branch, "status": "completed"}
+    verified_event = run.get('event') == 'push' or (
+        run.get('event') == 'workflow_dispatch' and run.get('display_title') == 'Trinket CI (verified)')
+    return (verified_event and run.get('conclusion') in ('success', 'failure')
+            and all(run.get(key) == value for key, value in required.items()))
+
+
+def only_advisory_ui_failed(jobs: list[dict]) -> bool:
+    advisory = {'tests / Exhaustive UI (All)', 'tests / Exhaustive OK (advisory)'}
+    failed = [job for job in jobs if job.get('conclusion') not in ('success', 'skipped')]
+    return bool(failed) and all(job.get('name') in advisory and job.get('conclusion') == 'failure' for job in failed)
 
 
 def successful_build_step(build: dict, sha: str) -> bool:
@@ -87,6 +95,11 @@ def proof(run: dict, jobs: list[dict], artifacts: list[dict], sha: str, branch: 
           *, history: list[dict] | None = None) -> dict[str, str] | None:
     if not matching_run(run, sha, branch):
         return None
+    if run.get('conclusion') == 'failure':
+        # An advisory UI failure does not invalidate an independently green CI OK.
+        # Unknown, cancelled, or required-job failures must still fail closed.
+        if not only_advisory_ui_failed(jobs):
+            return None
     successful = {job.get("name"): job for job in jobs if job.get("conclusion") == "success"}
     required = {"tests / CI OK", "tests / gate / Generate and style"}
     required.update(f"tests / Unit tests ({shard})" for shard in SHARDS)
@@ -128,8 +141,7 @@ def find_proof(repository: str, sha: str, branch: str, run_id: str, products_onl
     if products_only:
         fallback['products'] = 'false'
     try:
-        event = '' if products_only else 'event=push&'
-        pages = api(f"repos/{repository}/actions/workflows/ci.yml/runs?{event}head_sha={sha}&per_page=20")
+        pages = api(f"repos/{repository}/actions/workflows/ci.yml/runs?head_sha={sha}&per_page=20")
         for run in (run for page in pages for run in page.get("workflow_runs", []) if isinstance(run, dict)):
             if (str(run.get("id")) == run_id or run.get('head_sha') != sha or run.get('head_branch') != branch
                     or (not products_only and not matching_run(run, sha, branch))):

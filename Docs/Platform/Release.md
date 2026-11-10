@@ -176,11 +176,13 @@ artifacts while awaiting CI. Signing credentials remain on the Mac.
 [Verification internals](VerificationInternals.md#testflight-evidence-and-reuse)
 owns proof identity, selector checkpoints and cache mechanics.
 
-FullUI runs nightly and on demand. Use `--full-ui` before an App Store candidate
-to require the exact-source hosted portfolio assessment alongside critical-journey
-assessment and green CI. Capability gaps are retained as gaps, not passed tests;
-known game/save/purchase defects still need resolution. There is no automatic
-local test fallback. Use `test-deploy.sh --mode ui` for an explicitly requested local pass.
+FullUI runs nightly and on demand as advisory coverage. App Store candidates use
+the same exact-source critical-journey assessment and green standard CI as internal
+betas; screenshot capture and unrelated broad UI journeys do not delay submission.
+Use `--full-ui` when a specific candidate needs that portfolio as a gate. Capability
+gaps are retained as gaps, not passed tests; known game/save/purchase defects still
+need resolution. There is no automatic local test fallback. Use
+`test-deploy.sh --mode ui` for an explicitly requested local pass.
 
 The command preserves the marketing version and allocates a build number above
 Apple's existing builds for that version, the project baseline, and retained

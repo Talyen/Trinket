@@ -118,6 +118,29 @@ class CIEffortTests(unittest.TestCase):
         jobs.append(dict(name='tests / Prepared asset integrity', conclusion='success'))
         self.assertEqual(REUSE.proof(run, jobs, artifacts, 'abc', 'main')['assets'], 'true')
 
+    def test_advisory_failure_does_not_discard_proven_standard_checks(self):
+        run, jobs, artifacts = self.proof_fixture()
+        failed_run = {**run, 'event': 'workflow_dispatch', 'display_title': 'Trinket CI (verified)',
+                      'conclusion': 'failure'}
+        advisory = [dict(name='tests / Exhaustive UI (All)', conclusion='failure'),
+                    dict(name='tests / Exhaustive OK (advisory)', conclusion='failure')]
+        self.assertEqual(REUSE.proof(failed_run, jobs + advisory, artifacts, 'abc', 'main')['standard'], 'true')
+        for extra in (dict(name='tests / Unit tests (Battle)', conclusion='failure'),
+                      dict(name='unknown job', conclusion='failure'),
+                      dict(name='tests / Exhaustive UI (All)', conclusion='cancelled')):
+            self.assertIsNone(REUSE.proof(failed_run, jobs + advisory + [extra], artifacts, 'abc', 'main'))
+        for changes in ({'display_title': 'Trinket CI (latest)'}, {'event': 'schedule'},
+                        {'status': 'in_progress'}, {'conclusion': 'cancelled'}):
+            self.assertIsNone(REUSE.proof({**failed_run, **changes}, jobs + advisory, artifacts, 'abc', 'main'))
+        altered = copy.deepcopy(jobs)
+        next(job for job in altered if job['name'] == 'tests / CI OK')['conclusion'] = 'failure'
+        self.assertIsNone(REUSE.proof(failed_run, altered + advisory, artifacts, 'abc', 'main'))
+        self.assertIsNone(REUSE.proof(failed_run, jobs, artifacts, 'abc', 'main'))
+
+        responses = [[{'workflow_runs': [failed_run]}], [{'jobs': jobs + advisory}], [{'artifacts': artifacts}]]
+        with patch.object(REUSE, 'api', side_effect=responses):
+            self.assertEqual(REUSE.find_proof('owner/repo', 'abc', 'main', '20')['run-id'], '10')
+
     def test_reuse_reads_successful_prior_attempts_but_latest_failure_wins(self):
         run, jobs, artifacts = self.proof_fixture()
         jobs = [{**job, 'id': index + 1} for index, job in enumerate(jobs)]

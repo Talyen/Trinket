@@ -403,6 +403,33 @@ error: -[TrinketUITests.AudioTests testMusic] : Failed
             status([run], jobs[1:])
         self.assertEqual(status([run, {**run, 'id': 11, 'conclusion': 'failure'}])['conclusion'], 'failure')
 
+    def test_beta_accepts_proven_standard_checks_without_claiming_advisory_success(self):
+        run = dict(id=10, head_sha='abc', head_branch='main', event='workflow_dispatch',
+                   display_title='Trinket CI (verified)', status='completed', conclusion='failure')
+        jobs = [dict(id=1, name='tests / CI OK', conclusion='success'),
+                dict(id=2, name='tests / Build and smoke UI', conclusion='success',
+                     steps=[dict(name='Run smoke on the build runner', conclusion='success'),
+                            dict(name='Record completed Smoke execution', conclusion='success')]),
+                dict(id=3, name='tests / Exhaustive UI (All)', conclusion='failure')]
+        artifacts = [dict(name='build-derived-data-10-1', expired=False)]
+        responses = [[dict(workflow_runs=[run])], [dict(jobs=jobs)], [dict(artifacts=artifacts)]]
+        with patch.object(DEPLOY.REUSE, 'api', side_effect=responses), \
+                patch.object(DEPLOY.REUSE, 'proof', return_value={'standard': 'true'}) as proof:
+            result = DEPLOY.beta_ci_status('owner/repo', 'abc', 'main')
+        self.assertEqual(result['conclusion'], 'failure')
+        self.assertTrue(result['standard_passed'])
+        self.assertTrue(result['smoke'])
+        proof.assert_called_once_with(run, jobs, artifacts, 'abc', 'main', history=jobs)
+
+        with patch.object(DEPLOY, 'capture', side_effect=['https://github.com/owner/repo.git', 'origin/main']), \
+                patch.object(DEPLOY, 'beta_ci_status', return_value=result):
+            self.assertEqual(DEPLOY.wait_for_beta_ci('abc'), result)
+        responses = [[dict(workflow_runs=[run])], [dict(jobs=jobs)], [dict(artifacts=artifacts)]]
+        with patch.object(DEPLOY.REUSE, 'api', side_effect=responses), \
+                patch.object(DEPLOY.REUSE, 'proof', return_value=None), \
+                patch.object(DEPLOY, 'failed_ui_cases', return_value=[]):
+            self.assertFalse(DEPLOY.beta_ci_status('owner/repo', 'abc', 'main')['standard_passed'])
+
     def test_ui_overlaps_hosted_verification_and_missing_proof_runs_all_remaining_checks(self):
         for hosted in (None, {'run-id': '10'}):
             with self.subTest(hosted=hosted), tempfile.TemporaryDirectory() as directory:

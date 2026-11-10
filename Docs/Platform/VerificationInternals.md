@@ -230,7 +230,11 @@ Skipped jobs,
 ambiguous or expired products, and unreadable evidence fall back to ordinary
 verification. Asset verification is reused only with its own successful job evidence;
 standard manual device Release compilation still runs. New pushes supersede obsolete branch runs.
-See [ci-reuse.py](../../Scripts/ci-reuse.py) for the proof contract. Exact shards, artifact contracts, cache inputs, and remaining advisory
+See [ci-reuse.py](../../Scripts/ci-reuse.py) for the proof contract. A completed
+verified exact-commit run with a green standard gate may reuse its independently
+proven standard jobs and build product even if only exhaustive UI advisory jobs
+failed. Missing, failed, or cancelled required jobs still reject reuse; advisory
+coverage is never reported as passed by this reuse. Exact shards, artifact contracts, cache inputs, and remaining advisory
 job behavior belong to the checked-in workflows ([tests.yml](../../.github/workflows/tests.yml) and
 related workflow files); update this guide only when the verification policy
 changes.
@@ -359,7 +363,7 @@ still distinguish automated execution from visual, hardware and live-service pro
 
 ## TestFlight evidence and reuse
 
-Routine beta verification uses green exact-commit CI, actual Smoke, and qualified
+Routine beta verification uses green exact-commit standard CI, actual Smoke, and qualified
 high-risk journeys selected against the last available beta. FullUI remains
 nightly/on-demand; `testflight.sh --full-ui` and `release.sh` retain the complete
 portfolio. Use `--mode smoke` for the optional local canary. Beta selectors batch
@@ -367,6 +371,9 @@ by Smoke/FullUI plan with StoreKit configuration and exact-method execution proo
 `testflight.sh --full-ui` requires the latest executed exact-commit verified
 FullUI job and its test execution step to pass, alongside ordinary beta evidence.
 The optional local UI command retains per-class phases.
+An advisory-only FullUI failure can coexist with independently proven standard CI;
+the deployment receipt retains the workflow's failure and the separate standard
+proof rather than reporting the advisory portfolio as passed.
 
 Successful journey inputs and failed-class markers are retained in a hosted cache.
 Reuse compares committed app, resources, configuration, tooling, shared helpers,
