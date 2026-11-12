@@ -172,6 +172,6 @@ struct BattleFeedbackLaneTests {
         lane.record([
             makeEvent(id: 4, kind: .effect(.cardsDrawn), amount: 2, keyword: .mana),
         ], environment: environment, actionGroupID: 3)
-        #expect(sounds == [[SFXID.blockAbsorb], [SFXID.hitPiercing], [SFXID.abilityDraw]])
+        #expect(sounds == [[SFXID.blockAbsorb], [SFXID.hitPiercing]])
     }
 }

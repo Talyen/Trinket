@@ -39,9 +39,8 @@ struct BossIdleOrder {
     private var remaining: [Int] = []
     private var previous: Int?
 
-    init(count: Int, previous: Int? = nil) {
+    init(count: Int) {
         self.count = count
-        self.previous = previous
     }
 
     mutating func next() -> Int? {
@@ -60,16 +59,17 @@ struct BossIdleOrder {
 
 struct BossIdleArtwork: UIViewRepresentable {
     let clips: [URL]
-    let isActive: Bool
+    let isVisible: Bool
+    let isForeground: Bool
 
     func makeUIView(context _: Context) -> BossIdlePlayerView {
         let view = BossIdlePlayerView()
-        view.prepare(clips: clips, isActive: isActive)
+        view.prepare(clips: clips, isVisible: isVisible, isForeground: isForeground)
         return view
     }
 
     func updateUIView(_ view: BossIdlePlayerView, context _: Context) {
-        view.setActive(isActive)
+        view.updatePresentation(isVisible: isVisible, isForeground: isForeground)
     }
 
     static func dismantleUIView(_ view: BossIdlePlayerView, coordinator _: ()) {
@@ -86,7 +86,7 @@ struct BossIdleHandoff {
 
     private(set) var active: Int?
     private var ready = [false, false]
-    private var ended = false
+    private var reachedSeam = false
 
     mutating func markReady(_ slot: Int) -> Action? {
         guard ready.indices.contains(slot) else { return nil }
@@ -98,9 +98,9 @@ struct BossIdleHandoff {
         return transitionIfReady()
     }
 
-    mutating func markEnded(_ slot: Int) -> Action? {
+    mutating func markSeam(_ slot: Int) -> Action? {
         guard active == slot else { return nil }
-        ended = true
+        reachedSeam = true
         return transitionIfReady()
     }
 
@@ -110,9 +110,9 @@ struct BossIdleHandoff {
     }
 
     private mutating func transitionIfReady() -> Action? {
-        guard ended, let current = active, ready[1 - current] else { return nil }
+        guard reachedSeam, let current = active, ready[1 - current] else { return nil }
         let next = 1 - current
-        ended = false
+        reachedSeam = false
         active = next
         return .transition(from: current, to: next)
     }
@@ -122,18 +122,17 @@ struct BossIdleHandoff {
 final class BossIdlePlayerView: UIView {
     private final class Slot {
         var id = UUID()
-        var clip = 0
         let player = AVPlayer()
         var layer = AVPlayerLayer()
         var readyObservation: NSKeyValueObservation?
         var statusObservation: NSKeyValueObservation?
+        var seamObserver: Any?
         var endObserver: NSObjectProtocol?
         var failureObserver: NSObjectProtocol?
 
-        func reset(clip: Int) {
+        func reset() {
             invalidate()
             id = UUID()
-            self.clip = clip
             // A fresh layer cannot report the previous clip's display readiness.
             layer = AVPlayerLayer()
         }
@@ -141,6 +140,10 @@ final class BossIdlePlayerView: UIView {
         func invalidate() {
             readyObservation = nil
             statusObservation = nil
+            if let seamObserver {
+                player.removeTimeObserver(seamObserver)
+                self.seamObserver = nil
+            }
             if let endObserver {
                 NotificationCenter.default.removeObserver(endObserver)
             }
@@ -155,17 +158,18 @@ final class BossIdlePlayerView: UIView {
     }
 
     private var clips: [URL] = []
-    private var cachedAssets: [BossIdleCachedAsset] = []
+    private var cachedAssets: [(cached: BossIdleCachedAsset, duration: CMTime)] = []
     private var slots: [Slot?] = [nil, nil]
     private var order = BossIdleOrder(count: 0)
     private var handoff = BossIdleHandoff()
     private var preparation: Task<Void, Never>?
     private var recycle: Task<Void, Never>?
     private var memoryObserver: NSObjectProtocol?
-    private var active = false
+    private var shouldPlay = false
     private var memoryPressure = false
     private var generation = 0
-    private var lastDisplayedClip: Int?
+    private static let overlap: TimeInterval = 0.14
+    private static let dissolve: TimeInterval = 0.10
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -196,26 +200,31 @@ final class BossIdlePlayerView: UIView {
         CATransaction.commit()
     }
 
-    func prepare(clips: [URL], isActive: Bool) {
+    func prepare(clips: [URL], isVisible: Bool, isForeground: Bool) {
         self.clips = clips
-        active = isActive
-        if active {
-            start()
-        }
+        updatePresentation(isVisible: isVisible, isForeground: isForeground)
     }
 
-    func setActive(_ isActive: Bool) {
-        guard active != isActive else { return }
-        active = isActive
-        if active, !memoryPressure {
-            start()
+    func updatePresentation(isVisible: Bool, isForeground: Bool) {
+        let shouldPlay = isVisible && isForeground
+        guard self.shouldPlay != shouldPlay else { return }
+        self.shouldPlay = shouldPlay
+        if shouldPlay {
+            if let index = handoff.active {
+                slots[index]?.player.play()
+            } else {
+                start()
+            }
         } else {
-            clearPlayback()
+            // Retain the decoded frame, clip order, and standby item across app switches.
+            for slot in slots {
+                slot?.player.pause()
+            }
         }
     }
 
     func stop() {
-        active = false
+        shouldPlay = false
         clearPlayback()
         if let memoryObserver {
             NotificationCenter.default.removeObserver(memoryObserver)
@@ -225,7 +234,7 @@ final class BossIdlePlayerView: UIView {
     }
 
     private func start() {
-        guard preparation == nil, !clips.isEmpty, !memoryPressure else { return }
+        guard preparation == nil, cachedAssets.isEmpty, !clips.isEmpty, !memoryPressure else { return }
         generation += 1
         let expectedGeneration = generation
         let urls = clips
@@ -241,14 +250,17 @@ final class BossIdlePlayerView: UIView {
                 let cacheID = UUID().uuidString
                 let assets = data.enumerated().compactMap { BossIdleCachedAsset(data: $0.element, name: "\(cacheID)-clip-\($0.offset)") }
                 guard assets.count == data.count else { throw BossIdleClipCache.Failure.empty }
+                var prepared: [(cached: BossIdleCachedAsset, duration: CMTime)] = []
                 for asset in assets {
                     guard try await asset.asset.load(.isPlayable) else { throw BossIdleClipCache.Failure.empty }
-                    _ = try await asset.asset.load(.duration, .tracks)
+                    let (duration, _) = try await asset.asset.load(.duration, .tracks)
+                    prepared.append((asset, duration))
                     try Task.checkCancellation()
                 }
-                guard let self, active, generation == expectedGeneration else { return }
-                cachedAssets = assets
-                order = BossIdleOrder(count: assets.count, previous: lastDisplayedClip)
+                guard let self, generation == expectedGeneration else { return }
+                preparation = nil
+                cachedAssets = prepared
+                order = BossIdleOrder(count: prepared.count)
                 handoff = BossIdleHandoff()
                 prepareSlot(0)
                 prepareSlot(1)
@@ -260,10 +272,10 @@ final class BossIdlePlayerView: UIView {
     }
 
     private func prepareSlot(_ index: Int) {
-        guard active, let clip = order.next(), cachedAssets.indices.contains(clip) else { return }
+        guard let clip = order.next(), cachedAssets.indices.contains(clip) else { return }
         handoff.reset(index)
         let slot = slots[index] ?? Slot()
-        slot.reset(clip: clip)
+        slot.reset()
         let id = slot.id
         slots[index] = slot
         slot.player.isMuted = true
@@ -273,11 +285,12 @@ final class BossIdlePlayerView: UIView {
         slot.layer.opacity = 0
         slot.layer.player = slot.player
         layer.addSublayer(slot.layer)
-        let item = AVPlayerItem(asset: cachedAssets[clip].asset)
+        let asset = cachedAssets[clip]
+        let item = AVPlayerItem(asset: asset.cached.asset)
         slot.endObserver = NotificationCenter.default.addObserver(
             forName: .AVPlayerItemDidPlayToEndTime, object: item, queue: .main,
         ) { [weak self] _ in
-            Task { @MainActor [weak self] in self?.itemEnded(index, id: id) }
+            Task { @MainActor [weak self] in self?.itemReachedSeam(index, id: id) }
         }
         slot.failureObserver = NotificationCenter.default.addObserver(
             forName: .AVPlayerItemFailedToPlayToEndTime, object: item, queue: .main,
@@ -293,16 +306,23 @@ final class BossIdlePlayerView: UIView {
             Task { @MainActor [weak self] in self?.itemReady(index, id: id) }
         }
         slot.player.replaceCurrentItem(with: item)
+        let seam = asset.duration.seconds - Self.overlap
+        if seam.isFinite, seam > 0 {
+            let time = CMTime(seconds: seam, preferredTimescale: 600)
+            slot.seamObserver = slot.player.addBoundaryTimeObserver(forTimes: [NSValue(time: time)], queue: .main) { [weak self] in
+                MainActor.assumeIsolated { self?.itemReachedSeam(index, id: id) }
+            }
+        }
     }
 
     private func itemReady(_ index: Int, id: UUID) {
-        guard active, slots[index]?.id == id else { return }
+        guard slots[index]?.id == id else { return }
         perform(handoff.markReady(index))
     }
 
-    private func itemEnded(_ index: Int, id: UUID) {
-        guard active, slots[index]?.id == id else { return }
-        perform(handoff.markEnded(index))
+    private func itemReachedSeam(_ index: Int, id: UUID) {
+        guard slots[index]?.id == id else { return }
+        perform(handoff.markSeam(index))
     }
 
     private func itemFailed(_ index: Int, id: UUID) {
@@ -314,29 +334,32 @@ final class BossIdlePlayerView: UIView {
         switch action {
         case let .show(index):
             guard let slot = slots[index] else { return }
-            lastDisplayedClip = slot.clip
             CATransaction.begin()
             CATransaction.setDisableActions(true)
             slot.layer.opacity = 1
             CATransaction.commit()
-            fadeIn(slot.layer)
-            slot.player.play()
+            if shouldPlay {
+                slot.player.play()
+            }
         case let .transition(from, to):
             guard let outgoing = slots[from], let incoming = slots[to] else { return }
-            lastDisplayedClip = incoming.clip
             CATransaction.begin()
             CATransaction.setDisableActions(true)
             outgoing.layer.zPosition = 0
             incoming.layer.zPosition = 1
             incoming.layer.opacity = 1
+            if shouldPlay {
+                fadeIn(incoming.layer)
+            }
             CATransaction.commit()
-            fadeIn(incoming.layer)
-            incoming.player.play()
+            if shouldPlay {
+                incoming.player.play()
+            }
             let expectedGeneration = generation
             recycle?.cancel()
             recycle = Task { [weak self] in
-                try? await Task.sleep(for: .milliseconds(180))
-                guard !Task.isCancelled, let self, active, generation == expectedGeneration else { return }
+                try? await Task.sleep(for: .seconds(Self.dissolve))
+                guard !Task.isCancelled, let self, generation == expectedGeneration else { return }
                 prepareSlot(from)
             }
         case nil:
@@ -348,7 +371,7 @@ final class BossIdlePlayerView: UIView {
         let fade = CABasicAnimation(keyPath: "opacity")
         fade.fromValue = 0
         fade.toValue = 1
-        fade.duration = 0.18
+        fade.duration = Self.dissolve
         layer.add(fade, forKey: "boss-idle-crossfade")
     }
 

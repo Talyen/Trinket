@@ -67,7 +67,7 @@ struct BattleCombatantPane: View {
                 .animation(BattleMotion.scrim, value: isDefeated)
             }
         }
-        .buttonStyle(.plain)
+        .trinketArtworkCardButtonStyle()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketPresentationVisibility(!isDefeated, opacity: 1)
         .accessibilityIdentifier(AccessibilityID.CombatantDetail.battleCard(name: combatant.name))
@@ -147,7 +147,7 @@ struct BattleCombatantPane: View {
             .overlay {
                 if recoilDirection == .up, !isDefeated, !reduceMotion,
                    let clips = BossIdleCatalog.clips(for: combatant.id) {
-                    BossIdleArtwork(clips: clips, isActive: scenePhase == .active && isVisible)
+                    BossIdleArtwork(clips: clips, isVisible: isVisible, isForeground: scenePhase == .active)
                         .id(combatant.id)
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)

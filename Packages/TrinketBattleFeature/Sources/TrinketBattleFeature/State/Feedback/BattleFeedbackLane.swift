@@ -113,26 +113,43 @@ final class BattleFeedbackLane {
         environment: BattlePresentationDependencies = .silent,
         actionGroupID: Int? = nil,
         damage: [BattleResolvedDamage] = [],
-        didDrawCards: Bool = false,
+        showsChips: Bool = true,
     ) {
         pruneExpired(at: date)
-        presentSound(events, damage: damage, actionGroupID: actionGroupID, didDrawCards: didDrawCards, environment: environment)
+        presentSound(events, damage: damage, actionGroupID: actionGroupID, environment: environment)
+        let prepared = if showsChips {
+            newFeedbackItems(for: events, at: date, actionGroupID: actionGroupID)
+        } else {
+            CombatFeedbackPresenter.makeItems(from: events, at: date, actionGroupID: actionGroupID)
+        }
+        if showsChips {
+            publishChips(prepared, at: date)
+        }
+        applyHitReactions(for: prepared, damage: damage, at: date, usesChipLifetime: showsChips)
+        updatePruneDate()
+    }
+
+    func recordImmediateChips(_ events: [ActionEvent], at date: Date, actionGroupID: Int) {
+        publishChips(newFeedbackItems(for: events, at: date, actionGroupID: actionGroupID), at: date, immediately: true)
+    }
+
+    private func newFeedbackItems(for events: [ActionEvent], at date: Date, actionGroupID: Int?) -> [CombatFeedbackItem] {
         let knownIDs = Set(activeItems.lazy.flatMap(\.sourceEventIDs))
-        let prepared = CombatFeedbackPresenter.makeItems(
+        return CombatFeedbackPresenter.makeItems(
             from: knownIDs.isEmpty ? events : events.filter { !knownIDs.contains($0.id) },
             at: date,
             actionGroupID: actionGroupID,
         )
-        guard !prepared.isEmpty || !damage.isEmpty else { return }
+    }
 
+    private func publishChips(_ items: [CombatFeedbackItem], at date: Date, immediately: Bool = false) {
+        guard !items.isEmpty else { return }
         var candidates = CombatFeedbackMergeCandidates(items: activeItems)
         var changedIndices: Set<Int> = []
-        for item in prepared {
-            changedIndices.insert(recordStationary(item, at: date, candidates: &candidates))
+        for item in items {
+            changedIndices.insert(recordStationary(item, at: date, immediately: immediately, candidates: &candidates))
         }
         publish(.patch(changedIndices.sorted().map { activeItems[$0] }))
-        applyHitReactions(for: prepared, damage: damage, at: date)
-        updatePruneDate()
     }
 
     func prepareScheduler() {
@@ -242,7 +259,7 @@ final class BattleFeedbackLane {
     }
 
     private func presentSound(
-        _ events: [ActionEvent], damage: [BattleResolvedDamage], actionGroupID: Int?, didDrawCards: Bool,
+        _ events: [ActionEvent], damage: [BattleResolvedDamage], actionGroupID: Int?,
         environment: BattlePresentationDependencies,
     ) {
         if let actionGroupID, !soundGroupIDs.insert(actionGroupID).inserted {
@@ -250,7 +267,7 @@ final class BattleFeedbackLane {
         }
         let fresh = events.filter { soundEventIDs.insert($0.id).inserted }
         guard events.isEmpty || !fresh.isEmpty else { return }
-        if let clip = CombatSFXMapper.clipID(for: fresh, damage: damage, didDrawCards: didDrawCards) {
+        if let clip = CombatSFXMapper.clipID(for: fresh, damage: damage) {
             environment.playSFX([clip])
         }
     }
@@ -259,6 +276,7 @@ final class BattleFeedbackLane {
         for due: [CombatFeedbackItem],
         damage: [BattleResolvedDamage],
         at date: Date,
+        usesChipLifetime: Bool,
     ) {
         guard !due.isEmpty || !damage.isEmpty else { return }
         let recordedTargets = Set(damage.lazy.filter { $0.reactionKind != nil }.map(\.targetID))
@@ -274,19 +292,17 @@ final class BattleFeedbackLane {
             strongestItems[item.targetID] = item
         }
         for (targetID, item) in strongestItems {
-            reactions[targetID] = CombatantHitReaction(
-                id: item.id,
-                kind: item.isCritical && item.reactionKind == .damage ? .critical : item.reactionKind,
-            )
+            let kind: CombatantHitReactionKind = item.isCritical && item.reactionKind == .damage ? .critical : item.reactionKind
+            reactions[targetID] = usesChipLifetime
+                ? CombatantHitReaction(id: item.id, kind: kind)
+                : timedHitReaction(kind, for: targetID, at: date)
         }
         for hit in damage {
             guard let kind = hit.reactionKind else { continue }
             if let current = reactions[hit.targetID], current.kind.priority >= kind.priority {
                 continue
             }
-            nextRecordedHitID += 1
-            reactions[hit.targetID] = CombatantHitReaction(id: nextRecordedHitID, kind: kind)
-            recordedHitExpirations[hit.targetID] = (nextRecordedHitID, date.addingTimeInterval(BattleMotion.chipDisplayDuration))
+            reactions[hit.targetID] = timedHitReaction(kind, for: hit.targetID, at: date)
         }
         for (targetID, reaction) in reactions {
             hitReactionsByTargetID[targetID] = reaction
@@ -294,5 +310,11 @@ final class BattleFeedbackLane {
         if !reactions.isEmpty {
             noteHitReactionsChanged(for: Set(reactions.keys))
         }
+    }
+
+    private func timedHitReaction(_ kind: CombatantHitReactionKind, for targetID: String, at date: Date) -> CombatantHitReaction {
+        nextRecordedHitID += 1
+        recordedHitExpirations[targetID] = (nextRecordedHitID, date.addingTimeInterval(BattleMotion.chipDisplayDuration))
+        return CombatantHitReaction(id: nextRecordedHitID, kind: kind)
     }
 }

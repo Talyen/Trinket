@@ -18,15 +18,6 @@ struct BossIdleArtworkTests {
         }
     }
 
-    @Test func `a restarted battle player does not repeat its last visible clip`() {
-        for previous in 0 ..< 5 {
-            for _ in 0 ..< 30 {
-                var order = BossIdleOrder(count: 5, previous: previous)
-                #expect(order.next() != previous)
-            }
-        }
-    }
-
     @Test func `every boss has its complete bundled clip set`() {
         for (id, count) in [
             ("the_blight_treant", 3), ("the_forge_golem", 3), ("the_frostwarden", 3),
@@ -65,21 +56,21 @@ struct BossIdleArtworkTests {
     @Test func `outgoing frame remains until the next frame is ready`() {
         var handoff = BossIdleHandoff()
         #expect(handoff.markReady(0) == .show(0))
-        #expect(handoff.markEnded(0) == nil)
+        #expect(handoff.markSeam(0) == nil)
         #expect(handoff.active == 0)
         #expect(handoff.markReady(1) == .transition(from: 0, to: 1))
-        #expect(handoff.markEnded(0) == nil)
+        #expect(handoff.markSeam(0) == nil)
         handoff.reset(0)
-        #expect(handoff.markEnded(1) == nil)
+        #expect(handoff.markSeam(1) == nil)
         #expect(handoff.active == 1)
         #expect(handoff.markReady(0) == .transition(from: 1, to: 0))
     }
 
-    @Test func `a prewarmed next clip waits until the active clip ends`() {
+    @Test func `a prewarmed next clip waits until the active clip reaches the seam`() {
         var handoff = BossIdleHandoff()
         #expect(handoff.markReady(1) == nil)
         #expect(handoff.markReady(0) == .show(0))
-        #expect(handoff.markEnded(0) == .transition(from: 0, to: 1))
+        #expect(handoff.markSeam(0) == .transition(from: 0, to: 1))
         #expect(handoff.markReady(1) == nil)
     }
 
@@ -103,7 +94,7 @@ struct BossIdleArtworkTests {
         let urls = try #require(BossIdleCatalog.clips(for: "the_blood_countess"))
         var player: BossIdlePlayerView? = BossIdlePlayerView()
         weak var retiredPlayer = player
-        player?.prepare(clips: urls, isActive: true)
+        player?.prepare(clips: urls, isVisible: true, isForeground: true)
         player?.stop()
         player = nil
         await Task.yield()

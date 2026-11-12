@@ -36,7 +36,7 @@ final class MusicPlayer {
 
     private struct Fade: Sendable {
         let id: UUID
-        let outgoing: any MusicPlaybackVoice
+        let outgoing: (any MusicPlaybackVoice)?
         let task: Task<Void, Never>
     }
 
@@ -52,6 +52,8 @@ final class MusicPlayer {
     private var audioChangeObservers: [MainActorCleanup] = []
     private(set) var needsMediaServicesRecovery = false
     private static let maxResumePositions = 32
+    /// The first lyric starts at 30.94 seconds on the original media clock.
+    private static let forgeGolemEntryTime: TimeInterval = 28.5
 
     init(
         isDisabled: Bool,
@@ -90,7 +92,7 @@ final class MusicPlayer {
             if case let .prepared(track) = pending {
                 track.voice.stop()
             }
-            fade?.outgoing.stop()
+            fade?.outgoing?.stop()
             current?.voice.stop()
         }
     }
@@ -172,7 +174,7 @@ final class MusicPlayer {
         let previous = fade
         fade = nil
         previous?.task.cancel()
-        previous?.outgoing.stop()
+        previous?.outgoing?.stop()
     }
 
     func clearEncounterResumePositions() {
@@ -246,16 +248,20 @@ final class MusicPlayer {
         cancelActiveFades()
         let outgoing = current?.voice
         current = track
-        applyResumePosition(track)
+        let savedPosition = resumePositions[track.request.resumeKey]
+        let entryTime = track.request.track.id == "boss_forge_golem" ? Self.forgeGolemEntryTime : 0
+        let position = savedPosition ?? entryTime
+        track.voice.currentTime = max(0, min(position, track.duration - 0.05))
         let target = targetVolume(for: track.request, appVolume: volume)
-        let shouldFade = crossfade && outgoing != nil
-        configure(track.voice, request: track.request, volume: shouldFade ? 0 : target)
-        if !shouldFade {
+        let fadesOutgoing = crossfade && outgoing != nil
+        let fadesIncoming = fadesOutgoing || (savedPosition == nil && entryTime > 0)
+        configure(track.voice, request: track.request, volume: fadesIncoming ? 0 : target)
+        if !fadesOutgoing {
             outgoing?.stop()
         }
         track.voice.start()
-        if shouldFade, let outgoing {
-            startFade(outgoing: outgoing, incoming: track.voice, target: target)
+        if fadesIncoming {
+            startFade(outgoing: fadesOutgoing ? outgoing : nil, incoming: track.voice, target: target)
         }
     }
 
@@ -276,16 +282,16 @@ final class MusicPlayer {
         }
     }
 
-    private func startFade(outgoing: any MusicPlaybackVoice, incoming: (any MusicPlaybackVoice)?, target: Float) {
+    private func startFade(outgoing: (any MusicPlaybackVoice)?, incoming: (any MusicPlaybackVoice)?, target: Float) {
         let id = UUID()
         let backend = backend
         let duration = Duration.seconds(max(0, fadeDuration) / 18)
-        let startingVolume = outgoing.volume
+        let startingVolume = outgoing?.volume ?? 0
         let task = Task { @MainActor [weak self] in
             for step in 1 ... 18 {
                 guard !Task.isCancelled else { return }
                 let progress = Float(step) / 18
-                outgoing.volume = startingVolume * (1 - progress)
+                outgoing?.volume = startingVolume * (1 - progress)
                 let wasAudible = incoming.map { $0.isPlaying && $0.volume > 0 } ?? false
                 incoming?.volume = target * progress
                 if let incoming, wasAudible != (incoming.isPlaying && incoming.volume > 0) {
@@ -314,11 +320,6 @@ final class MusicPlayer {
         case let .loading(load): load.task.cancel()
         case let .prepared(track): track.voice.stop()
         }
-    }
-
-    private func applyResumePosition(_ track: Track) {
-        let saved = resumePositions[track.request.resumeKey, default: 0]
-        track.voice.currentTime = max(0, min(saved, track.duration - 0.05))
     }
 
     private func configure(_ voice: any MusicPlaybackVoice, request: MusicPlaybackRequest, volume: Float) {

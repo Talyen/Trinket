@@ -60,7 +60,7 @@ extension BattleSession {
             presentCompletedCommand(
                 resolution.playback, at: date, playedCardID: cardID, preparedCardID: preparedCue?.cardID,
                 preparedWindUpEndsAt: preparedCue?.windUpEndsAt(releasedAt: date),
-                handDeparture: handDeparture,
+                handDeparture: handDeparture, showCardResultsImmediately: !isAutomatic,
             )
             return .committed
         } catch {

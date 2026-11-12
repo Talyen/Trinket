@@ -8,86 +8,18 @@ import TrinketFeatureSupport
 @MainActor
 @Observable
 final class BattleCastPresentationState {
-    struct QueuedCard {
-        let id: Int
-        let enqueuedAt: Date
-        let expectedStart: Date
-
-        var duration: TimeInterval {
-            max(0, expectedStart.timeIntervalSince(enqueuedAt))
-        }
-
-        func progress(at date: Date) -> CGFloat {
-            guard duration > 0 else { return 1 }
-            return CGFloat(min(max(date.timeIntervalSince(enqueuedAt) / duration, 0), 1))
-        }
-    }
-
     private(set) var requests: [CardActivationRequest] = []
-    private(set) var queuedCards: [QueuedCard] = []
-    var queuedCardIDs: [Int] {
-        queuedCards.map(\.id)
-    }
 
-    @ObservationIgnored private var queuedActions: [@MainActor (CGFloat) -> Bool] = []
-    @ObservationIgnored private var queueTask: Task<Void, Never>?
     var request: CardActivationRequest? {
         requests.last
     }
 
     func blocksAutoBattle(at date: Date) -> Bool {
-        !queuedCardIDs.isEmpty || requests.contains { request in
+        requests.contains { request in
             let pacingEnd = request.startedAt.addingTimeInterval(BattleMotion.autoBattleCardInterval)
             let completion = request.completionDate(scheduledCast: playback?.handDeparture(id: request.id))
             return (request.pausedAt ?? date) < max(pacingEnd, completion)
         }
-    }
-
-    func shouldQueueManualInput(at date: Date = .now) -> Bool {
-        !queuedCardIDs.isEmpty || requests.contains {
-            $0.pausedAt != nil || date < $0.startedAt.addingTimeInterval(BattleMotion.manualCardInterval)
-        }
-    }
-
-    func queueCard(id: Int, at date: Date = .now, action: @escaping @MainActor (CGFloat) -> Bool) {
-        guard !queuedCardIDs.contains(id) else { return }
-        let firstStart = requests.map { $0.startedAt.addingTimeInterval(BattleMotion.manualCardInterval) }.max() ?? date
-        let expectedStart = max(firstStart, date).addingTimeInterval(Double(queuedCards.count) * BattleMotion.manualCardInterval)
-        queuedCards.append(QueuedCard(id: id, enqueuedAt: date, expectedStart: expectedStart))
-        queuedActions.append(action)
-        scheduleQueuedCard()
-    }
-
-    private func scheduleQueuedCard() {
-        guard queueTask == nil, !queuedCardIDs.isEmpty else { return }
-        let nextStart = requests.map { $0.startedAt.addingTimeInterval(BattleMotion.manualCardInterval) }.max() ?? .now
-        let delay = max(0, nextStart.timeIntervalSinceNow)
-        queueTask = Task { @MainActor [weak self] in
-            if delay > 0 {
-                try? await Task.sleep(for: .seconds(delay))
-            }
-            guard !Task.isCancelled, let self else { return }
-            queueTask = nil
-            playNextQueuedCard()
-        }
-    }
-
-    func playNextQueuedCard(at date: Date = .now) {
-        while !queuedCardIDs.isEmpty {
-            let queuedCard = queuedCards.removeFirst()
-            let action = queuedActions.removeFirst()
-            if action(queuedCard.progress(at: date)) {
-                break
-            }
-        }
-        scheduleQueuedCard()
-    }
-
-    private func clearQueuedCards() {
-        queueTask?.cancel()
-        queueTask = nil
-        queuedCards.removeAll()
-        queuedActions.removeAll()
     }
 
     var stuckResetDelayOverride: TimeInterval?
@@ -124,7 +56,6 @@ final class BattleCastPresentationState {
     }
 
     func reset() {
-        clearQueuedCards()
         for request in requests {
             playback?.remove(id: request.id)
         }
@@ -136,9 +67,6 @@ final class BattleCastPresentationState {
     }
 
     func setSuspended(_ suspended: Bool, at date: Date = .now) {
-        if suspended {
-            clearQueuedCards()
-        }
         for index in requests.indices {
             if suspended, requests[index].pausedAt == nil {
                 requests[index].pausedAt = date
@@ -296,26 +224,6 @@ struct CardActivationRequest: Equatable, Identifiable {
             scale: 1,
             perspective: BattleMotion.cardPerspective,
             keywords: card.ability.presentationKeywords,
-        )
-    }
-
-    static func queuedRequest(
-        for card: BattleCard,
-        index: Int,
-        cardCount: Int,
-        handFrame: CGRect,
-        liftProgress: CGFloat,
-        isPad: Bool = false,
-    ) -> Self {
-        let metrics = BattleHandLayout.metrics(
-            containerWidth: handFrame.width, cardCount: cardCount, handHeight: handFrame.height, isPad: isPad,
-        )
-        var center = BattleHandLayout.restingCenter(index: index, metrics: metrics, cardCount: cardCount, handFrame: handFrame)
-        center.y -= metrics.cardHeight * BattleMotion.queuedCardLiftFraction * liftProgress
-        return handRequest(
-            for: card, center: center, size: CGSize(width: metrics.cardWidth, height: metrics.cardHeight),
-            rotation: BattleHandLayout.rotation(index: index, cardCount: cardCount) * .pi / 180,
-            verticalTilt: 0, scale: CGFloat(BattleMotion.cardHeldScale),
         )
     }
 }

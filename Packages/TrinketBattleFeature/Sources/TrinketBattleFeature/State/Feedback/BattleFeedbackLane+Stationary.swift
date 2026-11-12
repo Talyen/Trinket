@@ -2,12 +2,15 @@ import Foundation
 import TrinketCore
 
 extension BattleFeedbackLane {
-    func recordStationary(_ item: CombatFeedbackItem, at date: Date, candidates: inout CombatFeedbackMergeCandidates) -> Int {
+    func recordStationary(
+        _ item: CombatFeedbackItem, at date: Date, immediately: Bool, candidates: inout CombatFeedbackMergeCandidates,
+    ) -> Int {
         for index in candidates.indices(for: item).reversed() {
             let existing = activeItems[index]
             if date.timeIntervalSince(existing.lastReceivedAt) > 0.25 {
                 continue
             }
+            guard !immediately || existing.availableAt <= date else { continue }
             guard !existing.containsDetonation, !item.containsDetonation,
                   existing.effectKind == item.effectKind, item.effectKind != .controlTriggered,
                   date < existing.expiresAt.addingTimeInterval(-CombatFeedbackMotionSampler.fadeDuration),
@@ -36,6 +39,7 @@ extension BattleFeedbackLane {
             incoming,
             at: date,
             previous: activeItems,
+            immediately: immediately,
         )
         activeItems.append(scheduled)
         let insertedIndex = activeItems.count - 1

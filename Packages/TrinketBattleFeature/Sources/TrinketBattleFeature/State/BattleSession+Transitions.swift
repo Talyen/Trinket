@@ -11,6 +11,7 @@ extension BattleSession {
         preparedCardID: Int? = nil,
         preparedWindUpEndsAt: Date? = nil,
         handDeparture: (id: UUID, card: BattleCard)? = nil,
+        showCardResultsImmediately: Bool = false,
     ) {
         guard activeBattle?.id == playback.configurationID else { return }
         var snapshot = playback.snapshot
@@ -28,21 +29,6 @@ extension BattleSession {
                     .prefix(BattleHand.maxSize))
             }
         }
-        let draws = playback.events.filter { $0.effectKind == .cardsDrawn }
-        let standaloneDraws: [ActionEvent]
-        if draws.isEmpty || playback.actions.isEmpty {
-            standaloneDraws = draws
-        } else {
-            let actionEventIDs = Set(playback.actions.lazy.flatMap(\.eventIDs))
-            standaloneDraws = draws.filter { !actionEventIDs.contains($0.id) }
-        }
-        let hasImplicitDeal = draws.isEmpty && {
-            let previousIDs = Set(presentation.hand.lazy.map(\.id))
-            return playback.snapshot.hand.contains { !previousIDs.contains($0.id) }
-        }()
-        if !standaloneDraws.isEmpty || hasImplicitDeal {
-            feedback.record(standaloneDraws, at: date, environment: dependencies, didDrawCards: hasImplicitDeal)
-        }
         withAnimation(BattleMotion.handReflow) {
             presentation.install(snapshot, includeCombatants: false)
         }
@@ -51,8 +37,8 @@ extension BattleSession {
         feedback.scheduleActions(
             playback, preparedCardID: preparedCardID, preparedWindUpEndsAt: preparedWindUpEndsAt,
             at: date, cardPlayback: cardPlayback,
-            handDeparture: handDeparture,
-        ) { [weak self] events, damage, impactAt, groupID in
+            handDeparture: handDeparture, immediateCardID: showCardResultsImmediately ? playedCardID : nil,
+        ) { [weak self] events, damage, impactAt, groupID, showsChips in
             guard let self, activeBattle?.id == configurationID else { return }
             let enemyWasAlive = (presentation.enemy?.health ?? 0) > 0
             let changes = changesByEventID.isEmpty ? [] : events.sorted { $0.id < $1.id }
@@ -64,6 +50,7 @@ extension BattleSession {
                 environment: dependencies,
                 actionGroupID: groupID,
                 damage: damage,
+                showsChips: showsChips,
             )
             if enemyWasAlive, presentation.enemy?.health == 0, commandState.phase == .outcome, outcome == .victory {
                 publishPartyCelebrateReactions(at: impactAt)

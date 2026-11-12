@@ -296,7 +296,6 @@ struct BattleFieldLane: View {
 
                 BattleHandProjectionLane(
                     presentation: presentation,
-                    castPresentation: castPresentation,
                     hapticsEnabled: hapticsEnabled,
                     onFrameChanged: { frame in
                         if let measuredHandFrame, measuredHandFrame != frame {
@@ -414,7 +413,6 @@ private struct BattleHandProjectionLane: View {
     @Environment(BattleSession.self) private var battleSession
 
     let presentation: BattlePresentationState
-    let castPresentation: BattleCastPresentationState
     let hapticsEnabled: Bool
     let onFrameChanged: (CGRect) -> Void
     let onPlay: (BattleCard, CardActivationRequest) -> Bool
@@ -423,7 +421,6 @@ private struct BattleHandProjectionLane: View {
     let onLiftCancel: (BattleCard) -> Void
 
     @State private var cardPlayFeedbackToken = 0
-    @State private var handFrame: CGRect = .zero
 
     private var input: BattleViewInput {
         BattleViewInput(session: battleSession, presentation: presentation)
@@ -443,36 +440,12 @@ private struct BattleHandProjectionLane: View {
                     input.perform { $0.presentAbilityDetail(card.ability) }
                 },
                 onPlay: { card, request in
-                    if castPresentation.shouldQueueManualInput() {
-                        guard !castPresentation.queuedCardIDs.contains(card.id) else { return false }
-                        onLiftCancel(card)
-                        let queuedTurn = battleSession.engineState?.turnCount
-                        castPresentation.queueCard(id: card.id) { liftProgress in
-                            guard input.isCurrent, battleSession.canInteractWithHand,
-                                  let index = presentation.hand.firstIndex(where: { $0.id == card.id }),
-                                  !handFrame.isEmpty else { return false }
-                            guard presentation.isBattleOver || battleSession.engineState?.turnCount == queuedTurn,
-                                  input.perform({ $0.isHandCardPlayable(card) }) == true else {
-                                input.perform { $0.playPresentationSFX(SFXID.uiDeny) }
-                                return false
-                            }
-                            let queuedRequest = CardActivationRequest.queuedRequest(
-                                for: card, index: index, cardCount: presentation.hand.count, handFrame: handFrame,
-                                liftProgress: liftProgress,
-                                isPad: BattleHandLayout.usesPadSizing,
-                            )
-                            return onPlay(card, queuedRequest)
-                        }
-                        cardPlayFeedbackToken &+= 1
-                        return true
-                    }
                     let didPlay = onPlay(card, request)
                     if didPlay {
                         cardPlayFeedbackToken &+= 1
                     }
                     return didPlay
                 },
-                queuedDuration: { card in castPresentation.queuedCards.first { $0.id == card.id }?.duration },
                 onPlayDenied: { card in
                     input.perform { session in
                         session.denyCardCue(card)
@@ -480,10 +453,7 @@ private struct BattleHandProjectionLane: View {
                     }
                 },
                 hapticsEnabled: hapticsEnabled,
-                onFrameChanged: { frame in
-                    handFrame = frame
-                    onFrameChanged(frame)
-                },
+                onFrameChanged: onFrameChanged,
                 onCardInteractionChanged: onInteractionChanged,
                 onLift: onLift,
                 onLiftCancel: onLiftCancel,

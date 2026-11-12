@@ -305,7 +305,9 @@ final class CombatFeedbackChipBridge {
         }
     }
 
-    func balancedSchedule(_ item: CombatFeedbackItem, at date: Date, previous: [CombatFeedbackItem]) -> CombatFeedbackItem {
+    func balancedSchedule(
+        _ item: CombatFeedbackItem, at date: Date, previous: [CombatFeedbackItem], immediately: Bool,
+    ) -> CombatFeedbackItem {
         let host = hosts.values.first { $0.combatantID == item.targetID && $0.view != nil }
         let bounds = host?.view?.bounds ?? CGRect(x: 0, y: 0, width: 180, height: 250)
         let bottomInset = host?.view?.bottomInset ?? 0
@@ -315,7 +317,9 @@ final class CombatFeedbackChipBridge {
         if case .amount = item.label {
             reserved.reservedDigitCount = item.label.displayString.count + 1
         }
-        return BalancedFeedbackMotion.schedule(reserved, at: date, previous: previous, bounds: bounds, bottomInset: bottomInset) { item in
+        return BalancedFeedbackMotion.schedule(
+            reserved, at: date, previous: previous, bounds: bounds, bottomInset: bottomInset, immediately: immediately,
+        ) { item in
             self.rasterPool.prepare(for: item, layoutDirection: direction, displayScale: displayScale)
         }
     }

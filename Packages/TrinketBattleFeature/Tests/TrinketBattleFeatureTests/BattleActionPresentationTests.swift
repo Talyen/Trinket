@@ -20,7 +20,7 @@ private func durableActingEnemy(abilities: [Ability]) -> Combatant {
 @MainActor
 struct BattleActionPresentationTests {
     @Test(arguments: [false, true])
-    func `tap and prepared drag deliver results once at the swing apex`(prepared: Bool) throws {
+    func `tap and prepared drag show results on release and react once at the apex`(prepared: Bool) throws {
         var sounds: [[String]] = []
         let environment = BattlePresentationDependencies(
             playSFX: { sounds.append($0) }, warmSFX: { _, _ in }, hapticsEnabled: { true },
@@ -39,7 +39,8 @@ struct BattleActionPresentationTests {
         #expect(session.playCard(cardID: card.id, at: date) == .committed)
         #expect(session.canEndTurn)
         #expect((session.engineState?.roster.enemy.currentHealth ?? health) < health)
-        #expect(session.feedback.activeItems.isEmpty)
+        let committedChips = session.feedback.activeItems
+        #expect(committedChips.contains { $0.targetID == enemyID && $0.availableAt == date })
         #expect(session.presentation.enemy?.health == health)
         let actorID = try #require(session.heroID)
         #expect(session.feedback.attackReactionsByCombatantID[actorID]?.phase == (prepared ? .swing : .windUp))
@@ -60,7 +61,7 @@ struct BattleActionPresentationTests {
         session.feedback.advance(to: beat.impactAt)
         let results = session.feedback.activeItems
         let impactSounds = sounds
-        #expect(results.contains { $0.targetID == enemyID && $0.availableAt == beat.impactAt })
+        #expect(results == committedChips)
         #expect(!impactSounds.isEmpty)
         #expect(session.presentation.enemy?.health == session.engineState?.roster.enemy.currentHealth)
         session.feedback.advance(to: beat.impactAt)
@@ -113,7 +114,7 @@ struct BattleActionPresentationTests {
     }
 
     @Test(arguments: [false, true])
-    func `manual and automatic plays share impact delivery with auto battle enabled`(isAutomatic: Bool) throws {
+    func `manual and automatic plays use distinct chip timing with auto battle enabled`(isAutomatic: Bool) throws {
         let environment = BattlePresentationDependencies(
             playSFX: { _ in }, warmSFX: { _, _ in }, hapticsEnabled: { false },
             rememberAutoBattlePreference: { true }, autoBattleEnabled: { true },
@@ -127,7 +128,7 @@ struct BattleActionPresentationTests {
         #expect(session.isAutoBattleEnabled)
         #expect(session.playCard(cardID: card.id, isAutomatic: isAutomatic) == .committed)
         let beat = try #require(session.feedback.scheduledActions.first)
-        #expect(session.feedback.activeItems.isEmpty)
+        #expect(session.feedback.activeItems.isEmpty == isAutomatic)
         #expect(abs(beat.swingAt.timeIntervalSince(beat.startAt) - 0.10) < 0.001)
         #expect(abs(beat.impactAt.timeIntervalSince(beat.swingAt) - 0.15) < 0.001)
         #expect(beat.recoveryDuration == 0.45)
@@ -136,7 +137,7 @@ struct BattleActionPresentationTests {
     }
 
     @Test(arguments: [Ability.block, .heal, .slash])
-    func `a following manual card stays playable and waits for its own impact`(ability: Ability) throws {
+    func `a following manual card shows its result while the first attack is pending`(ability: Ability) throws {
         let session = BattleSessionTestSupport.makePassiveSession()
         defer { session.endBattle() }
         var state = try #require(session.engineState)
@@ -155,9 +156,11 @@ struct BattleActionPresentationTests {
         #expect(beat.impactAt > nextDate)
         let expectedIDs = Set(CombatFeedbackPresenter.makeItems(from: beat.events, at: nextDate).flatMap(\.sourceEventIDs))
         #expect(!expectedIDs.isEmpty)
-        #expect(expectedIDs.isDisjoint(with: Set(session.feedback.activeItems.flatMap(\.sourceEventIDs))))
+        let beforeImpact = session.feedback.activeItems.flatMap(\.sourceEventIDs)
+        #expect(expectedIDs.isSubset(of: Set(beforeImpact)))
         session.feedback.advance(to: beat.impactAt)
-        #expect(expectedIDs.isSubset(of: Set(session.feedback.activeItems.flatMap(\.sourceEventIDs))))
+        let afterImpact = session.feedback.activeItems.flatMap(\.sourceEventIDs)
+        #expect(afterImpact.count(where: { expectedIDs.contains($0) }) == expectedIDs.count)
         if ability == .heal {
             #expect(session.feedback.hitReactionsByTargetID[state.hero.id]?.kind == .heal)
         }
@@ -427,7 +430,7 @@ extension BattleActionPresentationTests {
         var delivered: [Int] = []
         session.feedback.scheduleActions(
             playback, preparedCardID: nil, at: .now, cardPlayback: session.cardPlayback,
-        ) { events, _, _, _ in
+        ) { events, _, _, _, _ in
             delivered += events.map(\.id)
         }
         let beats = session.feedback.scheduledActions
@@ -459,7 +462,8 @@ extension BattleActionPresentationTests {
         session.feedback.clear()
         let date = Date.now
         #expect(session.playCard(cardID: first.id, at: date, isAutomatic: automatic) == .committed)
-        #expect(session.playCard(cardID: second.id, at: date.addingTimeInterval(0.01), isAutomatic: automatic) == .committed)
+        let secondCommit = date.addingTimeInterval(0.01)
+        #expect(session.playCard(cardID: second.id, at: secondCommit, isAutomatic: automatic) == .committed)
         #expect(session.engineState?.roster.hasControlStatus(for: state.enemy, keyword: keyword) == true)
         #expect(session.presentation.enemy?.borderAccentKeyword == nil)
         let beats = session.feedback.scheduledActions.filter { $0.actorID == state.hero.id }
@@ -473,10 +477,11 @@ extension BattleActionPresentationTests {
         session.feedback.advance(to: activation.impactAt)
         #expect(session.presentation.enemy?.borderAccentKeyword == keyword)
         #expect(session.presentation.enemy?.health == session.engineState?.roster.enemy.currentHealth)
-        #expect(session.feedback.activeItems.contains { $0.actionGroupID == activation.id && $0.availableAt == activation.impactAt })
+        let chipDate = automatic ? activation.impactAt : secondCommit
+        #expect(session.feedback.activeItems.contains { $0.actionGroupID == activation.id && $0.availableAt == chipDate })
     }
 
-    @Test func `deaths door artwork and damage wait together through a suspended swing`() throws {
+    @Test func `deaths door artwork waits for a suspended swing after the damage chip launches`() throws {
         let session = BattleSessionTestSupport.makePassiveSession()
         defer { session.endBattle() }
         var state = try #require(session.engineState)
@@ -499,7 +504,7 @@ extension BattleActionPresentationTests {
         session.feedback.setSuspended(true, at: date.addingTimeInterval(0.1))
         session.feedback.advance(to: date.addingTimeInterval(10))
         #expect(session.presentation.hero?.borderAccentKeyword == nil)
-        #expect(session.feedback.activeItems.isEmpty)
+        #expect(session.feedback.activeItems.contains { $0.availableAt == date && $0.pausedAt != nil })
         session.feedback.setSuspended(false, at: date.addingTimeInterval(10.1))
         let impact = try #require(session.feedback.scheduledActions.first?.impactAt)
         session.feedback.advance(to: impact)

@@ -221,13 +221,12 @@ struct CombatSFXMapperTests {
         #expect(CombatSFXMapper.clipID(for: [event(1, kind: .effect(.overheal), amount: 3, keyword: .health)]) == SFXID.heal)
     }
 
-    @Test func `mana and draw are fallbacks instead of extra attack sounds`() {
+    @Test func `generic draws are silent alongside other results`() {
         let mana = event(1, kind: .effect(.resourceGain), amount: 3, keyword: .mana)
         let draw = event(2, kind: .effect(.cardsDrawn), amount: 1, keyword: .mana)
         #expect(CombatSFXMapper.clipID(for: [mana, draw]) == SFXID.restoreMana)
         #expect(CombatSFXMapper.clipID(for: [mana, draw, event(3, amount: 1, keyword: .freeze)]) == SFXID.hitFreeze)
-        #expect(CombatSFXMapper.clipID(for: [draw]) == SFXID.abilityDraw)
-        #expect(CombatSFXMapper.clipID(for: [], didDrawCards: true) == SFXID.abilityDraw)
+        #expect(CombatSFXMapper.clipID(for: [draw]) == nil)
         #expect(CombatSFXMapper.clipID(for: [event(1, kind: .effect(.resourceGain), keyword: .mana)]) == nil)
         #expect(CombatSFXMapper.clipID(for: [event(1, kind: .effect(.resourceGain), amount: 3, keyword: .mana, origin: .automatic)]) == nil)
     }

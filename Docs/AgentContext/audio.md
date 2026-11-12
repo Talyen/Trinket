@@ -27,9 +27,9 @@ Structured damage/absorption replaces its corresponding log amounts; Block logs
 can describe an ally's borrowed pool rather than the attacked combatant.
 Health costs, unused overhealing, percentages, future damage, Block spending/stripping,
 and stack application do not add numeric strength. Fallbacks prefer dodge,
-cleanse/purge, healing/buffs, resources, then draw. Pure healing at full Health
-retains its cue. Draw arbitration uses the same selector; standalone hand deals
-remain separate beats. Repeated delivery cannot replay a resolved action's sound.
+cleanse/purge, healing/buffs, resources, then authored ability cues for draws.
+Pure healing at full Health retains its cue. Ordinary draws, deals, and discards
+are silent. Repeated delivery cannot replay a resolved action's sound.
 
 Direct Poison and Bleed hits use Sword Impact; actual periodic Poison and Bleed
 use separate squelch and soft wet-impact cues. Stun damage uses Gut Punch separately

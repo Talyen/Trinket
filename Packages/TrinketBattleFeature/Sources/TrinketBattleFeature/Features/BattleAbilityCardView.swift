@@ -16,7 +16,6 @@ struct BattleAbilityCardView: View {
     let hapticsEnabled: Bool
     let onInspect: () -> Void
     let onPlay: (CardActivationRequest) -> Bool
-    let queuedDuration: TimeInterval?
     let onPlayDenied: () -> Void
     let onInteractionChanged: (Bool) -> Void
     var onLift: ((BattleCardCuePresentationMode) -> Void)?
@@ -48,10 +47,6 @@ struct BattleAbilityCardView: View {
         }
     }
 
-    private var isQueued: Bool {
-        queuedDuration != nil
-    }
-
     var body: some View {
         BattleAbilityCardFace(
             artworkName: card.ability.artReference?.imageName,
@@ -81,8 +76,6 @@ struct BattleAbilityCardView: View {
                 )
                 .offset(activeOffset)
         }
-        .offset(y: isQueued ? -height * BattleMotion.queuedCardLiftFraction : 0)
-        .animation(isQueued ? .linear(duration: queuedDuration ?? 0) : BattleMotion.cardReturn, value: isQueued)
         .gesture(
             DragGesture(minimumDistance: 0, coordinateSpace: .named(BattleHandView.coordinateSpaceName))
                 .updating($isGestureActive) { _, isActive, _ in
@@ -183,7 +176,7 @@ struct BattleAbilityCardView: View {
     }
 
     private var heldScale: CGSize {
-        let scale = isHeld || isQueued ? CGFloat(BattleMotion.cardHeldScale) : 1
+        let scale = isHeld ? CGFloat(BattleMotion.cardHeldScale) : 1
         return CGSize(width: scale, height: scale)
     }
 
@@ -297,10 +290,6 @@ struct BattleAbilityCardView: View {
         guard scenePhase == .active, !isDetailPresented,
               interactionResolution != .inspecting,
               interactionResolution != .cancelled else { return }
-        guard !isQueued else {
-            returnDrag()
-            return
-        }
         guard isPlayable else {
             reportPlayDeniedIfNeeded()
             returnDrag()

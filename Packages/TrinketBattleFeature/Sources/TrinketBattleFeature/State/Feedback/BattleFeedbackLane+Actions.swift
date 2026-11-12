@@ -9,28 +9,22 @@ extension BattleFeedbackLane {
         at date: Date,
         cardPlayback: BattleCardPlaybackState,
         handDeparture: (id: UUID, card: BattleCard)? = nil,
-        present: @escaping ([ActionEvent], [BattleResolvedDamage], Date, Int) -> Void,
+        immediateCardID: Int? = nil,
+        present: @escaping ([ActionEvent], [BattleResolvedDamage], Date, Int, Bool) -> Void,
     ) {
         advance(to: date)
         automaticPlayback = cardPlayback
         let attackingActors = Set(playback.actions.lazy.filter(\.isAttack).map(\.actorID))
         acceleratePendingActions(for: attackingActors, at: date)
-        let groups = orderedActionGroups(playback)
         var automaticCards = playback.automaticCards
-        for group in groups {
+        for group in orderedActionGroups(playback) {
             let action = group.action
             let automaticIndex = automaticCards.firstIndex { $0.id == action?.cardID }
             let card = automaticIndex.map { automaticCards.remove(at: $0) }
             let departure = handDeparture.flatMap { action?.cardID == $0.card.id ? $0 : nil }
             guard !group.events.isEmpty || card != nil || departure != nil else { continue }
-            let actorID = action.flatMap { $0.isAttack ? $0.actorID : nil }
             let isPrepared = action?.cardID != nil && action?.cardID == preparedCardID
-            if isPrepared, let action, !action.isAttack {
-                previewAttack(.cancel, for: action.actorID, at: date)
-            }
-            if let actorID {
-                previewActors.remove(actorID)
-            }
+            let actorID = scheduleAttackActor(for: action, isPrepared: isPrepared, at: date)
             let previousImpact = actionQueue.latestPendingImpact
             let isBurst = actorID.map { actorID in
                 attackOwners[actorID] != nil || actionQueue.hasPendingImpact(for: actorID)
@@ -58,18 +52,35 @@ extension BattleFeedbackLane {
                     id: departure?.id ?? UUID(), isHandDeparture: departure != nil,
                 )
             }
-            _ = actionQueue.append { id in
+            let chipsAtCommit = immediateCardID != nil && action?.cardID == immediateCardID
+            let actionID = actionQueue.append { id in
                 BattleScheduledAction(
                     id: id, actorID: actorID, events: group.events, damage: action?.damage ?? [], castID: castID,
                     swingDuration: timing.swing, recoveryDuration: timing.recovery, preparationCap: timing.preparationCap,
                     startAt: startAt, swingAt: swingAt,
                     impactAt: actorID == nil && card != nil ? revealedImpactAt : impactAt,
-                    nextCue: actorID == nil ? .impact : (isPrepared ? .swing : .windUp), present: present,
+                    nextCue: actorID == nil ? .impact : (isPrepared ? .swing : .windUp),
+                    present: { events, damage, impactAt, id in present(events, damage, impactAt, id, !chipsAtCommit) },
                 )
+            }
+            if chipsAtCommit {
+                recordImmediateChips(group.events.filter { $0.milestone == nil }, at: date, actionGroupID: actionID)
             }
         }
         appendRemainingAutomaticCards(automaticCards, at: date, cardPlayback: cardPlayback)
         advance(to: date)
+    }
+
+    private func scheduleAttackActor(for action: BattleResolvedAction?, isPrepared: Bool, at date: Date) -> String? {
+        guard let action else { return nil }
+        if action.isAttack {
+            previewActors.remove(action.actorID)
+            return action.actorID
+        }
+        if isPrepared {
+            previewAttack(.cancel, for: action.actorID, at: date)
+        }
+        return nil
     }
 
     private func appendRemainingAutomaticCards(_ cards: [BattleCard], at date: Date, cardPlayback: BattleCardPlaybackState) {

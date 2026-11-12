@@ -56,10 +56,11 @@ the same claim path without an alert or another tap.
 
 Boss battles use the bundled Alchemy idle clips, centered and filled within the
 existing enemy frame. The battle card owns a bounded cache of the selected boss's
-compressed clips and prepares two reusable players; it keeps the outgoing frame until the
-next clip's fresh layer is ready, then crossfades. Shuffled rounds avoid adjacent repeats.
-Backgrounding, hiding its presentation, or retiring the card cancels loading and
-releases playback; a memory warning falls back to static art for that card. Static
+compressed clips and prepares two reusable players. A brief overlap begins near
+the clip boundary when the next layer has a displayable frame. Shuffled rounds
+avoid adjacent repeats. Backgrounding or hiding the battle pauses playback and
+retains the current frame and standby clip. Retiring the card releases playback.
+A memory warning falls back to static art for that card. Static
 prepared artwork also covers loading, Reduce Motion, missing or failed media, and
 the defeated enemy slice.
 Lyrics and resource bars remain above the artwork. [Boss lyrics](../../Packages/TrinketBattleFeature/README.md#boss-lyrics)
@@ -69,7 +70,7 @@ in the BattleFeature bundle.
 ## Card input
 
 [Card play](../Product/CardPlay.md) owns PD-024's approved behavior, including
-the ordered manual card queue, full-size automatic cards, and intentionally
+immediate manual casts, full-size automatic cards, and intentionally
 visual-only finishing taps.
 
 Card, opening-hand, and turn commands finish synchronously in BattleEngine.
@@ -120,7 +121,8 @@ share the action's recorded cast identity and clock: their rise/dissolve spans
 preparation and finishes at swing, followed by the ordinary particle tail. Retiming
 and suspension update that same cast; hand departures never render as fly-in cards.
 Their cleanup follows the scheduled end rather than a fixed delay from commitment.
-Manual and automatic results publish at the action’s impact cue.
+Manual card text publishes on commitment. Recoil, sound, and battlefield state
+follow the impact cue, along with text for automatic and enemy actions.
 Skipped and support actions do not invent attacks.
 
 Combatant artwork, feedback, Health and Mana bars, clipping, and borders compose
@@ -314,8 +316,8 @@ card play, including consolidation, overlap, and portrait clipping.
 
 ## Display work lifecycle
 
-`BattleCommandState` owns command readiness and suspension. The hand's transient
-card queue does not change engine command readiness. Suspension pauses cast and attack clocks, pending
+`BattleCommandState` owns command readiness and suspension. Cast animations do not
+gate manual input. Suspension pauses cast and attack clocks, pending
 impacts, and the outcome countdown; ending/replacing a run
 invalidates its startup generation and clears owned cast work without clearing
 the retiring view's final hand or combatants. Callbacks retain their original

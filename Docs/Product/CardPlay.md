@@ -4,14 +4,8 @@ This is the standing product specification for [PD-024](Decisions.md).
 
 ## Tap and keep playing
 
-A valid card plays on release, or joins an ordered queue if another hand cast
-started less than 0.5 seconds ago. Queued cards keep rising in the hand until their turn and give immediate
-haptic feedback; each plays once when its turn arrives if it is still available.
-A queued card that remains in the hand but is no longer playable settles back with a denial sound.
-A queued card does not carry over to a later turn.
-Each cast keeps its full one-second departure animation, overlapping the next cast
-rather than shortening the animation. The cast continues from the queued card's current position,
-including when an earlier queued card is skipped. Repeated taps on a queued card do not queue it twice.
+A valid card plays on release, even while earlier casts animate. Each cast
+starts from the released card and can overlap the previous departure.
 The departing card rises quickly, then eases upward through the artwork's
 dissolve, travelling 55% of its height with the existing departure duration.
 Holding to inspect, dragging to play, and cancelling a drag remain available.
@@ -50,8 +44,8 @@ With the autoplay toggle enabled, cards use the same release geometry, rise,
 dissolve, and particle timing as an ordinary tap. Autoplay waits for the one-second
 card departure before choosing the next card. Equal-scored choices rotate through
 the hand; stronger and battle-finishing choices keep priority. Autoplay pauses for
-manual interaction and queued manual cards; manual cards use the same queue during those casts.
-Combat feedback keeps its normal sequencing.
+manual interaction and waits for the current cast. Manual cards remain playable
+during Auto Battle casts.
 
 After thirty rounds without new enemy Health depletion, Auto Battle pauses with
 an inline Play Manually / Retreat choice. It preserves the remembered Auto
@@ -91,14 +85,13 @@ skip preparation and share that swing and recovery.
 Rapid attacks shorten preparation to a 0.08-second cap and overlap recovery to
 keep pace. Dragging holds preparation until release and settles back on cancellation.
 
-Manual cards commit on successful finger release or when a queued tap is admitted.
-Their floating results, sounds, result haptics, target recoil,
-status artwork, and resource bars appear together at the action’s apex. Triggered
-cards, counterattacks, enemy actions, and auto-battle use that same impact timing.
-Support results use their scheduled action cue. Victory celebration follows the
-visible lethal hit.
-Damage numbers launch at impact even when other feedback is present; spatial routing
-separates simultaneous results. Separate attacks retain distinct impacts;
+Manual cards commit on successful finger release. The played card's floating
+results launch immediately, using spatial routing to separate simultaneous text.
+Sounds, result haptics, target recoil, status artwork, and resource bars appear
+at the action's apex. Triggered cards, counterattacks, enemy actions, and Auto
+Battle also show their floating results at impact. Victory celebration follows
+the visible lethal hit.
+Separate attacks retain distinct impacts;
 simultaneous components of one attack share the strongest recoil. Fully blocked
 direct hits recoil visibly with Block styling. Damage-over-time ticks remain quiet. These are presentation
 beats only: the engine and current resources never wait for them.
@@ -126,7 +119,7 @@ pauses. Automatic battle stops when the result is settled.
 
 ## Regression protection
 
-Preserve full-size automatic artwork, ordered responsive manual input, complete
+Preserve full-size automatic artwork, immediate manual input, overlapping
 cast animations, and visual-only finishing taps.
 
 [Battle presentation](../AgentContext/battle-presentation.md) owns the engineering

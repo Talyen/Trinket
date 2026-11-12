@@ -4,7 +4,7 @@ import TrinketCore
 
 enum CombatSFXMapper {
     static let battlePrewarmIDs = [
-        SFXID.abilityDraw, SFXID.hit, SFXID.hitBurn, SFXID.hitFreeze, SFXID.hitStun,
+        SFXID.hit, SFXID.hitBurn, SFXID.hitFreeze, SFXID.hitStun,
         SFXID.hitPiercing, SFXID.hitHoly, SFXID.heal, SFXID.buff, SFXID.block,
         SFXID.blockAbsorb, SFXID.dodge, SFXID.restoreMana, SFXID.lootCollect, SFXID.lootExceptional,
         SFXID.controlFreeze, SFXID.controlStun, SFXID.purge, SFXID.deathsDoor,
@@ -86,11 +86,8 @@ enum CombatSFXMapper {
     static func clipID(
         for events: [ActionEvent],
         damage: [BattleResolvedDamage] = [],
-        didDrawCards: Bool = false,
     ) -> String? {
-        if events.isEmpty, damage.isEmpty {
-            return didDrawCards ? SFXID.abilityDraw : nil
-        }
+        guard !events.isEmpty || !damage.isEmpty else { return nil }
         var selection = Selection()
         let cardSources = CombatCardSourceKey.cardSources(in: events)
         let thornsSources = Set(events.lazy.filter { $0.effectKind == .thornsApplied }.compactMap(CombatCardSourceKey.init))
@@ -136,9 +133,6 @@ enum CombatSFXMapper {
         }
         for (order, event) in events.enumerated() {
             add(event, order: order, cardSources: cardSources, recorded: recorded, thornsSources: thornsSources, to: &selection)
-        }
-        if didDrawCards {
-            selection.offer(SFXID.abilityDraw, priority: 4, order: events.count)
         }
         return selection.clipID
     }
@@ -243,8 +237,9 @@ enum CombatSFXMapper {
                 )
             }
         case .cardsDrawn:
-            if event.amount > 0 {
-                selection.offer(CombatAbilitySFX.clipID(SFXID.abilityDraw, for: event), priority: 4, order: order)
+            let clip = CombatAbilitySFX.clipID(SFXID.abilityDraw, for: event)
+            if event.amount > 0, clip != SFXID.abilityDraw {
+                selection.offer(clip, priority: 4, order: order)
             }
         case .controlActionSkipped where event.keyword != .freeze && event.keyword != .stun:
             selection.offer(SFXID.controlStun, priority: 2, order: order)

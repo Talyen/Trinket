@@ -279,6 +279,24 @@ struct MusicPlayerTests {
         #expect(player.readPlayback() == nil)
     }
 
+    @Test func `forge golem fades in before the lyric and resumes on the original clock`() async throws {
+        let backend = ControlledMusicBackend()
+        let player = MusicPlayer(isDisabled: false, backend: backend)
+        let track = try #require(MusicCatalog.track(matching: "boss_forge_golem"))
+        let request = MusicPlaybackRequest(track: track, enemyID: track.bossEnemyID)
+        let first = try await start(request, player: player, backend: backend)
+        try await eventually { backend.steps.count == 1 }
+        #expect(first.currentTime == 28.5)
+        #expect(first.volume > 0 && first.volume < 1)
+
+        first.currentTime = 41
+        player.silenceImmediately(preservingPosition: true)
+        backend.completeStep(0)
+        let resumed = try await start(request, player: player, backend: backend)
+        #expect(resumed.currentTime == 41)
+        #expect(resumed.volume == 1)
+    }
+
     private func request(_ enemyID: String) throws -> MusicPlaybackRequest {
         let id = try #require(MusicCatalog.battleTrackIDs.first)
         let track = try #require(MusicCatalog.track(matching: id))

@@ -28,14 +28,14 @@ enum BalancedFeedbackMotion {
     @MainActor
     static func schedule(
         _ incoming: CombatFeedbackItem, at date: Date, previous: [CombatFeedbackItem],
-        bounds: CGRect, bottomInset: CGFloat, raster: (CombatFeedbackItem) -> CombatFeedbackRaster?,
+        bounds: CGRect, bottomInset: CGFloat, immediately: Bool = false, raster: (CombatFeedbackItem) -> CombatFeedbackRaster?,
     ) -> CombatFeedbackItem {
         let bounds = bounds.isEmpty ? CGRect(x: 0, y: 0, width: 180, height: 250) : bounds
         let relevant = previous.filter {
             $0.targetID == incoming.targetID
         }
         var launch = date
-        if incoming.region == .announcement {
+        if !immediately, incoming.region == .announcement {
             let last = relevant.last { $0.region == .announcement }
             let impact = relevant.last {
                 $0.region == .impact && $0.actionGroupID == incoming.actionGroupID && $0.expiresAt > date
@@ -49,7 +49,7 @@ enum BalancedFeedbackMotion {
             let hasDelayedPredecessor = last.map { $0.availableAt > date.addingTimeInterval(reactionQueueDelay) } ?? false
             let delay = impact != nil || hasDelayedPredecessor ? reactionImpactQueueDelay : reactionQueueDelay
             launch = min(launch, date.addingTimeInterval(delay))
-        } else if incoming.region != .impact, !incoming.isCardHealthCost {
+        } else if !immediately, incoming.region != .impact, !incoming.isCardHealthCost {
             if let last = relevant.last(where: { $0.region == incoming.region }) {
                 launch = max(launch, last.availableAt.addingTimeInterval(0.08))
             }

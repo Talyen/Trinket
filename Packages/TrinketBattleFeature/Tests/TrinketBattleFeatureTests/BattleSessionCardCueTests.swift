@@ -7,70 +7,6 @@ import TrinketContentTestSupport
 
 @MainActor
 struct BattleSessionCardCueTests {
-    @Test func `queued cards keep tap order skip invalid cards and clear on suspension`() {
-        let casts = BattleCastPresentationState()
-        defer { casts.reset() }
-        let start = Date.now
-        let request = CardActivationRequest(
-            startedAt: start, artworkName: nil, center: .zero, size: .zero,
-            rotation: 0, verticalTilt: 0, scale: 1, keywords: [],
-        )
-        casts.append(request)
-        #expect(casts.shouldQueueManualInput(at: start))
-        #expect(!casts.shouldQueueManualInput(at: start.addingTimeInterval(BattleMotion.manualCardInterval)))
-        var played: [Int] = []
-        casts.queueCard(id: 1) { _ in played.append(1); return true }
-        casts.queueCard(id: 2) { _ in played.append(2); return false }
-        casts.queueCard(id: 3) { _ in played.append(3); return true }
-        casts.queueCard(id: 1) { _ in played.append(99); return true }
-        #expect(casts.queuedCardIDs == [1, 2, 3])
-        #expect(casts.blocksAutoBattle(at: start.addingTimeInterval(10)))
-        casts.playNextQueuedCard()
-        #expect(played == [1])
-        #expect(casts.queuedCardIDs == [2, 3])
-        casts.playNextQueuedCard()
-        #expect(played == [1, 2, 3])
-        #expect(casts.queuedCardIDs.isEmpty)
-        casts.queueCard(id: 4) { _ in played.append(4); return true }
-        casts.setSuspended(true, at: start)
-        casts.playNextQueuedCard()
-        #expect(played == [1, 2, 3])
-        #expect(casts.queuedCardIDs.isEmpty)
-    }
-
-    @Test func `queued cards start on cadence while prior casts remain visible`() async throws {
-        let casts = BattleCastPresentationState()
-        defer { casts.reset() }
-        let start = Date.now
-        func request(at date: Date) -> CardActivationRequest {
-            CardActivationRequest(
-                startedAt: date, artworkName: nil, center: .zero, size: .zero,
-                rotation: 0, verticalTilt: 0, scale: 1, keywords: [],
-            )
-        }
-        casts.append(request(at: start))
-        var starts: [Date] = []
-        for id in 1 ... 2 {
-            casts.queueCard(id: id) { _ in
-                let date = Date.now
-                starts.append(date)
-                casts.append(request(at: date))
-                return true
-            }
-        }
-        // Parallel simulator tests can delay the main actor well beyond the cast cadence.
-        let deadline = start.addingTimeInterval(15)
-        while starts.count < 2, Date.now < deadline {
-            try await Task.sleep(for: .milliseconds(25))
-        }
-        #expect(starts.count == 2)
-        if starts.count == 2 {
-            #expect(starts[0].timeIntervalSince(start) >= BattleMotion.manualCardInterval - 0.02)
-            #expect(starts[1].timeIntervalSince(starts[0]) >= BattleMotion.manualCardInterval - 0.02)
-            #expect(BattleMotion.manualCardInterval < BattleMotion.cardActivationDuration)
-        }
-    }
-
     @Test func `retiring hand callbacks cannot play or cancel a replacement battle card`() throws {
         let session = makeSession()
         defer { session.endBattle() }
@@ -378,45 +314,5 @@ struct BattleSessionCardCueTests {
         session.engineState = state
         session.installSimulationPresentation()
         return card
-    }
-}
-
-extension BattleSessionCardCueTests {
-    @Test func `queued lift advances until its expected turn and preserves an early handoff`() throws {
-        let start = Date(timeIntervalSinceReferenceDate: 100)
-        let casts = BattleCastPresentationState()
-        defer { casts.reset() }
-        casts.append(CardActivationRequest(
-            startedAt: start, artworkName: nil, center: .zero, size: .zero,
-            rotation: 0, verticalTilt: 0, scale: 1, keywords: [],
-        ))
-        var handedOffProgress: CGFloat?
-        casts.queueCard(id: 1, at: start) { _ in false }
-        casts.queueCard(id: 2, at: start) { progress in
-            handedOffProgress = progress
-            return true
-        }
-        let first = try #require(casts.queuedCards.first)
-        let second = try #require(casts.queuedCards.last)
-        #expect(first.duration == BattleMotion.manualCardInterval)
-        #expect(second.duration == 2 * BattleMotion.manualCardInterval)
-        #expect(second.progress(at: start) == 0)
-        #expect(second.progress(at: first.expectedStart) == 0.5)
-        #expect(second.progress(at: second.expectedStart) == 1)
-        casts.playNextQueuedCard(at: first.expectedStart)
-        #expect(handedOffProgress == 0.5)
-
-        let session = makeSession()
-        defer { session.endBattle() }
-        let card = try install(.slash, in: session)
-        let frame = BattleHandLayout.frame(in: CGSize(width: 375, height: 667))
-        let resting = CardActivationRequest.restingRequest(for: card, index: 0, cardCount: 3, handFrame: frame)
-        let early = CardActivationRequest.queuedRequest(
-            for: card, index: 0, cardCount: 3, handFrame: frame, liftProgress: 0.5,
-        )
-        #expect(early.center.x == resting.center.x)
-        #expect(early.center.y == resting.center.y - resting.size.height * BattleMotion.queuedCardLiftFraction * 0.5)
-        #expect(early.rotation == resting.rotation)
-        #expect(early.scale == CGFloat(BattleMotion.cardHeldScale))
     }
 }
