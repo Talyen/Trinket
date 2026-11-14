@@ -25,22 +25,22 @@ enum BossIdleCatalog {
         }
     }
 
-    /// Mean luma differences in the central 4:3 crop at 0.15 and 0.30 seconds
-    /// into a 0.50-second overlap. Rows are outgoing; columns are incoming.
+    /// Mean luma differences in the central 4:3 crop at 0.03 and 0.08 seconds
+    /// into a 0.14-second overlap. Rows are outgoing; columns are incoming.
     static func seamScores(for clips: [URL]) -> [[Double]]? {
         guard let name = clips.first?.lastPathComponent.components(separatedBy: "-idle-").first else { return nil }
         switch name {
-        case "blight-treant": return [[0, 26.07, 26.02], [6.17, 0, 6.87], [6.50, 6.91, 0]]
-        case "forge-golem": return [[0, 4.29, 4.44], [3.08, 0, 5.06], [4.38, 4.45, 0]]
-        case "frostwarden": return [[0, 18.43, 17.49], [17.61, 0, 16.62], [18.59, 17.53, 0]]
-        case "iron-bear": return [[0, 11.13, 11.82], [12.56, 0, 11.93], [12.79, 11.51, 0]]
+        case "blight-treant": return [[0, 22.07, 21.96], [5.75, 0, 5.92], [6.40, 6.46, 0]]
+        case "forge-golem": return [[0, 2.69, 2.72], [2.57, 0, 2.62], [3.25, 3.15, 0]]
+        case "frostwarden": return [[0, 14.26, 14.19], [14.36, 0, 14.21], [15.70, 15.57, 0]]
+        case "iron-bear": return [[0, 12.81, 12.76], [11.72, 0, 12.10], [11.68, 12.06, 0]]
         case "blood-countess": return [
-                [0, 11.99, 13.79, 11.99, 15.36], [11.83, 0, 12.04, 11.35, 14.07],
-                [11.50, 11.03, 0, 11.01, 13.91], [11.03, 10.72, 12.85, 0, 14.08],
-                [21.99, 21.82, 21.95, 21.39, 0],
+                [0, 12.45, 13.18, 12.02, 12.22], [14.20, 0, 14.93, 13.85, 13.97],
+                [14.22, 14.25, 0, 13.88, 13.96], [13.50, 13.57, 14.19, 0, 13.27],
+                [13.83, 14.00, 14.51, 13.59, 0],
             ]
-        case "seraph": return [[0, 23.03, 26.52], [16.49, 0, 18.24], [19.34, 19.59, 0]]
-        case "stone-titan": return [[0, 7.75, 6.15], [5.60, 0, 5.87], [5.29, 7.80, 0]]
+        case "seraph": return [[0, 10.31, 12.18], [6.90, 0, 6.76], [8.49, 7.66, 0]]
+        case "stone-titan": return [[0, 5.60, 5.79], [6.27, 0, 6.17], [5.96, 5.68, 0]]
         default: return nil
         }
     }
@@ -59,9 +59,11 @@ struct BossIdleOrder {
     private let scores: [[Double]]?
     private var remaining: [Int] = []
     private var previous: Int?
+    private var initial: Int?
 
-    init(count: Int, scores: [[Double]]? = nil) {
+    init(count: Int, scores: [[Double]]? = nil, initial: Int? = nil) {
         self.count = count
+        self.initial = initial.flatMap { (0 ..< count).contains($0) ? $0 : nil }
         self.scores = scores?.count == count && scores?.allSatisfy { $0.count == count } == true ? scores : nil
     }
 
@@ -69,6 +71,12 @@ struct BossIdleOrder {
         guard count > 0 else { return nil }
         if remaining.isEmpty {
             remaining = Array(0 ..< count).shuffled()
+        }
+        if let initial {
+            self.initial = nil
+            remaining.removeAll { $0 == initial }
+            previous = initial
+            return initial
         }
         let eligible = remaining.filter { count == 1 || $0 != previous }
         let candidates = eligible.isEmpty ? remaining : eligible
@@ -153,6 +161,7 @@ final class BossIdlePlayerView: UIView {
         var layer = AVPlayerLayer()
         var readyObservation: NSKeyValueObservation?
         var statusObservation: NSKeyValueObservation?
+        var playingObservation: NSKeyValueObservation?
         var seamObserver: Any?
         var endObserver: NSObjectProtocol?
         var failureObserver: NSObjectProtocol?
@@ -167,6 +176,7 @@ final class BossIdlePlayerView: UIView {
         func invalidate() {
             readyObservation = nil
             statusObservation = nil
+            playingObservation = nil
             if let seamObserver {
                 player.removeTimeObserver(seamObserver)
                 self.seamObserver = nil
@@ -184,6 +194,7 @@ final class BossIdlePlayerView: UIView {
         }
     }
 
+    private let poster = UIImageView()
     private var clips: [URL] = []
     private var cachedAssets: [(cached: BossIdleCachedAsset, duration: CMTime)] = []
     private var slots: [Slot?] = [nil, nil]
@@ -191,17 +202,21 @@ final class BossIdlePlayerView: UIView {
     private var handoff = BossIdleHandoff()
     private var preparation: Task<Void, Never>?
     private var recycle: Task<Void, Never>?
+    private var pendingTransition: (from: Int, to: Int, id: UUID)?
     private var memoryObserver: NSObjectProtocol?
     private var shouldPlay = false
     private var memoryPressure = false
     private var generation = 0
-    private static let overlap: TimeInterval = 0.50
-    private static let dissolve: TimeInterval = 0.45
+    private static let overlap: TimeInterval = 0.14
+    private static let dissolve: TimeInterval = 0.10
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         isUserInteractionEnabled = false
-        backgroundColor = .clear
+        backgroundColor = .black
+        poster.contentMode = .scaleAspectFill
+        poster.clipsToBounds = true
+        addSubview(poster)
         memoryObserver = NotificationCenter.default.addObserver(
             forName: UIApplication.didReceiveMemoryWarningNotification, object: nil, queue: .main,
         ) { [weak self] _ in
@@ -218,6 +233,7 @@ final class BossIdlePlayerView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
+        poster.frame = bounds
         guard slots.contains(where: { $0.map { $0.layer.frame != bounds } ?? false }) else { return }
         CATransaction.begin()
         CATransaction.setDisableActions(true)
@@ -229,6 +245,10 @@ final class BossIdlePlayerView: UIView {
 
     func prepare(clips: [URL], isVisible: Bool, isForeground: Bool) {
         self.clips = clips
+        if let first = clips.first {
+            let path = first.deletingPathExtension().path + "-first.png"
+            poster.image = UIImage(contentsOfFile: path)
+        }
         updatePresentation(isVisible: isVisible, isForeground: isForeground)
     }
 
@@ -287,7 +307,7 @@ final class BossIdlePlayerView: UIView {
                 guard let self, generation == expectedGeneration else { return }
                 preparation = nil
                 cachedAssets = prepared
-                order = BossIdleOrder(count: prepared.count, scores: BossIdleCatalog.seamScores(for: urls))
+                order = BossIdleOrder(count: prepared.count, scores: BossIdleCatalog.seamScores(for: urls), initial: 0)
                 handoff = BossIdleHandoff()
                 prepareSlot(0)
                 prepareSlot(1)
@@ -332,6 +352,10 @@ final class BossIdlePlayerView: UIView {
             guard layer.isReadyForDisplay else { return }
             Task { @MainActor [weak self] in self?.itemReady(index, id: id) }
         }
+        slot.playingObservation = slot.player.observe(\.timeControlStatus, options: [.new]) { [weak self] player, _ in
+            guard player.timeControlStatus == .playing else { return }
+            Task { @MainActor [weak self] in self?.itemPlaying(index, id: id) }
+        }
         slot.player.replaceCurrentItem(with: item)
         let seam = asset.duration.seconds - Self.overlap
         if seam.isFinite, seam > 0 {
@@ -369,28 +393,36 @@ final class BossIdlePlayerView: UIView {
                 slot.player.play()
             }
         case let .transition(from, to):
-            guard let outgoing = slots[from], let incoming = slots[to] else { return }
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
-            outgoing.layer.zPosition = 0
-            incoming.layer.zPosition = 1
-            incoming.layer.opacity = 1
-            if shouldPlay {
-                fadeIn(incoming.layer)
-            }
-            CATransaction.commit()
+            guard let incoming = slots[to] else { return }
+            pendingTransition = (from, to, incoming.id)
             if shouldPlay {
                 incoming.player.play()
-            }
-            let expectedGeneration = generation
-            recycle?.cancel()
-            recycle = Task { [weak self] in
-                try? await Task.sleep(for: .seconds(Self.dissolve))
-                guard !Task.isCancelled, let self, generation == expectedGeneration else { return }
-                prepareSlot(from)
+                if incoming.player.timeControlStatus == .playing {
+                    itemPlaying(to, id: incoming.id)
+                }
             }
         case nil:
             break
+        }
+    }
+
+    private func itemPlaying(_ index: Int, id: UUID) {
+        guard shouldPlay, let pending = pendingTransition, pending.to == index, pending.id == id,
+              let outgoing = slots[pending.from], let incoming = slots[index], incoming.id == id else { return }
+        pendingTransition = nil
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        outgoing.layer.zPosition = 0
+        incoming.layer.zPosition = 1
+        incoming.layer.opacity = 1
+        fadeIn(incoming.layer)
+        CATransaction.commit()
+        let expectedGeneration = generation
+        recycle?.cancel()
+        recycle = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Self.dissolve))
+            guard !Task.isCancelled, let self, generation == expectedGeneration else { return }
+            prepareSlot(pending.from)
         }
     }
 
@@ -408,6 +440,7 @@ final class BossIdlePlayerView: UIView {
         preparation = nil
         recycle?.cancel()
         recycle = nil
+        pendingTransition = nil
         for slot in slots {
             slot?.invalidate()
         }

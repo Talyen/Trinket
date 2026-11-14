@@ -18,6 +18,24 @@ struct BossIdleArtworkTests {
         }
     }
 
+    @Test func `opening clip matches the bundled first frame`() throws {
+        for id in [
+            "the_blight_treant",
+            "the_forge_golem",
+            "the_frostwarden",
+            "the_iron_bear",
+            "the_blood_countess",
+            "the_seraph",
+            "the_stone_titan",
+        ] {
+            let clips = try #require(BossIdleCatalog.clips(for: id))
+            let first = try #require(clips.first)
+            #expect(FileManager.default.fileExists(atPath: first.deletingPathExtension().path + "-first.png"))
+            var order = BossIdleOrder(count: clips.count, initial: 0)
+            #expect(order.next() == 0)
+        }
+    }
+
     @Test func `clip order prefers a compatible available successor`() {
         let scores: [[Double]] = [[0, 1, 100], [100, 0, 1], [1, 100, 0]]
         var order = BossIdleOrder(count: 3, scores: scores)

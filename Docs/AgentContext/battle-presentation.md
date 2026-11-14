@@ -56,14 +56,15 @@ the same claim path without an alert or another tap.
 
 Boss battles use the bundled Alchemy idle clips, centered and filled within the
 existing enemy frame. The battle card owns a bounded cache of the selected boss's
-compressed clips and prepares two reusable players. A half-second overlap begins
-near the clip boundary when the next layer has a displayable frame. Each round
+compressed clips and prepares two reusable players. The opening frame of the first
+clip covers the card until its player is ready, avoiding a flash of unrelated static
+art. A short overlap begins near the clip boundary after the next layer is displayable
+and its player starts. Each round
 plays every clip, preferring better-matched available pairs and avoiding adjacent
 repeats. Backgrounding or hiding the battle pauses playback and retains the
 current frame and standby clip. Retiring the card releases playback.
-A memory warning falls back to static art for that card. Static
-prepared artwork also covers loading, Reduce Motion, missing or failed media, and
-the defeated enemy slice.
+A memory warning or playback failure leaves the opening frame visible. Static
+prepared artwork covers Reduce Motion, missing clips, and the defeated enemy slice.
 Lyrics and resource bars remain above the artwork. [Boss lyrics](../../Packages/TrinketBattleFeature/README.md#boss-lyrics)
 owns lyric playback and visibility. The supplied MP4s are finished authored resources
 in the BattleFeature bundle.
