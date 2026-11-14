@@ -25,6 +25,26 @@ enum BossIdleCatalog {
         }
     }
 
+    /// Mean luma differences in the central 4:3 crop at 0.15 and 0.30 seconds
+    /// into a 0.50-second overlap. Rows are outgoing; columns are incoming.
+    static func seamScores(for clips: [URL]) -> [[Double]]? {
+        guard let name = clips.first?.lastPathComponent.components(separatedBy: "-idle-").first else { return nil }
+        switch name {
+        case "blight-treant": return [[0, 26.07, 26.02], [6.17, 0, 6.87], [6.50, 6.91, 0]]
+        case "forge-golem": return [[0, 4.29, 4.44], [3.08, 0, 5.06], [4.38, 4.45, 0]]
+        case "frostwarden": return [[0, 18.43, 17.49], [17.61, 0, 16.62], [18.59, 17.53, 0]]
+        case "iron-bear": return [[0, 11.13, 11.82], [12.56, 0, 11.93], [12.79, 11.51, 0]]
+        case "blood-countess": return [
+                [0, 11.99, 13.79, 11.99, 15.36], [11.83, 0, 12.04, 11.35, 14.07],
+                [11.50, 11.03, 0, 11.01, 13.91], [11.03, 10.72, 12.85, 0, 14.08],
+                [21.99, 21.82, 21.95, 21.39, 0],
+            ]
+        case "seraph": return [[0, 23.03, 26.52], [16.49, 0, 18.24], [19.34, 19.59, 0]]
+        case "stone-titan": return [[0, 7.75, 6.15], [5.60, 0, 5.87], [5.29, 7.80, 0]]
+        default: return nil
+        }
+    }
+
     private static func clips(named name: String, count: Int) -> [URL]? {
         let urls = (1 ... count).compactMap { number in
             Bundle.module.url(forResource: "\(name)-idle-\(number)-1280", withExtension: "mp4", subdirectory: "BossIdles")
@@ -33,25 +53,32 @@ enum BossIdleCatalog {
     }
 }
 
-/// Each shuffled round contains every clip, with no repeat at the round boundary.
+/// Each round contains every clip, preferring closer matches without adjacent repeats.
 struct BossIdleOrder {
     private let count: Int
+    private let scores: [[Double]]?
     private var remaining: [Int] = []
     private var previous: Int?
 
-    init(count: Int) {
+    init(count: Int, scores: [[Double]]? = nil) {
         self.count = count
+        self.scores = scores?.count == count && scores?.allSatisfy { $0.count == count } == true ? scores : nil
     }
 
     mutating func next() -> Int? {
         guard count > 0 else { return nil }
         if remaining.isEmpty {
             remaining = Array(0 ..< count).shuffled()
-            if count > 1, remaining.last == previous {
-                remaining.swapAt(0, count - 1)
-            }
         }
-        let result = remaining.removeLast()
+        let eligible = remaining.filter { count == 1 || $0 != previous }
+        let candidates = eligible.isEmpty ? remaining : eligible
+        var choices = candidates
+        if let previous, let scores, let best = candidates.map({ scores[previous][$0] }).min() {
+            // Preserve variety among near-equivalent handoffs.
+            choices = candidates.filter { scores[previous][$0] <= best * 1.05 }
+        }
+        guard let result = choices.randomElement() else { return nil }
+        remaining.removeAll { $0 == result }
         previous = result
         return result
     }
@@ -168,8 +195,8 @@ final class BossIdlePlayerView: UIView {
     private var shouldPlay = false
     private var memoryPressure = false
     private var generation = 0
-    private static let overlap: TimeInterval = 0.14
-    private static let dissolve: TimeInterval = 0.10
+    private static let overlap: TimeInterval = 0.50
+    private static let dissolve: TimeInterval = 0.45
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -260,7 +287,7 @@ final class BossIdlePlayerView: UIView {
                 guard let self, generation == expectedGeneration else { return }
                 preparation = nil
                 cachedAssets = prepared
-                order = BossIdleOrder(count: prepared.count)
+                order = BossIdleOrder(count: prepared.count, scores: BossIdleCatalog.seamScores(for: urls))
                 handoff = BossIdleHandoff()
                 prepareSlot(0)
                 prepareSlot(1)

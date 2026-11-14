@@ -18,6 +18,16 @@ struct BossIdleArtworkTests {
         }
     }
 
+    @Test func `clip order prefers a compatible available successor`() {
+        let scores: [[Double]] = [[0, 1, 100], [100, 0, 1], [1, 100, 0]]
+        var order = BossIdleOrder(count: 3, scores: scores)
+        let selections = (0 ..< 30).compactMap { _ in order.next() }
+        #expect(selections.count == 30)
+        for (previous, next) in zip(selections, selections.dropFirst()) {
+            #expect(next == (previous + 1) % 3)
+        }
+    }
+
     @Test func `every boss has its complete bundled clip set`() {
         for (id, count) in [
             ("the_blight_treant", 3), ("the_forge_golem", 3), ("the_frostwarden", 3),
