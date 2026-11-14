@@ -30,17 +30,17 @@ enum BossIdleCatalog {
     static func seamScores(for clips: [URL]) -> [[Double]]? {
         guard let name = clips.first?.lastPathComponent.components(separatedBy: "-idle-").first else { return nil }
         switch name {
-        case "blight-treant": return [[0, 22.46, 22.18], [3.80, 0, 3.36], [3.56, 3.24, 0]]
+        case "blight-treant": return [[0, 22.50, 22.19], [3.76, 0, 3.43], [3.54, 3.32, 0]]
         case "forge-golem": return [[0, 2.69, 2.72], [2.57, 0, 2.62], [3.25, 3.15, 0]]
-        case "frostwarden": return [[0, 6.02, 5.86], [4.94, 0, 4.84], [4.09, 4.04, 0]]
-        case "iron-bear": return [[0, 4.02, 4.00], [4.04, 0, 3.40], [4.07, 3.41, 0]]
+        case "frostwarden": return [[0, 6.10, 5.93], [5.04, 0, 4.91], [4.20, 4.11, 0]]
+        case "iron-bear": return [[0, 4.07, 4.07], [4.06, 0, 3.46], [4.08, 3.42, 0]]
         case "blood-countess": return [
-                [0, 5.34, 5.29, 5.82, 5.54], [5.19, 0, 5.54, 5.66, 5.64],
-                [5.61, 5.74, 0, 6.03, 5.98], [5.99, 6.19, 6.34, 0, 6.24],
-                [7.96, 8.08, 7.90, 8.54, 0],
+                [0, 5.33, 5.33, 5.83, 5.49], [5.10, 0, 5.42, 5.64, 5.51],
+                [5.66, 5.80, 0, 6.09, 5.99], [5.98, 6.20, 6.35, 0, 6.20],
+                [7.92, 8.01, 7.81, 8.52, 0],
             ]
-        case "seraph": return [[0, 10.13, 10.36], [7.00, 0, 6.76], [8.52, 7.66, 0]]
-        case "stone-titan": return [[0, 3.45, 3.20], [4.80, 0, 4.81], [3.63, 3.85, 0]]
+        case "seraph": return [[0, 10.03, 10.27], [7.00, 0, 6.76], [8.57, 7.66, 0]]
+        case "stone-titan": return [[0, 3.52, 3.28], [4.89, 0, 4.90], [3.72, 3.93, 0]]
         default: return nil
         }
     }
