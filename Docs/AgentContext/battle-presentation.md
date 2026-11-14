@@ -56,7 +56,8 @@ the same claim path without an alert or another tap.
 
 Boss battles use the bundled Alchemy idle clips, centered and filled within the
 existing enemy frame. The battle card owns a bounded cache of the selected boss's
-compressed clips and prepares two reusable players. The opening frame of the first
+compressed clips and prepares two reusable players, including while the prepared
+battle is mounted offscreen. The opening frame of the first
 clip covers the card until its player is ready, avoiding a flash of unrelated static
 art. A short overlap begins near the clip boundary after the next layer is displayable
 and its player starts. Each round

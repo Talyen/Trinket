@@ -30,17 +30,17 @@ enum BossIdleCatalog {
     static func seamScores(for clips: [URL]) -> [[Double]]? {
         guard let name = clips.first?.lastPathComponent.components(separatedBy: "-idle-").first else { return nil }
         switch name {
-        case "blight-treant": return [[0, 22.07, 21.96], [5.75, 0, 5.92], [6.40, 6.46, 0]]
+        case "blight-treant": return [[0, 22.46, 22.18], [3.80, 0, 3.36], [3.56, 3.24, 0]]
         case "forge-golem": return [[0, 2.69, 2.72], [2.57, 0, 2.62], [3.25, 3.15, 0]]
-        case "frostwarden": return [[0, 14.26, 14.19], [14.36, 0, 14.21], [15.70, 15.57, 0]]
-        case "iron-bear": return [[0, 12.81, 12.76], [11.72, 0, 12.10], [11.68, 12.06, 0]]
+        case "frostwarden": return [[0, 6.02, 5.86], [4.94, 0, 4.84], [4.09, 4.04, 0]]
+        case "iron-bear": return [[0, 4.02, 4.00], [4.04, 0, 3.40], [4.07, 3.41, 0]]
         case "blood-countess": return [
-                [0, 12.45, 13.18, 12.02, 12.22], [14.20, 0, 14.93, 13.85, 13.97],
-                [14.22, 14.25, 0, 13.88, 13.96], [13.50, 13.57, 14.19, 0, 13.27],
-                [13.83, 14.00, 14.51, 13.59, 0],
+                [0, 5.34, 5.29, 5.82, 5.54], [5.19, 0, 5.54, 5.66, 5.64],
+                [5.61, 5.74, 0, 6.03, 5.98], [5.99, 6.19, 6.34, 0, 6.24],
+                [7.96, 8.08, 7.90, 8.54, 0],
             ]
-        case "seraph": return [[0, 10.31, 12.18], [6.90, 0, 6.76], [8.49, 7.66, 0]]
-        case "stone-titan": return [[0, 5.60, 5.79], [6.27, 0, 6.17], [5.96, 5.68, 0]]
+        case "seraph": return [[0, 10.13, 10.36], [7.00, 0, 6.76], [8.52, 7.66, 0]]
+        case "stone-titan": return [[0, 3.45, 3.20], [4.80, 0, 4.81], [3.63, 3.85, 0]]
         default: return nil
         }
     }
@@ -249,6 +249,8 @@ final class BossIdlePlayerView: UIView {
             let path = first.deletingPathExtension().path + "-first.png"
             poster.image = UIImage(contentsOfFile: path)
         }
+        // A prepared battle can be mounted before it becomes visible.
+        start()
         updatePresentation(isVisible: isVisible, isForeground: isForeground)
     }
 

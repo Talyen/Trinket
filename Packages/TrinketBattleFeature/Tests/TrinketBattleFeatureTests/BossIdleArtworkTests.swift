@@ -118,6 +118,22 @@ struct BossIdleArtworkTests {
         }
     }
 
+    @Test @MainActor func `hidden prepared boss creates paused players`() async throws {
+        let urls = try #require(BossIdleCatalog.clips(for: "the_forge_golem"))
+        let view = BossIdlePlayerView()
+        defer { view.stop() }
+        view.prepare(clips: urls, isVisible: false, isForeground: true)
+        for _ in 0 ..< 100 {
+            let layers = view.layer.sublayers?.compactMap { $0 as? AVPlayerLayer } ?? []
+            if layers.count == 2 {
+                #expect(layers.allSatisfy { $0.player?.rate == 0 })
+                return
+            }
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        Issue.record("Hidden boss players were not prepared")
+    }
+
     @Test @MainActor func `retiring the player releases the view while preload is pending`() async throws {
         let urls = try #require(BossIdleCatalog.clips(for: "the_blood_countess"))
         var player: BossIdlePlayerView? = BossIdlePlayerView()
