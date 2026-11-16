@@ -15,6 +15,9 @@ that close a release gate, then refresh the affected evidence on the resulting
 revision. Follow the [standing workflow](../../AGENTS.md#route-and-read) and
 [verification policy](../Platform/Verification.md).
 
+Track promotion, launch-week reporting, and marketing spend in the
+[launch marketing plan](LaunchMarketing.md).
+
 The owner authorized App Review submission of build 9 and Full Game on November 8.
 Publication requires a separate owner decision after approval.
 Use the existing iCloud test results and deliberate test saves for candidate checks.
