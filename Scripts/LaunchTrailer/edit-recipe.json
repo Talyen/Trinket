@@ -1,21 +1,10 @@
 {
   "hero": {"offset": 0.24, "duration": 1.45},
   "companion": {"offset": 0.25, "duration": 1.45},
-  "fire-arrow": {"offset": 0.12, "duration": 1.35, "effects": [{"type": "push", "from": 0.45, "to": 1.32, "center": [0.44, 0.24], "zoom": 1.13}, {"type": "focus", "from": 0.48, "to": 1.35, "center": [0.48, 0.26], "radius": [0.59, 0.24], "strength": 0.32}]},
-  "item": {"offset": 0.1, "duration": 1.35, "effects": [{"type": "push", "from": 0.55, "to": 1.33, "center": [0.5, 0.48], "zoom": 1.08}]},
-  "homestead": {"offset": -0.08, "duration": 1.44},
-  "campaign-art": {"offset": -0.15, "duration": 1.1},
-  "forest": {"offset": 0.43, "duration": 1.0},
-  "spires-art": {"offset": -0.18, "duration": 1.08},
-  "spire-climb": {"offset": 0.18, "duration": 1.02},
-  "labyrinth-art": {"offset": -0.24, "duration": 1.18, "effects": [{"type": "focus", "from": 0.0, "to": 0.68, "center": [0.5, 0.47], "radius": [0.54, 0.2], "strength": 0.43}]},
-  "labyrinth-map": {"offset": 0.49, "duration": 1.08},
-  "contracts-art": {"offset": -0.18, "duration": 1.11},
-  "contracts-board": {"offset": 0.41, "duration": 1.18},
-  "voyage-art": {"offset": -0.24, "duration": 1.16, "effects": [{"type": "focus", "from": 0, "to": 0.69, "center": [0.5, 0.75], "radius": [0.56, 0.19], "strength": 0.38}]},
-  "voyage-route": {"offset": 0.27, "duration": 1.13, "effects": [{"type": "dip", "from": 0.98, "to": 1.13, "strength": 0.42}]},
-  "boss-reveal": {"offset": -0.04, "duration": 1.25, "effects": [{"type": "push", "from": 0.46, "to": 1.24, "center": [0.52, 0.25], "zoom": 1.12}]},
-  "boss-play-1": {"offset": 0.33, "duration": 2.05, "effects": [{"type": "focus", "from": 0.63, "to": 1.83, "center": [0.5, 0.25], "radius": [0.57, 0.26], "strength": 0.38}]},
+  "fire-arrow": {"offset": 0.12, "duration": 1.35},
+  "boss-reveal": {"offset": -0.04, "duration": 1.25},
+  "boss-play-1": {"offset": 0.33, "duration": 2.05},
   "boss-play-2": {"offset": 0.4, "duration": 1.85},
-  "boss-play-3": {"offset": 0.33, "duration": 3.09, "effects": [{"type": "push", "from": 0.64, "to": 2.78, "center": [0.5, 0.36], "zoom": 1.08}, {"type": "dip", "from": 2.8, "to": 3.09, "strength": 1}]}
+  "boss-play-3": {"offset": 0.33, "duration": 3.09},
+  "boss-resolution": {"offset": 0, "duration": 2.0}
 }

@@ -31,24 +31,6 @@ final class PhysicalTour: XCTestCase {
         control.tap()
     }
 
-    private func back() {
-        let control = app.buttons.matching(identifier: "BackButton").allElementsBoundByIndex.last { $0.isHittable }
-        XCTAssertNotNil(control, "Missing foreground Back button")
-        control?.tap()
-    }
-
-    private func dismiss(_ id: String) {
-        for _ in 0 ..< 2 where element(id).exists {
-            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.18))
-            let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.95))
-            start.press(forDuration: 0.12, thenDragTo: end)
-            if element(id).waitForNonExistence(timeout: 1) {
-                return
-            }
-        }
-        XCTAssertFalse(element(id).exists, "Sheet still open: \(id)")
-    }
-
     private func tab(_ name: String) {
         let native = app.tabBars.buttons[name]
         let button = native.exists ? native : app.buttons.matching(
@@ -79,29 +61,6 @@ final class PhysicalTour: XCTestCase {
             withVelocity: XCUIGestureVelocity(rawValue: 440),
             thenHoldForDuration: 0.05,
         )
-    }
-
-    private func mode(_ name: String) {
-        let card = element("\(name) Mode Card")
-        ready(card, scroll: true)
-        let screen = app.frame
-        let safeTop = screen.height * 0.14
-        let safeBottom = screen.height * 0.83
-        for _ in 0 ..< 5 {
-            let frame = card.frame
-            if frame.minY >= safeTop, frame.maxY <= safeBottom {
-                break
-            }
-            let offset = min(0.34, max(-0.34, (screen.midY - frame.midY) / screen.height))
-            let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.52))
-            let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.52 + offset))
-            from.press(forDuration: 0.08, thenDragTo: to, withVelocity: .slow, thenHoldForDuration: 0.25)
-        }
-        XCTAssertTrue(
-            card.frame.minY >= screen.height * 0.08 && card.frame.maxY <= screen.height * 0.91,
-            "Show the entire illustrated \(name) card before entering the mode",
-        )
-        keep("\(name.lowercased())-art") { card.tap() }
     }
 
     private func starters() {
@@ -140,64 +99,13 @@ final class PhysicalTour: XCTestCase {
                                 (1 ... 8).map { "chapter-1-stage-\($0)" }.joined(separator: ",")]
         app.launch()
         tab("Play")
-        tap("Campaign Mode Card")
-        tap("Stage 1-9 Action", scroll: true)
-        let offer = matchingButton("identifier ENDSWITH %@", " shop offer").firstMatch
-        ready(offer, scroll: true)
-        keep("item") { offer.tap() }
-        XCTAssertTrue(element("Shop Detail Buy Button").waitForExistence(timeout: 12))
-        dismiss("Shop Detail Buy Button")
-        tap("Shop Leave Button", scroll: true)
-        tab("Homestead")
-        XCTAssertTrue(element("Homestead Resource Wallet").waitForExistence(timeout: 12))
-        let farming = element("Homestead Farming Category")
-        ready(farming, scroll: true)
-        keep("homestead") { farming.tap() }
-        tab("Play")
-    }
-
-    private func modeShots() {
-        if element("Chapter 1 Header").exists {
-            back()
-        }
-        mode("Campaign")
-        XCTAssertTrue(element("Chapter 1 Header").waitForExistence(timeout: 12))
-        keep("forest") { drag(fromX: 0.52, fromY: 0.72, toX: 0.52, toY: 0.40) }
-        back()
-        tap("Explore Mode Card")
-        mode("Spires")
-        let spire = element("Spire cinderSpire Row")
-        ready(spire, scroll: true)
-        keep("spire-climb") { spire.tap() }
-        XCTAssertTrue(element("Spire cinderSpire Climb").waitForExistence(timeout: 12))
-        back()
-        back()
-        mode("Labyrinth")
-        keep("labyrinth-map") {
-            if element("Labyrinth Enter").exists {
-                tap("Labyrinth Enter")
-            } else {
-                drag(fromX: 0.60, fromY: 0.57, toX: 0.35, toY: 0.42)
-            }
-        }
-        XCTAssertTrue(element("Labyrinth Map").waitForExistence(timeout: 12))
-        back()
-        mode("Contracts")
-        XCTAssertTrue(element("Contracts Board").waitForExistence(timeout: 12))
-        keep("contracts-board") { drag(fromX: 0.50, fromY: 0.73, toX: 0.50, toY: 0.36) }
-        back()
-        mode("Voyage")
-        let art = matchingButton("identifier BEGINSWITH %@", "Voyage Artwork ").firstMatch
-        ready(art, scroll: true)
-        keep("voyage-route") { art.tap() }
-        XCTAssertTrue(element("Voyage Destination Sheet").waitForExistence(timeout: 12))
-        dismiss("Voyage Destination Sheet")
-        back()
-        back()
     }
 
     private func boss() {
         tap("Campaign Mode Card")
+        // Resolve the required merchant encounter before the boss stage unlocks.
+        tap("Stage 1-9 Action", scroll: true)
+        tap("Shop Leave Button", scroll: true)
         let encounter = element("Stage 1-10 Action")
         ready(encounter, scroll: true)
         keep("boss-reveal", settle: 1.4) { encounter.tap() }
@@ -221,7 +129,20 @@ final class PhysicalTour: XCTestCase {
                 )
             }
         }
-        XCTAssertTrue(boss.exists || element("Victory").exists)
+        let victory = element("Victory")
+        let defeat = element("Defeat")
+        let auto = element("Auto Battle Toggle")
+        if !victory.exists, !defeat.exists, auto.exists {
+            keep("boss-resolution", settle: 2.0) {
+                auto.tap()
+                for _ in 0 ..< 40 {
+                    if victory.exists || defeat.exists {
+                        break
+                    }
+                    Thread.sleep(forTimeInterval: 1)
+                }
+            }
+        }
     }
 
     func testRecordTrinket() throws {
@@ -268,7 +189,6 @@ final class PhysicalTour: XCTestCase {
         Thread.sleep(forTimeInterval: 4)
         starters()
         buildShots()
-        modeShots()
         boss()
         print("TRINKET_CAPTURE_DONE \(ProcessInfo.processInfo.systemUptime)")
         fflush(stdout)

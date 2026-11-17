@@ -28,7 +28,7 @@ def main():
     parser.add_argument("--soundtrack", type=Path)
     parser.add_argument("--music-offset", type=float, default=0)
     parser.add_argument("--keep-source-audio", action="store_true")
-    parser.add_argument("--clean-picture", action="store_true", help="Use the same cuts without camera or light effects.")
+    parser.add_argument("--clean-picture", action="store_true", help="Use the same gameplay cuts without camera, lighting, or captions.")
     parser.add_argument("--crop", help="Measured game viewport as width:height:x:y")
     parser.add_argument("--fps", type=int, choices=[30, 60], default=60)
     parser.add_argument("--videotoolbox", action="store_true", help="Use the Mac hardware codec for the 60 fps press master.")
@@ -47,7 +47,9 @@ def main():
     source = probe(args.source)
     video = next(stream for stream in source["streams"] if stream["codec_type"] == "video")
     duration = float(source["format"]["duration"])
-    shots = json.loads(args.timeline.read_text())["shots"]
+    timeline = json.loads(args.timeline.read_text())
+    shots = timeline["shots"]
+    end_card = timeline.get("end_card")
     if not shots:
         parser.error("The timeline needs at least one shot.")
     if args.keep_source_audio and not any(s["codec_type"] == "audio" for s in source["streams"]):
@@ -85,7 +87,7 @@ def main():
         # Quantize the cut boundaries on one output clock. iOS may hold a
         # single source frame across an entire menu shot.
         first_frame = round(start * fps)
-        count = round((output_time + end - start) * fps) - round(output_time * fps)
+        count = round(end * fps) - first_frame
         if count < 1:
             parser.error(f"Shot {index} is shorter than one output frame.")
         frame_ranges.append(f"between(n,{first_frame},{first_frame + count - 1})")
@@ -95,13 +97,15 @@ def main():
                 f"aresample=48000,aformat=channel_layouts=stereo[a{index}]"
             )
             inputs.append(f"[a{index}]")
-        length = end - start
+        length = count / fps
         cue_map.append({
             "id": shot["id"], "source_start": start, "source_end": end,
             "output_start": output_time, "output_end": output_time + length,
         })
         if shot.get("effects") and not args.clean_picture:
             cue_map[-1]["effects"] = shot["effects"]
+        if shot.get("graphic") and not args.clean_picture:
+            cue_map[-1]["graphic"] = shot["graphic"]
         if args.soundtrack and shot.get("sounds"):
             if args.keep_source_audio:
                 parser.error("Choose captured audio or synchronized sound cues for the score.")
@@ -140,11 +144,23 @@ def main():
         treated = compose(filters, cue_map, fps, width, height)
     except (KeyError, ValueError, TypeError) as error:
         parser.error(f"Invalid trailer treatment: {error}")
-    filters.append(f"[{treated}]{geometry},format=yuv420p[video]")
     command = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-n", "-threads", "2", "-filter_complex_threads", "2"]
     if args.videotoolbox:
         command += ["-hwaccel", "videotoolbox"]
-    command += ["-i", str(args.source)]
+    command += ["-t", str(previous_end + 1 / fps), "-i", str(args.source)]
+    graphics = [(s["graphic"], s["output_start"], s["output_end"]) for s in cue_map if "graphic" in s]
+    if end_card:
+        seconds = float(end_card["seconds"])
+        if not 0.5 <= seconds <= 5:
+            parser.error("The end card needs 0.5–5 seconds.")
+        frames = round(seconds * fps)
+        filters.append(f"[{treated}]tpad=stop_mode=clone:stop={frames}[hold]")
+        treated = "hold"
+        graphics.append((end_card["graphic"], output_time, output_time + frames / fps))
+        output_time += frames / fps
+        if args.keep_source_audio:
+            filters.append(f"[effects]apad=pad_dur={frames / fps}[room]")
+    captured_audio = "[room]" if end_card else "[effects]"
     audio_label = None
     if args.soundtrack:
         if args.music_offset + output_time > float(music["format"]["duration"]):
@@ -158,7 +174,7 @@ def main():
         )
         if args.keep_source_audio:
             filters.append("[score]volume=0.3[bed]")
-            filters.append("[effects][bed]amix=inputs=2:duration=longest:normalize=0[mix]")
+            filters.append(captured_audio + "[bed]amix=inputs=2:duration=longest:normalize=0[mix]")
             filters.append("[mix]loudnorm=I=-16:TP=-1.5:LRA=11,volume=-1dB[audio]")
         else:
             tracks = ["[score]"]
@@ -186,8 +202,20 @@ def main():
             filters.append(bed + "loudnorm=I=-16:TP=-1.5:LRA=11,volume=-1dB[audio]")
         audio_label = "[audio]"
     elif args.keep_source_audio:
-        filters.append("[effects]loudnorm=I=-16:TP=-1.5:LRA=11,volume=-1dB[audio]")
+        filters.append(captured_audio + "loudnorm=I=-16:TP=-1.5:LRA=11,volume=-1dB[audio]")
         audio_label = "[audio]"
+    # Add stills after the score and its SFX so audio input indexes stay fixed.
+    input_count = command.count("-i")
+    for index, (name, start, end) in enumerate(graphics):
+        path = (args.timeline.parent / name).resolve()
+        if not path.is_file() or path.suffix.lower() != ".png":
+            parser.error(f"Missing PNG on the edit timeline: {path}")
+        command += ["-i", str(path)]
+        first, last = round(start * fps), round(end * fps) - 1
+        layer = f"graphic{index}"
+        filters.append(f"[{treated}][{input_count + index}:v]overlay=enable='between(n,{first},{last})'[{layer}]")
+        treated = layer
+    filters.append(f"[{treated}]{geometry},format=yuv420p[video]")
     command += ["-filter_complex", ";".join(filters), "-map", "[video]"]
     if audio_label:
         command += ["-map", audio_label, "-c:a", "aac", "-b:a", "256k", "-ar", "48000", "-ac", "2"]
@@ -212,7 +240,7 @@ def main():
         "source": str(args.source.resolve()), "timeline": str(args.timeline.resolve()),
         "soundtrack": str(args.soundtrack.resolve()) if args.soundtrack else None,
         "music_offset": args.music_offset, "source_audio_kept": args.keep_source_audio,
-        "duration": actual_duration, "fps": fps, "source_motion": motion, "shots": cue_map, "command": command,
+        "duration": actual_duration, "fps": fps, "end_card": end_card, "source_motion": motion, "shots": cue_map, "command": command,
     }, indent=2) + "\n")
     print(f"Exported {actual_duration:.2f}s to {args.output}")
     print(f"Cue map: {cue_path}")

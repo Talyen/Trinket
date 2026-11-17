@@ -86,9 +86,35 @@ class LaunchTrailerTests(unittest.TestCase):
         shots = capture.cut_gestures(handles, 20)["shots"]
         self.assertAlmostEqual(shots[0]["start"] * 60, round(shots[0]["start"] * 60))
         self.assertLess(shots[0]["end"], shots[1]["start"])
-        self.assertEqual(shots[1]["effects"][0]["type"], "push")
+        self.assertFalse(any(shot.get("effects") for shot in shots))
         with self.assertRaisesRegex(ValueError, "exceeds"):
             capture.cut_gestures(handles, 8.5)
+
+    @unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"), "requires FFmpeg")
+    def test_caption_boundaries_and_end_card_cover_only_their_own_frames(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "game.mp4"
+            white = root / "white.png"
+            subprocess.run(["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "color=black:s=64x96:r=30:d=3",
+                            "-c:v", "libx264", str(source)], check=True)
+            subprocess.run(["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "color=white:s=64x96",
+                            "-frames:v", "1", "-threads", "1", str(white)], check=True)
+            timeline = root / "edit.json"
+            timeline.write_text(json.dumps({"shots": [
+                {"id": "a", "start": 0.018, "end": 0.51},
+                {"id": "b", "start": 0.51, "end": 1, "graphic": "white.png"},
+                {"id": "c", "start": 2, "end": 2.5},
+            ], "end_card": {"graphic": "white.png", "seconds": 0.5}}))
+            output = root / "cut.mp4"
+            with patch.object(sys, "argv", ["edit", "--source", str(source), "--timeline", str(timeline),
+                                          "--fps", "30", "--output", str(output)]):
+                edit.main()
+            pixels = subprocess.check_output(["ffmpeg", "-v", "error", "-i", str(output),
+                                              "-pix_fmt", "gray", "-f", "rawvideo", "-"])
+            self.assertEqual(len(pixels), 59 * 64 * 96)
+            self.assertEqual([pixels[i * 64 * 96] > 127 for i in [0, 13, 14, 28, 29, 43, 44, 58]],
+                             [False, False, True, True, False, False, True, True])
 
     def test_overlapping_ordinary_shots_fail_before_encoding(self):
         with tempfile.TemporaryDirectory() as temp:
