@@ -2,7 +2,7 @@
 type: execution-plan
 status: active
 created: 2026-11-15
-updated: 2026-11-15
+updated: 2026-11-17
 expires: 2026-11-29
 ---
 
@@ -64,15 +64,13 @@ expectations from Trinket's own results. [Pawnbarian press kit](https://j4nw.com
 
 ## Before launch
 
-- [ ] **Agents · press kit.** Cut one 20–30 second portrait clip from genuine
-  gameplay footage. Start on a card play with the Hero and Companion visible,
-  show its effect, and follow it with one build or loot choice. Verify the
-  clip at phone size with audio muted. If the retained footage lacks a
-  readable example, capture that specific moment under the repository's
-  visual inspection workflow. Reuse the clip for the nomination, pitches,
-  and launch post. Package it with the app icon, three to five approved
-  screenshots, a short description, platform and price facts, and a
-  contact method. Verify assets and links before sharing.
+- [x] **Agents · still press kit.** Package five approved iPhone screenshots, icon artwork,
+  game facts and a public contact. The November 17 release evidence contains the
+  stills ZIP, eight individually drafted pitches, the App Launch nomination draft
+  and the D7/D14/D30 reporting worksheet.
+- [x] **Agents · trailer.** The 28.5-second cut opens on Ranger and Wolf selection,
+  shows abilities, items, Homestead and all five modes, and closes on The Blight Treant.
+  One on-device iPhone recording supplies the 60 fps press cut and 30 fps App Store preview. [Shot list, capture and audio plan](LaunchTrailer.md)
 - [ ] **Agents · Apple editorial.** Check for an existing nomination, then
   prepare the App Launch nomination for iPhone and iPad in the U.S. Include
   the solo developer story, Hero and Companion combat, the free start,
@@ -206,7 +204,10 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | Milestone | Status | Date or evidence |
 | --- | --- | --- |
 | Release state and source assets checked | Complete | November 15, 2026 |
-| Target window, press kit, nomination, outreach approval | Pending | |
+| Stills, copy, eight pitches, nomination and reporting worksheet | Drafts prepared | Nov 17, retained Release evidence folder `LaunchMarketing-Nov17` |
+| Trailer | Ready for owner review | Nov 17, physical iPhone master, App Store preview and independent soundtrack. [Trailer tracker](LaunchTrailer.md) |
+| Reporting access | Partial | Nov 17, build 13 in review. Analytics request list returned HTTP 500 twice. |
+| Launch window, public press kit, nomination and outreach approval | Pending | Owner review after final trailer |
 | Nomination and outreach dispatched | Pending | |
 | Verified public U.S. launch | Pending | |
 | Day 7, 14, and 30 sales and conversion snapshots | Pending | |

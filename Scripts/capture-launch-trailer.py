@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+"""Drive one take on a paired physical Wi-Fi iPhone and retrieve its original movie."""
+import argparse
+import json
+from pathlib import Path
+import plistlib
+import re
+import shutil
+import subprocess
+import tempfile
+import uuid
+
+from internal.cli import write_json_atomic
+from internal.device_selection import select_device
+
+ROOT = Path(__file__).resolve().parents[1]
+BUNDLE = "com.ryanmcintire.Trinket"
+RECORDER = BUNDLE + ".TrailerRecorder"
+
+
+def device_json(*args):
+    command = ["xcrun", "devicectl", "--timeout", "25", "--quiet", "--json-output", "-", *args]
+    return json.loads(subprocess.check_output(command, text=True, timeout=35))["result"]
+
+
+def installed_phone(requested):
+    entry = select_device(device_json("list", "devices")["devices"], requested)
+    props = entry.get("properties", {})
+    hardware = props.get("hardware", entry.get("hardwareProperties", {}))
+    connection = props.get("connection", entry.get("connectionProperties", {}))
+    if connection.get("transportType", "").lower() not in {"localnetwork", "wifi", "network"}:
+        raise ValueError("Select a paired iPhone connected over Wi-Fi.")
+    if hardware.get("deviceType") != "iPhone":
+        raise ValueError("This tour requires an iPhone.")
+    udid = hardware["udid"]
+    device_json("device", "info", "displays", "--device", udid)
+    apps = device_json("device", "info", "apps", "--device", udid, "--bundle-id", BUNDLE)["apps"]
+    app = next((app for app in apps if app.get("bundleIdentifier") == BUNDLE), None)
+    if not app:
+        raise ValueError("Install Trinket before capture.")
+    return udid, {key: app[key] for key in ("bundleIdentifier", "version", "bundleVersion")}
+
+
+def keep_times(shots, clock):
+    keep = []
+    previous_end = 0
+    for shot in shots:
+        start = shot["start"] - clock["start"]
+        end = shot["end"] - clock["start"]
+        if not previous_end <= start < end <= clock["duration"]:
+            raise ValueError(f"Shot outside original recording or out of order: {shot['id']}")
+        keep.append({"id": shot["id"], "start": start, "end": end})
+        previous_end = end
+    if not keep:
+        raise ValueError("No shots in test attachment.")
+    return {"shots": keep}
+
+
+def run_tour(udid, app, output, rehearsal, team):
+    output.mkdir(parents=True, exist_ok=False)
+    take = str(uuid.uuid4()).upper()
+    write_json_atomic(output / "take.json", {"device": udid, "installedApp": app, "take": take, "rehearsal": rehearsal})
+    destination = ["-destination", "platform=iOS,id=" + udid]
+    with tempfile.TemporaryDirectory(prefix="trinket-tour-") as build:
+        root = Path(build)
+        project = root / "TrinketTrailer.xcodeproj"
+        for source in (ROOT / "Scripts/LaunchTrailer").iterdir():
+            if source.is_file():
+                shutil.copy2(source, root)
+        subprocess.run(["xcodegen", "generate", "--spec", str(root / "project.yml"), "--project", build], check=True)
+        products = root / "Products"
+        subprocess.run(["xcodebuild", "-quiet", "build-for-testing", "-project", str(project),
+                        "-scheme", "PhysicalTour", *destination, "-derivedDataPath", str(root / "build"),
+                        "-allowProvisioningUpdates", "DEVELOPMENT_TEAM=" + team, "SYMROOT=" + str(products)],
+                       check=True)
+        (xctestrun,) = products.glob("PhysicalTour_*.xctestrun")
+        config = plistlib.loads(xctestrun.read_bytes())
+        test = config["PhysicalTour"]
+        test["PreferredScreenCaptureFormat"] = "screenshots"
+        test["UserAttachmentLifetime"] = "keepAlways"
+        if not rehearsal:
+            subprocess.run(["xcrun", "devicectl", "device", "install", "app", "--device", udid,
+                            str(products / "Debug-iphoneos/TrailerRecorder.app")], check=True)
+            test["EnvironmentVariables"]["TRINKET_TAKE"] = take
+        xctestrun.write_bytes(plistlib.dumps(config))
+        result = output / "tour.xcresult"
+        command = ["xcodebuild", "test-without-building", "-xctestrun", str(xctestrun), *destination,
+                   "-parallel-testing-enabled", "NO", "-resultBundlePath", str(result), "-collect-test-diagnostics", "never"]
+        with (output / "route.log").open("w", buffering=1) as log, subprocess.Popen(
+                command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True) as test_process:
+            for line in test_process.stdout:
+                print(line, end="", flush=True)
+                log.write(line)
+            code = test_process.wait()
+    attachments = output / "attachments"
+    if result.exists():
+        subprocess.run(["xcrun", "xcresulttool", "export", "attachments", "--path", str(result),
+                        "--output-path", str(attachments)], check=True)
+    if not rehearsal:
+        # On a route failure preserve a finalized partial take for diagnosis.
+        copy = ["xcrun", "devicectl", "device", "copy", "from", "--device", udid, "--domain-type",
+                "appDataContainer", "--domain-identifier", RECORDER, "--timeout", "150"]
+        for name in ("clock.json", "continuous.mp4"):
+            transfer = subprocess.run([*copy, "--source", f"Documents/{take}/{name}",
+                                       "--destination", str(output / name)])
+            if transfer.returncode:
+                if not code:
+                    transfer.check_returncode()
+                break
+    if code:
+        raise RuntimeError(f"Physical tour failed. Inspect {output / 'route.log'}")
+    manifest = json.loads((attachments / "manifest.json").read_text())
+    (marks,) = [a for test in manifest for a in test["attachments"]
+                if a["suggestedHumanReadableName"].startswith("Trinket Shot Times")]
+    shots = json.loads((attachments / marks["exportedFileName"]).read_text())
+    write_json_atomic(output / "shots.json", shots)
+    if not rehearsal:
+        write_json_atomic(output / "keep.json", keep_times(shots, json.loads((output / "clock.json").read_text())))
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--device", required=True, help="Exact iPhone name or UDID")
+    parser.add_argument("--check", action="store_true")
+    parser.add_argument("--rehearse", action="store_true", help="Run the route without capturing video.")
+    parser.add_argument("--output-dir", type=Path)
+    parser.add_argument("--team", help="Defaults to the development team in the game project.")
+    args = parser.parse_args()
+    udid, app = installed_phone(args.device)
+    print(f"Wi-Fi iPhone {udid}, Trinket {app['version']} ({app['bundleVersion']})", flush=True)
+    if args.check:
+        return
+    if not args.output_dir:
+        parser.error("--output-dir is required for a take.")
+    team = args.team or re.search(r'^    DEVELOPMENT_TEAM: "(\w+)"', (ROOT / "project.yml").read_text(), re.M)[1]
+    run_tour(udid, app, args.output_dir.resolve(), args.rehearse, team)
+
+
+if __name__ == "__main__":
+    main()

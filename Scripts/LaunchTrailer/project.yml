@@ -1,0 +1,40 @@
+name: TrinketTrailer
+options:
+  deploymentTarget:
+    iOS: "18.0"
+targets:
+  TrailerRecorder:
+    type: application
+    platform: iOS
+    deploymentTarget: "27.0"
+    sources: [Recorder.swift]
+    info:
+      path: Generated-Recorder-Info.plist
+      properties:
+        CFBundleDisplayName: Trinket Recorder
+        UILaunchScreen: {}
+        UIBackgroundModes: [screen-capture]
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ryanmcintire.Trinket.TrailerRecorder
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
+  PhysicalTour:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [PhysicalTour.swift]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ryanmcintire.Trinket.TrailerTour
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
+schemes:
+  PhysicalTour:
+    build:
+      targets:
+        PhysicalTour: [test]
+        TrailerRecorder: [test]
+    test:
+      targets: [PhysicalTour]
