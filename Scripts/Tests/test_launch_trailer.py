@@ -116,6 +116,39 @@ class LaunchTrailerTests(unittest.TestCase):
             self.assertEqual([pixels[i * 64 * 96] > 127 for i in [0, 13, 14, 28, 29, 43, 44, 58]],
                              [False, False, True, True, False, False, True, True])
 
+    def test_showcase_keeps_one_continuous_source_window_per_boss(self):
+        marks = {"shots": [
+            {"id": "first-ready", "start": 1, "end": 2},
+            {"id": "boss-play-first-1", "start": 3, "end": 4},
+            {"id": "boss-play-first-2", "start": 6, "end": 7},
+            {"id": "first-exchange", "start": 8, "end": 9},
+            {"id": "second-ready", "start": 10, "end": 11},
+            {"id": "boss-play-second-1", "start": 12, "end": 13},
+            {"id": "boss-play-second-2", "start": 15, "end": 16},
+        ]}
+        result = capture.continuous_boss_shots(marks)
+        self.assertEqual(result["shots"], [
+            {"id": "boss-play-first", "start": 3, "end": 7},
+            {"id": "boss-play-second", "start": 12, "end": 16, "transition": 0.30},
+        ])
+
+    @unittest.skipUnless(shutil.which("ffmpeg"), "requires FFmpeg")
+    def test_wipe_covers_cut_and_releases_the_incoming_picture(self):
+        from LaunchTrailer.treatment import compose_transitions
+        filters = []
+        output = compose_transitions(filters, "0:v", [
+            {"id": "first", "output_start": 0, "output_end": 1},
+            {"id": "second", "output_start": 1, "output_end": 2, "transition": 0.3},
+        ], 30, 64, 96)
+        pixels = subprocess.check_output(["ffmpeg", "-v", "error", "-f", "lavfi", "-i",
+                                          "color=white:s=64x96:r=30:d=2", "-filter_complex", ";".join(filters),
+                                          "-map", f"[{output}]", "-pix_fmt", "gray", "-f", "rawvideo", "-"])
+        frames = [pixels[i:i + 64 * 96] for i in range(0, len(pixels), 64 * 96)]
+        self.assertEqual(len(frames), 60)
+        self.assertGreater(min(frames[24]), 245)
+        self.assertLess(max(frames[30]), 50)
+        self.assertGreater(min(frames[36]), 245)
+
     def test_overlapping_ordinary_shots_fail_before_encoding(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

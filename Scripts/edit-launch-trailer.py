@@ -9,7 +9,7 @@ from pathlib import Path
 import subprocess
 
 from LaunchTrailer.cadence import measure, sample_action
-from LaunchTrailer.treatment import compose
+from LaunchTrailer.treatment import compose, compose_transitions
 
 
 def probe(path):
@@ -28,7 +28,7 @@ def main():
     parser.add_argument("--soundtrack", type=Path)
     parser.add_argument("--music-offset", type=float, default=0)
     parser.add_argument("--keep-source-audio", action="store_true")
-    parser.add_argument("--clean-picture", action="store_true", help="Use the same gameplay cuts without camera, lighting, or captions.")
+    parser.add_argument("--clean-picture", action="store_true", help="Use the same gameplay cuts without editorial effects or captions.")
     parser.add_argument("--crop", help="Measured game viewport as width:height:x:y")
     parser.add_argument("--fps", type=int, choices=[30, 60], default=60)
     parser.add_argument("--videotoolbox", action="store_true", help="Use the Mac hardware codec for the 60 fps press master.")
@@ -104,6 +104,8 @@ def main():
         })
         if shot.get("effects") and not args.clean_picture:
             cue_map[-1]["effects"] = shot["effects"]
+        if "transition" in shot and not args.clean_picture:
+            cue_map[-1]["transition"] = shot["transition"]
         if shot.get("graphic") and not args.clean_picture:
             cue_map[-1]["graphic"] = shot["graphic"]
         if args.soundtrack and shot.get("sounds"):
@@ -215,6 +217,10 @@ def main():
         layer = f"graphic{index}"
         filters.append(f"[{treated}][{input_count + index}:v]overlay=enable='between(n,{first},{last})'[{layer}]")
         treated = layer
+    try:
+        treated = compose_transitions(filters, treated, cue_map, fps, width, height)
+    except (ValueError, TypeError) as error:
+        parser.error(f"Invalid trailer transition: {error}")
     filters.append(f"[{treated}]{geometry},format=yuv420p[video]")
     command += ["-filter_complex", ";".join(filters), "-map", "[video]"]
     if audio_label:

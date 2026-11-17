@@ -137,15 +137,7 @@ final class PhysicalTour: XCTestCase {
                 break
             }
             let card = String(playable.identifier.dropFirst("Battle Hand Card ".count))
-            keep("\(prefix)-\(n)", settle: 2.0, card: card) {
-                let origin = playable.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-                origin.press(
-                    forDuration: 0.05,
-                    thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)),
-                    withVelocity: XCUIGestureVelocity(rawValue: 500),
-                    thenHoldForDuration: 0.05,
-                )
-            }
+            keep("\(prefix)-\(n)", settle: 1.05, card: card) { playable.tap() }
         }
     }
 

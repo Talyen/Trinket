@@ -69,7 +69,7 @@ expectations from Trinket's own results. [Pawnbarian press kit](https://j4nw.com
   stills ZIP, eight individually drafted pitches, the App Launch nomination draft
   and the D7/D14/D30 reporting worksheet.
 - [x] **Agents · trailer.** The combat showcase covers all seven bosses, each with a distinct
-  Hero and Companion. The physical iPhone take supplies the 60 fps press cut and 30 fps App Store preview. [Matchups, capture and edit plan](LaunchTrailer.md)
+  Hero and Companion. One continuous tap-to-play shot per boss goes into the 60 fps press cut and 30 fps App Store preview. [Matchups, capture and edit plan](LaunchTrailer.md)
 - [ ] **Agents · Apple editorial.** Check for an existing nomination, then
   prepare the App Launch nomination for iPhone and iPad in the U.S. Include
   the solo developer story, Hero and Companion combat, the free start,

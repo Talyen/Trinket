@@ -77,6 +77,25 @@ def cut_gestures(handles, duration):
     return {"shots": shots}
 
 
+def continuous_boss_shots(handles):
+    """Keep one window from first tap through the last manual play for each boss."""
+    marks = handles["shots"]
+    spires = [m["id"].removesuffix("-ready") for m in marks if m["id"].endswith("-ready")]
+    if not spires or len(set(spires)) != len(spires):
+        raise ValueError("Showcase requires one entry marker for each boss.")
+    shots = []
+    for spire in spires:
+        action = f"boss-play-{spire}"
+        plays = [m for m in marks if m["id"].startswith(action + "-")]
+        if len(plays) < 2:
+            raise ValueError(f"Showcase needs two card plays for {spire}.")
+        shot = {"id": action, "start": plays[0]["start"], "end": plays[-1]["end"]}
+        if shots:
+            shot["transition"] = 0.30
+        shots.append(shot)
+    return {"shots": shots}
+
+
 def run_tour(udid, app, output, rehearsal, team, boss_showcase):
     output.mkdir(parents=True, exist_ok=False)
     take = str(uuid.uuid4()).upper()
@@ -141,8 +160,8 @@ def run_tour(udid, app, output, rehearsal, team, boss_showcase):
         clock = json.loads((output / "clock.json").read_text())
         handles = keep_times(shots, clock)
         write_json_atomic(output / "handles.json", handles)
-        if not boss_showcase:
-            write_json_atomic(output / "keep.json", cut_gestures(handles, clock["duration"]))
+        timeline = continuous_boss_shots(handles) if boss_showcase else cut_gestures(handles, clock["duration"])
+        write_json_atomic(output / "keep.json", timeline)
 
 
 def main():

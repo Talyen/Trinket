@@ -71,3 +71,34 @@ def compose(filters, shots, fps, width, height):
         filters.append(f"[{picture}][matte{index}]overlay=eof_action=pass:repeatlast=0[lit{index}]")
         picture = f"lit{index}"
     return picture
+
+
+def compose_transitions(filters, picture, shots, fps, width, height):
+    """Cover a cut with an angled matte while both game shots run at their original speed."""
+    for index, shot in enumerate(shots):
+        if "transition" not in shot:
+            continue
+        half = round(checked(shot["transition"], 0.15, 0.5) * fps / 2)
+        cut = round(shot["output_start"] * fps)
+        end = round(shot["output_end"] * fps)
+        if index == 0 or half * 2 >= end - cut:
+            raise ValueError(f"Transition needs a preceding shot and room on both sides of {shot['id']}.")
+        if half * 2 >= cut - round(shots[index - 1]["output_start"] * fps):
+            raise ValueError(f"Transition is too long for the shot before {shot['id']}.")
+        # The slanted band fully covers the frame at the cut. Its rim is
+        # feathered and warm to echo the game's gold UI accents.
+        progress = f"(0.5-0.5*cos(PI*N/{2 * half}))"
+        band_position = f"(X/W+0.18*(Y/H-0.5)-1.24+2.88*{progress})"
+        distance = f"min({band_position},1.44-{band_position})"
+        alpha = f"255*clip({distance}/0.042,0,1)"
+        rim = f"1-clip(abs({distance}-0.021)/0.050,0,1)"
+        mask = f"wipe{index}"
+        output = f"transition{index}"
+        filters.append(
+            f"nullsrc=s=128x256:r={fps},trim=end_frame={2 * half + 1},format=yuva444p,"
+            f"geq=lum='20+90*({rim})':cb='128-28*({rim})':cr='128+24*({rim})':a='{alpha}',"
+            f"scale={width}:{height}:flags=bilinear,setpts=PTS+{cut - half}/({fps}*TB)[{mask}]"
+        )
+        filters.append(f"[{picture}][{mask}]overlay=eof_action=pass:repeatlast=0[{output}]")
+        picture = output
+    return picture
