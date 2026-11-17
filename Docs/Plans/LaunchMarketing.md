@@ -68,9 +68,8 @@ expectations from Trinket's own results. [Pawnbarian press kit](https://j4nw.com
   game facts and a public contact. The November 17 release evidence contains the
   stills ZIP, eight individually drafted pitches, the App Launch nomination draft
   and the D7/D14/D30 reporting worksheet.
-- [x] **Agents · trailer.** The trailer follows Ranger and Wolf from party selection to their fight
-  against the Blight Treant. Fire Arrow connects the setup to the first attack.
-  One on-device iPhone recording supplies the 60 fps press cut and 30 fps App Store preview. [Shot list, capture and audio plan](LaunchTrailer.md)
+- [x] **Agents · trailer.** The combat showcase covers all seven bosses, each with a distinct
+  Hero and Companion. The physical iPhone take supplies the 60 fps press cut and 30 fps App Store preview. [Matchups, capture and edit plan](LaunchTrailer.md)
 - [ ] **Agents · Apple editorial.** Check for an existing nomination, then
   prepare the App Launch nomination for iPhone and iPad in the U.S. Include
   the solo developer story, Hero and Companion combat, the free start,

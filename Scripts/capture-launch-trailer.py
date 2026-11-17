@@ -77,10 +77,10 @@ def cut_gestures(handles, duration):
     return {"shots": shots}
 
 
-def run_tour(udid, app, output, rehearsal, team):
+def run_tour(udid, app, output, rehearsal, team, boss_showcase):
     output.mkdir(parents=True, exist_ok=False)
     take = str(uuid.uuid4()).upper()
-    write_json_atomic(output / "take.json", {"device": udid, "installedApp": app, "take": take, "rehearsal": rehearsal})
+    write_json_atomic(output / "take.json", {"device": udid, "installedApp": app, "take": take, "rehearsal": rehearsal, "bossShowcase": boss_showcase})
     destination = ["-destination", "platform=iOS,id=" + udid]
     with tempfile.TemporaryDirectory(prefix="trinket-tour-") as build:
         root = Path(build)
@@ -99,6 +99,8 @@ def run_tour(udid, app, output, rehearsal, team):
         test = config["PhysicalTour"]
         test["PreferredScreenCaptureFormat"] = "screenshots"
         test["UserAttachmentLifetime"] = "keepAlways"
+        if boss_showcase:
+            test["EnvironmentVariables"]["TRINKET_SHOWCASE"] = "1"
         if not rehearsal:
             subprocess.run(["xcrun", "devicectl", "device", "install", "app", "--device", udid,
                             str(products / "Debug-iphoneos/TrailerRecorder.app")], check=True)
@@ -139,7 +141,8 @@ def run_tour(udid, app, output, rehearsal, team):
         clock = json.loads((output / "clock.json").read_text())
         handles = keep_times(shots, clock)
         write_json_atomic(output / "handles.json", handles)
-        write_json_atomic(output / "keep.json", cut_gestures(handles, clock["duration"]))
+        if not boss_showcase:
+            write_json_atomic(output / "keep.json", cut_gestures(handles, clock["duration"]))
 
 
 def main():
@@ -147,6 +150,7 @@ def main():
     parser.add_argument("--device", required=True, help="Exact iPhone name or UDID")
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--rehearse", action="store_true", help="Run the route without capturing video.")
+    parser.add_argument("--boss-showcase", action="store_true", help="Record the seven Spire bosses with the debug capture build.")
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--team", help="Defaults to the development team in the game project.")
     args = parser.parse_args()
@@ -157,7 +161,7 @@ def main():
     if not args.output_dir:
         parser.error("--output-dir is required for a take.")
     team = args.team or re.search(r'^    DEVELOPMENT_TEAM: "(\w+)"', (ROOT / "project.yml").read_text(), re.M)[1]
-    run_tour(udid, app, args.output_dir.resolve(), args.rehearse, team)
+    run_tour(udid, app, args.output_dir.resolve(), args.rehearse, team, args.boss_showcase)
 
 
 if __name__ == "__main__":

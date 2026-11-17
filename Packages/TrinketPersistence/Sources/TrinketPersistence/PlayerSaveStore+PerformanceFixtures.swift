@@ -4,6 +4,21 @@ import TrinketCore
 
 @MainActor
 public extension PlayerSaveStore {
+    func prepareBossCapture(heroID: String, companionID: String, floor: SpireFloor) -> Bool {
+        guard let hero = GameContent.hero(matching: heroID),
+              let companion = GameContent.companion(matching: companionID),
+              roster.unlockedHeroIDs.contains(hero.id),
+              roster.unlockedCompanionIDs.contains(companion.id)
+        else { return false }
+
+        return persistFixtureBatch(logging: "Boss capture checkpoint") { save in
+            save.worldSeed = PlayerSave.testWorldSeed
+            save.roster.setActiveHero(hero)
+            save.roster.setActiveCompanion(companion)
+            save.spires.highestClearedFloorBySpireID[floor.spireID.rawValue] = floor.floor - 1
+        }
+    }
+
     func installPerformanceFixtures(
         mysteryEvent: String?, wantsHomesteadBuild: Bool, wantsStrongParty: Bool,
         wantsTalentFixture: Bool, wantsTalentPoint: Bool, wantsLabyrinthScroll: Bool,

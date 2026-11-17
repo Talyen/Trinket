@@ -111,24 +111,7 @@ final class PhysicalTour: XCTestCase {
         keep("boss-reveal", settle: 1.4) { encounter.tap() }
         let boss = element("The Blight Treant card")
         XCTAssertTrue(boss.waitForExistence(timeout: 15))
-        let cards = matchingButton("identifier BEGINSWITH %@", "Battle Hand Card ")
-        XCTAssertTrue(cards.firstMatch.waitForExistence(timeout: 12))
-        for n in 1 ... 3 {
-            guard let playable = cards.allElementsBoundByIndex.last(where: { $0.isEnabled && $0.isHittable }) else {
-                XCTAssertGreaterThan(n, 2, "Need two distinct combat actions")
-                break
-            }
-            let card = String(playable.identifier.dropFirst("Battle Hand Card ".count))
-            keep("boss-play-\(n)", settle: 2.0, card: card) {
-                let origin = playable.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-                origin.press(
-                    forDuration: 0.05,
-                    thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)),
-                    withVelocity: XCUIGestureVelocity(rawValue: 500),
-                    thenHoldForDuration: 0.05,
-                )
-            }
-        }
+        playCards(prefix: "boss-play")
         let victory = element("Victory")
         let defeat = element("Defeat")
         let auto = element("Auto Battle Toggle")
@@ -145,51 +128,113 @@ final class PhysicalTour: XCTestCase {
         }
     }
 
+    private func playCards(prefix: String) {
+        let cards = matchingButton("identifier BEGINSWITH %@", "Battle Hand Card ")
+        XCTAssertTrue(cards.firstMatch.waitForExistence(timeout: 12))
+        for n in 1 ... 3 {
+            guard let playable = cards.allElementsBoundByIndex.last(where: { $0.isEnabled && $0.isHittable }) else {
+                XCTAssertGreaterThan(n, 2, "Need two distinct combat actions")
+                break
+            }
+            let card = String(playable.identifier.dropFirst("Battle Hand Card ".count))
+            keep("\(prefix)-\(n)", settle: 2.0, card: card) {
+                let origin = playable.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                origin.press(
+                    forDuration: 0.05,
+                    thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)),
+                    withVelocity: XCUIGestureVelocity(rawValue: 500),
+                    thenHoldForDuration: 0.05,
+                )
+            }
+        }
+    }
+
+    private func recordBossShowcase() {
+        let battles = [
+            ("serpentHollow", "The Blight Treant", "Ranger", "Wolf"),
+            ("ironVein", "The Iron Bear", "Rogue", "Panther"),
+            ("cinderSpire", "The Forge Golem", "Wizard", "Frost Whelp"),
+            ("rimeVault", "The Frostwarden", "Alchemist", "Phoenix"),
+            ("sanguineCourt", "The Blood Countess", "Warlock", "Risen Skeleton"),
+            ("aureateChoir", "The Seraph", "Knight", "Library Owl"),
+            ("resonanceHall", "The Stone Titan", "Druid", "Shield Scarab"),
+        ]
+        for (spire, boss, hero, companion) in battles {
+            let heroID = hero.lowercased().replacingOccurrences(of: " ", with: "_")
+            let companionID = companion.lowercased().replacingOccurrences(of: " ", with: "_")
+            app.launchArguments = ["-development-unlocked", "-disable-audio", "-AppleLanguages", "(en)",
+                                   "-boss-capture", spire, heroID, companionID]
+            app.launch()
+            for name in [boss, hero, companion] {
+                XCTAssertTrue(element("\(name) card").waitForExistence(timeout: 18), "Expected \(name) on \(spire) floor 10")
+            }
+            keep("\(spire)-ready", settle: 1.0) {}
+            playCards(prefix: "boss-play-\(spire)")
+            let auto = element("Auto Battle Toggle")
+            if auto.exists, auto.isHittable {
+                keep("\(spire)-exchange", settle: 6.0) { auto.tap() }
+            }
+        }
+    }
+
+    private func startRecorder(take: String) {
+        let recorder = XCUIApplication(bundleIdentifier: "com.ryanmcintire.Trinket.TrailerRecorder")
+        recorder.launchArguments = ["-take", take]
+        recorder.launch()
+        addTeardownBlock { recorder.terminate() }
+        recorder.buttons["Choose screen"].tap()
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        for host in [springboard, recorder] {
+            let share = host.descendants(matching: .any).matching(NSPredicate(
+                format: "label ==[c] %@ OR identifier ==[c] %@", "Share Entire Screen", "Share Entire Screen",
+            )).firstMatch
+            if share.waitForExistence(timeout: 3), share.isHittable {
+                share.tap()
+                break
+            }
+        }
+        XCTAssertTrue(
+            recorder.buttons["Finish take"].waitForExistence(timeout: 90),
+            "Approve the screen on the iPhone. Recorder: \(recorder.staticTexts.allElementsBoundByIndex.map(\.label))",
+        )
+        addTeardownBlock {
+            recorder.activate()
+            if recorder.buttons["Finish take"].exists {
+                recorder.buttons["Finish take"].tap()
+            }
+            XCTAssertTrue(recorder.staticTexts["Saved"].waitForExistence(timeout: 20))
+            recorder.terminate()
+        }
+    }
+
     func testRecordTrinket() throws {
         continueAfterFailure = false
         XCUIDevice.shared.orientation = .portrait
         app.launchEnvironment["XCTestConfigurationFilePath"] = "trailer-fixture"
-        app.launchArguments = ["-store-name", "launch-trailer-\(UUID().uuidString)",
-                               "-disable-audio", "-AppleLanguages", "(en)"]
-        app.launch()
+        let showcase = ProcessInfo.processInfo.environment["TRINKET_SHOWCASE"] == "1"
         addTeardownBlock { self.app.terminate() }
-        XCTAssertTrue(element("Confirm Starter Hero").waitForExistence(timeout: 30))
-        let recorder = XCUIApplication(bundleIdentifier: "com.ryanmcintire.Trinket.TrailerRecorder")
+        if !showcase {
+            app.launchArguments = ["-store-name", "launch-trailer-\(UUID().uuidString)",
+                                   "-disable-audio", "-AppleLanguages", "(en)"]
+            app.launch()
+            XCTAssertTrue(element("Confirm Starter Hero").waitForExistence(timeout: 30))
+        }
         if let take = ProcessInfo.processInfo.environment["TRINKET_TAKE"] {
-            recorder.launchArguments = ["-take", take]
-            recorder.launch()
-            addTeardownBlock { recorder.terminate() }
-            recorder.buttons["Choose screen"].tap()
-            let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
-            for host in [springboard, recorder] {
-                let share = host.descendants(matching: .any).matching(NSPredicate(
-                    format: "label ==[c] %@ OR identifier ==[c] %@", "Share Entire Screen", "Share Entire Screen",
-                )).firstMatch
-                if share.waitForExistence(timeout: 3), share.isHittable {
-                    share.tap()
-                    break
-                }
+            startRecorder(take: take)
+            if !showcase {
+                app.activate()
             }
-            XCTAssertTrue(
-                recorder.buttons["Finish take"].waitForExistence(timeout: 90),
-                "Approve the screen on the iPhone. Recorder: \(recorder.staticTexts.allElementsBoundByIndex.map(\.label))",
-            )
-            addTeardownBlock {
-                recorder.activate()
-                if recorder.buttons["Finish take"].exists {
-                    recorder.buttons["Finish take"].tap()
-                }
-                XCTAssertTrue(recorder.staticTexts["Saved"].waitForExistence(timeout: 20))
-                recorder.terminate()
-            }
-            app.activate()
         }
         print("TRINKET_CAPTURE_READY \(ProcessInfo.processInfo.systemUptime)")
         fflush(stdout)
         Thread.sleep(forTimeInterval: 4)
-        starters()
-        buildShots()
-        boss()
+        if showcase {
+            recordBossShowcase()
+        } else {
+            starters()
+            buildShots()
+            boss()
+        }
         print("TRINKET_CAPTURE_DONE \(ProcessInfo.processInfo.systemUptime)")
         fflush(stdout)
         Thread.sleep(forTimeInterval: 1)

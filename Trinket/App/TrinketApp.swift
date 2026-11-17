@@ -34,14 +34,23 @@ struct TrinketApp: App {
             )
         }
         func makeState() throws -> AppState {
+            var captureStore: PlayerSaveStore?
+            #if DEBUG
+            let capture = try BossCaptureFixture.fromArguments(ProcessInfo.processInfo.arguments)
+            if capture != nil {
+                captureStore = try PlayerSaveStore(inMemoryOnly: true)
+            }
+            #endif
             let state = try AppState(
                 environment: environment,
+                playerSave: captureStore,
                 makeBattleRuntime: makeBattleRuntime,
             )
             if environment.launchScreen == .battleVictory {
                 (state.play.battle as? BattleSession)?.presentLaunchVictory()
             }
             #if DEBUG
+            try capture?.start(in: state)
             PerformanceFixtures.install(in: state)
             if environment.launchScreen == .battleDefeat || environment.launchScreen == .battleDefeatSaveFailure {
                 (state.play.battle as? BattleSession)?.presentLaunchDefeat()
