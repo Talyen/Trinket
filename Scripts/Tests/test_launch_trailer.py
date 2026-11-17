@@ -63,6 +63,33 @@ class LaunchTrailerTests(unittest.TestCase):
                 edit.main()
             self.assertEqual(edit.probe(output)["streams"][0]["nb_frames"], "60")
 
+    @unittest.skipUnless(shutil.which("ffmpeg"), "requires FFmpeg")
+    def test_focus_leaves_subject_lit_then_releases_before_the_next_cut(self):
+        from LaunchTrailer.treatment import compose
+        filters = ["[0:v]null[viewport]"]
+        label = compose(filters, [{"id": "item", "output_start": 0.5, "output_end": 1.5,
+                                  "effects": [{"type": "focus", "from": 0, "to": 1, "center": [0.5, 0.5],
+                                               "radius": [0.35, 0.3], "strength": 0.5}]}], 30, 64, 96)
+        pixels = subprocess.check_output(["ffmpeg", "-v", "error", "-f", "lavfi", "-i",
+                                          "color=white:s=64x96:r=30:d=2", "-filter_complex", ";".join(filters),
+                                          "-map", f"[{label}]", "-pix_fmt", "gray", "-f", "rawvideo", "-"])
+        frame = 64 * 96
+        self.assertEqual(len(pixels), 60 * frame)
+        self.assertGreater(pixels[30 * frame + frame // 2 + 32], 245)
+        self.assertLess(pixels[30 * frame + 2], 160)
+        self.assertGreater(pixels[5 * frame + 2], 245)
+        self.assertGreater(pixels[52 * frame + 2], 245)
+
+    def test_capture_recipe_keeps_action_handles_and_chronological_frame_boundaries(self):
+        handles = {"shots": [{"id": "hero", "start": 4.01, "end": 6.45},
+                             {"id": "fire-arrow", "start": 8.2, "end": 10.6}]}
+        shots = capture.cut_gestures(handles, 20)["shots"]
+        self.assertAlmostEqual(shots[0]["start"] * 60, round(shots[0]["start"] * 60))
+        self.assertLess(shots[0]["end"], shots[1]["start"])
+        self.assertEqual(shots[1]["effects"][0]["type"], "push")
+        with self.assertRaisesRegex(ValueError, "exceeds"):
+            capture.cut_gestures(handles, 8.5)
+
     def test_overlapping_ordinary_shots_fail_before_encoding(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

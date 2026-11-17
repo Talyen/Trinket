@@ -68,8 +68,8 @@ expectations from Trinket's own results. [Pawnbarian press kit](https://j4nw.com
   game facts and a public contact. The November 17 release evidence contains the
   stills ZIP, eight individually drafted pitches, the App Launch nomination draft
   and the D7/D14/D30 reporting worksheet.
-- [x] **Agents · trailer.** The 28.5-second cut opens on Ranger and Wolf selection,
-  shows abilities, items, Homestead and all five modes, and closes on The Blight Treant.
+- [x] **Agents · trailer.** The 26.3-second cut follows Ranger and Wolf through selection, Fire Arrow,
+  an amulet, Homestead and all five modes. It closes with three card drags against The Blight Treant.
   One on-device iPhone recording supplies the 60 fps press cut and 30 fps App Store preview. [Shot list, capture and audio plan](LaunchTrailer.md)
 - [ ] **Agents · Apple editorial.** Check for an existing nomination, then
   prepare the App Launch nomination for iPhone and iPad in the U.S. Include

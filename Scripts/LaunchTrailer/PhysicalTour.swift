@@ -58,14 +58,27 @@ final class PhysicalTour: XCTestCase {
         button.tap()
     }
 
-    private func keep(_ name: String, seconds: Double, action: () -> Void = {}) {
-        Thread.sleep(forTimeInterval: 1.25)
+    /// Capture handles around the real gesture. The editor chooses the exact
+    /// in/out frames after inspecting the take, including XCTest input latency.
+    private func keep(_ name: String, settle: Double = 0.8, card: String? = nil, action: () -> Void) {
         let start = ProcessInfo.processInfo.systemUptime
         print("TRINKET_SHOT \(name) \(start)")
         action()
-        let end = start + seconds
-        Thread.sleep(forTimeInterval: max(0, end - ProcessInfo.processInfo.systemUptime) + 1.5)
-        shots.append(["id": name, "start": start, "end": end])
+        Thread.sleep(forTimeInterval: settle)
+        var shot: [String: Any] = ["id": name, "start": start, "end": ProcessInfo.processInfo.systemUptime]
+        shot["card"] = card
+        shots.append(shot)
+    }
+
+    private func drag(fromX: CGFloat, fromY: CGFloat, toX: CGFloat, toY: CGFloat) {
+        let origin = app.coordinate(withNormalizedOffset: CGVector(dx: fromX, dy: fromY))
+        let target = app.coordinate(withNormalizedOffset: CGVector(dx: toX, dy: toY))
+        origin.press(
+            forDuration: 0.06,
+            thenDragTo: target,
+            withVelocity: XCUIGestureVelocity(rawValue: 440),
+            thenHoldForDuration: 0.05,
+        )
     }
 
     private func mode(_ name: String) {
@@ -88,19 +101,21 @@ final class PhysicalTour: XCTestCase {
             card.frame.minY >= screen.height * 0.08 && card.frame.maxY <= screen.height * 0.91,
             "Show the entire illustrated \(name) card before entering the mode",
         )
-        keep("\(name.lowercased())-art", seconds: 0.8)
-        card.tap()
+        keep("\(name.lowercased())-art") { card.tap() }
     }
 
     private func starters() {
         for (role, name) in [("Hero", "Ranger"), ("Companion", "Wolf")] {
             let selected = app.staticTexts["Selected Starter Name"]
             XCTAssertTrue(selected.waitForExistence(timeout: 30))
-            if selected.label != name {
-                tap("Starter \(role) Option \(name.lowercased())")
+            drag(fromX: 0.79, fromY: 0.44, toX: 0.16, toY: 0.44)
+            keep(role.lowercased()) {
+                drag(fromX: 0.16, fromY: 0.44, toX: 0.85, toY: 0.44)
+                if selected.label != name {
+                    tap("Starter \(role) Option \(name.lowercased())")
+                }
             }
             XCTAssertEqual(selected.label, name)
-            keep(role.lowercased(), seconds: 1.5)
             let confirm = app.buttons["Confirm Starter \(role)"]
             confirm.tap()
             if !confirm.waitForNonExistence(timeout: 3) {
@@ -114,10 +129,11 @@ final class PhysicalTour: XCTestCase {
         tab("Collection")
         tap("Ranger collection card", scroll: true)
         tap("Basic ability slot", scroll: true)
-        tap("Loadout Ability Candidate fire-arrow", scroll: true)
+        let arrow = element("Loadout Ability Candidate fire-arrow")
+        ready(arrow, scroll: true)
+        keep("fire-arrow") { arrow.tap() }
         let detail = "Loadout Ability Detail fire-arrow"
         XCTAssertTrue(element(detail).waitForExistence(timeout: 12))
-        keep("fire-arrow", seconds: 1.5)
         // A seeded journey before party confirmation prevents build 13 from finishing onboarding.
         // Keep the same named career and let the recorder run through its checkpoint reload.
         app.launchArguments += ["-starting-gold", "200", "-completed-stages",
@@ -128,14 +144,15 @@ final class PhysicalTour: XCTestCase {
         tap("Stage 1-9 Action", scroll: true)
         let offer = matchingButton("identifier ENDSWITH %@", " shop offer").firstMatch
         ready(offer, scroll: true)
-        offer.tap()
+        keep("item") { offer.tap() }
         XCTAssertTrue(element("Shop Detail Buy Button").waitForExistence(timeout: 12))
-        keep("item", seconds: 1.5)
         dismiss("Shop Detail Buy Button")
         tap("Shop Leave Button", scroll: true)
         tab("Homestead")
         XCTAssertTrue(element("Homestead Resource Wallet").waitForExistence(timeout: 12))
-        keep("homestead", seconds: 1.5)
+        let farming = element("Homestead Farming Category")
+        ready(farming, scroll: true)
+        keep("homestead") { farming.tap() }
         tab("Play")
     }
 
@@ -145,32 +162,35 @@ final class PhysicalTour: XCTestCase {
         }
         mode("Campaign")
         XCTAssertTrue(element("Chapter 1 Header").waitForExistence(timeout: 12))
-        keep("forest", seconds: 1.2)
+        keep("forest") { drag(fromX: 0.52, fromY: 0.72, toX: 0.52, toY: 0.40) }
         back()
         tap("Explore Mode Card")
         mode("Spires")
-        tap("Spire cinderSpire Row", scroll: true)
+        let spire = element("Spire cinderSpire Row")
+        ready(spire, scroll: true)
+        keep("spire-climb") { spire.tap() }
         XCTAssertTrue(element("Spire cinderSpire Climb").waitForExistence(timeout: 12))
-        keep("spire-climb", seconds: 1.2)
         back()
         back()
         mode("Labyrinth")
-        if element("Labyrinth Enter").exists {
-            tap("Labyrinth Enter")
+        keep("labyrinth-map") {
+            if element("Labyrinth Enter").exists {
+                tap("Labyrinth Enter")
+            } else {
+                drag(fromX: 0.60, fromY: 0.57, toX: 0.35, toY: 0.42)
+            }
         }
         XCTAssertTrue(element("Labyrinth Map").waitForExistence(timeout: 12))
-        keep("labyrinth-map", seconds: 1.2)
         back()
         mode("Contracts")
         XCTAssertTrue(element("Contracts Board").waitForExistence(timeout: 12))
-        keep("contracts-board", seconds: 1.2)
+        keep("contracts-board") { drag(fromX: 0.50, fromY: 0.73, toX: 0.50, toY: 0.36) }
         back()
         mode("Voyage")
         let art = matchingButton("identifier BEGINSWITH %@", "Voyage Artwork ").firstMatch
         ready(art, scroll: true)
-        art.tap()
+        keep("voyage-route") { art.tap() }
         XCTAssertTrue(element("Voyage Destination Sheet").waitForExistence(timeout: 12))
-        keep("voyage-route", seconds: 1.2)
         dismiss("Voyage Destination Sheet")
         back()
         back()
@@ -178,19 +198,30 @@ final class PhysicalTour: XCTestCase {
 
     private func boss() {
         tap("Campaign Mode Card")
-        tap("Stage 1-10 Action", scroll: true)
+        let encounter = element("Stage 1-10 Action")
+        ready(encounter, scroll: true)
+        keep("boss-reveal", settle: 1.4) { encounter.tap() }
         let boss = element("The Blight Treant card")
         XCTAssertTrue(boss.waitForExistence(timeout: 15))
         let cards = matchingButton("identifier BEGINSWITH %@", "Battle Hand Card ")
         XCTAssertTrue(cards.firstMatch.waitForExistence(timeout: 12))
-        keep("boss-reveal", seconds: 1.5)
-        for n in 1 ... 2 {
-            let playable = cards.allElementsBoundByIndex.last { $0.isEnabled && $0.isHittable }
-            XCTAssertNotNil(playable)
-            keep("boss-play-\(n)", seconds: 3.75) { playable?.tap() }
+        for n in 1 ... 3 {
+            guard let playable = cards.allElementsBoundByIndex.last(where: { $0.isEnabled && $0.isHittable }) else {
+                XCTAssertGreaterThan(n, 2, "Need two distinct combat actions")
+                break
+            }
+            let card = String(playable.identifier.dropFirst("Battle Hand Card ".count))
+            keep("boss-play-\(n)", settle: 2.0, card: card) {
+                let origin = playable.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                origin.press(
+                    forDuration: 0.05,
+                    thenDragTo: origin.withOffset(CGVector(dx: 0, dy: -240)),
+                    withVelocity: XCUIGestureVelocity(rawValue: 500),
+                    thenHoldForDuration: 0.05,
+                )
+            }
         }
         XCTAssertTrue(boss.exists || element("Victory").exists)
-        keep("closing", seconds: 2)
     }
 
     func testRecordTrinket() throws {

@@ -50,10 +50,31 @@ def keep_times(shots, clock):
         if not previous_end <= start < end <= clock["duration"]:
             raise ValueError(f"Shot outside original recording or out of order: {shot['id']}")
         keep.append({"id": shot["id"], "start": start, "end": end})
+        if "card" in shot:
+            keep[-1]["card"] = shot["card"]
         previous_end = end
     if not keep:
         raise ValueError("No shots in test attachment.")
     return {"shots": keep}
+
+
+def cut_gestures(handles, duration):
+    recipe = json.loads((ROOT / "Scripts/LaunchTrailer/edit-recipe.json").read_text())
+    shots = []
+    for handle in handles["shots"]:
+        shot_id = handle["id"]
+        timing = recipe[shot_id]
+        start = round((handle["start"] + timing["offset"]) * 60) / 60
+        end = start + round(timing["duration"] * 60) / 60
+        if start < (shots[-1]["end"] if shots else 0) or end > duration:
+            raise ValueError(f"Check the gesture handles for {shot_id}; the planned cut overlaps or exceeds the take.")
+        shot = {"id": shot_id, "start": start, "end": end}
+        if "card" in handle:
+            shot["card"] = handle["card"]
+        if timing.get("effects"):
+            shot["effects"] = timing["effects"]
+        shots.append(shot)
+    return {"shots": shots}
 
 
 def run_tour(udid, app, output, rehearsal, team):
@@ -115,7 +136,10 @@ def run_tour(udid, app, output, rehearsal, team):
     shots = json.loads((attachments / marks["exportedFileName"]).read_text())
     write_json_atomic(output / "shots.json", shots)
     if not rehearsal:
-        write_json_atomic(output / "keep.json", keep_times(shots, json.loads((output / "clock.json").read_text())))
+        clock = json.loads((output / "clock.json").read_text())
+        handles = keep_times(shots, clock)
+        write_json_atomic(output / "handles.json", handles)
+        write_json_atomic(output / "keep.json", cut_gestures(handles, clock["duration"]))
 
 
 def main():

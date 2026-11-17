@@ -4,10 +4,12 @@
 import argparse
 import json
 import math
+import re
 from pathlib import Path
 import subprocess
 
 from LaunchTrailer.cadence import measure, sample_action
+from LaunchTrailer.treatment import compose
 
 
 def probe(path):
@@ -26,13 +28,17 @@ def main():
     parser.add_argument("--soundtrack", type=Path)
     parser.add_argument("--music-offset", type=float, default=0)
     parser.add_argument("--keep-source-audio", action="store_true")
+    parser.add_argument("--clean-picture", action="store_true", help="Use the same cuts without camera or light effects.")
     parser.add_argument("--crop", help="Measured game viewport as width:height:x:y")
     parser.add_argument("--fps", type=int, choices=[30, 60], default=60)
+    parser.add_argument("--videotoolbox", action="store_true", help="Use the Mac hardware codec for the 60 fps press master.")
     parser.add_argument("--app-store", action="store_true", help="Export the iPhone 14 Pro 886x1920 preview at 30 fps.")
     parser.add_argument("--motion-span", type=float, nargs=2, action="append", default=[], metavar=("START", "END"),
                         help="Source seconds spanning continuous motion during combat; repeat for two distinct actions.")
     args = parser.parse_args()
     fps = 30 if args.app_store else args.fps
+    if args.videotoolbox and (args.app_store or fps != 60):
+        parser.error("VideoToolbox is available for the 60 fps press master.")
     cue_path = args.output.with_suffix(".cues.json")
     if args.output.exists() or cue_path.exists():
         parser.error("Output or cue map already exists. Choose a new output name.")
@@ -52,7 +58,8 @@ def main():
             parser.error("The soundtrack has no audio stream.")
         if args.music_offset >= float(music["format"]["duration"]):
             parser.error("Music offset exceeds the soundtrack duration.")
-    crop = None
+    crop = "null"
+    width, height = video.get("width"), video.get("height")
     if args.crop:
         try:
             width, height, x, y = [int(value) for value in args.crop.split(":")]
@@ -62,7 +69,7 @@ def main():
             parser.error("Crop dimensions must be positive and its origin nonnegative.")
         if x + width > video["width"] or y + height > video["height"]:
             parser.error("Crop exceeds the captured video bounds.")
-        crop = f"crop={width}:{height}:{x}:{y},"
+        crop = f"crop={width}:{height}:{x}:{y}"
     filters = []
     inputs = []
     frame_ranges = []
@@ -93,6 +100,12 @@ def main():
             "id": shot["id"], "source_start": start, "source_end": end,
             "output_start": output_time, "output_end": output_time + length,
         })
+        if shot.get("effects") and not args.clean_picture:
+            cue_map[-1]["effects"] = shot["effects"]
+        if args.soundtrack and shot.get("sounds"):
+            if args.keep_source_audio:
+                parser.error("Choose captured audio or synchronized sound cues for the score.")
+            cue_map[-1]["sounds"] = shot["sounds"]
         output_time += length
         previous_end = end
     motion = []
@@ -122,8 +135,16 @@ def main():
     geometry = ("scale=886:1920:force_original_aspect_ratio=decrease:force_divisible_by=2,"
                 "pad=886:1920:(ow-iw)/2:(oh-ih)/2,setsar=1" if args.app_store
                 else "pad=ceil(iw/2)*2:ceil(ih/2)*2")
-    filters.append(f"[picture]{crop or ''}{geometry},format=yuv420p[video]")
-    command = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-n", "-threads", "2", "-filter_complex_threads", "2", "-i", str(args.source)]
+    filters.append(f"[picture]{crop}[viewport]")
+    try:
+        treated = compose(filters, cue_map, fps, width, height)
+    except (KeyError, ValueError, TypeError) as error:
+        parser.error(f"Invalid trailer treatment: {error}")
+    filters.append(f"[{treated}]{geometry},format=yuv420p[video]")
+    command = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-n", "-threads", "2", "-filter_complex_threads", "2"]
+    if args.videotoolbox:
+        command += ["-hwaccel", "videotoolbox"]
+    command += ["-i", str(args.source)]
     audio_label = None
     if args.soundtrack:
         if args.music_offset + output_time > float(music["format"]["duration"]):
@@ -140,7 +161,29 @@ def main():
             filters.append("[effects][bed]amix=inputs=2:duration=longest:normalize=0[mix]")
             filters.append("[mix]loudnorm=I=-16:TP=-1.5:LRA=11,volume=-1dB[audio]")
         else:
-            filters.append("[score]loudnorm=I=-16:TP=-1.5:LRA=11,volume=-1dB[audio]")
+            tracks = ["[score]"]
+            for shot in cue_map:
+                for sound in shot.get("sounds", []):
+                    name = sound["id"]
+                    at = float(sound["at"])
+                    gain = float(sound["gain_db"])
+                    if (not re.fullmatch(r"[a-z0-9_]+", name) or not -30 <= gain <= 12
+                            or not 0 <= at < shot["output_end"] - shot["output_start"]):
+                        parser.error(f"Invalid synchronized sound on {shot['id']}.")
+                    asset = Path(__file__).resolve().parents[1] / "Trinket/Media/SFX" / f"sfx_{name}.m4a"
+                    if not asset.is_file():
+                        parser.error(f"Missing game sound {name}.")
+                    command += ["-i", str(asset)]
+                    label = f"[hit{len(tracks)}]"
+                    delay = round((shot["output_start"] + at) * 48000)
+                    filters.append(f"[{len(tracks) + 1}:a]aresample=48000,aformat=channel_layouts=stereo,"
+                                   f"volume={gain}dB,adelay={delay}S:all=1{label}")
+                    tracks.append(label)
+            bed = tracks[0]
+            if len(tracks) > 1:
+                filters.append("".join(tracks) + f"amix=inputs={len(tracks)}:duration=first:normalize=0[scored]")
+                bed = "[scored]"
+            filters.append(bed + "loudnorm=I=-16:TP=-1.5:LRA=11,volume=-1dB[audio]")
         audio_label = "[audio]"
     elif args.keep_source_audio:
         filters.append("[effects]loudnorm=I=-16:TP=-1.5:LRA=11,volume=-1dB[audio]")
@@ -151,8 +194,11 @@ def main():
     quality = (["-profile:v", "high", "-level:v", "4.0", "-b:v", "11M", "-minrate", "11M", "-maxrate", "11M",
                 "-bufsize", "22M", "-x264-params", "nal-hrd=cbr"]
                if args.app_store else ["-crf", "18"])
-    command += ["-c:v", "libx264", "-threads", "3", "-preset", "medium", *quality,
-                "-movflags", "+faststart", "-t", str(output_time), str(args.output)]
+    if args.videotoolbox:
+        command += ["-c:v", "h264_videotoolbox", "-profile:v", "high", "-b:v", "28M"]
+    else:
+        command += ["-c:v", "libx264", "-threads", "3", "-preset", "medium", *quality]
+    command += ["-movflags", "+faststart", "-t", str(output_time), str(args.output)]
     args.output.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(command, check=True)
     result = probe(args.output)
