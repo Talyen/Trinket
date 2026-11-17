@@ -1,7 +1,7 @@
 import ScreenCaptureKit
 import SwiftUI
 
-// This target is installed only on the capture phone, independently of Trinket.
+/// This target is installed only on the capture phone, independently of Trinket.
 @main
 struct TrailerRecorder: App {
     @StateObject private var recorder = Recorder()
@@ -51,7 +51,7 @@ private final class Recorder: NSObject, ObservableObject, SCContentSharingPicker
         }
     }
 
-    nonisolated func contentSharingPicker(_ picker: SCContentSharingPicker, didUpdateWith filter: SCContentFilter, for stream: SCStream?) {
+    nonisolated func contentSharingPicker(_: SCContentSharingPicker, didUpdateWith filter: SCContentFilter, for _: SCStream?) {
         Task { @MainActor in
             guard self.stream == nil, let directory else { return }
             let config = SCStreamConfiguration()
@@ -72,7 +72,7 @@ private final class Recorder: NSObject, ObservableObject, SCContentSharingPicker
         }
     }
 
-    nonisolated func contentSharingPicker(_ picker: SCContentSharingPicker, didCancelFor stream: SCStream?) {
+    nonisolated func contentSharingPicker(_: SCContentSharingPicker, didCancelFor _: SCStream?) {
         Task { @MainActor in status = "Permission canceled" }
     }
 
@@ -80,14 +80,16 @@ private final class Recorder: NSObject, ObservableObject, SCContentSharingPicker
         Task { @MainActor in status = error.localizedDescription }
     }
 
-    nonisolated func recordingOutputDidStartRecording(_ recordingOutput: SCRecordingOutput) {
+    nonisolated func recordingOutputDidStartRecording(_: SCRecordingOutput) {
         let time = ProcessInfo.processInfo.systemUptime
         Task { @MainActor in
             started = time
             status = "Recording"
             watchdog = Task {
                 try? await Task.sleep(for: .seconds(360))
-                if !Task.isCancelled { await stop() }
+                if !Task.isCancelled {
+                    await stop()
+                }
             }
         }
     }
@@ -122,14 +124,14 @@ private final class Recorder: NSObject, ObservableObject, SCContentSharingPicker
         }
     }
 
-    nonisolated func recordingOutput(_ recordingOutput: SCRecordingOutput, didFailWithError error: Error) {
+    nonisolated func recordingOutput(_: SCRecordingOutput, didFailWithError error: Error) {
         Task { @MainActor in
             try? await stream?.stopCapture()
             status = error.localizedDescription
         }
     }
 
-    nonisolated func stream(_ stream: SCStream, didStopWithError error: Error) {
+    nonisolated func stream(_: SCStream, didStopWithError error: Error) {
         Task { @MainActor in status = error.localizedDescription }
     }
 }

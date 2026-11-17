@@ -15,7 +15,9 @@ final class PhysicalTour: XCTestCase {
     private func ready(_ control: XCUIElement, scroll: Bool = false) {
         if scroll {
             for _ in 0 ..< 8 {
-                if control.exists, control.isHittable { return }
+                if control.exists, control.isHittable {
+                    return
+                }
                 app.swipeUp()
             }
         }
@@ -40,7 +42,9 @@ final class PhysicalTour: XCTestCase {
             let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.18))
             let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.95))
             start.press(forDuration: 0.12, thenDragTo: end)
-            if element(id).waitForNonExistence(timeout: 1) { return }
+            if element(id).waitForNonExistence(timeout: 1) {
+                return
+            }
         }
         XCTAssertFalse(element(id).exists, "Sheet still open: \(id)")
     }
@@ -48,7 +52,7 @@ final class PhysicalTour: XCTestCase {
     private func tab(_ name: String) {
         let native = app.tabBars.buttons[name]
         let button = native.exists ? native : app.buttons.matching(
-            NSPredicate(format: "label == %@ AND identifier != %@", name, "BackButton")
+            NSPredicate(format: "label == %@ AND identifier != %@", name, "BackButton"),
         ).firstMatch
         ready(button)
         button.tap()
@@ -72,14 +76,18 @@ final class PhysicalTour: XCTestCase {
         let safeBottom = screen.height * 0.83
         for _ in 0 ..< 5 {
             let frame = card.frame
-            if frame.minY >= safeTop, frame.maxY <= safeBottom { break }
+            if frame.minY >= safeTop, frame.maxY <= safeBottom {
+                break
+            }
             let offset = min(0.34, max(-0.34, (screen.midY - frame.midY) / screen.height))
             let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.52))
             let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.55, dy: 0.52 + offset))
             from.press(forDuration: 0.08, thenDragTo: to, withVelocity: .slow, thenHoldForDuration: 0.25)
         }
-        XCTAssertTrue(card.frame.minY >= screen.height * 0.08 && card.frame.maxY <= screen.height * 0.91,
-                      "Show the entire illustrated \(name) card before entering the mode")
+        XCTAssertTrue(
+            card.frame.minY >= screen.height * 0.08 && card.frame.maxY <= screen.height * 0.91,
+            "Show the entire illustrated \(name) card before entering the mode",
+        )
         keep("\(name.lowercased())-art", seconds: 0.8)
         card.tap()
     }
@@ -88,7 +96,9 @@ final class PhysicalTour: XCTestCase {
         for (role, name) in [("Hero", "Ranger"), ("Companion", "Wolf")] {
             let selected = app.staticTexts["Selected Starter Name"]
             XCTAssertTrue(selected.waitForExistence(timeout: 30))
-            if selected.label != name { tap("Starter \(role) Option \(name.lowercased())") }
+            if selected.label != name {
+                tap("Starter \(role) Option \(name.lowercased())")
+            }
             XCTAssertEqual(selected.label, name)
             keep(role.lowercased(), seconds: 1.5)
             let confirm = app.buttons["Confirm Starter \(role)"]
@@ -130,7 +140,9 @@ final class PhysicalTour: XCTestCase {
     }
 
     private func modeShots() {
-        if element("Chapter 1 Header").exists { back() }
+        if element("Chapter 1 Header").exists {
+            back()
+        }
         mode("Campaign")
         XCTAssertTrue(element("Chapter 1 Header").waitForExistence(timeout: 12))
         keep("forest", seconds: 1.2)
@@ -143,7 +155,9 @@ final class PhysicalTour: XCTestCase {
         back()
         back()
         mode("Labyrinth")
-        if element("Labyrinth Enter").exists { tap("Labyrinth Enter") }
+        if element("Labyrinth Enter").exists {
+            tap("Labyrinth Enter")
+        }
         XCTAssertTrue(element("Labyrinth Map").waitForExistence(timeout: 12))
         keep("labyrinth-map", seconds: 1.2)
         back()
@@ -197,14 +211,17 @@ final class PhysicalTour: XCTestCase {
             let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
             for host in [springboard, recorder] {
                 let share = host.descendants(matching: .any).matching(NSPredicate(
-                    format: "label ==[c] %@ OR identifier ==[c] %@", "Share Entire Screen", "Share Entire Screen"
+                    format: "label ==[c] %@ OR identifier ==[c] %@", "Share Entire Screen", "Share Entire Screen",
                 )).firstMatch
                 if share.waitForExistence(timeout: 3), share.isHittable {
                     share.tap()
                     break
                 }
             }
-            XCTAssertTrue(recorder.buttons["Finish take"].waitForExistence(timeout: 90), "Approve the screen on the iPhone. Recorder: \(recorder.staticTexts.allElementsBoundByIndex.map(\.label))")
+            XCTAssertTrue(
+                recorder.buttons["Finish take"].waitForExistence(timeout: 90),
+                "Approve the screen on the iPhone. Recorder: \(recorder.staticTexts.allElementsBoundByIndex.map(\.label))",
+            )
             addTeardownBlock {
                 recorder.activate()
                 if recorder.buttons["Finish take"].exists {
