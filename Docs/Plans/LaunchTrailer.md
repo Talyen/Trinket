@@ -101,7 +101,7 @@ The U.S. storefront lookup returned zero results on November 17. The social cuts
 
 ## Feature stories for launch
 
-The owner reports Apple approved a build. Release timing is undecided. These off-store films carry launch copy and can run when the game is downloadable. The end card uses Trinket’s original Ranger and Wolf artwork, the game title, **Free to start**, and Apple’s official black **Download on the App Store** badge. Hold the card for three seconds. Use “Start for free. Unlock the full game with one purchase.” in the post or ad description. The free opening and the permanent unlock are in the same download. [Apple marketing guidelines](https://developer.apple.com/app-store/marketing/guidelines/) · [Product model](../Product/Monetization.md)
+The owner reports Apple approved a build. Release timing is undecided. These off-store drafts carry launch copy intended for use after the game is downloadable. The end card uses Trinket’s original Ranger and Wolf artwork, the game title, **Free to start**, and Apple’s official black **Download on the App Store** badge. Hold the card for three seconds. Use “Start for free. Unlock the full game with one purchase.” in the post or ad description. The free opening and the permanent unlock are in the same download. [Apple marketing guidelines](https://developer.apple.com/app-store/marketing/guidelines/) · [Product model](../Product/Monetization.md)
 
 | Reel | Player story | Voice |
 | --- | --- | --- |
@@ -110,7 +110,7 @@ The owner reports Apple approved a build. Release timing is undecided. These off
 | **One More Room** | “One room. Then I’m going home.” An Inquisitor guards the entrance. The win earns an Emerald Amulet and opens a Mystery room. Hold on the newly selected room as the narrator reconsiders going home. | Qwen Aiden |
 | **Who’s Paying?** | Leave the merchant’s amulet on the shelf. A Plague Doctor contract offers an Astral item. Ranger and Wolf win, keep their gold and collect an Astral Longsword. | Qwen Serena |
 
-The current editions use physical iPhone footage, a continuous shot for each fight, six-frame dissolves between locations, and optional English captions. The two boss films feature the boss’s own recording and in-game lyrics. The other two show the actual victory and reward in the same take. Use these reels for launch ads, organic posts and the press kit. The separate App Store preview finishes on gameplay.
+The four November 17 drafts use physical iPhone footage, a continuous shot for each fight, six-frame dissolves between locations, and optional English captions. The two boss films feature the boss’s own recording and in-game lyrics. The other two show the actual victory and reward in the same take. The owner declined these drafts. Hold the narrated press kit and keep the files as edit references. The separate App Store preview finishes on gameplay.
 
 ### Reproduce and review
 
@@ -119,5 +119,21 @@ The current editions use physical iPhone footage, a continuous shot for each fig
 - Listen to `Trinket-Open-Voice-Audition.m4a` for the same line from Aiden, Ryan, Serena and Chatterbox Turbo. Chatterbox offers a second local English engine with expressive cues. Kyutai Pocket TTS is a CPU-friendly third candidate. Its model card lists CC BY 4.0 and access conditions. The audition contains the first two engines. [Chatterbox](https://github.com/resemble-ai/chatterbox) · [Pocket TTS](https://huggingface.co/kyutai/pocket-tts)
 
 - [x] Record both new physical routes and export the four launch editions.
-- [ ] Select the lead narrator and first placement after listening in context.
+- [ ] Choose the narrator and opening after reviewing the auditions below.
 - [ ] Release the launch assets when the App Store download is live.
+
+### Narrator and opening auditions
+
+The casting brief is a conversational US female commercial read. Give the narrator someone to talk to and a reason to smile. Open on a choice or an attack, keep the copy short, and leave the punchline to the game.
+
+Review files are under `channel-edits/direction-auditions/` in the November 17 release evidence. Play `Female-commercial-reads.m4a` to compare three readings of “If you’re going to pick a fight with the Iron Bear, bring a very big cat.” A starts at 0.0s with a dry smile, B at 4.3s with a brighter delivery, and C at 8.4s with a matter-of-fact read. All three were generated locally with VoxCPM2 from written direction. [VoxCPM2 model card](https://huggingface.co/openbmb/VoxCPM2)
+
+| Opening | What to watch for |
+| --- | --- |
+| `Ask-the-Countess.mp4` · B | “What did you wear to meet the king?” Leave a beat. The Countess sings “I wore black for every king” as the words appear in the fight. |
+| `Bring-a-Big-Cat.mp4` · A | Enter the Iron Bear fight mid-attack. The narrator lands “very big cat” over the Rogue and Panther’s uninterrupted fight. |
+| `Two-Amulets.mp4` · C | The merchant wants ten gold for the sapphire. Follow the fight through victory and time “The emerald cost us a fight” to the loot. |
+
+- [x] Export three short openings from physical iPhone footage and the matched dry voice comparison.
+- [ ] Record the preferred voice and opening separately. Use those choices to cut the next full reel.
+- [ ] Review the full reel with music and captions before replacing the narrated press kit.
