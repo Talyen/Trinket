@@ -72,30 +72,33 @@ The November 17 `channel-edits/` folder next to the boss masters contains four r
 | --- | --- |
 | App Store and Apple Ads search results | The Forge Golem, 17 seconds, 886 × 1920 at 30 fps. Use the poster frame at 0.30 seconds and finish on combat. Use this preview on the listing and the planned combat custom product page. |
 | Organic social and off-store ads | Forge Golem and Blight Treant, 1080 × 1920 at 60 fps. Each ends with the game title and Apple’s download badge for 1.8 seconds. Use the launch cuts once the U.S. listing is live. Compare store visits from equivalent organic posts before considering spend. |
-| Press and creators | 60.1-second portrait reel. A Wizard takes a Frost Whelp up Cinder Spire. The final 17 seconds of gameplay follow their uninterrupted Forge Golem fight with its own song and visible lyrics. The release includes a caption track and a separate English SRT. |
+| Press and creators | 65.5-second portrait reel. A Wizard takes a Frost Whelp up Cinder Spire. The final 17 seconds of gameplay follow their uninterrupted Forge Golem fight with its own song and visible lyrics. The release includes a caption track and a separate English SRT. |
 
 ### Gameplay feature reel
 
-Use George, the British voice from the first feature reel (Kokoro `bm_george`, `en-gb`, speed 1.02). Write to the action on screen. Explain the choice, card effect, or reward the viewer can see. A feature can carry a whole beat on its own. Leave space for the music and for the player to read the cards.
+Start from the original Wizard reel and the original British George recording. Let the player have an opinion about a choice. The Frost Whelp greeting and the aside about the herb garden stay. Use a new line when the footage gives it something specific to say.
 
 | Start | Picture | Spoken line |
 | --- | --- | --- |
-| 0.2s | Scroll right to Wizard | Choose your hero. This is the Wizard. |
-| 3.2s | Scroll right to Frost Whelp | Pair him with a Frost Whelp. |
-| 6.1s | Inspect Ray of Frost | Both use Freeze. Ray of Frost hits twice with a single card. |
-| 11.0s | Inspect the Sapphire Amulet | This amulet boosts healing while the enemy is frozen. |
-| 14.7s | Homestead and Farming | Build a wheat field or a herb garden at the Homestead. |
-| 18.4s | Campaign and Forest | The Forest campaign leads to the Blight Treant. |
-| 22.6s | Select the newly reachable Mystery room | Clear a room in the Labyrinth to open a path to the next. |
-| 27.5s | Goblin contract | Contracts list their rewards. This goblin pays extra hide. |
-| 31.8s | Tundra itinerary | Plan your voyage around the fights and merchants ahead. |
-| 36.3s | Enter Cinder Spire | Climb Cinder Spire to face the Forge Golem. |
+| 0.2s | Scroll right to Wizard | I'm taking the wizard up Cinder Spire. |
+| 3.2s | Scroll right to Frost Whelp | Come on, little guy. You're with me. |
+| 6.1s | Inspect Ray of Frost | Ray of Frost hits twice. I want both of those hits on the golem. |
+| 11.0s | Inspect Twin Casting | Empower Ray of Frost with this staff and you draw a Burn card. |
+| 15.8s | Inspect the Frozen Pocketwatch | And this little watch can keep them frozen for another turn. |
+| 20.1s | Homestead and Farming | I keep meaning to get that herb garden going. |
+| 23.9s | Campaign and Forest | There's the Treant. I'll come back for him. |
+| 28.1s | Select the reachable Mystery room | Clearing that room opened this path. What's over here? |
+| 32.9s | Goblin contract | That goblin contract pays extra hide. |
+| 37.2s | Tundra itinerary | A voyage to the Tundra can wait till tomorrow. |
+| 41.7s | Enter Cinder Spire | There's Cinder Spire. Let's see how we do. |
 
-At 40.3s, let the Forge Golem's singer take over. Keep the native Auto Battle card animations and let the last lyric resolve on screen before the title card. All section changes use a six-frame moving cross-dissolve at 30 fps. Out of Farming, dissolve directly to Play. The Forest belongs after the player opens Campaign.
+At 45.7s, let the Forge Golem's singer take over. Keep the native Auto Battle card animations and let the last lyric resolve on screen before the title card. All section changes use a six-frame moving cross-dissolve at 30 fps. Out of Farming, dissolve directly to Play. The Forest belongs after the player opens Campaign.
 
 **Recording.** Run `python3 Scripts/capture-launch-trailer.py --device <paired-iPhone-UDID> --press-pickups --output-dir <new-directory>` under the physical-device lane. The route taps the next card to the right in each carousel, opens the Wizard's Ray of Frost, then uses a disposable Labyrinth career to win the entrance fight. The retained shot starts on that partly explored floor and holds through the next reachable room's artwork opening. Select the gesture windows using the device-clock markers in `handles.json`.
 
-**Review files.** The November 17 release evidence contains `channel-edits/gameplay-guide/Trinket-Gameplay-Feature-Reel.mp4`, its English SRT, the clean narration stem and the timed script. The picture is the Cinder Spire iPhone edit with the three-second “Free to start” launch card. The original George recording and earlier Wizard picture remain in `channel-edits/revision-two/`.
+**Gear pickup.** Run the same Wi-Fi capture command with `--press-pickups gear` and a fresh output directory. It opens the real Collection details for Twin Casting and Frozen Pocketwatch in a disposable career and scrolls the traits. The Unique staff draws the opposite element when Mana empowers a Burn or Freeze card. The trinket gives Freeze a 30% chance to last an extra turn. Cut directly from Ray of Frost to the staff, then hold on the watch long enough to read Deep Freeze.
+
+**Review files.** Under `channel-edits/wizard-feature-reel/`, open `Trinket-Wizard-Feature-Reel.mp4`. The folder also holds the English SRT, clean George narration, the original phone pickup in `gear-final/`, and frame selections in `picture.json`. Seven of the original ten Wizard voice recordings are reused directly from `revision-two/`. The end card holds “Free to start” and the App Store badge for three seconds.
 
 The production references were Supergiant’s account of timing the *Bastion* trailer to its narrator, Valve’s *Panels* demonstration, and Sloclap’s *Sifu* combat overview. [Bastion production notes](https://www.supergiantgames.com/blog/presenting-the-bastion-launch-trailer/) · [Portal 2 — Panels](https://www.youtube.com/watch?v=0qcED35LL8I) · [Sifu combat overview](https://www.youtube.com/watch?v=tHaODlf6FIc)
 

@@ -190,8 +190,8 @@ def main():
     tours.add_argument("--boss-showcase", action="store_true", help="Record the seven Spire bosses with the debug capture build.")
     tours.add_argument("--boss-lyrics", action="store_true", help="Capture each boss theme and its live lyrics in Auto Battle.")
     tours.add_argument("--contract", action="store_true", help="Record a Contract from the board through its victory rewards.")
-    tours.add_argument("--press-pickups", nargs="?", const="wizard", choices=["wizard", "knight"],
-                       help="Record party selection and an ability. The Wizard route also plays a Labyrinth room.")
+    tours.add_argument("--press-pickups", nargs="?", const="wizard", choices=["wizard", "knight", "gear"],
+                       help="Record the chosen party and ability, or capture Unique and Trinket item details with gear.")
     parser.add_argument("--spire", action="append", default=[], help="Limit a boss capture to a named Spire ID. Repeat to include more.")
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--team", help="Defaults to the development team in the game project.")

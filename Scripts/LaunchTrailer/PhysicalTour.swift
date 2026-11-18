@@ -135,6 +135,23 @@ final class PhysicalTour: XCTestCase {
         }
     }
 
+    private func recordGear() {
+        let career = "press-gear-\(UUID().uuidString)"
+        for item in ["twin_casting", "frozen_pocketwatch"] {
+            app.launchArguments = ["-store-name", career, "-disable-cloud-sync", "-seed-test-progress",
+                                   "-disable-audio", "-AppleLanguages", "(en)", "-launch-screen", "item:\(item)"]
+            app.launch()
+            let detail = element("Loadout Item Detail \(item)")
+            XCTAssertTrue(detail.waitForExistence(timeout: 15))
+            XCUIDevice.shared.orientation = .portrait
+            XCTAssertGreaterThan(app.frame.height, app.frame.width, "Item detail must be in portrait")
+            keep(item, settle: 3.0) {
+                Thread.sleep(forTimeInterval: 1.4)
+                drag(fromX: 0.51, fromY: 0.85, toX: 0.51, toY: 0.59)
+            }
+        }
+    }
+
     private func recordExploredFloor() {
         app.launchArguments = ["-store-name", "press-labyrinth-\(UUID().uuidString)", "-reset-state",
                                "-disable-cloud-sync", "-seed-test-progress", "-disable-audio", "-selectedTab", "play",
@@ -326,12 +343,14 @@ final class PhysicalTour: XCTestCase {
         let lyrics = ProcessInfo.processInfo.environment["TRINKET_LYRIC_CAPTURE"] == "1"
         addTeardownBlock { self.app.terminate() }
         let contract = ProcessInfo.processInfo.environment["TRINKET_CONTRACT_CAPTURE"] == "1"
+        let press = ProcessInfo.processInfo.environment["TRINKET_PRESS_PICKUPS"]
+        let gear = press == "gear"
         if contract {
             app.launchArguments = ["-store-name", "press-contract-\(UUID().uuidString)", "-reset-state",
                                    "-disable-cloud-sync", "-seed-test-progress", "-disable-audio", "-selectedTab", "play",
                                    "-performance-strong-party", "-battle-tick-interval", "0.02", "-AppleLanguages", "(en)"]
             app.launch()
-        } else if !showcase {
+        } else if !showcase, !gear {
             app.launchArguments = ["-store-name", "launch-trailer-\(UUID().uuidString)",
                                    "-disable-audio", "-AppleLanguages", "(en)"]
             app.launch()
@@ -339,18 +358,20 @@ final class PhysicalTour: XCTestCase {
         }
         if let take = ProcessInfo.processInfo.environment["TRINKET_TAKE"] {
             startRecorder(take: take, audio: lyrics)
-            if !showcase {
+            if !showcase, !gear {
                 app.activate()
             }
         }
         print("TRINKET_CAPTURE_READY \(ProcessInfo.processInfo.systemUptime)")
         fflush(stdout)
         Thread.sleep(forTimeInterval: 4)
-        if contract {
+        if gear {
+            recordGear()
+        } else if contract {
             recordContract()
         } else if showcase {
             recordBossShowcase(lyrics: lyrics)
-        } else if let party = ProcessInfo.processInfo.environment["TRINKET_PRESS_PICKUPS"] {
+        } else if let party = press {
             pressFeatureShots(knight: party == "knight")
         } else {
             starters()
