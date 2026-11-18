@@ -96,10 +96,10 @@ def continuous_boss_shots(handles):
     return {"shots": shots}
 
 
-def run_tour(udid, app, output, rehearsal, team, boss_showcase):
+def run_tour(udid, app, output, rehearsal, team, boss_showcase, boss_lyrics=False, spires=()):
     output.mkdir(parents=True, exist_ok=False)
     take = str(uuid.uuid4()).upper()
-    write_json_atomic(output / "take.json", {"device": udid, "installedApp": app, "take": take, "rehearsal": rehearsal, "bossShowcase": boss_showcase})
+    write_json_atomic(output / "take.json", {"device": udid, "installedApp": app, "take": take, "rehearsal": rehearsal, "bossShowcase": boss_showcase, "bossLyrics": boss_lyrics, "spires": spires})
     destination = ["-destination", "platform=iOS,id=" + udid]
     with tempfile.TemporaryDirectory(prefix="trinket-tour-") as build:
         root = Path(build)
@@ -118,8 +118,12 @@ def run_tour(udid, app, output, rehearsal, team, boss_showcase):
         test = config["PhysicalTour"]
         test["PreferredScreenCaptureFormat"] = "screenshots"
         test["UserAttachmentLifetime"] = "keepAlways"
-        if boss_showcase:
+        if boss_showcase or boss_lyrics:
             test["EnvironmentVariables"]["TRINKET_SHOWCASE"] = "1"
+        if boss_lyrics:
+            test["EnvironmentVariables"]["TRINKET_LYRIC_CAPTURE"] = "1"
+        if spires:
+            test["EnvironmentVariables"]["TRINKET_SPIRES"] = ",".join(spires)
         if not rehearsal:
             subprocess.run(["xcrun", "devicectl", "device", "install", "app", "--device", udid,
                             str(products / "Debug-iphoneos/TrailerRecorder.app")], check=True)
@@ -141,7 +145,7 @@ def run_tour(udid, app, output, rehearsal, team, boss_showcase):
     if not rehearsal:
         # On a route failure preserve a finalized partial take for diagnosis.
         copy = ["xcrun", "devicectl", "device", "copy", "from", "--device", udid, "--domain-type",
-                "appDataContainer", "--domain-identifier", RECORDER, "--timeout", "150"]
+                "appDataContainer", "--domain-identifier", RECORDER, "--timeout", "300" if boss_lyrics else "150"]
         for name in ("clock.json", "continuous.mp4"):
             transfer = subprocess.run([*copy, "--source", f"Documents/{take}/{name}",
                                        "--destination", str(output / name)])
@@ -160,7 +164,12 @@ def run_tour(udid, app, output, rehearsal, team, boss_showcase):
         clock = json.loads((output / "clock.json").read_text())
         handles = keep_times(shots, clock)
         write_json_atomic(output / "handles.json", handles)
-        timeline = continuous_boss_shots(handles) if boss_showcase else cut_gestures(handles, clock["duration"])
+        if boss_lyrics:
+            timeline = handles
+        elif boss_showcase:
+            timeline = continuous_boss_shots(handles)
+        else:
+            timeline = cut_gestures(handles, clock["duration"])
         write_json_atomic(output / "keep.json", timeline)
 
 
@@ -169,10 +178,15 @@ def main():
     parser.add_argument("--device", required=True, help="Exact iPhone name or UDID")
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--rehearse", action="store_true", help="Run the route without capturing video.")
-    parser.add_argument("--boss-showcase", action="store_true", help="Record the seven Spire bosses with the debug capture build.")
+    tours = parser.add_mutually_exclusive_group()
+    tours.add_argument("--boss-showcase", action="store_true", help="Record the seven Spire bosses with the debug capture build.")
+    tours.add_argument("--boss-lyrics", action="store_true", help="Capture each boss theme and its live lyrics in Auto Battle.")
+    parser.add_argument("--spire", action="append", default=[], help="Limit a boss capture to a named Spire ID. Repeat to include more.")
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--team", help="Defaults to the development team in the game project.")
     args = parser.parse_args()
+    if args.spire and not (args.boss_showcase or args.boss_lyrics):
+        parser.error("--spire requires a boss capture route.")
     udid, app = installed_phone(args.device)
     print(f"Wi-Fi iPhone {udid}, Trinket {app['version']} ({app['bundleVersion']})", flush=True)
     if args.check:
@@ -180,7 +194,7 @@ def main():
     if not args.output_dir:
         parser.error("--output-dir is required for a take.")
     team = args.team or re.search(r'^    DEVELOPMENT_TEAM: "(\w+)"', (ROOT / "project.yml").read_text(), re.M)[1]
-    run_tour(udid, app, args.output_dir.resolve(), args.rehearse, team, args.boss_showcase)
+    run_tour(udid, app, args.output_dir.resolve(), args.rehearse, team, args.boss_showcase, args.boss_lyrics, args.spire)
 
 
 if __name__ == "__main__":

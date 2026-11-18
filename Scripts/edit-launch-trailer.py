@@ -34,7 +34,7 @@ def main():
     parser.add_argument("--videotoolbox", action="store_true", help="Use the Mac hardware codec for the 60 fps press master.")
     parser.add_argument("--app-store", action="store_true", help="Export the iPhone 14 Pro 886x1920 preview at 30 fps.")
     parser.add_argument("--motion-span", type=float, nargs=2, action="append", default=[], metavar=("START", "END"),
-                        help="Source seconds spanning continuous motion during combat; repeat for two distinct actions.")
+                        help="Source seconds spanning continuous combat motion; supply one per retained boss shot.")
     args = parser.parse_args()
     fps = 30 if args.app_store else args.fps
     if args.videotoolbox and (args.app_store or fps != 60):
@@ -132,8 +132,8 @@ def main():
     motion = []
     if fps == 60:
         actions = [s for s in cue_map if s["id"].startswith("boss-play-")]
-        if len(actions) < 2:
-            parser.error("A 60 fps trailer needs at least two retained boss actions.")
+        if not actions:
+            parser.error("A 60 fps trailer needs a retained boss action.")
         if args.motion_span and len(args.motion_span) != len(actions):
             parser.error("Supply one motion sample per retained boss action, or let the editor find them.")
         for index, action in enumerate(actions):
@@ -195,11 +195,14 @@ def main():
         if args.music_offset + output_time > float(music["format"]["duration"]):
             parser.error("The selected musical passage must cover the entire edit.")
         command += ["-ss", str(args.music_offset), "-i", str(args.soundtrack)]
-        fade_start = max(0, output_time - 0.6)
+        try:
+            fade = checked(timeline.get("audio_fade_out", min(0.6, output_time)), 0.025, output_time)
+        except (TypeError, ValueError) as error:
+            parser.error(f"Invalid soundtrack fade: {error}")
         filters.append(
             f"[1:a]atrim=duration={output_time},asetpts=PTS-STARTPTS,"
             f"aresample=48000,aformat=channel_layouts=stereo,"
-            f"afade=t=in:d=0.08,afade=t=out:st={fade_start}:d=0.6[score]"
+            f"afade=t=in:d=0.08,afade=t=out:st={output_time - fade}:d={fade}[score]"
         )
         if args.keep_source_audio:
             filters.append("[score]volume=0.3[bed]")

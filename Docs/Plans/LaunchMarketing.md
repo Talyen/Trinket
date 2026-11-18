@@ -68,8 +68,7 @@ expectations from Trinket's own results. [Pawnbarian press kit](https://j4nw.com
   game facts and a public contact. The November 17 release evidence contains the
   stills ZIP, eight individually drafted pitches, the App Launch nomination draft
   and the D7/D14/D30 reporting worksheet.
-- [x] **Agents · trailer.** The combat showcase covers all seven bosses, each with a distinct
-  Hero and Companion. One continuous tap-to-play shot per boss goes into the 60 fps press cut and 30 fps App Store preview. [Matchups, capture and edit plan](LaunchTrailer.md)
+- [x] **Agents · trailer.** Prepare one short fight clip for each of the seven bosses. Open on the first vocal passage with that boss’s theme and live lyrics. [Matchups, capture and edit plan](LaunchTrailer.md)
 - [ ] **Agents · Apple editorial.** Check for an existing nomination, then
   prepare the App Launch nomination for iPhone and iPad in the U.S. Include
   the solo developer story, Hero and Companion combat, the free start,
@@ -204,7 +203,7 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | --- | --- | --- |
 | Release state and source assets checked | Complete | November 15, 2026 |
 | Stills, copy, eight pitches, nomination and reporting worksheet | Drafts prepared | Nov 17, retained Release evidence folder `LaunchMarketing-Nov17` |
-| Trailer | Ready for owner review | Nov 17, physical iPhone master, App Store preview and independent soundtrack. [Trailer tracker](LaunchTrailer.md) |
+| Trailer | Ready for owner review | Nov 17, seven portrait 60 fps iPhone boss clips with synced themes and live lyrics. [Trailer tracker](LaunchTrailer.md) |
 | Reporting access | Partial | Nov 17, build 13 in review. Analytics request list returned HTTP 500 twice. |
 | Launch window, public press kit, nomination and outreach approval | Pending | Owner review after final trailer |
 | Nomination and outreach dispatched | Pending | |

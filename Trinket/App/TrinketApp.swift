@@ -35,15 +35,18 @@ struct TrinketApp: App {
         }
         func makeState() throws -> AppState {
             var captureStore: PlayerSaveStore?
+            var captureDefaults: UserDefaults?
             #if DEBUG
             let capture = try BossCaptureFixture.fromArguments(ProcessInfo.processInfo.arguments)
             if capture != nil {
                 captureStore = try PlayerSaveStore(inMemoryOnly: true)
+                captureDefaults = capture?.captureDefaults()
             }
             #endif
             let state = try AppState(
                 environment: environment,
                 playerSave: captureStore,
+                userDefaults: captureDefaults,
                 makeBattleRuntime: makeBattleRuntime,
             )
             if environment.launchScreen == .battleVictory {

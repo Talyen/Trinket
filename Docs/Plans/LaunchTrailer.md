@@ -6,11 +6,11 @@ updated: 2026-11-17
 expires: 2026-12-01
 ---
 
-# Trinket boss combat showcase
+# Trinket boss lyric trailers
 
-Open in battle and stay there. Show each of Trinket’s seven distinct bosses against a new pair. Give the viewer enough time to recognize the enemy, follow a tap through the cast, and read the hit or response. Keep the full battlefield in fixed framing.
+Make one portrait trailer per boss. Open in the fight just before that boss’s first lyric. Keep the original theme and the word-by-word lyric display in sync through a complete opening passage. Native Auto Battle keeps the cards moving while the lyrics develop.
 
-The [launch tracker](LaunchMarketing.md) owns distribution, approvals and spending. The earlier Blight Treant story cut remains with the November 17 release evidence.
+The [launch tracker](LaunchMarketing.md) owns distribution and approvals. The earlier combined combat showcase remains with the November 17 release evidence.
 
 ## Matchups
 
@@ -28,15 +28,14 @@ Record floor 10 of each named Spire. This covers the seven boss identities in th
 
 ## Direction
 
-1. Start on the Treant already in motion. Put the boss name and pair in the space above the battlefield. The same typography and framing orient the viewer at every cut.
-2. Give each boss a single uninterrupted shot. Start just before the first tap and stay through the damage or status result. Let a second play or the response happen at the game’s pace.
-3. Build the pace from familiar attacks into visually different effects. Look for frost against the Forge Golem, fire against the Frostwarden, the Countess’s Bleed, the Seraph’s light, and the Titan’s heaviest impact. The card drawn and its resolved effects decide the shot.
-4. Use a 0.20-second picture dissolve at each boss change. Fade the outgoing and incoming labels separately. Time the middle of the dissolve to an accent in the score. Carry one music passage across the sequence and mix the game’s own combat sounds where the picture supports them.
-5. Deliver a roughly 35–40 second 60 fps master and a roughly 23–26 second 30 fps iPhone preview with one action from each boss. Review once muted at phone size. All seven bosses and pairs should be recognizable, and the viewer should see a card move and land.
+1. Start just ahead of the first sung phrase. Frame the battlefield and preserve the lyric display inside the boss pane.
+2. Keep one continuous shot per boss at game speed. Let Auto Battle drive the normal card-play animation and pacing.
+3. Use that boss’s original theme. Check the first words and later lyric reveals against the timed lyrics for the corresponding track in [MusicManifest](../../MusicManifest/music.tsv).
+4. End after a complete phrase while the fight is still readable. Allow the phrasing and combat to determine each runtime.
 
 ## Physical capture
 
-The packaged Debug build accepts the Spire and two roster IDs through `-boss-capture`. It opens an in-memory save at the selected floor with an unlocked roster. The Spire coordinator launches the real encounter with its normal combat engine, cards, artwork, and modifiers. The capture argument is scoped to development builds. The runner verifies that the expected three combatants are visible and uses an ordinary tap for each card. Tap-to-play starts the cast at the hand. Drag-to-play starts it at the release point and gives the card a higher starting position when dragged upward.
+The packaged Debug build accepts the Spire and two roster IDs through `-boss-capture`. It opens an in-memory save at the selected floor with an unlocked roster. The Spire coordinator launches the real encounter with its normal combat engine, cards, artwork, and modifiers. The capture argument is scoped to development builds. With `--boss-lyrics`, the fixture enables ordinary Auto Battle and live lyrics in isolated capture preferences. It uses the game’s existing music resume clock to cue each theme a few seconds before its first lyric. The runner verifies the three combatants and records the display and internal audio together. [ScreenCaptureKit audio configuration](https://developer.apple.com/documentation/ScreenCaptureKit/SCStreamConfiguration/capturesAudio)
 
 Use the paired physical iPhone and keep the recorder running through the seven app launches. Cut the launches, approval UI and transitions between encounters from the picture.
 
@@ -48,20 +47,19 @@ python3 /Users/ryanmcintire/Developer/.coordination/heavy_lane.py \
 python3 /Users/ryanmcintire/Developer/.coordination/heavy_lane.py \
   --owner "$THREAD_ID" --wait 900 --timeout 600 -- \
   python3 Scripts/capture-launch-trailer.py --device 'Ryan’s iPhone 14 Pro' \
-  --boss-showcase --output-dir "$TAKE"
+  --boss-lyrics --output-dir "$TAKE"
 ~~~
 
-Keep the iPhone original, monotonic-clock marks in `handles.json`, build identity, route log and the final edit timelines together. The gesture markers include the played card IDs. The runner also writes a `keep.json` with one source window per boss. Tighten its in and out points and select synchronized sounds from the actual picture. Keep all frames between each shot’s in and out points. The dissolve overlaps the natural tail and head of adjacent shots.
-
-Use the recorded game viewport at a fixed crop. An entry in the edit timeline can name a viewport-sized PNG in its `graphic` field. Use `--videotoolbox` for the 60 fps master and `--app-store` for the shorter 30 fps edit. Check the native cadence of moving cards and impacts in the source, then verify exported frame counts and stereo audio.
+Keep the original, `handles.json`, and the route log. The November 17 capture shows the live lyrics and its audio track is silent. Match the first visible words and later reveals to the song’s timed lyrics. Use that alignment as `--music-offset` and pass the matching master as `--soundtrack` to `Scripts/edit-launch-trailer.py`. Use one interval per export, the fixed iPhone viewport and `--videotoolbox`. Review the first displayed words against the export clock and check the last frame for live battle.
 
 ## Review and release
 
-The review master is `boss-showcase/dissolve-cut/Trinket-Boss-Showcase-60.mp4` under `.DerivedData/Deliverables/Release/LaunchMarketing-Nov17/` in the primary checkout. It runs 36.02 seconds with `Battle 1` and synchronized game effects. The 23.87-second App Store preview keeps two taps per boss. Both versions have exactly seven continuous source intervals and six 0.20-second dissolves.
+- [x] Verify seven independently playable 60 fps clips against their corresponding songs.
+- [x] Review the lyric lead-in and final phrase in each clip.
+- [ ] Review the clips and promotional music rights before publication.
 
-The original and route log are in `boss-showcase/dissolve-cut/take-01/`. The median interval between taps is 1.82 seconds, down from 2.13 in the previous take. The faster timing comes from the live inputs on the iPhone. The footage plays at native speed.
-
-- [x] Capture seven boss encounters with fourteen distinct player characters.
-- [x] Review readable card plays and native impact cadence across the cut.
-- [x] Verify the 60 fps master, silent creator copy and 30 fps preview.
-- [ ] Review the trailer and promotional music rights before publication.
+The seven November 17 iPhone 14 Pro exports are in
+`.DerivedData/Deliverables/Release/LaunchMarketing-Nov17/boss-lyric-trailers/`.
+Each runs 14–17 seconds in a single shot. The vocals start about 0.65 seconds
+in, with a 0.19-second lead on The Blight Treant. The retained take, edit cue
+maps and `verification.json` cover the source, 60 fps motion and soundtrack match.

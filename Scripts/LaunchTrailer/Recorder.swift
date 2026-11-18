@@ -55,7 +55,7 @@ private final class Recorder: NSObject, ObservableObject, SCContentSharingPicker
         Task { @MainActor in
             guard self.stream == nil, let directory else { return }
             let config = SCStreamConfiguration()
-            config.capturesAudio = false
+            config.capturesAudio = UserDefaults.standard.bool(forKey: "captureAudio")
             let capture = SCStream(filter: filter, configuration: config, delegate: self)
             let file = SCRecordingOutputConfiguration()
             file.outputURL = directory.appending(path: "continuous.mp4")

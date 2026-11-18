@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import TrinketContent
 import TrinketCore
 import TrinketFeatureContracts
 
@@ -184,6 +185,18 @@ final class MusicPlayer {
         resumePositions = resumePositions.filter { $0.key.contextKind == .menu }
     }
 
+    #if DEBUG
+    func cueBossLyricsForCapture(enemyID: String) -> Bool {
+        guard let trackID = MusicCatalog.bossTrackIDByEnemyID[enemyID],
+              let track = MusicCatalog.track(matching: trackID),
+              let firstWord = MusicCatalog.lyrics(for: trackID)?.first?.words.first
+        else { return false }
+        let request = MusicPlaybackRequest(track: track, enemyID: enemyID)
+        resumePositions[request.resumeKey] = max(0, firstWord.start - 3)
+        return true
+    }
+    #endif
+
     private func play(_ request: MusicPlaybackRequest, volume: Float) {
         if let current, current.request.resumeKey == request.resumeKey {
             clearPending()
@@ -340,3 +353,11 @@ final class MusicPlayer {
         AudioSupport.targetVolume(appVolume: appVolume, gain: request.track.volumeGain)
     }
 }
+
+#if DEBUG
+public extension AppState {
+    func cueBossLyricsForCapture(enemyID: String) -> Bool {
+        musicPlayer.cueBossLyricsForCapture(enemyID: enemyID)
+    }
+}
+#endif

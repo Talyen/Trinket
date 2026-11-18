@@ -141,7 +141,7 @@ final class PhysicalTour: XCTestCase {
         }
     }
 
-    private func recordBossShowcase() {
+    private func recordBossShowcase(lyrics: Bool) {
         let battles = [
             ("serpentHollow", "The Blight Treant", "Ranger", "Wolf"),
             ("ironVein", "The Iron Bear", "Rogue", "Panther"),
@@ -151,27 +151,48 @@ final class PhysicalTour: XCTestCase {
             ("aureateChoir", "The Seraph", "Knight", "Library Owl"),
             ("resonanceHall", "The Stone Titan", "Druid", "Shield Scarab"),
         ]
-        for (spire, boss, hero, companion) in battles {
+        let filter = ProcessInfo.processInfo.environment["TRINKET_SPIRES"]?.split(separator: ",").map(String.init)
+        let selected = battles.filter { filter?.contains($0.0) ?? true }
+        XCTAssertFalse(selected.isEmpty, "Select at least one available Spire.")
+        if let filter {
+            XCTAssertEqual(Set(selected.map(\.0)), Set(filter), "Unknown Spire in capture filter.")
+        }
+        for (spire, boss, hero, companion) in selected {
             let heroID = hero.lowercased().replacingOccurrences(of: " ", with: "_")
             let companionID = companion.lowercased().replacingOccurrences(of: " ", with: "_")
-            app.launchArguments = ["-development-unlocked", "-disable-audio", "-AppleLanguages", "(en)",
-                                   "-boss-capture", spire, heroID, companionID]
-            app.launch()
-            for name in [boss, hero, companion] {
-                XCTAssertTrue(element("\(name) card").waitForExistence(timeout: 18), "Expected \(name) on \(spire) floor 10")
-            }
-            keep("\(spire)-ready", settle: 1.0) {}
-            playCards(prefix: "boss-play-\(spire)")
-            let auto = element("Auto Battle Toggle")
-            if auto.exists, auto.isHittable {
-                keep("\(spire)-exchange", settle: 6.0) { auto.tap() }
+            app.launchArguments = ["-development-unlocked", "-AppleLanguages", "(en)",
+                                   "-boss-capture", spire, heroID, companionID,
+                                   lyrics ? "-boss-lyric-capture" : "-disable-audio"]
+            if lyrics {
+                keep("boss-play-\(spire)", settle: 18) {
+                    openBoss(spire: spire, combatants: [boss, hero, companion])
+                }
+            } else {
+                openBoss(spire: spire, combatants: [boss, hero, companion])
+                keep("\(spire)-ready", settle: 1.0) {}
+                playCards(prefix: "boss-play-\(spire)")
+                let auto = element("Auto Battle Toggle")
+                if auto.exists, auto.isHittable {
+                    keep("\(spire)-exchange", settle: 6.0) { auto.tap() }
+                }
             }
         }
     }
 
-    private func startRecorder(take: String) {
+    private func openBoss(spire: String, combatants: [String]) {
+        app.launch()
+        for name in combatants {
+            XCTAssertTrue(element("\(name) card").waitForExistence(timeout: 18), "Expected \(name) on \(spire) floor 10")
+        }
+        print("TRINKET_BOSS_VISIBLE \(spire) \(ProcessInfo.processInfo.systemUptime)")
+    }
+
+    private func startRecorder(take: String, audio: Bool) {
         let recorder = XCUIApplication(bundleIdentifier: "com.ryanmcintire.Trinket.TrailerRecorder")
         recorder.launchArguments = ["-take", take]
+        if audio {
+            recorder.launchArguments += ["-captureAudio", "YES"]
+        }
         recorder.launch()
         addTeardownBlock { recorder.terminate() }
         recorder.buttons["Choose screen"].tap()
@@ -204,6 +225,7 @@ final class PhysicalTour: XCTestCase {
         XCUIDevice.shared.orientation = .portrait
         app.launchEnvironment["XCTestConfigurationFilePath"] = "trailer-fixture"
         let showcase = ProcessInfo.processInfo.environment["TRINKET_SHOWCASE"] == "1"
+        let lyrics = ProcessInfo.processInfo.environment["TRINKET_LYRIC_CAPTURE"] == "1"
         addTeardownBlock { self.app.terminate() }
         if !showcase {
             app.launchArguments = ["-store-name", "launch-trailer-\(UUID().uuidString)",
@@ -212,7 +234,7 @@ final class PhysicalTour: XCTestCase {
             XCTAssertTrue(element("Confirm Starter Hero").waitForExistence(timeout: 30))
         }
         if let take = ProcessInfo.processInfo.environment["TRINKET_TAKE"] {
-            startRecorder(take: take)
+            startRecorder(take: take, audio: lyrics)
             if !showcase {
                 app.activate()
             }
@@ -221,7 +243,7 @@ final class PhysicalTour: XCTestCase {
         fflush(stdout)
         Thread.sleep(forTimeInterval: 4)
         if showcase {
-            recordBossShowcase()
+            recordBossShowcase(lyrics: lyrics)
         } else {
             starters()
             buildShots()
