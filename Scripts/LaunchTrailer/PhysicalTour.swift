@@ -126,7 +126,9 @@ final class PhysicalTour: XCTestCase {
         app.launch()
         tap("Explore Mode Card")
         tap("Labyrinth Mode Card", scroll: true)
-        if element("Labyrinth Enter").exists { tap("Labyrinth Enter") }
+        if element("Labyrinth Enter").exists {
+            tap("Labyrinth Enter")
+        }
         XCTAssertTrue(element("Labyrinth Map").waitForExistence(timeout: 10))
         tap("Labyrinth Floor 1 Entry Node")
         let enter = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "Labyrinth Inspector Action ")).firstMatch
@@ -140,7 +142,10 @@ final class PhysicalTour: XCTestCase {
             format: "(identifier BEGINSWITH %@ OR identifier == %@) AND NOT label CONTAINS[c] %@ AND NOT label CONTAINS[c] %@",
             "Labyrinth Node labyrinth-", "Labyrinth Floor 1 Locked Node", "cleared", "locked",
         )).allElementsBoundByIndex.first { $0.isHittable }
-        guard let nextRoom else { return XCTFail("No visible reachable room after the first victory") }
+        guard let nextRoom else {
+            XCTFail("No visible reachable room after the first victory")
+            return
+        }
         keep("labyrinth-node", settle: 3) {
             Thread.sleep(forTimeInterval: 2)
             nextRoom.tap()
