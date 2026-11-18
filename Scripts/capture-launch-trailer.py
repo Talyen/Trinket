@@ -91,7 +91,7 @@ def continuous_boss_shots(handles):
             raise ValueError(f"Showcase needs two card plays for {spire}.")
         shot = {"id": action, "start": plays[0]["start"], "end": plays[-1]["end"]}
         if shots:
-            shot["transition"] = 0.30
+            shot["dissolve"] = 0.20
         shots.append(shot)
     return {"shots": shots}
 

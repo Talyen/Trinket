@@ -31,8 +31,8 @@ Record floor 10 of each named Spire. This covers the seven boss identities in th
 1. Start on the Treant already in motion. Put the boss name and pair in the space above the battlefield. The same typography and framing orient the viewer at every cut.
 2. Give each boss a single uninterrupted shot. Start just before the first tap and stay through the damage or status result. Let a second play or the response happen at the game’s pace.
 3. Build the pace from familiar attacks into visually different effects. Look for frost against the Forge Golem, fire against the Frostwarden, the Countess’s Bleed, the Seraph’s light, and the Titan’s heaviest impact. The card drawn and its resolved effects decide the shot.
-4. Use a short angled wipe at each boss change. Time the wipe and the incoming label to the score. Carry one music passage across the sequence and mix the game’s own combat sounds where the picture supports them.
-5. Deliver a roughly 40–45 second 60 fps master and a roughly 26–29 second 30 fps iPhone preview with one action from each boss. Review once muted at phone size. All seven bosses and pairs should be recognizable, and the viewer should see a card move and land.
+4. Use a 0.20-second picture dissolve at each boss change. Fade the outgoing and incoming labels separately. Time the middle of the dissolve to an accent in the score. Carry one music passage across the sequence and mix the game’s own combat sounds where the picture supports them.
+5. Deliver a roughly 35–40 second 60 fps master and a roughly 23–26 second 30 fps iPhone preview with one action from each boss. Review once muted at phone size. All seven bosses and pairs should be recognizable, and the viewer should see a card move and land.
 
 ## Physical capture
 
@@ -51,15 +51,15 @@ python3 /Users/ryanmcintire/Developer/.coordination/heavy_lane.py \
   --boss-showcase --output-dir "$TAKE"
 ~~~
 
-Keep the iPhone original, monotonic-clock marks in `handles.json`, build identity, route log and the final edit timelines together. The gesture markers include the played card IDs. The runner also writes a `keep.json` with one source window per boss. Tighten its in and out points and select synchronized sounds from the actual picture. Keep all frames between the chosen in and out points.
+Keep the iPhone original, monotonic-clock marks in `handles.json`, build identity, route log and the final edit timelines together. The gesture markers include the played card IDs. The runner also writes a `keep.json` with one source window per boss. Tighten its in and out points and select synchronized sounds from the actual picture. Keep all frames between each shot’s in and out points. The dissolve overlaps the natural tail and head of adjacent shots.
 
 Use the recorded game viewport at a fixed crop. An entry in the edit timeline can name a viewport-sized PNG in its `graphic` field. Use `--videotoolbox` for the 60 fps master and `--app-store` for the shorter 30 fps edit. Check the native cadence of moving cards and impacts in the source, then verify exported frame counts and stereo audio.
 
 ## Review and release
 
-The review master is `boss-showcase/tap-play/Trinket-Boss-Showcase-60.mp4` under `.DerivedData/Deliverables/Release/LaunchMarketing-Nov17/` in the primary checkout. It runs 41.45 seconds with `Battle 1` and synchronized game effects. The 28.00-second App Store preview uses shorter continuous windows. Both timelines contain exactly seven source intervals and six 0.30-second wipes at boss changes.
+The review master is `boss-showcase/dissolve-cut/Trinket-Boss-Showcase-60.mp4` under `.DerivedData/Deliverables/Release/LaunchMarketing-Nov17/` in the primary checkout. It runs 36.02 seconds with `Battle 1` and synchronized game effects. The 23.87-second App Store preview keeps two taps per boss. Both versions have exactly seven continuous source intervals and six 0.20-second dissolves.
 
-The new iPhone 14 Pro take and route log are in `boss-showcase/tap-play/take-01/`. The route logged 21 ordinary taps. A source frame comparison of Bounty Shot against the Treant shows the original dragged card covering the party portraits and the tap cast staying near the hand. Every retained boss has a native action sample measuring 60 visibly changing frames/s.
+The original and route log are in `boss-showcase/dissolve-cut/take-01/`. The median interval between taps is 1.82 seconds, down from 2.13 in the previous take. The faster timing comes from the live inputs on the iPhone. The footage plays at native speed.
 
 - [x] Capture seven boss encounters with fourteen distinct player characters.
 - [x] Review readable card plays and native impact cadence across the cut.

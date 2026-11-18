@@ -129,7 +129,7 @@ class LaunchTrailerTests(unittest.TestCase):
         result = capture.continuous_boss_shots(marks)
         self.assertEqual(result["shots"], [
             {"id": "boss-play-first", "start": 3, "end": 7},
-            {"id": "boss-play-second", "start": 12, "end": 16, "transition": 0.30},
+            {"id": "boss-play-second", "start": 12, "end": 16, "dissolve": 0.20},
         ])
 
     @unittest.skipUnless(shutil.which("ffmpeg"), "requires FFmpeg")
@@ -148,6 +148,33 @@ class LaunchTrailerTests(unittest.TestCase):
         self.assertGreater(min(frames[24]), 245)
         self.assertLess(max(frames[30]), 50)
         self.assertGreater(min(frames[36]), 245)
+
+    @unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"), "requires FFmpeg")
+    def test_dissolve_advances_the_incoming_shot_during_the_overlap(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "game.mkv"
+            subprocess.run(["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "color=black:s=64x96:r=30:d=3.2",
+                            "-vf", "geq=lum='if(lt(N,30),40,if(lt(N,60),220,130+N-60))':cb=128:cr=128",
+                            "-c:v", "libx264", "-crf", "0", "-g", "90", "-sc_threshold", "0", str(source)], check=True)
+            timeline = root / "edit.json"
+            timeline.write_text(json.dumps({"shots": [
+                {"id": "outgoing", "start": 0, "end": 1},
+                {"id": "incoming", "start": 2, "end": 3, "dissolve": 0.2},
+            ]}))
+            output = root / "cut.mp4"
+            with patch.object(sys, "argv", ["edit", "--source", str(source), "--timeline", str(timeline),
+                                          "--fps", "30", "--output", str(output)]):
+                edit.main()
+            pixels = subprocess.check_output(["ffmpeg", "-v", "error", "-i", str(output),
+                                              "-pix_fmt", "gray", "-f", "rawvideo", "-"])
+            luma = pixels[::64 * 96]
+            self.assertEqual(len(luma), 54)
+            self.assertEqual(luma[24], luma[0])
+            self.assertLess(luma[24] + 25, luma[27])
+            self.assertLess(luma[27] + 25, luma[29])
+            self.assertAlmostEqual(luma[29], luma[30], delta=3)
+            self.assertGreater(luma[-1], luma[30] + 14)
 
     def test_overlapping_ordinary_shots_fail_before_encoding(self):
         with tempfile.TemporaryDirectory() as temp:

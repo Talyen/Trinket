@@ -137,7 +137,7 @@ final class PhysicalTour: XCTestCase {
                 break
             }
             let card = String(playable.identifier.dropFirst("Battle Hand Card ".count))
-            keep("\(prefix)-\(n)", settle: 1.05, card: card) { playable.tap() }
+            keep("\(prefix)-\(n)", settle: 0.75, card: card) { playable.tap() }
         }
     }
 

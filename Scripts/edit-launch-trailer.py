@@ -9,7 +9,7 @@ from pathlib import Path
 import subprocess
 
 from LaunchTrailer.cadence import measure, sample_action
-from LaunchTrailer.treatment import compose, compose_transitions
+from LaunchTrailer.treatment import checked, compose, compose_dissolves, compose_transitions
 
 
 def probe(path):
@@ -90,7 +90,19 @@ def main():
         count = round(end * fps) - first_frame
         if count < 1:
             parser.error(f"Shot {index} is shorter than one output frame.")
-        frame_ranges.append(f"between(n,{first_frame},{first_frame + count - 1})")
+        overlap_frames = 0
+        if "dissolve" in shot and not args.clean_picture:
+            try:
+                overlap_frames = round(checked(shot["dissolve"], 0.10, 0.5) * fps)
+            except (ValueError, TypeError) as error:
+                parser.error(f"Invalid dissolve on {shot['id']}: {error}")
+            if not cue_map or overlap_frames >= count or "transition" in shot:
+                parser.error(f"Dissolve on {shot['id']} needs two adjacent shots and room on both sides.")
+            previous = cue_map[-1]
+            if (overlap_frames / fps >=
+                    previous["output_end"] - previous["output_start"] - previous.get("dissolve", 0)):
+                parser.error(f"Dissolve on {shot['id']} is too long for the preceding shot.")
+        frame_ranges.append(f"between(n,{first_frame + overlap_frames},{first_frame + count - 1})")
         if args.keep_source_audio:
             filters.append(
                 f"[0:a]atrim=start={start}:end={end},asetpts=PTS-STARTPTS,"
@@ -100,8 +112,11 @@ def main():
         length = count / fps
         cue_map.append({
             "id": shot["id"], "source_start": start, "source_end": end,
-            "output_start": output_time, "output_end": output_time + length,
+            "output_start": output_time - overlap_frames / fps,
+            "output_end": output_time + length - overlap_frames / fps,
         })
+        if overlap_frames:
+            cue_map[-1]["dissolve"] = overlap_frames / fps
         if shot.get("effects") and not args.clean_picture:
             cue_map[-1]["effects"] = shot["effects"]
         if "transition" in shot and not args.clean_picture:
@@ -112,7 +127,7 @@ def main():
             if args.keep_source_audio:
                 parser.error("Choose captured audio or synchronized sound cues for the score.")
             cue_map[-1]["sounds"] = shot["sounds"]
-        output_time += length
+        output_time = cue_map[-1]["output_end"]
         previous_end = end
     motion = []
     if fps == 60:
@@ -135,7 +150,15 @@ def main():
     if args.app_store and (not 15 <= output_time <= 30 or not (args.soundtrack or args.keep_source_audio)):
         parser.error("The iPhone App Store preview requires 15–30 seconds and stereo audio.")
     if args.keep_source_audio:
-        filters.append("".join(inputs) + f"concat=n={len(shots)}:v=0:a=1[effects]")
+        if not any("dissolve" in shot for shot in cue_map):
+            filters.append("".join(inputs) + f"concat=n={len(shots)}:v=0:a=1[effects]")
+        else:
+            mixed = inputs[0]
+            for index, shot in enumerate(cue_map[1:], start=1):
+                output = "[effects]" if index == len(shots) - 1 else f"[joinedAudio{index}]"
+                join = f"acrossfade=d={shot['dissolve']}" if "dissolve" in shot else "concat=n=2:v=0:a=1"
+                filters.append(mixed + inputs[index] + join + output)
+                mixed = output
     selected = "+".join(frame_ranges)
     filters.append(f"[0:v]fps={fps}:start_time=0,select='{selected}',setpts=N/({fps}*TB)[picture]")
     geometry = ("scale=886:1920:force_original_aspect_ratio=decrease:force_divisible_by=2,"
@@ -150,7 +173,11 @@ def main():
     if args.videotoolbox:
         command += ["-hwaccel", "videotoolbox"]
     command += ["-t", str(previous_end + 1 / fps), "-i", str(args.source)]
-    graphics = [(s["graphic"], s["output_start"], s["output_end"]) for s in cue_map if "graphic" in s]
+    label_starts = [s["output_start"] + s.get("dissolve", 0) / 2 for s in cue_map]
+    label_ends = label_starts[1:] + [output_time]
+    label_fades = [round(s.get("dissolve", 0) * fps / 2) for s in cue_map] + [0]
+    graphics = [(s["graphic"], begin, end, label_fades[index], label_fades[index + 1])
+                for index, (s, begin, end) in enumerate(zip(cue_map, label_starts, label_ends)) if "graphic" in s]
     if end_card:
         seconds = float(end_card["seconds"])
         if not 0.5 <= seconds <= 5:
@@ -158,7 +185,7 @@ def main():
         frames = round(seconds * fps)
         filters.append(f"[{treated}]tpad=stop_mode=clone:stop={frames}[hold]")
         treated = "hold"
-        graphics.append((end_card["graphic"], output_time, output_time + frames / fps))
+        graphics.append((end_card["graphic"], output_time, output_time + frames / fps, 0, 0))
         output_time += frames / fps
         if args.keep_source_audio:
             filters.append(f"[effects]apad=pad_dur={frames / fps}[room]")
@@ -206,16 +233,28 @@ def main():
     elif args.keep_source_audio:
         filters.append(captured_audio + "loudnorm=I=-16:TP=-1.5:LRA=11,volume=-1dB[audio]")
         audio_label = "[audio]"
+    treated = compose_dissolves(command, filters, treated, cue_map, args.source, crop, fps)
     # Add stills after the score and its SFX so audio input indexes stay fixed.
     input_count = command.count("-i")
-    for index, (name, start, end) in enumerate(graphics):
+    for index, (name, start, end, fade_in, fade_out) in enumerate(graphics):
         path = (args.timeline.parent / name).resolve()
         if not path.is_file() or path.suffix.lower() != ".png":
             parser.error(f"Missing PNG on the edit timeline: {path}")
         command += ["-i", str(path)]
         first, last = round(start * fps), round(end * fps) - 1
         layer = f"graphic{index}"
-        filters.append(f"[{treated}][{input_count + index}:v]overlay=enable='between(n,{first},{last})'[{layer}]")
+        graphic = f"[{input_count + index}:v]"
+        if fade_in or fade_out:
+            frames = last - first + 1
+            animated = f"animatedGraphic{index}"
+            transform = f"format=yuva420p,loop=loop={frames - 1}:size=1:start=0,settb=1/{fps},setpts=N"
+            if fade_in:
+                transform += f",fade=t=in:s=0:n={fade_in}:alpha=1"
+            if fade_out:
+                transform += f",fade=t=out:s={frames - fade_out - 1}:n={fade_out}:alpha=1"
+            filters.append(f"{graphic}{transform},setpts=PTS+{first}[{animated}]")
+            graphic = f"[{animated}]"
+        filters.append(f"[{treated}]{graphic}overlay=enable='between(n,{first},{last})'[{layer}]")
         treated = layer
     try:
         treated = compose_transitions(filters, treated, cue_map, fps, width, height)

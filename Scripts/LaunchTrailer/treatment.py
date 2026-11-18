@@ -102,3 +102,30 @@ def compose_transitions(filters, picture, shots, fps, width, height):
         filters.append(f"[{picture}][{mask}]overlay=eof_action=pass:repeatlast=0[{output}]")
         picture = output
     return picture
+
+
+def compose_dissolves(command, filters, picture, shots, source, crop, fps):
+    """Blend the incoming source frames over the outgoing tail without pausing either shot."""
+    for index, shot in enumerate(shots):
+        count = round(shot.get("dissolve", 0) * fps)
+        if not count:
+            continue
+        first = round(shot["source_start"] * fps)
+        offset = round(shot["output_start"] * fps)
+        # Seek on the same integer-second grid as the primary decoder. Leave
+        # preroll for a held frame to resolve before selecting the exact head.
+        seek = max(0, first // fps - 1)
+        local = first - seek * fps
+        input_index = command.count("-i")
+        command += ["-threads", "1", "-ss", str(seek),
+                    "-t", str((local + count + 1) / fps), "-i", str(source)]
+        head = f"head{index}"
+        output = f"dissolved{index}"
+        filters.append(
+            f"[{input_index}:v]fps={fps}:start_time=0,trim=start_frame={local}:end_frame={local + count},"
+            f"{crop},format=yuva420p,setpts=N/({fps}*TB),"
+            f"fade=t=in:s=0:n={count - 1}:alpha=1,setpts=PTS+{offset}/({fps}*TB)[{head}]"
+        )
+        filters.append(f"[{picture}][{head}]overlay=eof_action=pass:repeatlast=0[{output}]")
+        picture = output
+    return picture
