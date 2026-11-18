@@ -75,12 +75,76 @@ final class PhysicalTour: XCTestCase {
                 }
             }
             XCTAssertEqual(selected.label, name)
-            let confirm = app.buttons["Confirm Starter \(role)"]
-            confirm.tap()
-            if !confirm.waitForNonExistence(timeout: 3) {
-                confirm.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-                XCTAssertTrue(confirm.waitForNonExistence(timeout: 5), "Starter confirmation did not advance")
+            confirmStarter(role)
+        }
+    }
+
+    private func confirmStarter(_ role: String) {
+        let confirm = app.buttons["Confirm Starter \(role)"]
+        confirm.tap()
+        if !confirm.waitForNonExistence(timeout: 3) {
+            confirm.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            XCTAssertTrue(confirm.waitForNonExistence(timeout: 5), "Starter confirmation did not advance")
+        }
+    }
+
+    private func pressFeatureShots() {
+        // Each neighboring card is partially visible to the right. Tapping that
+        // sliver lets the game's own carousel center the next choice.
+        for (role, choices) in [("Hero", ["knight", "rogue", "wizard"]), ("Companion", ["bear", "frost_whelp"])] {
+            for choice in choices {
+                let option = element("Starter \(role) Option \(choice)")
+                XCTAssertTrue(option.waitForExistence(timeout: 10))
+                let visible = option.frame.intersection(app.frame)
+                XCTAssertFalse(visible.isEmpty)
+                keep("select-\(choice)", settle: 1.25) {
+                    app.coordinate(withNormalizedOffset: .zero).withOffset(
+                        CGVector(dx: visible.midX, dy: visible.midY),
+                    ).tap()
+                }
+                let expected = choice.replacingOccurrences(of: "_", with: " ").capitalized
+                let name = element("Selected Starter Name").label.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+                XCTAssertEqual(name, expected)
             }
+            confirmStarter(role)
+        }
+        tab("Collection")
+        tap("Wizard collection card", scroll: true)
+        tap("Basic ability slot", scroll: true)
+        let ray = element("Loadout Ability Candidate ray-of-frost")
+        ready(ray, scroll: true)
+        keep("ray-of-frost", settle: 3.8) { ray.tap() }
+        XCTAssertTrue(element("Loadout Ability Detail ray-of-frost").exists)
+
+        recordExploredFloor()
+    }
+
+    private func recordExploredFloor() {
+        app.launchArguments = ["-store-name", "press-labyrinth-\(UUID().uuidString)", "-reset-state",
+                               "-disable-cloud-sync", "-seed-test-progress", "-disable-audio", "-selectedTab", "play",
+                               "-performance-strong-party", "-battle-tick-interval", "0.02", "-AppleLanguages", "(en)"]
+        app.launch()
+        tap("Explore Mode Card")
+        tap("Labyrinth Mode Card", scroll: true)
+        if element("Labyrinth Enter").exists { tap("Labyrinth Enter") }
+        XCTAssertTrue(element("Labyrinth Map").waitForExistence(timeout: 10))
+        tap("Labyrinth Floor 1 Entry Node")
+        let enter = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "Labyrinth Inspector Action ")).firstMatch
+        ready(enter)
+        enter.tap()
+        tap("Auto Battle Toggle")
+        XCTAssertTrue(element("Victory").waitForExistence(timeout: 90))
+        tap("Continue Button", scroll: true)
+        XCTAssertTrue(element("Labyrinth Map").waitForExistence(timeout: 12))
+        let nextRoom = app.descendants(matching: .any).matching(NSPredicate(
+            format: "(identifier BEGINSWITH %@ OR identifier == %@) AND NOT label CONTAINS[c] %@ AND NOT label CONTAINS[c] %@",
+            "Labyrinth Node labyrinth-", "Labyrinth Floor 1 Locked Node", "cleared", "locked",
+        )).allElementsBoundByIndex.first { $0.isHittable }
+        guard let nextRoom else { return XCTFail("No visible reachable room after the first victory") }
+        keep("labyrinth-node", settle: 3) {
+            Thread.sleep(forTimeInterval: 2)
+            nextRoom.tap()
+            XCTAssertTrue(element("Labyrinth Node Inspector").waitForExistence(timeout: 10))
         }
     }
 
@@ -244,6 +308,8 @@ final class PhysicalTour: XCTestCase {
         Thread.sleep(forTimeInterval: 4)
         if showcase {
             recordBossShowcase(lyrics: lyrics)
+        } else if ProcessInfo.processInfo.environment["TRINKET_PRESS_PICKUPS"] == "1" {
+            pressFeatureShots()
         } else {
             starters()
             buildShots()

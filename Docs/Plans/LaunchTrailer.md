@@ -72,26 +72,29 @@ The November 17 `channel-edits/` folder next to the boss masters contains four r
 | --- | --- |
 | App Store and Apple Ads search results | The Forge Golem, 17 seconds, 886 × 1920 at 30 fps. Use the poster frame at 0.30 seconds and finish on combat. Use this preview on the listing and the planned combat custom product page. |
 | Organic social and off-store ads | Forge Golem and Blight Treant, 1080 × 1920 at 60 fps. Each ends with the game title and Apple’s download badge for 1.8 seconds. Use the launch cuts once the U.S. listing is live. Compare store visits from equivalent organic posts before considering spend. |
-| Press and creators | A 54.6-second portrait feature reel with English narration and optional captions. Kokoro generated the narration locally using its stock British English voice, George. The narrator hands the last 9.5 seconds of combat to the Blight Treant’s singer. |
+| Press and creators | 59.0-second portrait reel. A Wizard takes a Frost Whelp up Cinder Spire. The final 17 seconds of gameplay follow their uninterrupted Forge Golem fight with its own song and visible lyrics. The release includes a caption track and a separate English SRT. |
 
-### Narration script
+### Press reel narration and edit
 
 | Start | Picture | Spoken line |
 | --- | --- | --- |
-| 0.3s | Ranger selection | We need a ranger. |
-| 3.2s | Wolf selection | A wolf. |
-| 4.3s | Party to ability selection | And something that sets trees on fire. |
-| 6.9s | Fire Arrow | Fire Arrow. Equip an ability and it goes into your deck. |
-| 11.6s | Sapphire Amulet | An amulet for the road. |
-| 14.7s | Homestead farming | Back at the Homestead, build upgrades and gather supplies. |
-| 18.8s | Campaign and Forest | The Campaign takes us into the Forest. |
-| 22.2s | Spire floors | Feeling ambitious? Climb a Spire, one floor at a time. |
-| 27.0s | Labyrinth route | Pick your way through the Labyrinth. |
-| 31.3s | Contract offers | Take a Contract for a quick fight. |
-| 35.6s | Voyage route | Or chart a Voyage. |
-| 38.0s | Return to the party | In battle, the pair shares one hand. |
-| 40.9s | Blight Treant reveal | And the Blight Treant? It sings. |
+| 0.2s | Scroll right to Wizard | I'm taking the wizard up Cinder Spire. |
+| 3.2s | Scroll right to Frost Whelp | Come on, little guy. You're with me. |
+| 6.1s | Inspect Ray of Frost | Ray of Frost hits twice. I want both of those hits on the golem. |
+| 11.0s | Inspect the Sapphire Amulet | More healing when he's frozen? I like that amulet. |
+| 14.7s | Homestead and Farming | I keep meaning to get that herb garden going. |
+| 18.4s | Campaign and Forest | There's the Treant. I'll come back for him. |
+| 22.6s | Select the newly reachable Mystery room | I've cleared this room. What's over here? |
+| 27.5s | Goblin contract | I could pick up a goblin contract on the way. |
+| 31.8s | Tundra itinerary | A voyage to the Tundra can wait till tomorrow. |
+| 36.3s | Enter Cinder Spire | There's Cinder Spire. Let's see how we do. |
 
-The opening names a problem the final boss can answer. Supergiant’s account of building *Bastion* around a recorded narration track informed the timing. Valve’s *Panels* trailer lets the demonstration deliver the joke, and Sloclap’s *Sifu* overview pairs each mechanic with its visible result. For Trinket, that means showing the amulet as it is named, letting mode navigation unfold, and leaving the boss enough space to sing. [Bastion production notes](https://www.supergiantgames.com/blog/presenting-the-bastion-launch-trailer/) · [Portal 2 — Panels](https://www.youtube.com/watch?v=0qcED35LL8I) · [Sifu combat overview](https://www.youtube.com/watch?v=tHaODlf6FIc)
+At 40.3s, let the Forge Golem's singer take over. Keep the native Auto Battle card animations and let the last lyric resolve on screen before the title card. All section changes use a six-frame moving cross-dissolve at 30 fps. Out of Farming, dissolve directly to Play. The Forest belongs after the player opens Campaign.
+
+**Recording.** Run `python3 Scripts/capture-launch-trailer.py --device <paired-iPhone-UDID> --press-pickups --output-dir <new-directory>` under the physical-device lane. The route taps the next card to the right in each carousel, opens the Wizard's Ray of Frost, then uses a disposable Labyrinth career to win the entrance fight. The retained shot starts on that partly explored floor and holds through the next reachable room's artwork opening. Select the gesture windows using the device-clock markers in `handles.json`.
+
+**Review files.** Under `channel-edits/revision-two/`, `picture.json` records source windows, `render.py` assembles the reel, and `feature-reel-edit.json` records final frame and caption timing. The current mix uses Kokoro’s George. The `voice-audition/` folder contains George, Heart, Fenrir, and Emma reading the same opening three lines at matched loudness. Voice choice is open.
+
+The narration introduces the player’s plan, then lets the player’s choices and the boss performance carry it through. The production references were Supergiant’s account of timing the *Bastion* trailer to its narrator, Valve’s *Panels* demonstration, and Sloclap’s *Sifu* combat overview. [Bastion production notes](https://www.supergiantgames.com/blog/presenting-the-bastion-launch-trailer/) · [Portal 2 — Panels](https://www.youtube.com/watch?v=0qcED35LL8I) · [Sifu combat overview](https://www.youtube.com/watch?v=tHaODlf6FIc)
 
 The U.S. storefront lookup returned zero results on November 17. The social cuts are launch assets awaiting availability. App Store placement and the Apple Ads pilot remain tracked in the launch plan. [Apple preview specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications) · [Apple badge guidelines](https://developer.apple.com/app-store/marketing/guidelines/)
