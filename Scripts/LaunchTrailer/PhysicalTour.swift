@@ -88,104 +88,6 @@ final class PhysicalTour: XCTestCase {
         }
     }
 
-    private func pressFeatureShots(knight: Bool) {
-        // Each neighboring card is partially visible to the right. Tapping that
-        // sliver lets the game's own carousel center the next choice.
-        let heroes = knight ? ["knight"] : ["knight", "rogue", "wizard"]
-        let companions = knight ? ["bear", "frost_whelp", "library_owl"] : ["bear", "frost_whelp"]
-        for (role, choices) in [("Hero", heroes), ("Companion", companions)] {
-            for choice in choices {
-                let option = element("Starter \(role) Option \(choice)")
-                XCTAssertTrue(option.waitForExistence(timeout: 10))
-                let visible = option.frame.intersection(app.frame)
-                XCTAssertFalse(visible.isEmpty)
-                keep("select-\(choice)", settle: 1.25) {
-                    app.coordinate(withNormalizedOffset: .zero).withOffset(
-                        CGVector(dx: visible.midX, dy: visible.midY),
-                    ).tap()
-                }
-                let expected = choice.replacingOccurrences(of: "_", with: " ").capitalized
-                let name = element("Selected Starter Name").label.split(whereSeparator: \.isWhitespace).joined(separator: " ")
-                XCTAssertEqual(name, expected)
-            }
-            confirmStarter(role)
-        }
-        tab("Collection")
-        let hero = knight ? "Knight" : "Wizard"
-        let ability = knight ? "shield-bash" : "ray-of-frost"
-        tap("\(hero) collection card", scroll: true)
-        tap("Basic ability slot", scroll: true)
-        let candidate = element("Loadout Ability Candidate \(ability)")
-        ready(candidate, scroll: true)
-        keep(ability, settle: 3.8) { candidate.tap() }
-        XCTAssertTrue(element("Loadout Ability Detail \(ability)").exists)
-
-        if knight {
-            app.launchArguments += ["-selectedTab", "play"]
-            app.launch()
-            tab("Play")
-            tap("Explore Mode Card")
-            tap("Spires Mode Card", scroll: true)
-            let choir = element("Spire aureateChoir Row")
-            ready(choir, scroll: true)
-            keep("aureate-choir", settle: 2.4) { choir.tap() }
-            XCTAssertTrue(element("Spire aureateChoir Title").waitForExistence(timeout: 10))
-        } else {
-            recordExploredFloor()
-        }
-    }
-
-    private func recordGear() {
-        let career = "press-gear-\(UUID().uuidString)"
-        for item in ["twin_casting", "frozen_pocketwatch"] {
-            app.launchArguments = ["-store-name", career, "-disable-cloud-sync", "-seed-test-progress",
-                                   "-disable-audio", "-AppleLanguages", "(en)", "-launch-screen", "item:\(item)"]
-            app.launch()
-            let detail = element("Loadout Item Detail \(item)")
-            XCTAssertTrue(detail.waitForExistence(timeout: 15))
-            XCUIDevice.shared.orientation = .portrait
-            XCTAssertGreaterThan(app.frame.height, app.frame.width, "Item detail must be in portrait")
-            keep(item, settle: 3.0) {
-                Thread.sleep(forTimeInterval: 1.4)
-                drag(fromX: 0.51, fromY: 0.85, toX: 0.51, toY: 0.59)
-            }
-        }
-    }
-
-    private func recordExploredFloor() {
-        app.launchArguments = ["-store-name", "press-labyrinth-\(UUID().uuidString)", "-reset-state",
-                               "-disable-cloud-sync", "-seed-test-progress", "-disable-audio", "-selectedTab", "play",
-                               "-performance-strong-party", "-battle-tick-interval", "0.02", "-AppleLanguages", "(en)"]
-        app.launch()
-        tap("Explore Mode Card")
-        tap("Labyrinth Mode Card", scroll: true)
-        if element("Labyrinth Enter").exists {
-            tap("Labyrinth Enter")
-        }
-        XCTAssertTrue(element("Labyrinth Map").waitForExistence(timeout: 10))
-        tap("Labyrinth Floor 1 Entry Node")
-        let enter = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "Labyrinth Inspector Action ")).firstMatch
-        ready(enter)
-        enter.tap()
-        tap("Auto Battle Toggle")
-        XCTAssertTrue(element("Victory").waitForExistence(timeout: 90))
-        tap("Continue Button", scroll: true)
-        XCTAssertTrue(element("Labyrinth Map").waitForExistence(timeout: 12))
-        let nextRoom = app.descendants(matching: .any).matching(NSPredicate(
-            format: "(identifier BEGINSWITH %@ OR identifier == %@) AND NOT label CONTAINS[c] %@ AND NOT label CONTAINS[c] %@",
-            "Labyrinth Node labyrinth-", "Labyrinth Floor 1 Locked Node", "cleared", "locked",
-        )).allElementsBoundByIndex.first { $0.isHittable }
-        guard let nextRoom else {
-            XCTFail("No visible reachable room after the first victory")
-            return
-        }
-        keep("labyrinth-node", settle: 3) {
-            Thread.sleep(forTimeInterval: 2)
-            nextRoom.tap()
-            XCTAssertTrue(element("Labyrinth Node Inspector").waitForExistence(timeout: 10))
-        }
-    }
-
     private func recordContract() {
         tap("Explore Mode Card")
         keep("board", settle: 1.2) { tap("Contracts Mode Card", scroll: true) }
@@ -386,5 +288,105 @@ final class PhysicalTour: XCTestCase {
         markers.name = "Trinket Shot Times"
         markers.lifetime = .keepAlways
         add(markers)
+    }
+}
+
+private extension PhysicalTour {
+    func pressFeatureShots(knight: Bool) {
+        // Each neighboring card is partially visible to the right. Tapping that
+        // sliver lets the game's own carousel center the next choice.
+        let heroes = knight ? ["knight"] : ["knight", "rogue", "wizard"]
+        let companions = knight ? ["bear", "frost_whelp", "library_owl"] : ["bear", "frost_whelp"]
+        for (role, choices) in [("Hero", heroes), ("Companion", companions)] {
+            for choice in choices {
+                let option = element("Starter \(role) Option \(choice)")
+                XCTAssertTrue(option.waitForExistence(timeout: 10))
+                let visible = option.frame.intersection(app.frame)
+                XCTAssertFalse(visible.isEmpty)
+                keep("select-\(choice)", settle: 1.25) {
+                    app.coordinate(withNormalizedOffset: .zero).withOffset(
+                        CGVector(dx: visible.midX, dy: visible.midY),
+                    ).tap()
+                }
+                let expected = choice.replacingOccurrences(of: "_", with: " ").capitalized
+                let name = element("Selected Starter Name").label.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+                XCTAssertEqual(name, expected)
+            }
+            confirmStarter(role)
+        }
+        tab("Collection")
+        let hero = knight ? "Knight" : "Wizard"
+        let ability = knight ? "shield-bash" : "ray-of-frost"
+        tap("\(hero) collection card", scroll: true)
+        tap("Basic ability slot", scroll: true)
+        let candidate = element("Loadout Ability Candidate \(ability)")
+        ready(candidate, scroll: true)
+        keep(ability, settle: 3.8) { candidate.tap() }
+        XCTAssertTrue(element("Loadout Ability Detail \(ability)").exists)
+
+        if knight {
+            app.launchArguments += ["-selectedTab", "play"]
+            app.launch()
+            tab("Play")
+            tap("Explore Mode Card")
+            tap("Spires Mode Card", scroll: true)
+            let choir = element("Spire aureateChoir Row")
+            ready(choir, scroll: true)
+            keep("aureate-choir", settle: 2.4) { choir.tap() }
+            XCTAssertTrue(element("Spire aureateChoir Title").waitForExistence(timeout: 10))
+        } else {
+            recordExploredFloor()
+        }
+    }
+
+    func recordGear() {
+        let career = "press-gear-\(UUID().uuidString)"
+        for item in ["twin_casting", "frozen_pocketwatch"] {
+            app.launchArguments = ["-store-name", career, "-disable-cloud-sync", "-seed-test-progress",
+                                   "-disable-audio", "-AppleLanguages", "(en)", "-launch-screen", "item:\(item)"]
+            app.launch()
+            let detail = element("Loadout Item Detail \(item)")
+            XCTAssertTrue(detail.waitForExistence(timeout: 15))
+            XCUIDevice.shared.orientation = .portrait
+            XCTAssertGreaterThan(app.frame.height, app.frame.width, "Item detail must be in portrait")
+            keep(item, settle: 3.0) {
+                Thread.sleep(forTimeInterval: 1.4)
+                drag(fromX: 0.51, fromY: 0.85, toX: 0.51, toY: 0.59)
+            }
+        }
+    }
+
+    func recordExploredFloor() {
+        app.launchArguments = ["-store-name", "press-labyrinth-\(UUID().uuidString)", "-reset-state",
+                               "-disable-cloud-sync", "-seed-test-progress", "-disable-audio", "-selectedTab", "play",
+                               "-performance-strong-party", "-battle-tick-interval", "0.02", "-AppleLanguages", "(en)"]
+        app.launch()
+        tap("Explore Mode Card")
+        tap("Labyrinth Mode Card", scroll: true)
+        if element("Labyrinth Enter").exists {
+            tap("Labyrinth Enter")
+        }
+        XCTAssertTrue(element("Labyrinth Map").waitForExistence(timeout: 10))
+        tap("Labyrinth Floor 1 Entry Node")
+        let enter = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "Labyrinth Inspector Action ")).firstMatch
+        ready(enter)
+        enter.tap()
+        tap("Auto Battle Toggle")
+        XCTAssertTrue(element("Victory").waitForExistence(timeout: 90))
+        tap("Continue Button", scroll: true)
+        XCTAssertTrue(element("Labyrinth Map").waitForExistence(timeout: 12))
+        let nextRoom = app.descendants(matching: .any).matching(NSPredicate(
+            format: "(identifier BEGINSWITH %@ OR identifier == %@) AND NOT label CONTAINS[c] %@ AND NOT label CONTAINS[c] %@",
+            "Labyrinth Node labyrinth-", "Labyrinth Floor 1 Locked Node", "cleared", "locked",
+        )).allElementsBoundByIndex.first { $0.isHittable }
+        guard let nextRoom else {
+            XCTFail("No visible reachable room after the first victory")
+            return
+        }
+        keep("labyrinth-node", settle: 3) {
+            Thread.sleep(forTimeInterval: 2)
+            nextRoom.tap()
+            XCTAssertTrue(element("Labyrinth Node Inspector").waitForExistence(timeout: 10))
+        }
     }
 }
