@@ -63,3 +63,35 @@ The seven November 17 iPhone 14 Pro exports are in
 Each runs 14–17 seconds in a single shot. The vocals start about 0.65 seconds
 in, with a 0.19-second lead on The Blight Treant. The retained take, edit cue
 maps and `verification.json` cover the source, 60 fps motion and soundtrack match.
+
+## Channel exports
+
+The November 17 `channel-edits/` folder next to the boss masters contains four review exports.
+
+| Placement | Export and use |
+| --- | --- |
+| App Store and Apple Ads search results | The Forge Golem, 17 seconds, 886 × 1920 at 30 fps. Use the poster frame at 0.30 seconds and finish on combat. Use this preview on the listing and the planned combat custom product page. |
+| Organic social and off-store ads | Forge Golem and Blight Treant, 1080 × 1920 at 60 fps. Each ends with the game title and Apple’s download badge for 1.8 seconds. Use the launch cuts once the U.S. listing is live. Compare store visits from equivalent organic posts before considering spend. |
+| Press and creators | A 54.6-second portrait feature reel with English narration and optional captions. Kokoro generated the narration locally using its stock British English voice, George. The narrator hands the last 9.5 seconds of combat to the Blight Treant’s singer. |
+
+### Narration script
+
+| Start | Picture | Spoken line |
+| --- | --- | --- |
+| 0.3s | Ranger selection | We need a ranger. |
+| 3.2s | Wolf selection | A wolf. |
+| 4.3s | Party to ability selection | And something that sets trees on fire. |
+| 6.9s | Fire Arrow | Fire Arrow. Equip an ability and it goes into your deck. |
+| 11.6s | Sapphire Amulet | An amulet for the road. |
+| 14.7s | Homestead farming | Back at the Homestead, build upgrades and gather supplies. |
+| 18.8s | Campaign and Forest | The Campaign takes us into the Forest. |
+| 22.2s | Spire floors | Feeling ambitious? Climb a Spire, one floor at a time. |
+| 27.0s | Labyrinth route | Pick your way through the Labyrinth. |
+| 31.3s | Contract offers | Take a Contract for a quick fight. |
+| 35.6s | Voyage route | Or chart a Voyage. |
+| 38.0s | Return to the party | In battle, the pair shares one hand. |
+| 40.9s | Blight Treant reveal | And the Blight Treant? It sings. |
+
+The opening names a problem the final boss can answer. Supergiant’s account of building *Bastion* around a recorded narration track informed the timing. Valve’s *Panels* trailer lets the demonstration deliver the joke, and Sloclap’s *Sifu* overview pairs each mechanic with its visible result. For Trinket, that means showing the amulet as it is named, letting mode navigation unfold, and leaving the boss enough space to sing. [Bastion production notes](https://www.supergiantgames.com/blog/presenting-the-bastion-launch-trailer/) · [Portal 2 — Panels](https://www.youtube.com/watch?v=0qcED35LL8I) · [Sifu combat overview](https://www.youtube.com/watch?v=tHaODlf6FIc)
+
+The U.S. storefront lookup returned zero results on November 17. The social cuts are launch assets awaiting availability. App Store placement and the Apple Ads pilot remain tracked in the launch plan. [Apple preview specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications) · [Apple badge guidelines](https://developer.apple.com/app-store/marketing/guidelines/)
