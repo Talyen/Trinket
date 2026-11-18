@@ -96,12 +96,13 @@ def continuous_boss_shots(handles):
     return {"shots": shots}
 
 
-def run_tour(udid, app, output, rehearsal, team, boss_showcase, boss_lyrics=False, spires=(), press_pickups=False):
+def run_tour(udid, app, output, rehearsal, team, boss_showcase, boss_lyrics=False, spires=(), press_pickups=None, contract=False):
     output.mkdir(parents=True, exist_ok=False)
     take = str(uuid.uuid4()).upper()
     write_json_atomic(output / "take.json", {
         "device": udid, "installedApp": app, "take": take, "rehearsal": rehearsal,
-        "bossShowcase": boss_showcase, "bossLyrics": boss_lyrics, "spires": spires, "pressPickups": press_pickups,
+        "bossShowcase": boss_showcase, "bossLyrics": boss_lyrics, "spires": spires,
+        "pressPickups": bool(press_pickups), "pressParty": press_pickups, "contract": contract,
     })
     destination = ["-destination", "platform=iOS,id=" + udid]
     with tempfile.TemporaryDirectory(prefix="trinket-tour-") as build:
@@ -121,8 +122,10 @@ def run_tour(udid, app, output, rehearsal, team, boss_showcase, boss_lyrics=Fals
         test = config["PhysicalTour"]
         test["PreferredScreenCaptureFormat"] = "screenshots"
         test["UserAttachmentLifetime"] = "keepAlways"
+        if contract:
+            test["EnvironmentVariables"]["TRINKET_CONTRACT_CAPTURE"] = "1"
         if press_pickups:
-            test["EnvironmentVariables"]["TRINKET_PRESS_PICKUPS"] = "1"
+            test["EnvironmentVariables"]["TRINKET_PRESS_PICKUPS"] = press_pickups
         if boss_showcase or boss_lyrics:
             test["EnvironmentVariables"]["TRINKET_SHOWCASE"] = "1"
         if boss_lyrics:
@@ -169,7 +172,7 @@ def run_tour(udid, app, output, rehearsal, team, boss_showcase, boss_lyrics=Fals
         clock = json.loads((output / "clock.json").read_text())
         handles = keep_times(shots, clock)
         write_json_atomic(output / "handles.json", handles)
-        if boss_lyrics or press_pickups:
+        if boss_lyrics or press_pickups or contract:
             timeline = handles
         elif boss_showcase:
             timeline = continuous_boss_shots(handles)
@@ -186,7 +189,9 @@ def main():
     tours = parser.add_mutually_exclusive_group()
     tours.add_argument("--boss-showcase", action="store_true", help="Record the seven Spire bosses with the debug capture build.")
     tours.add_argument("--boss-lyrics", action="store_true", help="Capture each boss theme and its live lyrics in Auto Battle.")
-    tours.add_argument("--press-pickups", action="store_true", help="Record the Wizard, Frost Whelp, Ray of Frost and a Labyrinth node selection.")
+    tours.add_argument("--contract", action="store_true", help="Record a Contract from the board through its victory rewards.")
+    tours.add_argument("--press-pickups", nargs="?", const="wizard", choices=["wizard", "knight"],
+                       help="Record party selection and an ability. The Wizard route also plays a Labyrinth room.")
     parser.add_argument("--spire", action="append", default=[], help="Limit a boss capture to a named Spire ID. Repeat to include more.")
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--team", help="Defaults to the development team in the game project.")
@@ -201,7 +206,7 @@ def main():
         parser.error("--output-dir is required for a take.")
     team = args.team or re.search(r'^    DEVELOPMENT_TEAM: "(\w+)"', (ROOT / "project.yml").read_text(), re.M)[1]
     run_tour(udid, app, args.output_dir.resolve(), args.rehearse, team, args.boss_showcase,
-             args.boss_lyrics, args.spire, press_pickups=args.press_pickups)
+             args.boss_lyrics, args.spire, press_pickups=args.press_pickups, contract=args.contract)
 
 
 if __name__ == "__main__":

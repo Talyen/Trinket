@@ -203,8 +203,8 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | --- | --- | --- |
 | Release state and source assets checked | Complete | November 15, 2026 |
 | Stills, copy, eight pitches, nomination and reporting worksheet | Drafts prepared | Nov 17, retained Release evidence folder `LaunchMarketing-Nov17` |
-| Trailer | Ready for owner review | Nov 17, seven boss clips, a Forge Golem store preview, two social cuts and a narrated press kit in `Trinket-Press-Kit-Narrated.zip`. [Trailer tracker](LaunchTrailer.md) |
-| Reporting access | Partial | Nov 17, build 13 in review. Analytics request list returned HTTP 500 twice. |
+| Trailer | Ready for owner review | Nov 17, four narrated feature stories with launch end cards, seven boss clips, a Forge Golem store preview, two social cuts and a press kit in `Trinket-Press-Kit-Narrated.zip`. [Trailer tracker](LaunchTrailer.md) |
+| Reporting access | Partial | Nov 17, the owner reports Apple approved a build. The game is unreleased and the release date is unset. Earlier analytics request list calls returned HTTP 500 twice. |
 | Launch window, public press kit, nomination and outreach approval | Pending | Owner review after final trailer |
 | Nomination and outreach dispatched | Pending | |
 | Verified public U.S. launch | Pending | |

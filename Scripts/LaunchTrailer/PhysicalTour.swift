@@ -88,10 +88,12 @@ final class PhysicalTour: XCTestCase {
         }
     }
 
-    private func pressFeatureShots() {
+    private func pressFeatureShots(knight: Bool) {
         // Each neighboring card is partially visible to the right. Tapping that
         // sliver lets the game's own carousel center the next choice.
-        for (role, choices) in [("Hero", ["knight", "rogue", "wizard"]), ("Companion", ["bear", "frost_whelp"])] {
+        let heroes = knight ? ["knight"] : ["knight", "rogue", "wizard"]
+        let companions = knight ? ["bear", "frost_whelp", "library_owl"] : ["bear", "frost_whelp"]
+        for (role, choices) in [("Hero", heroes), ("Companion", companions)] {
             for choice in choices {
                 let option = element("Starter \(role) Option \(choice)")
                 XCTAssertTrue(option.waitForExistence(timeout: 10))
@@ -109,14 +111,28 @@ final class PhysicalTour: XCTestCase {
             confirmStarter(role)
         }
         tab("Collection")
-        tap("Wizard collection card", scroll: true)
+        let hero = knight ? "Knight" : "Wizard"
+        let ability = knight ? "shield-bash" : "ray-of-frost"
+        tap("\(hero) collection card", scroll: true)
         tap("Basic ability slot", scroll: true)
-        let ray = element("Loadout Ability Candidate ray-of-frost")
-        ready(ray, scroll: true)
-        keep("ray-of-frost", settle: 3.8) { ray.tap() }
-        XCTAssertTrue(element("Loadout Ability Detail ray-of-frost").exists)
+        let candidate = element("Loadout Ability Candidate \(ability)")
+        ready(candidate, scroll: true)
+        keep(ability, settle: 3.8) { candidate.tap() }
+        XCTAssertTrue(element("Loadout Ability Detail \(ability)").exists)
 
-        recordExploredFloor()
+        if knight {
+            app.launchArguments += ["-selectedTab", "play"]
+            app.launch()
+            tab("Play")
+            tap("Explore Mode Card")
+            tap("Spires Mode Card", scroll: true)
+            let choir = element("Spire aureateChoir Row")
+            ready(choir, scroll: true)
+            keep("aureate-choir", settle: 2.4) { choir.tap() }
+            XCTAssertTrue(element("Spire aureateChoir Title").waitForExistence(timeout: 10))
+        } else {
+            recordExploredFloor()
+        }
     }
 
     private func recordExploredFloor() {
@@ -150,6 +166,19 @@ final class PhysicalTour: XCTestCase {
             Thread.sleep(forTimeInterval: 2)
             nextRoom.tap()
             XCTAssertTrue(element("Labyrinth Node Inspector").waitForExistence(timeout: 10))
+        }
+    }
+
+    private func recordContract() {
+        tap("Explore Mode Card")
+        keep("board", settle: 1.2) { tap("Contracts Mode Card", scroll: true) }
+        let fight = element("Contract Fight easy")
+        ready(fight, scroll: true)
+        keep("contract", settle: 3) {
+            Thread.sleep(forTimeInterval: 2)
+            fight.tap()
+            tap("Auto Battle Toggle")
+            XCTAssertTrue(element("Victory").waitForExistence(timeout: 90))
         }
     }
 
@@ -296,7 +325,13 @@ final class PhysicalTour: XCTestCase {
         let showcase = ProcessInfo.processInfo.environment["TRINKET_SHOWCASE"] == "1"
         let lyrics = ProcessInfo.processInfo.environment["TRINKET_LYRIC_CAPTURE"] == "1"
         addTeardownBlock { self.app.terminate() }
-        if !showcase {
+        let contract = ProcessInfo.processInfo.environment["TRINKET_CONTRACT_CAPTURE"] == "1"
+        if contract {
+            app.launchArguments = ["-store-name", "press-contract-\(UUID().uuidString)", "-reset-state",
+                                   "-disable-cloud-sync", "-seed-test-progress", "-disable-audio", "-selectedTab", "play",
+                                   "-performance-strong-party", "-battle-tick-interval", "0.02", "-AppleLanguages", "(en)"]
+            app.launch()
+        } else if !showcase {
             app.launchArguments = ["-store-name", "launch-trailer-\(UUID().uuidString)",
                                    "-disable-audio", "-AppleLanguages", "(en)"]
             app.launch()
@@ -311,10 +346,12 @@ final class PhysicalTour: XCTestCase {
         print("TRINKET_CAPTURE_READY \(ProcessInfo.processInfo.systemUptime)")
         fflush(stdout)
         Thread.sleep(forTimeInterval: 4)
-        if showcase {
+        if contract {
+            recordContract()
+        } else if showcase {
             recordBossShowcase(lyrics: lyrics)
-        } else if ProcessInfo.processInfo.environment["TRINKET_PRESS_PICKUPS"] == "1" {
-            pressFeatureShots()
+        } else if let party = ProcessInfo.processInfo.environment["TRINKET_PRESS_PICKUPS"] {
+            pressFeatureShots(knight: party == "knight")
         } else {
             starters()
             buildShots()

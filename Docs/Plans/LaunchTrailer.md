@@ -74,7 +74,7 @@ The November 17 `channel-edits/` folder next to the boss masters contains four r
 | Organic social and off-store ads | Forge Golem and Blight Treant, 1080 × 1920 at 60 fps. Each ends with the game title and Apple’s download badge for 1.8 seconds. Use the launch cuts once the U.S. listing is live. Compare store visits from equivalent organic posts before considering spend. |
 | Press and creators | 59.0-second portrait reel. A Wizard takes a Frost Whelp up Cinder Spire. The final 17 seconds of gameplay follow their uninterrupted Forge Golem fight with its own song and visible lyrics. The release includes a caption track and a separate English SRT. |
 
-### Press reel narration and edit
+### Original Wizard narration and edit
 
 | Start | Picture | Spoken line |
 | --- | --- | --- |
@@ -93,8 +93,31 @@ At 40.3s, let the Forge Golem's singer take over. Keep the native Auto Battle ca
 
 **Recording.** Run `python3 Scripts/capture-launch-trailer.py --device <paired-iPhone-UDID> --press-pickups --output-dir <new-directory>` under the physical-device lane. The route taps the next card to the right in each carousel, opens the Wizard's Ray of Frost, then uses a disposable Labyrinth career to win the entrance fight. The retained shot starts on that partly explored floor and holds through the next reachable room's artwork opening. Select the gesture windows using the device-clock markers in `handles.json`.
 
-**Review files.** Under `channel-edits/revision-two/`, `picture.json` records source windows, `render.py` assembles the reel, and `feature-reel-edit.json` records final frame and caption timing. The current mix uses Kokoro’s George. The `voice-audition/` folder contains George, Heart, Fenrir, and Emma reading the same opening three lines at matched loudness. Voice choice is open.
+**Review files.** Under `channel-edits/revision-two/`, `picture.json` records source windows, `render.py` assembles the reel, and `feature-reel-edit.json` records final frame and caption timing. The first review mix used Kokoro’s George. The `voice-audition/` folder contains George, Heart, Fenrir, and Emma reading the same opening three lines at matched loudness. The feature story editions below use new narration.
 
 The narration introduces the player’s plan, then lets the player’s choices and the boss performance carry it through. The production references were Supergiant’s account of timing the *Bastion* trailer to its narrator, Valve’s *Panels* demonstration, and Sloclap’s *Sifu* combat overview. [Bastion production notes](https://www.supergiantgames.com/blog/presenting-the-bastion-launch-trailer/) · [Portal 2 — Panels](https://www.youtube.com/watch?v=0qcED35LL8I) · [Sifu combat overview](https://www.youtube.com/watch?v=tHaODlf6FIc)
 
 The U.S. storefront lookup returned zero results on November 17. The social cuts are launch assets awaiting availability. App Store placement and the Apple Ads pilot remain tracked in the launch plan. [Apple preview specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications) · [Apple badge guidelines](https://developer.apple.com/app-store/marketing/guidelines/)
+
+## Feature stories for launch
+
+The owner reports Apple approved a build. Release timing is undecided. These off-store films carry launch copy and can run when the game is downloadable. The end card uses Trinket’s original Ranger and Wolf artwork, the game title, **Free to start**, and Apple’s official black **Download on the App Store** badge. Hold the card for three seconds. Use “Start for free. Unlock the full game with one purchase.” in the post or ad description. The free opening and the permanent unlock are in the same download. [Apple marketing guidelines](https://developer.apple.com/app-store/marketing/guidelines/) · [Product model](../Product/Monetization.md)
+
+| Reel | Player story | Voice |
+| --- | --- | --- |
+| **Cinder Spire** | Wizard picks a Frost Whelp, checks Ray of Frost and a Sapphire Amulet, visits the farm, then weighs five routes before climbing Cinder Spire. Leave the Forge Golem’s lyric sequence to the singer. | Qwen Aiden |
+| **Choir Practice** | Knight needs a partner who can get through a Spire. Scroll right to Library Owl, inspect how Shield Bash turns Block into damage, then follow the sound to the Seraph. Let the boss answer “Do you hear singing?” | Qwen Ryan |
+| **One More Room** | “One room. Then I’m going home.” An Inquisitor guards the entrance. The win earns an Emerald Amulet and opens a Mystery room. Hold on the newly selected room as the narrator reconsiders going home. | Qwen Aiden |
+| **Who’s Paying?** | Leave the merchant’s amulet on the shelf. A Plague Doctor contract offers an Astral item. Ranger and Wolf win, keep their gold and collect an Astral Longsword. | Qwen Serena |
+
+The current editions use physical iPhone footage, a continuous shot for each fight, six-frame dissolves between locations, and optional English captions. The two boss films feature the boss’s own recording and in-game lyrics. The other two show the actual victory and reward in the same take. Use these reels for launch ads, organic posts and the press kit. The separate App Store preview finishes on gameplay.
+
+### Reproduce and review
+
+- Keep the named masters and SRTs in `channel-edits/feature-stories/` under the November 17 release evidence. `studio/render_stories.py` and each film’s JSON record the exact input windows, narration cues and duration. Use `--press-pickups knight` to record the Knight, Library Owl, Shield Bash and the entrance to Aureate Choir on the paired iPhone. Use `--contract` to capture the board, play the easy offer and hold on the victory loot. The board can roll different enemies and rewards on a new take, so match the script to the recorded offer.
+- Generate a full thought at a time and direct the delivery for the shot. Save the clean reads so changing the music or end card costs no additional inference. The four films use Qwen3-TTS 1.7B CustomVoice on this Mac via MLX. The upstream model is Apache-2.0 and supports written performance direction with preset voices. [Model card](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice)
+- Listen to `Trinket-Open-Voice-Audition.m4a` for the same line from Aiden, Ryan, Serena and Chatterbox Turbo. Chatterbox offers a second local English engine with expressive cues. Kyutai Pocket TTS is a CPU-friendly third candidate. Its model card lists CC BY 4.0 and access conditions. The audition contains the first two engines. [Chatterbox](https://github.com/resemble-ai/chatterbox) · [Pocket TTS](https://huggingface.co/kyutai/pocket-tts)
+
+- [x] Record both new physical routes and export the four launch editions.
+- [ ] Select the lead narrator and first placement after listening in context.
+- [ ] Release the launch assets when the App Store download is live.
