@@ -7,8 +7,11 @@ import shutil
 import subprocess
 import tempfile
 import zipfile
+from datetime import date
 from html import escape
 from pathlib import Path
+
+US_RELEASE = date(2026, 12, 21)
 
 PITCH = ("Pair a hero with a companion and build the hand they take into battle "
          "in this solo-developed fantasy card RPG for iPhone and iPad.")
@@ -22,7 +25,7 @@ DESCRIPTION = [
 ]
 FACTS = [
     ("Developer", "Ryan McIntire, solo indie developer"),
-    ("Release", "Upcoming · Release date unannounced"),
+    ("Release", f"{US_RELEASE:%B} {US_RELEASE.day}, {US_RELEASE.year} · United States"),
     ("Platform", "iPhone and iPad · iOS / iPadOS 18 or later"),
     ("Genre", "Single-player fantasy RPG with turn-based card combat"),
     ("Price", "First three Campaign chapters free. One permanent Full Game purchase, US$4.99."),
@@ -83,7 +86,7 @@ def zip_files(target, base, files):
 
 def build(evidence, output, browser):
     channel = evidence / "channel-edits"
-    master = channel / "countess-press-card"
+    master = channel / f"countess-press-{US_RELEASE.isoformat()}"
     kit = output / "Trinket-Press-Kit"
     kit.mkdir(parents=True, exist_ok=False)
     for folder in ("video", "screenshots", "art", "previews"):

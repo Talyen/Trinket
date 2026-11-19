@@ -101,6 +101,8 @@ At 57.8s the Wizard and Frost Whelp meet the Blood Countess. Enter just before t
 
 **Recording.** Use `Scripts/capture-launch-trailer.py --device <paired-iPhone-UDID> --press-pickups <route> --output-dir <new-directory>` under the physical-device lane. The `countess` route holds the Pocketwatch still, opens the three farming buildings, visits Sanguine Court, then records the boss with the original party. The `roster` route recruits Bear, inspects a Voyage, then opens the Bear and Knight ability details. Match Voyage copy to the destination actually recorded. For Contracts, the original motion take contains one uninterrupted scroll from Goblin’s bonus Hide to Mud Elemental’s amulet.
 
+The prelaunch press reel uses the same musical ending and centers “Coming to iOS” above “December 21, 2026”, followed by the free start and one-purchase copy. Its master is in `channel-edits/countess-press-2026-12-21/`. Use the undated download-badge cut once the listing is live.
+
 **Review files.** In the November 17 launch evidence folder, open `channel-edits/countess-launch-card/Trinket-Blood-Countess-Feature-Reel.mp4`. The same folder contains the full-size end card, layout, picture windows and English SRT. The November 19 extended iPhone take, music alignment and narration are in `channel-edits/countess-ending/`. George retains the 1.25× delivery. On the contract board, end on the Mud Elemental’s amulet reward before the native Back transition begins.
 
 The production references were Supergiant’s account of timing the *Bastion* trailer to its narrator, Valve’s *Panels* demonstration, and Sloclap’s *Sifu* combat overview. [Bastion production notes](https://www.supergiantgames.com/blog/presenting-the-bastion-launch-trailer/) · [Portal 2 — Panels](https://www.youtube.com/watch?v=0qcED35LL8I) · [Sifu combat overview](https://www.youtube.com/watch?v=tHaODlf6FIc)
@@ -109,7 +111,7 @@ The U.S. storefront lookup returned zero results on November 17. The social cuts
 
 ## Feature stories for launch
 
-The owner reports Apple approved a build. Release timing is undecided. These off-store drafts carry launch copy intended for use after the game is downloadable. The end card uses Trinket’s original Ranger and Wolf artwork, the game title, **Free to start**, and Apple’s official black **Download on the App Store** badge. Hold the card for three seconds. Use “Start for free. Unlock the full game with one purchase.” in the post or ad description. The free opening and the permanent unlock are in the same download. [Apple marketing guidelines](https://developer.apple.com/app-store/marketing/guidelines/) · [Product model](../Product/Monetization.md)
+The owner reports Apple approved a build. The U.S. launch is planned for December 21, 2026. These off-store drafts carry launch copy intended for use after the game is downloadable. The end card uses Trinket’s original Ranger and Wolf artwork, the game title, **Free to start**, and Apple’s official black **Download on the App Store** badge. Hold the card for three seconds. Use “Start for free. Unlock the full game with one purchase.” in the post or ad description. The free opening and the permanent unlock are in the same download. [Apple marketing guidelines](https://developer.apple.com/app-store/marketing/guidelines/) · [Product model](../Product/Monetization.md)
 
 | Reel | Player story | Voice |
 | --- | --- | --- |

@@ -2,8 +2,8 @@
 type: execution-plan
 status: active
 created: 2026-11-15
-updated: 2026-11-17
-expires: 2026-11-29
+updated: 2026-11-19
+expires: 2026-11-30
 ---
 
 # Trinket launch marketing
@@ -21,6 +21,18 @@ with the relevant decision. The [standing workflow](../../AGENTS.md#route-and-re
 [shipping checklist](../Platform/Release.md#shipping), and
 [verification policy](../Platform/Verification.md) govern repository and
 release work.
+
+## U.S. launch calendar
+
+**Monday, December 21, 2026** is the owner-approved U.S. launch date. The owner is traveling the preceding week. Prepare review access, pitches, storefront checks and release-day copy before that trip. Agents can monitor the listing and report issues, while the owner retains the manual release decision.
+
+| Date | Work |
+| --- | --- |
+| November 25 target, November 30 latest for three weeks of lead time | Submit the App Launch featuring nomination after outreach approval. Apple recommends at least three weeks. |
+| December 7–11 | Give interested press time to play. Prepare or send the approved advance materials with the dated reel. Reserve the “available now” pitches for the verified public listing. |
+| December 21–23 | Confirm owner availability for urgent purchase or crash issues. Verify the U.S. product page and Full Game purchase, then use the evergreen launch trailer and send approved launch-day outreach. |
+
+A Christmas-week release gives press fewer ordinary workdays after launch, so prioritize advance review access. Give the public a date rather than an exact hour. Apple says a manually released version may take up to 24 hours to appear. [Featuring lead time](https://developer.apple.com/help/app-store-connect/manage-featuring-nominations/nominate-your-app-for-featuring/) · [Release timing](https://developer.apple.com/help/app-store-connect/manage-your-apps-availability/select-an-app-store-version-release-option)
 
 ## Starting point
 
@@ -66,7 +78,7 @@ expectations from Trinket's own results. [Pawnbarian press kit](https://j4nw.com
 
 Team Alto presents facts, screenshots, video, logo and icon as distinct downloads. Pawnbarian specifies pricing per platform and explains its central mechanic in ordinary language. Trinket follows those examples with individual downloads and a full offline bundle. For journalists, place the live store link beside the trailer when the listing opens. Reserve a scannable end card for situations where the audience is watching a separate screen, such as an event booth. [Alto’s Odyssey press kit](https://altosodyssey.com/press/) · [Pawnbarian press kit](https://j4nw.com/pawnbarian/presskit) · [Apple promotion tools](https://developer.apple.com/app-store/promote/)
 
-To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-Nov17> <fresh-output-directory> --browser <Chromium-executable>`. It takes the “Coming to iOS” reel from `channel-edits/countess-press-card/`, the selected stills archive and the two iPhone takes. Before public distribution, confirm the timing, footage and music permissions, and press contact. Add a live store URL only after verifying it opens the product page.
+To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-Nov17> <fresh-output-directory> --browser <Chromium-executable>`. It takes the “Coming to iOS” reel from `channel-edits/countess-press-2026-12-21/`, the selected stills archive and the two iPhone takes. Before public distribution, confirm the timing, footage and music permissions, and press contact. Add a live store URL only after verifying it opens the product page.
 
 ## Before launch
 
@@ -74,12 +86,12 @@ To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-
   game facts and a public contact. The November 17 release evidence contains the
   stills ZIP, eight individually drafted pitches, the App Launch nomination draft
   and the D7/D14/D30 reporting worksheet.
-- [x] **Agents · prelaunch press kit.** Open `Trinket-Press-Nov19/index.html` in the retained Release deliverables or distribute the sibling ZIP after approval. It includes seven captioned stills, artwork and transparent wordmarks, a plain-text fact sheet, the Countess reel with a prelaunch ending, and silent creator footage. The launch cut with the App Store badge is separate. For interviews or review access, the kit points to the developer’s public contact.
+- [x] **Agents · prelaunch press kit.** Open `Trinket-Press-Dec21/index.html` in the retained Release deliverables or distribute the sibling ZIP after approval. It includes seven captioned stills, artwork and transparent wordmarks, a plain-text fact sheet, the Countess reel with a prelaunch ending, and silent creator footage. The launch cut with the App Store badge is separate. For interviews or review access, the kit points to the developer’s public contact.
 - [x] **Agents · trailer.** Prepare one short fight clip for each of the seven bosses. Open on the first vocal passage with that boss’s theme and live lyrics. [Matchups, capture and edit plan](LaunchTrailer.md)
 - [ ] **Agents · Apple editorial.** Check for an existing nomination, then
   prepare the App Launch nomination for iPhone and iPad in the U.S. Include
   the solo developer story, Hero and Companion combat, the free start,
-  the proposed launch window, and the press kit. Aim to submit at least
+  the December 21 launch date, and the press kit. Aim to submit at least
   three weeks before the target window. If the owner chooses an earlier
   launch, pitch the first substantial update as the next editorial opportunity.
   [Apple featuring nominations](https://developer.apple.com/help/app-store-connect/manage-featuring-nominations/nominate-your-app-for-featuring/)
@@ -101,7 +113,7 @@ To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-
   authorized one-time offer code once Apple allows generation. Record
   redemptions separately from paid unlocks. [External TestFlight](https://developer.apple.com/help/app-store-connect/test-a-beta-version/invite-external-testers) ·
   [In-App Purchase offer codes](https://developer.apple.com/help/app-store-connect/manage-in-app-purchases/create-offer-codes-for-in-app-purchases)
-- [ ] **Owner · one review.** Approve the launch window, clip, press kit,
+- [ ] **Owner · one review.** Review the clip, press kit,
   nomination, and recipient batch. Agents can send the approved outreach
   once the owner has authorized sending. Save dated artifact links and
   dispatch status in the tracker below.
@@ -211,9 +223,10 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | Release state and source assets checked | Complete | November 15, 2026 |
 | Stills, copy, eight pitches, nomination and reporting worksheet | Drafts prepared | Nov 17, retained Release evidence folder `LaunchMarketing-Nov17` |
 | Trailer | Gameplay feature reel ready for review | Nov 19, Wizard and Frost Whelp face the Blood Countess. The cut includes three Homestead buildings, Bear recruitment, a skill and an ultimate, two Contract rewards, and a Desert Voyage. The revised 93-second master carries the Countess’s song across the end card. Prelaunch kit assembled for owner review. [Script and review master](LaunchTrailer.md#gameplay-feature-reel) |
-| Prelaunch press kit | Built locally | Nov 19, retained Release folder `Trinket-Press-Nov19`. A full ZIP and an image-only ZIP accompany the press page. Public hosting and outreach await approval. |
-| Reporting access | Partial | Nov 17, the owner reports Apple approved a build. The game is unreleased and the release date is unset. Earlier analytics request list calls returned HTTP 500 twice. |
-| Launch window, public press kit, nomination and outreach approval | Pending | Owner review after final trailer |
+| Prelaunch press kit | Built locally | Nov 19, retained Release folder `Trinket-Press-Dec21`. A full ZIP and an image-only ZIP accompany the press page. Public hosting and outreach await approval. |
+| Reporting access | Partial | Nov 17, the owner reports Apple approved a build. The game is unreleased and the release date was then unset. Earlier analytics request list calls returned HTTP 500 twice. |
+| U.S. launch date | Confirmed by owner | December 21, 2026. The prelaunch film and press fact sheet carry the date. |
+| Public press kit, nomination and outreach approval | Pending | Owner review before external distribution |
 | Nomination and outreach dispatched | Pending | |
 | Verified public U.S. launch | Pending | |
 | Day 7, 14, and 30 sales and conversion snapshots | Pending | |
