@@ -12,6 +12,7 @@ from pathlib import Path
 
 from PIL import Image
 
+from package_site import zip_files
 from brand import INK, LOGO, MASTER, US_RELEASE, centered_art, end_card, feature
 
 PITCH = ("Pair a hero with a companion and build the hand they take into battle "
@@ -63,12 +64,6 @@ def artwork(kit):
     key_art = Image.new("RGB", (1920, 1080), INK)
     centered_art(key_art, MASTER, 1510, 540)
     key_art.save(art / "trinket-key-art.png")
-
-
-def zip_files(target, base, files):
-    with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_STORED) as archive:
-        for path in sorted(files):
-            archive.write(path, path.relative_to(base))
 
 
 def build(evidence, output, trailers=None):

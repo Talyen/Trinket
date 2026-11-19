@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Trinket! · Press kit</title>
+    <meta
+      name="description"
+      content="Press information, iPhone gameplay, screenshots and artwork for Ryan McIntire’s fantasy card RPG."
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --paper: #f8edda;
+        --ink: #16171a;
+        --muted: #c9c0b4;
+        --line: #454039;
+        --gold: #eec78b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--ink);
+        color: var(--paper);
+        font:
+          16px/1.55 "Avenir Next",
+          system-ui,
+          sans-serif;
+      }
+      a {
+        color: var(--gold);
+        text-underline-offset: 0.2em;
+      }
+      a:focus-visible,
+      video:focus-visible {
+        outline: 3px solid white;
+        outline-offset: 3px;
+      }
+      main,
+      header,
+      footer {
+        max-width: 1160px;
+        margin: auto;
+        padding: 0 clamp(18px, 4vw, 54px);
+      }
+      header,
+      nav,
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+      header {
+        justify-content: space-between;
+        min-height: 66px;
+      }
+      header strong {
+        font:
+          24px Baskerville,
+          Georgia,
+          serif;
+      }
+      nav {
+        gap: 18px;
+      }
+      nav a {
+        font-size: 14px;
+        color: var(--paper);
+        text-decoration: none;
+      }
+      .hero {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: #211e1e;
+        display: flex;
+        align-items: center;
+        min-height: 440px;
+      }
+      .hero h1 {
+        width: 51%;
+        padding: 16px;
+        margin: 0;
+        line-height: 0;
+      }
+      .hero img {
+        width: 100%;
+        height: auto;
+      }
+      .hero div {
+        width: 49%;
+        padding: 36px clamp(22px, 4vw, 48px);
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: Baskerville, Georgia, serif;
+        font-weight: 400;
+        line-height: 1.08;
+      }
+      h1 {
+        font-size: clamp(68px, 8vw, 104px);
+        margin: 0 0 14px;
+      }
+      h2 {
+        font-size: clamp(36px, 5vw, 54px);
+        margin: 0 0 24px;
+      }
+      h3 {
+        font-size: 28px;
+        margin: 0 0 9px;
+      }
+      .hero p {
+        font-size: 20px;
+        color: #e2d8ca;
+        line-height: 1.42;
+        margin: 0 0 22px;
+      }
+      .button {
+        display: inline-block;
+        padding: 10px 17px;
+        color: #241c12;
+        background: var(--gold);
+        border-radius: 3px;
+        text-decoration: none;
+        font-weight: 650;
+      }
+      section {
+        padding: 52px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .facts,
+      .feature {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+        gap: clamp(28px, 5vw, 75px);
+      }
+      p {
+        margin: 0 0 14px;
+      }
+      p:last-child {
+        margin-bottom: 0;
+      }
+      dl {
+        margin: 0;
+      }
+      dl > div {
+        display: grid;
+        grid-template-columns: 95px 1fr;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      dt,
+      .meta,
+      figcaption {
+        color: var(--muted);
+      }
+      dd {
+        margin: 0;
+      }
+      video {
+        width: 100%;
+        max-height: 510px;
+        background: #0b0c0d;
+        display: block;
+      }
+      .feature > div {
+        align-self: center;
+      }
+      .actions {
+        gap: 13px 20px;
+        margin: 18px 0;
+      }
+      .meta {
+        font-size: 14px;
+      }
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 26px 18px;
+      }
+      figure {
+        margin: 0;
+      }
+      figure img {
+        display: block;
+        width: 100%;
+        height: 250px;
+        object-fit: contain;
+        background: #111214;
+      }
+      figcaption {
+        font-size: 15px;
+        margin-top: 8px;
+      }
+      .assets {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+      }
+      .assets img {
+        width: 100%;
+        height: 155px;
+        object-fit: contain;
+        background: #242427;
+      }
+      .assets .light {
+        background: #efebe2;
+      }
+      footer {
+        padding-top: 32px;
+        padding-bottom: 56px;
+      }
+      .jump {
+        scroll-margin: 16px;
+      }
+      @media (max-width: 720px) {
+        header {
+          gap: 10px;
+          padding-block: 10px;
+        }
+        nav {
+          gap: 12px;
+        }
+        .hero {
+          flex-direction: column;
+          padding: 0;
+          align-items: stretch;
+        }
+        .hero h1 {
+          width: 100%;
+          max-width: 440px;
+          align-self: center;
+        }
+        .hero div {
+          width: 100%;
+          padding: 0 22px 26px;
+        }
+        .hero p {
+          font-size: 18px;
+        }
+        .facts,
+        .feature {
+          grid-template-columns: 1fr;
+        }
+        .gallery {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        figure img {
+          height: 230px;
+        }
+        section {
+          padding: 34px 0;
+        }
+        .assets {
+          gap: 15px;
+        }
+        .assets img {
+          height: 110px;
+        }
+      }
+      @media print {
+        header nav,
+        .button,
+        .feature,
+        video {
+          display: none;
+        }
+        body {
+          background: white;
+          color: black;
+        }
+        .hero {
+          min-height: 0;
+          background: white;
+        }
+        .hero h1 {
+          max-width: 220px;
+        }
+        .hero div {
+          width: 100%;
+        }
+        section {
+          break-inside: avoid;
+        }
+        a,
+        figcaption,
+        .meta,
+        .hero p,
+        dt {
+          color: #242424;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong>Trinket! &nbsp; / &nbsp; Press kit</strong>
+      <nav aria-label="Press kit">
+        <a href="#facts">Facts</a><a href="#footage">Footage</a><a href="#images">Images</a
+        ><a href="#contact">Contact</a>
+      </nav>
+    </header>
+    <main>
+      <div class="hero">
+        <h1><img src="previews/trinket-logo.png" alt="Trinket!" width="1440" height="960" /></h1>
+        <div>
+          <p>Pair a hero with a companion and build the hand they take into battle in this solo-developed fantasy card RPG for iPhone and iPad.</p>
+          <a class="button" href="#footage">Watch gameplay</a> <!-- full kit download -->
+        </div>
+      </div>
+      <section class="facts" id="facts">
+        <div>
+          <h2>About the game</h2>
+          <p>A Wizard and a Frost Whelp head into Sanguine Court. The Wizard brings Ray of Frost. The Blood Countess brings a song of her own. In Trinket!, the cards you take into a turn-based fight come from the hero and companion you pair up and the abilities you choose for them.</p><p>Recruit a Bear and its Sunder can cut an enemy’s Block in half before it hits. Between fights, tend the Herb Garden, compare the rewards on the Contracts board, or send a party on a Desert Voyage. The same roster can tackle the Campaign, climb boss Spires and explore the Labyrinth.</p><a href="Trinket-fact-sheet.txt" download
+            >Download the fact sheet (.txt)</a
+          >
+        </div>
+        <div>
+          <h2>At a glance</h2>
+          <dl><div><dt>Developer</dt><dd>Ryan McIntire, solo indie developer</dd></div><div><dt>Release</dt><dd>December 21, 2026 · United States</dd></div><div><dt>Platform</dt><dd>iPhone and iPad · iOS / iPadOS 18 or later</dd></div><div><dt>Genre</dt><dd>Single-player fantasy RPG with turn-based card combat</dd></div><div><dt>Price</dt><dd>First three Campaign chapters free. One permanent Full Game purchase, US$4.99.</dd></div><div><dt>Free play</dt><dd>Also includes unlimited Contracts, three Labyrinth floors, ten floors of every Spire and Voyages in the Forest, Dungeon and Desert.</dd></div><div><dt>Offline</dt><dd>Play offline without an account. Optional iCloud save sync.</dd></div></dl>
+        </div>
+      </section>
+      <section class="feature" id="footage">
+        <video controls playsinline muted preload="metadata" poster="previews/trailer.jpg" aria-label="The Blight Treant, silent iPhone gameplay">
+          <source src="video/Trinket-creator-footage.mp4" type="video/mp4" />
+        </video>
+        <div>
+          <h2>Gameplay footage</h2>
+          <h3>The Blight Treant</h3>
+          <p>Watch a hero and companion take on the Blight Treant in one continuous iPhone shot.</p>
+          <p class="meta">17 seconds · 60 fps · Silent footage for editorial use</p>
+          <a href="video/Trinket-creator-footage.mp4" download>Download gameplay footage</a>
+        </div>
+      </section>
+      <section id="images">
+        <h2>Gameplay screenshots</h2>
+        <p>
+          Open any image at full resolution, or
+          <a href="Trinket-images.zip" download>download the screenshots and artwork together</a>.
+        </p>
+        <div class="gallery"><figure><a href="screenshots/blood-countess.png"><img src="previews/blood-countess.jpg" alt="Wizard and Frost Whelp battle the singing Blood Countess" loading="lazy"></a><figcaption>Wizard and Frost Whelp battle the singing Blood Countess</figcaption></figure>
+<figure><a href="screenshots/knight-bear.png"><img src="previews/knight-bear.jpg" alt="Knight and Bear face the Mud Elemental" loading="lazy"></a><figcaption>Knight and Bear face the Mud Elemental</figcaption></figure>
+<figure><a href="screenshots/herb-garden.png"><img src="previews/herb-garden.jpg" alt="The Herb Garden at the Homestead" loading="lazy"></a><figcaption>The Herb Garden at the Homestead</figcaption></figure>
+<figure><a href="screenshots/explore.png"><img src="previews/explore.jpg" alt="Illustrated destinations on the Explore screen" loading="lazy"></a><figcaption>Illustrated destinations on the Explore screen</figcaption></figure>
+<figure><a href="screenshots/ranger.jpg"><img src="previews/ranger.jpg" alt="The Ranger hero" loading="lazy"></a><figcaption>The Ranger hero</figcaption></figure>
+<figure><a href="screenshots/fox.png"><img src="previews/fox.jpg" alt="Inspecting the Fox companion" loading="lazy"></a><figcaption>Inspecting the Fox companion</figcaption></figure>
+<figure><a href="screenshots/blackfletch.png"><img src="previews/blackfletch.jpg" alt="Blackfletch unique equipment" loading="lazy"></a><figcaption>Blackfletch unique equipment</figcaption></figure></div>
+      </section>
+      <section>
+        <h2>Logo &amp; artwork</h2>
+        <div class="assets"><figure><a href="art/trinket-key-art.png" download><img class="" src="art/trinket-key-art.png" alt="Landscape key art">Landscape key art</a><figcaption>1920 × 1080 PNG</figcaption></figure>
+<figure><a href="art/trinket-icon.jpg" download><img class="" src="art/trinket-icon.jpg" alt="Ranger and Wolf icon artwork">Ranger and Wolf icon artwork</a><figcaption>2048 × 2048 JPG</figcaption></figure>
+<figure><a href="art/trinket-logo.png" download><img class="" src="previews/trinket-logo.png" alt="Official Ranger and Fox logo">Official Ranger and Fox logo</a><figcaption>6144 × 4096 transparent PNG</figcaption></figure></div>
+      </section>
+    </main>
+    <footer id="contact">
+      <h2>Press contact</h2>
+      <p>
+        Ryan McIntire is the solo developer of <i>Trinket!</i> For interviews, review access or
+        questions about using the footage, email
+        <a href="mailto:rymcintire@gmail.com">rymcintire@gmail.com</a>.
+      </p>
+      <p>
+        <a href="https://talyen.github.io/Trinket/">Game support</a> · Suggested asset credit:
+        Trinket! / Ryan McIntire
+      </p>
+    </footer>
+  </body>
+</html>

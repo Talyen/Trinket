@@ -3,7 +3,12 @@ name: Support pages
 on:
   push:
     branches: [main]
-    paths: [Website/**, .github/workflows/pages.yml]
+    paths:
+      - Website/**
+      - Scripts/PressKit/package_site.py
+      - AssetSources/2d Assets/Game Sources/Branding/Trinket-Ambush.png
+      - Trinket/LaunchArtwork/ambush-logo.png
+      - .github/workflows/pages.yml
   workflow_dispatch:
 
 permissions:
@@ -32,6 +37,8 @@ jobs:
             echo 'Set the approved public support email before publishing.' >&2
             exit 1
           fi
+      - name: Assemble press downloads
+        run: python3 Scripts/PressKit/package_site.py Website/press
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
