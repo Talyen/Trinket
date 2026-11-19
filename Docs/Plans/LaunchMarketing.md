@@ -62,12 +62,19 @@ Use the examples to choose channels and position the game. Set sales
 expectations from Trinket's own results. [Pawnbarian press kit](https://j4nw.com/pawnbarian/presskit) ·
 [Krumit's Tale developer postmortem](https://www.gamedeveloper.com/business/ios-android-sales-deep-dive-meteorfall-krumit-s-tale-)
 
+## Press materials
+
+Team Alto presents facts, screenshots, video, logo and icon as distinct downloads. Pawnbarian specifies pricing per platform and explains its central mechanic in ordinary language. Trinket follows those examples with individual downloads and a full offline bundle. For journalists, place the live store link beside the trailer when the listing opens. Reserve a scannable end card for situations where the audience is watching a separate screen, such as an event booth. [Alto’s Odyssey press kit](https://altosodyssey.com/press/) · [Pawnbarian press kit](https://j4nw.com/pawnbarian/presskit) · [Apple promotion tools](https://developer.apple.com/app-store/promote/)
+
+To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-Nov17> <fresh-output-directory> --browser <Chromium-executable>`. It takes the “Coming to iOS” reel from `channel-edits/countess-press-card/`, the selected stills archive and the two iPhone takes. Before public distribution, confirm the timing, footage and music permissions, and press contact. Add a live store URL only after verifying it opens the product page.
+
 ## Before launch
 
 - [x] **Agents · still press kit.** Package five approved iPhone screenshots, icon artwork,
   game facts and a public contact. The November 17 release evidence contains the
   stills ZIP, eight individually drafted pitches, the App Launch nomination draft
   and the D7/D14/D30 reporting worksheet.
+- [x] **Agents · prelaunch press kit.** Open `Trinket-Press-Nov19/index.html` in the retained Release deliverables or distribute the sibling ZIP after approval. It includes seven captioned stills, artwork and transparent wordmarks, a plain-text fact sheet, the Countess reel with a prelaunch ending, and silent creator footage. The launch cut with the App Store badge is separate. For interviews or review access, the kit points to the developer’s public contact.
 - [x] **Agents · trailer.** Prepare one short fight clip for each of the seven bosses. Open on the first vocal passage with that boss’s theme and live lyrics. [Matchups, capture and edit plan](LaunchTrailer.md)
 - [ ] **Agents · Apple editorial.** Check for an existing nomination, then
   prepare the App Launch nomination for iPhone and iPad in the U.S. Include
@@ -203,7 +210,8 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | --- | --- | --- |
 | Release state and source assets checked | Complete | November 15, 2026 |
 | Stills, copy, eight pitches, nomination and reporting worksheet | Drafts prepared | Nov 17, retained Release evidence folder `LaunchMarketing-Nov17` |
-| Trailer | Gameplay feature reel ready for review | Nov 19, Wizard and Frost Whelp face the Blood Countess. The cut includes three Homestead buildings, Bear recruitment, a skill and an ultimate, two Contract rewards, and a Desert Voyage. The revised 93-second master carries the Countess’s song across the end card. Hold the narrated press kit pending owner review. [Script and review master](LaunchTrailer.md#gameplay-feature-reel) |
+| Trailer | Gameplay feature reel ready for review | Nov 19, Wizard and Frost Whelp face the Blood Countess. The cut includes three Homestead buildings, Bear recruitment, a skill and an ultimate, two Contract rewards, and a Desert Voyage. The revised 93-second master carries the Countess’s song across the end card. Prelaunch kit assembled for owner review. [Script and review master](LaunchTrailer.md#gameplay-feature-reel) |
+| Prelaunch press kit | Built locally | Nov 19, retained Release folder `Trinket-Press-Nov19`. A full ZIP and an image-only ZIP accompany the press page. Public hosting and outreach await approval. |
 | Reporting access | Partial | Nov 17, the owner reports Apple approved a build. The game is unreleased and the release date is unset. Earlier analytics request list calls returned HTTP 500 twice. |
 | Launch window, public press kit, nomination and outreach approval | Pending | Owner review after final trailer |
 | Nomination and outreach dispatched | Pending | |
