@@ -246,28 +246,32 @@ final class PhysicalTour: XCTestCase {
         addTeardownBlock { self.app.terminate() }
         let contract = ProcessInfo.processInfo.environment["TRINKET_CONTRACT_CAPTURE"] == "1"
         let press = ProcessInfo.processInfo.environment["TRINKET_PRESS_PICKUPS"]
-        let gear = press == "gear"
+        let startsOnDetail = ["gear", "countess", "roster"].contains(press ?? "")
         if contract {
             app.launchArguments = ["-store-name", "press-contract-\(UUID().uuidString)", "-reset-state",
                                    "-disable-cloud-sync", "-seed-test-progress", "-disable-audio", "-selectedTab", "play",
                                    "-performance-strong-party", "-battle-tick-interval", "0.02", "-AppleLanguages", "(en)"]
             app.launch()
-        } else if !showcase, !gear {
+        } else if !showcase, !startsOnDetail {
             app.launchArguments = ["-store-name", "launch-trailer-\(UUID().uuidString)",
                                    "-disable-audio", "-AppleLanguages", "(en)"]
             app.launch()
             XCTAssertTrue(element("Confirm Starter Hero").waitForExistence(timeout: 30))
         }
         if let take = ProcessInfo.processInfo.environment["TRINKET_TAKE"] {
-            startRecorder(take: take, audio: lyrics)
-            if !showcase, !gear {
+            startRecorder(take: take, audio: lyrics || press == "countess")
+            if !showcase, !startsOnDetail {
                 app.activate()
             }
         }
         print("TRINKET_CAPTURE_READY \(ProcessInfo.processInfo.systemUptime)")
         fflush(stdout)
         Thread.sleep(forTimeInterval: 4)
-        if gear {
+        if press == "roster" {
+            recordRosterFeature()
+        } else if press == "countess" {
+            recordCountessFeature()
+        } else if press == "gear" {
             recordGear()
         } else if contract {
             recordContract()
@@ -351,7 +355,9 @@ private extension PhysicalTour {
             XCTAssertGreaterThan(app.frame.height, app.frame.width, "Item detail must be in portrait")
             keep(item, settle: 3.0) {
                 Thread.sleep(forTimeInterval: 1.4)
-                drag(fromX: 0.51, fromY: 0.85, toX: 0.51, toY: 0.59)
+                if item == "twin_casting" {
+                    drag(fromX: 0.51, fromY: 0.85, toX: 0.51, toY: 0.59)
+                }
             }
         }
     }
@@ -387,6 +393,97 @@ private extension PhysicalTour {
             Thread.sleep(forTimeInterval: 2)
             nextRoom.tap()
             XCTAssertTrue(element("Labyrinth Node Inspector").waitForExistence(timeout: 10))
+        }
+    }
+}
+
+private extension PhysicalTour {
+    func recordCountessFeature() {
+        let career = ["-store-name", "countess-feature-\(UUID().uuidString)", "-disable-cloud-sync",
+                      "-seed-test-progress", "-disable-audio", "-AppleLanguages", "(en)"]
+        app.launchArguments = career + ["-launch-screen", "item:frozen_pocketwatch"]
+        app.launch()
+        XCTAssertTrue(element("Loadout Item Detail frozen_pocketwatch").waitForExistence(timeout: 15))
+        XCUIDevice.shared.orientation = .portrait
+        keep("watch-still", settle: 5) {}
+
+        app.launchArguments = career + ["-selectedTab", "homestead"]
+        app.launch()
+        tap("Homestead Farming Category", scroll: true)
+        let garden = element("Herb Garden Homestead Node")
+        ready(garden, scroll: true)
+        keep("herb-garden", settle: 5) {
+            garden.tap()
+            XCTAssertTrue(element("Herb Garden Homestead Detail").waitForExistence(timeout: 10))
+        }
+
+        tap("Homestead Detail Back Button")
+        for name in ["Wheat Field", "Chicken Coop"] {
+            let node = element("\(name) Homestead Node")
+            ready(node, scroll: true)
+            keep(name, settle: 3) { node.tap() }
+            tap("Homestead Detail Back Button")
+        }
+
+        app.launchArguments = career + ["-selectedTab", "play"]
+        app.launch()
+        tap("Explore Mode Card", scroll: true)
+        tap("Spires Mode Card", scroll: true)
+        let court = element("Spire sanguineCourt Row")
+        ready(court, scroll: true)
+        keep("sanguine-court", settle: 3) { court.tap() }
+        app.launchArguments = ["-development-unlocked", "-AppleLanguages", "(en)", "-boss-capture",
+                               "sanguineCourt", "wizard", "frost_whelp", "-boss-lyric-capture"]
+        keep("boss-play-sanguineCourt", settle: 19) {
+            openBoss(spire: "sanguineCourt", combatants: ["The Blood Countess", "Wizard", "Frost Whelp"])
+        }
+    }
+}
+
+private extension PhysicalTour {
+    func recordRosterFeature() {
+        let career = ["-store-name", "recruit-feature-\(UUID().uuidString)", "-skip-starter-selection",
+                      "-disable-cloud-sync", "-disable-audio", "-AppleLanguages", "(en)"]
+        app.launchArguments = career + ["-completed-stages", "chapter-1-stage-1", "-selectedTab", "play",
+                                        "-mystery-recruit-event", "recruit-bear", "-performance-mystery-map"]
+        app.launch()
+        tap("Campaign Mode Card")
+        let event = element("Stage 1-2 Action")
+        ready(event, scroll: true)
+        keep("recruit-bear", settle: 4) {
+            event.tap()
+            XCTAssertTrue(element("Bear unlock card").waitForExistence(timeout: 12))
+        }
+        tap("Mystery Continue Button", scroll: true)
+
+        app.launchArguments = career + ["-selectedTab", "play"]
+        app.launch()
+        tap("Explore Mode Card")
+        tap("Voyage Mode Card", scroll: true)
+        let offers = matchingButton("identifier BEGINSWITH %@", "Voyage Artwork ")
+        XCTAssertTrue(offers.firstMatch.waitForExistence(timeout: 10))
+        let desert = offers.matching(NSPredicate(format: "label CONTAINS[c] %@", "Desert")).firstMatch
+        let offer = desert.exists ? desert : offers.firstMatch
+        ready(offer, scroll: true)
+        keep("voyage", settle: 4) {
+            print("TRINKET_VOYAGE \(offer.label)")
+            offer.tap()
+            XCTAssertTrue(element("Voyage Destination Sheet").waitForExistence(timeout: 10))
+        }
+
+        for (route, tier, ability) in [("companion:bear", "Skill", "sunder"), ("hero:knight", "Ultimate", "blessed-aegis")] {
+            app.launchArguments = ["-development-unlocked", "-disable-audio", "-AppleLanguages", "(en)",
+                                   "-launch-screen", route]
+            app.launch()
+            let slot = element("\(tier) ability slot")
+            keep(route, settle: 0.5) { ready(slot, scroll: true) }
+            slot.tap()
+            let card = element("Loadout Ability Candidate \(ability)")
+            ready(card, scroll: true)
+            keep(ability, settle: 4) {
+                card.tap()
+                XCTAssertTrue(element("Loadout Ability Detail \(ability)").waitForExistence(timeout: 10))
+            }
         }
     }
 }
