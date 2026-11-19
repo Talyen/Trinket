@@ -203,7 +203,7 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | --- | --- | --- |
 | Release state and source assets checked | Complete | November 15, 2026 |
 | Stills, copy, eight pitches, nomination and reporting worksheet | Drafts prepared | Nov 17, retained Release evidence folder `LaunchMarketing-Nov17` |
-| Trailer | Gameplay feature reel ready for review | Nov 19, Wizard and Frost Whelp face the Blood Countess. The cut includes three Homestead buildings, Bear recruitment, a skill and an ultimate, two Contract rewards, and a Desert Voyage. George’s reads run 25% faster. Hold the narrated press kit pending review. [Script and review master](LaunchTrailer.md#gameplay-feature-reel) |
+| Trailer | Gameplay feature reel ready for review | Nov 19, Wizard and Frost Whelp face the Blood Countess. The cut includes three Homestead buildings, Bear recruitment, a skill and an ultimate, two Contract rewards, and a Desert Voyage. The revised 93-second master carries the Countess’s song across the end card. Hold the narrated press kit pending owner review. [Script and review master](LaunchTrailer.md#gameplay-feature-reel) |
 | Reporting access | Partial | Nov 17, the owner reports Apple approved a build. The game is unreleased and the release date is unset. Earlier analytics request list calls returned HTTP 500 twice. |
 | Launch window, public press kit, nomination and outreach approval | Pending | Owner review after final trailer |
 | Nomination and outreach dispatched | Pending | |

@@ -72,7 +72,7 @@ The November 17 `channel-edits/` folder next to the boss masters contains four r
 | --- | --- |
 | App Store and Apple Ads search results | The Forge Golem, 17 seconds, 886 × 1920 at 30 fps. Use the poster frame at 0.30 seconds and finish on combat. Use this preview on the listing and the planned combat custom product page. |
 | Organic social and off-store ads | Forge Golem and Blight Treant, 1080 × 1920 at 60 fps. Each ends with the game title and Apple’s download badge for 1.8 seconds. Use the launch cuts once the U.S. listing is live. Compare store visits from equivalent organic posts before considering spend. |
-| Press and creators | 78.5-second portrait reel. Follow the Wizard and Frost Whelp to the Blood Countess in Sanguine Court. The last 16.8 seconds of combat are a single physical iPhone shot with the Countess’s song and live lyrics. The master includes optional English captions and a separate SRT. |
+| Press and creators | 93.1-second portrait reel. Follow the Wizard and Frost Whelp to the Blood Countess in Sanguine Court. The Countess fight runs 26.8 seconds in one physical iPhone shot. Her song carries across the dissolve to the launch card. The master includes optional English captions and a separate SRT. |
 
 ### Gameplay feature reel
 
@@ -91,17 +91,17 @@ George narrates in the voice of the original Wizard reel. The new master plays h
 | 26.6s | Forest Campaign | There's the Treant. I'll come back for him. |
 | 30.3s | Recruit the Bear | A Recruit event. That bear can join the party. |
 | 35.1s | Bear’s Sunder skill | The Bear’s Sunder halves the enemy’s Block before it hits. |
-| 39.7s | Knight’s Blessed Aegis ultimate | The Knight’s ultimate, Blessed Aegis, gives him Block, heals an ally, and deals Holy damage. |
+| 39.7s | Knight’s Blessed Aegis ultimate | The Knight’s ultimate, Blessed Aegis, gives her Block, heals an ally, and deals Holy damage. |
 | 45.4s | Goblin contract | The goblin pays extra hide. |
-| 47.9s | Mud Elemental on the same board | The Mud Elemental drops an amulet. Depends what you need. |
-| 51.6s | Desert Voyage itinerary | A voyage through the Desert. You can check the route before you embark. |
-| 56.0s | Enter Sanguine Court | Sanguine Court. Let's go meet the Countess. |
+| 48.1s | Mud Elemental on the same board | The Mud Elemental drops an amulet. |
+| 50.6s | Desert Voyage itinerary | A voyage through the Desert. You can check the route before you embark. |
+| 55.0s | Enter Sanguine Court | Sanguine Court. Let's go meet the Countess. |
 
-At 58.9s the Wizard and Frost Whelp meet the Blood Countess. Start the continuous fight just before “I wore black for every king.” Let the singer finish “There is room beside the fire” before the end card. Hold the “Free to start” card with the App Store badge for three seconds.
+At 57.8s the Wizard and Frost Whelp meet the Blood Countess. Enter just before the first lyric. At 1:24, as “I have dressed myself for you” resolves, dissolve to the launch card over 0.6s. The same recording continues through the question “Does it beat so fast for me?” Fade the music in the instrumental breath before the chorus. The end card stays visible for 9.1s including the dissolve.
 
 **Recording.** Use `Scripts/capture-launch-trailer.py --device <paired-iPhone-UDID> --press-pickups <route> --output-dir <new-directory>` under the physical-device lane. The `countess` route holds the Pocketwatch still, opens the three farming buildings, visits Sanguine Court, then records the boss with the original party. The `roster` route recruits Bear, inspects a Voyage, then opens the Bear and Knight ability details. Match Voyage copy to the destination actually recorded. For Contracts, the original motion take contains one uninterrupted scroll from Goblin’s bonus Hide to Mud Elemental’s amulet.
 
-**Review files.** Under the November 17 launch evidence folder, open `channel-edits/countess-feature-reel/Trinket-Blood-Countess-Feature-Reel.mp4`. The folder contains the picture windows, clean narration, English SRT, and November 19 iPhone pickups. The device track was silent. The replacement boss master was aligned to two separate in-game lyric reveals using the timed song lyrics.
+**Review files.** In the November 17 launch evidence folder, open `channel-edits/countess-ending/Trinket-Blood-Countess-Feature-Reel.mp4`. The folder includes the November 19 extended iPhone take, picture windows, music alignment, narration and English SRT. George retains the 1.25× delivery. On the contract board, end on the Mud Elemental’s amulet reward before the native Back transition begins.
 
 The production references were Supergiant’s account of timing the *Bastion* trailer to its narrator, Valve’s *Panels* demonstration, and Sloclap’s *Sifu* combat overview. [Bastion production notes](https://www.supergiantgames.com/blog/presenting-the-bastion-launch-trailer/) · [Portal 2 — Panels](https://www.youtube.com/watch?v=0qcED35LL8I) · [Sifu combat overview](https://www.youtube.com/watch?v=tHaODlf6FIc)
 

@@ -434,7 +434,7 @@ private extension PhysicalTour {
         keep("sanguine-court", settle: 3) { court.tap() }
         app.launchArguments = ["-development-unlocked", "-AppleLanguages", "(en)", "-boss-capture",
                                "sanguineCourt", "wizard", "frost_whelp", "-boss-lyric-capture"]
-        keep("boss-play-sanguineCourt", settle: 19) {
+        keep("boss-play-sanguineCourt", settle: 56) {
             openBoss(spire: "sanguineCourt", combatants: ["The Blood Countess", "Wizard", "Frost Whelp"])
         }
     }
