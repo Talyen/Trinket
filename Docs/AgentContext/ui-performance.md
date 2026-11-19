@@ -8,8 +8,8 @@ first-frame performance. Root guidance owns product approval constraints.
 The launch cover intentionally holds for at least two seconds while resources
 prepare. `LaunchWarmupView` owns that duration, its timed gold progress bar,
 and the completion callback used by `PreparedAppRoot`. The static Ranger and Fox
-logo occupies the main canvas. Below it, the slime hops on the gold track above
-the rotating status text. The bar fills over the two-second hold and stays full
+logo occupies the main canvas. The gold track sits halfway between the artwork and the
+bottom edge. The slime lands just above it, with rotating status text below. The bar fills over the two-second hold and stays full
 if resources or root layouts take longer. Scene inactivity pauses rendering
 while the elapsed clock continues. The timeline parks when launch readiness
 completes, including retained encounter underlays.

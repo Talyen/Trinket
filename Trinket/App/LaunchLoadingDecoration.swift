@@ -51,6 +51,7 @@ struct LaunchLoadingDecoration: View {
 
     private static let size: CGFloat = 50
     private static let height: CGFloat = 39
+    private static let displayScale: CGFloat = 1.5
     private static let leafSeeds = [0.08, 0.30, 0.57, 0.81, 0.94]
 
     private var pose: HopPose {
@@ -60,25 +61,17 @@ struct LaunchLoadingDecoration: View {
     var body: some View {
         GeometryReader { geometry in
             let pose = pose
-            let position = geometry.size.width / 2 + pose.x
+            let position = geometry.size.width / 2 + pose.x * Self.displayScale
 
             ZStack(alignment: .topLeading) {
                 if !reduceMotion {
                     leaves(width: geometry.size.width)
                 }
 
-                Ellipse()
-                    .fill(TrinketDesign.Colors.Overlay.ink.opacity(0.12))
-                    .frame(width: Self.size * 0.82, height: 3)
-                    .blur(radius: 2)
-                    .scaleEffect(max(0.48, 1 - pose.jump / 80))
-                    .opacity(max(0.30, 1 - pose.jump / 65))
-                    .position(x: position, y: 1.5)
-
                 slime(pose: pose)
-                    .scaleEffect(x: pose.widthScale, y: pose.heightScale, anchor: .bottom)
+                    .scaleEffect(x: pose.widthScale * Self.displayScale, y: pose.heightScale * Self.displayScale, anchor: .bottom)
                     .rotationEffect(.degrees(pose.tilt), anchor: .bottom)
-                    .position(x: position, y: 3 - Self.height / 2 - pose.jump / 2)
+                    .position(x: position, y: -4 - Self.height / 2 - pose.jump * Self.displayScale / 2)
             }
         }
         .allowsHitTesting(false)

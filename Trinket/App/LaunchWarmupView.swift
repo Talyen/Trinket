@@ -50,7 +50,7 @@ struct LaunchWarmupView: View {
                             .frame(width: geometry.size.width * fill)
                     }
                 }
-                .frame(height: 6)
+                .frame(height: 10)
                 .overlay(alignment: .top) {
                     if let loadingArtwork {
                         LaunchLoadingDecoration(
@@ -66,7 +66,15 @@ struct LaunchWarmupView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            VStack(spacing: 0) {
+            let size = geometry.size
+            // The Ambush canvas has transparent side gutters. Size the visible mark to about 94% of phone width.
+            let logoWidth = min(size.width * 1.14, size.height * 0.78, 740)
+            let logoHeight = logoWidth * 2 / 3
+            let logoCenter = size.height * 0.39
+            let logoBottom = logoCenter + logoHeight / 2
+            let barCenter = (logoBottom + size.height + geometry.safeAreaInsets.bottom) / 2
+
+            ZStack {
                 Group {
                     if let loadingArtwork {
                         Image(decorative: loadingArtwork.logo, scale: 3)
@@ -76,25 +84,27 @@ struct LaunchWarmupView: View {
                         Color.clear
                     }
                 }
-                .frame(maxWidth: 540)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(width: logoWidth, height: logoHeight)
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text(L10n.ui_launchwarmupview_loading_trinket_24dee))
+                .position(x: size.width / 2, y: logoCenter)
 
-                VStack(spacing: TrinketDesign.Spacing.medium) {
-                    loadingBar
-                        .frame(maxWidth: 234)
-                    Text(Self.loadingTerms[currentTermIndex])
-                        .trinketTypography(.secondaryBody)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .contentTransition(.opacity)
-                }
-                .padding(.top, 64)
-                .padding(.bottom, min(geometry.size.height * 0.045, 36))
+                loadingBar
+                    .frame(width: min(size.width * 0.78, 380))
+                    .frame(maxWidth: .infinity)
+                    .overlay(alignment: .top) {
+                        Text(Self.loadingTerms[currentTermIndex])
+                            .trinketTypography(.rowTitle)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.top, 22)
+                            .contentTransition(.opacity)
+                    }
+                    .position(x: size.width / 2, y: barCenter)
             }
-            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
-            .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .trinketScreenBackground()
         .task {
