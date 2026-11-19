@@ -114,6 +114,9 @@
         font-size: 28px;
         margin: 0 0 9px;
       }
+      .hero a[download] {
+        display: inline-block;
+      }
       .hero p {
         font-size: 20px;
         color: #e2d8ca;
@@ -311,7 +314,7 @@
         <h1><img src="previews/trinket-logo.png" alt="Trinket!" width="1440" height="960" /></h1>
         <div>
           <p>Pair a hero with a companion and build the hand they take into battle in this solo-developed fantasy card RPG for iPhone and iPad.</p>
-          <a class="button" href="#footage">Watch gameplay</a> <!-- full kit download -->
+          <a class="button" href="#footage">Watch the trailer</a> <!-- full kit download -->
         </div>
       </div>
       <section class="facts" id="facts">
@@ -327,15 +330,41 @@
         </div>
       </section>
       <section class="feature" id="footage">
-        <video controls playsinline muted preload="metadata" poster="previews/trailer.jpg" aria-label="The Blight Treant, silent iPhone gameplay">
-          <source src="video/Trinket-creator-footage.mp4" type="video/mp4" />
+        <video
+          controls
+          playsinline
+          preload="none"
+          poster="previews/trailer.jpg"
+          aria-label="Trinket! narrated feature trailer"
+        >
+          <source src="video/Trinket-feature-reel.mp4" type="video/mp4" />
+          <track
+            kind="captions"
+            label="English"
+            srclang="en"
+            src="video/Trinket-feature-reel.en.vtt"
+          />
         </video>
         <div>
           <h2>Gameplay footage</h2>
+          <h3>Meet the Blood Countess</h3>
+          <p>
+            The Wizard brings a Frost Whelp to Sanguine Court. See how the pair comes together, then
+            hear the Countess take over the soundtrack.
+          </p>
+          <p>You may download the trailer and use it with its soundtrack in coverage of Trinket!</p>
+          <p class="meta">Feature trailer · 1:33 · 1080 × 1920 · Narrated in English</p>
+          <div class="actions">
+            <a href="video/Trinket-feature-reel.mp4" download>Download trailer</a
+            ><a href="video/Trinket-feature-reel.en.srt" download>English captions (.srt)</a>
+          </div>
           <h3>The Blight Treant</h3>
-          <p>Watch a hero and companion take on the Blight Treant in one continuous iPhone shot.</p>
-          <p class="meta">17 seconds · 60 fps · Silent footage for editorial use</p>
-          <a href="video/Trinket-creator-footage.mp4" download>Download gameplay footage</a>
+          <p>
+            One uninterrupted iPhone battle, with the soundtrack removed for voiceover or editing.
+          </p>
+          <a href="video/Trinket-creator-footage.mp4" download
+            >Download silent footage (17s, 60 fps)</a
+          >
         </div>
       </section>
       <section id="images">

@@ -28,7 +28,7 @@ release work.
 
 | Date | Work |
 | --- | --- |
-| November 25 target, November 30 latest for three weeks of lead time | Submit the App Launch featuring nomination after outreach approval. Apple’s nomination instructions recommend three weeks. Its general featuring page asks for at least two. Keep the earlier planning target. |
+| November 25 target, November 30 latest for three weeks of lead time | Apple received the App Launch featuring nomination November 19. Apple’s nomination instructions recommend three weeks. Its general featuring page asks for at least two. Keep the earlier planning target. |
 | December 7–11 | Give interested press time to play. Prepare or send the approved advance materials with the dated reel. Reserve the “available now” pitches for the verified public listing. |
 | December 21–23 | Confirm owner availability for urgent purchase or crash issues. Verify the U.S. product page and Full Game purchase, then use the evergreen launch trailer and send approved launch-day outreach. |
 
@@ -78,7 +78,7 @@ expectations from Trinket's own results. [Pawnbarian press kit](https://j4nw.com
 
 Team Alto presents facts, screenshots, video, logo and icon as distinct downloads. Pawnbarian specifies pricing per platform and explains its central mechanic in ordinary language. Trinket follows those examples with individual downloads and a full offline bundle. For journalists, place the live store link beside the trailer when the listing opens. Reserve a scannable end card for situations where the audience is watching a separate screen, such as an event booth. [Alto’s Odyssey press kit](https://altosodyssey.com/press/) · [Pawnbarian press kit](https://j4nw.com/pawnbarian/presskit) · [Apple promotion tools](https://developer.apple.com/app-store/promote/)
 
-To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-Nov17> <fresh-output-directory>`. It renders the cleaned Ranger and Fox end card and packages the 6144 × 4096 transparent logo. Pass `--branded-trailers <folder>` to reuse the approved render from `Scripts/PressKit/brand.py`. It takes the “Coming to iOS” reel from `channel-edits/countess-press-2026-12-21/`, the selected stills archive and the two iPhone takes. Before public distribution, confirm the timing, footage and music permissions, and press contact. Add a live store URL only after verifying it opens the product page.
+To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-Nov17> <fresh-output-directory>`. It renders the cleaned Ranger and Fox end card and packages the 6144 × 4096 transparent logo. Pass `--branded-trailers <folder>` to reuse the approved render from `Scripts/PressKit/brand.py`. It takes the “Coming to iOS” reel from `channel-edits/countess-press-2026-12-21/`, the selected stills archive and the two iPhone takes. The developer cleared the Countess soundtrack for press use on November 19. Add a live store URL only after verifying it opens the product page.
 
 ## Before launch
 
@@ -88,7 +88,7 @@ To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-
   and the D7/D14/D30 reporting worksheet.
 - [x] **Agents · prelaunch press kit.** Open `Trinket-Ambush-Launch/Press/index.html` in the retained Release deliverables or distribute the sibling ZIP after approval. It includes seven captioned stills, artwork and the full-resolution transparent Ambush logo, a plain-text fact sheet, the Countess reel with a prelaunch ending, and silent creator footage. The launch cut with the App Store badge is separate. For interviews or review access, the kit points to the developer’s public contact.
 - [x] **Agents · trailer.** Prepare one short fight clip for each of the seven bosses. Open on the first vocal passage with that boss’s theme and live lyrics. [Matchups, capture and edit plan](LaunchTrailer.md)
-- [ ] **Agents · Apple editorial.** Check for an existing nomination, then
+- [x] **Agents · Apple editorial.** Check for an existing nomination, then
   prepare the App Launch nomination for iPhone and iPad in the U.S. Include
   the solo developer story, Hero and Companion combat, the free start,
   the December 21 launch date, and the press kit. Aim to submit at least
@@ -222,15 +222,15 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | --- | --- | --- |
 | Release state and source assets checked | Complete | November 15, 2026 |
 | Stills, copy, eight pitches, nomination and reporting worksheet | Drafts prepared | Nov 17, retained Release evidence folder `LaunchMarketing-Nov17` |
-| Trailer | Gameplay feature reel ready for review | Nov 19, Wizard and Frost Whelp face the Blood Countess. The cut includes three Homestead buildings, Bear recruitment, a skill and an ultimate, two Contract rewards, and a Desert Voyage. The revised 93-second master carries the Countess’s song across the end card. Prelaunch kit assembled for owner review. [Script and review master](LaunchTrailer.md#gameplay-feature-reel) |
-| Prelaunch press kit | Built locally | Nov 19, retained Release folder `Trinket-Ambush-Launch/Press`. A full ZIP and an image-only ZIP accompany the press page. The public edition is staged for [the press page](https://talyen.github.io/Trinket/press/) with silent creator footage, seven screenshots, original artwork, a fact sheet and offline downloads. The narrated master awaits promotional music clearance. |
-| Reporting access | Ongoing analytics enabled Nov 19 | Apple accepted the request. The download and purchase report catalogs are readable. Both had zero delivered instances before launch. Sales and Trends needs the vendor number. First-month reporting and the $0 opening baseline are in Release evidence under `LaunchReadiness-Nov19/Reporting.md`. |
+| Trailer | Narrated feature reel cleared for press | Nov 19, Wizard and Frost Whelp face the Blood Countess. The cut includes three Homestead buildings, Bear recruitment, a skill and an ultimate, two Contract rewards, and a Desert Voyage. The revised 93-second master carries the Countess’s song across the end card. Prelaunch kit includes English captions. [Script and review master](LaunchTrailer.md#gameplay-feature-reel) |
+| Prelaunch press kit | Public and checked on iPhone | Nov 19, retained Release folder `Trinket-Ambush-Launch/Press`. A full ZIP and an image-only ZIP accompany the press page. The public edition is live on [the press page](https://talyen.github.io/Trinket/press/) with silent creator footage, seven screenshots, original artwork, a fact sheet and offline downloads. An iPhone 14 Pro Safari check passed. Anonymous requests retrieved all 23 linked assets, and the full downloaded ZIP passed its integrity check. The developer cleared the Blood Countess soundtrack for press publication, download and editorial use. The full edition adds the 93-second narrated trailer and English captions. |
+| Reporting access | Ongoing analytics enabled Nov 19 | Apple accepted the request. The download and purchase report catalogs are readable. Both had zero delivered instances before launch. Sales and Trends accepted the vendor number and returned its no-sales response for November 12 and 17. Verify the first delivered report after sales begin. First-month reporting and the $0 opening baseline are in Release evidence under `LaunchReadiness-Nov19/Reporting.md`. |
 | U.S. launch date | Confirmed by owner | December 21, 2026. The prelaunch film and press fact sheet carry the date. |
-| Launch candidate | Compared Nov 19 | Apple reports 1.0.0 (13), source `fa3fa85fa`, In Review, manual release. Full Game is approved. Through `97fce79ed` the production change is the loading presentation. The boss fixtures are debug-only. Signed candidate and purchase/restore verification remain open. See `LaunchReadiness-Nov19/Candidate.md`. |
+| Launch candidate | Compared Nov 19 | Apple reports 1.0.0 (13), source `fa3fa85fa`, In Review, manual release. Full Game is approved. Through `97fce79ed` the production change is the loading presentation. The boss fixtures are debug-only. On the iPhone 14 Pro the locally signed Release build preserved the existing save and displayed the $4.99 offer. The standard CI gate passed after the press-kit routing repair. TestFlight qualification and fresh transaction evidence remain open. See `LaunchReadiness-Nov19/Candidate.md`. |
 | Press access | External Beta App Review requested Nov 19 | Build 13 is attached to the invite-only Press Preview group. Apple returned Waiting for Review. Send private invitations after external approval. |
-| Featuring nomination | Saved in App Store Connect | App Launch, December 21, U.S., iPhone and iPad. Draft ID `9a7f1d2d-b137-40ca-af15-432c455ae3ab`. No previous draft, submitted or archived nomination was present. |
+| Featuring nomination | Submitted November 19 | App Launch, December 21, U.S., iPhone and iPad. Apple confirmed nomination `9a7f1d2d-b137-40ca-af15-432c455ae3ab` with the public kit and Blood Countess still. |
 | Advance outreach | Three December 7–9 pitches prepared | Pocket Gamer news, MiniReview and Lunar Nebula Gaming. Send-day copy and sources are in `LaunchReadiness-Nov19/Advance-outreach.md`. No dispatch yet. |
-| Nomination and outreach dispatched | Pending | |
+| Press outreach dispatched | Due December 7–11 | Check the public kit and external beta status before sending. |
 | Verified public U.S. launch | Pending | |
 | Day 7, 14, and 30 sales and conversion snapshots | Pending | |
 | Paid pilot decision and result | Pending | |
