@@ -7,11 +7,12 @@ import shutil
 import subprocess
 import tempfile
 import zipfile
-from datetime import date
 from html import escape
 from pathlib import Path
 
-US_RELEASE = date(2026, 12, 21)
+from PIL import Image
+
+from brand import INK, LOGO, MASTER, US_RELEASE, centered_art, end_card, feature
 
 PITCH = ("Pair a hero with a companion and build the hand they take into battle "
          "in this solo-developed fantasy card RPG for iPhone and iPad.")
@@ -43,8 +44,7 @@ STILLS = {
 ART = [
     ("trinket-key-art.png", "Landscape key art", "1920 × 1080 PNG", ""),
     ("trinket-icon.jpg", "Ranger and Wolf icon artwork", "2048 × 2048 JPG", ""),
-    ("trinket-wordmark-light.png", "Light wordmark for dark backgrounds", "Transparent PNG", ""),
-    ("trinket-wordmark-dark.png", "Dark wordmark for light backgrounds", "Transparent PNG", "light"),
+    ("trinket-logo.png", "Official Ranger and Fox logo", "6144 × 4096 transparent PNG", ""),
 ]
 
 
@@ -56,26 +56,13 @@ def frame(movie, at, target, filters):
         raise ValueError(f"No frame at {at}s in {movie}")
 
 
-def artwork(kit, browser):
+def artwork(kit):
     art = kit / "art"
-    with tempfile.TemporaryDirectory() as tmp:
-        page = Path(tmp) / "art.html"
-        def render(markup, name, w, h):
-            page.write_text('<meta charset="utf-8"><style>*{box-sizing:border-box}body{margin:0}'
-                            'b{font-family:Baskerville,Georgia,serif;font-weight:400}</style>' + markup)
-            subprocess.run([browser, "--no-sandbox", "--disable-gpu", "--hide-scrollbars",
-                            "--allow-file-access-from-files", "--run-all-compositor-stages-before-draw",
-                            "--default-background-color=00000000", "--user-data-dir="+tmp+"/profile",
-                            f"--window-size={w},{h}", "--screenshot="+str(art/name), page.as_uri()],
-                           check=True, capture_output=True)
-        for style, color in (("light", "#fff2d6"), ("dark", "#242023")):
-            render(f'<b style="display:grid;place-items:center;height:270px;font-size:260px;'
-                   f'line-height:1;color:{color}">Trinket!</b>', f"trinket-wordmark-{style}.png", 950, 270)
-        src = (art / "trinket-icon.jpg").as_uri()
-        render('<style>body{background:radial-gradient(ellipse at 62% 44%,#534235,#272323 44%,#17181a 85%)}'
-               'img{position:absolute;right:0;top:0;height:1080px;mask-image:linear-gradient(90deg,transparent,black 30%)}'
-               'b{position:absolute;left:95px;top:380px;font-size:255px;color:#fff2d6}</style>'
-               f'<img src="{src}"><b>Trinket!</b>', "trinket-key-art.png", 1920, 1080)
+    shutil.copyfile(MASTER, art / "trinket-logo.png")
+    shutil.copyfile(LOGO, kit / "previews/trinket-logo.png")
+    key_art = Image.new("RGB", (1920, 1080), INK)
+    centered_art(key_art, MASTER, 1510, 540)
+    key_art.save(art / "trinket-key-art.png")
 
 
 def zip_files(target, base, files):
@@ -84,21 +71,29 @@ def zip_files(target, base, files):
             archive.write(path, path.relative_to(base))
 
 
-def build(evidence, output, browser):
+def build(evidence, output, trailers=None):
     channel = evidence / "channel-edits"
     master = channel / f"countess-press-{US_RELEASE.isoformat()}"
     kit = output / "Trinket-Press-Kit"
     kit.mkdir(parents=True, exist_ok=False)
     for folder in ("video", "screenshots", "art", "previews"):
         (kit / folder).mkdir()
-    shutil.copyfile(master / "Trinket-Blood-Countess-Feature-Reel.mp4", kit / "video/Trinket-feature-reel.mp4")
+    reel = kit / "video/Trinket-feature-reel.mp4"
+    if trailers:
+        shutil.copyfile(trailers / "Trinket-Press-Feature-Reel.mp4", reel)
+    else:
+        with tempfile.TemporaryDirectory() as work:
+            card = Path(work) / "press.png"
+            end_card(card, channel / "apple-download-badge-3x.png",
+                     f"{US_RELEASE:%B} {US_RELEASE.day}, {US_RELEASE.year}")
+            feature(channel, master.name, card, reel)
     shutil.copyfile(channel / "Trinket-Blight-Treant-Creator-Footage.mp4", kit / "video/Trinket-creator-footage.mp4")
     srt = (master / "Trinket-Feature-Reel.en.srt").read_text()
     (kit / "video/Trinket-feature-reel.en.srt").write_text(srt)
     (kit / "video/Trinket-feature-reel.en.vtt").write_text("WEBVTT\n\n"+re.sub(r"(\d\d:\d\d:\d\d),(\d{3})", r"\1.\2", srt))
     frame(kit / "video/Trinket-feature-reel.mp4", 74, kit / "previews/trailer.jpg", "scale=450:800")
     shutil.copyfile(evidence / "press-kit/trinket-app-icon.jpg", kit / "art/trinket-icon.jpg")
-    artwork(kit, browser)
+    artwork(kit)
 
     shots = []
     manifest = json.loads((evidence / "asset-provenance.json").read_text())["screenshots"]
@@ -128,7 +123,8 @@ def build(evidence, output, browser):
                        f'alt="{escape(caption)}" loading="lazy"></a><figcaption>{escape(caption)}</figcaption></figure>')
     def art_link(asset):
         name, title, kind, style = asset
-        return (f'<figure><a href="art/{name}" download><img class="{style}" src="art/{name}" alt="{title}">'
+        preview = "previews/trinket-logo.png" if name == "trinket-logo.png" else f"art/{name}"
+        return (f'<figure><a href="art/{name}" download><img class="{style}" src="{preview}" alt="{title}">'
                 f'{title}</a><figcaption>{kind}</figcaption></figure>')
     markup = (Path(__file__).with_name("index.html")).read_text()
     parts = {"pitch": PITCH, "facts": "".join(f"<div><dt>{k}</dt><dd>{v}</dd></div>" for k, v in FACTS),
@@ -155,7 +151,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("evidence", type=Path, help="Retained LaunchMarketing-Nov17 folder")
     parser.add_argument("output", type=Path, help="Directory for a fresh kit and ZIP")
-    parser.add_argument("--browser", required=True, type=Path, help="Chromium executable for rendering wordmarks and key art")
+    parser.add_argument("--branded-trailers", type=Path, help="Reuse the output of Scripts/PressKit/brand.py")
+    parser.add_argument("--browser", type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args()
     output = args.output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -163,5 +160,5 @@ if __name__ == "__main__":
         parser.error("Choose a fresh output directory to preserve previous kits.")
     with tempfile.TemporaryDirectory(dir=output.parent) as temporary:
         staged = Path(temporary) / output.name
-        build(args.evidence.resolve(), staged, args.browser.resolve())
+        build(args.evidence.resolve(), staged, args.branded_trailers)
         staged.rename(output)

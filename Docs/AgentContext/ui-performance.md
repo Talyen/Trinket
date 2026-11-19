@@ -6,29 +6,19 @@ first-frame performance. Root guidance owns product approval constraints.
 ## Launch cover and readiness
 
 The launch cover intentionally holds for at least two seconds while resources
-prepare. `LaunchWarmupView` owns that duration, its timed gold title fill,
-and the completion callback used by `PreparedAppRoot`. Status text keeps stable
-identity and stops rotating when the title is full. The title fills smoothly left
-to right from 0 to 100% over two seconds of elapsed wall time; it represents the
-intentional hold, not artwork decode counts. Scene inactivity pauses the title's
-rendering, not its elapsed clock or minimum hold. If the cover is still visible on
-return, the fill catches up rather than restarting or extending the hold. Keep
-the animation active for its set duration; do not reconnect it to
-`PreparedArtworkCache.progress` or add a separate dismissal timer. If required
-resources, cast effects, or applicable root layouts take longer, keep the cover
-visible with the title fully gold until they are ready. The title animation
-timeline stops when launch readiness completes, including retained encounter
-underlays.
+prepare. `LaunchWarmupView` owns that duration, its timed gold progress bar,
+and the completion callback used by `PreparedAppRoot`. The static Ranger and Fox
+logo occupies the main canvas. Below it, the slime hops on the gold track above
+the rotating status text. The bar fills over the two-second hold and stays full
+if resources or root layouts take longer. Scene inactivity pauses rendering
+while the elapsed clock continues. The timeline parks when launch readiness
+completes, including retained encounter underlays.
 
-The launch title carries a small right-facing slime and windblown leaves. Its two
-hops share the title's elapsed clock, settle at two seconds, and continue with a
-gentle idle while preparation takes longer. Reduced Motion keeps the slime still
-and hides the leaves. Decorative rendering parks with scene inactivity and launch
-readiness, including retained encounter underlays. The authored PNG layers in
-`Trinket/LaunchArtwork/` are decoded once off the main actor by
-`LaunchLoadingArtwork`, independently of the game artwork cache and readiness
-gates; keep decoding out of the animation timeline. Source sheets are preserved
-in repository `AssetSources/2d Assets/Game Sources/Animation/Source Sheets/`.
+The hops share the bar’s elapsed clock, settle after two seconds and then idle.
+Reduced Motion keeps the slime still and hides the leaves. The app decodes the
+bounded 1440-pixel logo and slime layers in `Trinket/LaunchArtwork/` once off
+the main actor, independently of game artwork and readiness gates. The cleaned
+logo master lives in `AssetSources/2d Assets/Game Sources/Branding/Trinket-Ambush.png`.
 
 Artwork decoding and battle texture/raster preparation start during the hold.
 `PreparedAppRoot` launches them concurrently after enqueueing audio warmup.

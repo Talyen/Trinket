@@ -32,7 +32,7 @@ struct LaunchWarmupView: View {
         L10n.ui_launchwarmupview_restocking_mystery_shops_97e31,
     ]
 
-    private var loadingTitle: some View {
+    private var loadingBar: some View {
         TimelineView(.animation(
             minimumInterval: 1.0 / 60.0,
             paused: !isVisible || loadingStartDate == nil || scenePhase != .active || isLaunchPresentationReady
@@ -41,20 +41,16 @@ struct LaunchWarmupView: View {
             let elapsed = loadingStartDate.map { max(0, context.date.timeIntervalSince($0)) } ?? 0
             let fill = isMinimumLoadingTimeComplete ? 1 : min(1, elapsed / Self.minimumLoadingDuration)
 
-            Text(L10n.ui_launchwarmupview_trinket_6faed)
-                .foregroundStyle(.secondary)
-                .overlay {
-                    Text(L10n.ui_launchwarmupview_trinket_6faed)
-                        .foregroundStyle(TrinketDesign.Colors.accent)
-                        .mask(alignment: .leading) {
-                            GeometryReader { geometry in
-                                Rectangle()
-                                    .frame(width: geometry.size.width * fill)
-                            }
-                        }
-                        .accessibilityHidden(true)
+            Capsule()
+                .fill(TrinketDesign.Colors.accent.opacity(0.18))
+                .overlay(alignment: .leading) {
+                    GeometryReader { geometry in
+                        Capsule()
+                            .fill(TrinketDesign.Colors.accent)
+                            .frame(width: geometry.size.width * fill)
+                    }
                 }
-                .trinketTypography(.screenDisplay)
+                .frame(height: 6)
                 .overlay(alignment: .top) {
                     if let loadingArtwork {
                         LaunchLoadingDecoration(
@@ -64,22 +60,42 @@ struct LaunchWarmupView: View {
                         )
                     }
                 }
-                .accessibilityLabel(Text(L10n.ui_launchwarmupview_loading_trinket_24dee))
+                .accessibilityHidden(true)
         }
     }
 
     var body: some View {
-        VStack(spacing: TrinketDesign.Spacing.medium) {
-            loadingTitle
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                Group {
+                    if let loadingArtwork {
+                        Image(decorative: loadingArtwork.logo, scale: 3)
+                            .resizable()
+                            .scaledToFit()
+                    } else {
+                        Color.clear
+                    }
+                }
+                .frame(maxWidth: 540)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(L10n.ui_launchwarmupview_loading_trinket_24dee))
 
-            Text(Self.loadingTerms[currentTermIndex])
-                .trinketTypography(.secondaryBody)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .contentTransition(.opacity)
+                VStack(spacing: TrinketDesign.Spacing.medium) {
+                    loadingBar
+                        .frame(maxWidth: 234)
+                    Text(Self.loadingTerms[currentTermIndex])
+                        .trinketTypography(.secondaryBody)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .contentTransition(.opacity)
+                }
+                .padding(.top, 64)
+                .padding(.bottom, min(geometry.size.height * 0.045, 36))
+            }
+            .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
-        .padding(TrinketDesign.Layout.contentMargin)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .trinketScreenBackground()
         .task {
             let prepared = await LaunchLoadingArtwork.preparation.value

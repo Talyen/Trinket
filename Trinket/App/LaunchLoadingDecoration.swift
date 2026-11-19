@@ -3,6 +3,7 @@ import SwiftUI
 import TrinketDesignSystem
 
 struct LaunchLoadingArtwork: Sendable {
+    let logo: CGImage
     let body: CGImage
     let leftEye: CGImage
     let rightEye: CGImage
@@ -11,7 +12,8 @@ struct LaunchLoadingArtwork: Sendable {
     let greenLeaf: CGImage
 
     static let preparation = Task.detached(priority: .userInitiated) {
-        guard let body = decode("slime-body"),
+        guard let logo = decode("ambush-logo"),
+              let body = decode("slime-body"),
               let leftEye = decode("slime-eye-left"),
               let rightEye = decode("slime-eye-right"),
               let mouth = decode("slime-mouth"),
@@ -19,6 +21,7 @@ struct LaunchLoadingArtwork: Sendable {
               let greenLeaf = decode("leaf-green")
         else { return Self?.none }
         return Self(
+            logo: logo,
             body: body,
             leftEye: leftEye,
             rightEye: rightEye,

@@ -244,10 +244,13 @@ final class PhysicalTour: XCTestCase {
         let showcase = ProcessInfo.processInfo.environment["TRINKET_SHOWCASE"] == "1"
         let lyrics = ProcessInfo.processInfo.environment["TRINKET_LYRIC_CAPTURE"] == "1"
         addTeardownBlock { self.app.terminate() }
+        let loading = ProcessInfo.processInfo.environment["TRINKET_LOADING_CAPTURE"] == "1"
         let contract = ProcessInfo.processInfo.environment["TRINKET_CONTRACT_CAPTURE"] == "1"
         let press = ProcessInfo.processInfo.environment["TRINKET_PRESS_PICKUPS"]
         let startsOnDetail = ["gear", "countess", "roster"].contains(press ?? "")
-        if contract {
+        if loading {
+            app.terminate()
+        } else if contract {
             app.launchArguments = ["-store-name", "press-contract-\(UUID().uuidString)", "-reset-state",
                                    "-disable-cloud-sync", "-seed-test-progress", "-disable-audio", "-selectedTab", "play",
                                    "-performance-strong-party", "-battle-tick-interval", "0.02", "-AppleLanguages", "(en)"]
@@ -260,14 +263,16 @@ final class PhysicalTour: XCTestCase {
         }
         if let take = ProcessInfo.processInfo.environment["TRINKET_TAKE"] {
             startRecorder(take: take, audio: lyrics || press == "countess")
-            if !showcase, !startsOnDetail {
+            if !loading, !showcase, !startsOnDetail {
                 app.activate()
             }
         }
         print("TRINKET_CAPTURE_READY \(ProcessInfo.processInfo.systemUptime)")
         fflush(stdout)
         Thread.sleep(forTimeInterval: 4)
-        if press == "roster" {
+        if loading {
+            keep("loading-screen", settle: 1.5) { app.launch() }
+        } else if press == "roster" {
             recordRosterFeature()
         } else if press == "countess" {
             recordCountessFeature()

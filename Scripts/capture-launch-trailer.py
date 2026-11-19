@@ -96,13 +96,13 @@ def continuous_boss_shots(handles):
     return {"shots": shots}
 
 
-def run_tour(udid, app, output, rehearsal, team, boss_showcase, boss_lyrics=False, spires=(), press_pickups=None, contract=False):
+def run_tour(udid, app, output, rehearsal, team, boss_showcase, boss_lyrics=False, spires=(), press_pickups=None, contract=False, loading_screen=False):
     output.mkdir(parents=True, exist_ok=False)
     take = str(uuid.uuid4()).upper()
     write_json_atomic(output / "take.json", {
         "device": udid, "installedApp": app, "take": take, "rehearsal": rehearsal,
         "bossShowcase": boss_showcase, "bossLyrics": boss_lyrics, "spires": spires,
-        "pressPickups": bool(press_pickups), "pressParty": press_pickups, "contract": contract,
+        "pressPickups": bool(press_pickups), "pressParty": press_pickups, "contract": contract, "loadingScreen": loading_screen,
     })
     destination = ["-destination", "platform=iOS,id=" + udid]
     with tempfile.TemporaryDirectory(prefix="trinket-tour-") as build:
@@ -122,6 +122,8 @@ def run_tour(udid, app, output, rehearsal, team, boss_showcase, boss_lyrics=Fals
         test = config["PhysicalTour"]
         test["PreferredScreenCaptureFormat"] = "screenshots"
         test["UserAttachmentLifetime"] = "keepAlways"
+        if loading_screen:
+            test["EnvironmentVariables"]["TRINKET_LOADING_CAPTURE"] = "1"
         if contract:
             test["EnvironmentVariables"]["TRINKET_CONTRACT_CAPTURE"] = "1"
         if press_pickups:
@@ -172,7 +174,7 @@ def run_tour(udid, app, output, rehearsal, team, boss_showcase, boss_lyrics=Fals
         clock = json.loads((output / "clock.json").read_text())
         handles = keep_times(shots, clock)
         write_json_atomic(output / "handles.json", handles)
-        if boss_lyrics or press_pickups or contract:
+        if boss_lyrics or press_pickups or contract or loading_screen:
             timeline = handles
         elif boss_showcase:
             timeline = continuous_boss_shots(handles)
@@ -187,6 +189,7 @@ def main():
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--rehearse", action="store_true", help="Run the route without capturing video.")
     tours = parser.add_mutually_exclusive_group()
+    tours.add_argument("--loading-screen", action="store_true", help="Record a cold game launch and its loading animation.")
     tours.add_argument("--boss-showcase", action="store_true", help="Record the seven Spire bosses with the debug capture build.")
     tours.add_argument("--boss-lyrics", action="store_true", help="Capture each boss theme and its live lyrics in Auto Battle.")
     tours.add_argument("--contract", action="store_true", help="Record a Contract from the board through its victory rewards.")
@@ -206,7 +209,7 @@ def main():
         parser.error("--output-dir is required for a take.")
     team = args.team or re.search(r'^    DEVELOPMENT_TEAM: "(\w+)"', (ROOT / "project.yml").read_text(), re.M)[1]
     run_tour(udid, app, args.output_dir.resolve(), args.rehearse, team, args.boss_showcase,
-             args.boss_lyrics, args.spire, press_pickups=args.press_pickups, contract=args.contract)
+             args.boss_lyrics, args.spire, press_pickups=args.press_pickups, contract=args.contract, loading_screen=args.loading_screen)
 
 
 if __name__ == "__main__":

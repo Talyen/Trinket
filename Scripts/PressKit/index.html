@@ -81,19 +81,18 @@
         align-items: center;
         min-height: 440px;
       }
+      .hero h1 {
+        width: 51%;
+        padding: 16px;
+        margin: 0;
+        line-height: 0;
+      }
       .hero img {
-        position: absolute;
-        right: 0;
-        inset-block: 0;
-        height: 100%;
-        width: 53%;
-        object-fit: cover;
-        object-position: 50% 32%;
-        z-index: -1;
-        mask-image: linear-gradient(90deg, transparent, #000 25%);
+        width: 100%;
+        height: auto;
       }
       .hero div {
-        width: 55%;
+        width: 49%;
         padding: 36px clamp(22px, 4vw, 48px);
       }
       h1,
@@ -233,14 +232,10 @@
           padding: 0;
           align-items: stretch;
         }
-        .hero img {
-          position: relative;
+        .hero h1 {
           width: 100%;
-          height: auto;
-          aspect-ratio: 1.75;
-          z-index: 0;
-          object-position: 50% 28%;
-          mask-image: linear-gradient(#000 73%, transparent);
+          max-width: 440px;
+          align-self: center;
         }
         .hero div {
           width: 100%;
@@ -284,8 +279,8 @@
           min-height: 0;
           background: white;
         }
-        .hero img {
-          display: none;
+        .hero h1 {
+          max-width: 220px;
         }
         .hero div {
           width: 100%;
@@ -313,9 +308,8 @@
     </header>
     <main>
       <div class="hero">
-        <img src="art/trinket-icon.jpg" alt="The Ranger and her Wolf companion" />
+        <h1><img src="previews/trinket-logo.png" alt="Trinket!" width="1440" height="960" /></h1>
         <div>
-          <h1>Trinket!</h1>
           <p>{{pitch}}</p>
           <a class="button" href="#footage">Watch the trailer</a> {{bundle_link}}
         </div>
