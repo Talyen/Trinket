@@ -145,6 +145,9 @@
         font-size: 16px;
       }
       .press-shortcuts a { white-space: nowrap; }
+      .gallery-index { display: flex; flex-wrap: wrap; gap: 0 20px; }
+      .gallery-index a { text-decoration: underline; color: var(--gold); }
+      #images h3 { margin: 32px 0 16px; scroll-margin-top: 16px; }
       .gallery a span { display: block; padding-top: 5px; font-size: 14px; }
       .button {
         display: inline-block;
@@ -159,8 +162,7 @@
         padding: 52px 0;
         border-bottom: 1px solid var(--line);
       }
-      .facts,
-      .feature {
+      .facts {
         display: grid;
         grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
         gap: clamp(28px, 5vw, 75px);
@@ -189,15 +191,29 @@
       dd {
         margin: 0;
       }
-      video {
-        width: 100%;
-        max-height: 510px;
-        background: #0b0c0d;
+      .feature {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) min(42%, 47svh, 495px) minmax(0, 1fr);
+        grid-template-areas: "heading heading heading" "story player downloads";
+        align-items: center;
+        gap: 28px clamp(20px, 3vw, 44px);
+      }
+      .feature h2 {
+        grid-area: heading;
+        margin: 0;
+        text-align: center;
+      }
+      .feature video {
+        grid-area: player;
         display: block;
+        justify-self: center;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 9 / 16;
+        background: #141216;
       }
-      .feature > div {
-        align-self: center;
-      }
+      .footage-story { grid-area: story; }
+      .footage-downloads { grid-area: downloads; }
       .actions {
         gap: 13px 20px;
         margin: 18px 0;
@@ -243,6 +259,14 @@
       .jump {
         scroll-margin: 16px;
       }
+      @media (max-width: 959px) {
+        .feature {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-areas: "heading heading" "player player" "story downloads";
+          align-items: start;
+        }
+        .feature video { max-width: min(47svh, 495px); }
+      }
       @media (max-width: 720px) {
         header {
           gap: 10px;
@@ -271,6 +295,7 @@
         .feature {
           grid-template-columns: 1fr;
         }
+        .feature { grid-template-areas: "heading" "player" "story" "downloads"; }
         .gallery {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
@@ -428,7 +453,10 @@
         </div>
       </section>
       <section class="feature" id="footage">
+        <h2>Gameplay footage</h2>
         <video
+          width="1080"
+          height="1920"
           controls
           playsinline
           preload="none"
@@ -443,18 +471,20 @@
             src="video/Trinket-feature-reel.en.vtt"
           />
         </video>
-        <div>
-          <h2>Gameplay footage</h2>
+        <div class="footage-story">
           <h3>Meet the Blood Countess</h3>
           <p>
             The Wizard brings a Frost Whelp to Sanguine Court. See how the pair comes together, then
             hear the Countess take over the soundtrack. <a href="video/Trinket-feature-reel.mp4#t=58">Watch the fight from 0:58</a>
             or <a href="screenshots/blood-countess.png">open the full-size boss screenshot</a>.
           </p>
-          <p>You may use the downloadable trailer, including its soundtrack, in editorial coverage of Trinket!</p>
-          <p class="meta">Feature trailer · 1:33 · 1080 × 1920 · English narration</p>
+          <p class="meta">1:33 · English narration</p>
+        </div>
+        <div class="footage-downloads">
+          <h3>Trailer downloads</h3>
+          <p>You may use the trailer and its soundtrack in editorial coverage of Trinket!</p>
           <div class="actions">
-            <a href="video/Trinket-feature-reel.mp4" download>Download trailer</a
+            <a href="video/Trinket-feature-reel.mp4" download>Download trailer (1080 × 1920 MP4)</a
             ><a href="video/Trinket-feature-reel.en.srt" download>English narration captions (.srt)</a>
           </div>
           <h3>The Blight Treant</h3>
@@ -472,6 +502,14 @@
           Screenshots and artwork may be used in editorial coverage of Trinket! Select a screenshot to view it at full resolution. <a href="screenshots/Captions.txt" download>Screenshot descriptions and image credits (.txt)</a>.
           <!-- image bundle link -->
         </p>
+        <nav class="gallery-index" aria-label="Screenshot categories">
+          <a href="#battles">Battles and exploration</a>
+          <a href="#roster">Heroes and companions</a>
+          <a href="#unique-items">Unique items</a>
+          <a href="#trinkets">Trinkets</a>
+          <a href="#homestead">Homestead</a>
+        </nav>
+        <h3 id="battles">Battles and exploration</h3>
         <div class="gallery">
           <figure>
             <a href="screenshots/blood-countess.png"><img src="previews/blood-countess.jpg" width="720" height="1450" alt="Full-size Blood Countess battle screenshot" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
@@ -482,12 +520,31 @@
             <figcaption>The Knight and Bear have the Mud Elemental down to its last point of health.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/blackfletch.png"><img src="previews/blackfletch.jpg" width="720" height="1565" alt="Full-size Blackfletch equipment screenshot" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
-            <figcaption>Blackfletch is a unique crossbow. Its critical hits deal all remaining Bleed and Poison damage at once and consume both effects.</figcaption>
+            <a href="screenshots/explore-ipad.png"><img src="previews/explore-ipad.jpg" width="720" height="960" alt="Full-size Explore screenshot on iPad" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>The Spires and Labyrinth on the iPad Explore screen.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/herb-garden.png"><img src="previews/herb-garden.jpg" width="720" height="1450" alt="Full-size Herb Garden screenshot" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
-            <figcaption>Bitter Remedy in the Homestead’s Herb Garden reduces incoming Poison damage by 5%.</figcaption>
+            <a href="screenshots/explore.png"><img src="previews/explore.jpg" width="720" height="1561" alt="Full-size Explore screenshot on iPhone" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>Spires, Labyrinth and Contracts on the iPhone Explore screen.</figcaption>
+          </figure>
+        </div>
+        <h3 id="roster">Heroes and companions</h3>
+        <div class="gallery">
+          <figure>
+            <a href="screenshots/wizard.png"><img src="previews/wizard.jpg" width="720" height="1565" alt="Wizard detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>The Wizard has Mana Berries, Fireball and Meteor equipped in this loadout.</figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/frost-whelp.png"><img src="previews/frost-whelp.jpg" width="720" height="1565" alt="Frost Whelp detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>The Frost Whelp has Ray of Frost, Frostbolt and Blizzard equipped in this loadout.</figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/knight.png"><img src="previews/knight.jpg" width="720" height="1450" alt="Knight detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>The Knight has Bash, Smite and Avatar equipped.</figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/bear.png"><img src="previews/bear.jpg" width="720" height="1450" alt="Bear detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>The Bear has Maul, Briar Shield and Earthquake equipped.</figcaption>
           </figure>
           <figure>
             <a href="screenshots/ranger.jpg"><img src="previews/ranger.jpg" width="720" height="1565" alt="Full-size Ranger ability loadout" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
@@ -498,12 +555,57 @@
             <figcaption>The Fox, a Full Game companion, has Bash, Steal and Shadowstep equipped.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/explore-ipad.png"><img src="previews/explore-ipad.jpg" width="720" height="960" alt="Full-size Explore screenshot on iPad" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
-            <figcaption>The Spires and Labyrinth on the iPad Explore screen.</figcaption>
+            <a href="screenshots/rogue.jpg"><img src="previews/rogue.jpg" width="720" height="1565" alt="Rogue detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>The Rogue has Stab, Poison Dagger and Hemorrhage equipped.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/explore.png"><img src="previews/explore.jpg" width="720" height="1561" alt="Full-size Explore screenshot on iPhone" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
-            <figcaption>Spires, Labyrinth and Contracts on the iPhone Explore screen.</figcaption>
+            <a href="screenshots/wolf.jpg"><img src="previews/wolf.jpg" width="720" height="1565" alt="Wolf detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>The Wolf has Fangs, Pounce and Pack Tactics equipped.</figcaption>
+          </figure>
+        </div>
+        <h3 id="unique-items">Unique items</h3>
+        <div class="gallery">
+          <figure>
+            <a href="screenshots/blackfletch.png"><img src="previews/blackfletch.jpg" width="720" height="1565" alt="Full-size Blackfletch equipment screenshot" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>Blackfletch is a unique crossbow. Its critical hits deal all remaining Bleed and Poison damage at once and consume both effects.</figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/twin-casting.png"><img src="previews/twin-casting.jpg" width="720" height="1450" alt="Twin Casting detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>The unique staff Twin Casting draws a Freeze card when you spend Mana to empower a Burn card, and vice versa.</figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/saintfall-plate.png"><img src="previews/saintfall-plate.jpg" width="720" height="1565" alt="Saintfall Plate detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>The first time each round the wearer’s Block breaks, Saintfall Plate deals Holy and Stun damage to the attacker and restores Health.</figcaption>
+          </figure>
+        </div>
+        <h3 id="trinkets">Trinkets</h3>
+        <div class="gallery">
+          <figure>
+            <a href="screenshots/frozen-pocketwatch.png"><img src="previews/frozen-pocketwatch.jpg" width="720" height="1450" alt="Frozen Pocketwatch detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>The Frozen Pocketwatch gives Freeze a 30% chance to last an additional turn.</figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/resonant-chimes.png"><img src="previews/resonant-chimes.jpg" width="720" height="1565" alt="Resonant Chimes detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>Resonant Chimes grants 1 Mana when you play your second card each turn.</figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/companions-collar.png"><img src="previews/companions-collar.jpg" width="720" height="1565" alt="Companion’s Collar detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>Once per turn, healing your companion with Companion’s Collar equipped draws a companion card.</figcaption>
+          </figure>
+        </div>
+        <h3 id="homestead">Homestead</h3>
+        <div class="gallery">
+          <figure>
+            <a href="screenshots/herb-garden.png"><img src="previews/herb-garden.jpg" width="720" height="1450" alt="Full-size Herb Garden screenshot" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>Bitter Remedy in the Homestead’s Herb Garden reduces incoming Poison damage by 5%.</figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/blacksmith.jpg"><img src="previews/blacksmith.jpg" width="720" height="1565" alt="Blacksmith detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>The Blacksmith offers crafting and upgrades. Fresh Ingots produces three Iron per day at the level shown.</figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/chicken-coop.png"><img src="previews/chicken-coop.jpg" width="720" height="1450" alt="Chicken Coop detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <figcaption>The Chicken Coop raises Companion Health and produces Food each day.</figcaption>
           </figure>
         </div>
       </section>
