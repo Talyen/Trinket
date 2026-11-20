@@ -98,8 +98,7 @@ live service or family-ownership behavior.
   payment entitlement is added to the app.
 - Create and localize the non-consumable, set territories and pricing, enable
   Family Sharing (Apple does not permit turning it off later).
-- Verify real product loading, restoration, family ownership, pending approval,
-  and refunds on sandbox/TestFlight devices.
+- For real product loading, restoration, family ownership, pending approval and refunds, reuse the recorded sandbox/TestFlight results across builds. Select fresh device checks under [Manual checks across builds](Release.md#manual-checks-across-builds).
 - For support/privacy pages and App Store privacy answers, follow the
   [release procedure](Release.md#prepare-while-the-beta-is-running); the purchase-specific
   behavior to reconcile there is verified ownership, restore/family semantics,

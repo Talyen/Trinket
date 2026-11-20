@@ -80,6 +80,7 @@ caused by the change without another approval checkpoint. Stop when complete or
 blocked by a required decision or unavailable prerequisite.
 
 - Add tests only for consequential gaps in existing protection; use the three questions in [Testing](Docs/Platform/Testing.md#coverage-decision-new-and-changed-behavior). Verification does not require new test code.
+- Reuse prior manual evidence across builds. Before triggering a phone unlock, passcode, Apple Account sign-in, purchase or restore, identify the changed behavior or reported regression that invalidates the last result. If none applies, skip the check unless the user explicitly requests that specific test. A new build number or general approval to proceed carries prior results forward. [Release verification scope](Docs/Platform/Release.md#manual-checks-across-builds)
 - Visual inspection is optional unless explicitly requested; report what was actually reviewed and any relevant verification limits.
 - Report the checks that ran and exact blockers/skips using [Verification's completion states](Docs/Platform/Verification.md#completion-states). Pending hosted checks do not block an otherwise complete local-only task.
 - Save visual artifacts in `.DerivedData/Deliverables/`; [Development](Docs/Platform/Development.md#evidence-and-cleanup) owns evidence preservation and cleanup.

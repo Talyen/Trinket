@@ -63,10 +63,14 @@ do not create another app or change the bundle ID to match the display name.
    business requirements, export-compliance questions, and the release method.
    Prefer manual release when the launch date is not yet settled. Recheck Apple's
    submission requirements near release rather than freezing today's requirements.
-6. Use beta updates to test preservation of the existing save, offline play,
-   interrupted battles, restart, and purchase restoration. Record build IDs and
-   observed outcomes. Run CloudKit's Development and TestFlight stages separately;
+6. Scope beta device checks to the change under [Manual checks across builds](#manual-checks-across-builds). For affected paths, record the build and observed outcome for save preservation, offline play, interrupted battles, restart or purchase restoration. Run CloudKit's Development and TestFlight stages separately;
    a successful local-only TestFlight launch does not verify iCloud sync.
+
+### Manual checks across builds
+
+Use the last verified result for each player action. Compare changes since that result, including relevant App Store Connect configuration. A loading-art change calls for inspecting the loading screen when requested. A change to entitlement handling can justify testing restore. A reported purchase failure can justify a focused reproduction even when the source is unchanged.
+
+Before triggering an Apple prompt or asking the owner to sign in, identify which prior result no longer answers the question and what the device can establish beyond automated checks. Keep the device session and What to Test notes focused on that question. Carry known coverage gaps forward with their original scope. Hosted candidate checks still follow the [TestFlight deployment workflow](#local-testflight-deployment).
 
 ### Triage a player report
 
