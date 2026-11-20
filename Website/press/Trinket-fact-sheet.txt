@@ -1,6 +1,6 @@
 Trinket! | Press fact sheet
 
-Freeze an enemy with your Wizard, then hit it with your Frost Whelp’s Ice Shot for double damage. In Trinket!, your hero and companion share a hand of cards. You choose the abilities they bring to battle and the order you play them.
+Trinket! is a turn-based card RPG where your hero and companion share a hand of cards. Freeze an enemy with your Wizard, then play your Frost Whelp’s Ice Shot for double damage. You choose the abilities they bring to battle and the order you play them.
 
 Between fights, check the Contracts board. Each of the three offers shows the enemy and a bonus reward. Pick a job for materials you need at the Homestead, or see how your pair fares against a boss.
 
