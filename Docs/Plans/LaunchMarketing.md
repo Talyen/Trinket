@@ -76,9 +76,15 @@ expectations from Trinket's own results. [Pawnbarian press kit](https://j4nw.com
 
 ## Press materials
 
-Team Alto presents facts, screenshots, video, logo and icon as distinct downloads. Pawnbarian specifies pricing per platform and explains its central mechanic in ordinary language. Trinket follows those examples with individual downloads and a full offline bundle. For journalists, place the live store link beside the trailer when the listing opens. Reserve a scannable end card for situations where the audience is watching a separate screen, such as an event booth. [Alto’s Odyssey press kit](https://altosodyssey.com/press/) · [Pawnbarian press kit](https://j4nw.com/pawnbarian/presskit) · [Apple promotion tools](https://developer.apple.com/app-store/promote/)
+Team Alto presents facts, screenshots, video, logo and icon as distinct downloads. Pawnbarian specifies pricing per platform and explains its central mechanic in ordinary language. Trinket follows those examples with individual downloads and a full offline bundle. Once the U.S. listing opens to new players, update the press page, its share description and the fact sheet with the live store link and release wording. Verify both newly packaged ZIPs before distributing the launch pitch. Reserve a scannable end card for situations where the audience is watching a separate screen, such as an event booth. [Alto’s Odyssey press kit](https://altosodyssey.com/press/) · [Pawnbarian press kit](https://j4nw.com/pawnbarian/presskit) · [Apple promotion tools](https://developer.apple.com/app-store/promote/)
 
 To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-Nov17> <fresh-output-directory>`. It renders the cleaned Ranger and Fox end card and packages the 6144 × 4096 transparent logo. Pass `--branded-trailers <folder>` to reuse the approved render from `Scripts/PressKit/brand.py`. It uses the “Coming to iOS” reel from `channel-edits/countess-press-2026-12-21/` and shares the curated screenshots and copy under `Website/press` with the public edition. The developer cleared the Countess soundtrack for press use on November 19. Add a live store URL only after verifying it opens the product page.
+
+### Pitch selection
+
+Keep one set of game facts and one master email in the private outreach sheet. For each desk, change the opening, the coverage request and the most useful asset link. Lead general features with the singing Blood Countess and explain the shared hand in the next sentence. For release lists, put the U.S. date, platform and price first. Give reviewers a companion choice they can test. Give creators an opening they can film in a normal first session. Use the outlet’s required fields for submissions.
+
+Two independent Codex readers compared the same three openings in different orders. Both picked the Countess for a general feature, release facts for a roundup and the companion comparison for a review. They split on the creator opener. Use these judgments to edit drafts. After approved outreach, record actual replies, review-access requests and coverage by outlet and hook. With eight different desks, the results describe individual placements rather than measuring response-rate lift. [Muck Rack’s 2026 journalist survey, p. 31](https://media.muckrack.com/documents/State_of_Journalism_2026_1.pdf)
 
 ## Before launch
 
@@ -230,7 +236,7 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | Press access | External Beta App Review requested Nov 19 | Build 13 is attached to the invite-only Press Preview group. Apple returned Waiting for Review. Send private invitations after external approval. |
 | Featuring nomination | Submitted November 19 | App Launch, December 21, U.S., iPhone and iPad. Apple confirmed nomination `9a7f1d2d-b137-40ca-af15-432c455ae3ab` with the public kit, narrated trailer and Blood Countess still. |
 | Advance outreach | Three December 7–9 pitches prepared | Pocket Gamer news, MiniReview and Lunar Nebula Gaming. Send-day copy and sources are in `LaunchReadiness-Nov19/Advance-outreach.md`. No dispatch yet. |
-| Editorial review | Draft revision, awaiting owner approval | Eight launch drafts and three advance emails are in the retained Release folders. The press page and offline downloads share one set of captions and release facts. Trailer feedback requires separate approval. |
+| Editorial review | Draft revision, awaiting owner approval | Eight launch drafts and three advance emails are in the retained Release folders. The press page and offline downloads share one set of captions and release facts. The owner accepted the existing trailer. The second editorial pass covers press copy, outreach and image assets. |
 | Press outreach dispatched | Due December 7–11 | Check the public kit and external beta status before sending. |
 | Verified public U.S. launch | Pending | |
 | Day 7, 14, and 30 sales and conversion snapshots | Pending | |

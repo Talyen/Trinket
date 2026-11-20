@@ -10,9 +10,9 @@ Developer: Ryan McIntire, solo indie developer
 Release: December 21, 2026 · United States
 Platform: iPhone and iPad · iOS / iPadOS 18 or later
 Genre: Single-player fantasy RPG with turn-based card combat
-Price: First three Campaign chapters free. One permanent Full Game purchase, US$4.99.
+Price: Free download. Play the first three Campaign chapters free. One US$4.99 purchase unlocks the full game.
 Free play: Also includes unlimited Contracts, three Labyrinth floors, ten floors of every Spire and Voyages in the Forest, Dungeon and Desert.
-Offline: Play offline without an account. Optional iCloud save sync.
+Offline: Play offline. No Trinket account required. Optional iCloud save sync.
 
 Where to find the Blood Countess: Explore → Spires → Sanguine Court, floor 10. This boss is within the free portion of the Spire. The fight starts at 0:58 in the feature trailer.
 
