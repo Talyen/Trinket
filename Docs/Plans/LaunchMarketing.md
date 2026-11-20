@@ -78,7 +78,7 @@ expectations from Trinket's own results. [Pawnbarian press kit](https://j4nw.com
 
 Team Alto presents facts, screenshots, video, logo and icon as distinct downloads. Pawnbarian specifies pricing per platform and explains its central mechanic in ordinary language. Trinket follows those examples with individual downloads and a full offline bundle. For journalists, place the live store link beside the trailer when the listing opens. Reserve a scannable end card for situations where the audience is watching a separate screen, such as an event booth. [Alto’s Odyssey press kit](https://altosodyssey.com/press/) · [Pawnbarian press kit](https://j4nw.com/pawnbarian/presskit) · [Apple promotion tools](https://developer.apple.com/app-store/promote/)
 
-To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-Nov17> <fresh-output-directory>`. It renders the cleaned Ranger and Fox end card and packages the 6144 × 4096 transparent logo. Pass `--branded-trailers <folder>` to reuse the approved render from `Scripts/PressKit/brand.py`. It takes the “Coming to iOS” reel from `channel-edits/countess-press-2026-12-21/`, the selected stills archive and the two iPhone takes. The developer cleared the Countess soundtrack for press use on November 19. Add a live store URL only after verifying it opens the product page.
+To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-Nov17> <fresh-output-directory>`. It renders the cleaned Ranger and Fox end card and packages the 6144 × 4096 transparent logo. Pass `--branded-trailers <folder>` to reuse the approved render from `Scripts/PressKit/brand.py`. It uses the “Coming to iOS” reel from `channel-edits/countess-press-2026-12-21/` and shares the curated screenshots and copy under `Website/press` with the public edition. The developer cleared the Countess soundtrack for press use on November 19. Add a live store URL only after verifying it opens the product page.
 
 ## Before launch
 
@@ -86,7 +86,7 @@ To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-
   game facts and a public contact. The November 17 release evidence contains the
   stills ZIP, eight individually drafted pitches, the App Launch nomination draft
   and the D7/D14/D30 reporting worksheet.
-- [x] **Agents · prelaunch press kit.** The [press page](https://talyen.github.io/Trinket/press/) and downloadable offline ZIP are public. It includes seven captioned stills, artwork and the full-resolution transparent Ambush logo, a plain-text fact sheet, the Countess reel with a prelaunch ending, and silent creator footage. The launch cut with the App Store badge is separate. For interviews or review access, the kit points to the developer’s public contact.
+- [x] **Agents · prelaunch press kit.** The [press page](https://talyen.github.io/Trinket/press/) and downloadable offline ZIP are public. It includes eight captioned stills across iPhone and iPad layouts, artwork and the full-resolution transparent Ambush logo, a plain-text fact sheet, the Countess reel with a prelaunch ending, and silent creator footage. The launch cut with the App Store badge is separate. For interviews or review access, the kit points to the developer’s public contact.
 - [x] **Agents · trailer.** Prepare one short fight clip for each of the seven bosses. Open on the first vocal passage with that boss’s theme and live lyrics. [Matchups, capture and edit plan](LaunchTrailer.md)
 - [x] **Agents · Apple editorial.** Check for an existing nomination, then
   prepare the App Launch nomination for iPhone and iPad in the U.S. Include
@@ -230,6 +230,7 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | Press access | External Beta App Review requested Nov 19 | Build 13 is attached to the invite-only Press Preview group. Apple returned Waiting for Review. Send private invitations after external approval. |
 | Featuring nomination | Submitted November 19 | App Launch, December 21, U.S., iPhone and iPad. Apple confirmed nomination `9a7f1d2d-b137-40ca-af15-432c455ae3ab` with the public kit, narrated trailer and Blood Countess still. |
 | Advance outreach | Three December 7–9 pitches prepared | Pocket Gamer news, MiniReview and Lunar Nebula Gaming. Send-day copy and sources are in `LaunchReadiness-Nov19/Advance-outreach.md`. No dispatch yet. |
+| Editorial review | Draft revision, awaiting owner approval | Eight launch drafts and three advance emails are in the retained Release folders. The press page and offline downloads share one set of captions and release facts. Trailer feedback requires separate approval. |
 | Press outreach dispatched | Due December 7–11 | Check the public kit and external beta status before sending. |
 | Verified public U.S. launch | Pending | |
 | Day 7, 14, and 30 sales and conversion snapshots | Pending | |

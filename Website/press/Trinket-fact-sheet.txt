@@ -1,8 +1,8 @@
 Trinket! | Press fact sheet
 
-Pair a hero with a companion and build the hand they take into battle in this solo-developed fantasy card RPG for iPhone and iPad.
+Trinket! is a turn-based fantasy card RPG for iPhone and iPad. Choose a hero and a companion, play cards from both in one hand, then use the gear you find and the upgrades you build at the Homestead to prepare for the next fight.
 
-A Wizard and a Frost Whelp head into Sanguine Court. The Wizard brings Ray of Frost. The Blood Countess brings a song of her own. In Trinket!, the cards you take into a turn-based fight come from the hero and companion you pair up and the abilities you choose for them.
+A Wizard and a Frost Whelp head into Sanguine Court. The Wizard brings Ray of Frost. The Blood Countess brings a song of her own.
 
 Recruit a Bear and its Sunder can cut an enemy’s Block in half before it hits. Between fights, tend the Herb Garden, compare the rewards on the Contracts board, or send a party on a Desert Voyage. The same roster can tackle the Campaign, climb boss Spires and explore the Labyrinth.
 
@@ -14,7 +14,13 @@ Price: First three Campaign chapters free. One permanent Full Game purchase, US$
 Free play: Also includes unlimited Contracts, three Labyrinth floors, ten floors of every Spire and Voyages in the Forest, Dungeon and Desert.
 Offline: Play offline without an account. Optional iCloud save sync.
 
+Where to find the Blood Countess: Explore → Spires → Sanguine Court, floor 10. This boss is within the free portion of the Spire. The fight starts at 0:58 in the feature trailer.
+
 Press & review access: Ryan McIntire · rymcintire@gmail.com
+
+Press kit, trailer and full-resolution images: https://talyen.github.io/Trinket/press/
+
+Editorial use: You may use the downloadable trailer, including its soundtrack, in coverage of Trinket! Screenshots, artwork and the silent Blight Treant footage may also be used in editorial coverage of the game.
 
 Support: https://talyen.github.io/Trinket/
 

@@ -19,7 +19,7 @@ class PressLinks(HTMLParser):
     def handle_starttag(self, tag, attrs):
         for key, value in attrs:
             if key in ("href", "src", "poster") and not value.startswith(("#", "https:", "mailto:")):
-                self.files.add(value)
+                self.files.add(value.partition("#")[0])
 
 
 class PublicPressKitTests(unittest.TestCase):
@@ -47,5 +47,8 @@ class PublicPressKitTests(unittest.TestCase):
                 offline = PressLinks()
                 offline.feed(kit.read("index.html").decode())
                 self.assertTrue(offline.files <= set(kit.namelist()))
-                self.assertIn("Trinket-images.zip", offline.files)
+                self.assertIn("Trinket-images.zip", links.files)
+                self.assertNotIn("Trinket-images.zip", kit.namelist())
+                with zipfile.ZipFile(press / "Trinket-images.zip") as images:
+                    self.assertTrue(set(images.namelist()) <= set(kit.namelist()))
                 self.assertEqual(kit.read("art/trinket-logo.png"), b"test logo")

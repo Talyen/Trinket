@@ -1,7 +1,12 @@
-blood-countess.png — Wizard and Frost Whelp battle the singing Blood Countess
-knight-bear.png — Knight and Bear face the Mud Elemental
-herb-garden.png — The Herb Garden at the Homestead
-explore.png — Illustrated destinations on the Explore screen
-ranger.jpg — The Ranger hero
-fox.png — Inspecting the Fox companion
-blackfletch.png — Blackfletch unique equipment
+Trinket! · Screenshot captions
+Suggested credit: Trinket! / Ryan McIntire
+Press kit: https://talyen.github.io/Trinket/press/
+
+blood-countess.png · iPhone · 1180 × 2376 — The Blood Countess sings as the Wizard and Frost Whelp play their cards.
+knight-bear.png · iPhone · 1206 × 2622 — The Knight and Bear have the Mud Elemental down to its last point of health.
+blackfletch.png · iPhone · 1206 × 2622 — Blackfletch is a unique bow. A critical hit deals the remaining Bleed and Poison damage at once.
+herb-garden.png · iPhone · 1180 × 2376 — Bitter Remedy in the Homestead’s Herb Garden reduces incoming Poison damage.
+ranger.jpg · iPhone · 1206 × 2622 — The Ranger has Fire Arrow, Bounty Shot and Astral Arrow equipped.
+fox.png · iPhone · 1206 × 2622 — The Fox, a Full Game companion, has Bash, Steal and Shadowstep equipped.
+explore-ipad.png · iPad · 2064 × 2752 — The Spires and Labyrinth on the iPad Explore screen.
+explore.png · iPhone · 1179 × 2556 — Spires, Labyrinth and Contracts on the iPhone Explore screen.
