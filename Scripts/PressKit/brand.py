@@ -44,14 +44,16 @@ def end_card(path, badge, release=None):
     card.save(path)
 
 
-def ffmpeg(inputs, graph, maps, output, extra=()):
+def ffmpeg(inputs, graph, maps, output, extra=(), *, web=False):
+    encoder = (["-c:v", "libx264", "-crf", "19", "-preset", "fast", "-threads", "3"] if web else
+               ["-c:v", "h264_videotoolbox", "-b:v", "12M"])
     subprocess.run(["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-n",
                     "-filter_complex_threads", "2", *inputs, "-filter_complex", graph, *maps,
-                    "-c:v", "h264_videotoolbox", "-profile:v", "high", "-b:v", "12M",
+                    *encoder, "-profile:v", "high",
                     *extra, "-movflags", "+faststart", output], check=True)
 
 
-def feature(channel, original, card, dest):
+def feature(channel, original, card, dest, *, phone_frame=False):
     source = channel / original
     edit = json.loads((source / "edit.json").read_text())
     boss, ending = edit["sections"][-2:]
@@ -59,22 +61,31 @@ def feature(channel, original, card, dest):
         raise ValueError("Expected the reviewed Countess take and final dissolve")
     rate = edit["fps"]
     start = ending["timeline"]
-    overlap = ending["dissolve_frames"]
+    # Both halves of the dip fit within the former dissolve. The card hold and
+    # music therefore end on exactly the same frames as the approved edit.
+    fade_frames = max(2, round(rate * 0.2))
+    if fade_frames > ending["dissolve_frames"] or fade_frames * 2 > ending["count"]:
+        raise ValueError("The source has too few frames for the closing fade")
     boss_frame = boss["first"] + start - boss["timeline"]
-    # The approved master already has the old dissolve baked in. Take precisely
-    # those overlapping fight frames from the phone original, before blending.
     inputs = ["-i", source / REEL, "-ss", str(boss_frame / rate), "-i", channel / boss["file"],
               "-loop", "1", "-framerate", str(rate), "-i", card]
+    # The master's center 952 columns are clean phone pixels on even chroma boundaries.
+    head_fit = "crop=952:1920:64:0," if phone_frame else ""
+    fight_fit = ("scale=954:1920,crop=952:1920:0:0" if phone_frame else
+                 "scale=-2:1920,pad=1080:1920:(1080-iw)/2:0:color=0x141216")
+    card_fit = ("scale=952:-2,pad=952:1920:0:(oh-ih)/2:color=0x1c191c," if phone_frame else "")
+    common = "setsar=1,scale=iw:ih:out_color_matrix=bt709:out_range=tv,format=yuv420p"
     graph = (
-        f"[0:v]fps={rate},trim=end_frame={start},setpts=N/({rate}*TB),setsar=1,format=yuv444p[head];"
-        f"[1:v]fps={rate},trim=end_frame={overlap},setpts=N/({rate}*TB),crop=1180:2376:0:150,"
-        "scale=-2:1920,pad=1080:1920:(1080-iw)/2:0:color=0x141216,setsar=1,format=yuv444p[fight];"
-        f"[2:v]trim=end_frame={ending['count']},setpts=N/({rate}*TB),setsar=1,format=yuv444p[card];"
-        f"[fight][card]xfade=transition=fade:duration={overlap/rate}:offset=0[tail];"
-        "[head][tail]concat=n=2:v=1:a=0,format=yuv420p[picture]"
+        f"[0:v]fps={rate},trim=end_frame={start},setpts=PTS-STARTPTS,{head_fit}{common}[head];"
+        f"[1:v]fps={rate},trim=end_frame={fade_frames},setpts=PTS-STARTPTS,crop=1180:2376:0:150,"
+        f"{fight_fit},{common},fade=t=out:s=0:n={fade_frames - 1}[fight];"
+        f"[2:v]trim=end_frame={ending['count'] - fade_frames},setpts=PTS-STARTPTS,{card_fit}"
+        f"{common},fade=t=in:s=0:n={fade_frames - 1}[card];"
+        "[head][fight][card]concat=n=3:v=1:a=0[picture]"
     )
     ffmpeg(inputs, graph, ["-map", "[picture]", "-map", "0:a:0", "-map", "0:s?"],
-           dest, ["-c:a", "copy", "-c:s", "copy"])
+           dest, ["-c:a", "copy", "-c:s", "copy", "-color_primaries", "bt709",
+                  "-color_trc", "bt709", "-colorspace", "bt709", "-color_range", "tv"], web=phone_frame)
 
 
 def social(source, card, dest):
@@ -97,7 +108,7 @@ def render_trailers(evidence, output):
     ):
         card = output / f"Trinket-{label}-End-Card.png"
         end_card(card, badge, date_copy)
-        feature(channel, original, card, output / f"Trinket-{label}-Feature-Reel.mp4")
+        feature(channel, original, card, output / f"Trinket-{label}-Feature-Reel.mp4", phone_frame=label == "Press")
     for cue in sorted((evidence / "boss-lyric-trailers").glob("*.cues.json")):
         source = cue.with_suffix("").with_suffix(".mp4")
         social(source, output / "Trinket-Launch-End-Card.png", output / f"{source.stem}-Social.mp4")

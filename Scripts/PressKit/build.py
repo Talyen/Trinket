@@ -33,12 +33,12 @@ def build(evidence, output, trailers=None):
             card = Path(work) / "press.png"
             end_card(card, channel / "apple-download-badge-3x.png",
                      f"{US_RELEASE:%B} {US_RELEASE.day}, {US_RELEASE.year}")
-            feature(channel, master.name, card, reel)
+            feature(channel, master.name, card, reel, phone_frame=True)
     shutil.copyfile(channel / "Trinket-Blight-Treant-Creator-Footage.mp4", kit / "video/Trinket-creator-footage.mp4")
     srt = (master / "Trinket-Feature-Reel.en.srt").read_text()
     (kit / "video/Trinket-feature-reel.en.srt").write_text(srt)
     (kit / "video/Trinket-feature-reel.en.vtt").write_text("WEBVTT\n\n"+re.sub(r"(\d\d:\d\d:\d\d),(\d{3})", r"\1.\2", srt))
-    frame(kit / "video/Trinket-feature-reel.mp4", 74, kit / "previews/trailer.jpg", "scale=450:800")
+    frame(kit / "video/Trinket-feature-reel.mp4", 74, kit / "previews/trailer.jpg", "scale=476:960")
     package(kit, MASTER, LOGO, output=output)
     html = (kit / "index.html").read_text()
     landing = re.sub(r'(href|src|poster)="(?!#|https:|mailto:|\.\./)', r'\1="Trinket-Press-Kit/', html)

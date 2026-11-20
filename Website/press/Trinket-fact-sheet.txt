@@ -1,10 +1,10 @@
 Trinket! | Press fact sheet
 
-Trinket! is a turn-based card RPG where your hero and companion share a hand of cards. Freeze an enemy with your Wizard, then play your Frost Whelp’s Ice Shot for double damage. You choose the abilities they bring to battle and the order you play them.
+Trinket! is a turn-based card RPG where your hero and companion share a hand of cards. Freeze an enemy with your Wizard, then play your Frost Whelp’s Ice Shot for double damage.
 
-Between fights, check the Contracts board. Each of the three offers shows the enemy and a bonus reward. Pick a job for materials you need at the Homestead, or see how your pair fares against a boss.
+Take a hero and companion through four Campaign chapters, from the Forest to the Tundra. Recruit allies along the way and give each character a specialty through their equipment, abilities and talent trees.
 
-Recruit new companions in the Campaign, tend the Herb Garden at the Homestead, or send your party on a Desert Voyage. You can also climb the Spires and explore the Labyrinth.
+Beyond the Campaign, climb seven Spires, chart a path through an endless Labyrinth, or set out on a Voyage. Contracts offer a single fight with a reward you can see up front. Back at the Homestead, grow herbs, forge gear and put your haul to work.
 
 Developer: Ryan McIntire, solo indie developer
 Release: December 21, 2026 · United States
