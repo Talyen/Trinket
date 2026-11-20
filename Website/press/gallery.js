@@ -20,10 +20,12 @@
     current = (index + links.length) % links.length;
     const link = links[current];
     setZoom(false);
-    photo.alt = link.querySelector("img").alt;
+    const caption = link.closest("figure").querySelector("figcaption").textContent;
+    photo.alt = caption;
+    viewer.setAttribute("aria-label", "Gameplay screenshot " + (current + 1) + " of " + links.length + ". " + caption);
     photo.src = link.href;
     viewer.querySelector("[data-count]").textContent = (current + 1) + " / " + links.length;
-    viewer.querySelector(".viewer-caption").textContent = link.closest("figure").querySelector("figcaption").textContent;
+    viewer.querySelector(".viewer-caption").textContent = caption;
     viewer.querySelector("[data-download]").href = link.href;
   }
 
@@ -32,6 +34,7 @@
     link.addEventListener("click", event => {
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
+      viewer.querySelector(".viewer-details").open = false;
       viewer.showModal();
       show(index);
     });

@@ -7,41 +7,40 @@ Screenshots and artwork may be used in editorial coverage of Trinket!
 Battles and exploration
 
 blood-countess.png · iPhone · 1180 × 2376 — The Blood Countess sings to the Wizard and Frost Whelp on floor 10 of Sanguine Court.
-knight-bear.png · iPhone · 1206 × 2622 — The Knight and Bear have the Mud Elemental down to its last point of health.
-explore-ipad.png · iPad · 2064 × 2752 — The Spires and Labyrinth on the iPad Explore screen.
-explore.png · iPhone · 1179 × 2556 — Spires, Labyrinth and Contracts on the iPhone Explore screen.
+knight-bear.png · iPhone · 1206 × 2462 — The Knight and Bear have the Mud Elemental down to its last point of health.
+explore.png · iPhone · 1179 × 2406 — Spires, Labyrinth and Contracts on the iPhone Explore screen.
 
 Heroes and companions
 
-wizard.png · iPhone Simulator · 1206 × 2622 — The Wizard has Mana Berries, Fireball and Meteor equipped in this loadout.
-frost-whelp.png · iPhone Simulator · 1206 × 2622 — The Frost Whelp has Ray of Frost, Frostbolt and Blizzard equipped in this loadout.
+wizard.png · iPhone Simulator · 1206 × 2462 — The Wizard has Mana Berries, Fireball and Meteor equipped in this loadout.
+frost-whelp.png · iPhone Simulator · 1206 × 2462 — The Frost Whelp has Ray of Frost, Frostbolt and Blizzard equipped in this loadout.
 knight.png · iPhone · 1180 × 2376 — The Knight has Bash, Smite and Avatar equipped.
 bear.png · iPhone · 1180 × 2376 — The Bear has Maul, Briar Shield and Earthquake equipped.
-ranger.jpg · iPhone · 1206 × 2622 — The Ranger has Fire Arrow, Bounty Shot and Astral Arrow equipped.
-fox.png · iPhone · 1206 × 2622 — The Fox, a Full Game companion, has Bash, Steal and Shadowstep equipped.
-rogue.jpg · iPhone Simulator · 1206 × 2622 — The Rogue has Stab, Poison Dagger and Hemorrhage equipped.
-wolf.jpg · iPhone Simulator · 1206 × 2622 — The Wolf has Fangs, Pounce and Pack Tactics equipped.
+ranger.jpg · iPhone · 1206 × 2462 — The Ranger has Fire Arrow, Bounty Shot and Astral Arrow equipped.
+fox.png · iPhone · 1206 × 2462 — The Fox, a Full Game companion, has Bash, Steal and Shadowstep equipped.
+rogue.jpg · iPhone Simulator · 1206 × 2462 — The Rogue has Stab, Poison Dagger and Hemorrhage equipped.
+wolf.jpg · iPhone Simulator · 1206 × 2462 — The Wolf has Fangs, Pounce and Pack Tactics equipped.
+library-owl.png · iPhone Simulator · 1206 × 2462 — The Library Owl has Stargaze, Heal and Sunburst equipped.
 
 Unique items
 
-blackfletch.png · iPhone · 1206 × 2622 — Blackfletch is a unique crossbow. Its critical hits deal all remaining Bleed and Poison damage at once and consume both effects.
+blackfletch.png · iPhone · 1206 × 2462 — Blackfletch is a unique crossbow. Its critical hits deal all remaining Bleed and Poison damage at once and consume both effects.
 twin-casting.png · iPhone · 1180 × 2376 — The unique staff Twin Casting draws a Freeze card when you spend Mana to empower a Burn card, and vice versa.
-saintfall-plate.png · iPhone Simulator · 1206 × 2622 — The first time each round the wearer’s Block breaks, Saintfall Plate deals Holy and Stun damage to the attacker and restores Health.
+saintfall-plate.png · iPhone Simulator · 1206 × 2462 — The first time each round the wearer’s Block breaks, Saintfall Plate deals Holy and Stun damage to the attacker and restores Health.
 
 Trinkets
 
 frozen-pocketwatch.png · iPhone · 1180 × 2376 — The Frozen Pocketwatch gives Freeze a 30% chance to last an additional turn.
-resonant-chimes.png · iPhone Simulator · 1206 × 2622 — Resonant Chimes grants 1 Mana when you play your second card each turn.
-companions-collar.png · iPhone Simulator · 1206 × 2622 — Once per turn, healing your companion with Companion’s Collar equipped draws a companion card.
+parasitic-bloom.png · iPhone Simulator · 1206 × 2462 — Parasitic Bloom gives Poison attacks Leech.
+meteorite.png · iPhone Simulator · 1206 × 2462 — Meteorite lets Burn cards spend additional Mana to deal more damage.
 
 Homestead
 
 herb-garden.png · iPhone · 1180 × 2376 — Bitter Remedy in the Homestead’s Herb Garden reduces incoming Poison damage by 5%.
-blacksmith.jpg · iPhone Simulator · 1206 × 2622 — The Blacksmith offers crafting and upgrades. Fresh Ingots produces three Iron per day at the level shown.
+blacksmith.jpg · iPhone Simulator · 1206 × 2462 — The Blacksmith offers crafting and upgrades. Fresh Ingots produces three Iron per day at the level shown.
 chicken-coop.png · iPhone · 1180 × 2376 — The Chicken Coop raises Companion Health and produces Food each day.
 
 Artwork in the art folder
 
 trinket-logo.png · 6144 × 4096 · Transparent PNG · Official Trinket! wordmark with the Ranger and Fox. Use this when placing the logo over your own background.
-trinket-key-art.png · 1920 × 1080 · PNG · Ranger and Fox landscape logo card on charcoal. Ready for a 16:9 article header.
 trinket-icon.jpg · 2048 × 2048 · JPG · App icon artwork featuring the Ranger and Wolf.

@@ -10,7 +10,7 @@
     />
     <meta property="og:title" content="Trinket! · Press kit" />
     <meta property="og:description" content="Trinket! is a turn-based card RPG where your hero and companion share a hand of cards. Freeze an enemy with your Wizard, then play your Frost Whelp’s Ice Shot for double damage. Coming to iPhone and iPad in the U.S. on December 21, 2026." />
-    <meta property="og:image" content="https://talyen.github.io/Trinket/press/art/trinket-key-art.png" />
+    <meta property="og:image" content="https://talyen.github.io/Trinket/press-share.jpg" />
     <meta property="og:image:alt" content="Trinket! logo featuring the Ranger and Fox" />
     <style>
       :root {
@@ -148,7 +148,8 @@
       .gallery-index { display: flex; flex-wrap: wrap; gap: 0 20px; }
       .gallery-index a { text-decoration: underline; color: var(--gold); }
       #images h3 { margin: 32px 0 16px; scroll-margin-top: 16px; }
-      .gallery a span { display: block; padding-top: 5px; font-size: 14px; }
+      .gallery figure { container-type: inline-size; }
+      .gallery a { display: block; width: fit-content; margin-inline: auto; }
       .button {
         display: inline-block;
         padding: 10px 17px;
@@ -188,6 +189,7 @@
       figcaption {
         color: var(--muted);
       }
+      .roster-access { margin-top: 14px; }
       dd {
         margin: 0;
       }
@@ -231,8 +233,10 @@
       }
       .gallery img {
         display: block;
-        width: 100%;
-        height: auto;
+        width: auto;
+        border-radius: 10px;
+        height: 200cqi;
+        max-width: 100cqi;
       }
       figcaption {
         font-size: 15px;
@@ -240,17 +244,15 @@
       }
       .assets {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
         gap: 24px;
       }
       .assets img {
+        display: block;
         width: 100%;
-        height: 155px;
-        object-fit: contain;
+        height: auto;
+        margin-bottom: 6px;
         background: #242427;
-      }
-      .assets .light {
-        background: #efebe2;
       }
       footer {
         padding-top: 32px;
@@ -302,15 +304,12 @@
         section {
           padding: 34px 0;
         }
-        .assets {
-          gap: 15px;
-        }
-        .assets img {
-          height: 110px;
-        }
+        .assets { grid-template-columns: minmax(0, 1fr); gap: 24px; }
       }
       @media (max-width: 480px) {
         .gallery { grid-template-columns: minmax(0, 1fr); }
+        .gallery a { width: 100%; }
+        .gallery img { width: 100%; height: auto; }
       }
       @media print {
         header nav,
@@ -363,46 +362,19 @@
         max-width: none;
         max-height: none;
         margin: 0;
-        padding: 12px clamp(12px, 3vw, 36px);
-        padding-top: max(12px, env(safe-area-inset-top));
-        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        padding: 0;
         border: 0;
-        background: #101113;
+        background: #09090b;
         color: var(--paper);
-      }
-      .viewer[open] {
-        display: grid;
-        grid-template-rows: auto minmax(0, 1fr) auto;
-        gap: 10px;
+        overflow: hidden;
       }
       body:has(.viewer[open]) { overflow: hidden; }
-      .viewer-bar, .viewer-tools {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 6px 12px;
-      }
-      .viewer-bar { justify-content: space-between; }
-      .viewer-nav { display: flex; align-items: center; gap: 8px; }
-      .viewer button {
-        min-height: 44px;
-        min-width: 44px;
-        padding: 6px 12px;
-        background: #252528;
-        border: 1px solid var(--line);
-        border-radius: 4px;
-        color: var(--paper);
-        font: inherit;
-        cursor: pointer;
-      }
-      .viewer button:focus-visible { outline: 3px solid white; outline-offset: 2px; }
       .viewer-stage {
-        min-height: 0;
-        min-width: 0;
+        width: 100%;
+        height: 100%;
         display: flex;
         overflow: auto;
         overscroll-behavior: contain;
-        background: #09090b;
       }
       .viewer-stage img {
         display: block;
@@ -414,8 +386,50 @@
         margin: auto;
       }
       .viewer-stage.actual-size img { max-width: none; max-height: none; }
-      .viewer-tools { justify-content: center; }
-      .viewer-caption { margin-bottom: 8px; text-align: center; }
+      .viewer button, .viewer summary {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 6px 12px;
+        color: var(--paper);
+        background: #202124;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font: inherit;
+        cursor: pointer;
+      }
+      .viewer :is(button, summary, a):focus-visible { outline: 3px solid white; outline-offset: 2px; }
+      .viewer-details, .viewer [data-close] {
+        position: absolute;
+        top: max(8px, env(safe-area-inset-top));
+      }
+      .viewer-details { left: max(8px, env(safe-area-inset-left)); z-index: 1; }
+      .viewer-details summary { width: fit-content; align-content: center; }
+      .viewer [data-close] { right: max(8px, env(safe-area-inset-right)); }
+      .viewer-panel {
+        width: min(19rem, calc(100vw - 24px));
+        max-height: calc(100dvh - 124px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        overflow: auto;
+        margin-top: 4px;
+        padding: 14px;
+        background: #202124;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+      }
+      .viewer-tools { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+      .viewer-nav button { position: absolute; top: 50%; transform: translateY(-50%); }
+      .viewer [data-prev] { left: max(8px, env(safe-area-inset-left)); }
+      .viewer [data-next] { right: max(8px, env(safe-area-inset-right)); }
+      .viewer-details[open] ~ .viewer-nav {
+        position: absolute;
+        bottom: max(8px, env(safe-area-inset-bottom));
+        right: max(8px, env(safe-area-inset-right));
+        display: flex;
+        gap: 6px;
+      }
+      .viewer-details[open] ~ .viewer-nav button { position: static; transform: none; }
+      @media (max-aspect-ratio: 3/4) {
+        .viewer-details:not([open]) ~ .viewer-nav { display: none; }
+      }
       @media print { .viewer[open] { display: none; } }
     </style>
   </head>
@@ -450,6 +464,7 @@
         <div>
           <h2>At a glance</h2>
           <dl><div><dt>Developer</dt><dd>Ryan McIntire, solo indie developer</dd></div><div><dt>Release</dt><dd>December 21, 2026 · United States</dd></div><div><dt>Platform</dt><dd>iPhone and iPad · iOS / iPadOS 18 or later</dd></div><div><dt>Genre</dt><dd>Single-player fantasy RPG with turn-based card combat</dd></div><div><dt>Price</dt><dd>Free download. Play the first three Campaign chapters free. One US$4.99 purchase unlocks the full game.</dd></div><div><dt>Free play</dt><dd>Also includes unlimited Contracts, three Labyrinth floors, ten floors of every Spire and Voyages in the Forest, Dungeon and Desert.</dd></div><div><dt>Offline</dt><dd>Play offline. No Trinket account required. Optional iCloud save sync.</dd></div></dl>
+          <a href="#content">Game modes, roster and talents</a>
         </div>
       </section>
       <section class="feature" id="footage">
@@ -499,7 +514,7 @@
       <section id="images">
         <h2>Gameplay screenshots</h2>
         <p>
-          Screenshots and artwork may be used in editorial coverage of <i>Trinket!</i> Select a screenshot to view it at full resolution. <a href="screenshots/Captions.txt" download>Screenshot descriptions and image credits (.txt)</a>.
+          Screenshots and artwork may be used in editorial coverage of <i>Trinket!</i> Select an image to open the full-size viewer. <a href="screenshots/Captions.txt" download>Screenshot descriptions and image credits (.txt)</a>.
           <!-- image bundle link -->
         </p>
         <nav class="gallery-index" aria-label="Screenshot categories">
@@ -512,99 +527,99 @@
         <h3 id="battles">Battles and exploration</h3>
         <div class="gallery">
           <figure>
-            <a href="screenshots/blood-countess.png"><img src="previews/blood-countess.jpg" width="720" height="1450" alt="Full-size Blood Countess battle screenshot" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/blood-countess.png"><img src="previews/blood-countess.jpg" width="720" height="1450" alt="Full-size Blood Countess battle screenshot" loading="lazy" /></a>
             <figcaption>The Blood Countess sings to the Wizard and Frost Whelp on floor 10 of Sanguine Court.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/knight-bear.png"><img src="previews/knight-bear.jpg" width="720" height="1565" alt="Full-size Knight and Bear battle screenshot" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/knight-bear.png"><img src="previews/knight-bear.jpg" width="720" height="1470" alt="Full-size Knight and Bear battle screenshot" loading="lazy" /></a>
             <figcaption>The Knight and Bear have the Mud Elemental down to its last point of health.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/explore-ipad.png"><img src="previews/explore-ipad.jpg" width="720" height="960" alt="Full-size Explore screenshot on iPad" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
-            <figcaption>The Spires and Labyrinth on the iPad Explore screen.</figcaption>
-          </figure>
-          <figure>
-            <a href="screenshots/explore.png"><img src="previews/explore.jpg" width="720" height="1561" alt="Full-size Explore screenshot on iPhone" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/explore.png"><img src="previews/explore.jpg" width="720" height="1469" alt="Full-size Explore screenshot on iPhone" loading="lazy" /></a>
             <figcaption>Spires, Labyrinth and Contracts on the iPhone Explore screen.</figcaption>
           </figure>
         </div>
         <h3 id="roster">Heroes and companions</h3>
         <div class="gallery">
           <figure>
-            <a href="screenshots/wizard.png"><img src="previews/wizard.jpg" width="720" height="1565" alt="Wizard detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/wizard.png"><img src="previews/wizard.jpg" width="720" height="1470" alt="Wizard detail screen" loading="lazy" /></a>
             <figcaption>The Wizard has Mana Berries, Fireball and Meteor equipped in this loadout.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/frost-whelp.png"><img src="previews/frost-whelp.jpg" width="720" height="1565" alt="Frost Whelp detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/frost-whelp.png"><img src="previews/frost-whelp.jpg" width="720" height="1470" alt="Frost Whelp detail screen" loading="lazy" /></a>
             <figcaption>The Frost Whelp has Ray of Frost, Frostbolt and Blizzard equipped in this loadout.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/knight.png"><img src="previews/knight.jpg" width="720" height="1450" alt="Knight detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/knight.png"><img src="previews/knight.jpg" width="720" height="1450" alt="Knight detail screen" loading="lazy" /></a>
             <figcaption>The Knight has Bash, Smite and Avatar equipped.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/bear.png"><img src="previews/bear.jpg" width="720" height="1450" alt="Bear detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/bear.png"><img src="previews/bear.jpg" width="720" height="1450" alt="Bear detail screen" loading="lazy" /></a>
             <figcaption>The Bear has Maul, Briar Shield and Earthquake equipped.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/ranger.jpg"><img src="previews/ranger.jpg" width="720" height="1565" alt="Full-size Ranger ability loadout" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/ranger.jpg"><img src="previews/ranger.jpg" width="720" height="1470" alt="Full-size Ranger ability loadout" loading="lazy" /></a>
             <figcaption>The Ranger has Fire Arrow, Bounty Shot and Astral Arrow equipped.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/fox.png"><img src="previews/fox.jpg" width="720" height="1565" alt="Full-size Fox companion loadout" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/fox.png"><img src="previews/fox.jpg" width="720" height="1470" alt="Full-size Fox companion loadout" loading="lazy" /></a>
             <figcaption>The Fox, a Full Game companion, has Bash, Steal and Shadowstep equipped.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/rogue.jpg"><img src="previews/rogue.jpg" width="720" height="1565" alt="Rogue detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/rogue.jpg"><img src="previews/rogue.jpg" width="720" height="1470" alt="Rogue detail screen" loading="lazy" /></a>
             <figcaption>The Rogue has Stab, Poison Dagger and Hemorrhage equipped.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/wolf.jpg"><img src="previews/wolf.jpg" width="720" height="1565" alt="Wolf detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/wolf.jpg"><img src="previews/wolf.jpg" width="720" height="1470" alt="Wolf detail screen" loading="lazy" /></a>
             <figcaption>The Wolf has Fangs, Pounce and Pack Tactics equipped.</figcaption>
+          </figure>
+          <figure>
+            <a href="screenshots/library-owl.png"><img src="previews/library-owl.jpg" width="720" height="1470" alt="Library Owl companion loadout" loading="lazy" /></a>
+            <figcaption>The Library Owl has Stargaze, Heal and Sunburst equipped.</figcaption>
           </figure>
         </div>
         <h3 id="unique-items">Unique items</h3>
         <div class="gallery">
           <figure>
-            <a href="screenshots/blackfletch.png"><img src="previews/blackfletch.jpg" width="720" height="1565" alt="Full-size Blackfletch equipment screenshot" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/blackfletch.png"><img src="previews/blackfletch.jpg" width="720" height="1470" alt="Full-size Blackfletch equipment screenshot" loading="lazy" /></a>
             <figcaption>Blackfletch is a unique crossbow. Its critical hits deal all remaining Bleed and Poison damage at once and consume both effects.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/twin-casting.png"><img src="previews/twin-casting.jpg" width="720" height="1450" alt="Twin Casting detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/twin-casting.png"><img src="previews/twin-casting.jpg" width="720" height="1450" alt="Twin Casting detail screen" loading="lazy" /></a>
             <figcaption>The unique staff Twin Casting draws a Freeze card when you spend Mana to empower a Burn card, and vice versa.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/saintfall-plate.png"><img src="previews/saintfall-plate.jpg" width="720" height="1565" alt="Saintfall Plate detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/saintfall-plate.png"><img src="previews/saintfall-plate.jpg" width="720" height="1470" alt="Saintfall Plate detail screen" loading="lazy" /></a>
             <figcaption>The first time each round the wearer’s Block breaks, Saintfall Plate deals Holy and Stun damage to the attacker and restores Health.</figcaption>
           </figure>
         </div>
         <h3 id="trinkets">Trinkets</h3>
         <div class="gallery">
           <figure>
-            <a href="screenshots/frozen-pocketwatch.png"><img src="previews/frozen-pocketwatch.jpg" width="720" height="1450" alt="Frozen Pocketwatch detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/frozen-pocketwatch.png"><img src="previews/frozen-pocketwatch.jpg" width="720" height="1450" alt="Frozen Pocketwatch detail screen" loading="lazy" /></a>
             <figcaption>The Frozen Pocketwatch gives Freeze a 30% chance to last an additional turn.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/resonant-chimes.png"><img src="previews/resonant-chimes.jpg" width="720" height="1565" alt="Resonant Chimes detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
-            <figcaption>Resonant Chimes grants 1 Mana when you play your second card each turn.</figcaption>
+            <a href="screenshots/parasitic-bloom.png"><img src="previews/parasitic-bloom.jpg" width="720" height="1470" alt="Parasitic Bloom detail screen" loading="lazy" /></a>
+            <figcaption>Parasitic Bloom gives Poison attacks Leech.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/companions-collar.png"><img src="previews/companions-collar.jpg" width="720" height="1565" alt="Companion’s Collar detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
-            <figcaption>Once per turn, healing your companion with Companion’s Collar equipped draws a companion card.</figcaption>
+            <a href="screenshots/meteorite.png"><img src="previews/meteorite.jpg" width="720" height="1470" alt="Meteorite detail screen" loading="lazy" /></a>
+            <figcaption>Meteorite lets Burn cards spend additional Mana to deal more damage.</figcaption>
           </figure>
         </div>
         <h3 id="homestead">Homestead</h3>
         <div class="gallery">
           <figure>
-            <a href="screenshots/herb-garden.png"><img src="previews/herb-garden.jpg" width="720" height="1450" alt="Full-size Herb Garden screenshot" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/herb-garden.png"><img src="previews/herb-garden.jpg" width="720" height="1450" alt="Full-size Herb Garden screenshot" loading="lazy" /></a>
             <figcaption>Bitter Remedy in the Homestead’s Herb Garden reduces incoming Poison damage by 5%.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/blacksmith.jpg"><img src="previews/blacksmith.jpg" width="720" height="1565" alt="Blacksmith detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/blacksmith.jpg"><img src="previews/blacksmith.jpg" width="720" height="1470" alt="Blacksmith detail screen" loading="lazy" /></a>
             <figcaption>The Blacksmith offers crafting and upgrades. Fresh Ingots produces three Iron per day at the level shown.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/chicken-coop.png"><img src="previews/chicken-coop.jpg" width="720" height="1450" alt="Chicken Coop detail screen" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
+            <a href="screenshots/chicken-coop.png"><img src="previews/chicken-coop.jpg" width="720" height="1450" alt="Chicken Coop detail screen" loading="lazy" /></a>
             <figcaption>The Chicken Coop raises Companion Health and produces Food each day.</figcaption>
           </figure>
         </div>
@@ -613,36 +628,61 @@
         <h2>Logo &amp; artwork</h2>
         <div class="assets">
           <figure>
-            <a href="art/trinket-key-art.png" download><img loading="lazy" src="previews/trinket-key-art.jpg" alt="" />Landscape logo card</a>
-            <figcaption>1920 × 1080 PNG</figcaption>
-          </figure>
-          <figure>
-            <a href="art/trinket-icon.jpg" download><img loading="lazy" src="previews/trinket-icon.jpg" alt="" />App icon artwork · Ranger and Wolf</a>
-            <figcaption>2048 × 2048 JPG</figcaption>
-          </figure>
-          <figure>
-            <a href="art/trinket-logo.png" download><img loading="lazy" src="previews/ambush-wordmark.webp" alt="" />Transparent logo · Ranger and Fox</a>
+            <a href="art/trinket-logo.png" download><img loading="lazy" src="previews/ambush-wordmark.webp" width="1080" height="720" alt="" />Transparent logo · Ranger and Fox</a>
             <figcaption>6144 × 4096 PNG · <a href="previews/trinket-logo.png" download="Trinket-logo-1440.png">Smaller logo (1440 × 960 PNG)</a></figcaption>
           </figure>
+          <figure>
+            <a href="art/trinket-icon.jpg" download><img loading="lazy" src="previews/trinket-icon.jpg" width="420" height="420" alt="" />App icon artwork · Ranger and Wolf</a>
+            <figcaption>2048 × 2048 JPG</figcaption>
+          </figure>
+        </div>
+      </section>
+      <section id="content">
+        <h2>Game content at launch</h2>
+        <div class="facts">
+          <div>
+            <h3>Game modes</h3>
+            <dl>
+              <div><dt>Campaign</dt><dd>Four chapters with 10 stages each. Play Forest, Dungeon and Desert for free. The full game adds Tundra.</dd></div>
+              <div><dt>Spires</dt><dd>Seven Spires with 20 floors each (140 floors total). The first 10 floors of every Spire are free.</dd></div>
+              <div><dt>Labyrinth</dt><dd>An endless dungeon. The first three floors are free.</dd></div>
+              <div><dt>Contracts</dt><dd>Three single-battle jobs on the board at a time. Contracts are unlimited in free play.</dd></div>
+              <div><dt>Voyage</dt><dd>Repeatable routes of 8, 10 or 12 stops. Forest, Dungeon and Desert are free. The full game adds Tundra.</dd></div>
+            </dl>
+          </div>
+          <div>
+            <h3>Roster and progression</h3>
+            <dl>
+              <div><dt>Heroes</dt><dd>8 heroes. Ranger, Knight, Rogue, Wizard, Druid, Warlock, Alchemist, Wildcard.</dd></div>
+              <div><dt>Companions</dt><dd>13 companions. Wolf, Bear, Frost Whelp, Lizard Scout, Panther, Phoenix, Golden Retriever, Library Owl, Risen Skeleton, Mana Moth, Pixie, Shield Scarab, Fox.</dd></div>
+              <div><dt>Abilities</dt><dd>65 distinct equippable abilities across the roster, including 20 basics, 26 skills and 19 ultimates.</dd></div>
+              <div><dt>Talents</dt><dd>446 talents across 63 trees, three trees per character. The Wizard can specialize in Cryomancy, Pyromancy or Arcana.</dd></div>
+              <div><dt>Equipment</dt><dd>24 trinkets and 29 unique items.</dd></div>
+              <div><dt>Homestead</dt><dd>20 projects across Farming, Crafting, Alchemy, Training and Arcana.</dd></div>
+              <div><dt>Enemies</dt><dd>39 enemies, including 7 bosses.</dd></div>
+            </dl>
+            <p class="roster-access">Free play includes the Knight, Ranger, Rogue and Wizard, plus the Wolf, Bear, Frost Whelp and Library Owl. Each has their full ability and talent progression. A full-game purchase opens the rest of the roster for recruitment.</p>
+          </div>
         </div>
       </section>
     </main>
     <dialog id="screenshot-viewer" class="viewer" aria-label="Gameplay screenshots">
-      <div class="viewer-bar">
-        <div class="viewer-nav">
-          <button type="button" data-prev aria-label="Previous screenshot">←</button>
-          <span data-count></span>
-          <button type="button" data-next aria-label="Next screenshot">→</button>
-        </div>
-        <button type="button" data-close autofocus>Close</button>
-      </div>
       <div class="viewer-stage"><img alt="" /></div>
-      <div>
-        <p class="viewer-caption" aria-live="polite" aria-atomic="true"></p>
-        <div class="viewer-tools">
-          <button type="button" data-zoom>Actual size</button>
-          <a data-download download>Download original</a>
+      <button type="button" data-close aria-label="Close screenshot viewer" autofocus>×</button>
+      <details class="viewer-details">
+        <summary>Details</summary>
+        <div class="viewer-panel">
+          <p data-count></p>
+          <p class="viewer-caption"></p>
+          <div class="viewer-tools">
+            <button type="button" data-zoom>Actual size</button>
+            <a data-download download>Download original</a>
+          </div>
         </div>
+      </details>
+      <div class="viewer-nav">
+        <button type="button" data-prev aria-label="Previous screenshot">←</button>
+        <button type="button" data-next aria-label="Next screenshot">→</button>
       </div>
     </dialog>
     <script src="gallery.js" defer></script>
