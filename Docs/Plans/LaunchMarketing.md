@@ -51,15 +51,9 @@ A Christmas-week release gives press fewer ordinary workdays after launch, so pr
 
 ## Positioning and audience
 
-Lead with the Hero and Companion pairing, show a turn where their abilities
-work together, then show how earned gear or talents change the next fight.
-Target players who already seek single-player strategy games and fantasy card
-battlers on mobile. Use the free Campaign chapters as the invitation to play
-and put the one-time unlock price next to it.
+Lead with the Wizard and Frost Whelp in turn-based card combat. Use the Contracts board when there is room to explain how players choose their next fight and reward. Target single-player strategy and fantasy card RPG readers. Pair the three free Campaign chapters with the one-time US$4.99 unlock in U.S. launch copy.
 
-> Pair a Hero with a Companion in turn-based fantasy card battles. Play the
-> first three Campaign chapters free. Unlock the rest with a one-time $4.99
-> Full Game purchase in the U.S.
+> Freeze an enemy with your Wizard, then hit it with your Frost Whelp’s Ice Shot for double damage. In Trinket!, your hero and companion share a hand of cards. You choose the abilities they bring to battle and the order you play them.
 
 Use `Trinket!` for the App Store listing name and the approved English
 metadata when describing free content, offline play, iCloud sync, or the
@@ -82,7 +76,7 @@ To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-
 
 ### Pitch selection
 
-Keep one set of game facts and one master email in the private outreach sheet. For each desk, change the opening, the coverage request and the most useful asset link. Lead general features with the turn-based card RPG and the choice that shapes each hand: the hero and companion bring their equipped abilities into battle together. Show what changes when the same Knight brings a Bear with Sunder or a Frost Whelp with Ray of Frost. The Countess’s song belongs in descriptions of that encounter. For release lists, put the U.S. date, platform and price first. Give reviewers a companion choice they can test. Give creators an opening they can film in a normal first session. Use the outlet’s required fields for submissions.
+Use the Wizard’s freeze and the Frost Whelp’s Ice Shot as the main gameplay pitch. Ice Shot deals double damage while the target is Frozen. The player can set up the combo across draws. For release lists, lead with the date and platform, then give the combo in one sentence. For hands-on reviews, invite the reader to compare Ice Shot before and after freezing a target. For creators, suggest filming the party choice and the payoff in battle. Use Contracts as a second angle when the desk needs the broader loop: compare three enemies and their bonus rewards, choose one battle, and put the winnings toward the party or Homestead.
 
 For future copy reviews, ask independent readers to name the genre and describe a decision the player makes after reading just the opening. Then compare which accurate opening they remember. After approved outreach, record actual replies, review-access requests and coverage by outlet and hook. With eight different desks, the results describe individual placements rather than measuring response-rate lift. [Muck Rack’s 2026 journalist survey, p. 31](https://media.muckrack.com/documents/State_of_Journalism_2026_1.pdf)
 
@@ -236,7 +230,7 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | Press access | External Beta App Review requested Nov 19 | Build 13 is attached to the invite-only Press Preview group. Apple returned Waiting for Review. Send private invitations after external approval. |
 | Featuring nomination | Submitted November 19 | App Launch, December 21, U.S., iPhone and iPad. Apple confirmed nomination `9a7f1d2d-b137-40ca-af15-432c455ae3ab` with the public kit, narrated trailer and Blood Countess still. |
 | Advance outreach | Three December 7–9 pitches prepared | Pocket Gamer news, MiniReview and Lunar Nebula Gaming. Send-day copy and sources are in `LaunchReadiness-Nov19/Advance-outreach.md`. No dispatch yet. |
-| Editorial review | Draft revision, awaiting owner approval | Eight launch drafts and three advance emails are in the retained Release folders. The press page and offline downloads share one set of captions and release facts. The owner accepted the existing trailer. The second editorial pass covers press copy, outreach and image assets. |
+| Editorial review | Wizard and Frost Whelp pitch selected; outreach remains unsent | Eight launch drafts and three advance emails are in the retained Release folders. The press page and offline downloads share one set of captions and release facts. The owner accepted the existing trailer. The second editorial pass covers press copy, outreach and image assets. |
 | Press outreach dispatched | Due December 7–11 | Check the public kit and external beta status before sending. |
 | Verified public U.S. launch | Pending | |
 | Day 7, 14, and 30 sales and conversion snapshots | Pending | |
