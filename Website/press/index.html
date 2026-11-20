@@ -84,22 +84,26 @@
         overflow: hidden;
         border: 1px solid var(--line);
         background: #211e1e;
-        display: flex;
+        display: grid;
+        grid-template-columns: 51% 49%;
         align-items: center;
         min-height: 440px;
       }
       .hero h1 {
-        width: 51%;
         padding: 16px;
         margin: 0;
         line-height: 0;
+      }
+      .hero > .button {
+        grid-column: 1 / -1;
+        justify-self: center;
+        margin: 20px 0 28px;
       }
       .hero img {
         width: 100%;
         height: auto;
       }
       .hero div {
-        width: 49%;
         padding: 36px clamp(22px, 4vw, 48px);
       }
       h1,
@@ -203,18 +207,16 @@
       }
       .gallery {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 26px 18px;
       }
       figure {
         margin: 0;
       }
-      figure img {
+      .gallery img {
         display: block;
         width: 100%;
-        height: 250px;
-        object-fit: contain;
-        background: #111214;
+        height: auto;
       }
       figcaption {
         font-size: 15px;
@@ -250,18 +252,17 @@
           gap: 12px;
         }
         .hero {
-          flex-direction: column;
-          padding: 0;
-          align-items: stretch;
+          grid-template-columns: minmax(0, 1fr);
+          min-height: 0;
         }
         .hero h1 {
           width: 100%;
           max-width: 440px;
-          align-self: center;
+          justify-self: center;
         }
         .hero div {
           width: 100%;
-          padding: 0 22px 26px;
+          padding: 0 22px;
         }
         .hero p {
           font-size: 18px;
@@ -273,9 +274,6 @@
         .gallery {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
-        figure img {
-          height: 230px;
-        }
         section {
           padding: 34px 0;
         }
@@ -285,6 +283,9 @@
         .assets img {
           height: 110px;
         }
+      }
+      @media (max-width: 480px) {
+        .gallery { grid-template-columns: minmax(0, 1fr); }
       }
       @media print {
         header nav,
@@ -331,6 +332,66 @@
           color: #242424;
         }
       }
+      .viewer {
+        width: 100%;
+        height: 100dvh;
+        max-width: none;
+        max-height: none;
+        margin: 0;
+        padding: 12px clamp(12px, 3vw, 36px);
+        padding-top: max(12px, env(safe-area-inset-top));
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        border: 0;
+        background: #101113;
+        color: var(--paper);
+      }
+      .viewer[open] {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        gap: 10px;
+      }
+      body:has(.viewer[open]) { overflow: hidden; }
+      .viewer-bar, .viewer-tools {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px 12px;
+      }
+      .viewer-bar { justify-content: space-between; }
+      .viewer-nav { display: flex; align-items: center; gap: 8px; }
+      .viewer button {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 6px 12px;
+        background: #252528;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        color: var(--paper);
+        font: inherit;
+        cursor: pointer;
+      }
+      .viewer button:focus-visible { outline: 3px solid white; outline-offset: 2px; }
+      .viewer-stage {
+        min-height: 0;
+        min-width: 0;
+        display: flex;
+        overflow: auto;
+        overscroll-behavior: contain;
+        background: #09090b;
+      }
+      .viewer-stage img {
+        display: block;
+        flex: none;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+        margin: auto;
+      }
+      .viewer-stage.actual-size img { max-width: none; max-height: none; }
+      .viewer-tools { justify-content: center; }
+      .viewer-caption { margin-bottom: 8px; text-align: center; }
+      @media print { .viewer[open] { display: none; } }
     </style>
   </head>
   <body>
@@ -347,9 +408,9 @@
         <div>
           <p>Freeze an enemy with your Wizard, then hit it with your Frost Whelp’s Ice Shot for double damage. Trinket! is a turn-based card RPG for iPhone and iPad.</p>
           <p class="release">Coming December 21, 2026 · U.S. App Store</p>
-          <p class="press-shortcuts"><a href="Trinket-fact-sheet.txt" download>Fact sheet (.txt)</a><a href="#images">Screenshots</a><a href="#contact">Press contact</a></p>
-          <a class="button" href="#footage">Watch the trailer</a> <!-- full kit download -->
+          <p class="press-shortcuts"><a href="Trinket-fact-sheet.txt" download>Fact sheet (.txt)</a><a href="#images">Screenshots</a><a href="#contact">Press contact</a><!-- full kit download --></p>
         </div>
+        <a class="button" href="#footage">Watch the trailer</a>
       </div>
       <section class="facts" id="facts">
         <div>
@@ -408,40 +469,40 @@
       <section id="images">
         <h2>Gameplay screenshots</h2>
         <p>
-          Screenshots and artwork may be used in editorial coverage of Trinket! Open a screenshot for the original. <a href="screenshots/Captions.txt" download>Download captions and credits</a>.
+          Screenshots and artwork may be used in editorial coverage of Trinket! Select a screenshot to view it at full resolution. <a href="screenshots/Captions.txt" download>Screenshot descriptions and image credits (.txt)</a>.
           <!-- image bundle link -->
         </p>
         <div class="gallery">
           <figure>
-            <a href="screenshots/blood-countess.png"><img src="previews/blood-countess.jpg" width="358" height="720" alt="Full-size Blood Countess battle screenshot" loading="lazy" /><span aria-hidden="true">Open original</span></a>
+            <a href="screenshots/blood-countess.png"><img src="previews/blood-countess.jpg" width="720" height="1450" alt="Full-size Blood Countess battle screenshot" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
             <figcaption>The Blood Countess sings to the Wizard and Frost Whelp on floor 10 of Sanguine Court.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/knight-bear.png"><img src="previews/knight-bear.jpg" width="258" height="560" alt="Full-size Knight and Bear battle screenshot" loading="lazy" /><span aria-hidden="true">Open original</span></a>
+            <a href="screenshots/knight-bear.png"><img src="previews/knight-bear.jpg" width="720" height="1565" alt="Full-size Knight and Bear battle screenshot" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
             <figcaption>The Knight and Bear have the Mud Elemental down to its last point of health.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/blackfletch.png"><img src="previews/blackfletch.jpg" width="258" height="560" alt="Full-size Blackfletch equipment screenshot" loading="lazy" /><span aria-hidden="true">Open original</span></a>
+            <a href="screenshots/blackfletch.png"><img src="previews/blackfletch.jpg" width="720" height="1565" alt="Full-size Blackfletch equipment screenshot" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
             <figcaption>Blackfletch is a unique crossbow. Its critical hits deal all remaining Bleed and Poison damage at once and consume both effects.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/herb-garden.png"><img src="previews/herb-garden.jpg" width="278" height="560" alt="Full-size Herb Garden screenshot" loading="lazy" /><span aria-hidden="true">Open original</span></a>
+            <a href="screenshots/herb-garden.png"><img src="previews/herb-garden.jpg" width="720" height="1450" alt="Full-size Herb Garden screenshot" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
             <figcaption>Bitter Remedy in the Homestead’s Herb Garden reduces incoming Poison damage by 5%.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/ranger.jpg"><img src="previews/ranger.jpg" width="258" height="560" alt="Full-size Ranger ability loadout" loading="lazy" /><span aria-hidden="true">Open original</span></a>
+            <a href="screenshots/ranger.jpg"><img src="previews/ranger.jpg" width="720" height="1565" alt="Full-size Ranger ability loadout" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
             <figcaption>The Ranger has Fire Arrow, Bounty Shot and Astral Arrow equipped.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/fox.png"><img src="previews/fox.jpg" width="258" height="560" alt="Full-size Fox companion loadout" loading="lazy" /><span aria-hidden="true">Open original</span></a>
+            <a href="screenshots/fox.png"><img src="previews/fox.jpg" width="720" height="1565" alt="Full-size Fox companion loadout" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
             <figcaption>The Fox, a Full Game companion, has Bash, Steal and Shadowstep equipped.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/explore-ipad.png"><img src="previews/explore-ipad.jpg" width="520" height="693" alt="Full-size Explore screenshot on iPad" loading="lazy" /><span aria-hidden="true">Open original</span></a>
+            <a href="screenshots/explore-ipad.png"><img src="previews/explore-ipad.jpg" width="720" height="960" alt="Full-size Explore screenshot on iPad" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
             <figcaption>The Spires and Labyrinth on the iPad Explore screen.</figcaption>
           </figure>
           <figure>
-            <a href="screenshots/explore.png"><img src="previews/explore.jpg" width="258" height="560" alt="Full-size Explore screenshot on iPhone" loading="lazy" /><span aria-hidden="true">Open original</span></a>
+            <a href="screenshots/explore.png"><img src="previews/explore.jpg" width="720" height="1561" alt="Full-size Explore screenshot on iPhone" loading="lazy" /><span aria-hidden="true">View screenshot</span></a>
             <figcaption>Spires, Labyrinth and Contracts on the iPhone Explore screen.</figcaption>
           </figure>
         </div>
@@ -464,6 +525,25 @@
         </div>
       </section>
     </main>
+    <dialog id="screenshot-viewer" class="viewer" aria-label="Gameplay screenshots">
+      <div class="viewer-bar">
+        <div class="viewer-nav">
+          <button type="button" data-prev aria-label="Previous screenshot">←</button>
+          <span data-count></span>
+          <button type="button" data-next aria-label="Next screenshot">→</button>
+        </div>
+        <button type="button" data-close autofocus>Close</button>
+      </div>
+      <div class="viewer-stage"><img alt="" /></div>
+      <div>
+        <p class="viewer-caption" aria-live="polite" aria-atomic="true"></p>
+        <div class="viewer-tools">
+          <button type="button" data-zoom>Actual size</button>
+          <a data-download download>Download original</a>
+        </div>
+      </div>
+    </dialog>
+    <script src="gallery.js" defer></script>
     <footer id="contact">
       <h2>Press contact</h2>
       <p>
