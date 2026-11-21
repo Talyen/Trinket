@@ -53,12 +53,62 @@ def ffmpeg(inputs, graph, maps, output, extra=(), *, web=False):
                     *extra, "-movflags", "+faststart", output], check=True)
 
 
+def press_feature(channel, source, edit, card, dest):
+    """Render the approved edit from device timestamps, retaining its audio and subtitles."""
+    timebase = edit["fps"]
+    rate = 60
+    shots = edit["sections"]
+    ending = shots[-1]
+    # Keep the original fade's black frames and its first fully visible card frame.
+    fade = max(2, round(timebase * 0.2))
+    if rate % timebase or fade > ending["dissolve_frames"] or 2 * fade > ending["count"]:
+        raise ValueError("Unsupported press timeline or closing fade")
+    factor = rate // timebase
+    inputs = []
+    graph = []
+    for i, shot in enumerate(shots[:-1]):
+        if not shot["raw"]:
+            raise ValueError(f"Missing original iPhone take for {shot['id']}")
+        frames = shot["count"]
+        last = i == len(shots) - 2
+        if last:
+            frames = ending["timeline"] - shot["timeline"] + fade
+        inputs += ["-threads", "1", "-ss", str(shot["first"] / timebase),
+                   "-t", str((frames + 2) / timebase), "-i", channel / shot["file"]]
+        filters = (f"[{i}:v]fps={rate}:start_time=0,trim=end_frame={frames * factor},"
+                   f"settb=1/{rate},setpts=N,crop=1180:2376:0:150,"
+                   "scale=954:1920:out_color_matrix=bt709:out_range=tv,format=yuv444p,"
+                   "crop=952:1920:1:0,setsar=1")
+        if last:
+            filters += f",fade=t=out:s={(frames - fade) * factor}:n={(fade - 1) * factor}"
+        graph.append(filters + f"[shot{i}]")
+        if i:
+            overlap = shots[i - 1]["timeline"] + shots[i - 1]["count"] - shot["timeline"]
+            graph.append(f"[{picture}][shot{i}]xfade=duration={overlap / timebase:.8f}:"
+                         f"offset={shot['timeline'] / timebase:.8f}[mix{i}]")
+        picture = f"mix{i}" if i else "shot0"
+
+    index = len(shots) - 1
+    inputs += ["-loop", "1", "-framerate", str(rate), "-i", card, "-i", source / REEL]
+    graph += [f"[{index}:v]trim=end_frame={(ending['count'] - fade) * factor},"
+              "scale=952:-2,pad=952:1920:0:(oh-ih)/2:color=0x1c191c,setsar=1,"
+              "scale=iw:ih:out_color_matrix=bt709:out_range=tv,format=yuv420p,"
+              f"fade=t=in:s=0:n={(fade - 1) * factor}[card]",
+              f"[{picture}]format=yuv420p[game]", "[game][card]concat=n=2:v=1:a=0[video]"]
+    master = index + 1
+    ffmpeg(inputs, ";".join(graph), ["-map", "[video]", "-map", f"{master}:a:0", "-map", f"{master}:s?"],
+           dest, ["-c:a", "copy", "-c:s", "copy", "-color_primaries", "bt709", "-color_trc", "bt709",
+                  "-colorspace", "bt709", "-color_range", "tv"], web=True)
+
+
 def feature(channel, original, card, dest, *, phone_frame=False):
     source = channel / original
     edit = json.loads((source / "edit.json").read_text())
     boss, ending = edit["sections"][-2:]
     if boss["id"] != "boss" or ending["id"] != "card" or not boss["raw"]:
         raise ValueError("Expected the reviewed Countess take and final dissolve")
+    if phone_frame:
+        return press_feature(channel, source, edit, card, dest)
     rate = edit["fps"]
     start = ending["timeline"]
     # Both halves of the dip fit within the former dissolve. The card hold and
@@ -69,23 +119,19 @@ def feature(channel, original, card, dest, *, phone_frame=False):
     boss_frame = boss["first"] + start - boss["timeline"]
     inputs = ["-i", source / REEL, "-ss", str(boss_frame / rate), "-i", channel / boss["file"],
               "-loop", "1", "-framerate", str(rate), "-i", card]
-    # The master's center 952 columns are clean phone pixels on even chroma boundaries.
-    head_fit = "crop=952:1920:64:0," if phone_frame else ""
-    fight_fit = ("scale=954:1920,crop=952:1920:0:0" if phone_frame else
-                 "scale=-2:1920,pad=1080:1920:(1080-iw)/2:0:color=0x141216")
-    card_fit = ("scale=952:-2,pad=952:1920:0:(oh-ih)/2:color=0x1c191c," if phone_frame else "")
+    fight_fit = "scale=-2:1920,pad=1080:1920:(1080-iw)/2:0:color=0x141216"
     common = "setsar=1,scale=iw:ih:out_color_matrix=bt709:out_range=tv,format=yuv420p"
     graph = (
-        f"[0:v]fps={rate},trim=end_frame={start},setpts=PTS-STARTPTS,{head_fit}{common}[head];"
+        f"[0:v]fps={rate},trim=end_frame={start},setpts=PTS-STARTPTS,{common}[head];"
         f"[1:v]fps={rate},trim=end_frame={fade_frames},setpts=PTS-STARTPTS,crop=1180:2376:0:150,"
         f"{fight_fit},{common},fade=t=out:s=0:n={fade_frames - 1}[fight];"
-        f"[2:v]trim=end_frame={ending['count'] - fade_frames},setpts=PTS-STARTPTS,{card_fit}"
+        f"[2:v]trim=end_frame={ending['count'] - fade_frames},setpts=PTS-STARTPTS,"
         f"{common},fade=t=in:s=0:n={fade_frames - 1}[card];"
         "[head][fight][card]concat=n=3:v=1:a=0[picture]"
     )
     ffmpeg(inputs, graph, ["-map", "[picture]", "-map", "0:a:0", "-map", "0:s?"],
            dest, ["-c:a", "copy", "-c:s", "copy", "-color_primaries", "bt709",
-                  "-color_trc", "bt709", "-colorspace", "bt709", "-color_range", "tv"], web=phone_frame)
+                  "-color_trc", "bt709", "-colorspace", "bt709", "-color_range", "tv"])
 
 
 def social(source, card, dest):
