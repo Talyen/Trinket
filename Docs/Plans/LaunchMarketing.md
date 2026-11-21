@@ -51,7 +51,7 @@ A Christmas-week release gives press fewer ordinary workdays after launch, so pr
 
 ## Positioning and audience
 
-Use the single shared-hand sentence below as the opening pitch. Use the Contracts board when there is room to explain how players choose their next fight and reward. Target single-player strategy and fantasy card RPG readers. Pair the three free Campaign chapters with the one-time US$4.99 unlock in U.S. launch copy.
+Use the shared-hand sentence below as the opening pitch. Target single-player strategy and fantasy card RPG readers. Keep outreach high-level and describe the free download and one-time US$4.99 full-game unlock in U.S. launch copy.
 
 > *Trinket!* is a turn-based card RPG where your hero and companion share a hand of cards.
 
@@ -78,9 +78,14 @@ To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-
 
 ### Pitch selection
 
-Use the Wizard and Frost Whelp as an optional example in the body of a hands-on pitch. Ice Shot deals double damage while the target is Frozen. The player can set up the combo across draws. For release lists, put the date and platform in the subject or immediately after the opener. For hands-on reviews, invite the reader to compare Ice Shot before and after freezing a target. For creators, suggest filming the party choice and the payoff in battle. Use Contracts as a second angle when the desk needs the broader loop: compare three enemies and their bonus rewards, choose one battle, and put the winnings toward the party or Homestead.
+Give the recipient enough context to place the game, then link directly to the
+playable TestFlight preview, editorial assets, and the public U.S. App Store
+page. For release lists, put the date and platform in the subject or near the
+opener. For creators, link the silent gameplay clip. Keep named character
+combos and detailed rules in the game and press materials. Each pitch should
+stand on its own without a question, feedback request, or reply to arrange access.
 
-For future copy reviews, ask independent readers to name the genre and describe a decision the player makes after reading just the opening. Then compare which accurate opening they remember. After approved outreach, record actual replies, review-access requests and coverage by outlet and hook. With eight different desks, the results describe individual placements rather than measuring response-rate lift. [Muck Rack’s 2026 journalist survey, p. 31](https://media.muckrack.com/documents/State_of_Journalism_2026_1.pdf)
+For future copy reviews, ask independent readers to name the genre and describe a decision the player makes after reading just the opening. Then compare which accurate opening they remember. After approved outreach, record published coverage and any replies by outlet and hook. Track TestFlight enrollment at the group level. With eight different desks, the results describe individual placements rather than measuring response-rate lift. [Muck Rack’s 2026 journalist survey, p. 31](https://media.muckrack.com/documents/State_of_Journalism_2026_1.pdf)
 
 ## Before launch
 
@@ -103,16 +108,18 @@ For future copy reviews, ask independent readers to name the genre and describe 
   iPhone and iPad card-battler roundup. Consider MiniReview and creators
   whose recent work shows they play similar games. For each pitch, record
   the recipient, reason for fit, personalized draft, intended send date,
-  reply, and coverage link. Write one pitch and at most one follow-up per
-  recipient. Check current community rules before including any community
+  reply if received, and coverage link. Write one pitch and at most one
+  follow-up per recipient. Check current community rules before including any community
   post. [Pocket Gamer contact guidance](https://www.pocketgamer.com/pages/contact-us/) ·
   [Pocket Gamer card-battler roundup](https://www.pocketgamer.com/best-games/card-battler-games-for-iphone-ipad-ios/) ·
   [MiniReview's Dawncaster coverage](https://minireview.io/deck-building/dawncaster-deckbuilding-rpg)
-- [ ] **Agents · playable access.** Offer early gameplay access only if an
-  approved external TestFlight build is ready and access is authorized.
-  Otherwise, preview with the clip and share the live App Store link on
-  launch day. If a reviewer needs Full Game after release, prepare an
-  authorized one-time offer code once Apple allows generation. Record
+- [x] **Agents · playable access.** The existing Press Preview group has a
+  verified direct TestFlight link capped at 20 testers. Include it in every
+  approved direct press pitch alongside the public App Store URL and press
+  kit. Check the build and capacity before dispatch. Keep the enrollment
+  URL in direct correspondence and the private review packet. If a reviewer
+  needs Full Game after release, prepare an authorized one-time offer code
+  once Apple allows generation. Record
   redemptions separately from paid unlocks. [External TestFlight](https://developer.apple.com/help/app-store-connect/test-a-beta-version/invite-external-testers) ·
   [In-App Purchase offer codes](https://developer.apple.com/help/app-store-connect/manage-in-app-purchases/create-offer-codes-for-in-app-purchases)
 - [ ] **Owner · one review.** Review the clip, press kit,
@@ -121,7 +128,7 @@ For future copy reviews, ask independent readers to name the genre and describe 
   dispatch status in the tracker below.
 - [x] **Agents · stage the launch review batch.** The private
   `Trinket-Launch-Review-Nov21/Review.md` packet in Release deliverables
-  contains the three named advance drafts, private TestFlight reply copy,
+  contains the advance and reserve drafts with direct TestFlight access,
   launch-day posts, a press-page badge update, and the first-week reporting
   worksheet and collector. External invitations and launch announcements
   await owner approval.
@@ -264,9 +271,9 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | U.S. launch date | Confirmed by owner | December 21, 2026. The prelaunch film and press fact sheet carry the date. |
 | Launch candidate | Build 14 submitted for App Review | On November 19 at 5:28 p.m. Pacific, Apple confirmed version 1.0.0 (14) was Waiting for Review with manual release after build 13 was withdrawn. Submission `9d37fa8c-814c-4cb7-bd94-d05d98057908`. TestFlight opened 1.0.0 (14) over Wi-Fi. Ranger and Wolf remained at chapter 1, stage 1, and the save database and write-ahead log matched the pre-update backup byte for byte. After restore and sign-in, Options showed Full Game — Unlocked. Reuse this result and the prior first-purchase evidence for unchanged commerce behavior. [Hosted release checks](https://github.com/Talyen/Trinket/actions/runs/44630048041) passed with one coverage gap for declined Ask to Buy. The build comparison and device evidence are in `LaunchReadiness-Nov19/Candidate.md`. |
 | U.S. App Store pre-order | Public and verified November 21 | Version 1.0.0 build 14. Apple confirmed United States only and the public page shows the expected December 21, 2026 release, Free, and In-App Purchases. No pitches sent. [U.S. listing](https://apps.apple.com/us/app/trinket/id6811284921) |
-| Press access | External beta approved, verified November 21 | Build 13 is attached to the invite-only Press Preview group. It expires February 11, 2027. Public link disabled, zero testers. Send private invitations to approved respondents. |
+| Press access | Direct link verified November 21 | Build 13 is attached to Press Preview and expires February 11, 2027. The direct link has a 20-tester cap and zero testers at setup. The public press kit uses the App Store link. |
 | Featuring nomination | Submitted November 19 | App Launch, December 21, U.S., iPhone and iPad. Apple confirmed nomination `9a7f1d2d-b137-40ca-af15-432c455ae3ab` with the public kit, narrated trailer and Blood Countess still. |
-| Advance outreach | Three December 7–9 pitches staged for one approval | Pocket Gamer news, MiniReview and Lunar Nebula Gaming. Current drafts and the launch-day fallback are in `Trinket-Launch-Review-Nov21/`. No dispatch yet. |
+| Advance outreach | High-level pitches staged for one approval | Pocket Gamer news, MiniReview and Lunar Nebula Gaming are the December 7–9 batch. All eight advance and reserve pitches include playable access and editorial assets. Current drafts and the release-day update are in `Trinket-Launch-Review-Nov21/`. No dispatch yet. |
 | First-week reporting | Reporting access verified before launch | The active Analytics request and four standard report catalogs were readable on November 21 with no daily instances. The Sales and Trends check returned explicit no sales for November 17. Start with the D+7 snapshot, then refresh after data is complete through the seventh live day. |
 | Editorial review | Shared-hand opener selected; outreach remains unsent | The preceding editorial drafts are in the retained Release folder `LaunchPitch-Nov20/`. The press page and offline downloads share one set of captions and release facts. The owner accepted the existing trailer. The second editorial pass covers press copy, outreach and image assets. |
 | Press outreach dispatched | Due December 7–11 | Check the public kit and external beta status before sending. |
