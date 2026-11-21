@@ -242,10 +242,11 @@ waived preservation of their personal beta save.
   submission `6a94d8c4-a0b4-4527-ba55-e739cb90be4c` and confirmed manual
   release. The review notes cover offline play and the Options path to Full Game.
   [Apple purchase submission](https://developer.apple.com/help/app-store-connect/manage-submissions-to-app-review/submit-an-in-app-purchase/)
-- [ ] After Apple approves the app and purchase, obtain owner sign-off for manual
-  release. Verify the live listing in the intended storefronts and triage reports
-  against the shipped build. If review requires a new build, refresh the affected
-  qualification before resubmission.
+- [ ] Publish the approved U.S. pre-order for December 21, 2026 with iOS
+  1.0.0 build 14. Confirm the public listing shows the pre-order and expected
+  date. On launch day, verify the free download and Full Game purchase and
+  triage reports against the shipped build. If review requires a new build,
+  refresh the affected qualification before resubmission.
   [Trinket release procedure](../Platform/Release.md#shipping)
 
 Retain the candidate handoff with the release evidence. After launch verification,
