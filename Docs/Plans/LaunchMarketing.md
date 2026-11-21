@@ -51,9 +51,9 @@ A Christmas-week release gives press fewer ordinary workdays after launch, so pr
 
 ## Positioning and audience
 
-Open the press kit and pitch bodies with the shared-hand sentence below, followed immediately by the Wizard and Frost Whelp example. Use the Contracts board when there is room to explain how players choose their next fight and reward. Target single-player strategy and fantasy card RPG readers. Pair the three free Campaign chapters with the one-time US$4.99 unlock in U.S. launch copy.
+Use the single shared-hand sentence below as the opening pitch. Use the Contracts board when there is room to explain how players choose their next fight and reward. Target single-player strategy and fantasy card RPG readers. Pair the three free Campaign chapters with the one-time US$4.99 unlock in U.S. launch copy.
 
-> *Trinket!* is a turn-based card RPG where your hero and companion share a hand of cards. Freeze an enemy with your Wizard, then play your Frost Whelp’s Ice Shot for double damage.
+> *Trinket!* is a turn-based card RPG where your hero and companion share a hand of cards.
 
 Italicize *Trinket!* in formatted prose, including the exclamation point. Use plain text in email subjects, paste-ready pitches, forms, metadata and credits.
 
@@ -78,7 +78,7 @@ To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-
 
 ### Pitch selection
 
-Use the Wizard’s freeze and the Frost Whelp’s Ice Shot as the main gameplay pitch. Ice Shot deals double damage while the target is Frozen. The player can set up the combo across draws. For release lists, put the date and platform in the subject or immediately after the example. For hands-on reviews, invite the reader to compare Ice Shot before and after freezing a target. For creators, suggest filming the party choice and the payoff in battle. Use Contracts as a second angle when the desk needs the broader loop: compare three enemies and their bonus rewards, choose one battle, and put the winnings toward the party or Homestead.
+Use the Wizard and Frost Whelp as an optional example in the body of a hands-on pitch. Ice Shot deals double damage while the target is Frozen. The player can set up the combo across draws. For release lists, put the date and platform in the subject or immediately after the opener. For hands-on reviews, invite the reader to compare Ice Shot before and after freezing a target. For creators, suggest filming the party choice and the payoff in battle. Use Contracts as a second angle when the desk needs the broader loop: compare three enemies and their bonus rewards, choose one battle, and put the winnings toward the party or Homestead.
 
 For future copy reviews, ask independent readers to name the genre and describe a decision the player makes after reading just the opening. Then compare which accurate opening they remember. After approved outreach, record actual replies, review-access requests and coverage by outlet and hook. With eight different desks, the results describe individual placements rather than measuring response-rate lift. [Muck Rack’s 2026 journalist survey, p. 31](https://media.muckrack.com/documents/State_of_Journalism_2026_1.pdf)
 
@@ -231,8 +231,8 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | Launch candidate | Build 14 submitted for App Review | On November 19 at 5:28 p.m. Pacific, Apple confirmed version 1.0.0 (14) was Waiting for Review with manual release after build 13 was withdrawn. Submission `9d37fa8c-814c-4cb7-bd94-d05d98057908`. TestFlight opened 1.0.0 (14) over Wi-Fi. Ranger and Wolf remained at chapter 1, stage 1, and the save database and write-ahead log matched the pre-update backup byte for byte. After restore and sign-in, Options showed Full Game — Unlocked. Reuse this result and the prior first-purchase evidence for unchanged commerce behavior. [Hosted release checks](https://github.com/Talyen/Trinket/actions/runs/44630048041) passed with one coverage gap for declined Ask to Buy. The build comparison and device evidence are in `LaunchReadiness-Nov19/Candidate.md`. |
 | Press access | External Beta App Review requested Nov 19 | Build 13 is attached to the invite-only Press Preview group. Apple returned Waiting for Review. Send private invitations after external approval. |
 | Featuring nomination | Submitted November 19 | App Launch, December 21, U.S., iPhone and iPad. Apple confirmed nomination `9a7f1d2d-b137-40ca-af15-432c455ae3ab` with the public kit, narrated trailer and Blood Countess still. |
-| Advance outreach | Three December 7–9 pitches prepared | Pocket Gamer news, MiniReview and Lunar Nebula Gaming. Send-day copy and sources are in `LaunchReadiness-Nov19/Advance-outreach.md`. No dispatch yet. |
-| Editorial review | Shared-hand opener and Wizard–Frost Whelp example selected; outreach remains unsent | Eight launch drafts and three advance emails are in the retained Release folders. The press page and offline downloads share one set of captions and release facts. The owner accepted the existing trailer. The second editorial pass covers press copy, outreach and image assets. |
+| Advance outreach | Three December 7–9 pitches prepared | Pocket Gamer news, MiniReview and Lunar Nebula Gaming. Current send-day copy and sources are in `LaunchPitch-Nov20/Advance-outreach.md`. No dispatch yet. |
+| Editorial review | Shared-hand opener selected; outreach remains unsent | Current launch and advance drafts are in the retained Release folder `LaunchPitch-Nov20/`. The press page and offline downloads share one set of captions and release facts. The owner accepted the existing trailer. The second editorial pass covers press copy, outreach and image assets. |
 | Press outreach dispatched | Due December 7–11 | Check the public kit and external beta status before sending. |
 | Verified public U.S. launch | Pending | |
 | Day 7, 14, and 30 sales and conversion snapshots | Pending | |

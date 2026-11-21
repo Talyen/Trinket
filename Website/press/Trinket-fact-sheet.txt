@@ -1,6 +1,6 @@
 Trinket! | Press fact sheet
 
-Trinket! is a turn-based card RPG where your hero and companion share a hand of cards. Freeze an enemy with your Wizard, then play your Frost Whelp’s Ice Shot for double damage.
+Trinket! is a turn-based card RPG where your hero and companion share a hand of cards.
 
 Take a hero and companion through four Campaign chapters, from the Forest to the Tundra. Recruit allies along the way and give each character a specialty through their equipment, abilities and talent trees.
 
