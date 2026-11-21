@@ -1,16 +1,24 @@
 (() => {
   const player = document.querySelector('.premiere-player');
   const video = player.querySelector('video');
-  const playButton = player.querySelector('button');
   const chapters = [...document.querySelectorAll('.premiere-guide [data-seek]')];
 
-  playButton.hidden = false;
-  playButton.addEventListener('click', () => {
-    video.focus({ preventScroll: true });
-    video.play().catch(() => video.focus());
-  });
-  video.addEventListener('playing', () => { playButton.hidden = true; });
-  video.addEventListener('ended', () => { playButton.hidden = false; });
+  const videos = [...document.querySelectorAll('.phone-player video')];
+  for (const clip of videos) {
+    const playButton = clip.parentElement.querySelector('button');
+    playButton.hidden = false;
+    playButton.addEventListener('click', () => {
+      clip.focus({ preventScroll: true });
+      clip.play().catch(() => clip.focus());
+    });
+    clip.addEventListener('play', () => {
+      for (const other of videos) {
+        if (other !== clip && !other.paused) other.pause();
+      }
+    });
+    clip.addEventListener('playing', () => { playButton.hidden = true; });
+    clip.addEventListener('ended', () => { playButton.hidden = false; });
+  }
 
   for (const chapter of chapters) {
     chapter.addEventListener('click', event => {

@@ -33,9 +33,10 @@ def package(press, master, preview, *, output=None):
     with zipfile.ZipFile(full, "w", compression=zipfile.ZIP_STORED) as archive:
         for path in sorted(files):
             archive.write(path, path.relative_to(base))
-        archive.writestr(str(page.relative_to(base)), html.replace(full_marker, "").replace(image_marker, ""))
+        captions_link = '<a href="screenshots/Captions.txt" download>Image descriptions and credits (.txt)</a>'
+        archive.writestr(str(page.relative_to(base)), html.replace(full_marker, "").replace(image_marker, captions_link))
 
-    image_link = f'<a href="{image_zip.name}" download>Download all images (.zip, {image_zip.stat().st_size / 1e6:.0f} MB)</a>'
+    image_link = f'<a href="{image_zip.name}" download>Download images, captions and credits (.zip, {image_zip.stat().st_size / 1e6:.0f} MB)</a>'
     full_link = f'<a href="{full_url}" download>Download press kit (.zip, {full.stat().st_size / 1e6:.0f} MB)</a>'
     page.write_text(html.replace(full_marker, full_link).replace(image_marker, image_link))
 

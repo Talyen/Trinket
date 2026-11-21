@@ -50,5 +50,6 @@ class PublicPressKitTests(unittest.TestCase):
                 self.assertIn("Trinket-images.zip", links.files)
                 self.assertNotIn("Trinket-images.zip", kit.namelist())
                 with zipfile.ZipFile(press / "Trinket-images.zip") as images:
+                    self.assertIn("screenshots/Captions.txt", images.namelist())
                     self.assertTrue(set(images.namelist()) <= set(kit.namelist()))
                 self.assertEqual(kit.read("art/trinket-logo.png"), b"test logo")

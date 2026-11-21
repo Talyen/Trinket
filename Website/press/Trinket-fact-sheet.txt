@@ -32,6 +32,7 @@ Companions — 13 companions. Wolf, Bear, Frost Whelp, Lizard Scout, Panther, Ph
 Abilities — 65 distinct equippable abilities across the roster, including 20 basics, 26 skills and 19 ultimates.
 Talents — 446 talents across 63 trees, three trees per character. The Wizard can specialize in Cryomancy, Pyromancy or Arcana.
 Equipment — Basic and Astral gear draws from 111 item affixes. Basic gear rolls 1–2 affixes per item and Astral gear rolls 3–4. There are also 24 trinkets and 29 unique items.
+Crafting — 26 equipment recipes. The Homestead offers 14 Blacksmith Forge recipes, 8 Archery Range recipes and 4 Wool Tailoring recipes.
 
 Free play includes the Knight, Ranger, Rogue and Wizard, plus the Wolf, Bear, Frost Whelp and Library Owl. Each has their full ability and talent progression. A full-game purchase opens the rest of the roster for recruitment.
 
@@ -41,7 +42,7 @@ Press & review access: Ryan McIntire · rymcintire@gmail.com
 
 Press kit, trailer and full-resolution images: https://talyen.github.io/Trinket/press/
 
-Editorial use: You may use the downloadable trailer, including its soundtrack, in coverage of Trinket! Screenshots, artwork and the silent Blight Treant footage may also be used in editorial coverage of the game.
+Editorial use: You may use all materials in this press kit, including the trailer with its soundtrack, in editorial coverage of Trinket!
 
 Support: https://talyen.github.io/Trinket/
 
