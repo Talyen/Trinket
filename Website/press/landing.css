@@ -56,6 +56,8 @@
 .premiere-intro h1 img { display: block; width: 100%; max-width: 300px; height: auto; margin-inline: auto; }
 .premiere-intro p { margin: 0; font-size: clamp(1rem, 1.4vw, 1.17rem); line-height: 1.5; }
 .premiere .release-strip { margin-top: 1.15rem; gap: .75rem 1.25rem; }
+.store-cta { display: flex; justify-content: center; padding: 1rem 0 .25rem; }
+.store-cta img { display: block; width: auto; height: 3rem; }
 .premiere-player { grid-area: player; }
 .phone-player {
   --case-radius: clamp(18px, 3vw, 30px);
