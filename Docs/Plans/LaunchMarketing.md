@@ -129,7 +129,8 @@ For future copy reviews, ask independent readers to name the genre and describe 
   [U.S. App Store listing](https://apps.apple.com/us/app/trinket/id6811284921)
 - [x] **Agents · add pre-order links.** The [press kit](https://trinketrpg.com/press/)
   uses Apple's U.S. pre-order badge. The advance and launch drafts link to the
-  same App Store listing.
+  same App Store listing. The gameplay footage section also offers a 29-second
+  narrated cut alongside the full feature reel and the silent Blight Treant clip.
 - [ ] **Agents · public checks.** Confirm the U.S. listing, build, free
   download, iPhone and iPad galleries, support and privacy links, and
   Full Game offer. Use the release checklist for purchase and restore

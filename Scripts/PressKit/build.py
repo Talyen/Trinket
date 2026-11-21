@@ -23,8 +23,7 @@ def build(evidence, output, trailers=None):
     master = channel / f"countess-press-{US_RELEASE.isoformat()}"
     kit = output / "Trinket-Press-Kit"
     # Web and offline editors receive the same curated stills, artwork and copy.
-    shutil.copytree(REPO / "Website/press", kit, ignore=shutil.ignore_patterns("video"))
-    (kit / "video").mkdir()
+    shutil.copytree(REPO / "Website/press", kit)
     reel = kit / "video/Trinket-feature-reel.mp4"
     if trailers:
         shutil.copyfile(trailers / "Trinket-Press-Feature-Reel.mp4", reel)

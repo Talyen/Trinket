@@ -103,12 +103,20 @@
 .premiere-guide time { color: var(--gold); font-variant-numeric: tabular-nums; }
 .premiere-guide li a:hover, .premiere-guide [aria-current] { background: #3b3031; }
 .footage-files-link { display: inline-flex; min-height: 44px; align-items: center; gap: .4rem; }
-.footage-files { display: grid; grid-template-columns: 1fr 1fr; border-block: 1px solid var(--line); }
-.footage-files article { display: grid; grid-template-rows: auto 1fr auto; gap: 1rem; padding: 1.35rem 1.5rem 1.35rem 0; text-align: center; }
-.footage-files article + article { padding-right: 0; padding-left: 1.5rem; border-left: 1px solid var(--line); }
+.footage-files { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 1rem; border-block: 1px solid var(--line); }
+.footage-files article {
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  gap: 1rem;
+  padding: 1.35rem clamp(.65rem, 1.6vw, 1.25rem);
+  text-align: center;
+}
+.footage-files article + article { border-left: 1px solid var(--line); }
 .footage-files h3 { margin: 0; }
 .footage-files p { text-wrap: balance; }
 .footage-files .phone-player { width: min(100%, 18rem); align-self: start; }
+.footage-files .short-trailer .phone-player { width: min(93.4%, 16.8rem); }
 .footage-files .file-format { margin: .7rem 0; }
 .file-links { display: flex; justify-content: center; flex-wrap: wrap; gap: .4rem .8rem; align-items: center; }
 .file-links a { display: inline-flex; align-items: center; min-height: 44px; }
@@ -130,10 +138,12 @@
   .premiere { grid-template-columns: minmax(0,1fr) minmax(0,1fr); grid-template-areas: "player player" "intro guide"; gap: 1.25rem; }
   .premiere-player { width: min(100%, 420px, calc(47.4svh - 68px)); }
 }
+@media (max-width: 720px) {
+  .footage-files { grid-template-columns: 1fr; row-gap: 0; }
+  .footage-files article { grid-row: auto; grid-template-rows: auto 1fr auto; padding: 1.25rem 0; }
+  .footage-files article + article { border-left: 0; border-top: 1px solid var(--line); }
+}
 @media (max-width: 640px) {
-  .footage-files { grid-template-columns: 1fr; }
-  .footage-files article, .footage-files article + article { padding: 1.25rem 0; border-left: 0; }
-  .footage-files article + article { border-top: 1px solid var(--line); }
   header { display: block; padding-block: .4rem; }
   header nav { flex-wrap: nowrap; overflow-x: auto; gap: .9rem; }
   header nav a { flex: none; }
