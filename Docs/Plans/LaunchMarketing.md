@@ -159,9 +159,11 @@ For future copy reviews, ask independent readers to name the genre and describe 
 - [x] **Agents · submit the short App Store preview test.** On November 21,
   submitted one Product Page Optimization treatment for English (U.S.).
   The 29-second captioned iPhone preview is the only change, with half of
-  eligible traffic assigned to the treatment. Submission
-  `6ed661e7-bb92-4c7c-bf4f-0ee938dc3cab` is waiting for App Review.
-  Build 14 and the December 21 U.S. pre-order were verified after submission.
+  eligible traffic assigned to the treatment. The corrected audio export
+  replaced the original preview in the same treatment. The preview-only
+  replacement submission `1d07274d-78d2-4bac-8171-d4bdcd438bfd` is waiting
+  for App Review. Build 14 and the December 21 pre-order in all 173
+  storefronts were verified after resubmission.
   [App Store Connect test](https://appstoreconnect.apple.com/apps/6811284921/distribution/optimization/c3ddfdc8-90af-4e77-bd5c-73744600e89b)
 - [ ] **Agents · check preview placement after approval.** Verify whether
   Apply Treatment is available for the current pre-order version. Applying it
