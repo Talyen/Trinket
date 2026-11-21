@@ -143,6 +143,19 @@ For future copy reviews, ask independent readers to name the genre and describe 
   ends the 50/50 test, so record the option and get the owner's decision before
   switching the default page.
   [Apple's treatment instructions](https://developer.apple.com/help/app-store-connect/create-product-page-optimization-tests/apply-a-test-treatment-to-your-product-page/)
+- [x] **Agents · submit the three selected product page headers.** On November
+  21, App Store Connect validated all three as header-only PNGs. Standalone
+  asset submission `a54e83a5-e5b7-4249-bf48-6058c5dc4531` is waiting for
+  App Review.
+  [App Store Connect Asset Library](https://appstoreconnect.apple.com/apps/6811284921/distribution/asset-library)
+- [ ] **Agents · publish the approved default header and run the header test.**
+  After the preview test concludes, use **01 Forest Ambush (Existing game
+  artwork)** as the default. Compare it with **03 Into the Forge (Sunburst)**
+  and **01 Forest Ambush (Sunburst)** in English (U.S.), allocating 34% to
+  the default and 33% to each alternate. Keep the preview, screenshots, and
+  search-result artwork consistent across the three pages. App Store Connect
+  blocked creating the header test while the preview test was in review.
+  [Apple's test setup](https://developer.apple.com/help/app-store-connect/create-product-page-optimization-tests/create-a-test)
 - [ ] **Agents · public checks.** Confirm the U.S. listing, build, free
   download, iPhone and iPad galleries, support and privacy links, and
   Full Game offer. Use the release checklist for purchase and restore
