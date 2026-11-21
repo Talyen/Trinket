@@ -2,7 +2,7 @@
 type: execution-plan
 status: active
 created: 2026-11-17
-updated: 2026-11-17
+updated: 2026-11-21
 expires: 2026-12-01
 ---
 
@@ -103,7 +103,7 @@ At 57.8s the Wizard and Frost Whelp meet the Blood Countess. Enter just before t
 
 The prelaunch press reel uses the same musical ending and centers “Coming to iOS” above “December 21, 2026”, followed by the free start and one-purchase copy. The branded master is `Trinket-Ambush-Launch/Trailers/Trinket-Press-Feature-Reel.mp4` in Release deliverables. Use the undated download-badge cut once the listing is live.
 
-The press kit’s 952 × 1920 feature reel runs at 60 fps. Its 17 gameplay shots come from the original variable-rate iPhone recordings. The edit list uses 30 fps frame numbers for timing. The press exporter converts those numbers to timestamps and copies the approved narration, music and subtitle streams from the reviewed master.
+The press kit’s 952 × 1920 feature reel runs at 60 fps. Its 17 gameplay shots come from the original variable-rate iPhone recordings. The edit list uses 30 fps frame numbers for timing. The press exporter converts those numbers to timestamps and copies the approved narration, music and subtitle streams from the reviewed master. The feature export sets a continuous AAC packet clock. The November 21 audit removed timestamp gaps at 0:55 and 1:30 in both feature cuts and at 0:11.9 in the short press reel. The corrected clips retain the original encoded picture, audio frames and captions. Review evidence is in `Feature-Reel-Audio-Nov21/`.
 
 **Branded exports.** Run `python3 Scripts/PressKit/brand.py <LaunchMarketing-Nov17> <new-output-directory>` to render the dated press and undated launch feature reels, both end cards, and all seven boss social cuts. The App Store preview ends on gameplay. To record the real loading screen, use `Scripts/capture-launch-trailer.py --loading-screen --device <iPhone-UDID> --output-dir <fresh-take>` over Wi-Fi.
 

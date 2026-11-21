@@ -13,6 +13,12 @@ REPO = Path(__file__).resolve().parents[2]
 MASTER = REPO / "AssetSources/2d Assets/Game Sources/Branding/Trinket-Ambush.png"
 LOGO = REPO / "Trinket/LaunchArtwork/ambush-logo.png"
 REEL = "Trinket-Blood-Countess-Feature-Reel.mp4"
+# The feature masters use AAC-LC, with 1024 samples per packet. Rebuild the
+# packet clock during export to remove gaps without re-encoding the mix.
+FEATURE_AUDIO_COPY = (
+    "-c:a", "copy", "-bsf:a",
+    "setts=pts=STARTPTS+1024*N:dts=STARTDTS+1024*N:duration='min(DURATION,1024)'",
+)
 FONTS = Path("/System/Library/Fonts/Supplemental")
 INK = "#1c191c"
 
@@ -97,7 +103,7 @@ def press_feature(channel, source, edit, card, dest):
               f"[{picture}]format=yuv420p[game]", "[game][card]concat=n=2:v=1:a=0[video]"]
     master = index + 1
     ffmpeg(inputs, ";".join(graph), ["-map", "[video]", "-map", f"{master}:a:0", "-map", f"{master}:s?"],
-           dest, ["-c:a", "copy", "-c:s", "copy", "-color_primaries", "bt709", "-color_trc", "bt709",
+           dest, [*FEATURE_AUDIO_COPY, "-c:s", "copy", "-color_primaries", "bt709", "-color_trc", "bt709",
                   "-colorspace", "bt709", "-color_range", "tv"], web=True)
 
 
@@ -130,7 +136,7 @@ def feature(channel, original, card, dest, *, phone_frame=False):
         "[head][fight][card]concat=n=3:v=1:a=0[picture]"
     )
     ffmpeg(inputs, graph, ["-map", "[picture]", "-map", "0:a:0", "-map", "0:s?"],
-           dest, ["-c:a", "copy", "-c:s", "copy", "-color_primaries", "bt709",
+           dest, [*FEATURE_AUDIO_COPY, "-c:s", "copy", "-color_primaries", "bt709",
                   "-color_trc", "bt709", "-colorspace", "bt709", "-color_range", "tv"])
 
 

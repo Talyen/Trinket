@@ -7,10 +7,11 @@ Take a hero and companion through four Campaign chapters, from the Forest to the
 Beyond the Campaign, climb seven Spires, chart a path through an endless Labyrinth, or set out on a Voyage. Contracts offer a single fight with a reward you can see up front. Back at the Homestead, grow herbs, forge gear and put your haul to work.
 
 Developer: Ryan McIntire, solo indie developer
-Release: December 21, 2026 · United States
+Release: December 21, 2026 across 173 App Store storefronts
+App Store pre-order: https://apps.apple.com/app/trinket/id6811284921
 Platform: iOS / iPhone / iPad
 Genre: Single-player turn-based fantasy card combat
-Price: Free download. Try every mode for free. Full game: US$4.99 (one-time purchase). The full game unlocks all remaining game content, such as heroes, companions, and game modes.
+Price: Free download. Try every mode for free. Full game: one-time purchase (US$4.99 in the United States). Local prices vary. The full game unlocks all remaining game content, such as heroes, companions, and game modes.
 Free play: Includes the first three Campaign chapters, unlimited Contracts, three Labyrinth floors, ten floors of every Spire and Voyages in the Forest, Dungeon and Desert.
 Offline: Play offline with no account required
 iCloud sync supported
