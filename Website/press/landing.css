@@ -42,7 +42,7 @@
 /* Keep the film on the page's center line, with the pitch and chapter index beside it. */
 .premiere {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) min(36%, 420px, calc(49.58svh - 65px)) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) min(36%, 420px, calc(47.4svh - 65px)) minmax(0, 1fr);
   grid-template-areas: "intro player guide";
   gap: clamp(16px, 2.7vw, 38px);
   align-items: center;
@@ -58,16 +58,28 @@
 .premiere .release-strip { margin-top: 1.15rem; gap: .75rem 1.25rem; }
 .premiere-player { grid-area: player; }
 .phone-player {
-  position: relative;
+  --case-radius: clamp(18px, 3vw, 30px);
+  --rim: 2px;
   width: 100%;
   justify-self: center;
-  padding: 13px 6px;
-  border: 2px solid transparent;
-  border-radius: 25px;
+  border: var(--rim) solid transparent;
+  border-radius: var(--case-radius);
   background: linear-gradient(#101013, #101013) padding-box,
     linear-gradient(115deg, #85858b, #414147 20%, #727279 47%, #37373c 75%, #76767c) border-box;
   box-shadow: 0 9px 28px #0006;
 }
+.phone-screen {
+  --screen-radius: calc(var(--case-radius) - var(--rim));
+  border-radius: var(--screen-radius);
+  overflow: hidden;
+  /* Keep native controls, poster and accelerated video inside the same screen edge. */
+  clip-path: inset(0 round var(--screen-radius));
+  background: #121214;
+}
+.phone-status { display: block; width: 100%; height: auto; color: #f5f5f7; }
+.phone-media { position: relative; }
+.phone-player:has(video:focus-visible) { outline: 3px solid white; outline-offset: 3px; }
+.phone-player video:focus-visible { outline: none; }
 .phone-player video { display: block; width: 100%; height: auto; background: #151316; }
 .video-play {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
@@ -114,7 +126,7 @@
 
 @media (max-width: 959px) {
   .premiere { grid-template-columns: minmax(0,1fr) minmax(0,1fr); grid-template-areas: "player player" "intro guide"; gap: 1.25rem; }
-  .premiere-player { width: min(100%, 420px, calc(49.58svh - 68px)); }
+  .premiere-player { width: min(100%, 420px, calc(47.4svh - 68px)); }
 }
 @media (max-width: 640px) {
   .footage-files { grid-template-columns: 1fr; }
@@ -124,7 +136,7 @@
   header nav { flex-wrap: nowrap; overflow-x: auto; gap: .9rem; }
   header nav a { flex: none; }
   .premiere { grid-template-columns: minmax(0,1fr); grid-template-areas: "player" "intro" "guide"; padding: 12px; }
-  .premiere-player { width: min(100%, calc(49.58svh - 63px)); }
+  .premiere-player { width: min(100%, calc(47.4svh - 63px)); }
   .premiere-intro, .premiere-guide { padding-inline: .35rem; }
   .premiere-intro h1 img { max-width: 180px; }
   .premiere .release-strip { justify-content: start; }
