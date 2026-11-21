@@ -78,12 +78,15 @@ To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-
 
 ### Pitch selection
 
-Give the recipient enough context to place the game, then link directly to the
-playable TestFlight preview, editorial assets, and the public U.S. App Store
-page. For release lists, put the date and platform in the subject or near the
-opener. For creators, link the silent gameplay clip. Keep named character
-combos and detailed rules in the game and press materials. Each pitch should
-stand on its own without a question, feedback request, or reply to arrange access.
+Give the recipient enough context to place the game in a short one-to-one
+email. Put the press kit first on a standalone line, bold its linked label,
+and name the assets it contains. Put the TestFlight preview and public U.S.
+App Store links on the secondary line. For release lists, put the date and
+platform in the subject or near the opener. For creators, include the silent
+gameplay download. Keep named character combos and detailed rules in the
+game and press materials. Each pitch should stand on its own without a
+question, feedback request, or reply to arrange access.
+[Muck Rack’s media pitching guide](https://muckrack.com/resources/guides/media-pitching)
 
 For future copy reviews, ask independent readers to name the genre and describe a decision the player makes after reading just the opening. Then compare which accurate opening they remember. After approved outreach, record published coverage and any replies by outlet and hook. Track TestFlight enrollment at the group level. With eight different desks, the results describe individual placements rather than measuring response-rate lift. [Muck Rack’s 2026 journalist survey, p. 31](https://media.muckrack.com/documents/State_of_Journalism_2026_1.pdf)
 
