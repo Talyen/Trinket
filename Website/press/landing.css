@@ -1,10 +1,8 @@
 .icon-definitions { position: absolute; width: 0; height: 0; overflow: hidden; }
 .press-icon { width: 1.25em; height: 1.25em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.masthead, .release-strip li, .press-resources a, .media-action, .hero > .button, .gallery-tools a { display: inline-flex; align-items: center; gap: .55rem; }
+.masthead, .release-strip li, .press-resources a, .media-action, .gallery-tools a { display: inline-flex; align-items: center; gap: .55rem; }
 .masthead { color: var(--paper); text-decoration: none; }
 .masthead img { border-radius: 9px; }
-.hero { background: radial-gradient(ellipse at 21% 42%, #44302c 0%, #282021 43%, #19191c 80%); border-color: #5d493c; border-radius: 12px; }
-.hero > .button { border-radius: 100px; padding: .75rem 1.65rem; }
 .release-strip { list-style: none; margin: 1.7rem 0 0; padding: 1rem 0 0; border-top: 1px solid var(--line); display: flex; gap: 1rem 1.5rem; flex-wrap: wrap; }
 .release-strip li { gap: .65rem; color: var(--gold); }
 .release-strip .press-icon { width: 1.65rem; height: 1.65rem; }
@@ -21,9 +19,7 @@
 .price-stats p { margin: 0; font-size: .875rem; color: var(--muted); }
 .price-stats p + p { padding-left: 1rem; border-left: 1px solid #64543f; }
 .price-stats strong { display: block; font: 500 clamp(2.2rem,4vw,3.3rem)/1 Baskerville, Georgia, serif; color: var(--gold); margin-bottom: .3rem; }
-.chapter-meter { display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; margin: 1rem 0 .4rem; }
-.chapter-meter span { height: .35rem; border-radius: 2px; background: var(--gold); }
-.chapter-meter span:last-child { background: #554b41; }
+.price-stats + p { margin-top: 1rem; }
 .glance-list { margin-top: .55rem; }
 .glance-list > div { grid-template-columns: 7.4rem 1fr; }
 .glance-list dt { display: flex; gap: .5rem; align-items: baseline; }
@@ -31,17 +27,101 @@
 .detail-link { display: inline-flex; align-items: center; margin-block: .8rem; }
 #images .gallery-index { gap: .45rem; padding-top: .5rem; }
 #images .gallery-index a { border-radius: 100px; font-size: .9rem; }
-.footage-downloads .actions { align-items: start; flex-direction: column; }
 @media (max-width: 720px) {
-  .hero { padding-top: .75rem; }
   .release-strip { justify-content: center; text-align: left; }
   .press-resources { gap: .4rem; }
   .press-resources a { font-size: .9375rem; }
 }
 @media print {
   .masthead, .press-resources, .release-strip, .about > img, .detail-link, .press-icon { display: none; }
-  .price-panel, .hero { background: white; color: black; }
+  .price-panel { background: white; color: black; }
   .price-stats strong, .price-stats p { color: black; }
-  .chapter-meter { display: none; }
   .media-action { color: black; background: transparent; }
+}
+
+/* Keep the film on the page's center line, with the pitch and chapter index beside it. */
+.premiere {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) min(36%, 420px, calc(49.58svh - 65px)) minmax(0, 1fr);
+  grid-template-areas: "intro player guide";
+  gap: clamp(16px, 2.7vw, 38px);
+  align-items: center;
+  padding: clamp(16px, 2vw, 28px);
+  background: radial-gradient(ellipse at 15% 35%, #392a27, transparent 50%), linear-gradient(110deg, #231e20, #171619 58%, #292024);
+  border: 1px solid #58463d;
+  border-radius: 12px;
+}
+.premiere-intro { grid-area: intro; }
+.premiere-intro h1 { margin: 0 0 1.25rem; line-height: 0; }
+.premiere-intro h1 img { display: block; width: 100%; max-width: 300px; height: auto; margin-inline: auto; }
+.premiere-intro p { margin: 0; font-size: clamp(1rem, 1.4vw, 1.17rem); line-height: 1.5; }
+.premiere .release-strip { margin-top: 1.15rem; gap: .75rem 1.25rem; }
+.premiere-player { grid-area: player; position: relative; width: 100%; justify-self: center; box-shadow: 0 9px 38px #0006; }
+.premiere-player video { display: block; width: 100%; height: auto; aspect-ratio: 119 / 240; background: #151316; }
+.premiere-play {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: inline-flex; align-items: center; justify-content: center; gap: .35rem;
+  padding: .8rem 1.1rem; border: 1px solid #f5d794; border-radius: 100px;
+  background: #f0cf92; color: #251b16; line-height: 1.2;
+  font-family: inherit; font-size: 1rem; font-weight: 700; white-space: nowrap; cursor: pointer;
+  box-shadow: 0 3px 20px #000a;
+}
+.premiere-play[hidden] { display: none; }
+.premiere-play:hover { background: #ffe5ad; }
+.premiere-play:focus-visible { outline: 3px solid white; outline-offset: 4px; }
+.premiere-guide { grid-area: guide; min-width: 0; }
+.premiere-guide > img { display: block; width: 100%; height: auto; aspect-ratio: 1.75; object-fit: cover; object-position: 50% 29%; border-radius: 5px; }
+.premiere-guide h2 { margin: 1rem 0 .25rem; font-size: clamp(1.6rem, 2.6vw, 2.2rem); }
+.premiere-guide > p, .file-format, .footage-rights { color: var(--muted); font-size: .9rem; }
+.premiere-guide ol { padding: 0; list-style: none; margin: 1rem 0; border-top: 1px solid var(--line); }
+.premiere-guide li a { display: flex; gap: .8rem; align-items: center; padding: .65rem .15rem; min-height: 44px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--paper); }
+.premiere-guide time { color: var(--gold); font-variant-numeric: tabular-nums; }
+.premiere-guide li a:hover, .premiere-guide [aria-current] { background: #3b3031; }
+.footage-files-link { display: inline-flex; min-height: 44px; align-items: center; gap: .4rem; }
+.footage-files { display: grid; grid-template-columns: 1fr 1fr; border-block: 1px solid var(--line); }
+.footage-files article { display: grid; grid-template-columns: minmax(74px, 27%) minmax(0, 1fr); gap: 1.15rem; padding: 1.35rem 1.5rem 1.35rem 0; align-items: start; }
+.footage-files article + article { padding-right: 0; padding-left: 1.5rem; border-left: 1px solid var(--line); }
+.footage-files article img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 4px; }
+.footage-files .file-format { margin: .7rem 0; }
+.file-links { display: flex; flex-wrap: wrap; gap: .4rem .8rem; align-items: center; }
+.file-links a { display: inline-flex; align-items: center; min-height: 44px; }
+.footage-rights { margin: .8rem 0 0; }
+
+.launch-panel { --stat-color: #f3c277; --stat-icon: #dfac61; background: linear-gradient(155deg,#322922,#201e20 65%); }
+.roster-panel { --stat-color: #a8daed; --stat-icon: #83c7df; background: linear-gradient(155deg,#24343f,#1c2026 65%); }
+.launch-art { border-bottom: 2px solid var(--stat-icon); }
+.launch-stat { display: grid; grid-template-columns: max-content 1fr; align-items: center; gap: 0 .6rem; }
+.launch-stat strong, .launch-details summary { color: var(--stat-color); }
+.launch-stat .press-icon { color: var(--stat-icon); width: 1.4rem; height: 1.4rem; }
+.launch-stat span { grid-column: 1 / -1; }
+
+@media (max-width: 959px) {
+  .premiere { grid-template-columns: minmax(0,1fr) minmax(0,1fr); grid-template-areas: "player player" "intro guide"; gap: 1.25rem; }
+  .premiere-player { width: min(100%, 420px, calc(49.58svh - 68px)); }
+  .footage-files { grid-template-columns: 1fr; }
+  .footage-files article, .footage-files article + article { padding: 1rem 0; grid-template-columns: min(22%, 140px) minmax(0, 1fr); border-left: 0; }
+  .footage-files article + article { border-top: 1px solid var(--line); }
+}
+@media (max-width: 640px) {
+  header { display: block; padding-block: .4rem; }
+  header nav { flex-wrap: nowrap; overflow-x: auto; gap: .9rem; }
+  header nav a { flex: none; }
+  .premiere { grid-template-columns: minmax(0,1fr); grid-template-areas: "player" "intro" "guide"; padding: 12px; }
+  .premiere-player { width: min(100%, calc(49.58svh - 63px)); }
+  .premiere-intro, .premiere-guide { padding-inline: .35rem; }
+  .premiere-intro h1 img { max-width: 180px; }
+  .premiere .release-strip { justify-content: start; }
+  .premiere-guide { border-top: 1px solid var(--line); padding-top: 1rem; }
+  .premiere-guide > img { float: right; width: 34%; max-width: 120px; margin-left: .5rem; }
+  .premiere-guide h2 { margin-top: 0; }
+  .premiere-guide ol { clear: both; }
+}
+@media print {
+  .premiere { display: block; color: black; background: transparent; padding: 0; border: 0; }
+  .premiere-player, .premiere-guide { display: none; }
+  .premiere-intro h1 img { width: 120px; margin: 0; }
+  .launch-panel { background: white; --stat-color: black; }
+}
+@media (max-height: 480px) and (orientation: landscape) {
+  .premiere-play { max-width: 95%; white-space: normal; padding: .5rem; font-size: .875rem; }
 }

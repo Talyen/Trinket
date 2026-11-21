@@ -10,9 +10,9 @@ Developer: Ryan McIntire, solo indie developer
 Release: December 21, 2026 · United States
 Platform: iPhone and iPad · iOS / iPadOS 18 or later
 Genre: Single-player fantasy RPG with turn-based card combat
-Price: Free download. Play the first three Campaign chapters free. One US$4.99 purchase unlocks the full game.
-Free play: Also includes unlimited Contracts, three Labyrinth floors, ten floors of every Spire and Voyages in the Forest, Dungeon and Desert.
-Offline: Play offline. No Trinket account required. Optional iCloud save sync.
+Price: Free download. Try every mode for free. One US$4.99 purchase unlocks the full game.
+Free play: Includes the first three Campaign chapters, unlimited Contracts, three Labyrinth floors, ten floors of every Spire and Voyages in the Forest, Dungeon and Desert.
+Offline: Play offline without signing up. With iCloud, you can pick up where you left off on another device.
 
 Game content at launch
 

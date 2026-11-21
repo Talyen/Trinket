@@ -50,8 +50,7 @@
         padding: 0 clamp(18px, 4vw, 54px);
       }
       header,
-      nav,
-      .actions {
+      nav {
         display: flex;
         align-items: center;
         gap: 24px;
@@ -78,34 +77,6 @@
         color: var(--paper);
         text-decoration: none;
       }
-      .hero {
-        position: relative;
-        isolation: isolate;
-        overflow: hidden;
-        border: 1px solid var(--line);
-        background: #211e1e;
-        display: grid;
-        grid-template-columns: 51% 49%;
-        align-items: center;
-        min-height: 440px;
-      }
-      .hero h1 {
-        padding: 16px;
-        margin: 0;
-        line-height: 0;
-      }
-      .hero > .button {
-        grid-column: 1 / -1;
-        justify-self: center;
-        margin: 20px 0 28px;
-      }
-      .hero img {
-        width: 100%;
-        height: auto;
-      }
-      .hero div {
-        padding: 36px clamp(22px, 4vw, 48px);
-      }
       h1,
       h2,
       h3 {
@@ -125,29 +96,11 @@
         font-size: 28px;
         margin: 0 0 9px;
       }
-      .hero a[download] {
-        display: inline-block;
-      }
-      .hero p {
-        font-size: 20px;
-        color: #e2d8ca;
-        line-height: 1.42;
-        margin: 0 0 22px;
-      }
       .gallery-index { display: flex; flex-wrap: wrap; gap: 0 20px; }
       .gallery-index a { text-decoration: underline; color: var(--gold); }
       #images h3 { margin: 32px 0 16px; scroll-margin-top: 16px; }
       .gallery figure { container-type: inline-size; }
       .gallery a { display: block; width: fit-content; margin-inline: auto; }
-      .button {
-        display: inline-block;
-        padding: 10px 17px;
-        color: #241c12;
-        background: var(--gold);
-        border-radius: 3px;
-        text-decoration: none;
-        font-weight: 650;
-      }
       section {
         padding: 52px 0;
         border-bottom: 1px solid var(--line);
@@ -174,7 +127,6 @@
         border-bottom: 1px solid var(--line);
       }
       dt,
-      .meta,
       figcaption {
         color: var(--muted);
       }
@@ -229,36 +181,6 @@
       dd {
         margin: 0;
       }
-      .feature {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) min(42%, 41.5svh, 495px) minmax(0, 1fr);
-        grid-template-areas: "heading heading heading" "story player downloads";
-        align-items: center;
-        gap: 28px clamp(20px, 3vw, 44px);
-      }
-      .feature h2 {
-        grid-area: heading;
-        margin: 0;
-        text-align: center;
-      }
-      .feature video {
-        grid-area: player;
-        display: block;
-        justify-self: center;
-        width: 100%;
-        height: auto;
-        aspect-ratio: 119 / 240;
-        background: #141216;
-      }
-      .footage-story { grid-area: story; }
-      .footage-downloads { grid-area: downloads; }
-      .actions {
-        gap: 13px 20px;
-        margin: 18px 0;
-      }
-      .meta {
-        font-size: 14px;
-      }
       .gallery {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -297,14 +219,6 @@
       .jump {
         scroll-margin: 16px;
       }
-      @media (max-width: 959px) {
-        .feature {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          grid-template-areas: "heading heading" "player player" "story downloads";
-          align-items: start;
-        }
-        .feature video { max-width: min(41.5svh, 495px); }
-      }
       @media (max-width: 720px) {
         header {
           gap: 10px;
@@ -313,27 +227,7 @@
         nav {
           gap: 12px;
         }
-        .hero {
-          grid-template-columns: minmax(0, 1fr);
-          min-height: 0;
-        }
-        .hero h1 {
-          width: 100%;
-          max-width: 440px;
-          justify-self: center;
-        }
-        .hero div {
-          width: 100%;
-          padding: 0 22px;
-        }
-        .hero p {
-          font-size: 18px;
-        }
-        .facts,
-        .feature {
-          grid-template-columns: 1fr;
-        }
-        .feature { grid-template-areas: "heading" "player" "story" "downloads"; }
+        .facts { grid-template-columns: 1fr; }
         .gallery {
           grid-template-columns: repeat(2, minmax(0, 1fr));
         }
@@ -349,8 +243,7 @@
       }
       @media print {
         header nav,
-        .button,
-        .feature,
+        .footage-library,
         video {
           display: none;
         }
@@ -358,35 +251,21 @@
           background: white;
           color: black;
         }
-        .hero {
-          min-height: 0;
-          background: white;
-        }
-        .hero h1 {
-          max-width: 135px;
-        }
-        .hero { display: flex; flex-direction: row; border: 0; }
-        header, #images, #artwork, a[download], .hero a[download] { display: none; }
+        header, #images, #artwork, a[download] { display: none; }
         .press-url::after { content: " · " attr(href); }
         header, main, footer { max-width: none; padding: 0; }
         .facts { display: block; padding: 12px 0; }
         .facts > div + div { margin-top: 16px; }
         body { font: 10pt/1.3 Georgia, serif; }
         h2 { font-size: 19pt; margin-bottom: 6px; }
-        .hero p { font-size: 13pt; margin: 0 0 6px; }
         dl > div { padding: 3px 0; }
         footer { padding-top: 12px; }
         footer p { margin: 4px 0; }
-        .hero div {
-          width: 100%;
-        }
         section {
           break-inside: avoid;
         }
         a,
         figcaption,
-        .meta,
-        .hero p,
         dt {
           color: #242424;
         }
@@ -479,6 +358,14 @@
       <symbol id="icon-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-5 3-8 8-8s8 3 8 8"/></symbol>
       <symbol id="icon-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="9" r="1.5"/><path d="m4 18 6-6 3 3 3-4 5 6"/></symbol>
       <symbol id="icon-mail" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></symbol>
+      <symbol id="icon-book" viewBox="0 0 24 24"><path d="M3 4c4-1 7 0 9 2 2-2 5-3 9-2v15c-3-1-6 0-9 2-3-2-6-3-9-2zM12 6v15"/></symbol>
+      <symbol id="icon-tower" viewBox="0 0 24 24"><path d="m5 9 7-7 7 7zM7 9v12h10V9m-7 12v-5a2 2 0 0 1 4 0v5"/></symbol>
+      <symbol id="icon-blades" viewBox="0 0 24 24"><path d="m3 3 4 1 12 14-2 2L4 7zM14 17l4-4m-1 7 3 2m-8-8-5 6-2-2 5-6m4-5 3-3 4-1-1 4-4 4M4 13l5 4m-3 3-3 2"/></symbol>
+      <symbol id="icon-home" viewBox="0 0 24 24"><path d="m2 11 10-8 10 8M5 9v12h14V9m-9 12v-7h4v7"/></symbol>
+      <symbol id="icon-shield" viewBox="0 0 24 24"><path d="m12 2 8 3v7c0 4-4 8-8 10-4-2-8-6-8-10V5zM12 7v9m-4-6h8"/></symbol>
+      <symbol id="icon-paw" viewBox="0 0 24 24"><ellipse cx="5" cy="10" rx="2" ry="3"/><ellipse cx="10" cy="6" rx="2" ry="3"/><ellipse cx="16" cy="6.5" rx="2" ry="3"/><ellipse cx="20" cy="11" rx="2" ry="3"/><path d="M6 18c0-2 3-6 6-6s6 4 6 6c0 4-4 2-6 2s-6 2-6-2z"/></symbol>
+      <symbol id="icon-spark" viewBox="0 0 24 24"><path d="m10 3 2.3 6.7L19 12l-6.7 2.3L10 21l-2.3-6.7L1 12l6.7-2.3zM19 2v5m-2.5-2.5h5"/></symbol>
+      <symbol id="icon-tree" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="19" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M12 7.5V12m-7 4.5V12h14v4.5"/></symbol>
     </svg>
     <header>
       <a class="masthead" href="#top"><img src="previews/trinket-icon.jpg" width="40" height="40" alt="" /><strong><i>Trinket!</i> Press kit</strong></a>
@@ -488,16 +375,47 @@
       </nav>
     </header>
     <main id="top">
-      <div class="hero">
-        <h1><img src="previews/ambush-wordmark.webp" alt="Trinket!" width="1080" height="720" /></h1>
-        <div>
+      <div class="premiere">
+        <div class="premiere-intro">
+          <h1><img src="previews/ambush-wordmark.webp" alt="Trinket!" width="1080" height="720" /></h1>
           <p><i>Trinket!</i> is a turn-based card RPG where your hero and companion share a hand of cards. Freeze an enemy with your Wizard, then play your Frost Whelp’s Ice Shot for double damage.</p>
           <ul class="release-strip">
             <li><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-calendar"></use></svg><span>U.S. launch<strong><time datetime="2026-12-21">December 21, 2026</time></strong></span></li>
             <li><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-devices"></use></svg><span>App Store<strong>iPhone &amp; iPad</strong></span></li>
           </ul>
         </div>
-        <a class="button" href="#footage"><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-play"></use></svg> Watch the trailer</a>
+        <div class="premiere-player" id="footage">
+          <video
+            width="952"
+            height="1920"
+            controls
+            playsinline
+            preload="none"
+            poster="previews/trailer.jpg"
+            aria-label="Trinket! narrated feature trailer"
+          >
+            <source src="video/Trinket-feature-reel.mp4" type="video/mp4" />
+            <track
+              kind="captions"
+              label="English"
+              srclang="en"
+              src="video/Trinket-feature-reel.en.vtt"
+            />
+          </video>
+          <button class="premiere-play" type="button" hidden><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-play"></use></svg>Watch the trailer</button>
+        </div>
+        <div class="premiere-guide">
+          <img src="previews/trailer-spires.webp" width="720" height="537" alt="" />
+          <h2>Inside the trailer</h2>
+          <p>1:33 · English narration</p>
+          <ol aria-label="Trailer chapters">
+              <li><a href="video/Trinket-feature-reel.mp4#t=0" data-seek="0"><time datetime="PT0S">0:00</time><span>Meet the party</span></a></li>
+              <li><a href="video/Trinket-feature-reel.mp4#t=15" data-seek="15"><time datetime="PT15S">0:15</time><span>At the Homestead</span></a></li>
+              <li><a href="video/Trinket-feature-reel.mp4#t=30" data-seek="30"><time datetime="PT30S">0:30</time><span>A Recruit event</span></a></li>
+              <li><a href="video/Trinket-feature-reel.mp4#t=58" data-seek="58"><time datetime="PT58S">0:58</time><span>The Blood Countess</span></a></li>
+          </ol>
+          <a class="footage-files-link" href="#footage-downloads"><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-download"></use></svg>Footage downloads</a>
+        </div>
       </div>
       <nav class="press-resources" aria-label="Press resources">
         <!-- full kit download -->
@@ -516,59 +434,46 @@
           <h2>At a glance</h2>
           <div class="price-panel">
             <div class="price-stats"><p><strong>Free</strong>Download</p><p><strong>$4.99</strong>Full game · one-time purchase</p></div>
-            <div class="chapter-meter" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-            <p>Play the first <b>3 of 4 Campaign chapters</b> free.</p>
+            <p>Try every mode for free. The full game unlocks more heroes and companions to recruit, higher Spire floors and deeper Labyrinth runs.</p>
           </div>
           <dl class="glance-list">
             <div><dt><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-calendar"></use></svg>Release</dt><dd>December 21, 2026 · United States</dd></div>
             <div><dt><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-devices"></use></svg>Platform</dt><dd>iPhone and iPad · iOS / iPadOS 18 or later</dd></div>
             <div><dt><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-play"></use></svg>Genre</dt><dd>Single-player fantasy RPG with turn-based card combat</dd></div>
-            <div><dt><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-offline"></use></svg>Offline</dt><dd>Play without an account. Optional iCloud save sync.</dd></div>
+            <div><dt><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-offline"></use></svg>Offline</dt><dd>Play offline without signing up. With iCloud, you can pick up where you left off on another device.</dd></div>
             <div><dt><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-person"></use></svg>Developer</dt><dd>Ryan McIntire · solo indie developer</dd></div>
           </dl>
           <a class="detail-link" href="#content">Explore the modes and what’s free</a>
         </div>
       </section>
-      <section class="feature" id="footage">
+      <section id="footage-downloads" class="footage-library">
         <h2>Gameplay footage</h2>
-        <video
-          width="952"
-          height="1920"
-          controls
-          playsinline
-          preload="none"
-          poster="previews/trailer.jpg"
-          aria-label="Trinket! narrated feature trailer"
-        >
-          <source src="video/Trinket-feature-reel.mp4" type="video/mp4" />
-          <track
-            kind="captions"
-            label="English"
-            srclang="en"
-            src="video/Trinket-feature-reel.en.vtt"
-          />
-        </video>
-        <div class="footage-story">
-          <h3>Meet the Blood Countess</h3>
-          <p>Follow the Wizard and Frost Whelp from the Homestead to Sanguine Court, where the Countess sings her own battle theme.</p>
-          <a class="detail-link" href="video/Trinket-feature-reel.mp4#t=58">Watch the fight from 0:58</a>
-          <p class="meta">1:33 · English narration</p>
+        <div class="footage-files">
+          <article>
+            <img src="previews/launch-wizard.jpg" alt="" loading="lazy" />
+            <div>
+              <h3>Narrated feature trailer</h3>
+              <p>The Wizard and Frost Whelp travel to Sanguine Court to face the Blood Countess.</p>
+              <p class="file-format">1:33 · 952 × 1920 MP4</p>
+              <div class="file-links">
+                <a class="media-action" href="video/Trinket-feature-reel.mp4" download><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-download"></use></svg>Download trailer</a>
+                <a href="video/Trinket-feature-reel.en.srt" download>English captions (.srt)</a>
+              </div>
+            </div>
+          </article>
+          <article>
+            <img src="previews/treant-portrait.webp" alt="" loading="lazy" />
+            <div>
+              <h3>Blight Treant combat clip</h3>
+              <p>The Ranger and Wolf face the Treant. In-game lyrics stay on screen, with room for your own commentary.</p>
+              <p class="file-format">0:17 · 60 fps · Silent MP4</p>
+              <div class="file-links">
+                <a class="media-action" href="video/Trinket-creator-footage.mp4" download><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-download"></use></svg>Download clip</a>
+              </div>
+            </div>
+          </article>
         </div>
-        <div class="footage-downloads">
-          <h3>Trailer downloads</h3>
-          <p>You may use the trailer and its soundtrack in editorial coverage of <i>Trinket!</i></p>
-          <div class="actions">
-            <a class="media-action" href="video/Trinket-feature-reel.mp4" download><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-download"></use></svg>Trailer · 952 × 1920 MP4</a
-            ><a href="video/Trinket-feature-reel.en.srt" download>English narration captions (.srt)</a>
-          </div>
-          <h3>The Blight Treant</h3>
-          <p>
-            The Ranger and Wolf face the Blight Treant in this silent iPhone combat excerpt. In-game lyrics are visible. You can use it under your own commentary.
-          </p>
-          <a href="video/Trinket-creator-footage.mp4" download
-            >Download silent footage (17s, 60 fps)</a
-          >
-        </div>
+        <p class="footage-rights">You may use both videos, including the trailer soundtrack, in editorial coverage of <i>Trinket!</i></p>
       </section>
       <section id="content">
         <h2>Game content at launch</h2>
@@ -578,10 +483,10 @@
             <div class="launch-body">
               <h3>Modes and world</h3>
               <div class="launch-stats">
-                <div class="launch-stat"><strong>4</strong><span>campaign chapters</span></div>
-                <div class="launch-stat"><strong>7</strong><span>Spires to climb</span></div>
-                <div class="launch-stat"><strong>39</strong><span>enemies, including 7 bosses</span></div>
-                <div class="launch-stat"><strong>20</strong><span>Homestead projects</span></div>
+                <div class="launch-stat"><strong>4</strong><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-book"></use></svg><span>campaign chapters</span></div>
+                <div class="launch-stat"><strong>7</strong><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-tower"></use></svg><span>Spires to climb</span></div>
+                <div class="launch-stat"><strong>39</strong><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-blades"></use></svg><span>enemies, including 7 bosses</span></div>
+                <div class="launch-stat"><strong>20</strong><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-home"></use></svg><span>Homestead projects</span></div>
               </div>
               <details class="launch-details">
                 <summary>Full modes and world details</summary>
@@ -597,15 +502,15 @@
               </details>
             </div>
           </article>
-          <article class="launch-panel">
+          <article class="launch-panel roster-panel">
             <div class="launch-art characters"><img src="previews/launch-wizard.jpg" alt="" loading="lazy" /><img src="previews/launch-frost-whelp.jpg" alt="" loading="lazy" /></div>
             <div class="launch-body">
               <h3>Roster and progression</h3>
               <div class="launch-stats">
-                <div class="launch-stat"><strong>8</strong><span>heroes</span></div>
-                <div class="launch-stat"><strong>13</strong><span>companions</span></div>
-                <div class="launch-stat"><strong>65</strong><span>equippable abilities</span></div>
-                <div class="launch-stat"><strong>446</strong><span>talents across 63 trees</span></div>
+                <div class="launch-stat"><strong>8</strong><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-shield"></use></svg><span>heroes</span></div>
+                <div class="launch-stat"><strong>13</strong><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-paw"></use></svg><span>companions</span></div>
+                <div class="launch-stat"><strong>65</strong><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-spark"></use></svg><span>equippable abilities</span></div>
+                <div class="launch-stat"><strong>446</strong><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-tree"></use></svg><span>talents across 63 trees</span></div>
               </div>
               <details class="launch-details">
                 <summary>Full roster and progression details</summary>
@@ -771,6 +676,7 @@
       </div>
     </dialog>
     <script src="gallery.js" defer></script>
+    <script src="footage.js" defer></script>
     <footer id="contact">
       <h2>Press contact</h2>
       <p>
