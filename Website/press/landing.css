@@ -103,7 +103,7 @@
 .launch-art { border-bottom: 2px solid var(--stat-icon); }
 .launch-stat { display: grid; grid-template-columns: max-content 1fr; align-items: center; gap: 0 .6rem; }
 .launch-stat strong, .launch-details summary { color: var(--stat-color); }
-.launch-stat .press-icon { color: var(--stat-icon); width: 1.4rem; height: 1.4rem; }
+.launch-stat .press-icon { color: var(--stat-icon); width: clamp(1.875rem, 3vw, 2.25rem); height: auto; aspect-ratio: 1; }
 .launch-stat span { grid-column: 1 / -1; }
 
 @media (max-width: 959px) {

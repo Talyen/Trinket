@@ -8,11 +8,12 @@ Beyond the Campaign, climb seven Spires, chart a path through an endless Labyrin
 
 Developer: Ryan McIntire, solo indie developer
 Release: December 21, 2026 · United States
-Platform: iPhone and iPad · iOS / iPadOS 18 or later
-Genre: Single-player fantasy RPG with turn-based card combat
-Price: Free download. Try every mode for free. One US$4.99 purchase unlocks the full game.
+Platform: iOS / iPhone / iPad
+Genre: Single-player turn-based fantasy card combat
+Price: Free download. Try every mode for free. Full game: US$4.99 (one-time purchase). The full game unlocks all remaining game content, such as heroes, companions, and game modes.
 Free play: Includes the first three Campaign chapters, unlimited Contracts, three Labyrinth floors, ten floors of every Spire and Voyages in the Forest, Dungeon and Desert.
-Offline: Play offline without signing up. With iCloud, you can pick up where you left off on another device.
+Offline: Play offline with no account required
+iCloud sync supported
 
 Game content at launch
 
