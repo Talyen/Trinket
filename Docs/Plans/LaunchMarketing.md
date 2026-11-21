@@ -119,6 +119,12 @@ For future copy reviews, ask independent readers to name the genre and describe 
   nomination, and recipient batch. Agents can send the approved outreach
   once the owner has authorized sending. Save dated artifact links and
   dispatch status in the tracker below.
+- [x] **Agents · stage the launch review batch.** The private
+  `Trinket-Launch-Review-Nov21/Review.md` packet in Release deliverables
+  contains the three named advance drafts, private TestFlight reply copy,
+  launch-day posts, a press-page badge update, and the first-week reporting
+  worksheet and collector. External invitations and launch announcements
+  await owner approval.
 
 ## Launch day and the first month
 
@@ -258,10 +264,11 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | U.S. launch date | Confirmed by owner | December 21, 2026. The prelaunch film and press fact sheet carry the date. |
 | Launch candidate | Build 14 submitted for App Review | On November 19 at 5:28 p.m. Pacific, Apple confirmed version 1.0.0 (14) was Waiting for Review with manual release after build 13 was withdrawn. Submission `9d37fa8c-814c-4cb7-bd94-d05d98057908`. TestFlight opened 1.0.0 (14) over Wi-Fi. Ranger and Wolf remained at chapter 1, stage 1, and the save database and write-ahead log matched the pre-update backup byte for byte. After restore and sign-in, Options showed Full Game — Unlocked. Reuse this result and the prior first-purchase evidence for unchanged commerce behavior. [Hosted release checks](https://github.com/Talyen/Trinket/actions/runs/44630048041) passed with one coverage gap for declined Ask to Buy. The build comparison and device evidence are in `LaunchReadiness-Nov19/Candidate.md`. |
 | U.S. App Store pre-order | Public and verified November 21 | Version 1.0.0 build 14. Apple confirmed United States only and the public page shows the expected December 21, 2026 release, Free, and In-App Purchases. No pitches sent. [U.S. listing](https://apps.apple.com/us/app/trinket/id6811284921) |
-| Press access | External Beta App Review requested Nov 19 | Build 13 is attached to the invite-only Press Preview group. Apple returned Waiting for Review. Send private invitations after external approval. |
+| Press access | External beta approved, verified November 21 | Build 13 is attached to the invite-only Press Preview group. It expires February 11, 2027. Public link disabled, zero testers. Send private invitations to approved respondents. |
 | Featuring nomination | Submitted November 19 | App Launch, December 21, U.S., iPhone and iPad. Apple confirmed nomination `9a7f1d2d-b137-40ca-af15-432c455ae3ab` with the public kit, narrated trailer and Blood Countess still. |
-| Advance outreach | Three December 7–9 pitches prepared | Pocket Gamer news, MiniReview and Lunar Nebula Gaming. Current send-day copy and sources are in `LaunchPitch-Nov20/Advance-outreach.md`. No dispatch yet. |
-| Editorial review | Shared-hand opener selected; outreach remains unsent | Current launch and advance drafts are in the retained Release folder `LaunchPitch-Nov20/`. The press page and offline downloads share one set of captions and release facts. The owner accepted the existing trailer. The second editorial pass covers press copy, outreach and image assets. |
+| Advance outreach | Three December 7–9 pitches staged for one approval | Pocket Gamer news, MiniReview and Lunar Nebula Gaming. Current drafts and the launch-day fallback are in `Trinket-Launch-Review-Nov21/`. No dispatch yet. |
+| First-week reporting | Reporting access verified before launch | The active Analytics request and four standard report catalogs were readable on November 21 with no daily instances. The Sales and Trends check returned explicit no sales for November 17. Start with the D+7 snapshot, then refresh after data is complete through the seventh live day. |
+| Editorial review | Shared-hand opener selected; outreach remains unsent | The preceding editorial drafts are in the retained Release folder `LaunchPitch-Nov20/`. The press page and offline downloads share one set of captions and release facts. The owner accepted the existing trailer. The second editorial pass covers press copy, outreach and image assets. |
 | Press outreach dispatched | Due December 7–11 | Check the public kit and external beta status before sending. |
 | Verified public U.S. launch | Pending | |
 | Day 7, 14, and 30 sales and conversion snapshots | Pending | |
