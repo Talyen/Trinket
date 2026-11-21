@@ -122,12 +122,11 @@ For future copy reviews, ask independent readers to name the genre and describe 
 
 ## Launch day and the first month
 
-- [ ] **Agents · publish the approved pre-order.** In App Store Connect, verify
-  that build 14 is approved and December 21 is set for the United States only.
-  Publish the first pre-order from the version page and verify the public U.S.
-  listing shows the expected date and pre-order action. Apple says publication
-  can take up to 24 hours to appear for all users.
-  [Apple pre-order instructions](https://developer.apple.com/help/app-store-connect/manage-your-apps-availability/publish-for-pre-order/)
+- [x] **Agents · publish the approved pre-order.** On November 21, confirmed
+  iOS 1.0.0 build 14 and Full Game approval in App Store Connect, published
+  for the United States, and verified the public product page shows
+  “Coming Soon” and “Expected Dec 21, 2026.”
+  [U.S. App Store listing](https://apps.apple.com/us/app/trinket/id6811284921)
 - [ ] **Agents · public checks.** Confirm the U.S. listing, build, free
   download, iPhone and iPad galleries, support and privacy links, and
   Full Game offer. Use the release checklist for purchase and restore
@@ -229,7 +228,7 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | Reporting access | Ongoing analytics enabled Nov 19 | Apple accepted the request. The download and purchase report catalogs are readable. Both had zero delivered instances before launch. Sales and Trends accepted the vendor number and returned its no-sales response for November 12 and 17. Verify the first delivered report after sales begin. First-month reporting and the $0 opening baseline are in Release evidence under `LaunchReadiness-Nov19/Reporting.md`. |
 | U.S. launch date | Confirmed by owner | December 21, 2026. The prelaunch film and press fact sheet carry the date. |
 | Launch candidate | Build 14 submitted for App Review | On November 19 at 5:28 p.m. Pacific, Apple confirmed version 1.0.0 (14) was Waiting for Review with manual release after build 13 was withdrawn. Submission `9d37fa8c-814c-4cb7-bd94-d05d98057908`. TestFlight opened 1.0.0 (14) over Wi-Fi. Ranger and Wolf remained at chapter 1, stage 1, and the save database and write-ahead log matched the pre-update backup byte for byte. After restore and sign-in, Options showed Full Game — Unlocked. Reuse this result and the prior first-purchase evidence for unchanged commerce behavior. [Hosted release checks](https://github.com/Talyen/Trinket/actions/runs/44630048041) passed with one coverage gap for declined Ask to Buy. The build comparison and device evidence are in `LaunchReadiness-Nov19/Candidate.md`. |
-| U.S. App Store pre-order | Settings saved November 21, publication pending | Build 14 and Full Game are approved. App Store Connect returned December 21, 2026 for the United States only. Publish through App Store Connect and confirm the public listing. |
+| U.S. App Store pre-order | Public and verified November 21 | Version 1.0.0 build 14. Apple confirmed United States only and the public page shows the expected December 21, 2026 release, Free, and In-App Purchases. No pitches sent. [U.S. listing](https://apps.apple.com/us/app/trinket/id6811284921) |
 | Press access | External Beta App Review requested Nov 19 | Build 13 is attached to the invite-only Press Preview group. Apple returned Waiting for Review. Send private invitations after external approval. |
 | Featuring nomination | Submitted November 19 | App Launch, December 21, U.S., iPhone and iPad. Apple confirmed nomination `9a7f1d2d-b137-40ca-af15-432c455ae3ab` with the public kit, narrated trailer and Blood Countess still. |
 | Advance outreach | Three December 7–9 pitches prepared | Pocket Gamer news, MiniReview and Lunar Nebula Gaming. Current send-day copy and sources are in `LaunchPitch-Nov20/Advance-outreach.md`. No dispatch yet. |
