@@ -131,6 +131,18 @@ For future copy reviews, ask independent readers to name the genre and describe 
   uses Apple's U.S. pre-order badge. The advance and launch drafts link to the
   same App Store listing. The gameplay footage section also offers a 29-second
   narrated cut alongside the full feature reel and the silent Blight Treant clip.
+- [x] **Agents · submit the short App Store preview test.** On November 21,
+  submitted one Product Page Optimization treatment for English (U.S.).
+  The 29-second captioned iPhone preview is the only change, with half of
+  eligible traffic assigned to the treatment. Submission
+  `6ed661e7-bb92-4c7c-bf4f-0ee938dc3cab` is waiting for App Review.
+  Build 14 and the December 21 U.S. pre-order were verified after submission.
+  [App Store Connect test](https://appstoreconnect.apple.com/apps/6811284921/distribution/optimization/c3ddfdc8-90af-4e77-bd5c-73744600e89b)
+- [ ] **Agents · check preview placement after approval.** Verify whether
+  Apply Treatment is available for the current pre-order version. Applying it
+  ends the 50/50 test, so record the option and get the owner's decision before
+  switching the default page.
+  [Apple's treatment instructions](https://developer.apple.com/help/app-store-connect/create-product-page-optimization-tests/apply-a-test-treatment-to-your-product-page/)
 - [ ] **Agents · public checks.** Confirm the U.S. listing, build, free
   download, iPhone and iPad galleries, support and privacy links, and
   Full Game offer. Use the release checklist for purchase and restore
