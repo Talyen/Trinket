@@ -133,7 +133,12 @@ For future copy reviews, ask independent readers to name the genre and describe 
   contains the ten scheduled pitches with direct TestFlight access,
   launch-day posts, a press-page badge update, and the first-week reporting
   worksheet and collector. The launch-day press page and ZIP were built and
-  checked privately for launch day.
+  checked privately for launch day. `Press-follow-up.md` has batch-specific
+  Gmail searches, the press reply snippets, and the coverage workflow.
+  Run `ruby reporting/launch-check.rb` from the private packet for one
+  read-only pass over the app and Full Game, sampled public pages, and
+  first-week reporting. The pre-launch rehearsal verified 14 public
+  pre-orders and 173 configured Full Game price points.
 
 ## Launch day and the first month
 
