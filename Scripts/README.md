@@ -10,7 +10,7 @@ helpers, `config/` owns shared configuration, and `Tests/` owns script regressio
 
 ## Everyday workflow
 
-Follow [AGENTS.md](../AGENTS.md#route-and-read) for the implementation workflow.
+Follow [AGENTS.md](../AGENTS.md#workspace-and-workflow) for the implementation workflow.
 Read-only investigations need no worktree. Use `rg`, file reads and Git diffs for
 navigation; optional retrieval helpers document their interfaces through `--help`.
 

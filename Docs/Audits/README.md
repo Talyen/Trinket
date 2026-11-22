@@ -66,7 +66,7 @@ failure and its impact. Do not inflate maintenance findings to justify action.
 
 Choose the smallest coherent remedy that fully removes the cause and fits the
 existing architecture. Preserve intentional game behavior and live compatibility.
-Follow [the root change policy](../../AGENTS.md#choose-the-change) for dependencies,
+Follow [the root change policy](../../AGENTS.md#scope-and-communication) for dependencies,
 architectural changes, and approval boundaries.
 
 - **Fix in-pass:** confirmed, reversible changes with clear intent and bounded

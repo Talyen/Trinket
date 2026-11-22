@@ -244,7 +244,7 @@ cache function across device sizes and clamp boundaries, plus the process budget
 values; they do not require a particular Swift expression. The compatibility
 `check-artwork-budget.sh` command selects that suite under focused-verification
 limits and is not a cheap static slice. Approval constraints remain in
-[AGENTS.md](../../AGENTS.md#product-constraints); do not duplicate numeric
+[AGENTS.md](../../AGENTS.md#product-guardrails); do not duplicate numeric
 budgets there.
 
 ## Investigation loop

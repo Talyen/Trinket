@@ -44,7 +44,7 @@ boots. Every active lease is protected, even when multiple agents are running. I
 legacy single-warm rule across all managed devices still applies. Preview
 devices are reclaimed and bulky artifacts age-pruned. Nested commands release
 only their own leases. Cancellation stops owned child processes before EXIT
-cleanup releases locks and leases (process safety: [AGENTS.md](../../AGENTS.md#protect-the-workspace)). A lease
+cleanup releases locks and leases (process safety: [AGENTS.md](../../AGENTS.md#workspace-and-workflow)). A lease
 left by a crashed run is reaped when its pid is dead. Age alone never revokes
 a live owner’s lease; an ambiguous lease remains reserved for inspection.
 Process-probe permission errors preserve the owner; only confirmed process absence

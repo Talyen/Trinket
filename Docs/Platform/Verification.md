@@ -81,7 +81,7 @@ Local integration requires static checks and review. Visual inspection and local
 
 Report missing hosted evidence separately for local-only tasks. Task reports
 record local landing and pending hosted verification automatically. Follow the
-[repository push policy](../../AGENTS.md#protect-the-workspace) and the
+[repository push policy](../../AGENTS.md#workspace-and-workflow) and the
 [release procedure](Release.md#shipping) for publication.
 
 ## New iOS release readiness

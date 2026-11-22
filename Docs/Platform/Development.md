@@ -1,7 +1,7 @@
 # Development workflow
 
 Task checkouts, local integration, evidence preservation, and Git hooks.
-[AGENTS.md](../../AGENTS.md#route-and-read) owns the implementation loop and
+[AGENTS.md](../../AGENTS.md#workspace-and-workflow) owns the implementation loop and
 authorization; [Verification](Verification.md) owns check selection and completion.
 Release and TestFlight operations live in [Release](Release.md).
 
@@ -24,8 +24,8 @@ touched paths at release time.
 
 ## Isolated chat workflow
 
-Follow [AGENTS.md](../../AGENTS.md#route-and-read) for the task workflow and
-[workspace safeguards](../../AGENTS.md#protect-the-workspace) for authorization and
+Follow [AGENTS.md](../../AGENTS.md#workspace-and-workflow) for the task workflow and
+[workspace safeguards](../../AGENTS.md#workspace-and-workflow) for authorization and
 isolation. Read-only investigations need no worktree. This section owns landing,
 recovery and cleanup; [command help](../../Scripts/Reference.md#development) owns options.
 
@@ -194,7 +194,7 @@ source before reporting success. Preserve outstanding work rather than clearing
 it to pass the hook.
 
 Pre-push invokes `agent-push-gate.sh` internally with that outgoing scope; do not
-run it manually after commit. Landing policy remains in [AGENTS.md](../../AGENTS.md#protect-the-workspace).
+run it manually after commit. Landing policy remains in [AGENTS.md](../../AGENTS.md#workspace-and-workflow).
 
 Direct pushes to `main` retain inexpensive pre-push safeguards: scoped style and
 committed generated-output completeness, plus the asset checks described above.

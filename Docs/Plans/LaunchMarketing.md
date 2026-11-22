@@ -18,7 +18,7 @@ Agents prepare assets, research recipients, draft outreach, verify the
 storefront, and report results. The owner reviews the creative and outreach
 in one batch, authorizes pre-order publication, and approves paid spend
 if the evidence supports it. Group any required account or billing setup
-with the relevant decision. The [standing workflow](../../AGENTS.md#route-and-read),
+with the relevant decision. The [standing workflow](../../AGENTS.md#workspace-and-workflow),
 [shipping checklist](../Platform/Release.md#shipping), and
 [verification policy](../Platform/Verification.md) govern repository and
 release work.

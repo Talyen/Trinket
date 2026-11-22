@@ -33,7 +33,7 @@ Player-resource changes remain outside this plan.
   active or explicitly kept owner remains. Apply the current evidence policy;
   byte equality alone does not establish physical savings.
 
-Use [the isolated workflow](../../AGENTS.md#route-and-read),
+Use [the isolated workflow](../../AGENTS.md#workspace-and-workflow),
 [output retention](../../Scripts/Reference.md#output-retention) and
 [verification policy](../Platform/Verification.md). Retain this plan until the
 remaining ownership and release-state questions are resolved.

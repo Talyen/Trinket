@@ -12,7 +12,7 @@ expires: 2026-11-20
 Ship the first public iPhone and iPad release with iCloud progress sync and the
 one-time Full Game unlock. Freeze feature scope for the candidate. Accept fixes
 that close a release gate, then refresh the affected evidence on the resulting
-revision. Follow the [standing workflow](../../AGENTS.md#route-and-read) and
+revision. Follow the [standing workflow](../../AGENTS.md#workspace-and-workflow) and
 [verification policy](../Platform/Verification.md).
 
 Track promotion, launch-week reporting, and marketing spend in the

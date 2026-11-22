@@ -26,7 +26,7 @@ allowed only directly under this directory; supporting design reference images
 may accompany active work. Report the outcome in the task handoff.
 
 Keep each plan to its objective, boundaries, status, blockers, next actions and
-evidence. Link the [standing workflow](../../AGENTS.md#route-and-read) and
+evidence. Link the [standing workflow](../../AGENTS.md#workspace-and-workflow) and
 [verification policy](../Platform/Verification.md); add only task-specific acceptance
 criteria rather than repeating those procedures. Run history belongs in handoffs or
 retained deliverables. Git preserves revisions; condensation neither completes

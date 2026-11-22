@@ -37,7 +37,7 @@ Apple design procedure: [apple-design skill](../../.agents/skills/apple-design/S
 
 ## Quickstart
 
-Use [the root workflow](../../AGENTS.md#route-and-read). Reuse unchanged guidance
+Use [the root workflow](../../AGENTS.md#workspace-and-workflow). Reuse unchanged guidance
 and load behavior depth only for the affected concern.
 
 `--base main` includes task commits plus dirty files; `--paths` selects intended

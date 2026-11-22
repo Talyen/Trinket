@@ -3,7 +3,7 @@
 Each rule has a canonical owner. Start with the document for the task; this map
 is a lookup aid, not a reading checklist.
 
-For implementation, follow [AGENTS.md](../AGENTS.md#route-and-read) and its scoped
+For implementation, follow [AGENTS.md](../AGENTS.md#workspace-and-workflow) and its scoped
 briefing. Read the applicable safeguards and behavior contracts; indexes and
 outgoing links are references, not additional workflow steps.
 

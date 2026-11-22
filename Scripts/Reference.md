@@ -1,6 +1,6 @@
 # Command reference
 
-Follow [AGENTS.md](../AGENTS.md#route-and-read) for the everyday workflow.
+Follow [AGENTS.md](../AGENTS.md#workspace-and-workflow) for the everyday workflow.
 The examples below select a task; use a command's `--help` where supported for its
 complete syntax. Script parsing and configuration remain authoritative. Low-level
 wrappers are for diagnostics/tooling, subject to [execution limits](../Docs/Platform/Verification.md#execution-limits).

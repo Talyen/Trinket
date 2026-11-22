@@ -15,7 +15,7 @@ The minimum supported OS does not prevent a useful newer API with a small
 availability check.
 
 For existing code, apply the scope and encountered-fix rules in
-[AGENTS.md](../../../../AGENTS.md#choose-the-change). A clear, bounded replacement
+[AGENTS.md](../../../../AGENTS.md#scope-and-communication). A clear, bounded replacement
 within the task can proceed with the relevant verification. A soft deprecation
 does not require a separate approval checkpoint or an unrelated migration sweep.
 Preserve player behavior and source compatibility where a current consumer needs
