@@ -12,15 +12,15 @@ explore.png · iPhone · 1179 × 2406 — Spires, Labyrinth and Contracts on the
 
 Heroes and companions
 
-wizard.png · iPhone Simulator · 1206 × 2462 — The Wizard has Mana Berries, Fireball and Meteor equipped in this loadout.
-frost-whelp.png · iPhone Simulator · 1206 × 2462 — The Frost Whelp has Ray of Frost, Frostbolt and Blizzard equipped in this loadout.
-knight.png · iPhone · 1180 × 2376 — The Knight has Bash, Smite and Avatar equipped.
-bear.png · iPhone · 1180 × 2376 — The Bear has Maul, Briar Shield and Earthquake equipped.
-ranger.jpg · iPhone · 1206 × 2462 — The Ranger has Fire Arrow, Bounty Shot and Astral Arrow equipped.
-fox.png · iPhone · 1206 × 2462 — The Fox, a Full Game companion, has Bash, Steal and Shadowstep equipped.
-rogue.jpg · iPhone Simulator · 1206 × 2462 — The Rogue has Stab, Poison Dagger and Hemorrhage equipped.
-wolf.jpg · iPhone Simulator · 1206 × 2462 — The Wolf has Fangs, Pounce and Pack Tactics equipped.
-library-owl.png · iPhone Simulator · 1206 × 2462 — The Library Owl has Stargaze, Heal and Sunburst equipped.
+wizard.png · iPhone Simulator · 1206 × 2462: The Wizard channels Mana Berries into high-impact Burn spells like Fireball and Meteor.
+frost-whelp.png · iPhone Simulator · 1206 × 2462: The Frost Whelp slows enemies down with Ray of Frost, Frostbolt, and Blizzard.
+knight.png · iPhone · 1180 × 2376: The Knight anchors the front line with Bash, Smite, and her Avatar ultimate.
+bear.png · iPhone · 1180 × 2376: The Bear pairs Briar Shield defenses with heavy hits from Maul and Earthquake.
+ranger.jpg · iPhone · 1206 × 2462: The Ranger opens fights with Fire Arrow, Bounty Shot, and Astral Arrow.
+fox.png · iPhone · 1206 × 2462: The Fox, a Full Game companion, steals from enemies and slips past danger with Bash, Steal, and Shadowstep.
+rogue.jpg · iPhone Simulator · 1206 × 2462: The Rogue stacks Bleed and Poison through Stab, Poison Dagger, and Hemorrhage.
+wolf.jpg · iPhone Simulator · 1206 × 2462: The Wolf pressures targets alongside any hero with Fangs, Pounce, and Pack Tactics.
+library-owl.png · iPhone Simulator · 1206 × 2462: The Library Owl supports the party with Stargaze, Heal, and Sunburst.
 
 Unique items
 

@@ -21,3 +21,11 @@ footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid #35312a; col
 .language[hidden] { display: none; }
 .language select { max-width: 60%; padding: 6px; font: inherit; color: inherit; background: #171614; border: 1px solid #51452b; border-radius: 5px; }
 .language select:focus-visible { outline: 2px solid #dfb75d; outline-offset: 3px; }
+.hero { margin-top: 28px; padding: 28px 24px; text-align: center; border: 1px solid #51452b; border-radius: 14px; background: radial-gradient(ellipse at 20% 25%, #342620, transparent 58%), #141315; }
+.hero-logo { display: block; width: min(100%, 300px); height: auto; margin: 0 auto 14px; }
+.hero-pitch { max-width: 540px; margin: 0 auto 20px; font-size: 17px; color: #eeece7; }
+.hero-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px 20px; }
+.hero-badge { display: inline-flex; }
+.hero-badge img { display: block; height: 44px; width: auto; }
+.hero-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px; border: 1px solid #655445; border-radius: 6px; text-decoration: none; font-weight: 600; color: #dfb75d; }
+.hero-link:hover { border-color: #dfb75d; background: #26201b; }

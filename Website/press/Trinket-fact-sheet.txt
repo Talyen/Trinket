@@ -2,16 +2,17 @@ Trinket! | Press fact sheet
 
 Trinket! is a turn-based card RPG where your hero and companion share a hand of cards.
 
-Take a hero and companion through four Campaign chapters, from the Forest to the Tundra. Recruit allies along the way and give each character a specialty through their equipment, abilities and talent trees.
+Pair a hero with a companion and share one hand of cards each turn, combining their abilities, gear, and talent trees to set up combos across four Campaign chapters, from the Forest to the Tundra. Each of the seven bosses features an original vocal theme with live lyrics in combat.
 
-Beyond the Campaign, climb seven Spires, chart a path through an endless Labyrinth, or set out on a Voyage. Contracts offer a single fight with a reward you can see up front. Back at the Homestead, grow herbs, forge gear and put your haul to work.
+Beyond the Campaign, climb seven Spires, push into an endless Labyrinth, chart a Voyage, or take a single-fight Contract with its reward shown up front. Between runs, build up your Homestead to grow herbs, forge gear, and strengthen your roster.
 
 Developer: Ryan McIntire, solo indie developer
 Release: December 21, 2026 across 173 App Store storefronts
 App Store pre-order: https://apps.apple.com/app/trinket/id6811284921
 Platform: iOS / iPhone / iPad
 Genre: Single-player turn-based fantasy card combat
-Price: Free download. Try every mode for free. Full game: one-time purchase (US$4.99 in the United States). Local prices vary. The full game unlocks all remaining game content, such as heroes, companions, and game modes.
+Languages: English, French, German, Japanese, Korean, Spanish, Portuguese (Brazil), Traditional Chinese
+Price: Free download. Try all five modes for free, with no ads, no subscriptions, and no energy timers. Full game: one-time purchase (US$4.99 in the United States, with Family Sharing). Local prices vary. One purchase unlocks every chapter, deeper Spire and Labyrinth floors, and the full roster of heroes and companions.
 Free play: Includes the first three Campaign chapters, unlimited Contracts, three Labyrinth floors, ten floors of every Spire and Voyages in the Forest, Dungeon and Desert.
 Offline: Play offline with no account required
 iCloud sync supported
@@ -19,21 +20,21 @@ iCloud sync supported
 Game content at launch
 
 Modes and world
-Campaign — Four chapters with 10 stages each. Play Forest, Dungeon and Desert for free. The full game adds Tundra.
-Spires — Seven Spires with 20 floors each (140 floors total). The first 10 floors of every Spire are free.
-Labyrinth — An endless dungeon. The first three floors are free.
-Contracts — Three single-battle jobs on the board at a time. Contracts are unlimited in free play.
-Voyage — Repeatable routes of 8, 10 or 12 stops. Forest, Dungeon and Desert are free. The full game adds Tundra.
-Enemies — 39 enemies, including 7 bosses.
-Homestead — 20 projects across Farming, Crafting, Alchemy, Training and Arcana. Together they have 80 tiers, including 20 initial builds and 60 upgrades.
+Campaign: Four chapters with 10 stages each. Play Forest, Dungeon and Desert for free. The full game adds Tundra.
+Spires: Seven Spires with 20 floors each (140 floors total). The first 10 floors of every Spire are free.
+Labyrinth: An endless dungeon. The first three floors are free.
+Contracts: Three single-battle jobs on the board at a time. Contracts are unlimited in free play.
+Voyage: Repeatable routes of 8, 10 or 12 stops. Forest, Dungeon and Desert are free. The full game adds Tundra.
+Enemies: 39 enemies, including 7 bosses.
+Homestead: 20 projects across Farming, Crafting, Alchemy, Training and Arcana. Together they have 80 tiers, including 20 initial builds and 60 upgrades.
 
 Roster and progression
-Heroes — 8 heroes. Ranger, Knight, Rogue, Wizard, Druid, Warlock, Alchemist, Wildcard.
-Companions — 13 companions. Wolf, Bear, Frost Whelp, Lizard Scout, Panther, Phoenix, Golden Retriever, Library Owl, Risen Skeleton, Mana Moth, Pixie, Shield Scarab, Fox.
-Abilities — 65 distinct equippable abilities across the roster, including 20 basics, 26 skills and 19 ultimates.
-Talents — 446 talents across 63 trees, three trees per character. The Wizard can specialize in Cryomancy, Pyromancy or Arcana.
-Equipment — Basic and Astral gear draws from 111 item affixes. Basic gear rolls 1–2 affixes per item and Astral gear rolls 3–4. There are also 24 trinkets and 29 unique items.
-Crafting — 26 equipment recipes. The Homestead offers 14 Blacksmith Forge recipes, 8 Archery Range recipes and 4 Wool Tailoring recipes.
+Heroes: 8 heroes. Ranger, Knight, Rogue, Wizard, Druid, Warlock, Alchemist, Wildcard.
+Companions: 13 companions. Wolf, Bear, Frost Whelp, Lizard Scout, Panther, Phoenix, Golden Retriever, Library Owl, Risen Skeleton, Mana Moth, Pixie, Shield Scarab, Fox.
+Abilities: 65 distinct equippable abilities across the roster, including 20 basics, 26 skills and 19 ultimates.
+Talents: 446 talents across 63 trees, three trees per character. The Wizard can specialize in Cryomancy, Pyromancy or Arcana.
+Equipment: Basic and Astral gear draws from 111 item affixes. Basic gear rolls 1 to 2 affixes per item and Astral gear rolls 3 to 4. There are also 24 trinkets and 29 unique items.
+Crafting: 26 equipment recipes. The Homestead offers 14 Blacksmith Forge recipes, 8 Archery Range recipes and 4 Wool Tailoring recipes.
 
 Free play includes the Knight, Ranger, Rogue and Wizard, plus the Wolf, Bear, Frost Whelp and Library Owl. Each has their full ability and talent progression. A full-game purchase opens the rest of the roster for recruitment.
 

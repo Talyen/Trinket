@@ -1,10 +1,10 @@
 ---
 type: execution-plan
-status: blocked
-reason: Apple has build 9 and Full Game in Waiting for Review. Manual release requires Apple approval and owner sign-off.
+status: active
+reason: Build 14 and Full Game are approved and live for pre-order in 173 storefronts ahead of the December 21, 2026 launch.
 created: 2026-11-06
-updated: 2026-11-08
-expires: 2026-11-20
+updated: 2026-11-21
+expires: 2026-12-31
 ---
 
 # Trinket App Store launch plan

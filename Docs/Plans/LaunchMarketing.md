@@ -116,7 +116,8 @@ For future copy reviews, ask independent readers to name the genre and describe 
   [Pocket Gamer card-battler roundup](https://www.pocketgamer.com/best-games/card-battler-games-for-iphone-ipad-ios/) ·
   [MiniReview's Dawncaster coverage](https://minireview.io/deck-building/dawncaster-deckbuilding-rpg)
 - [x] **Agents · playable access.** The existing Press Preview group has a
-  verified direct TestFlight link capped at 20 testers. Include it in every
+  verified direct TestFlight link capped at 50 testers (raised from 20 on
+  November 21). Include it in every
   approved direct press pitch alongside the public App Store URL and press
   kit. Check the build and capacity before dispatch. Keep the enrollment
   URL in direct correspondence and the private review packet. If a reviewer
@@ -169,9 +170,11 @@ For future copy reviews, ask independent readers to name the genre and describe 
   storefronts were verified after resubmission.
   [App Store Connect test](https://appstoreconnect.apple.com/apps/6811284921/distribution/optimization/c3ddfdc8-90af-4e77-bd5c-73744600e89b)
 - [ ] **Agents · check preview placement after approval.** Verify whether
-  Apply Treatment is available for the current pre-order version. Applying it
-  ends the 50/50 test, so record the option and get the owner's decision before
-  switching the default page.
+  Apply Treatment is available for the current pre-order version. Because
+  pre-order traffic is typically too small to reach statistical significance
+  in a 50/50 split, record the option and ask the owner whether to apply the
+  29-second preview directly to the default product page once approved so
+  launch-week visitors see the video and the 3-way Header test is unblocked.
   [Apple's treatment instructions](https://developer.apple.com/help/app-store-connect/create-product-page-optimization-tests/apply-a-test-treatment-to-your-product-page/)
 - [x] **Agents · submit the three selected product page headers.** On November
   21, App Store Connect validated all three as header-only PNGs. Standalone
@@ -191,8 +194,13 @@ For future copy reviews, ask independent readers to name the genre and describe 
   Full Game offer. Use the release checklist for purchase and restore
   verification. Hold promotion while a listing, install, or purchase issue
   blocks players. Route confirmed defects to the release owner.
-- [ ] **Agents · distribution.** Send approved launch messages and publish
-  approved posts after the store check. Start with the ordinary App Store URL.
+- [ ] **Agents · distribution.** Pre-check community posting rules well before
+  December 21 (including `r/iosgaming` self-promotion guidelines, TouchArcade
+  forums, indie RPG Discords, and Bluesky/Mastodon). On launch day, after the
+  store check passes, swap the press kit to the evergreen "Download on the App
+  Store" trailer and download badge, push to `main` so GitHub Pages rebuilds
+  both `Trinket-Press-Kit.zip` and `Trinket-images.zip`, and send approved
+  launch messages and posts. Start with the ordinary App Store URL.
   As soon as Apple enables campaign links, use one link per channel group
   such as press, creators, and community. Pool small sources so the results
   have a chance to reach Apple's reporting thresholds. A campaign typically
@@ -214,8 +222,12 @@ For future copy reviews, ask independent readers to name the genre and describe 
   rarely buy after the cohort matures, inspect the free-to-paid path and
   actual player feedback before proposing a product change. Escalate
   confirmed purchase, restore, or save problems as soon as they are found.
-- [ ] **Agents · localized galleries.** Add the approved localized iPhone and
-  iPad screenshots to the next editable version. Verify each prioritized
+- [ ] **Agents · localized galleries and 1.0.1 polish.** Add the approved
+  localized iPhone and iPad screenshots, refreshed App Store keywords and
+  description, direct `trinketrpg.com` support/privacy URLs, and a gentle
+  milestone-triggered `requestReview()` prompt to the next editable version.
+  Plan submission well before mid-December or in early January to avoid
+  Apple's late-December holiday App Review slowdown. Verify each prioritized
   storefront before distributing market-specific links or local price claims.
 
 ## Paid test and budget
