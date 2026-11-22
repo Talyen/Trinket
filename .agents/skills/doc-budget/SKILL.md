@@ -5,15 +5,13 @@ description: Add or repair checker directives and suppression reasons in authore
 
 # Checker directives
 
-[AGENTS.md](../../../AGENTS.md) owns comment guidance. Ordinary rationale comments
-do not require this skill or a checker exception.
+[AGENTS.md](../../../AGENTS.md) covers ordinary comments; this skill is only for
+toolchain directives and checker suppressions.
 
-For a necessary toolchain directive or narrow checker exception, inspect the
-checker reporting the violation and its accepted form. Keep the reason specific
-to the site; an annotation does not authorize bypassing product or safety policy.
-[Agent invariants](../../../Scripts/check-agent-invariants.sh) checks concurrency
-rationales and SwiftLint suppression reasons; the owning checker validates other
-exceptions. A rationale must explain the actual invariant or synchronization.
-
-Verify changed Swift through the routed style check, including the checker whose
-rule is suppressed. A comment alone does not establish that the code is safe.
+When adding or fixing a directive or narrow suppression, check the owning
+checker's accepted format and keep the rationale specific to the site—especially
+the actual concurrency invariant or synchronization reason.
+[Scripts/check-agent-invariants.sh](../../../Scripts/check-agent-invariants.sh)
+validates concurrency rationales and SwiftLint suppression reasons; other
+checkers validate their own exceptions. Verify the change through the routed
+style check.

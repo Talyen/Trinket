@@ -5,71 +5,49 @@ description: Inspect or operate Trinket on a managed simulator or explicitly sel
 
 # Native device interaction
 
-Use Xcode's device tools when the requested inspection needs screenshots,
-accessibility hierarchy, or device input. Read the
-[input reference](references/apple-device-interaction.md) before using those tools;
-reuse it when already loaded and unchanged. This repository's
-[verification policy](../../../Docs/Platform/Verification.md#local-simulator-budget)
-owns local inspection and hosted qualification. Shipping-UI review uses the managed
-inspection session described below; no additional approval is needed within that scope.
+Use Xcode's native device tools when an inspection needs screenshots, the
+accessibility hierarchy, or device input. See the
+[input reference](references/apple-device-interaction.md) for hierarchy format
+and event syntax, and
+[Verification](../../../Docs/Platform/Verification.md#local-simulator-budget)
+for local inspection policy.
 
-For managed simulators, follow the [simulator skill](../ios-simulator/SKILL.md)
-for `native`/`event` commands and recovery. Its controller owns the native session;
-do not create a second session with chat tools. Read the input reference for event
-semantics and use the latest hierarchy.
-
-The direct procedure below applies to physical devices or explicitly externally
-owned native sessions.
+For managed simulators, use the [ios-simulator](../ios-simulator/SKILL.md)
+controller's `native`/`event` commands—the controller owns that native session,
+so avoid opening a second competing session with chat tools. The direct
+procedure below is for physical devices or externally owned sessions.
 
 ## Session ownership
 
-- For a simulator, hold a managed lease under
+- **Target explicitly**: on a simulator, hold a managed lease under
   [Simulator operations](../../../Docs/Platform/SimulatorOperations.md#inspection-lease-and-capture)
-  throughout the native session. The
-  [ios-simulator skill](../ios-simulator/SKILL.md) owns launch and lease technique.
-  Use the exact leased UDID, never the current/default destination or an idle-looking
-  booted device. An existing parent lease can support an already-installed-app
-  diagnostic without rebuilding. Select physical hardware explicitly by name or
-  identifier for builds, installs, profiling, and native input; do not rely on the
-  first paired device or a tool's default destination. Use
-  [ios-device](../ios-device/SKILL.md) for build/install and profiling commands.
-- Read current tool metadata. Start `DeviceInteractionStartSession` for an
-  already-installed app; use `DeviceInteractionStartWorkspaceSession` only when
-  the task needs an authorized workspace build/install. Native session creation
-  supplements a simulator lease; it does not replace it. Physical devices use
-  explicit target selection, not a simulator lease. Build/install and profiling
-  follow the host-admission workflow in [ios-device](../ios-device/SKILL.md).
-- One agent operates each native session. Direct use is sufficient; delegation is
-  optional when useful and authorized. If delegated, pass this skill, the session
-  key, exact leased device and bounded task; the parent retains lease ownership.
-- End the native session with `DeviceInteractionEndSession` before releasing the
-  lease, including failed or cancelled checks. Do not leave a session open between
-  unrelated tasks; its runtime is expensive.
-
-For an explicitly requested workspace build/install, prefer the tool's per-run
-`commandLineArguments` and `environmentVariables` over scheme edits. Omit them to
-retain the scheme settings; `$(inherited)` preserves existing values when adding
-arguments or environment entries. Inspect current metadata for their exact shape.
+  and pass the exact leased UDID (never a default or `booted` device). On
+  physical hardware, select the device explicitly by name or identifier; use
+  [ios-device](../ios-device/SKILL.md) for build/install and profiling.
+- **Choose the right session tool**: inspect current tool metadata, then use
+  `DeviceInteractionStartSession` for an already-installed app or
+  `DeviceInteractionStartWorkspaceSession` when a workspace build/install is
+  needed.
+- **Per-run overrides**: for workspace launches, prefer `commandLineArguments`
+  and `environmentVariables` over scheme edits (omit them to keep scheme
+  defaults, or include `$(inherited)` when appending).
+- **Clean up**: end the session with `DeviceInteractionEndSession` before
+  releasing the lease or finishing up, including on errors, because the native
+  runtime is expensive to leave open.
 
 ## Capture and input
 
-Use the tools actually exposed in this chat: current Xcode names the capture/input
-tool `DeviceInteractionSynthesize`, with `interactSessionKey`. Inspect its metadata
-for supported events, arguments and coordinate constraints before use.
+Current Xcode exposes `DeviceInteractionSynthesize` (taking
+`interactSessionKey`); check its tool metadata for supported events and
+coordinate constraints.
 
-Capture with no interaction command first. Read the hierarchy and inspect the
-screenshot before acting; prefer hierarchy hit points and observe again after
-input. Follow the input reference's bounded retries and application activation
-rules. Stay within the requested flow; do not edit code, rebuild, or reset saves
-as an inspection workaround. The session owner closes the native session before
-releasing its lease; a delegated operator reports evidence to that owner.
-
-Report device/build identity, what was visible, which interactions were actually
-exercised, and any missing evidence. Capturing SpringBoard does not verify Trinket.
-Screenshots alone establish layout, not animation feel, physical haptics, or
-hardware performance. If native tools are unavailable, use Computer Use under
-the ios-simulator skill or report the missing prerequisite; do not invent an input
-driver or substitute routine local test suites for interactive evidence.
+Capture before acting so you have the current screenshot and hierarchy
+`hitPoint` coordinates, then observe again after input to confirm the result.
+When reporting findings, include the device/build identity, what you exercised,
+and any limits (for example, screenshots verify layout rather than animation
+feel, haptics, or hardware performance). If native tools aren't available, fall
+back to Computer Use via [ios-simulator](../ios-simulator/SKILL.md) or note the
+missing prerequisite.
 
 ## Apple source
 

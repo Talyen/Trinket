@@ -1,87 +1,56 @@
 # Screen and flow critique
 
-For a new flow or substantial redesign, write a short design intent before
-implementation: the player's goal, the choices needed to reach it, the visible
-result, and the real game content shown in Trinket's portrait-first context.
-Identify the existing visual roles and layout hierarchy that support that goal,
-and the artwork or meaningful game event that gives the screen its identity.
-Reuse the design system's palette and typography rather than inventing a token
-system for each screen.
-
-Let fantasy artwork, content, and meaningful combat/reward feedback express
-Trinket's identity. Prefer familiar native navigation and utility controls;
-customize where it improves the game, preserving the battlefield, fanned hand,
-and card identity. Apple's [brand guidance](https://developer.apple.com/videos/play/wwdc2026/251/)
-supports distinctive content alongside familiar platform interactions.
-The [artwork production guide](../../../Docs/Product/ArtworkStyleGuide.md#prompt-construction)
-owns new artwork direction; a screen redesign does not imply replacing prepared
-artwork or changing its budgets.
-
-Review the intent against the request before building. If the arrangement could
-be reused unchanged for an unrelated app, ground it in this player's actual
-decision. Repeated equal-weight containers, decorative labels, or uniform
-entrances can flatten information hierarchy; keep them when they communicate
-real relationships or events. These are critique prompts, not bans on cards,
-colors, capitalization, or particular type treatments. Follow the requested
-visual direction and preserve established card identity.
+For a new flow or substantial redesign, anchor on the player's goal, the choices
+needed to reach it, the visible result, and real game content in Trinket's
+portrait-first layout. Build on existing visual roles, palette, and typography
+from the design system, and let fantasy artwork and meaningful combat or reward
+feedback carry Trinket's identity alongside familiar native navigation and
+utility controls (preserving the battlefield, fanned hand, and card identity).
+Apple's [brand guidance](https://developer.apple.com/videos/play/wwdc2026/251/)
+supports distinctive content paired with familiar platform interactions.
+New artwork direction belongs to the
+[artwork production guide](../../../Docs/Product/ArtworkStyleGuide.md#prompt-construction).
 
 Let the important content or event carry the emphasis. Use borders, labels,
-spacing, and motion to explain grouping, priority, decisions, or changes;
-remove decoration that competes with those jobs. Keep immediate input feedback
-and scripted combat/reward spectacle. Restraint in utility screens is not a
-reason to mute meaningful battle effects or sound.
+spacing, and motion to clarify grouping, priority, decisions, and state changes,
+and trim decoration that competes with them. Keep immediate input feedback and
+scripted combat or reward spectacle—restraint in utility screens shouldn't mute
+meaningful battle effects or sound.
 
-- Can the player identify the primary action and its cost or consequence?
-- Are related information and controls close enough to read as one decision?
+Useful critique questions:
+
+- Can the player immediately identify the primary action and its cost or consequence?
+- Are related details and controls grouped so they read as one decision?
 - Does the screen make sense without taglines, helper text, or secondary labels?
   If not, [fix the layout](../../../Docs/Product/DesignPrinciples.md#clarity-through-layout).
-- Can the player tell where they are and how to leave or cancel?
-- Do labels use established game names and describe their destination or action?
-- Do loading, empty, unavailable, success, and failure states explain what happens
-  next when those states are reachable?
+- Is it obvious where the player is and how to leave or cancel?
+- Do labels use established game names and clearly describe their destination or action?
+- Do reachable loading, empty, unavailable, success, and failure states show what happens next?
 
 ## References and alternatives
 
-Before a substantial redesign, inspect the user's visual references and relevant
-previously approved Trinket screens. Name the useful properties: artwork scale and
-crop, focal point, text density, spacing, contrast, and material treatment. Do not
-assume an existing screen is approved merely because it ships.
+When tackling a substantial redesign, check the user's visual references and
+relevant Trinket screens for helpful cues like artwork scale and crop, focal
+point, text density, spacing, contrast, and material treatment.
 
-When the direction is unresolved, consider two compositions with real game content
-at the intended portrait size. Vary hierarchy, density, or artwork placement;
-recoloring the same layout is not an alternative. Show a simple A/B comparison
-for the user's preference, without a persuasive design essay. An already selected
-direction or a localized correction does not require another choice.
+If the visual direction is still open, offering two meaningfully distinct
+portrait compositions with real game content (varying hierarchy, density, or
+artwork placement rather than just recoloring) is a quick way to get a clear
+preference. When the user approves or rejects a visual direction that will
+inform future work, consider linking the reference beside the owning feature
+documentation.
 
-Retain explicit approvals and rejections as visual references beside the owning
-feature documentation: link durable images and record the specific accepted or
-rejected property. Obtain an explicit preference before calling a reference
-user-approved. Keep only examples that change future decisions; do not create an
-empty gallery or preserve every intermediate render. Approved references guide
-composition, not permission to copy unrelated features.
+## Render and critique
 
-## Render, critique, refine
+When using [visual inspection](../../../Docs/Platform/Verification.md#visual-inspection),
+look closely at the rendered screen for concrete issues—focal priority, artwork
+crops, readable costs and consequences, control grouping, long names, and
+empty or unavailable states at normal phone size. For a new flow, check entry,
+primary action, exit, and real press/disabled/dismissal behavior using shipping
+SwiftUI components.
 
-When choosing [visual inspection](../../../Docs/Platform/Verification.md#visual-inspection),
-review the render before rereading the implementation rationale. State concrete
-visible defects, such as “the wallet competes with the purchase choice,” and fix
-them; numerical self-scores and “looks polished” are not evidence.
-
-Inspect composition and game identity as well as correctness: one clear focal
-priority, deliberate artwork crops, readable costs and consequences, related
-controls grouped together, and no redundant explanations or competing decoration.
-Check long names and relevant unavailable/empty states at normal phone size.
-A new flow also needs inspection of its entry, primary action, and exit; verify
-motion and gesture behavior through interaction or recording. Use shipping
-SwiftUI components so press, disabled, and dismissal behavior is real.
-
-For substantial redesigns, make a separate critique pass against the references
-and brief before reading the implementer's explanation. An independent reviewer
-is useful when available, but does not replace rendered evidence or require
-routine delegation. Uncoached player feedback can expose hesitation when
-available; it is not a required study. [Design with SwiftUI](https://developer.apple.com/videos/play/wwdc2023/10115/).
-
-Background: Apple's [Principles of great design](https://developer.apple.com/videos/play/wwdc2026/250/).
+Background: Apple's [Principles of great design](https://developer.apple.com/videos/play/wwdc2026/250/)
+and [Design with SwiftUI](https://developer.apple.com/videos/play/wwdc2023/10115/).
 
 ## Adapted source
 

@@ -5,10 +5,9 @@ description: Implement or review SwiftUI state, observation, environment, view i
 
 # SwiftUI implementation
 
-Read the reference for the behavior being changed. For a small fix, load only
-the relevant topic or section; do not turn it into a general SwiftUI audit.
-Apple's examples explain framework behavior. Apply them within the ownership
-and product contracts in [SwiftUI feature context](../../../Docs/AgentContext/swiftui-features.md).
+Load just the reference section relevant to your change, and apply Apple's
+examples within the ownership and product contracts in
+[SwiftUI feature context](../../../Docs/AgentContext/swiftui-features.md).
 
 | Concern | Reference |
 | --- | --- |
@@ -28,17 +27,16 @@ and product contracts in [SwiftUI feature context](../../../Docs/AgentContext/sw
 | Localizable text, package bundles, interpolation, formatting | [Localization](references/localization.md) |
 | Choosing a replacement for a soft-deprecated API | [Migration scope](references/soft-deprecation.md), then search the [API catalog](references/soft-deprecated-apis.md) for that symbol |
 
-For SDK 27 migration errors or new APIs, use
+For SDK 27 migration errors or new APIs, see
 [swiftui-whats-new-27](../swiftui-whats-new-27/SKILL.md). For layout, gestures,
-motion design, materials, typography, or player-facing copy, also use
+motion design, materials, typography, or player-facing copy, see
 [apple-design](../apple-design/SKILL.md).
 
-A reference matching a code pattern is an investigation lead, not a measured
-performance defect. Follow the affected inputs, identity, and lifecycle before
-choosing a fix. Preserve the app's existing observation and resource owners;
-do not introduce new model layers solely to reproduce a reference example.
-Verification and performance claims follow
-[Verification.md](../../../Docs/Platform/Verification.md#choosing-ui-verification).
-
-Source version, local adaptations, and refresh procedure:
-[Apple skill references](../../../Docs/Platform/ApplePlatformReference.md#apple-skill-references).
+Treat a matching pattern in a reference as a lead rather than an automatic
+defect—trace the actual inputs, identity, and lifecycle, and preserve the app's
+existing observation and resource owners instead of adding model layers just to
+mirror an example. See
+[Verification.md](../../../Docs/Platform/Verification.md#choosing-ui-verification)
+for UI verification and
+[Apple skill references](../../../Docs/Platform/ApplePlatformReference.md#apple-skill-references)
+for snapshot version and refresh notes.

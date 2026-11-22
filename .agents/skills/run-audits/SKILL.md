@@ -5,38 +5,26 @@ description: Execute named Trinket audits or all audits in Docs/Audits, confirm 
 
 # Run Trinket audits
 
-Read [the audit policy](../../../Docs/Audits/README.md),
-[proposal memory](../../../Docs/Audits/Proposals.md), and each selected audit before
-investigating its scope. Read large audit sets incrementally. “All audits” selects
-the numbered guides in [the ownership table](../../../Docs/Audits/README.md#ownership),
-not `README.md`, `Proposals.md`, or the linked playbook row.
+Start with [the audit policy](../../../Docs/Audits/README.md),
+[proposal memory](../../../Docs/Audits/Proposals.md), and each selected audit
+guide (reading large audit sets incrementally). "All audits" refers to the
+numbered guides in [the ownership table](../../../Docs/Audits/README.md#ownership),
+excluding `README.md`, `Proposals.md`, and the linked playbook row.
 
-## Coordinate the pass
+## Running the pass
 
-Use [the audit policy](../../../Docs/Audits/README.md) for discovery, evidence,
-sizing, approval boundaries, proposal memory, and reporting. Route confirmed paths
-through `python3 Scripts/agent-brief.py --status --read --paths <files...>` and state
-implementation order and verification ownership before editing multiple fixes.
-Use a durable plan only when coordination or resumption needs one.
+- Follow [the audit policy](../../../Docs/Audits/README.md) for sizing, approval
+  boundaries, proposal memory, and reporting.
+- Route confirmed target paths through
+  `python3 Scripts/agent-brief.py --status --read --paths <files...>` before
+  editing; add a durable plan only if resumption needs one.
+- For larger passes with independent confirmed fixes, subagents can save time:
+  give each worker a self-contained brief (finding, evidence, disjoint file
+  ownership, intended fix, focused check) and run the integrated handoff once
+  across all changed paths at the end rather than duplicating it per worker.
+  Small or tightly coupled passes are usually faster to handle directly.
 
-## Parallel work when useful
+## Closing the pass
 
-Use subagents for confirmed, independent fixes when that saves meaningful time.
-Keep a small or tightly coupled pass in the root. Do not delegate repeated repository
-orientation or speculative sweeps.
-
-Give each agent the finding, confirming evidence, exact file or symbol ownership,
-applicable repository guidance, intended remedy, and focused verification. Use the
-smallest context that makes the brief self-contained; let the available tool and
-configuration determine model and role settings unless the user specifies them.
-Agents share files, so assign disjoint writes and preserve unrelated work.
-
-The root reviews each diff against the evidence and integrates overlaps. Workers
-run focused checks; the root runs the required integrated handoff once for the
-union of changed and deleted paths. Do not duplicate the full gate across workers.
-
-## Close the pass
-
-Review the integrated changes and report the outcomes required by
+Review the integrated diff and report outcomes per
 [Verification and handoff](../../../Docs/Audits/README.md#verification-and-handoff).
-A guide review is not a completed product-code audit.

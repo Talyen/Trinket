@@ -1,36 +1,30 @@
 # Performance and feedback
 
-Apply [Design principles](../../../Docs/Product/DesignPrinciples.md) (PD-032) to
-UI/UX and gameplay interaction changes. Existing perceptible responses count;
-the product owner defines acknowledgment, outcome, and review requirements.
+Follow [Design principles](../../../Docs/Product/DesignPrinciples.md) (PD-032)
+for UI/UX and gameplay interaction feedback; existing perceptible responses
+count.
 
-Distinguish press acknowledgment from committed outcome feedback. Keep visual,
-sound, and haptic outcome feedback tied to the same resolved event. Use the
-existing audio and feedback owners; independent timers can drift or fire twice.
+Distinguish press acknowledgment from committed outcome feedback, and tie
+visual, sound, and haptic outcome feedback to the same resolved event through
+the existing audio and feedback owners so they stay in sync and don't double-fire.
 
-Keep system haptic meanings consistent: selection for a changed choice, impact for
-a physical event, and notification feedback for an outcome. Avoid duplicating a
-native control's existing haptic. Match feedback intensity to the event, avoid
-fatiguing repetition, and keep the result understandable with sound or haptics off.
+Keep system haptic meanings consistent—selection for a changed choice, impact
+for a physical event, notification for an outcome—without duplicating a native
+control's built-in haptic. Match intensity to the event, avoid fatiguing
+repetition, and make sure the outcome is clear with sound and haptics off.
 
-For responsiveness problems, identify the delayed action before changing motion.
-Check unnecessary view invalidation, unstable identity, and work on the input
-path. A new blur or stretch effect is not a remedy for missed frames.
+For responsiveness issues, trace the delayed action first (view invalidation,
+unstable identity, or work on the input path) before tweaking animations. Use
+[the performance playbook](../../../Docs/Platform/PerformanceInvestigationPlaybook.md)
+when measurement is needed, and preserve the artwork working-set policy.
+Simulator runs can help locate issues, but real timing, audio output, and
+physical haptics require a physical device.
 
-Use [the performance playbook](../../../Docs/Platform/PerformanceInvestigationPlaybook.md)
-when the request needs measurement. Preserve artwork working-set policy during
-optimization. Simulator observations can locate a problem, but device timing and
-physical haptic quality require device evidence.
-
-Review whether feedback fires once, agrees with the resulting state, and remains
-coherent when the action is cancelled, repeated, or fails.
-
-When changing playback/session behavior, follow the [audio owner](../../../Docs/AgentContext/audio.md)
-and check silent mode, another app's audio, an interruption and return, and headphone
-connection/disconnection on a device. Preserve Trinket's ambient/mixing policy and
-Options settings; don't adjust system volume. Trace existing session and lifecycle
-handling before adding notification observers. A missing local handler is only an
-investigation lead, and Simulator evidence does not establish physical output.
+When changing playback or audio-session behavior, follow the
+[audio owner](../../../Docs/AgentContext/audio.md): preserve Trinket's
+ambient/mixing policy and Options settings (without adjusting system volume),
+trace existing lifecycle handling before adding observers, and check silent
+mode, other-app audio, interruptions, and headphone changes on device.
 
 Apple references: [Playing audio](https://developer.apple.com/design/human-interface-guidelines/playing-audio)
 and [Playing haptics](https://developer.apple.com/design/human-interface-guidelines/playing-haptics).

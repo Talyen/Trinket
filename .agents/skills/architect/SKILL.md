@@ -5,22 +5,19 @@ description: Choose ownership and the smallest usable contract when adding or ch
 
 # Choose the owner before the API
 
-Identify the current consumer and owning package before adding a public surface.
-Use the [architecture map](../../../Docs/Platform/Architecture.md) for dependency
-rules and hub containment, then the owning package guide for its extension points.
+Use the [architecture map](../../../Docs/Platform/Architecture.md) for package
+dependency rules and hub containment, and the owning package guide for its
+extension points.
 
-- Check whether an existing type or operation already expresses the behavior.
-- Choose the narrowest visibility the consumer needs. A new type does not by
-  itself need to be public; a single implementation does not by itself need a protocol.
-- Sketch the declarations and invariants before filling in substantial bodies.
-  This can happen directly in the implementation; no separate proposal or stub
-  phase is required for an ordinary change within an existing boundary.
-- Review the call site as well as the declaration: does the consumer get the
-  operation it needs without forwarding wrappers or access to unrelated state?
-- For serialized schemas, identify readers and writers before changing the contract;
-  follow the root guide's preservation and migration rules.
+When adding or changing a public surface:
 
-If considering a package split, consult the
-[deferred seams](../../../Docs/Platform/Architecture.md#deferred-architecture-seams).
-Boundary checks verify dependency direction; review still needs to establish
-whether the chosen owner and API make sense.
+- Check whether an existing type or operation already covers the behavior.
+- Keep visibility as narrow as the consumer needs—a new type doesn't need to be
+  `public` by default, and a single implementation rarely needs a protocol.
+- Look at the call site as well as the declaration so the consumer gets what it
+  needs without forwarding wrappers or access to unrelated state.
+- For serialized schemas, check all readers and writers and follow the root
+  guide's preservation and migration rules.
+- If considering a package split, check
+  [deferred seams](../../../Docs/Platform/Architecture.md#deferred-architecture-seams)
+  first.

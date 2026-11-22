@@ -1,32 +1,27 @@
 # Materials and depth
 
-Use existing semantic surfaces from
-[semantic modifiers](../../../Packages/TrinketDesignSystem/Documentation/Modifiers.md).
-Choose a material because it establishes hierarchy or preserves context, not
-because every screen needs glass.
+Start from existing semantic surfaces in
+[semantic modifiers](../../../Packages/TrinketDesignSystem/Documentation/Modifiers.md),
+choosing a material when it establishes hierarchy or preserves context.
 
-Liquid Glass belongs to the floating control/navigation layer. Standard materials
-and solid semantic surfaces organize content beneath it. Preserve documented
-game-specific uses such as reward reveals; do not turn dense content into glass.
-Use regular glass by default. Clear glass needs a visually rich background and
-verified label contrast, with dimming when that background is bright; do not mix
-variants casually or hard-code a dimming recipe across all artwork.
+Liquid Glass belongs on floating controls and navigation, while standard
+materials and solid semantic surfaces organize dense content beneath it
+(preserving documented game-specific uses such as reward reveals). Regular glass
+is a good default; clear glass works best over rich backgrounds with verified
+label contrast and appropriate dimming when bright.
 
-- Inspect text and controls over the actual artwork, including busy backgrounds
-  and scrolling content. Resolve poor legibility through the shared surface or
-  contrast treatment before adding layers of blur, shadow, and tracking.
-- Use a scrim when the task is modal. A non-blocking panel should leave its
-  surrounding content visibly usable.
-- Keep content and controls visually distinct. Avoid stacking translucent surfaces
-  when an existing opaque or shared material expresses the hierarchy more clearly.
-- Preserve native scroll-edge separation beneath floating controls. Use the
-  soft top effect on iOS 26+ and native older-OS chrome established by [SwiftUI feature guidance](../../../Docs/AgentContext/swiftui-features.md)
-  and the app root. Avoid stacking
-  custom fades or applying an edge effect where no control floats above the scroll view.
-- Prefer the native or shared presentation transition. Custom blur/scale animation
-  needs a specific interaction benefit; it is not a requirement for material entry.
-
-Review whether the overlay makes the current action clear, keeps labels readable,
-and leaves an obvious way to dismiss it.
+- Check text and controls over real artwork, including busy backgrounds and
+  scrolling content; prefer fixing legibility with a shared surface or contrast
+  treatment over stacking blur and shadows.
+- Use a scrim for modal tasks; leave surrounding content visibly usable for
+  non-blocking panels.
+- Avoid stacking translucent surfaces when an opaque or shared material expresses
+  the hierarchy more clearly.
+- Preserve native scroll-edge separation beneath floating controls (the soft top
+  effect on iOS 26+ and native older-OS chrome from
+  [SwiftUI feature guidance](../../../Docs/AgentContext/swiftui-features.md) and
+  the app root) rather than stacking custom fades.
+- Prefer native or shared presentation transitions unless a custom transition
+  adds clear interaction value.
 
 Platform reference: [Adopting Liquid Glass](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass).

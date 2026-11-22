@@ -51,18 +51,14 @@ For example, `t 200 600 f 200 200 0.3` scrolls upward;
 `sender keyboard kbd submit\u{000A}` types and submits. These are syntax examples;
 choose coordinates from the current observation.
 
-## Observation and bounded recovery
+## Observation and recovery
 
-After every action, capture again and verify its result before choosing another.
-For a launch/loading transition, recapture once meaningful controls are available;
-do not interact with controls still loading or add routine delays after every event.
-If the app is absent or an action has no effect, refresh the observation and target,
-then try one relevant retry/alternative. If it still fails, report the limitation
-or use existing focused coverage under the skill's recovery rules.
+Capture after actions to confirm the resulting state, and wait for loading
+transitions to settle before interacting with new controls. If an action has no
+effect or the wrong app is foregrounded, recapture to refresh coordinates and
+state before trying an alternative, or fall back to focused XCTest coverage if
+the route stays stuck.
 
-Distinguish observed functional/layout defects and unexpected exits from expected
-disabled/empty states, native permission dialogs and temporary loading/animation.
-Retain the process identity and available runtime output for an unexpected exit.
-Screenshots establish layout; interactions or recordings establish the behavior or
-motion actually exercised. Report incomplete evidence without substituting a test
-pass for visual review.
+Distinguish real functional/layout bugs and unexpected exits (capturing process
+identity and runtime output when possible) from expected disabled/empty states,
+system dialogs, or transient animations.

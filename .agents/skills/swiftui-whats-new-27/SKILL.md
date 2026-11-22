@@ -5,11 +5,11 @@ description: Diagnose SwiftUI SDK 27 migration errors and adopt its new APIs. Us
 
 # SwiftUI SDK 27 adoption
 
-Read the relevant reference before changing a new or changed SDK 27 API.
-Distinguish compiler changes, runtime behavior, and API availability: building
-with SDK 27 does not make every new API available on older supported systems.
-Use the reference's per-symbol availability and verify the selected SDK's public
-declaration when a signature or version is uncertain.
+Use the relevant reference when diagnosing an SDK 27 migration error or adopting
+a new API. Keep compiler changes, runtime behavior, and OS availability
+distinct—building with SDK 27 doesn't make new APIs available on older supported
+OS versions, so check per-symbol availability (and the SDK's public declaration
+if anything looks uncertain).
 
 | Symptom or capability | Reference |
 | --- | --- |
@@ -21,23 +21,22 @@ declaration when a signature or version is uncertain.
 | Toolbar overflow, pinning, visibility, and dynamic content | [Toolbar](references/toolbar.md) |
 | Alerts and confirmation dialogs driven by an optional item | [Item binding](references/item-binding.md) |
 
-For SDK-update errors involving `@State`, consult the State reference before
-reordering initializer assignments: assigning to already-initialized state can
-compile while retaining the wrong initial value. Preserve the initialization
-semantics, not just compilation.
+Key gotchas:
 
-[Platform support](../../../Docs/Platform/ApplePlatformReference.md#platform-support)
-owns the supported OS window and availability strategy. Evaluate useful new
-APIs within that window; a compiler fix does not require raising the deployment
-target. [SwiftUI feature context](../../../Docs/AgentContext/swiftui-features.md)
-owns interaction and presentation contracts, including toolbar choices.
-For artwork work, load [UI performance](../../../Docs/AgentContext/ui-performance.md):
-the URL-image reference does not replace Trinket's prepared artwork pipeline.
+- **`@State` initializers**: check [State macro](references/state-macro.md)
+  before reordering assignments—assigning to already-initialized state can
+  compile while silently keeping the wrong initial value.
+- **Availability**: [Platform support](../../../Docs/Platform/ApplePlatformReference.md#platform-support)
+  owns the supported OS window; a compiler fix doesn't require raising the
+  deployment target.
+- **Product contracts**: [SwiftUI feature context](../../../Docs/AgentContext/swiftui-features.md)
+  covers interaction and toolbar conventions, and
+  [UI performance](../../../Docs/AgentContext/ui-performance.md) owns Trinket's
+  prepared artwork pipeline (separate from `AsyncImage`).
 
-Use [swiftui-specialist](../swiftui-specialist/SKILL.md) for non-version-specific
-implementation questions and [apple-design](../apple-design/SKILL.md) for visual
-or interaction changes. Verification follows
-[Verification.md](../../../Docs/Platform/Verification.md).
-
-Source version, local adaptations, and refresh procedure:
-[Apple skill references](../../../Docs/Platform/ApplePlatformReference.md#apple-skill-references).
+See [swiftui-specialist](../swiftui-specialist/SKILL.md) for general SwiftUI
+implementation, [apple-design](../apple-design/SKILL.md) for visual or
+interaction design, [Verification.md](../../../Docs/Platform/Verification.md)
+for verification, and
+[Apple skill references](../../../Docs/Platform/ApplePlatformReference.md#apple-skill-references)
+for snapshot version and refresh notes.

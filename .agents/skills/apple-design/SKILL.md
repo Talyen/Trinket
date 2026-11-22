@@ -6,21 +6,18 @@ description: Design or review Trinket SwiftUI layout, gestures, motion, typograp
 # Design the player interaction
 
 Follow [clarity through layout](../../../Docs/Product/DesignPrinciples.md#clarity-through-layout):
-avoid taglines, helper text, and secondary labels. If a screen needs them to make
-sense, fix the layout instead.
+avoid taglines, helper text, and secondary labels—if a screen needs them to make
+sense, improve the layout instead.
 
-Start with the player's action and the state they need to understand. Reuse
+Start from the player's action and the state they need to understand, and reuse
 [TrinketDesignSystem](../../../Packages/TrinketDesignSystem/README.md) controls,
-roles, and motion recipes. For a localized fix, apply only guidance relevant to
-the requested change. Existing screenshots or source context may be sufficient
-to understand the current design; a separate baseline simulator session is not
-mandatory. A local UI fix can need design judgment without becoming a redesign.
-[Visual inspection](../../../Docs/Platform/Verification.md#visual-inspection) is
-optional unless requested; use it when useful and report the evidence actually reviewed.
-Read [Foundations and process](foundations-and-process.md) for visual composition
-and polish work; source review does not establish rendered appearance.
+roles, and motion recipes where they fit. Scale the design pass to the task: a
+localized fix can rely on existing screenshots or source context without turning
+into a redesign, while visual composition and polish work benefit from
+[Foundations and process](foundations-and-process.md) and optional
+[visual inspection](../../../Docs/Platform/Verification.md#visual-inspection).
 
-Read only references relevant to the change:
+Load the references relevant to the change:
 
 | Concern | Reference |
 | --- | --- |
@@ -31,18 +28,9 @@ Read only references relevant to the change:
 | Responsiveness, sound, haptics | [Performance and feedback](performance-and-feedback.md) |
 | Screen critique, a new flow, or substantial redesign | [Foundations and process](foundations-and-process.md) |
 
-[SwiftUI feature context](../../../Docs/AgentContext/swiftui-features.md) owns
-feature integration rules. Use [swiftui-specialist](../swiftui-specialist/SKILL.md)
-when the change involves SwiftUI state, identity, view structure, or update behavior;
-use [swiftui-whats-new-27](../swiftui-whats-new-27/SKILL.md) for SDK 27 migration
-or new APIs. Load only the technical reference relevant to the design change.
-[Platform support](../../../Docs/Platform/ApplePlatformReference.md#platform-support)
-owns adoption of current iOS APIs; the deployment target is a minimum, not a ceiling.
-[PD-014](../../../Docs/Product/Decisions.md)
-owns accessibility scope; retain existing accommodation behavior and use explicit
-image semantics and stable test identifiers as specified by those owners.
-
-Verification scope and completion follow
-[Verification.md](../../../Docs/Platform/Verification.md#choosing-ui-verification).
-Use the simulator skill when visual inspection is needed and
-[Testing.md](../../../Docs/Platform/Testing.md) to choose test coverage.
+Related guidance:
+- [SwiftUI feature context](../../../Docs/AgentContext/swiftui-features.md) for feature integration contracts.
+- [swiftui-specialist](../swiftui-specialist/SKILL.md) for SwiftUI state, identity, view structure, or update behavior, and [swiftui-whats-new-27](../swiftui-whats-new-27/SKILL.md) for SDK 27 migration or new APIs.
+- [Platform support](../../../Docs/Platform/ApplePlatformReference.md#platform-support) for current iOS API adoption (the deployment target is a minimum, not a ceiling).
+- [PD-014](../../../Docs/Product/Decisions.md) for accessibility scope, image semantics, and stable test identifiers.
+- [Verification.md](../../../Docs/Platform/Verification.md#choosing-ui-verification), [ios-simulator](../ios-simulator/SKILL.md), and [Testing.md](../../../Docs/Platform/Testing.md) for visual inspection and test coverage.
