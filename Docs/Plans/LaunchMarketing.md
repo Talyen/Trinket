@@ -2,7 +2,7 @@
 type: execution-plan
 status: active
 created: 2026-11-15
-updated: 2026-11-21
+updated: 2026-11-23
 expires: 2026-11-30
 ---
 
@@ -30,7 +30,8 @@ release work.
 | Date | Work |
 | --- | --- |
 | November 25 target, November 30 latest for three weeks of lead time | Apple received the App Launch featuring nomination November 19. Apple’s nomination instructions recommend three weeks. Its general featuring page asks for at least two. Keep the earlier planning target. |
-| November 23 at 8:00 a.m. Pacific | Send ten approved advance pitches together with the press kit, direct TestFlight invite, and verified pre-order links. Gmail confirmed the batch is scheduled. Use the launch-day follow-up after the listing offers downloads. |
+| November 23, morning Pacific | Both approved press batches went out. The first had ten emails at 8:00 a.m. The second had six emails and two editorial form submissions. One first-batch email bounced. |
+| November 30, morning Pacific | Recheck replies, coverage and Press Preview signups. Review one follow-up for time-sensitive roundup desks that are still silent. Sending requires owner approval. |
 | December 21–23 | Confirm owner availability for urgent purchase or crash issues. Verify downloads and the Full Game offer in the U.S. and representative international storefronts, then use the evergreen launch trailer and approved launch-day outreach. |
 
 A Christmas-week release gives press fewer ordinary workdays after launch, so prioritize advance review access. Give the public a date rather than an exact hour. Apple says a manually released version may take up to 24 hours to appear. [Featuring lead time](https://developer.apple.com/help/app-store-connect/manage-featuring-nominations/nominate-your-app-for-featuring/) · [Release timing](https://developer.apple.com/help/app-store-connect/manage-your-apps-availability/select-an-app-store-version-release-option)
@@ -81,15 +82,56 @@ To rebuild on this Mac, run `python3 Scripts/PressKit/build.py <LaunchMarketing-
 
 Give the recipient enough context to place the game in a short one-to-one
 email. Put the press kit first on a standalone line, bold its linked label,
-and name the assets it contains. Put the TestFlight preview and public U.S.
-App Store links on the secondary line. For release lists, put the date and
+and name the assets it contains. Put the TestFlight preview and the appropriate
+public App Store storefront link on the secondary line. For release lists, put the date and
 platform in the subject or near the opener. For creators, include the silent
 gameplay download. Keep named character combos and detailed rules in the
 game and press materials. Each pitch should stand on its own without a
 question, feedback request, or reply to arrange access.
 [Muck Rack’s media pitching guide](https://muckrack.com/resources/guides/media-pitching)
 
-For future copy reviews, ask independent readers to name the genre and describe a decision the player makes after reading just the opening. Then compare which accurate opening they remember. After approved outreach, record published coverage and any replies by outlet and hook. Track TestFlight enrollment at the group level. With eight different desks, the results describe individual placements rather than measuring response-rate lift. [Muck Rack’s 2026 journalist survey, p. 31](https://media.muckrack.com/documents/State_of_Journalism_2026_1.pdf)
+For future copy reviews, ask independent readers to name the genre and describe a decision the player makes after reading just the opening. Then compare which accurate opening they remember. Use the outreach tracker for results. This small, targeted batch gives evidence about individual placements and reader interest. [Muck Rack’s 2026 journalist survey, p. 31](https://media.muckrack.com/documents/State_of_Journalism_2026_1.pdf)
+
+## Press outreach tracker
+
+| November 23 batch | Email dispatch | Editorial form receipts | Bounces | Editorial replies | Published coverage found |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| First, 8:00 a.m. Pacific | 10 | 0 | 1 | 0 | 0 |
+| Second, morning Pacific | 6 | 2 | 0 | 0 | 0 |
+| Total | 16 | 2 | 1 | 0 | 0 |
+
+Gmail Sent confirms dispatch. Its delivery notice says SNAPP Attack's server
+rejected the message with `554 5.7.1 Relay access denied`. Hold that route until
+a current editorial contact is verified. The two form receipts are Mobi.gg
+and 4Gamer. Vandal and Retcon remain in Drafts.
+
+The November 23 check included all 16 sent threads, the sending mailbox for
+outlet replies or form responses, and public searches for coverage. Record each
+outlet's reply date, disposition and next action, plus the URL and publication
+date for each confirmed placement. The private ledger with thread references
+and per-outlet status is at
+`~/.local/share/trinket/press-outreach/2026-11-23/Tracker.txt`.
+
+| Checked | TestFlight group | Enrolled | Change from pre-send baseline | Link capacity | Active press build |
+| --- | --- | ---: | ---: | ---: | --- |
+| November 23 | Press Preview | 0 | 0 | 50 | 13, expires February 11, 2027 |
+
+Read Press Preview enrollment in App Store Connect. Log each check date and
+the change since the last check. The batches share an invite, so signups are
+a group total. Attribute interest to an outlet only when the outlet identifies
+itself. Keep enrollment, editorial replies and coverage as separate measures.
+
+**Follow-up.** Review the list on Monday, November 30, one week after the
+pitches and after U.S. Thanksgiving. If approved, use one short, same-thread
+note for silent roundup desks with time-sensitive calendars, starting with
+Pocket Gamer and Metro GameCentral. Leave bounced and held routes out. Use an
+existing reply thread if an editor is already in touch. For form submissions
+without a reply address, keep the receipt and skip repeat submissions. Use
+December 21 as the alternative for suitable contacts that receive no advance
+follow-up, after verifying their local listing offers downloads. Send only
+one unsolicited follow-up per outlet across both dates.
+[Journalist follow-up preferences](https://media.muckrack.com/documents/State_of_Journalism_2026_1.pdf#page=36)
+· [U.S. Thanksgiving date](https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/)
 
 ## Before launch
 
@@ -125,17 +167,17 @@ For future copy reviews, ask independent readers to name the genre and describe 
   once Apple allows generation. Record
   redemptions separately from paid unlocks. [External TestFlight](https://developer.apple.com/help/app-store-connect/test-a-beta-version/invite-external-testers) ·
   [In-App Purchase offer codes](https://developer.apple.com/help/app-store-connect/manage-in-app-purchases/create-offer-codes-for-in-app-purchases)
-- [x] **Owner · approve advance outreach.** The owner approved one batch
-  for November 23 or 24. Gmail shows all ten qualifying pitches scheduled
-  for November 23 at 8:00 a.m. Pacific. Record actual delivery and coverage
-  in the private outreach log.
+- [x] **Owner · approve advance outreach.** Approved both November 23
+  batches. Record dispatch, delivery exceptions and coverage in the
+  [press outreach tracker](#press-outreach-tracker).
 - [x] **Agents · stage the launch review batch.** The private
   `Trinket-Launch-Review-Nov21/Review.md` packet in Release deliverables
-  contains the ten scheduled pitches with direct TestFlight access,
+  contains the first ten pitches with direct TestFlight access,
   launch-day posts, a press-page badge update, and the first-week reporting
   worksheet and collector. The launch-day press page and ZIP were built and
   checked privately for launch day. `Press-follow-up.md` has batch-specific
-  Gmail searches, the press reply snippets, and the coverage workflow.
+  Gmail searches and press reply snippets. The live tracker above owns the
+  current follow-up dates.
   Run `ruby reporting/launch-check.rb` from the private packet for one
   read-only pass over the app and Full Game, sampled public pages, and
   first-week reporting. The pre-launch rehearsal verified 14 public
@@ -299,14 +341,13 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | Reporting access | Ongoing analytics enabled Nov 19 | Apple accepted the request. The download and purchase report catalogs are readable. Both had zero delivered instances before launch. Sales and Trends accepted the vendor number and returned its no-sales response for November 12 and 17. Verify the first delivered report after sales begin. First-month reporting and the $0 opening baseline are in Release evidence under `LaunchReadiness-Nov19/Reporting.md`. |
 | Global launch date | Confirmed by owner | December 21, 2026 in the U.S. and 172 eligible additional storefronts. The prelaunch film and press fact sheet carry the date. |
 | Launch candidate | Build 14 submitted for App Review | On November 19 at 5:28 p.m. Pacific, Apple confirmed version 1.0.0 (14) was Waiting for Review with manual release after build 13 was withdrawn. Submission `9d37fa8c-814c-4cb7-bd94-d05d98057908`. TestFlight opened 1.0.0 (14) over Wi-Fi. Ranger and Wolf remained at chapter 1, stage 1, and the save database and write-ahead log matched the pre-update backup byte for byte. After restore and sign-in, Options showed Full Game — Unlocked. Reuse this result and the prior first-purchase evidence for unchanged commerce behavior. [Hosted release checks](https://github.com/Talyen/Trinket/actions/runs/44630048041) passed with one coverage gap for declined Ask to Buy. The build comparison and device evidence are in `LaunchReadiness-Nov19/Candidate.md`. |
-| U.S. App Store pre-order | Public and verified November 21 | Version 1.0.0 build 14. Apple confirmed United States only and the public page shows the expected December 21, 2026 release, Free, and In-App Purchases. No pitches sent. [U.S. listing](https://apps.apple.com/us/app/trinket/id6811284921) |
+| U.S. App Store pre-order | Public and verified November 21 | Version 1.0.0 build 14. Apple confirmed United States only and the public page shows the expected December 21, 2026 release, Free, and In-App Purchases. [U.S. listing](https://apps.apple.com/us/app/trinket/id6811284921) |
 | International App Store pre-order | Confirmed November 21 | App Store Connect shows all 173 pre-orders available with the same date and Full Game lineup. Public spot checks passed in 14 storefronts. |
-| Press access | Direct link verified November 21 | Build 13 is attached to Press Preview and expires February 11, 2027. The direct link has a 20-tester cap and zero testers at scheduling. Apple rejected build 14 for external TestFlight because version 1.0.0 is closed to new beta review submissions. Build 13 remains available to press, and the App Store uses build 14. |
+| Press access | Direct link verified November 21 | Build 13 is attached to Press Preview and expires February 11, 2027. The direct link was initially capped at 20 testers. The current cap and enrollment are in the press outreach tracker. Apple rejected build 14 for external TestFlight because version 1.0.0 is closed to new beta review submissions. Build 13 remains available to press, and the App Store uses build 14. |
 | Featuring nomination | Submitted November 19, updated November 21 | Apple confirmed nomination `9a7f1d2d-b137-40ca-af15-432c455ae3ab` stayed submitted with the December 21 date, 173 storefronts, a gameplay-led pitch, the press kit, trailer, still and App Store link. |
-| Advance outreach | Ten pitches scheduled | Gmail scheduled the six priority pitches and four verified reserves, adapted for advance outreach, for November 23 at 8:00 a.m. Pacific. Final copy, reviewer access and the contact audit are in `Trinket-Launch-Review-Nov21/`. |
 | First-week reporting | Reporting access verified before launch | The active Analytics request and four standard report catalogs were readable on November 21 with no daily instances. The Sales and Trends check returned explicit no sales for November 17. Start with the D+7 snapshot, then refresh after data is complete through the seventh live day. |
-| Editorial review | Shared-hand opener selected; outreach remains unsent | The preceding editorial drafts are in the retained Release folder `LaunchPitch-Nov20/`. The press page and offline downloads share one set of captions and release facts. The owner accepted the existing trailer. The second editorial pass covers press copy, outreach and image assets. |
-| Press outreach dispatched | Awaiting scheduled send | Check Gmail Sent after the batch runs. Four held pitches remain out of the batch pending iOS coverage, activity or contact verification. |
+| Editorial review | Shared-hand opener selected | The preceding editorial drafts are in the retained Release folder `LaunchPitch-Nov20/`. The press page and offline downloads share one set of captions and release facts. The owner accepted the existing trailer. The second editorial pass covers press copy, outreach and image assets. |
+| Press outreach dispatched | Both November 23 batches sent | [Press outreach tracker](#press-outreach-tracker) records dispatch, the single bounce, reply and coverage checks, and TestFlight enrollment. |
 | Launch-day rehearsal | Private preview verified November 21 | The launch-day badge and fact sheet switch apply cleanly. The assembled press ZIP and both corrected videos passed integrity checks. Analytics access and a historical Sales and Trends no-sales response were verified. |
 | Verified public launch | Pending | Verify U.S. and prioritized international downloads and Full Game offers. |
 | Day 7, 14, and 30 sales and conversion snapshots | Pending | |
