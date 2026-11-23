@@ -205,22 +205,29 @@ one unsolicited follow-up per outlet across both dates.
   verified UK pre-order page for Pocket Gamer. The footage section also offers
   a 29-second narrated cut alongside the full feature reel and silent Blight
   Treant clip.
-- [x] **Agents · submit the short App Store preview test.** On November 21,
-  submitted one Product Page Optimization treatment for English (U.S.).
-  The 29-second captioned iPhone preview is the only change, with half of
-  eligible traffic assigned to the treatment. The corrected audio export
-  replaced the original preview in the same treatment. The preview-only
-  replacement submission `1d07274d-78d2-4bac-8171-d4bdcd438bfd` is waiting
-  for App Review. Build 14 and the December 21 pre-order in all 173
-  storefronts were verified after resubmission.
-  [App Store Connect test](https://appstoreconnect.apple.com/apps/6811284921/distribution/optimization/c3ddfdc8-90af-4e77-bd5c-73744600e89b)
-- [ ] **Agents · check preview placement after approval.** Verify whether
-  Apply Treatment is available for the current pre-order version. Because
-  pre-order traffic is typically too small to reach statistical significance
-  in a 50/50 split, record the option and ask the owner whether to apply the
-  29-second preview directly to the default product page once approved so
-  launch-week visitors see the video and the 3-way Header test is unblocked.
-  [Apple's treatment instructions](https://developer.apple.com/help/app-store-connect/create-product-page-optimization-tests/apply-a-test-treatment-to-your-product-page/)
+- [x] **Agents · set the approved App Store preview as the default.**
+  Applied the corrected 29-second captioned preview to the English (U.S.)
+  product page on November 23. The original preview test stopped on application
+  and had zero recorded unique impressions in either arm at the last check.
+  App Store Connect confirmed the approved video on version 1.0.0 and build
+  14 in Pre-Order Ready for Sale. The public U.S. listing still showed the
+  December 21 pre-order. Apple caps App Previews at 30 fps. The separate web
+  press reel uses 60 fps.
+  [Original preview test](https://appstoreconnect.apple.com/apps/6811284921/distribution/optimization/c3ddfdc8-90af-4e77-bd5c-73744600e89b)
+  · [Apple's App Preview specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/app-preview-specifications/)
+- [x] **Agents · submit the video-versus-screenshots comparison.**
+  The English (U.S.) test splits eligible traffic 50/50. The original has the
+  approved video and the treatment has zero previews. The ten iPhone and ten
+  iPad screenshots match in both arms, including order. Optimization-only
+  submission `3b5c3d7e-6681-4832-b38c-737d2a0b9ec7` was Waiting for Review
+  on November 23.
+  [App preview vs screenshots](https://appstoreconnect.apple.com/apps/6811284921/distribution/optimization/096be046-6cae-414b-9c6a-4e14eb1b65a8)
+- [ ] **Agents · read the comparison after approval.** Confirm the test
+  starts and record conversions, qualified impressions and confidence.
+  Record when downloads become available so a mixed pre-order and live
+  window is visible in the readout. Wait for a meaningful result before
+  choosing a winner or starting the separate header experiment.
+  [Apple test instructions](https://developer.apple.com/help/app-store-connect/create-product-page-optimization-tests/run-a-test/)
 - [x] **Agents · submit the three selected product page headers.** On November
   21, App Store Connect validated all three as header-only PNGs. Standalone
   asset submission `a54e83a5-e5b7-4249-bf48-6058c5dc4531` is complete.
@@ -239,9 +246,16 @@ one unsolicited follow-up per outlet across both dates.
   Full Game offer. Use the release checklist for purchase and restore
   verification. Hold promotion while a listing, install, or purchase issue
   blocks players. Route confirmed defects to the release owner.
-- [ ] **Agents · distribution.** Pre-check community posting rules well before
-  December 21 (including `r/iosgaming` self-promotion guidelines, TouchArcade
-  forums, indie RPG Discords, and Bluesky/Mastodon). On launch day, after the
+- [x] **Agents · stage community copy.** The private packet at
+  `~/.local/share/trinket/launch-day/2026-12-21/Community-posts.txt` contains
+  the December 21 social draft, a link to verified 60 fps gameplay, and a Developer
+  Saturday comment for the first eligible thread after launch. The Reddit
+  draft identifies the developer and discloses AI use in coding, illustrations,
+  music and press trailer narration. Both drafts await owner review.
+  [Current Developer Saturday example and rules](https://www.reddit.com/r/iosgaming/comments/1y1omln/megathread_developer_saturday_showcase_november/)
+- [ ] **Agents · distribution.** Verify the posting rules for each selected
+  community. Recheck the December Developer Saturday thread before posting.
+  On launch day, after the
   store check passes, swap the press kit to the evergreen "Download on the App
   Store" trailer and download badge, push to `main` so GitHub Pages rebuilds
   both `Trinket-Press-Kit.zip` and `Trinket-images.zip`, and send approved
