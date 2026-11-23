@@ -30,7 +30,7 @@ release work.
 | Date | Work |
 | --- | --- |
 | November 25 target, November 30 latest for three weeks of lead time | Apple received the App Launch featuring nomination November 19. Apple’s nomination instructions recommend three weeks. Its general featuring page asks for at least two. Keep the earlier planning target. |
-| November 23, morning Pacific | Both approved press batches went out. The first had ten emails at 8:00 a.m. The second had six emails and two editorial form submissions. One first-batch email bounced. |
+| November 23, morning Pacific | Sent three approved press batches. The first had ten emails at 8:00 a.m. The second had six emails and two editorial form submissions. The third had five creator and editorial emails at 10:44 a.m. One first-batch email bounced. |
 | November 30, morning Pacific | Recheck replies, coverage and Press Preview signups. Review one follow-up for time-sensitive roundup desks that are still silent. Sending requires owner approval. |
 | December 21–23 | Confirm owner availability for urgent purchase or crash issues. Verify downloads and the Full Game offer in the U.S. and representative international storefronts, then use the evergreen launch trailer and approved launch-day outreach. |
 
@@ -98,23 +98,26 @@ For future copy reviews, ask independent readers to name the genre and describe 
 | --- | ---: | ---: | ---: | ---: | ---: |
 | First, 8:00 a.m. Pacific | 10 | 0 | 1 | 0 | 0 |
 | Second, morning Pacific | 6 | 2 | 0 | 0 | 0 |
-| Total | 16 | 2 | 1 | 0 | 0 |
+| Third, 10:44 a.m. Pacific | 5 | 0 | 0 | 0 | Pending check |
+| Total | 21 | 2 | 1 | 0 | 0 found before the third batch |
 
 Gmail Sent confirms dispatch. Its delivery notice says SNAPP Attack's server
 rejected the message with `554 5.7.1 Relay access denied`. Hold that route until
 a current editorial contact is verified. The two form receipts are Mobi.gg
-and 4Gamer. Vandal and Retcon remain in Drafts.
+and 4Gamer. The third batch went to Tekkan, MrMacRight, WithZack, Engadget
+and TapSmart. Vandal and Retcon remain in Drafts.
 
-The November 23 check included all 16 sent threads, the sending mailbox for
-outlet replies or form responses, and public searches for coverage. Record each
-outlet's reply date, disposition and next action, plus the URL and publication
-date for each confirmed placement. The private ledger with thread references
+The November 23 dispatch check included all 21 sent threads and the sending
+mailbox for replies and delivery notices. Coverage was last checked before the
+third batch. Recheck all three batches on November 30. Record each outlet's
+reply date, disposition and next action, and each placement's URL and
+publication date. The private ledger with thread references
 and per-outlet status is at
 `~/.local/share/trinket/press-outreach/2026-11-23/Tracker.txt`.
 
 | Checked | TestFlight group | Enrolled | Change from pre-send baseline | Link capacity | Active press build |
 | --- | --- | ---: | ---: | ---: | --- |
-| November 23 | Press Preview | 0 | 0 | 50 | 13, expires February 11, 2027 |
+| November 23, after the third batch | Press Preview | 0 | 0 | 50 | 13, expires February 11, 2027 |
 
 Read Press Preview enrollment in App Store Connect. Log each check date and
 the change since the last check. The batches share an invite, so signups are
@@ -167,7 +170,7 @@ one unsolicited follow-up per outlet across both dates.
   once Apple allows generation. Record
   redemptions separately from paid unlocks. [External TestFlight](https://developer.apple.com/help/app-store-connect/test-a-beta-version/invite-external-testers) ·
   [In-App Purchase offer codes](https://developer.apple.com/help/app-store-connect/manage-in-app-purchases/create-offer-codes-for-in-app-purchases)
-- [x] **Owner · approve advance outreach.** Approved both November 23
+- [x] **Owner · approve advance outreach.** Approved all three November 23
   batches. Record dispatch, delivery exceptions and coverage in the
   [press outreach tracker](#press-outreach-tracker).
 - [x] **Agents · stage the launch review batch.** The private
@@ -347,7 +350,7 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | Featuring nomination | Submitted November 19, updated November 21 | Apple confirmed nomination `9a7f1d2d-b137-40ca-af15-432c455ae3ab` stayed submitted with the December 21 date, 173 storefronts, a gameplay-led pitch, the press kit, trailer, still and App Store link. |
 | First-week reporting | Reporting access verified before launch | The active Analytics request and four standard report catalogs were readable on November 21 with no daily instances. The Sales and Trends check returned explicit no sales for November 17. Start with the D+7 snapshot, then refresh after data is complete through the seventh live day. |
 | Editorial review | Shared-hand opener selected | The preceding editorial drafts are in the retained Release folder `LaunchPitch-Nov20/`. The press page and offline downloads share one set of captions and release facts. The owner accepted the existing trailer. The second editorial pass covers press copy, outreach and image assets. |
-| Press outreach dispatched | Both November 23 batches sent | [Press outreach tracker](#press-outreach-tracker) records dispatch, the single bounce, reply and coverage checks, and TestFlight enrollment. |
+| Press outreach dispatched | All three November 23 batches sent | [Press outreach tracker](#press-outreach-tracker) records dispatch, the single bounce, reply and coverage checks, and TestFlight enrollment. |
 | Launch-day rehearsal | Private preview verified November 21 | The launch-day badge and fact sheet switch apply cleanly. The assembled press ZIP and both corrected videos passed integrity checks. Analytics access and a historical Sales and Trends no-sales response were verified. |
 | Verified public launch | Pending | Verify U.S. and prioritized international downloads and Full Game offers. |
 | Day 7, 14, and 30 sales and conversion snapshots | Pending | |
