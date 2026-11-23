@@ -255,10 +255,10 @@ one unsolicited follow-up per outlet across both dates.
   [Current Developer Saturday example and rules](https://www.reddit.com/r/iosgaming/comments/1y1omln/megathread_developer_saturday_showcase_november/)
 - [ ] **Agents · distribution.** Verify the posting rules for each selected
   community. Recheck the December Developer Saturday thread before posting.
-  On launch day, after the
-  store check passes, swap the press kit to the evergreen "Download on the App
-  Store" trailer and download badge, push to `main` so GitHub Pages rebuilds
-  both `Trinket-Press-Kit.zip` and `Trinket-images.zip`, and send approved
+  Once the store check passes on launch day, swap the press kit to the
+  [staged 60 fps download-badge trailer](LaunchTrailer.md#gameplay-feature-reel)
+  and update the website badges. Push to `main` so GitHub Pages rebuilds
+  both `Trinket-Press-Kit.zip` and `Trinket-images.zip`, then send approved
   launch messages and posts. Start with the ordinary App Store URL.
   As soon as Apple enables campaign links, use one link per channel group
   such as press, creators, and community. Pool small sources so the results

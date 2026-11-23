@@ -160,7 +160,7 @@ def render_trailers(evidence, output):
     ):
         card = output / f"Trinket-{label}-End-Card.png"
         end_card(card, badge, date_copy)
-        feature(channel, original, card, output / f"Trinket-{label}-Feature-Reel.mp4", phone_frame=label == "Press")
+        feature(channel, original, card, output / f"Trinket-{label}-Feature-Reel.mp4", phone_frame=True)
     for cue in sorted((evidence / "boss-lyric-trailers").glob("*.cues.json")):
         source = cue.with_suffix("").with_suffix(".mp4")
         social(source, output / "Trinket-Launch-End-Card.png", output / f"{source.stem}-Social.mp4")
