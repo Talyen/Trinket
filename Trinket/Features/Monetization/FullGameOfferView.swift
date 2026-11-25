@@ -270,7 +270,7 @@ private struct FullGameProductStyle: ProductViewStyle {
 
 enum TrinketPublicPages {
     static let privacy = URL(string: "https://trinketrpg.com/privacy.html")!
-    static let support = URL(string: "https://trinketrpg.com/")!
+    static let support = URL(string: "https://trinketrpg.com/support.html")!
 }
 
 struct FullGameOutcomeMessage: View {

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Help with Trinket, purchases, Family Sharing, and saved progress." data-copy="supportDescription">
-  <title data-copy="supportTitle">Trinket Support</title>
+  <title>Trinket! · Turn-Based Fantasy Card RPG</title>
+  <meta name="description" content="Trinket! is a turn-based fantasy card RPG where your hero and companion share a hand of cards. Coming December 21, 2026 to iPhone and iPad, free to start with no ads or subscriptions.">
   <link rel="icon" type="image/jpeg" href="press/previews/trinket-icon.jpg">
   <link rel="canonical" href="https://trinketrpg.com/">
   <meta property="og:type" content="website">
@@ -14,48 +14,286 @@
   <meta property="og:image" content="https://trinketrpg.com/press-share.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="675">
+  <meta property="og:image:alt" content="Trinket! logo featuring the Ranger and Fox">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Trinket! · Turn-Based Fantasy Card RPG">
   <meta name="twitter:description" content="Trinket! is a turn-based card RPG where your hero and companion share a hand of cards. Coming to iPhone and iPad on December 21, 2026.">
   <meta name="twitter:image" content="https://trinketrpg.com/press-share.jpg">
-  <link rel="stylesheet" href="style.css">
-  <script src="localization.js" defer></script>
+  <meta name="twitter:image:alt" content="Trinket! logo featuring the Ranger and Fox">
+  <link rel="stylesheet" href="landing.css">
+  <script src="landing.js" defer></script>
 </head>
 <body>
-  <nav aria-label="Main" data-copy="navLabel"><strong>Trinket!</strong><div><a href="index.html" aria-current="page" data-copy="supportNav" data-local-page>Support</a><a href="privacy.html" data-copy="privacyNav" data-local-page>Privacy</a><a href="press/">Press kit</a></div></nav>
-  <div class="language" hidden><label for="language" data-copy="languageLabel">Language</label> <select id="language"></select></div>
-  <main>
-    <section class="hero" aria-label="Trinket! overview">
-      <img class="hero-logo" src="press/previews/ambush-wordmark.webp" alt="Trinket!" width="1080" height="720">
-      <p class="hero-pitch"><i>Trinket!</i> is a turn-based card RPG where your hero and companion share a hand of cards. Coming December 21, 2026 to iPhone and iPad, free to start with no ads or subscriptions.</p>
-      <div class="hero-actions">
-        <a class="hero-badge" href="https://apps.apple.com/app/trinket/id6811284921">
-          <img src="press/previews/app-store-preorder.svg" width="121" height="41" alt="Pre-order on the App Store">
-        </a>
-        <a class="hero-link" href="press/">Trailer, screenshots &amp; press kit</a>
+  <svg class="icon-defs" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="phone-status" viewBox="0 0 320 30">
+      <text x="25" y="20" fill="currentColor" font-family="system-ui, sans-serif" font-size="13" font-weight="600">9:41</text>
+      <g fill="currentColor">
+        <path d="M248 19v-3h2v3zm4 0v-5h2v5zm4 0v-7h2v7zm4 0v-9h2v9z" />
+        <path d="M266 13q6-6 12 0l-1.5 1.6q-4.5-4.6-9 0zm2.8 3q3.2-3.3 6.4 0L272 19.4z" />
+        <rect x="283" y="12" width="11" height="5" rx="1" />
+        <rect x="297" y="13" width="1.5" height="3" rx=".75" />
+      </g>
+      <rect x="281" y="10" width="15" height="9" rx="2.4" fill="none" stroke="currentColor" />
+    </symbol>
+    <symbol id="icon-play" viewBox="0 0 24 24">
+      <path d="m8 4 12 8-12 8z" fill="currentColor" stroke="none" />
+    </symbol>
+  </svg>
+
+  <header class="site-header" data-header>
+    <div class="header-inner">
+      <a class="brand" href="#top">
+        <img src="press/previews/trinket-icon.jpg" width="36" height="36" alt="">
+        <span>Trinket!</span>
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="#trailer">Trailer</a>
+        <a href="#screenshots">Screenshots</a>
+        <a href="press/">Press kit</a>
+        <a href="support.html">Support</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-heading">
+      <div class="hero-backdrop" aria-hidden="true">
+        <img src="press/previews/campaign-world.webp" width="940" height="702" alt="">
+      </div>
+      <div class="hero-inner">
+        <img
+          class="hero-wordmark"
+          src="press/previews/ambush-wordmark.webp"
+          width="1080"
+          height="720"
+          alt="Trinket! featuring the Ranger and Fox"
+          fetchpriority="high"
+        >
+        <h1 id="hero-heading">Share one hand. Fight as two.</h1>
+        <p class="hero-lead">A turn-based fantasy card RPG for iPhone and iPad. Coming December 21, 2026, free to start with no ads or subscriptions.</p>
+        <div class="hero-cta">
+          <a class="store-badge" href="https://apps.apple.com/app/trinket/id6811284921">
+            <img src="press/previews/app-store-preorder.svg" width="154" height="52" alt="Pre-order on the App Store">
+          </a>
+        </div>
       </div>
     </section>
-    <h1 data-copy="supportHeading">How can we help?</h1>
-    <p class="intro" data-copy="supportIntro">Help with purchases and progress in Trinket.</p>
-    <section class="contact">
-      <h2 data-copy="contactHeading">Contact</h2>
-      <p data-copy="contactText">Email <a href="mailto:rymcintire@gmail.com" data-copy="contactTextLink">rymcintire@gmail.com</a>. Include your device model, iOS version, and what happened. Please don’t send passwords, payment details, or private Apple Account information.</p>
+
+    <section class="band trailer-band" id="trailer" aria-labelledby="trailer-heading">
+      <div class="container trailer-layout">
+        <div class="trailer-copy">
+          <h2 id="trailer-heading">See combat in motion</h2>
+          <p>Follow the Wizard and Frost Whelp from the Homestead to floor 10 of Sanguine Court, where the Blood Countess sings live lyrics during the fight.</p>
+          <ol class="chapter-list" aria-label="Trailer chapters">
+            <li><a href="press/video/Trinket-feature-reel.mp4#t=0" data-seek="0"><time datetime="PT0S">0:00</time><span>Meet the party</span></a></li>
+            <li><a href="press/video/Trinket-feature-reel.mp4#t=15" data-seek="15"><time datetime="PT15S">0:15</time><span>At the Homestead</span></a></li>
+            <li><a href="press/video/Trinket-feature-reel.mp4#t=30" data-seek="30"><time datetime="PT30S">0:30</time><span>A Recruit event</span></a></li>
+            <li><a href="press/video/Trinket-feature-reel.mp4#t=58" data-seek="58"><time datetime="PT58S">0:58</time><span>The Blood Countess</span></a></li>
+          </ol>
+        </div>
+        <div class="trailer-stage">
+          <div class="phone-player" data-trailer-player>
+            <div class="phone-screen">
+              <svg class="phone-status" viewBox="0 0 320 30" aria-hidden="true" focusable="false"><use href="#phone-status"></use></svg>
+              <div class="phone-media">
+                <video
+                  width="952"
+                  height="1920"
+                  controls
+                  playsinline
+                  loading="lazy"
+                  preload="none"
+                  poster="press/previews/trailer.jpg"
+                  aria-label="Trinket! narrated feature trailer"
+                >
+                  <source src="press/video/Trinket-feature-reel.mp4" type="video/mp4">
+                  <track
+                    kind="captions"
+                    label="English"
+                    srclang="en"
+                    src="press/video/Trinket-feature-reel.en.vtt"
+                  >
+                </video>
+                <button class="video-play" type="button" hidden>
+                  <svg class="play-icon" aria-hidden="true" focusable="false"><use href="#icon-play"></use></svg>
+                  Watch the trailer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
-    <h2 data-copy="fullGameHeading">What does Full Game include?</h2>
-    <p data-copy="fullGameText">Full Game is a permanent, one-time purchase covering all chapters and game modes, every hero and companion, and future content released within Trinket. Characters and upgrades are still earned through play. Future content is included if released; there is no promised update schedule.</p>
-    <p data-copy="freeText">Free play includes the first three campaign chapters, the first three Labyrinth floors, the first ten floors of every Spire, unlimited Contracts, Voyage adventures in Forest, Dungeon, and Desert, and a starter roster. Equipment, Homestead, and the full ability and talent progression of accessible characters remain available.</p>
-    <h2 data-copy="restoreHeading">Restore a purchase</h2>
-    <p data-copy="restoreText">Open Trinket → Options → Restore Purchases. Use the Apple Account that originally purchased Full Game. An internet connection may be needed to restore access on a new installation.</p>
-    <p data-copy="billingText">Trinket uses Apple’s In-App Purchase system. Apple handles payment confirmation and billing; Trinket never asks for your card details.</p>
-    <h2 data-copy="sharingHeading">Family Sharing</h2>
-    <p data-copy="sharingText">Full Game supports Apple Family Sharing for eligible family members. Check your purchase-sharing settings, then use Restore Purchases in Trinket. Sharing access does not share your saved game.</p>
-    <h2 data-copy="progressHeading">Saved progress</h2>
-    <p data-copy="progressText">Progress is stored on your device. When iCloud progress sync is enabled in your build and you are signed in to iCloud, it syncs automatically across devices using the same Apple Account. You can play offline; changes sync after you reconnect. If progress has not appeared on another device, check that both devices use the same iCloud account and have a connection, then reopen the app.</p>
-    <p data-copy="resetText">Options → Reset Game Progress clears progress on this device and, when linked to iCloud, propagates to synced devices. Progress from an offline device can return when it reconnects. Reset does not remove Full Game ownership. Deleting the app can remove local progress, so do not reinstall as a first troubleshooting step.</p>
-    <h2 data-copy="refundHeading">Refunds and missing access</h2>
-    <p data-copy="refundText">Apple handles refund requests at <a href="https://reportaproblem.apple.com/" data-copy="refundTextLink">Report a Problem</a>. A refund or a change in Family Sharing can remove premium access. Trinket retains earned progress so it is available if access is restored.</p>
-    <p data-copy="refundFollowup">If restoration doesn’t help, contact support before resetting or reinstalling.</p>
+
+    <section class="band pillars-band" aria-labelledby="pillars-heading">
+      <div class="container">
+        <h2 id="pillars-heading" class="visually-hidden">What makes Trinket! distinct</h2>
+
+        <article class="pillar">
+          <div class="pillar-media character-strip">
+            <img src="press/previews/launch-column-ranger.webp" width="320" height="480" alt="Ranger hero" loading="lazy">
+            <img src="press/previews/launch-column-fox.webp" width="320" height="480" alt="Fox companion" loading="lazy">
+            <img src="press/previews/launch-column-knight.webp" width="320" height="480" alt="Knight hero" loading="lazy">
+            <img src="press/previews/launch-column-whelp.webp" width="320" height="480" alt="Frost Whelp companion" loading="lazy">
+          </div>
+          <div class="pillar-copy">
+            <h3>Pair a hero with a companion</h3>
+            <p>Every turn, your hero and companion draw from one shared hand of cards. Mix Burn and Freeze combos, stack Bleed and Poison, or anchor the front line with Briar Shield and Smite.</p>
+            <p>Build your party from 8 heroes and 13 companions, with 65 equippable abilities and 446 talents across 63 trees.</p>
+          </div>
+        </article>
+
+        <article class="pillar pillar-reverse">
+          <div class="pillar-media">
+            <img src="press/previews/launch-explore.webp" width="960" height="720" alt="Spires, Labyrinth, and realms of Trinket!" loading="lazy">
+          </div>
+          <div class="pillar-copy">
+            <h3>Five modes, seven singing bosses</h3>
+            <p>Journey through four Campaign chapters from the Forest to the Tundra, where each of the seven bosses performs an original vocal theme with live lyrics in combat.</p>
+            <p>Beyond the Campaign, climb 7 Spires totaling 140 floors, delve into an endless Labyrinth, chart repeatable Voyages, or take a single-battle Contract with its reward shown up front.</p>
+          </div>
+        </article>
+
+        <article class="pillar">
+          <div class="pillar-media">
+            <img src="press/previews/launch-forge.webp" width="960" height="720" alt="Homestead Blacksmith Forge at dusk" loading="lazy">
+          </div>
+          <div class="pillar-copy">
+            <h3>Grow your Homestead between runs</h3>
+            <p>Return home to tend herbs, forge weapons, and invest in 20 Homestead projects across Farming, Crafting, Alchemy, Training, and Arcana.</p>
+            <p>Hunt for Astral gear drawn from 111 item affixes, 24 trinkets, and 29 build-defining unique items, or craft new gear from 26 Homestead recipes.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="band gallery-band" id="screenshots" aria-labelledby="screenshots-heading">
+      <div class="container">
+        <div class="gallery-header">
+          <h2 id="screenshots-heading">Inside the game</h2>
+          <div class="segmented-tabs" role="tablist" aria-label="Screenshot categories">
+            <button type="button" role="tab" id="tab-highlights" aria-selected="true" aria-controls="panel-highlights">Highlights</button>
+            <button type="button" role="tab" id="tab-roster" aria-selected="false" aria-controls="panel-roster" tabindex="-1">Heroes &amp; companions</button>
+            <button type="button" role="tab" id="tab-gear" aria-selected="false" aria-controls="panel-gear" tabindex="-1">Gear &amp; Homestead</button>
+          </div>
+        </div>
+
+        <div id="panel-highlights" class="screenshot-grid" role="tabpanel" aria-labelledby="tab-highlights">
+          <figure>
+            <a href="press/screenshots/blood-countess.png" data-lightbox>
+              <img src="press/previews/blood-countess.jpg" width="720" height="1450" alt="The Blood Countess singing to the Wizard and Frost Whelp in battle" loading="lazy">
+            </a>
+            <figcaption>The Blood Countess sings to the Wizard and Frost Whelp on floor 10 of Sanguine Court.</figcaption>
+          </figure>
+          <figure>
+            <a href="press/screenshots/knight-bear.png" data-lightbox>
+              <img src="press/previews/knight-bear.jpg" width="720" height="1470" alt="The Knight and Bear fighting the Mud Elemental" loading="lazy">
+            </a>
+            <figcaption>The Knight and Bear bring the Mud Elemental down to its final point of health.</figcaption>
+          </figure>
+          <figure>
+            <a href="press/screenshots/explore.png" data-lightbox>
+              <img src="press/previews/explore.jpg" width="720" height="1469" alt="Explore screen showing Spires, Labyrinth, and Contracts" loading="lazy">
+            </a>
+            <figcaption>Spires, Labyrinth, and Contracts ready to play on the Explore screen.</figcaption>
+          </figure>
+        </div>
+
+        <div id="panel-roster" class="screenshot-grid" role="tabpanel" aria-labelledby="tab-roster" hidden>
+          <figure>
+            <a href="press/screenshots/wizard.png" data-lightbox>
+              <img src="press/previews/wizard.jpg" width="720" height="1470" alt="Wizard character detail and abilities" loading="lazy">
+            </a>
+            <figcaption>The Wizard channels Mana Berries into high-impact Burn spells like Fireball and Meteor.</figcaption>
+          </figure>
+          <figure>
+            <a href="press/screenshots/frost-whelp.png" data-lightbox>
+              <img src="press/previews/frost-whelp.jpg" width="720" height="1470" alt="Frost Whelp companion detail and abilities" loading="lazy">
+            </a>
+            <figcaption>The Frost Whelp slows enemies down with Ray of Frost, Frostbolt, and Blizzard.</figcaption>
+          </figure>
+          <figure>
+            <a href="press/screenshots/fox.png" data-lightbox>
+              <img src="press/previews/fox.jpg" width="720" height="1470" alt="Fox companion detail and abilities" loading="lazy">
+            </a>
+            <figcaption>The Fox steals from enemies and slips past danger with Bash, Steal, and Shadowstep.</figcaption>
+          </figure>
+        </div>
+
+        <div id="panel-gear" class="screenshot-grid" role="tabpanel" aria-labelledby="tab-gear" hidden>
+          <figure>
+            <a href="press/screenshots/twin-casting.png" data-lightbox>
+              <img src="press/previews/twin-casting.jpg" width="720" height="1450" alt="Twin Casting unique staff item screen" loading="lazy">
+            </a>
+            <figcaption>Twin Casting draws a Freeze card when you spend Mana to empower a Burn card, and vice versa.</figcaption>
+          </figure>
+          <figure>
+            <a href="press/screenshots/frozen-pocketwatch.png" data-lightbox>
+              <img src="press/previews/frozen-pocketwatch.jpg" width="720" height="1450" alt="Frozen Pocketwatch trinket screen" loading="lazy">
+            </a>
+            <figcaption>The Frozen Pocketwatch gives Freeze a 30% chance to last an additional turn.</figcaption>
+          </figure>
+          <figure>
+            <a href="press/screenshots/blacksmith.jpg" data-lightbox>
+              <img src="press/previews/blacksmith.jpg" width="720" height="1470" alt="Homestead Blacksmith crafting screen" loading="lazy">
+            </a>
+            <figcaption>The Blacksmith crafts new equipment and produces Iron each day at your Homestead.</figcaption>
+          </figure>
+        </div>
+
+        <p class="gallery-more"><a href="press/#images">Browse all 21 full-resolution screenshots in the press kit</a></p>
+      </div>
+    </section>
+
+    <section class="band fairplay-band" aria-labelledby="fairplay-heading">
+      <div class="container fairplay-inner">
+        <h2 id="fairplay-heading">Free to start. One purchase for everything.</h2>
+        <p>Download free and play all five modes with no ads, no subscriptions, and no energy timers. Play offline with no account required, with iCloud sync across iPhone and iPad.</p>
+        <div class="tier-comparison">
+          <div>
+            <h3>Free play</h3>
+            <p>Three Campaign chapters (Forest, Dungeon, Desert), the first 10 floors of every Spire, 3 Labyrinth floors, unlimited Contracts, Voyages, Homestead, and a starter roster of 4 heroes and 4 companions with full progression.</p>
+          </div>
+          <div>
+            <h3>Full Game · US$4.99</h3>
+            <p>A single one-time purchase with Apple Family Sharing unlocks Tundra, deeper Spire and Labyrinth floors, all 8 heroes and 13 companions, and future content released within Trinket. Local prices vary.</p>
+          </div>
+        </div>
+        <div class="final-cta">
+          <a class="store-badge" href="https://apps.apple.com/app/trinket/id6811284921">
+            <img src="press/previews/app-store-preorder.svg" width="154" height="52" alt="Pre-order on the App Store">
+          </a>
+          <p class="release-note">Launching December 21, 2026 in 8 languages across 173 App Store storefronts.</p>
+        </div>
+      </div>
+    </section>
   </main>
-  <footer><a href="privacy.html" data-copy="privacyHeading" data-local-page>Privacy policy</a> · <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" data-copy="licenseLink">Apple’s standard license agreement</a></footer>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-brand"><i>Trinket!</i> · Turn-based fantasy card RPG for iPhone and iPad</p>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="support.html">Support</a>
+        <a href="privacy.html">Privacy policy</a>
+        <a href="press/">Press kit</a>
+        <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/">Apple license</a>
+      </nav>
+    </div>
+  </footer>
+
+  <dialog id="lightbox" class="lightbox" closedby="any" aria-label="Gameplay screenshot viewer">
+    <div class="lightbox-frame">
+      <div class="lightbox-bar">
+        <span class="lightbox-count" data-count></span>
+        <button type="button" class="lightbox-close" data-close aria-label="Close screenshot viewer">Close</button>
+      </div>
+      <div class="lightbox-stage">
+        <button type="button" class="lightbox-nav lightbox-prev" data-prev aria-label="Previous screenshot">‹</button>
+        <img alt="" data-photo>
+        <button type="button" class="lightbox-nav lightbox-next" data-next aria-label="Next screenshot">›</button>
+      </div>
+      <p class="lightbox-caption" data-caption></p>
+    </div>
+  </dialog>
 </body>
 </html>

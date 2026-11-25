@@ -12,7 +12,7 @@ release prerequisites and commands remain in [Release.md](Release.md).
 | Subtitle | [Canonical English input](../../Localization/Store/English.json) |
 | Primary category | Games |
 | Games subcategories | Roleplaying; Strategy |
-| Support URL | https://trinketrpg.com/ |
+| Support URL | https://trinketrpg.com/support.html |
 | Privacy policy URL | https://trinketrpg.com/privacy.html |
 | Copyright | 2026 Ryan McIntire |
 | Release method | Manual |

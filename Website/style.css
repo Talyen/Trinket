@@ -2,8 +2,10 @@
 * { box-sizing: border-box; }
 body { max-width: 760px; margin: auto; padding: 36px 24px 60px; line-height: 1.65; }
 nav { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-bottom: 26px; border-bottom: 1px solid #35312a; }
+nav .brand { margin-left: 0; color: #eeece7; text-decoration: none; }
+nav .brand:hover { color: #ffe2a1; }
 nav strong { font-family: Georgia, serif; font-size: 26px; font-weight: normal; }
-nav a { margin-left: 18px; }
+nav div a { margin-left: 18px; }
 a { color: #dfb75d; text-underline-offset: 4px; }
 a:hover { color: #ffe2a1; }
 a:focus-visible { outline: 2px solid #dfb75d; outline-offset: 5px; }
@@ -16,16 +18,8 @@ li + li { margin-top: 10px; }
 .contact { padding: 20px 24px; border: 1px solid #51452b; border-radius: 14px; margin-top: 28px; }
 .contact h2 { margin-top: 0; }
 footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid #35312a; color: #a8a49c; font-size: 14px; }
-@media (max-width: 400px) { nav { gap: 12px; } nav a { margin-left: 10px; } body { padding-inline: 18px; } }
+@media (max-width: 400px) { nav { gap: 12px; } nav div a { margin-left: 10px; } body { padding-inline: 18px; } }
 .language { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 14px; font-size: 14px; }
 .language[hidden] { display: none; }
 .language select { max-width: 60%; padding: 6px; font: inherit; color: inherit; background: #171614; border: 1px solid #51452b; border-radius: 5px; }
 .language select:focus-visible { outline: 2px solid #dfb75d; outline-offset: 3px; }
-.hero { margin-top: 28px; padding: 28px 24px; text-align: center; border: 1px solid #51452b; border-radius: 14px; background: radial-gradient(ellipse at 20% 25%, #342620, transparent 58%), #141315; }
-.hero-logo { display: block; width: min(100%, 300px); height: auto; margin: 0 auto 14px; }
-.hero-pitch { max-width: 540px; margin: 0 auto 20px; font-size: 17px; color: #eeece7; }
-.hero-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px 20px; }
-.hero-badge { display: inline-flex; }
-.hero-badge img { display: block; height: 44px; width: auto; }
-.hero-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px; border: 1px solid #655445; border-radius: 6px; text-decoration: none; font-weight: 600; color: #dfb75d; }
-.hero-link:hover { border-color: #dfb75d; background: #26201b; }
