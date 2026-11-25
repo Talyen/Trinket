@@ -1141,10 +1141,11 @@ p:last-child {
   }
 
   .lightbox-stage {
-    grid-template-columns: minmax(0, 1fr);
+    gap: 0.4rem;
   }
 
   .lightbox-nav {
-    display: none;
+    min-width: 2.35rem;
+    min-height: 2.35rem;
   }
 }

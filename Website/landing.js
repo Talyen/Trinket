@@ -17,12 +17,19 @@
     const chapters = [...document.querySelectorAll(".chapter-list [data-seek]")];
 
     if (video && playButton) {
+      video.controls = false;
       playButton.hidden = false;
-      playButton.addEventListener("click", () => {
+      const startPlayback = () => {
+        video.controls = true;
         video.focus({ preventScroll: true });
         video.play().catch(() => video.focus());
+      };
+      playButton.addEventListener("click", startPlayback);
+      video.addEventListener("click", () => {
+        if (!video.controls) startPlayback();
       });
       video.addEventListener("playing", () => {
+        video.controls = true;
         playButton.hidden = true;
       });
       video.addEventListener("ended", () => {
@@ -35,6 +42,7 @@
         chapter.addEventListener("click", (event) => {
           if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
           event.preventDefault();
+          video.controls = true;
           video.currentTime = Number(chapter.dataset.seek);
           video.play().catch(() => video.focus());
           video.focus({ preventScroll: true });
@@ -140,6 +148,23 @@
         show(current + (event.key === "ArrowLeft" ? -1 : 1));
       }
     });
+
+    // Touch swipe navigation for mobile lightbox browsing
+    const stage = dialog.querySelector(".lightbox-stage");
+    let touchStart = null;
+    stage?.addEventListener("touchstart", (event) => {
+      touchStart = event.touches.length === 1 ? event.touches[0] : null;
+    }, { passive: true });
+    stage?.addEventListener("touchcancel", () => { touchStart = null; });
+    stage?.addEventListener("touchend", (event) => {
+      if (!touchStart || event.touches.length) return;
+      const dx = event.changedTouches[0].clientX - touchStart.clientX;
+      const dy = event.changedTouches[0].clientY - touchStart.clientY;
+      touchStart = null;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > 1.5 * Math.abs(dy)) {
+        show(current + (dx < 0 ? 1 : -1));
+      }
+    }, { passive: true });
 
     // Fallback light-dismiss for browsers without closedby="any" support (e.g. Safari)
     if (!("closedBy" in HTMLDialogElement.prototype)) {

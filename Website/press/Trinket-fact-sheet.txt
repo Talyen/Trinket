@@ -33,7 +33,7 @@ Heroes: 8 heroes. Ranger, Knight, Rogue, Wizard, Druid, Warlock, Alchemist, Wild
 Companions: 13 companions. Wolf, Bear, Frost Whelp, Lizard Scout, Panther, Phoenix, Golden Retriever, Library Owl, Risen Skeleton, Mana Moth, Pixie, Shield Scarab, Fox.
 Abilities: 65 distinct equippable abilities across the roster, including 20 basics, 26 skills and 19 ultimates.
 Talents: 446 talents across 63 trees, three trees per character. The Wizard can specialize in Cryomancy, Pyromancy or Arcana.
-Equipment: Basic and Astral gear draws from 111 item affixes. Basic gear rolls 1 to 2 affixes per item and Astral gear rolls 3 to 4. There are also 24 trinkets and 29 unique items.
+Equipment: Basic and Astral gear draws from 150 item affixes. Basic gear rolls 1 to 2 affixes per item and Astral gear rolls 3 to 4. There are also 24 trinkets and 29 unique items.
 Crafting: 26 equipment recipes. The Homestead offers 14 Blacksmith Forge recipes, 8 Archery Range recipes and 4 Wool Tailoring recipes.
 
 Free play includes the Knight, Ranger, Rogue and Wizard, plus the Wolf, Bear, Frost Whelp and Library Owl. Each has their full ability and talent progression. A full-game purchase opens the rest of the roster for recruitment.
