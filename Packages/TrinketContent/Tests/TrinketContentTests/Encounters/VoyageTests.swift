@@ -4,7 +4,7 @@ import TrinketCore
 @testable import TrinketContent
 
 struct VoyageTests {
-    @Test(arguments: GameContent.chapters.map(\.id))
+    @Test(arguments: VoyageBoard.chapterIDs(access: .fullGame))
     func `routes preserve regional pacing and favor affinity rewards`(chapterID: String) {
         for difficulty in VoyageDifficulty.allCases {
             for recruits in [true, false] {
@@ -62,12 +62,12 @@ struct VoyageTests {
         }
     }
 
-    @Test func `chapter affinities cover every keyword exactly once`() {
-        let chapters = GameContent.chapters
-        #expect(!chapters.isEmpty)
+    @Test func `Voyage destination affinities cover every keyword exactly once`() {
+        let chapterIDs = VoyageBoard.chapterIDs(access: .fullGame)
+        #expect(chapterIDs == ["chapter-1", "chapter-2", "chapter-3", "chapter-4"])
         var seen: Set<Keyword> = []
-        for chapter in chapters {
-            let affinities = VoyageCatalog.affinityKeywords(chapterID: chapter.id)
+        for chapterID in chapterIDs {
+            let affinities = VoyageCatalog.affinityKeywords(chapterID: chapterID)
             #expect(!affinities.isEmpty)
             #expect(affinities.count <= 5)
             #expect(seen.isDisjoint(with: affinities))
