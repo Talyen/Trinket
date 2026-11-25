@@ -13,7 +13,7 @@
 .press-resources a, .media-action, .gallery-tools a, .gallery-index a, .detail-link { padding: .55rem .9rem; border: 1px solid #655445; border-radius: 5px; text-decoration: none; color: var(--paper); font-weight: 600; min-height: 44px; }
 .press-resources a[download][href$=".zip"], .media-action { color: var(--gold); background: #302823; }
 .press-resources a:hover, .media-action:hover, .gallery-tools a:hover, .gallery-index a:hover, .detail-link:hover { border-color: var(--gold); background: #392e26; }
-.about > img { display: block; width: 100%; height: auto; aspect-ratio: 2.25; object-fit: cover; object-position: center 53%; border-radius: 6px; margin-bottom: 1.2rem; }
+.about > img { display: block; width: 100%; height: auto; border-radius: 6px; margin-bottom: 1.2rem; }
 .price-panel { padding: 1.1rem 1.25rem; background: #27241f; border: 1px solid #5a4a38; border-radius: 7px; }
 .price-stats { display: grid; grid-template-columns: 1fr 1.3fr; align-items: start; }
 .price-stats p { margin: 0; font-size: .875rem; color: var(--muted); }
@@ -94,7 +94,7 @@
 .video-play:hover { background: #ffe5ad; }
 .video-play:focus-visible { outline: 3px solid white; outline-offset: 4px; }
 .premiere-guide { grid-area: guide; min-width: 0; }
-.premiere-guide > img { display: block; width: 100%; height: auto; aspect-ratio: 1.75; object-fit: cover; object-position: 50% 29%; border-radius: 5px; }
+.premiere-guide > img { display: block; width: 100%; height: auto; border-radius: 5px; }
 .premiere-guide h2 { margin: 1rem 0 .25rem; font-size: clamp(1.6rem, 2.6vw, 2.2rem); }
 .file-format, .press-usage { color: var(--muted); font-size: .9rem; }
 .premiere-guide ol { padding: 0; list-style: none; margin: 1rem 0; border-top: 1px solid var(--line); }

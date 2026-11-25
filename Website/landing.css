@@ -144,7 +144,7 @@ video:focus-visible {
 .brand img {
   display: block;
   width: 2.15rem;
-  height: 2.15rem;
+  height: auto;
   border-radius: 0.5rem;
 }
 
@@ -228,6 +228,9 @@ video:focus-visible {
   padding-top: 1rem;
   width: 100%;
   border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
   font-size: var(--text-sm);
   color: var(--muted);
 }
@@ -433,6 +436,7 @@ p {
   margin: 0 0 1rem;
   color: var(--muted);
   max-width: 60ch;
+  text-wrap: pretty;
 }
 
 p:last-child {
@@ -626,7 +630,7 @@ p:last-child {
 
 .detail-list > div {
   display: grid;
-  grid-template-columns: 8.5rem minmax(0, 1fr);
+  grid-template-columns: 9.75rem minmax(0, 1fr);
   gap: 0.5rem 1rem;
   padding: 0.75rem 0;
   border-bottom: 1px solid var(--line);
@@ -646,6 +650,7 @@ p:last-child {
 .detail-list dd {
   margin: 0;
   color: var(--muted);
+  text-wrap: pretty;
 }
 
 /* Screenshots gallery */

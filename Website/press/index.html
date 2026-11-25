@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Trinket! · Press kit</title>
+    <title>Trinket! - Press kit</title>
     <meta
       name="description"
       content="Trinket! is a turn-based card RPG where your hero and companion share a hand of cards."
@@ -12,14 +12,14 @@
     <link rel="canonical" href="https://trinketrpg.com/press/" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://trinketrpg.com/press/" />
-    <meta property="og:title" content="Trinket! · Press kit" />
+    <meta property="og:title" content="Trinket! - Press kit" />
     <meta property="og:description" content="Trinket! is a turn-based card RPG where your hero and companion share a hand of cards. Coming to iPhone and iPad on December 21, 2026." />
     <meta property="og:image" content="https://trinketrpg.com/press-share.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="675" />
     <meta property="og:image:alt" content="Trinket! logo featuring the Ranger and Fox" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Trinket! · Press kit" />
+    <meta name="twitter:title" content="Trinket! - Press kit" />
     <meta name="twitter:description" content="Trinket! is a turn-based card RPG where your hero and companion share a hand of cards. Coming to iPhone and iPad on December 21, 2026." />
     <meta name="twitter:image" content="https://trinketrpg.com/press-share.jpg" />
     <meta name="twitter:image:alt" content="Trinket! logo featuring the Ranger and Fox" />
@@ -153,7 +153,6 @@
       }
       .launch-art {
         display: flex;
-        height: clamp(180px, 24vw, 260px);
         overflow: hidden;
         background: #252327;
       }
@@ -161,13 +160,10 @@
         display: block;
         width: 100%;
         min-width: 0;
-        height: 100%;
-        object-fit: cover;
+        height: auto;
       }
-      .launch-art.characters img { width: 25%; object-position: center 42%; }
+      .launch-art.characters img { width: 25%; }
       .launch-art.characters img + img { border-left: 2px solid #201e20; }
-      .launch-art.forge img { object-position: center 59%; }
-      .launch-art.world img { object-position: center 46%; }
       .launch-body { padding: clamp(20px, 3vw, 30px); }
       .launch-body h3 { margin-bottom: 20px; }
       .launch-stats {
@@ -189,7 +185,6 @@
       .roster-access { margin-top: 14px; }
       @media (max-width: 720px) {
         .launch-grid { grid-template-columns: minmax(0, 1fr); }
-        .launch-art { height: clamp(190px, 55vw, 290px); }
       }
       dd {
         margin: 0;
@@ -265,7 +260,7 @@
           color: black;
         }
         header, #images, #artwork, a[download] { display: none; }
-        .press-url::after { content: " · " attr(href); }
+        .press-url::after { content: " (" attr(href) ")"; }
         header, main, footer { max-width: none; padding: 0; }
         .facts { display: block; padding: 12px 0; }
         .facts > div + div { margin-top: 16px; }
@@ -452,23 +447,23 @@
       <section class="facts" id="facts">
         <div class="about">
           <h2>About the game</h2>
-          <img src="previews/campaign-world.webp" width="940" height="702" loading="lazy" alt="Campaign artwork" />
+          <img src="previews/campaign-world.webp" width="940" height="701" loading="lazy" alt="Campaign artwork" />
           <p>Pair a hero with a companion and share one hand of cards each turn, combining their abilities, gear, and talent trees to set up combos across four Campaign chapters, from the Forest to the Tundra. Each of the seven bosses features an original vocal theme with live lyrics in combat.</p>
           <p>Beyond the Campaign, climb seven Spires, push into an endless Labyrinth, chart a Voyage, or take a single-fight Contract with its reward shown up front. Between runs, build up your Homestead to grow herbs, forge gear, and strengthen your roster.</p>
         </div>
         <div class="glance">
           <h2>At a glance</h2>
           <div class="price-panel">
-            <div class="price-stats"><p><strong>Free</strong>Download</p><p><strong>US$4.99</strong>Full game · one-time purchase</p></div>
+            <div class="price-stats"><p><strong>Free</strong>Download</p><p><strong>US$4.99</strong>Full game, one-time purchase</p></div>
             <p>Try all five modes for free, with no ads, no subscriptions, and no energy timers. One purchase (with Family Sharing) unlocks every chapter, deeper Spire and Labyrinth floors, and the full roster of heroes and companions. Local prices vary.</p>
           </div>
           <dl class="glance-list">
-            <div><dt><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-calendar"></use></svg>Release</dt><dd>December 21, 2026 · 173 App Store storefronts</dd></div>
+            <div><dt><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-calendar"></use></svg>Release</dt><dd>December 21, 2026 across 173 App Store storefronts</dd></div>
             <div><dt><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-devices"></use></svg>Platform</dt><dd>iOS / iPhone / iPad</dd></div>
             <div><dt><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-play"></use></svg>Genre</dt><dd>Single-player turn-based fantasy card combat</dd></div>
             <div><dt><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-book"></use></svg>Languages</dt><dd>English, French, German, Japanese, Korean, Spanish, Portuguese (Brazil), Traditional Chinese</dd></div>
             <div><dt><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-offline"></use></svg>Offline</dt><dd>Play offline with no account required<br>iCloud sync supported</dd></div>
-            <div><dt><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-person"></use></svg>Developer</dt><dd>Ryan McIntire · solo indie developer</dd></div>
+            <div><dt><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-person"></use></svg>Developer</dt><dd>Ryan McIntire, solo indie developer</dd></div>
           </dl>
           <a class="detail-link" href="#content">Explore the modes and what’s free</a>
         </div>
@@ -559,7 +554,7 @@
         <h2>Game content at launch</h2>
         <div class="launch-grid">
           <article class="launch-panel">
-            <div class="launch-art world"><img src="previews/launch-explore.webp" alt="" loading="lazy" /></div>
+            <div class="launch-art world"><img src="previews/launch-explore.webp" width="1440" height="1075" alt="" loading="lazy" /></div>
             <div class="launch-body">
               <h3>Game Modes &amp; World</h3>
               <div class="launch-stats">
@@ -584,10 +579,10 @@
           </article>
           <article class="launch-panel roster-panel">
             <div class="launch-art characters">
-              <img src="previews/launch-column-ranger.webp" alt="" loading="lazy" />
-              <img src="previews/launch-column-fox.webp" alt="" loading="lazy" />
-              <img src="previews/launch-column-knight.webp" alt="" loading="lazy" />
-              <img src="previews/launch-column-whelp.webp" alt="" loading="lazy" />
+              <img src="previews/launch-column-ranger.webp" width="380" height="587" alt="" loading="lazy" />
+              <img src="previews/launch-column-fox.webp" width="380" height="587" alt="" loading="lazy" />
+              <img src="previews/launch-column-knight.webp" width="380" height="587" alt="" loading="lazy" />
+              <img src="previews/launch-column-whelp.webp" width="380" height="587" alt="" loading="lazy" />
             </div>
             <div class="launch-body">
               <h3>Heroes &amp; Companions</h3>
@@ -610,7 +605,7 @@
             </div>
           </article>
           <article class="launch-panel equipment-panel">
-            <div class="launch-art forge"><img src="previews/launch-forge.webp" alt="" loading="lazy" /></div>
+            <div class="launch-art forge"><img src="previews/launch-forge.webp" width="1440" height="1075" alt="" loading="lazy" /></div>
             <div class="launch-body">
               <h3>Equipment &amp; Crafting</h3>
               <div class="launch-stats">
@@ -744,11 +739,11 @@
         <h2>Logo &amp; artwork</h2>
         <div class="assets">
           <figure>
-            <a href="art/trinket-logo.png" download><img loading="lazy" src="previews/ambush-wordmark.webp" width="1080" height="720" alt="" />Transparent logo · Ranger and Fox</a>
-            <figcaption>6144 × 4096 PNG · <a href="previews/trinket-logo.png" download="Trinket-logo-1440.png">Smaller logo (1440 × 960 PNG)</a></figcaption>
+            <a href="art/trinket-logo.png" download><img loading="lazy" src="previews/ambush-wordmark.webp" width="1080" height="720" alt="" />Transparent logo (Ranger and Fox)</a>
+            <figcaption>6144 × 4096 PNG, <a href="previews/trinket-logo.png" download="Trinket-logo-1440.png">Smaller logo (1440 × 960 PNG)</a></figcaption>
           </figure>
           <figure>
-            <a href="art/trinket-icon.jpg" download><img loading="lazy" src="previews/trinket-icon.jpg" width="420" height="420" alt="" />App icon artwork · Ranger and Wolf</a>
+            <a href="art/trinket-icon.jpg" download><img loading="lazy" src="previews/trinket-icon.jpg" width="420" height="420" alt="" />App icon artwork (Ranger and Wolf)</a>
             <figcaption>2048 × 2048 JPG</figcaption>
           </figure>
         </div>
@@ -783,8 +778,8 @@
       </p>
       <p><a class="media-action" href="mailto:rymcintire@gmail.com"><svg class="press-icon" aria-hidden="true" focusable="false"><use href="#icon-mail"></use></svg>rymcintire@gmail.com</a>
       </p>
-      <p>
-        <a href="https://trinketrpg.com/">Trinket! home</a> · <a href="https://trinketrpg.com/support.html">Game support</a> · <a class="press-url" href="https://trinketrpg.com/press/">Public press kit</a>
+      <p class="footer-links">
+        <a href="https://trinketrpg.com/">Trinket! home</a> &nbsp; <a href="https://trinketrpg.com/support.html">Game support</a> &nbsp; <a class="press-url" href="https://trinketrpg.com/press/">Public press kit</a>
       </p>
       <p class="press-usage">You may use all materials in this press kit, including the trailer with its soundtrack, in editorial coverage of <i>Trinket!</i><br>Suggested credit: <i>Trinket!</i> / Ryan McIntire</p>
     </footer>
