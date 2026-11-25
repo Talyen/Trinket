@@ -2,7 +2,7 @@ Trinket! | Press fact sheet
 
 Trinket! is a turn-based card RPG where your hero and companion share a hand of cards.
 
-Pair a hero with a companion and share one hand of cards each turn, combining their abilities, gear, and talent trees to set up combos across four Campaign chapters, from the Forest to the Tundra. Each of the seven bosses features an original vocal theme with live lyrics in combat.
+Pair a hero with a companion and share one hand of cards each turn, combining their abilities, gear, and talent trees to set up combos across seven Campaign chapters, from Goldpine Forest to Shattered Pass. Each of the seven bosses features an original vocal theme with live lyrics in combat.
 
 Beyond the Campaign, climb seven Spires, push into an endless Labyrinth, chart a Voyage, or take a single-fight Contract with its reward shown up front. Between runs, build up your Homestead to grow herbs, forge gear, and strengthen your roster.
 
@@ -13,18 +13,18 @@ Platform: iOS / iPhone / iPad
 Genre: Single-player turn-based fantasy card combat
 Languages: English, French, German, Japanese, Korean, Spanish, Portuguese (Brazil), Traditional Chinese
 Price: Free download. Try all five modes for free, with no ads, no subscriptions, and no energy timers. Full game: one-time purchase (US$4.99 in the United States, with Family Sharing). Local prices vary. One purchase unlocks every chapter, deeper Spire and Labyrinth floors, and the full roster of heroes and companions.
-Free play: Includes the first three Campaign chapters, unlimited Contracts, three Labyrinth floors, ten floors of every Spire and Voyages in the Forest, Dungeon and Desert.
+Free play: Includes the first three Campaign chapters (Goldpine Forest, The Underkeep, Ember Dunes), unlimited Contracts, three Labyrinth floors, ten floors of every Spire, and Voyages in Goldpine Forest, The Underkeep, and Ember Dunes.
 Offline: Play offline with no account required
 iCloud sync supported
 
 Game content at launch
 
 Modes and world
-Campaign: Four chapters with 10 stages each. Play Forest, Dungeon and Desert for free. The full game adds Tundra.
+Campaign: Seven chapters with 10 stages each (70 stages total). Play Goldpine Forest, The Underkeep, and Ember Dunes for free. The full game adds Frostpeak, Crimson Vale, Sun Abbey, and Shattered Pass.
 Spires: Seven Spires with 20 floors each (140 floors total). The first 10 floors of every Spire are free.
 Labyrinth: An endless dungeon. The first three floors are free.
 Contracts: Three single-battle jobs on the board at a time. Contracts are unlimited in free play.
-Voyage: Repeatable routes of 8, 10 or 12 stops. Forest, Dungeon and Desert are free. The full game adds Tundra.
+Voyage: Repeatable routes of 8, 10 or 12 stops. Goldpine Forest, The Underkeep, and Ember Dunes are free. The full game adds Frostpeak, Crimson Vale, Sun Abbey, and Shattered Pass.
 Enemies: 39 enemies, including 7 bosses.
 Homestead: 20 projects across Farming, Crafting, Alchemy, Training and Arcana. Together they have 80 tiers, including 20 initial builds and 60 upgrades.
 
