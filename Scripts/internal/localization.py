@@ -162,6 +162,8 @@ def validate_translation(source: dict[str, str], value: dict[str, str], locale: 
         original = source.get(form, reference)
         if not isinstance(text, str) or not text.strip():
             raise ValueError(f'{label}/{form}: empty translation')
+        if '\x00' in text:
+            raise ValueError(f'{label}/{form}: embedded null character')
         if placeholders(text) != placeholders(original):
             raise ValueError(f'{label}/{form}: placeholder types, positions, or occurrences changed')
         if markup(text) != markup(original):

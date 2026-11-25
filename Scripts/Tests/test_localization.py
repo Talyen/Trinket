@@ -362,6 +362,13 @@ output.write_text(json.dumps({'translations': results}))
                 placeholders(invalid)
         self.assertEqual(placeholders('%2$lld / %1$lld (%%)'), {(2, 'lld'): 1, (1, 'lld'): 1})
 
+    def test_translation_rejects_null_in_formatted_percentage(self):
+        source = {'value': 'Keep %1$lld%% of Block'}
+        valid = {'value': 'Conserva el %1$lld\u00a0%% del bloqueo'}
+        validate_translation(source, valid, 'es', 'block')
+        with self.assertRaisesRegex(ValueError, 'embedded null character'):
+            validate_translation(source, {'value': 'Conserva el %1$lld\x00%% del bloqueo'}, 'es', 'block')
+
     def test_enforced_glossary_terms_are_checked_in_each_applicable_plural(self):
         from internal.localization import enforce_glossary
         entry = {'source': {'one': '%1$lld Burn', 'other': '%1$lld Burn stacks'},
