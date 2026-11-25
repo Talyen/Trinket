@@ -5,6 +5,61 @@ All notable changes to Trinket are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-11-25
+
+
+### Added
+
+
+- Refine press outreach strategy and make the image kit easier to use
+
+- Update press kit facts and enlarge the launch stat icons
+
+- Add playable press footage and expand the launch infographic
+
+- Track the December 21 U.S. pre-order
+
+- Add the US App Store pre-order badge to the press kit
+
+- Add the short narrated trailer to the press kit
+
+- Track the preview-only App Store optimization test
+
+- Track selected App Store header experiment
+
+- Track the staged Trinket launch review packet
+
+- Update global launch press materials and repair trailer audio timing
+
+- Track corrected App Store preview submission
+
+- expand the campaign to seven chapters
+
+- add 14 keyword-affinity item affixes
+
+- Update affix count to 150, polish trailer/lightbox UX, and stabilize Pages deploy
+
+
+
+### Fixed
+
+
+- reject null characters in localized affix copy
+
+
+
+### Removed
+
+
+- Remove middle dots, fix orphan wraps, and enforce native artwork aspect ratios
+
+
+
+### Tools
+
+
+- render the launch press trailer at 60 fps
+
 ## [1.0.0] - 2026-11-07
 
 

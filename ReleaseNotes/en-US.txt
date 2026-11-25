@@ -1,7 +1,4 @@
-Trinket’s first App Store release.
+The Campaign now spans seven chapters.
 
-• Pair a Hero with a Companion in turn-based card battles.
-• Explore the Campaign, Spires, Labyrinth, Contracts, and Voyages.
-• Earn equipment, choose abilities and talents, and build your Homestead.
-• Play offline and sync progress through your iCloud account.
-• Start free, with a one-time Full Game purchase for the remaining content.
+• Find 14 new equipment affixes that reward building around combat keywords.
+• Head straight to Explore modes after completing the Campaign.
