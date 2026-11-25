@@ -78,7 +78,6 @@
   clip-path: inset(0 round var(--screen-radius));
   background: #121214;
 }
-.phone-status { display: block; width: 100%; height: auto; color: #f5f5f7; }
 .phone-media { position: relative; }
 .phone-player:has(video:focus-visible) { outline: 3px solid white; outline-offset: 3px; }
 .phone-player video:focus-visible { outline: none; }
