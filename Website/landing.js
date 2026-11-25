@@ -1,4 +1,23 @@
 (() => {
+  // Automatic launch-day flip on December 21, 2026 (local date) or ?launched=1 preview
+  const now = new Date();
+  const launched =
+    now.getFullYear() > 2026 ||
+    (now.getFullYear() === 2026 && (now.getMonth() > 11 || (now.getMonth() === 11 && now.getDate() >= 21))) ||
+    new URLSearchParams(window.location.search).get("launched") === "1";
+
+  if (launched) {
+    for (const img of document.querySelectorAll("[data-launch-badge]")) {
+      img.src = img.dataset.launchBadge;
+      img.alt = "Download on the App Store";
+      img.width = 120;
+      img.height = 40;
+    }
+    for (const el of document.querySelectorAll("[data-launch-text]")) {
+      el.textContent = el.dataset.launchText;
+    }
+  }
+
   // Header scroll separation
   const header = document.querySelector("[data-header]");
   if (header) {

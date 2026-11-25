@@ -1,4 +1,18 @@
 (() => {
+  const now = new Date();
+  const launched =
+    now.getFullYear() > 2026 ||
+    (now.getFullYear() === 2026 && (now.getMonth() > 11 || (now.getMonth() === 11 && now.getDate() >= 21))) ||
+    new URLSearchParams(window.location.search).get("launched") === "1";
+  if (launched) {
+    for (const img of document.querySelectorAll('[data-launch-badge]')) {
+      img.src = img.dataset.launchBadge;
+      img.alt = 'Download on the App Store';
+      img.width = 120;
+      img.height = 40;
+    }
+  }
+
   const player = document.querySelector('.premiere-player');
   const video = player.querySelector('video');
   const chapters = [...document.querySelectorAll('.premiere-guide [data-seek]')];

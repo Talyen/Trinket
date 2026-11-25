@@ -48,10 +48,10 @@ do not create another app or change the bundle ID to match the display name.
    screenshots from the intended release build using Apple's current
    [screenshot requirements](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/).
    Explain offline play and where reviewers can find Options → Full Game.
-3. Publish and check the [support](../../Website/index.html) and
+3. Publish and check the [support](../../Website/support.html) and
    [privacy](../../Website/privacy.html) pages without authentication. Their expected
-   URLs are `https://talyen.github.io/Trinket/` and
-   `https://talyen.github.io/Trinket/privacy.html`. Page source in Git is not proof
+   URLs are `https://trinketrpg.com/support.html` and
+   `https://trinketrpg.com/privacy.html`. Page source in Git is not proof
    that hosting is enabled. In **App Privacy**, enter the public privacy-policy URL
    and review [Apple's privacy questions](https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy/)
    against the shipped app, including purchases and diagnostics. Revisit the answers
