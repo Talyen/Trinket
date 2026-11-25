@@ -6139,7 +6139,7 @@ enum L10n {
     }
 
     static var stages_chapter_1_chapter_title: LocalizedStringResource {
-        LocalizedStringResource("stages.chapter_1.chapter_title", defaultValue: "Forest", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("stages.chapter_1.chapter_title", defaultValue: "Goldpine Forest", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var stages_chapter_1_encounter_art_title: LocalizedStringResource {
@@ -6147,7 +6147,7 @@ enum L10n {
     }
 
     static var stages_chapter_2_chapter_title: LocalizedStringResource {
-        LocalizedStringResource("stages.chapter_2.chapter_title", defaultValue: "Dungeon", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("stages.chapter_2.chapter_title", defaultValue: "The Underkeep", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var stages_chapter_2_encounter_art_title: LocalizedStringResource {
@@ -6155,7 +6155,7 @@ enum L10n {
     }
 
     static var stages_chapter_3_chapter_title: LocalizedStringResource {
-        LocalizedStringResource("stages.chapter_3.chapter_title", defaultValue: "Desert", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("stages.chapter_3.chapter_title", defaultValue: "Ember Dunes", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var stages_chapter_3_encounter_art_title: LocalizedStringResource {
@@ -6163,11 +6163,35 @@ enum L10n {
     }
 
     static var stages_chapter_4_chapter_title: LocalizedStringResource {
-        LocalizedStringResource("stages.chapter_4.chapter_title", defaultValue: "Tundra", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+        LocalizedStringResource("stages.chapter_4.chapter_title", defaultValue: "Frostpeak", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static var stages_chapter_4_encounter_art_title: LocalizedStringResource {
         LocalizedStringResource("stages.chapter_4.encounter_art_title", defaultValue: "Merchant", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var stages_chapter_5_chapter_title: LocalizedStringResource {
+        LocalizedStringResource("stages.chapter_5.chapter_title", defaultValue: "Crimson Vale", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var stages_chapter_5_encounter_art_title: LocalizedStringResource {
+        LocalizedStringResource("stages.chapter_5.encounter_art_title", defaultValue: "Merchant", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var stages_chapter_6_chapter_title: LocalizedStringResource {
+        LocalizedStringResource("stages.chapter_6.chapter_title", defaultValue: "Sun Abbey", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var stages_chapter_6_encounter_art_title: LocalizedStringResource {
+        LocalizedStringResource("stages.chapter_6.encounter_art_title", defaultValue: "Merchant", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var stages_chapter_7_chapter_title: LocalizedStringResource {
+        LocalizedStringResource("stages.chapter_7.chapter_title", defaultValue: "Shattered Pass", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
+    }
+
+    static var stages_chapter_7_encounter_art_title: LocalizedStringResource {
+        LocalizedStringResource("stages.chapter_7.encounter_art_title", defaultValue: "Merchant", table: "Localizable", bundle: .atURL(Bundle.module.bundleURL))
     }
 
     static func talents_alchemist_cleanse_t1_1_description(_ value1: Int) -> LocalizedStringResource {

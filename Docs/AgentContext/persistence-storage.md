@@ -72,13 +72,16 @@ Compatibility layers are versioned independently:
 | SwiftData graph | Lightweight 2 → 3 (outbox rows) → 4 (optional Library history) → 5 (optional inscription positions and Homestead wish IDs). Preserve historical model shapes and relationship inverses; v3/v4 are frozen. | [Migration plan](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveGraph/PlayerSaveRoot.swift) |
 | Journal | Action-backed journals use 2 with version-one action records; retain journal 1 and legacy metadata arrays. | [Journal codec](../../Packages/TrinketPersistence/Sources/TrinketPersistence/Cloud/CloudSaveJournal.swift) |
 | Device metadata | Action-backed writes use 4; retain 1–3, including receipt-backed 3. | [CloudSaveState](../../Packages/TrinketPersistence/Sources/TrinketPersistence/Cloud/CloudSaveState.swift), [journal writer](../../Packages/TrinketPersistence/Sources/TrinketPersistence/PlayerSaveStore+CloudJournal.swift) |
-| Remote head | Accepting actions advances to 3; retain 1 and receipt-backed 2. | [Reconciler](../../Packages/TrinketPersistence/Sources/TrinketPersistence/Cloud/CloudSaveReconciler.swift) |
+| Remote head | Accepting actions advances to 3. Recording a completion or reward claim in Chapter 5 or later advances to 4. Retain 1 and receipt-backed 2. | [Reconciler](../../Packages/TrinketPersistence/Sources/TrinketPersistence/Cloud/CloudSaveReconciler.swift) |
 
 Library and inscription/wish fields decode absent in older values. The value-version
 bump prevents older clients from dropping new metadata on re-save; older readers
 reject the newer journal/metadata/head formats rather than dropping action semantics.
 Unsupported action, receipt, or economic versions reject the entire upload before
-attachment, acknowledgement, or progress changes.
+attachment, acknowledgement, or progress changes. A head containing expansion
+progress requires an updated app for sync because older Campaign catalogs would
+discard those stage IDs during repair. The head keeps that compatibility floor
+across subsequent writes and resets.
 
 Item powers and inscription positions travel together through cloud conflict
 selection. Wish selection follows scalar branch selection and clears against merged

@@ -6,9 +6,9 @@ selection and offers repeatable, finite adventures without advancing Campaign.
 ## Offers and navigation
 
 Three persistent offers appear in Easy, Medium, Hard order with distinct Chapter
-locations. Offers draw only from accessible Chapters: Forest, Dungeon, and Desert
-for free players; full-game owners draw three of those plus Tundra. Chapter
-completion is not required. Refresh is free before embarking.
+locations. Free offers draw from Goldpine Forest, The Underkeep, and Ember Dunes.
+Full Game adds Frostpeak to the rotation. Chapter completion is not required.
+Refresh is free before embarking.
 
 Each card reuses Chapter art, with difficulty above the location name, a distinct
 eligible reward modifier when possible, the shared Party picker, and Embark
@@ -68,10 +68,10 @@ so this replacement can create adjacent Mysteries.
 
 | Location | Ordinary enemies | Boss | Reward keyword affinities |
 |---|---|---|---|
-| Forest | Slime, Mud Elemental, Goblin, Will-o-Wisp | The Blight Treant | Poison, Thorns, Leech, Cleanse |
-| Dungeon | Skeleton, Mimic, Necromancer, Living Armor | The Iron Bear | Bleed, Physical, Purge, Death's Door |
-| Desert | Fire Elemental, Fire Imp, Hellhound, Pyromancer | The Forge Golem | Burn, Holy, Mana, Gold |
-| Tundra | Frost Elemental, Winter Wolf, Ice Wraith, Yeti | The Frostwarden | Freeze, Stun, Block, Dodge, Health |
+| Goldpine Forest | Slime, Mud Elemental, Goblin, Will-o-Wisp | The Blight Treant | Poison, Thorns, Leech, Cleanse |
+| The Underkeep | Skeleton, Mimic, Necromancer, Living Armor | The Iron Bear | Bleed, Physical, Purge, Death's Door |
+| Ember Dunes | Fire Elemental, Fire Imp, Hellhound, Pyromancer | The Forge Golem | Burn, Holy, Mana, Gold |
+| Frostpeak | Frost Elemental, Winter Wolf, Ice Wraith, Yeti | The Frostwarden | Freeze, Stun, Block, Dodge, Health |
 
 ## Levels and rewards
 

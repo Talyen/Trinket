@@ -14,6 +14,12 @@ public extension ChapterTheme {
             TrinketDesign.Colors.chapterDesert
         case .tundra:
             TrinketDesign.Colors.chapterTundra
+        case .crimsonVale:
+            TrinketDesign.Colors.keywordBleed
+        case .sunAbbey:
+            TrinketDesign.Colors.keywordHoly
+        case .shatteredPass:
+            TrinketDesign.Colors.keywordStun
         }
     }
 }

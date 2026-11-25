@@ -5,11 +5,14 @@ import TrinketCore
 enum GameContentEncounterArtGenerated {
     static let stageEncounterArt: [String: (id: String, title: String)] = {
         var dict = [String: (id: String, title: String)]()
-        dict.reserveCapacity(4)
+        dict.reserveCapacity(7)
         dict["chapter-1-stage-9"] = (id: "destination-merchant-shop", title: "Merchant")
         dict["chapter-2-stage-8"] = (id: "destination-merchant-shop", title: "Merchant")
         dict["chapter-3-stage-8"] = (id: "destination-merchant-shop", title: "Merchant")
         dict["chapter-4-stage-8"] = (id: "destination-merchant-shop", title: "Merchant")
+        dict["chapter-5-stage-8"] = (id: "destination-merchant-shop", title: "Merchant")
+        dict["chapter-6-stage-8"] = (id: "destination-merchant-shop", title: "Merchant")
+        dict["chapter-7-stage-8"] = (id: "destination-merchant-shop", title: "Merchant")
         return dict
     }()
 }

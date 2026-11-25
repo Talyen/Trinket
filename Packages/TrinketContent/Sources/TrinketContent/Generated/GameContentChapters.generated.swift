@@ -5,11 +5,11 @@ import TrinketCore
 enum GameContentChaptersGenerated {
     static let chapters: [Chapter] = {
         var list = [Chapter]()
-        list.reserveCapacity(4)
+        list.reserveCapacity(7)
         list.append(Chapter(
             id: "chapter-1",
             number: 1,
-            title: "Forest",
+            title: "Goldpine Forest",
             theme: .forest,
             stages: [
                 Stage(
@@ -97,7 +97,7 @@ enum GameContentChaptersGenerated {
         list.append(Chapter(
             id: "chapter-2",
             number: 2,
-            title: "Dungeon",
+            title: "The Underkeep",
             theme: .dungeon,
             stages: [
                 Stage(
@@ -185,7 +185,7 @@ enum GameContentChaptersGenerated {
         list.append(Chapter(
             id: "chapter-3",
             number: 3,
-            title: "Desert",
+            title: "Ember Dunes",
             theme: .desert,
             stages: [
                 Stage(
@@ -273,7 +273,7 @@ enum GameContentChaptersGenerated {
         list.append(Chapter(
             id: "chapter-4",
             number: 4,
-            title: "Tundra",
+            title: "Frostpeak",
             theme: .tundra,
             stages: [
                 Stage(
@@ -354,6 +354,270 @@ enum GameContentChaptersGenerated {
                     chapterNumber: 4,
                     stageNumber: 10,
                     encounter: .battle(enemyID: "the_frostwarden"),
+                    rewards: .empty
+                )
+            ]
+        ))
+        list.append(Chapter(
+            id: "chapter-5",
+            number: 5,
+            title: "Crimson Vale",
+            theme: .crimsonVale,
+            stages: [
+                Stage(
+                    id: "chapter-5-stage-1",
+                    chapterID: "chapter-5",
+                    chapterNumber: 5,
+                    stageNumber: 1,
+                    encounter: .battle(enemyID: "blood_cultist"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-5-stage-2",
+                    chapterID: "chapter-5",
+                    chapterNumber: 5,
+                    stageNumber: 2,
+                    encounter: .recruit(eventID: "recruit-warlock"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-5-stage-3",
+                    chapterID: "chapter-5",
+                    chapterNumber: 5,
+                    stageNumber: 3,
+                    encounter: .battle(enemyID: "dire_wolf"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-5-stage-4",
+                    chapterID: "chapter-5",
+                    chapterNumber: 5,
+                    stageNumber: 4,
+                    encounter: .mysteryEvent(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-5-stage-5",
+                    chapterID: "chapter-5",
+                    chapterNumber: 5,
+                    stageNumber: 5,
+                    encounter: .battle(enemyID: "necromancer"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-5-stage-6",
+                    chapterID: "chapter-5",
+                    chapterNumber: 5,
+                    stageNumber: 6,
+                    encounter: .recruit(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-5-stage-7",
+                    chapterID: "chapter-5",
+                    chapterNumber: 5,
+                    stageNumber: 7,
+                    encounter: .mysteryEvent(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-5-stage-8",
+                    chapterID: "chapter-5",
+                    chapterNumber: 5,
+                    stageNumber: 8,
+                    encounter: .shop,
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-5-stage-9",
+                    chapterID: "chapter-5",
+                    chapterNumber: 5,
+                    stageNumber: 9,
+                    encounter: .battle(enemyID: "vampire"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-5-stage-10",
+                    chapterID: "chapter-5",
+                    chapterNumber: 5,
+                    stageNumber: 10,
+                    encounter: .battle(enemyID: "the_blood_countess"),
+                    rewards: .empty
+                )
+            ]
+        ))
+        list.append(Chapter(
+            id: "chapter-6",
+            number: 6,
+            title: "Sun Abbey",
+            theme: .sunAbbey,
+            stages: [
+                Stage(
+                    id: "chapter-6-stage-1",
+                    chapterID: "chapter-6",
+                    chapterNumber: 6,
+                    stageNumber: 1,
+                    encounter: .battle(enemyID: "zealot"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-6-stage-2",
+                    chapterID: "chapter-6",
+                    chapterNumber: 6,
+                    stageNumber: 2,
+                    encounter: .recruit(eventID: "recruit-library-owl"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-6-stage-3",
+                    chapterID: "chapter-6",
+                    chapterNumber: 6,
+                    stageNumber: 3,
+                    encounter: .battle(enemyID: "cleric"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-6-stage-4",
+                    chapterID: "chapter-6",
+                    chapterNumber: 6,
+                    stageNumber: 4,
+                    encounter: .mysteryEvent(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-6-stage-5",
+                    chapterID: "chapter-6",
+                    chapterNumber: 6,
+                    stageNumber: 5,
+                    encounter: .battle(enemyID: "inquisitor"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-6-stage-6",
+                    chapterID: "chapter-6",
+                    chapterNumber: 6,
+                    stageNumber: 6,
+                    encounter: .recruit(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-6-stage-7",
+                    chapterID: "chapter-6",
+                    chapterNumber: 6,
+                    stageNumber: 7,
+                    encounter: .mysteryEvent(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-6-stage-8",
+                    chapterID: "chapter-6",
+                    chapterNumber: 6,
+                    stageNumber: 8,
+                    encounter: .shop,
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-6-stage-9",
+                    chapterID: "chapter-6",
+                    chapterNumber: 6,
+                    stageNumber: 9,
+                    encounter: .battle(enemyID: "paladin"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-6-stage-10",
+                    chapterID: "chapter-6",
+                    chapterNumber: 6,
+                    stageNumber: 10,
+                    encounter: .battle(enemyID: "the_seraph"),
+                    rewards: .empty
+                )
+            ]
+        ))
+        list.append(Chapter(
+            id: "chapter-7",
+            number: 7,
+            title: "Shattered Pass",
+            theme: .shatteredPass,
+            stages: [
+                Stage(
+                    id: "chapter-7-stage-1",
+                    chapterID: "chapter-7",
+                    chapterNumber: 7,
+                    stageNumber: 1,
+                    encounter: .battle(enemyID: "brawler"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-7-stage-2",
+                    chapterID: "chapter-7",
+                    chapterNumber: 7,
+                    stageNumber: 2,
+                    encounter: .recruit(eventID: "recruit-shield-scarab"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-7-stage-3",
+                    chapterID: "chapter-7",
+                    chapterNumber: 7,
+                    stageNumber: 3,
+                    encounter: .battle(enemyID: "banshee"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-7-stage-4",
+                    chapterID: "chapter-7",
+                    chapterNumber: 7,
+                    stageNumber: 4,
+                    encounter: .mysteryEvent(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-7-stage-5",
+                    chapterID: "chapter-7",
+                    chapterNumber: 7,
+                    stageNumber: 5,
+                    encounter: .battle(enemyID: "stone_golem"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-7-stage-6",
+                    chapterID: "chapter-7",
+                    chapterNumber: 7,
+                    stageNumber: 6,
+                    encounter: .recruit(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-7-stage-7",
+                    chapterID: "chapter-7",
+                    chapterNumber: 7,
+                    stageNumber: 7,
+                    encounter: .mysteryEvent(eventID: ""),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-7-stage-8",
+                    chapterID: "chapter-7",
+                    chapterNumber: 7,
+                    stageNumber: 8,
+                    encounter: .shop,
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-7-stage-9",
+                    chapterID: "chapter-7",
+                    chapterNumber: 7,
+                    stageNumber: 9,
+                    encounter: .battle(enemyID: "earth_elemental"),
+                    rewards: .empty
+                ),
+                Stage(
+                    id: "chapter-7-stage-10",
+                    chapterID: "chapter-7",
+                    chapterNumber: 7,
+                    stageNumber: 10,
+                    encounter: .battle(enemyID: "the_stone_titan"),
                     rewards: .empty
                 )
             ]

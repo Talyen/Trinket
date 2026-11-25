@@ -29,7 +29,9 @@ VALID_ENCOUNTERS = frozenset(
 )
 
 
-VALID_CHAPTER_THEMES = frozenset({"forest", "dungeon", "desert", "tundra"})
+VALID_CHAPTER_THEMES = frozenset({
+    "forest", "dungeon", "desert", "tundra", "crimsonVale", "sunAbbey", "shatteredPass",
+})
 
 
 # Recruit sentinel: empty id = any eligible unlock; this id = companion-only pool.

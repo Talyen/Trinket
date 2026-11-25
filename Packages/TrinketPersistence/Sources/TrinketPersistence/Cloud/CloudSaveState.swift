@@ -20,6 +20,9 @@ struct CloudSaveRevision: Codable, Equatable, Sendable {
 }
 
 struct CloudSaveHead: Codable, Equatable, Sendable {
+    static let campaignExpansionFormatVersion = 4
+    static let supportedFormatVersions = 1 ... campaignExpansionFormatVersion
+
     var formatVersion = 1
     var epoch: String
     var resetCount: UInt64

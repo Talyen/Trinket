@@ -21481,14 +21481,14 @@
       "comment": "ContentManifest/stages.tsv: chapter-1, chapter_title",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Wald"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Forest"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Bosque"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Forêt"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "森林"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "숲"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Floresta"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "森林"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Goldkiefernwald"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Goldpine Forest"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Bosque de los Pinos Dorados"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Forêt des pins d’or"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "黄金松の森"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "황금 소나무 숲"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Floresta dos Pinheiros Dourados"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "金松森林"}}
       }
     },
     "stages.chapter_1.encounter_art_title": {
@@ -21509,14 +21509,14 @@
       "comment": "ContentManifest/stages.tsv: chapter-2, chapter_title",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Verlies"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Dungeon"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Mazmorra"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Donjon"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "地下迷宮"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "던전"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Masmorra"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "地牢"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Die Tiefenfeste"}},
+        "en": {"stringUnit": {"state": "translated", "value": "The Underkeep"}},
+        "es": {"stringUnit": {"state": "translated", "value": "El Bastión Subterráneo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Le Bastion souterrain"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "地下砦"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "지하 요새"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A Fortaleza Subterrânea"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "地底堡壘"}}
       }
     },
     "stages.chapter_2.encounter_art_title": {
@@ -21537,14 +21537,14 @@
       "comment": "ContentManifest/stages.tsv: chapter-3, chapter_title",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Wüste"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Desert"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Desierto"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Désert"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "砂漠"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "사막"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Deserto"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "沙漠"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Glutdünen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Ember Dunes"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Dunas de las Brasas"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Dunes de braise"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "残り火の砂丘"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "잔불의 모래 언덕"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Dunas das Brasas"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "餘燼沙丘"}}
       }
     },
     "stages.chapter_3.encounter_art_title": {
@@ -21565,18 +21565,102 @@
       "comment": "ContentManifest/stages.tsv: chapter-4, chapter_title",
       "extractionState": "manual",
       "localizations": {
-        "de": {"stringUnit": {"state": "translated", "value": "Tundra"}},
-        "en": {"stringUnit": {"state": "translated", "value": "Tundra"}},
-        "es": {"stringUnit": {"state": "translated", "value": "Tundra"}},
-        "fr": {"stringUnit": {"state": "translated", "value": "Toundra"}},
-        "ja": {"stringUnit": {"state": "translated", "value": "凍土"}},
-        "ko": {"stringUnit": {"state": "translated", "value": "동토"}},
-        "pt-BR": {"stringUnit": {"state": "translated", "value": "Tundra"}},
-        "zh-Hant": {"stringUnit": {"state": "translated", "value": "凍原"}}
+        "de": {"stringUnit": {"state": "translated", "value": "Frostgipfel"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Frostpeak"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Pico de Escarcha"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Pic de givre"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "霜の峰"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "서리봉"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Pico da Geada"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "霜峰"}}
       }
     },
     "stages.chapter_4.encounter_art_title": {
       "comment": "ContentManifest/stages.tsv: chapter-4, encounter_art_title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Händler"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Merchant"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Mercader"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Marchand"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "商人"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "상인"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Mercador"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "商人"}}
+      }
+    },
+    "stages.chapter_5.chapter_title": {
+      "comment": "ContentManifest/stages.tsv: chapter-5, chapter_title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Karmesintal"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Crimson Vale"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Valle Carmesí"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Val cramoisi"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "深紅の谷"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "진홍빛 골짜기"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Vale Carmesim"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "緋紅谷地"}}
+      }
+    },
+    "stages.chapter_5.encounter_art_title": {
+      "comment": "ContentManifest/stages.tsv: chapter-5, encounter_art_title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Händler"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Merchant"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Mercader"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Marchand"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "商人"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "상인"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Mercador"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "商人"}}
+      }
+    },
+    "stages.chapter_6.chapter_title": {
+      "comment": "ContentManifest/stages.tsv: chapter-6, chapter_title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Sonnenabtei"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Sun Abbey"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Abadía del Sol"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Abbaye du Soleil"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "太陽の修道院"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "태양의 수도원"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Abadia do Sol"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "太陽修道院"}}
+      }
+    },
+    "stages.chapter_6.encounter_art_title": {
+      "comment": "ContentManifest/stages.tsv: chapter-6, encounter_art_title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Händler"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Merchant"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Mercader"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Marchand"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "商人"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "상인"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Mercador"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "商人"}}
+      }
+    },
+    "stages.chapter_7.chapter_title": {
+      "comment": "ContentManifest/stages.tsv: chapter-7, chapter_title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Zerborstener Pass"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Shattered Pass"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Paso Quebrado"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Col brisé"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "崩れた峠"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "무너진 고갯길"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Passo Estilhaçado"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "破碎山隘"}}
+      }
+    },
+    "stages.chapter_7.encounter_art_title": {
+      "comment": "ContentManifest/stages.tsv: chapter-7, encounter_art_title",
       "extractionState": "manual",
       "localizations": {
         "de": {"stringUnit": {"state": "translated", "value": "Händler"}},

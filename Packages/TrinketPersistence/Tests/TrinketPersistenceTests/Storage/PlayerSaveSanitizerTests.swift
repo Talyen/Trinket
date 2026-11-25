@@ -100,16 +100,22 @@ struct PlayerSaveSanitizerTests {
         try #expect(sanitized.activeChapterID == "chapter-1")
     }
 
-    @Test func `sanitize journey advances legacy cleared chapter`() throws {
+    @Test(arguments: [1, 4])
+    func `sanitize journey advances a cleared campaign into appended chapters`(lastChapter: Int) {
+        let finished = GameContent.chapters.prefix(lastChapter)
+        let completedIDs = Set(finished.flatMap(\.stages).map(\.id))
         var journey = JourneyProgressState.initial
-        journey.activeChapterID = "chapter-1"
+        journey.activeChapterID = "chapter-\(lastChapter)"
         journey.activeStageID = nil
-        journey.completedStageIDs = Set(GameContent.chapters[0].stages.map(\.id))
+        journey.completedStageIDs = completedIDs
+        journey.claimedRewardStageIDs = completedIDs
 
         let sanitized = PlayerSaveSanitizer.sanitizeJourney(journey)
 
-        try #expect(sanitized.activeChapterID == "chapter-2")
-        try #expect(sanitized.activeStageID == "chapter-2-stage-1")
+        #expect(sanitized.activeChapterID == "chapter-\(lastChapter + 1)")
+        #expect(sanitized.activeStageID == "chapter-\(lastChapter + 1)-stage-1")
+        #expect(sanitized.completedStageIDs == completedIDs)
+        #expect(sanitized.claimedRewardStageIDs == completedIDs)
     }
 
     @Test func `sanitize journey marks claimed stages as completed`() throws {

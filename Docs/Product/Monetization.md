@@ -8,8 +8,8 @@ No subscriptions, consumable currencies, paid power, reward boosts, or paid skip
 
 | Surface | Free edition | Full Game |
 |---|---|---|
-| Campaign | Forest, Dungeon, Desert | Every chapter |
-| Voyage | Forest, Dungeon, Desert | All four locations |
+| Campaign | Goldpine Forest, The Underkeep, Ember Dunes | Every chapter |
+| Voyage | Goldpine Forest, The Underkeep, Ember Dunes | All four locations |
 | Contracts | Unlimited play with normal rewards | Same |
 | Labyrinth | Floors 1–3 | Every floor |
 | Spires | Floors 1–10 of every Spire | Every floor |

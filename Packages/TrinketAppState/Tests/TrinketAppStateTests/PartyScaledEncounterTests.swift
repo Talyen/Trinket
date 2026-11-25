@@ -30,9 +30,10 @@ struct PartyScaledEncounterTests {
         return try #require(GameContent.spireFloor(spireID: .ironVein, floor: spire.floorCount))
     }
 
-    @Test func `journey encounter preserves the content floor across party changes`() throws {
+    @Test(arguments: [4, 5, 6, 7])
+    func `journey encounter preserves the content floor across party changes`(chapterNumber: Int) throws {
         let state = try context.makePlaySession()
-        let chapter = try #require(GameContent.chapters.last)
+        let chapter = try #require(GameContent.chapter(id: "chapter-\(chapterNumber)"))
         let stage = try #require(chapter.stages.last { $0.encounter.isCombat })
         let authoredLevel = EncounterLevelResolver.journeyEnemyLevel(for: stage, in: chapter)
         let enemyID = try #require(stage.resolvedBattleEnemyID(worldSeed: state.playerSave.worldSeed))

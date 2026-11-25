@@ -6,6 +6,9 @@ public enum ChapterTheme: String, Codable, Hashable, Sendable {
     case dungeon
     case desert
     case tundra
+    case crimsonVale = "crimson-vale"
+    case sunAbbey = "sun-abbey"
+    case shatteredPass = "shattered-pass"
 }
 
 public struct Chapter: Identifiable, Hashable, Sendable {

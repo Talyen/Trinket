@@ -802,6 +802,21 @@ public enum ArtCatalog {
             sourceAspectRatio: 0.746250000000,
             focalPoint: ArtFocalPoint(x: 0.50, y: 0.50)
         ),
+        "chapter-5": BackgroundArtReference(
+            imageName: "bg_crimson_vale",
+            sourceAspectRatio: 0.746250000000,
+            focalPoint: ArtFocalPoint(x: 0.56, y: 0.15)
+        ),
+        "chapter-6": BackgroundArtReference(
+            imageName: "bg_sun_abbey",
+            sourceAspectRatio: 0.746250000000,
+            focalPoint: ArtFocalPoint(x: 0.65, y: 0.41)
+        ),
+        "chapter-7": BackgroundArtReference(
+            imageName: "bg_shattered_pass",
+            sourceAspectRatio: 0.746250000000,
+            focalPoint: ArtFocalPoint(x: 0.50, y: 0.17)
+        ),
         "homestead": BackgroundArtReference(
             imageName: "bg_homestead",
             sourceAspectRatio: 1.340033500838,

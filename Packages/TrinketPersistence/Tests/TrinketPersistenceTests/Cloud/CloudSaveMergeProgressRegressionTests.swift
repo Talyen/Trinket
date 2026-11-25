@@ -6,6 +6,35 @@ import TrinketPersistenceTestSupport
 @testable import TrinketPersistence
 
 struct CloudSaveMergeProgressRegressionTests {
+    @Test func `cloud head requires the expansion build after earning Campaign progress`() throws {
+        var save = PlayerSave.testSeed
+        let chapterIDs = GameContent.chapters.prefix(4).map(\.id)
+        for chapterID in chapterIDs {
+            save.journey.markChapterCompleteWithoutRewards(chapterID)
+        }
+        let date = Date(timeIntervalSince1970: 1)
+        let prior = try CloudSaveReconciler.resolve(CloudSaveRequest(
+            id: "before-expansion", action: .upload, baseEpoch: nil, baseRevisionID: nil,
+            authoritySequence: 0,
+            revision: CloudSaveRevision(id: "before-expansion", clock: ["device": 1], snapshot: CloudSaveSnapshot(save)),
+        ), against: nil)
+        #expect(prior.head.formatVersion == 1)
+        #expect(try prior.head.revision.snapshot.restored().journey.activeStageID == "chapter-5-stage-1")
+
+        let firstStage = try #require(GameContent.stage(id: "chapter-5-stage-1"))
+        save.journey.complete(firstStage, in: GameContent.chapters)
+        save.journey.markRewardsClaimed(for: firstStage)
+        let expanded = try CloudSaveReconciler.resolve(CloudSaveRequest(
+            id: "expansion-clear", action: .upload, baseEpoch: prior.head.epoch,
+            baseRevisionID: prior.head.revision.id, authoritySequence: 0,
+            revision: CloudSaveRevision(id: "expansion-clear", clock: ["device": 2], snapshot: CloudSaveSnapshot(save)),
+        ), against: CloudServerSave(head: prior.head, changeToken: Data(), serverTime: date))
+        #expect(expanded.head.formatVersion == 4)
+        let restored = try expanded.head.revision.snapshot.restored()
+        #expect(restored.journey.activeStageID == "chapter-5-stage-2")
+        #expect(restored.journey.claimedRewardStageIDs == save.journey.claimedRewardStageIDs)
+    }
+
     @Test func `campaign rank follows the furthest known completed stage`() {
         var save = PlayerSave.fresh
         save.journey.completedStageIDs = ["unknown-stage"]

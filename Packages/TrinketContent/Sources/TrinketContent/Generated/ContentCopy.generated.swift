@@ -3019,14 +3019,20 @@ public enum ContentCopy {
             return (L10n.spire_serpenthollow_epithet, [])
         case "Serpent Hollow":
             return (L10n.spire_serpenthollow_title, [])
-        case "Forest":
+        case "Goldpine Forest":
             return (L10n.stages_chapter_1_chapter_title, [])
-        case "Dungeon":
+        case "The Underkeep":
             return (L10n.stages_chapter_2_chapter_title, [])
-        case "Desert":
+        case "Ember Dunes":
             return (L10n.stages_chapter_3_chapter_title, [])
-        case "Tundra":
+        case "Frostpeak":
             return (L10n.stages_chapter_4_chapter_title, [])
+        case "Crimson Vale":
+            return (L10n.stages_chapter_5_chapter_title, [])
+        case "Sun Abbey":
+            return (L10n.stages_chapter_6_chapter_title, [])
+        case "Shattered Pass":
+            return (L10n.stages_chapter_7_chapter_title, [])
         case "Abilities that restore Health also Cleanse a debuff":
             return (L10n.talents_alchemist_cleanse_t1_1_description(1), [1])
         case "Clear Solution":

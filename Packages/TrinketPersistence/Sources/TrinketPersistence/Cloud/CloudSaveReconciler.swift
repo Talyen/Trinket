@@ -16,7 +16,9 @@ enum CloudSaveReconciler {
         guard let server else {
             return try firstAttachment(request)
         }
-        guard (1 ... 3).contains(server.head.formatVersion) else { throw CloudSaveError.unsupportedSave }
+        guard CloudSaveHead.supportedFormatVersions.contains(server.head.formatVersion) else {
+            throw CloudSaveError.unsupportedSave
+        }
         try server.head.productionClaims?.validate()
         let existing = server.head
         var oldSave = try existing.revision.snapshot.restored()
@@ -188,7 +190,7 @@ enum CloudSaveReconciler {
             try replay.includeAccepted(mutations)
             replay.install(into: &head)
             if mutations.hasActions {
-                head.formatVersion = 3
+                head.formatVersion = max(3, head.formatVersion)
             }
         }
         return resolution(head, request: request, outcome: .synchronized, backups: [], acceptedLocal: true)
@@ -206,7 +208,7 @@ enum CloudSaveReconciler {
             if mutations.hasActions || mutations.records.contains(where: { $0.receipts != nil }) {
                 receiptReplay.install(into: &head)
                 if mutations.hasActions {
-                    head.formatVersion = 3
+                    head.formatVersion = max(3, head.formatVersion)
                 }
             }
             if let last = try mutations.lastSnapshot?.restored(), last.hasDomainDifference(from: incomingSave) {
@@ -346,7 +348,16 @@ enum CloudSaveReconciler {
         backups: [CloudSaveBackup],
         acceptedLocal: Bool = false,
     ) -> Resolution {
-        Resolution(head: head, receipt: CloudSaveReceipt(
+        var head = head
+        let journey = head.revision.snapshot.journey
+        if head.formatVersion < CloudSaveHead.campaignExpansionFormatVersion,
+           journey.completedStageIDs.union(journey.claimedRewardStageIDs).contains(where: {
+               (GameContent.stage(id: $0)?.chapterNumber ?? 0) >= 5
+           }) {
+            // Older clients repair unknown Campaign stages out of the save before uploading it.
+            head.formatVersion = CloudSaveHead.campaignExpansionFormatVersion
+        }
+        return Resolution(head: head, receipt: CloudSaveReceipt(
             requestID: request.id, epoch: head.epoch, authoritySequence: head.authoritySequence, outcome: outcome,
             acceptedLocalSnapshot: acceptedLocal,
         ), backups: backups)

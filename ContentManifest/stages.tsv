@@ -1,41 +1,71 @@
 chapter_id	chapter_number	chapter_title	theme	stage_number	encounter	enemy_id	encounter_art_id	encounter_art_title
-chapter-1	1	Forest	forest	1	battle	slime		
-chapter-1	1	Forest	forest	2	recruit	recruit-bear		
-chapter-1	1	Forest	forest	3	battle	mud_elemental		
-chapter-1	1	Forest	forest	4	mystery			
-chapter-1	1	Forest	forest	5	recruit	recruit-knight		
-chapter-1	1	Forest	forest	6	battle	goblin		
-chapter-1	1	Forest	forest	7	mystery			
-chapter-1	1	Forest	forest	8	battle	will_o_wisp		
-chapter-1	1	Forest	forest	9	shop		destination-merchant-shop	Merchant
-chapter-1	1	Forest	forest	10	battle	the_blight_treant		
-chapter-2	2	Dungeon	dungeon	1	battle	skeleton		
-chapter-2	2	Dungeon	dungeon	2	recruit	recruit-rogue		
-chapter-2	2	Dungeon	dungeon	3	battle	mimic		
-chapter-2	2	Dungeon	dungeon	4	mystery			
-chapter-2	2	Dungeon	dungeon	5	battle	necromancer		
-chapter-2	2	Dungeon	dungeon	6	recruit	random-companion		
-chapter-2	2	Dungeon	dungeon	7	battle	living_armor		
-chapter-2	2	Dungeon	dungeon	8	shop		destination-merchant-shop	Merchant
-chapter-2	2	Dungeon	dungeon	9	mystery			
-chapter-2	2	Dungeon	dungeon	10	battle	the_iron_bear		
-chapter-3	3	Desert	desert	1	battle	fire_elemental		
-chapter-3	3	Desert	desert	2	recruit	recruit-phoenix		
-chapter-3	3	Desert	desert	3	random_battle			
-chapter-3	3	Desert	desert	4	recruit	recruit-wizard		
-chapter-3	3	Desert	desert	5	random_battle			
-chapter-3	3	Desert	desert	6	mystery			
-chapter-3	3	Desert	desert	7	recruit			
-chapter-3	3	Desert	desert	8	shop		destination-merchant-shop	Merchant
-chapter-3	3	Desert	desert	9	random_battle			
-chapter-3	3	Desert	desert	10	battle	the_forge_golem		
-chapter-4	4	Tundra	tundra	1	battle	frost_elemental		
-chapter-4	4	Tundra	tundra	2	recruit	recruit-frost-whelp		
-chapter-4	4	Tundra	tundra	3	random_battle			
-chapter-4	4	Tundra	tundra	4	mystery			
-chapter-4	4	Tundra	tundra	5	random_battle			
-chapter-4	4	Tundra	tundra	6	recruit			
-chapter-4	4	Tundra	tundra	7	mystery			
-chapter-4	4	Tundra	tundra	8	shop		destination-merchant-shop	Merchant
-chapter-4	4	Tundra	tundra	9	random_battle			
-chapter-4	4	Tundra	tundra	10	battle	the_frostwarden		
+chapter-1	1	Goldpine Forest	forest	1	battle	slime		
+chapter-1	1	Goldpine Forest	forest	2	recruit	recruit-bear		
+chapter-1	1	Goldpine Forest	forest	3	battle	mud_elemental		
+chapter-1	1	Goldpine Forest	forest	4	mystery			
+chapter-1	1	Goldpine Forest	forest	5	recruit	recruit-knight		
+chapter-1	1	Goldpine Forest	forest	6	battle	goblin		
+chapter-1	1	Goldpine Forest	forest	7	mystery			
+chapter-1	1	Goldpine Forest	forest	8	battle	will_o_wisp		
+chapter-1	1	Goldpine Forest	forest	9	shop		destination-merchant-shop	Merchant
+chapter-1	1	Goldpine Forest	forest	10	battle	the_blight_treant		
+chapter-2	2	The Underkeep	dungeon	1	battle	skeleton		
+chapter-2	2	The Underkeep	dungeon	2	recruit	recruit-rogue		
+chapter-2	2	The Underkeep	dungeon	3	battle	mimic		
+chapter-2	2	The Underkeep	dungeon	4	mystery			
+chapter-2	2	The Underkeep	dungeon	5	battle	necromancer		
+chapter-2	2	The Underkeep	dungeon	6	recruit	random-companion		
+chapter-2	2	The Underkeep	dungeon	7	battle	living_armor		
+chapter-2	2	The Underkeep	dungeon	8	shop		destination-merchant-shop	Merchant
+chapter-2	2	The Underkeep	dungeon	9	mystery			
+chapter-2	2	The Underkeep	dungeon	10	battle	the_iron_bear		
+chapter-3	3	Ember Dunes	desert	1	battle	fire_elemental		
+chapter-3	3	Ember Dunes	desert	2	recruit	recruit-phoenix		
+chapter-3	3	Ember Dunes	desert	3	random_battle			
+chapter-3	3	Ember Dunes	desert	4	recruit	recruit-wizard		
+chapter-3	3	Ember Dunes	desert	5	random_battle			
+chapter-3	3	Ember Dunes	desert	6	mystery			
+chapter-3	3	Ember Dunes	desert	7	recruit			
+chapter-3	3	Ember Dunes	desert	8	shop		destination-merchant-shop	Merchant
+chapter-3	3	Ember Dunes	desert	9	random_battle			
+chapter-3	3	Ember Dunes	desert	10	battle	the_forge_golem		
+chapter-4	4	Frostpeak	tundra	1	battle	frost_elemental		
+chapter-4	4	Frostpeak	tundra	2	recruit	recruit-frost-whelp		
+chapter-4	4	Frostpeak	tundra	3	random_battle			
+chapter-4	4	Frostpeak	tundra	4	mystery			
+chapter-4	4	Frostpeak	tundra	5	random_battle			
+chapter-4	4	Frostpeak	tundra	6	recruit			
+chapter-4	4	Frostpeak	tundra	7	mystery			
+chapter-4	4	Frostpeak	tundra	8	shop		destination-merchant-shop	Merchant
+chapter-4	4	Frostpeak	tundra	9	random_battle			
+chapter-4	4	Frostpeak	tundra	10	battle	the_frostwarden		
+chapter-5	5	Crimson Vale	crimsonVale	1	battle	blood_cultist		
+chapter-5	5	Crimson Vale	crimsonVale	2	recruit	recruit-warlock		
+chapter-5	5	Crimson Vale	crimsonVale	3	battle	dire_wolf		
+chapter-5	5	Crimson Vale	crimsonVale	4	mystery			
+chapter-5	5	Crimson Vale	crimsonVale	5	battle	necromancer		
+chapter-5	5	Crimson Vale	crimsonVale	6	recruit			
+chapter-5	5	Crimson Vale	crimsonVale	7	mystery			
+chapter-5	5	Crimson Vale	crimsonVale	8	shop		destination-merchant-shop	Merchant
+chapter-5	5	Crimson Vale	crimsonVale	9	battle	vampire		
+chapter-5	5	Crimson Vale	crimsonVale	10	battle	the_blood_countess		
+chapter-6	6	Sun Abbey	sunAbbey	1	battle	zealot		
+chapter-6	6	Sun Abbey	sunAbbey	2	recruit	recruit-library-owl		
+chapter-6	6	Sun Abbey	sunAbbey	3	battle	cleric		
+chapter-6	6	Sun Abbey	sunAbbey	4	mystery			
+chapter-6	6	Sun Abbey	sunAbbey	5	battle	inquisitor		
+chapter-6	6	Sun Abbey	sunAbbey	6	recruit			
+chapter-6	6	Sun Abbey	sunAbbey	7	mystery			
+chapter-6	6	Sun Abbey	sunAbbey	8	shop		destination-merchant-shop	Merchant
+chapter-6	6	Sun Abbey	sunAbbey	9	battle	paladin		
+chapter-6	6	Sun Abbey	sunAbbey	10	battle	the_seraph		
+chapter-7	7	Shattered Pass	shatteredPass	1	battle	brawler		
+chapter-7	7	Shattered Pass	shatteredPass	2	recruit	recruit-shield-scarab		
+chapter-7	7	Shattered Pass	shatteredPass	3	battle	banshee		
+chapter-7	7	Shattered Pass	shatteredPass	4	mystery			
+chapter-7	7	Shattered Pass	shatteredPass	5	battle	stone_golem		
+chapter-7	7	Shattered Pass	shatteredPass	6	recruit			
+chapter-7	7	Shattered Pass	shatteredPass	7	mystery			
+chapter-7	7	Shattered Pass	shatteredPass	8	shop		destination-merchant-shop	Merchant
+chapter-7	7	Shattered Pass	shatteredPass	9	battle	earth_elemental		
+chapter-7	7	Shattered Pass	shatteredPass	10	battle	the_stone_titan		

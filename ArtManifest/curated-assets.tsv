@@ -214,6 +214,9 @@ background	chapter-1	bg_forest	2d Assets/Game Sources/Places/Regions/Forest - Po
 background	chapter-2	bg_dungeon	2d Assets/Game Sources/Places/Regions/Dungeon - Portrait.jpeg	0.50	0.50
 background	chapter-3	bg_desert	2d Assets/Game Sources/Places/Regions/Desert - Portrait.jpeg	0.50	0.50
 background	chapter-4	bg_tundra	2d Assets/Game Sources/Places/Regions/Tundra - Portrait.jpeg	0.50	0.50
+background	chapter-5	bg_crimson_vale	2d Assets/Game Sources/Places/Regions/Crimson Vale - Portrait.jpeg	0.56	0.15
+background	chapter-6	bg_sun_abbey	2d Assets/Game Sources/Places/Regions/Sun Abbey - Portrait.jpeg	0.65	0.41
+background	chapter-7	bg_shattered_pass	2d Assets/Game Sources/Places/Regions/Shattered Pass - Portrait.jpeg	0.50	0.17
 background	homestead	bg_homestead	2d Assets/Game Sources/Places/Buildings/Homestead - Landscape.jpeg	0.50	0.50
 background	wheatField	bg_homestead_wheat_field	2d Assets/Game Sources/Places/Buildings/Wheat Field/Wheat Field - Landscape.jpeg	0.50	0.50
 background	herbGarden	bg_homestead_herb_garden	2d Assets/Game Sources/Places/Buildings/Herb Garden/Herb Garden - Landscape.jpeg	0.50	0.50
