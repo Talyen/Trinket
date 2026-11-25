@@ -26,5 +26,6 @@ Xcode project generated from `project.yml`; [toolchain ladder](Scripts/Reference
 ## Scope and communication
 
 - **Stay scoped and autonomous**: Work through implementation, verification, and fixes caused by the change without extra approval checkpoints. Adopt adjacent defects only when clearly in scope and reversible. Propose unresolved product, migration, dependency, or broad architectural decisions before acting.
+- **Public announcements**: Refer to the owner as the developer of Trinket! and omit their real name. Omit statements about AI helping write the announcement. Check outlet rules and drop announcements for outlets that prohibit AI or require disclosure about AI use in drafting. Provide required AI disclosures for the game and any linked media.
 - **Player-facing reporting**: Write for someone who knows Trinket as a game. Distinguish verified behavior from inference, and report what checks ran alongside any skips or blockers ([completion states](Docs/Platform/Verification.md#completion-states)).
 - **Independent chats**: Only message another chat for a concrete unresolved dependency or conflict that cannot be answered from the repository. Do not send status broadcasts, acknowledgments, or wake completed chats.
