@@ -48,6 +48,7 @@
       </a>
       <nav class="site-nav" aria-label="Main">
         <a href="#trailer">Trailer</a>
+        <a href="#features">Features</a>
         <a href="#screenshots">Screenshots</a>
         <a href="press/">Press kit</a>
         <a href="support.html">Support</a>
@@ -56,21 +57,22 @@
   </header>
 
   <main id="top">
-    <section class="hero" aria-labelledby="hero-heading">
+    <section class="hero" aria-label="Trinket!">
       <div class="hero-backdrop" aria-hidden="true">
         <img src="press/previews/campaign-world.webp" width="940" height="702" alt="">
       </div>
       <div class="hero-inner">
-        <img
-          class="hero-wordmark"
-          src="press/previews/ambush-wordmark.webp"
-          width="1080"
-          height="720"
-          alt="Trinket! featuring the Ranger and Fox"
-          fetchpriority="high"
-        >
-        <h1 id="hero-heading">Share one hand. Fight as two.</h1>
-        <p class="hero-lead">A turn-based fantasy card RPG for iPhone and iPad. Coming December 21, 2026, free to start with no ads or subscriptions.</p>
+        <h1>
+          <img
+            class="hero-wordmark"
+            src="press/previews/ambush-wordmark.webp"
+            width="1080"
+            height="720"
+            alt="Trinket!"
+            fetchpriority="high"
+          >
+        </h1>
+        <p class="hero-lead">Turn-based card RPG for iPhone and iPad where your hero and companion share a hand of cards. Coming December 21, 2026, free to start with no ads or subscriptions.</p>
         <div class="hero-cta">
           <a class="store-badge" href="https://apps.apple.com/app/trinket/id6811284921">
             <img src="press/previews/app-store-preorder.svg" width="154" height="52" alt="Pre-order on the App Store">
@@ -81,16 +83,6 @@
 
     <section class="band trailer-band" id="trailer" aria-labelledby="trailer-heading">
       <div class="container trailer-layout">
-        <div class="trailer-copy">
-          <h2 id="trailer-heading">See combat in motion</h2>
-          <p>Follow the Wizard and Frost Whelp from the Homestead to floor 10 of Sanguine Court, where the Blood Countess sings live lyrics during the fight.</p>
-          <ol class="chapter-list" aria-label="Trailer chapters">
-            <li><a href="press/video/Trinket-feature-reel.mp4#t=0" data-seek="0"><time datetime="PT0S">0:00</time><span>Meet the party</span></a></li>
-            <li><a href="press/video/Trinket-feature-reel.mp4#t=15" data-seek="15"><time datetime="PT15S">0:15</time><span>At the Homestead</span></a></li>
-            <li><a href="press/video/Trinket-feature-reel.mp4#t=30" data-seek="30"><time datetime="PT30S">0:30</time><span>A Recruit event</span></a></li>
-            <li><a href="press/video/Trinket-feature-reel.mp4#t=58" data-seek="58"><time datetime="PT58S">0:58</time><span>The Blood Countess</span></a></li>
-          </ol>
-        </div>
         <div class="trailer-stage">
           <div class="phone-player" data-trailer-player>
             <div class="phone-screen">
@@ -101,7 +93,6 @@
                   height="1920"
                   controls
                   playsinline
-                  loading="lazy"
                   preload="none"
                   poster="press/previews/trailer.jpg"
                   aria-label="Trinket! narrated feature trailer"
@@ -122,148 +113,245 @@
             </div>
           </div>
         </div>
+        <div class="trailer-copy">
+          <h2 id="trailer-heading">Trailer</h2>
+          <p>The Wizard and Frost Whelp prepare at the Homestead and head to floor 10 of Sanguine Court to face the Blood Countess.</p>
+          <ol class="chapter-list" aria-label="Trailer chapters">
+            <li><a href="press/video/Trinket-feature-reel.mp4#t=0" data-seek="0"><time datetime="PT0S">0:00</time><span>Meet the party</span></a></li>
+            <li><a href="press/video/Trinket-feature-reel.mp4#t=15" data-seek="15"><time datetime="PT15S">0:15</time><span>At the Homestead</span></a></li>
+            <li><a href="press/video/Trinket-feature-reel.mp4#t=30" data-seek="30"><time datetime="PT30S">0:30</time><span>A Recruit event</span></a></li>
+            <li><a href="press/video/Trinket-feature-reel.mp4#t=58" data-seek="58"><time datetime="PT58S">0:58</time><span>The Blood Countess</span></a></li>
+          </ol>
+        </div>
       </div>
     </section>
 
-    <section class="band pillars-band" aria-labelledby="pillars-heading">
+    <section class="band features-band" id="features" aria-labelledby="features-heading">
       <div class="container">
-        <h2 id="pillars-heading" class="visually-hidden">What makes Trinket! distinct</h2>
+        <h2 id="features-heading">At launch</h2>
 
-        <article class="pillar">
-          <div class="pillar-media character-strip">
-            <img src="press/previews/launch-column-ranger.webp" width="320" height="480" alt="Ranger hero" loading="lazy">
-            <img src="press/previews/launch-column-fox.webp" width="320" height="480" alt="Fox companion" loading="lazy">
-            <img src="press/previews/launch-column-knight.webp" width="320" height="480" alt="Knight hero" loading="lazy">
-            <img src="press/previews/launch-column-whelp.webp" width="320" height="480" alt="Frost Whelp companion" loading="lazy">
-          </div>
-          <div class="pillar-copy">
-            <h3>Pair a hero with a companion</h3>
-            <p>Every turn, your hero and companion draw from one shared hand of cards. Mix Burn and Freeze combos, stack Bleed and Poison, or anchor the front line with Briar Shield and Smite.</p>
-            <p>Build your party from 8 heroes and 13 companions, with 65 equippable abilities and 446 talents across 63 trees.</p>
-          </div>
-        </article>
+        <div class="feature-grid">
+          <article class="feature-panel roster-panel">
+            <div class="feature-art character-strip">
+              <img src="press/previews/launch-column-ranger.webp" width="320" height="480" alt="Ranger" loading="lazy">
+              <img src="press/previews/launch-column-fox.webp" width="320" height="480" alt="Fox" loading="lazy">
+              <img src="press/previews/launch-column-knight.webp" width="320" height="480" alt="Knight" loading="lazy">
+              <img src="press/previews/launch-column-whelp.webp" width="320" height="480" alt="Frost Whelp" loading="lazy">
+            </div>
+            <div class="feature-body">
+              <h3>Heroes and companions</h3>
+              <dl class="stat-grid">
+                <div><dt>Heroes</dt><dd>8</dd></div>
+                <div><dt>Companions</dt><dd>13</dd></div>
+                <div><dt>Abilities</dt><dd>65</dd></div>
+                <div><dt>Talents (63 trees)</dt><dd>446</dd></div>
+              </dl>
+              <dl class="detail-list">
+                <div><dt>Heroes</dt><dd>Ranger, Knight, Rogue, Wizard, Druid, Warlock, Alchemist, Wildcard</dd></div>
+                <div><dt>Companions</dt><dd>Wolf, Bear, Frost Whelp, Lizard Scout, Panther, Phoenix, Golden Retriever, Library Owl, Risen Skeleton, Mana Moth, Pixie, Shield Scarab, Fox</dd></div>
+                <div><dt>Progression</dt><dd>20 basic, 26 skill, and 19 ultimate abilities, plus 3 talent trees per character</dd></div>
+              </dl>
+            </div>
+          </article>
 
-        <article class="pillar pillar-reverse">
-          <div class="pillar-media">
-            <img src="press/previews/launch-explore.webp" width="960" height="720" alt="Spires, Labyrinth, and realms of Trinket!" loading="lazy">
-          </div>
-          <div class="pillar-copy">
-            <h3>Five modes, seven singing bosses</h3>
-            <p>Journey through four Campaign chapters from the Forest to the Tundra, where each of the seven bosses performs an original vocal theme with live lyrics in combat.</p>
-            <p>Beyond the Campaign, climb 7 Spires totaling 140 floors, delve into an endless Labyrinth, chart repeatable Voyages, or take a single-battle Contract with its reward shown up front.</p>
-          </div>
-        </article>
+          <article class="feature-panel world-panel">
+            <div class="feature-art">
+              <img src="press/previews/launch-explore.webp" width="960" height="720" alt="Spires, Labyrinth, and realms" loading="lazy">
+            </div>
+            <div class="feature-body">
+              <h3>Modes and world</h3>
+              <dl class="stat-grid">
+                <div><dt>Campaign chapters</dt><dd>4</dd></div>
+                <div><dt>Spires (140 floors)</dt><dd>7</dd></div>
+                <div><dt>Enemies (7 bosses)</dt><dd>39</dd></div>
+                <div><dt>Game modes</dt><dd>5</dd></div>
+              </dl>
+              <dl class="detail-list">
+                <div><dt>Campaign</dt><dd>40 stages across Forest, Dungeon, Desert, and Tundra</dd></div>
+                <div><dt>Spires &amp; Labyrinth</dt><dd>7 Spires with 20 floors each, plus an endless Labyrinth</dd></div>
+                <div><dt>Voyage &amp; Contracts</dt><dd>Repeatable 8, 10, or 12 stop Voyages and single-battle Contracts with rewards shown up front</dd></div>
+              </dl>
+            </div>
+          </article>
 
-        <article class="pillar">
-          <div class="pillar-media">
-            <img src="press/previews/launch-forge.webp" width="960" height="720" alt="Homestead Blacksmith Forge at dusk" loading="lazy">
-          </div>
-          <div class="pillar-copy">
-            <h3>Grow your Homestead between runs</h3>
-            <p>Return home to tend herbs, forge weapons, and invest in 20 Homestead projects across Farming, Crafting, Alchemy, Training, and Arcana.</p>
-            <p>Hunt for Astral gear drawn from 111 item affixes, 24 trinkets, and 29 build-defining unique items, or craft new gear from 26 Homestead recipes.</p>
-          </div>
-        </article>
+          <article class="feature-panel gear-panel">
+            <div class="feature-art">
+              <img src="press/previews/launch-forge.webp" width="960" height="720" alt="Homestead Blacksmith Forge" loading="lazy">
+            </div>
+            <div class="feature-body">
+              <h3>Equipment and Homestead</h3>
+              <dl class="stat-grid stat-grid-wide">
+                <div><dt>Item affixes</dt><dd>111</dd></div>
+                <div><dt>Unique items</dt><dd>29</dd></div>
+                <div><dt>Trinkets</dt><dd>24</dd></div>
+                <div><dt>Homestead projects</dt><dd>20</dd></div>
+              </dl>
+              <dl class="detail-list">
+                <div><dt>Equipment</dt><dd>Basic gear rolls 1 to 2 affixes and Astral gear rolls 3 to 4, alongside 24 trinkets and 29 unique items</dd></div>
+                <div><dt>Homestead</dt><dd>80 upgrade tiers across Farming, Crafting, Alchemy, Training, and Arcana</dd></div>
+                <div><dt>Crafting</dt><dd>26 recipes across the Blacksmith Forge (14), Archery Range (8), and Wool Tailoring (4)</dd></div>
+              </dl>
+            </div>
+          </article>
+        </div>
       </div>
     </section>
 
     <section class="band gallery-band" id="screenshots" aria-labelledby="screenshots-heading">
       <div class="container">
         <div class="gallery-header">
-          <h2 id="screenshots-heading">Inside the game</h2>
+          <h2 id="screenshots-heading">Screenshots</h2>
           <div class="segmented-tabs" role="tablist" aria-label="Screenshot categories">
-            <button type="button" role="tab" id="tab-highlights" aria-selected="true" aria-controls="panel-highlights">Highlights</button>
+            <button type="button" role="tab" id="tab-battles" aria-selected="true" aria-controls="panel-battles">Battles</button>
             <button type="button" role="tab" id="tab-roster" aria-selected="false" aria-controls="panel-roster" tabindex="-1">Heroes &amp; companions</button>
-            <button type="button" role="tab" id="tab-gear" aria-selected="false" aria-controls="panel-gear" tabindex="-1">Gear &amp; Homestead</button>
+            <button type="button" role="tab" id="tab-gear" aria-selected="false" aria-controls="panel-gear" tabindex="-1">Uniques &amp; trinkets</button>
+            <button type="button" role="tab" id="tab-homestead" aria-selected="false" aria-controls="panel-homestead" tabindex="-1">Homestead</button>
           </div>
         </div>
 
-        <div id="panel-highlights" class="screenshot-grid" role="tabpanel" aria-labelledby="tab-highlights">
+        <div id="panel-battles" class="screenshot-grid" role="tabpanel" aria-labelledby="tab-battles">
           <figure>
             <a href="press/screenshots/blood-countess.png" data-lightbox>
-              <img src="press/previews/blood-countess.jpg" width="720" height="1450" alt="The Blood Countess singing to the Wizard and Frost Whelp in battle" loading="lazy">
+              <img src="press/previews/blood-countess.jpg" width="720" height="1450" alt="The Wizard and Frost Whelp facing the Blood Countess in battle" loading="lazy">
             </a>
-            <figcaption>The Blood Countess sings to the Wizard and Frost Whelp on floor 10 of Sanguine Court.</figcaption>
+            <figcaption>The Wizard and Frost Whelp face the Blood Countess on floor 10 of Sanguine Court.</figcaption>
           </figure>
           <figure>
             <a href="press/screenshots/knight-bear.png" data-lightbox>
               <img src="press/previews/knight-bear.jpg" width="720" height="1470" alt="The Knight and Bear fighting the Mud Elemental" loading="lazy">
             </a>
-            <figcaption>The Knight and Bear bring the Mud Elemental down to its final point of health.</figcaption>
+            <figcaption>The Knight and Bear have the Mud Elemental down to its last point of health.</figcaption>
           </figure>
           <figure>
             <a href="press/screenshots/explore.png" data-lightbox>
               <img src="press/previews/explore.jpg" width="720" height="1469" alt="Explore screen showing Spires, Labyrinth, and Contracts" loading="lazy">
             </a>
-            <figcaption>Spires, Labyrinth, and Contracts ready to play on the Explore screen.</figcaption>
+            <figcaption>Spires, Labyrinth, and Contracts on the Explore screen.</figcaption>
           </figure>
         </div>
 
         <div id="panel-roster" class="screenshot-grid" role="tabpanel" aria-labelledby="tab-roster" hidden>
           <figure>
             <a href="press/screenshots/wizard.png" data-lightbox>
-              <img src="press/previews/wizard.jpg" width="720" height="1470" alt="Wizard character detail and abilities" loading="lazy">
+              <img src="press/previews/wizard.jpg" width="720" height="1470" alt="Wizard character screen" loading="lazy">
             </a>
-            <figcaption>The Wizard channels Mana Berries into high-impact Burn spells like Fireball and Meteor.</figcaption>
+            <figcaption>The Wizard channels Mana Berries into Burn spells like Fireball and Meteor.</figcaption>
           </figure>
           <figure>
             <a href="press/screenshots/frost-whelp.png" data-lightbox>
-              <img src="press/previews/frost-whelp.jpg" width="720" height="1470" alt="Frost Whelp companion detail and abilities" loading="lazy">
+              <img src="press/previews/frost-whelp.jpg" width="720" height="1470" alt="Frost Whelp companion screen" loading="lazy">
             </a>
-            <figcaption>The Frost Whelp slows enemies down with Ray of Frost, Frostbolt, and Blizzard.</figcaption>
+            <figcaption>The Frost Whelp slows enemies with Ray of Frost, Frostbolt, and Blizzard.</figcaption>
+          </figure>
+          <figure>
+            <a href="press/screenshots/knight.png" data-lightbox>
+              <img src="press/previews/knight.jpg" width="720" height="1450" alt="Knight character screen" loading="lazy">
+            </a>
+            <figcaption>The Knight pairs Bash and Smite with her Avatar ultimate.</figcaption>
+          </figure>
+          <figure>
+            <a href="press/screenshots/bear.png" data-lightbox>
+              <img src="press/previews/bear.jpg" width="720" height="1450" alt="Bear companion screen" loading="lazy">
+            </a>
+            <figcaption>The Bear pairs Briar Shield defenses with Maul and Earthquake.</figcaption>
+          </figure>
+          <figure>
+            <a href="press/screenshots/ranger.jpg" data-lightbox>
+              <img src="press/previews/ranger.jpg" width="720" height="1470" alt="Ranger character screen" loading="lazy">
+            </a>
+            <figcaption>The Ranger opens fights with Fire Arrow, Bounty Shot, and Astral Arrow.</figcaption>
           </figure>
           <figure>
             <a href="press/screenshots/fox.png" data-lightbox>
-              <img src="press/previews/fox.jpg" width="720" height="1470" alt="Fox companion detail and abilities" loading="lazy">
+              <img src="press/previews/fox.jpg" width="720" height="1470" alt="Fox companion screen" loading="lazy">
             </a>
-            <figcaption>The Fox steals from enemies and slips past danger with Bash, Steal, and Shadowstep.</figcaption>
+            <figcaption>The Fox uses Bash, Steal, and Shadowstep.</figcaption>
           </figure>
         </div>
 
         <div id="panel-gear" class="screenshot-grid" role="tabpanel" aria-labelledby="tab-gear" hidden>
           <figure>
+            <a href="press/screenshots/blackfletch.png" data-lightbox>
+              <img src="press/previews/blackfletch.jpg" width="720" height="1470" alt="Blackfletch unique crossbow" loading="lazy">
+            </a>
+            <figcaption>Blackfletch is a unique crossbow whose critical hits trigger all remaining Bleed and Poison damage at once.</figcaption>
+          </figure>
+          <figure>
             <a href="press/screenshots/twin-casting.png" data-lightbox>
-              <img src="press/previews/twin-casting.jpg" width="720" height="1450" alt="Twin Casting unique staff item screen" loading="lazy">
+              <img src="press/previews/twin-casting.jpg" width="720" height="1450" alt="Twin Casting unique staff" loading="lazy">
             </a>
             <figcaption>Twin Casting draws a Freeze card when you spend Mana to empower a Burn card, and vice versa.</figcaption>
           </figure>
           <figure>
+            <a href="press/screenshots/saintfall-plate.png" data-lightbox>
+              <img src="press/previews/saintfall-plate.jpg" width="720" height="1470" alt="Saintfall Plate unique armor" loading="lazy">
+            </a>
+            <figcaption>The first time Block breaks each round, Saintfall Plate deals Holy and Stun damage and restores Health.</figcaption>
+          </figure>
+          <figure>
             <a href="press/screenshots/frozen-pocketwatch.png" data-lightbox>
-              <img src="press/previews/frozen-pocketwatch.jpg" width="720" height="1450" alt="Frozen Pocketwatch trinket screen" loading="lazy">
+              <img src="press/previews/frozen-pocketwatch.jpg" width="720" height="1450" alt="Frozen Pocketwatch trinket" loading="lazy">
             </a>
             <figcaption>The Frozen Pocketwatch gives Freeze a 30% chance to last an additional turn.</figcaption>
           </figure>
           <figure>
-            <a href="press/screenshots/blacksmith.jpg" data-lightbox>
-              <img src="press/previews/blacksmith.jpg" width="720" height="1470" alt="Homestead Blacksmith crafting screen" loading="lazy">
+            <a href="press/screenshots/parasitic-bloom.png" data-lightbox>
+              <img src="press/previews/parasitic-bloom.jpg" width="720" height="1470" alt="Parasitic Bloom trinket" loading="lazy">
             </a>
-            <figcaption>The Blacksmith crafts new equipment and produces Iron each day at your Homestead.</figcaption>
+            <figcaption>Parasitic Bloom gives Poison attacks Leech.</figcaption>
+          </figure>
+          <figure>
+            <a href="press/screenshots/meteorite.png" data-lightbox>
+              <img src="press/previews/meteorite.jpg" width="720" height="1470" alt="Meteorite trinket" loading="lazy">
+            </a>
+            <figcaption>Meteorite lets Burn cards spend additional Mana to deal more damage.</figcaption>
           </figure>
         </div>
 
-        <p class="gallery-more"><a href="press/#images">Browse all 21 full-resolution screenshots in the press kit</a></p>
+        <div id="panel-homestead" class="screenshot-grid" role="tabpanel" aria-labelledby="tab-homestead" hidden>
+          <figure>
+            <a href="press/screenshots/herb-garden.png" data-lightbox>
+              <img src="press/previews/herb-garden.jpg" width="720" height="1450" alt="Homestead Herb Garden screen" loading="lazy">
+            </a>
+            <figcaption>Bitter Remedy in the Herb Garden reduces incoming Poison damage by 5%.</figcaption>
+          </figure>
+          <figure>
+            <a href="press/screenshots/blacksmith.jpg" data-lightbox>
+              <img src="press/previews/blacksmith.jpg" width="720" height="1470" alt="Homestead Blacksmith screen" loading="lazy">
+            </a>
+            <figcaption>The Blacksmith crafts equipment and produces Iron each day at the Homestead.</figcaption>
+          </figure>
+          <figure>
+            <a href="press/screenshots/chicken-coop.png" data-lightbox>
+              <img src="press/previews/chicken-coop.jpg" width="720" height="1450" alt="Homestead Chicken Coop screen" loading="lazy">
+            </a>
+            <figcaption>The Chicken Coop raises Companion Health and produces Food each day.</figcaption>
+          </figure>
+        </div>
+
+        <p class="gallery-more"><a href="press/#images">See all 21 full-resolution screenshots in the press kit</a></p>
       </div>
     </section>
 
     <section class="band fairplay-band" aria-labelledby="fairplay-heading">
       <div class="container fairplay-inner">
-        <h2 id="fairplay-heading">Free to start. One purchase for everything.</h2>
-        <p>Download free and play all five modes with no ads, no subscriptions, and no energy timers. Play offline with no account required, with iCloud sync across iPhone and iPad.</p>
+        <h2 id="fairplay-heading">Free and Full Game</h2>
+        <p>Try all five modes for free, with no ads, no subscriptions, and no energy timers. Play offline with no account required, with iCloud sync across iPhone and iPad.</p>
         <div class="tier-comparison">
           <div>
-            <h3>Free play</h3>
-            <p>Three Campaign chapters (Forest, Dungeon, Desert), the first 10 floors of every Spire, 3 Labyrinth floors, unlimited Contracts, Voyages, Homestead, and a starter roster of 4 heroes and 4 companions with full progression.</p>
+            <h3>Free</h3>
+            <p>First three Campaign chapters (Forest, Dungeon, Desert), first 10 floors of every Spire, 3 Labyrinth floors, unlimited Contracts, Voyages, Homestead, and 4 heroes and 4 companions with full progression.</p>
           </div>
           <div>
             <h3>Full Game · US$4.99</h3>
-            <p>A single one-time purchase with Apple Family Sharing unlocks Tundra, deeper Spire and Labyrinth floors, all 8 heroes and 13 companions, and future content released within Trinket. Local prices vary.</p>
+            <p>One-time purchase with Apple Family Sharing. Unlocks Tundra, deeper Spire and Labyrinth floors, all 8 heroes and 13 companions, and future content released within Trinket. Local prices vary.</p>
           </div>
         </div>
         <div class="final-cta">
           <a class="store-badge" href="https://apps.apple.com/app/trinket/id6811284921">
             <img src="press/previews/app-store-preorder.svg" width="154" height="52" alt="Pre-order on the App Store">
           </a>
-          <p class="release-note">Launching December 21, 2026 in 8 languages across 173 App Store storefronts.</p>
+          <p class="release-note">December 21, 2026 · 8 languages · 173 App Store storefronts.</p>
         </div>
       </div>
     </section>
