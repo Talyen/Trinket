@@ -47,7 +47,7 @@
         <span>Trinket!</span>
       </a>
       <nav class="site-nav" aria-label="Main">
-        <a href="#trailer">Trailer</a>
+        <a href="#heroes">Heroes</a>
         <a href="#features">Features</a>
         <a href="#screenshots">Screenshots</a>
         <a href="press/">Press kit</a>
@@ -57,33 +57,29 @@
   </header>
 
   <main id="top">
-    <section class="hero" aria-label="Trinket!">
-      <div class="hero-backdrop" aria-hidden="true">
-        <img src="press/previews/campaign-world.webp" width="940" height="702" alt="">
-      </div>
-      <div class="hero-inner">
-        <h1>
-          <img
-            class="hero-wordmark"
-            src="press/previews/ambush-wordmark.webp"
-            width="1080"
-            height="720"
-            alt="Trinket!"
-            fetchpriority="high"
-          >
-        </h1>
-        <p class="hero-lead">Turn-based card RPG for iPhone and iPad where your hero and companion share a hand of cards. Coming December 21, 2026, free to start with no ads or subscriptions.</p>
-        <div class="hero-cta">
-          <a class="store-badge" href="https://apps.apple.com/app/trinket/id6811284921">
-            <img src="press/previews/app-store-preorder.svg" width="154" height="52" alt="Pre-order on the App Store">
-          </a>
+    <section class="hero" id="trailer" aria-label="Trinket! trailer and overview">
+      <div class="container hero-stage">
+        <div class="hero-intro">
+          <h1>
+            <img
+              class="hero-wordmark"
+              src="press/previews/ambush-wordmark.webp"
+              width="1080"
+              height="720"
+              alt="Trinket!"
+              fetchpriority="high"
+            >
+          </h1>
+          <p class="hero-lead">Turn-based card RPG for iPhone and iPad where your hero and companion share a hand of cards.</p>
+          <p class="hero-meta">December 21, 2026 · Free to start, no ads or subscriptions</p>
+          <div class="hero-cta">
+            <a class="store-badge" href="https://apps.apple.com/app/trinket/id6811284921">
+              <img src="press/previews/app-store-preorder.svg" width="154" height="52" alt="Pre-order on the App Store">
+            </a>
+          </div>
         </div>
-      </div>
-    </section>
 
-    <section class="band trailer-band" id="trailer" aria-labelledby="trailer-heading">
-      <div class="container trailer-layout">
-        <div class="trailer-stage">
+        <div class="hero-player">
           <div class="phone-player" data-trailer-player>
             <div class="phone-screen">
               <svg class="phone-status" viewBox="0 0 320 30" aria-hidden="true" focusable="false"><use href="#phone-status"></use></svg>
@@ -113,9 +109,12 @@
             </div>
           </div>
         </div>
-        <div class="trailer-copy">
-          <h2 id="trailer-heading">Trailer</h2>
-          <p>The Wizard and Frost Whelp prepare at the Homestead and head to floor 10 of Sanguine Court to face the Blood Countess.</p>
+
+        <div class="hero-guide">
+          <figure class="guide-art">
+            <img src="press/previews/trailer-spires.webp" width="720" height="537" alt="The seven Spires of Trinket!">
+          </figure>
+          <h2 id="trailer-heading">Inside the trailer</h2>
           <ol class="chapter-list" aria-label="Trailer chapters">
             <li><a href="press/video/Trinket-feature-reel.mp4#t=0" data-seek="0"><time datetime="PT0S">0:00</time><span>Meet the party</span></a></li>
             <li><a href="press/video/Trinket-feature-reel.mp4#t=15" data-seek="15"><time datetime="PT15S">0:15</time><span>At the Homestead</span></a></li>
@@ -126,74 +125,97 @@
       </div>
     </section>
 
+    <section class="band heroes-band" id="heroes" aria-labelledby="heroes-heading">
+      <div class="container">
+        <div class="section-top">
+          <h2 id="heroes-heading">Heroes and companions</h2>
+          <dl class="stat-strip">
+            <div><dt>Heroes</dt><dd>8</dd></div>
+            <div><dt>Companions</dt><dd>13</dd></div>
+            <div><dt>Abilities</dt><dd>65</dd></div>
+            <div><dt>Talents (63 trees)</dt><dd>446</dd></div>
+          </dl>
+        </div>
+
+        <div class="portrait-grid">
+          <figure class="portrait-card">
+            <img src="press/previews/launch-column-ranger.webp" width="380" height="587" alt="Ranger hero" loading="lazy">
+            <figcaption><strong>Ranger</strong><span>Hero</span></figcaption>
+          </figure>
+          <figure class="portrait-card">
+            <img src="press/previews/launch-column-fox.webp" width="380" height="587" alt="Fox companion" loading="lazy">
+            <figcaption><strong>Fox</strong><span>Companion</span></figcaption>
+          </figure>
+          <figure class="portrait-card">
+            <img src="press/previews/launch-column-knight.webp" width="380" height="587" alt="Knight hero" loading="lazy">
+            <figcaption><strong>Knight</strong><span>Hero</span></figcaption>
+          </figure>
+          <figure class="portrait-card">
+            <img src="press/previews/launch-column-whelp.webp" width="380" height="587" alt="Frost Whelp companion" loading="lazy">
+            <figcaption><strong>Frost Whelp</strong><span>Companion</span></figcaption>
+          </figure>
+        </div>
+
+        <dl class="roster-details">
+          <div>
+            <dt>8 Heroes</dt>
+            <dd>Ranger, Knight, Rogue, Wizard, Druid, Warlock, Alchemist, Wildcard</dd>
+          </div>
+          <div>
+            <dt>13 Companions</dt>
+            <dd>Wolf, Bear, Frost Whelp, Lizard Scout, Panther, Phoenix, Golden Retriever, Library Owl, Risen Skeleton, Mana Moth, Pixie, Shield Scarab, Fox</dd>
+          </div>
+          <div>
+            <dt>Progression</dt>
+            <dd>65 equippable abilities (20 basic, 26 skill, 19 ultimate) and 446 talents across 63 trees, three trees per character</dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
     <section class="band features-band" id="features" aria-labelledby="features-heading">
       <div class="container">
-        <h2 id="features-heading">At launch</h2>
+        <h2 id="features-heading" class="visually-hidden">Modes, equipment, and Homestead</h2>
 
-        <div class="feature-grid">
-          <article class="feature-panel roster-panel">
-            <div class="feature-art character-strip">
-              <img src="press/previews/launch-column-ranger.webp" width="320" height="480" alt="Ranger" loading="lazy">
-              <img src="press/previews/launch-column-fox.webp" width="320" height="480" alt="Fox" loading="lazy">
-              <img src="press/previews/launch-column-knight.webp" width="320" height="480" alt="Knight" loading="lazy">
-              <img src="press/previews/launch-column-whelp.webp" width="320" height="480" alt="Frost Whelp" loading="lazy">
-            </div>
-            <div class="feature-body">
-              <h3>Heroes and companions</h3>
-              <dl class="stat-grid">
-                <div><dt>Heroes</dt><dd>8</dd></div>
-                <div><dt>Companions</dt><dd>13</dd></div>
-                <div><dt>Abilities</dt><dd>65</dd></div>
-                <div><dt>Talents (63 trees)</dt><dd>446</dd></div>
-              </dl>
-              <dl class="detail-list">
-                <div><dt>Heroes</dt><dd>Ranger, Knight, Rogue, Wizard, Druid, Warlock, Alchemist, Wildcard</dd></div>
-                <div><dt>Companions</dt><dd>Wolf, Bear, Frost Whelp, Lizard Scout, Panther, Phoenix, Golden Retriever, Library Owl, Risen Skeleton, Mana Moth, Pixie, Shield Scarab, Fox</dd></div>
-                <div><dt>Progression</dt><dd>20 basic, 26 skill, and 19 ultimate abilities, plus 3 talent trees per character</dd></div>
-              </dl>
-            </div>
-          </article>
+        <article class="showcase-split">
+          <div class="showcase-art">
+            <img src="press/previews/launch-explore.webp" width="1440" height="1075" alt="Spires, Labyrinth, and realms of Trinket!" loading="lazy">
+          </div>
+          <div class="showcase-info">
+            <h3>Modes and world</h3>
+            <dl class="stat-grid">
+              <div><dt>Campaign chapters</dt><dd>4</dd></div>
+              <div><dt>Spires (140 floors)</dt><dd>7</dd></div>
+              <div><dt>Enemies (7 bosses)</dt><dd>39</dd></div>
+              <div><dt>Game modes</dt><dd>5</dd></div>
+            </dl>
+            <dl class="detail-list">
+              <div><dt>Campaign</dt><dd>40 stages across Forest, Dungeon, Desert, and Tundra</dd></div>
+              <div><dt>Spires &amp; Labyrinth</dt><dd>7 Spires with 20 floors each, plus an endless Labyrinth</dd></div>
+              <div><dt>Voyage &amp; Contracts</dt><dd>Repeatable 8, 10, or 12 stop Voyages and single-battle Contracts with rewards shown up front</dd></div>
+            </dl>
+          </div>
+        </article>
 
-          <article class="feature-panel world-panel">
-            <div class="feature-art">
-              <img src="press/previews/launch-explore.webp" width="960" height="720" alt="Spires, Labyrinth, and realms" loading="lazy">
-            </div>
-            <div class="feature-body">
-              <h3>Modes and world</h3>
-              <dl class="stat-grid">
-                <div><dt>Campaign chapters</dt><dd>4</dd></div>
-                <div><dt>Spires (140 floors)</dt><dd>7</dd></div>
-                <div><dt>Enemies (7 bosses)</dt><dd>39</dd></div>
-                <div><dt>Game modes</dt><dd>5</dd></div>
-              </dl>
-              <dl class="detail-list">
-                <div><dt>Campaign</dt><dd>40 stages across Forest, Dungeon, Desert, and Tundra</dd></div>
-                <div><dt>Spires &amp; Labyrinth</dt><dd>7 Spires with 20 floors each, plus an endless Labyrinth</dd></div>
-                <div><dt>Voyage &amp; Contracts</dt><dd>Repeatable 8, 10, or 12 stop Voyages and single-battle Contracts with rewards shown up front</dd></div>
-              </dl>
-            </div>
-          </article>
-
-          <article class="feature-panel gear-panel">
-            <div class="feature-art">
-              <img src="press/previews/launch-forge.webp" width="960" height="720" alt="Homestead Blacksmith Forge" loading="lazy">
-            </div>
-            <div class="feature-body">
-              <h3>Equipment and Homestead</h3>
-              <dl class="stat-grid stat-grid-wide">
-                <div><dt>Item affixes</dt><dd>111</dd></div>
-                <div><dt>Unique items</dt><dd>29</dd></div>
-                <div><dt>Trinkets</dt><dd>24</dd></div>
-                <div><dt>Homestead projects</dt><dd>20</dd></div>
-              </dl>
-              <dl class="detail-list">
-                <div><dt>Equipment</dt><dd>Basic gear rolls 1 to 2 affixes and Astral gear rolls 3 to 4, alongside 24 trinkets and 29 unique items</dd></div>
-                <div><dt>Homestead</dt><dd>80 upgrade tiers across Farming, Crafting, Alchemy, Training, and Arcana</dd></div>
-                <div><dt>Crafting</dt><dd>26 recipes across the Blacksmith Forge (14), Archery Range (8), and Wool Tailoring (4)</dd></div>
-              </dl>
-            </div>
-          </article>
-        </div>
+        <article class="showcase-split showcase-reverse">
+          <div class="showcase-art">
+            <img src="press/previews/launch-forge.webp" width="1440" height="1075" alt="Homestead Blacksmith Forge" loading="lazy">
+          </div>
+          <div class="showcase-info">
+            <h3>Equipment and Homestead</h3>
+            <dl class="stat-grid">
+              <div><dt>Item affixes</dt><dd>111</dd></div>
+              <div><dt>Unique items</dt><dd>29</dd></div>
+              <div><dt>Trinkets</dt><dd>24</dd></div>
+              <div><dt>Homestead projects</dt><dd>20</dd></div>
+            </dl>
+            <dl class="detail-list">
+              <div><dt>Equipment</dt><dd>Basic gear rolls 1 to 2 affixes and Astral gear rolls 3 to 4, alongside 24 trinkets and 29 unique items</dd></div>
+              <div><dt>Homestead</dt><dd>80 upgrade tiers across Farming, Crafting, Alchemy, Training, and Arcana</dd></div>
+              <div><dt>Crafting</dt><dd>26 recipes across the Blacksmith Forge (14), Archery Range (8), and Wool Tailoring (4)</dd></div>
+            </dl>
+          </div>
+        </article>
       </div>
     </section>
 
@@ -335,18 +357,27 @@
 
     <section class="band fairplay-band" aria-labelledby="fairplay-heading">
       <div class="container fairplay-inner">
-        <h2 id="fairplay-heading">Free and Full Game</h2>
-        <p>Try all five modes for free, with no ads, no subscriptions, and no energy timers. Play offline with no account required, with iCloud sync across iPhone and iPad.</p>
-        <div class="tier-comparison">
+        <div class="fairplay-header">
           <div>
+            <h2 id="fairplay-heading">Free and Full Game</h2>
+            <p>Try all five modes for free, with no ads, no subscriptions, and no energy timers. Play offline with no account required, with iCloud sync across iPhone and iPad.</p>
+          </div>
+          <figure class="world-strip">
+            <img src="press/previews/campaign-world.webp" width="940" height="701" alt="Four Campaign realms: Forest, Dungeon, Desert, and Tundra" loading="lazy">
+          </figure>
+        </div>
+
+        <div class="tier-comparison">
+          <div class="tier-block">
             <h3>Free</h3>
             <p>First three Campaign chapters (Forest, Dungeon, Desert), first 10 floors of every Spire, 3 Labyrinth floors, unlimited Contracts, Voyages, Homestead, and 4 heroes and 4 companions with full progression.</p>
           </div>
-          <div>
+          <div class="tier-block tier-full">
             <h3>Full Game · US$4.99</h3>
             <p>One-time purchase with Apple Family Sharing. Unlocks Tundra, deeper Spire and Labyrinth floors, all 8 heroes and 13 companions, and future content released within Trinket. Local prices vary.</p>
           </div>
         </div>
+
         <div class="final-cta">
           <a class="store-badge" href="https://apps.apple.com/app/trinket/id6811284921">
             <img src="press/previews/app-store-preorder.svg" width="154" height="52" alt="Pre-order on the App Store">
