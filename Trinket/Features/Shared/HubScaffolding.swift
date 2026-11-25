@@ -5,9 +5,10 @@ import TrinketFeatureSupport
 
 enum HubArtworkLayout {
     static let aspectRatio: CGFloat = 1.35
+    static let maximumWidth: CGFloat = 500
 
     static func width(in containerSize: CGSize) -> CGFloat {
-        min(500, twoCardHeight(in: containerSize) * aspectRatio)
+        min(maximumWidth, twoCardHeight(in: containerSize) * aspectRatio)
     }
 
     static func twoCardHeight(in containerSize: CGSize) -> CGFloat {

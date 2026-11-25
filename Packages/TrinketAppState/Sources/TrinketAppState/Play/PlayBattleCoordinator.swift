@@ -57,7 +57,8 @@ final class PlayBattleCoordinator {
     }
 
     func restoreOrigin(_ origin: PlayBattleOrigin?) {
-        if let path = PlayLaunchDestination.returnPath(from: origin) {
+        if let path = PlayLaunchDestination.returnPath(from: origin),
+           shellSession.playPath.last != path.last {
             var transaction = Transaction()
             transaction.disablesAnimations = true
             withTransaction(transaction) {

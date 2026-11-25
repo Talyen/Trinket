@@ -1205,6 +1205,20 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "所有章節關卡皆已完成"}}
       }
     },
+    "ui.chapterstageselectview.through_chapter_1_d6a04": {
+      "comment": "Short milestone below the final chapter artwork. The player has completed the campaign up to and including the displayed chapter number. More chapters may be added. Preserve the number placeholder.",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Bis Kapitel %1$@ abgeschlossen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Through Chapter %1$@"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Completado hasta el capítulo %1$@"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Terminé jusqu’au chapitre %1$@"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "第%1$@章までクリア"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "제%1$@장까지 완료"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Concluído até o capítulo %1$@"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "已完成至第 %1$@ 章"}}
+      }
+    },
     "ui.collectioncombatantpresentation.companions_ea125": {
       "comment": "Trinket/Features/Collection/CollectionCombatantPresentation.swift: display copy. Arguments are displayed values in source order.",
       "extractionState": "manual",

@@ -38,7 +38,7 @@ enum LaunchArtworkCensus {
             }
         }
 
-        if let art = ArtCatalog.backgroundArtByID["gameModeVoyage"] {
+        if let art = ArtCatalog.backgroundArtByID[ExploreMode.voyage.artworkID] {
             names.insert(art.imageName)
             if let thumbnail = art.thumbnailImageName {
                 names.insert(thumbnail)
@@ -130,6 +130,14 @@ enum LaunchArtworkCensus {
         if let chapterImg = (ArtCatalog.backgroundArtByID[chapter.id]
             ?? ArtCatalog.backgroundArtByID[EncounterArtIDs.fallbackChapterID])?.imageName {
             names.insert(chapterImg)
+        }
+
+        if save.journey.activeStageID == nil || save.journey.activeStageID == GameContent.chapters.last?.stages.last?.id {
+            for mode in ExploreMode.campaignCompletionOrder {
+                if let imageName = ArtCatalog.backgroundArtByID[mode.artworkID]?.imageName {
+                    names.insert(imageName)
+                }
+            }
         }
 
         for stage in chapter.stages {

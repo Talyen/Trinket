@@ -1,7 +1,51 @@
+import TrinketContent
 import TrinketFeatureSupport
 import XCTest
 
 final class PlayModeNavigationUITests: TrinketUITestCase {
+    func testCompletedCampaignOpensAllFourExploreModesDirectly() throws {
+        let finalChapter = try XCTUnwrap(GameContent.chapters.last)
+        launchApp(arguments: TestLaunchArg.allForMidBattle()
+            + TestLaunchArg.completedStages(GameContent.chapters.flatMap(\.stages).map(\.id)))
+        play.openCampaign(number: finalChapter.number)
+        let completionTitle = AccessibilityID.Play.chapterTitle(number: finalChapter.number)
+        assertExists(completionTitle)
+        retainScreenshot(named: "Campaign Complete with Voyage")
+
+        tapButtonAfterScroll(AccessibilityID.Voyage.modeCard)
+        assertExists(AccessibilityID.Voyage.screen)
+        tapButton("BackButton")
+
+        tapButtonAfterScroll(AccessibilityID.Play.spiresModeCard)
+        assertExists(AccessibilityID.Play.spiresHub)
+        tapButtonAfterScroll(AccessibilityID.Play.spireRow("cinderSpire"))
+        tapButtonAfterScroll(AccessibilityID.Play.spireBeginFloor("cinderSpire", floor: 1))
+        battle.assertActive()
+        battle.openActions()
+        tapButton(AccessibilityID.Battle.retreat)
+        assertExists(AccessibilityID.Battle.defeat)
+        tapButton(AccessibilityID.Battle.defeatLeaveButton)
+        assertExists(AccessibilityID.Play.spireClimb("cinderSpire"))
+        tapButton("BackButton")
+        assertExists(AccessibilityID.Play.spiresHub)
+        tapButton("BackButton")
+        assertDoesNotExist(AccessibilityID.Play.exploreHub)
+
+        tapButtonAfterScroll(AccessibilityID.Play.labyrinthModeCard)
+        assertExists(AccessibilityID.Play.labyrinthMap)
+        tapButton("BackButton")
+
+        tapButtonAfterScroll(AccessibilityID.Play.contractsModeCard)
+        assertExists(AccessibilityID.Play.contractsBoard)
+        tapButton("BackButton")
+        XCTAssertTrue(button(AccessibilityID.Play.contractsModeCard).isHittable, "Back should restore the completion stack at Contracts")
+
+        tapButton("BackButton")
+        play.assertLoaded()
+        play.openCampaign(number: finalChapter.number)
+        assertExists(completionTitle)
+    }
+
     func testCorruptionInspectionDoesNotSelectItem() {
         launchApp(arguments: TestLaunchArg.allForScreen("mystery")
             + TestLaunchArg.completedStages(["chapter-1-stage-1"])

@@ -347,6 +347,10 @@ enum L10n {
         LocalizedStringResource("ui.chapterstageselectview.every_chapter_stage_is_complete_bd88c", defaultValue: "Every chapter stage is complete", table: "Localizable", bundle: .main)
     }
 
+    static func ui_chapterstageselectview_through_chapter_1_d6a04(_ value1: String) -> LocalizedStringResource {
+        LocalizedStringResource("ui.chapterstageselectview.through_chapter_1_d6a04", defaultValue: "Through Chapter \(ContentCopy.localized(value1))", table: "Localizable", bundle: .main)
+    }
+
     static var ui_collectioncombatantpresentation_companions_ea125: LocalizedStringResource {
         LocalizedStringResource("ui.collectioncombatantpresentation.companions_ea125", defaultValue: "Companions", table: "Localizable", bundle: .main)
     }

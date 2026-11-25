@@ -59,12 +59,11 @@ missing registration or changed identities fail closed until explicitly prepared
 
 Play screens read save slices from `PlayerSaveStore` directly. Mode types own map/node/floor selection. `PlayBattleRoute` uses Persistence's closed `BattleCompletionDestination` values: AppState derives the navigation origin and supplies reward inputs to `completeBattle`; Persistence dispatches the matching completion inside one transaction and records its receipts. Registrations retain completion data rather than mode callbacks; the current Contracts offer generator enters at claim time. Modes must not re-absorb the shared victory persist→dismiss sequence. `AppState` prepares audio and requests launch state. The coordinator supplies presentation context explicitly for activation and Retry, then publishes the authoritative application record after success. The composition root owns the launch-victory preview; the overlay never installs progression callbacks or presentation context.
 
-Battle completion and Defeat Continue restore the origin's full browsing path without a
-navigation animation before ending the runtime. Do not defer this return to a
-view's lifecycle callback: battle exits immediately, so the map must already
-show the intended destination.
-Pending destinations remain for initial launch routing. Both use
-`PlayLaunchDestination.navigationPath` for the complete browsing hierarchy.
+Battle completion and defeat exit restore browsing before ending the runtime.
+When the current stack already ends at the battle's destination, preserve its
+parent screens, including Campaign Complete. Otherwise, restore the canonical
+`PlayLaunchDestination.navigationPath` without animation. Pending destinations
+use that same canonical path for initial launch routing.
 
 ## Reward settlement and completion
 

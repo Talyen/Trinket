@@ -11,7 +11,6 @@ struct ChapterStageSelectView: View {
     @Environment(EncounterPlayMode.self) private var encounters
     @State private var retainedPresentation: CampaignMapSnapshot?
     @Environment(PlayerSaveStore.self) private var playerSave
-    @Environment(\.dismiss) private var dismiss
 
     let onStageTap: (Stage) -> Bool
     let onEnemyTap: (Stage) -> Void
@@ -29,9 +28,16 @@ struct ChapterStageSelectView: View {
         let chapter = presentation.chapter
         let isChapterLocked = !playerSave.contentAccess.allowsChapter(chapter.number)
         let lockedStageID = isChapterLocked ? presentation.rows.first(where: \.isActive)?.item.id : nil
+        let chapterNumber = "\(chapter.number)"
+        let eyebrow = presentation.isComplete
+            ? String(localized: L10n.ui_chapterstageselectview_through_chapter_1_d6a04(chapterNumber))
+            : String(localized: L10n.ui_chapterstageselectview_chapter_1_c98b7(chapterNumber))
+        let title = presentation.isComplete
+            ? String(localized: L10n.ui_chapterstageselectview_campaign_complete_a2b42)
+            : chapter.title
         StageSelectScreen(
-            eyebrow: String(localized: L10n.ui_chapterstageselectview_chapter_1_c98b7("\(chapter.number)")),
-            title: chapter.title,
+            eyebrow: eyebrow,
+            title: title,
             subtitle: nil,
             titleAccessibilityIdentifier: AccessibilityID.Play.chapterTitle(
                 number: chapter.number,
@@ -46,7 +52,7 @@ struct ChapterStageSelectView: View {
         } content: {
             Group {
                 if presentation.isComplete {
-                    campaignCompletionState(chapter: chapter)
+                    campaignCompletionCards
                 } else {
                     StageSelectList(
                         rows: presentation.rows,
@@ -91,15 +97,17 @@ struct ChapterStageSelectView: View {
         }
     }
 
-    private func campaignCompletionState(chapter: Chapter) -> some View {
-        StageSelectCompletionPanel(
-            title: String(localized: L10n.ui_chapterstageselectview_campaign_complete_a2b42),
-            description: String(localized: L10n.ui_chapterstageselectview_every_chapter_stage_is_complete_bd88c),
-            buttonTitle: String(localized: L10n.ui_chapterstageselectview_back_to_play_f25f0),
-            tint: chapter.theme.tint,
-            accessibilityIdentifier: AccessibilityID.Play.campaignCompletionBack,
-            onBack: { dismiss() },
-        )
+    private var campaignCompletionCards: some View {
+        LazyVStack(spacing: TrinketDesign.Spacing.large) {
+            ForEach(ExploreMode.campaignCompletionOrder, id: \.destination) { mode in
+                mode.card()
+            }
+        }
+        .frame(maxWidth: HubArtworkLayout.maximumWidth)
+        .padding(.horizontal, TrinketDesign.Layout.contentMargin)
+        .padding(.top, TrinketDesign.Spacing.large)
+        .padding(.bottom, TrinketDesign.Spacing.extraLarge)
+        .frame(maxWidth: .infinity)
     }
 
     private func prepareActiveBattleRun() {
