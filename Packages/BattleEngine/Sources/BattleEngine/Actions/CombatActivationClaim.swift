@@ -99,5 +99,7 @@ package enum CombatActivationClaim: Hashable, Sendable {
     case thornShedding
     case unstableCulture
     case vitalInfusion
+    case smugglersLining
+    case verdigris
     case wildcardGoldGain
 }

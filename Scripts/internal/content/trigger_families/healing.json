@@ -479,6 +479,20 @@
     },
     "cannotBeLeeched": {
       "type": "Bool"
+    },
+    "attackLeechOverflowBlockCap": {
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 111
+      }
+    },
+    "cardHealAllyThorns": {
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 116
+      }
     }
   }
 }

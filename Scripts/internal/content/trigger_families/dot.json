@@ -323,6 +323,20 @@
         "kind": "int",
         "order": 88
       }
+    },
+    "firstBurnTickPreserveFlat": {
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 113
+      }
+    },
+    "finalBleedTickAllyHeal": {
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 120
+      }
     }
   }
 }

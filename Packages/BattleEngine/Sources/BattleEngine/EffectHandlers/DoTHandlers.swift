@@ -9,7 +9,15 @@ extension EffectHandlers {
         let progression = DecayingDoTProgression(
             type: type, sourceActorID: active.sourceActorID, target: target, in: context,
         )
-        let nextPotency = progression.turnPotency(from: active.effect.potency ?? 0, using: &context.rng)
+        let potency = active.effect.potency ?? 0
+        var nextPotency = progression.turnPotency(from: potency, using: &context.rng)
+        if context.resolution.bankedEmberEffectID == active.id {
+            context.resolution.bankedEmberEffectID = nil
+            if let sourceID = active.sourceActorID, nextPotency < potency {
+                let preserve = context.modifiers(for: sourceID).triggers.firstBurnTickPreserveFlat
+                nextPotency += min(potency - nextPotency, preserve)
+            }
+        }
         var updated = active
         updated.effect = type.effect(potency: nextPotency)
         ActiveEffectMutation.finishTurn(active, replacement: nextPotency > 0 ? updated : nil, on: target, in: &context)
@@ -79,7 +87,7 @@ extension EffectHandlers {
         let operation = DamageOperation.statusTick(
             scaling: .statsAndItems, natural: target == context.enemy && context.resolution.naturalReactionPhase != nil,
         )
-        _ = await DoTDamage.resolveDamage(
+        let outcome = await DoTDamage.resolveDamage(
             basePotency: potency,
             keyword: .bleed,
             target: target,
@@ -111,6 +119,9 @@ extension EffectHandlers {
         ActiveEffectMutation.finishTurn(
             active, replacement: updated.remainingTurns > 0 ? updated : nil, on: target, in: &context,
         )
+        if updated.remainingTurns == 0, operation.isNaturalStatusTick, outcome.healthLost > 0 {
+            await CombatTriggerEngine.afterFinalBleedTick(sourceID: active.sourceActorID, in: &context)
+        }
     }
 
     static func summarizeBleed(for stacks: [ActiveEffect], keyword: Keyword) -> EffectSummary? {

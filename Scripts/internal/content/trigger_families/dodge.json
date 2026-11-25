@@ -254,6 +254,13 @@
     },
     "dodgeNextBleedAttackBonus": {
       "type": "Int"
+    },
+    "allySupportCardDodgePercent": {
+      "type": "Double",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 117
+      }
     }
   }
 }

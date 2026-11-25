@@ -8,12 +8,14 @@ package enum BattleTurnEngine {
         context: inout BattleState,
     ) async {
         var keyword: Keyword?
+        var skippedEffectID: Int?
         var recovered = false
 
         context.roster.mutateRuntime(for: actor) { runtime in
             guard let index = runtime.activeEffects.firstIndex(where: \.isAwaitingActionSkip) else { return }
             var effect = runtime.activeEffects[index]
             keyword = effect.keyword
+            skippedEffectID = effect.id
             let extraSkips = context.additionalControlSkipsByEffectID[effect.id, default: 0]
             if extraSkips > 0 {
                 context.additionalControlSkipsByEffectID[effect.id] = extraSkips > 1 ? extraSkips - 1 : nil
@@ -42,8 +44,14 @@ package enum BattleTurnEngine {
         if keyword == .stun, recovered {
             applyStunRecoveryReduction(for: actor, context: &context)
         }
-        if actor.role == .enemy, keyword == .stun, recovered {
-            if CombatCheckpoint.controlRecovery(actor.id, .stun).allowsContinuation(in: context) {
+        if actor.role == .enemy, keyword == .stun {
+            if let skippedEffectID {
+                CombatTriggerEngine.afterVigilBellSkip(effectID: skippedEffectID, in: &context)
+                if recovered, context.resolution.vigilBellStun?.effectID == skippedEffectID {
+                    context.resolution.vigilBellStun = nil
+                }
+            }
+            if recovered, CombatCheckpoint.controlRecovery(actor.id, .stun).allowsContinuation(in: context) {
                 await CombatTriggerEngine.afterEnemyStunRecover(in: &context)
             }
         }

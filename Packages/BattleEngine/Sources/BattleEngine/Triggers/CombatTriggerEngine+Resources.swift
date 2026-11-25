@@ -5,6 +5,7 @@ package extension CombatTriggerEngine {
     static func afterGoldTheft(by actor: Combatant, amount: Int, in context: inout BattleState) async {
         guard context.roster.health(for: actor) > 0 else { return }
         let triggers = context.modifiers(for: actor.id).triggers
+        afterAffixGoldTheft(by: actor, amount: amount, in: &context)
         goldTheftAllyBlock(amount, by: actor, in: &context)
         await afterCompanionGoldTheft(by: actor, in: &context)
         guard context.roster.health(for: actor) > 0 else { return }

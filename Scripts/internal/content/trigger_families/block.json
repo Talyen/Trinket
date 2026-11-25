@@ -402,6 +402,21 @@
     },
     "attackStealBlock": {
       "type": "Int"
+    },
+    "allyHitPoisonedExtraBlockRemoval": {
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 119
+      }
+    },
+    "fullManaBlockRetentionPercent": {
+      "type": "Double",
+      "merge": "max",
+      "affix_roll": {
+        "kind": "percent",
+        "order": 121
+      }
     }
   }
 }

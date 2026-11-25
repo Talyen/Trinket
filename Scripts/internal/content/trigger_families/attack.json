@@ -481,6 +481,20 @@
     },
     "attackDamageReductionBelowHalf": {
       "type": "Int"
+    },
+    "bleedAttackVsUnbledBonus": {
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 110
+      }
+    },
+    "holyAttackBonusAfterAllyHeal": {
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 115
+      }
     }
   }
 }

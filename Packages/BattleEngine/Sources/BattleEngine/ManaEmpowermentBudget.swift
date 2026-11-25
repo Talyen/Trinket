@@ -6,6 +6,7 @@ struct ManaEmpowermentBudget {
         let ownMana: Int
         let partnerMana: Int
         let block: Int
+        let rimeglassAllyFreezeCount: Int
     }
 
     let partner: Combatant?
@@ -19,6 +20,7 @@ struct ManaEmpowermentBudget {
     private var block: Int
     private var hasEmpowered: Bool
     private var preparedDiscount: Int
+    private var rimeglassAllyFreezeCount: Int
 
     init(ability: Ability, actor: Combatant, in context: BattleState, blockOverride: Int? = nil) {
         self.init(
@@ -35,6 +37,9 @@ struct ManaEmpowermentBudget {
         let runtime = context.roster.runtime(for: actor)
         let triggers = context.modifiers(for: actor.id).triggers
         let hasFreeze = keywords.contains(.freeze)
+        rimeglassAllyFreezeCount = Self.rimeglassReadiness(
+            hasFreeze: hasFreeze, equipped: triggers.allyFreezeCardDiscountsNextFreeze, actor: actor, in: context,
+        )
         func isPatron(_ candidate: CombatantRuntime) -> Bool {
             candidate.id != actor.id && candidate.isAlive && context.modifiers(for: candidate.id).triggers.dragonPatronage
         }
@@ -67,17 +72,28 @@ struct ManaEmpowermentBudget {
         hasCapacity = maxMana > 0 || blockRate > 0
         let repeats = repeatsManaEmpowerment
             || (hasBurnDamage && triggers.repeatManaEmpowerment)
-        let discountPurchase = preparedDiscount > 0 || (!hasEmpowered && firstDiscount > 0) ? 1 : 0
+        let hasDiscount = preparedDiscount > 0 || (!hasEmpowered && firstDiscount > 0) || rimeglassAllyFreezeCount > 0
+        let discountPurchase = hasDiscount ? 1 : 0
         let capacity = SaturatedArithmetic.saturatingAdd(maxMana, blockRate > 0 ? block / blockRate : 0)
         purchaseLimit = repeats && baseCost > 0
             ? max(1, SaturatedArithmetic.saturatingAdd(capacity / baseCost, discountPurchase)) : 1
     }
 
+    private static func rimeglassReadiness(
+        hasFreeze: Bool, equipped: Bool, actor: Combatant, in context: BattleState,
+    ) -> Int {
+        guard hasFreeze, equipped, actor.role != .enemy else { return 0 }
+        let ally: BattleParticipant = actor.role == .hero ? .companion : .hero
+        let count = context.turnCadence.freezeCardsPlayed[ally, default: 0]
+        let used = context.roster.runtime(for: actor)?.talents.turn.rimeglassUsedAllyFreezeCount ?? 0
+        return count > used ? count : 0
+    }
+
     mutating func nextPayment() -> Payment? {
         guard hasCapacity else { return nil }
-        let cost = max(0, SaturatedArithmetic.saturatingSub(
-            SaturatedArithmetic.saturatingSub(baseCost, preparedDiscount), hasEmpowered ? 0 : firstDiscount,
-        ))
+        let talentDiscount = SaturatedArithmetic.saturatingAdd(preparedDiscount, hasEmpowered ? 0 : firstDiscount)
+        let discount = SaturatedArithmetic.saturatingAdd(talentDiscount, rimeglassAllyFreezeCount > 0 ? 1 : 0)
+        let cost = max(0, SaturatedArithmetic.saturatingSub(baseCost, discount))
         let own = min(cost, ownMana)
         let shared = min(cost - own, partnerMana)
         let shortfall = cost - own - shared
@@ -90,7 +106,9 @@ struct ManaEmpowermentBudget {
         block -= blockCost
         hasEmpowered = true
         preparedDiscount = 0
-        return Payment(ownMana: own, partnerMana: shared, block: blockCost)
+        let usedAllyFreezeCount = rimeglassAllyFreezeCount
+        rimeglassAllyFreezeCount = 0
+        return Payment(ownMana: own, partnerMana: shared, block: blockCost, rimeglassAllyFreezeCount: usedAllyFreezeCount)
     }
 
     /// Inspection has no spending reactions. Pay the discounted first purchase,
@@ -115,6 +133,7 @@ struct ManaEmpowermentBudget {
             ownMana: first.ownMana + own,
             partnerMana: first.partnerMana + shared,
             block: first.block + blockCost,
+            rimeglassAllyFreezeCount: first.rimeglassAllyFreezeCount,
         )
     }
 }

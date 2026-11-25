@@ -369,6 +369,27 @@ it cannot amplify a fully blocked hit, bypassed Block, or later unblocked hits.
 Resolved attack repeats check their own fresh Block absorption, without repeating
 outgoing damage bonuses.
 
+Blood Groove checks Bleed at each landed hit, and Votive counts actual Health
+restored to the ally before the hit, including earlier operations of the same
+card. Thornstitch requires direct card healing. Side-Laced checks the card's
+enabled targets on play and refreshes its Dodge bonus for the round.
+
+Red Temper allocates remaining Leech overheal up to one shared Block cap per
+attack. Bell-Metal readies after one Block owner fully absorbs an enemy hit and
+adds buildup to the next eligible Stun packet. Tolltaker ignores flat Block
+without consuming the bypassed points. Verdigris strips remaining Block after
+the ally's first landed attack on a Poisoned enemy, through the Block-loss
+path rather than Block absorption. Smuggler's Lining rewards the wearer's
+first positive theft in battle.
+
+Banked Ember preserves part of a newly ignited Burn pool on its first scheduled
+tick. Adding to the pool does not refresh it. Red Thread heals after the natural
+tick that actually expires Bleed and damages Health, including after any
+prolonged Bleed tail. Vigil Bell credits the actor who completed Stun and draws
+when that status skips an action. Rimeglass uses the ally's latest Freeze card
+to discount one successful Freeze empowerment in the same turn. Deepwell applies
+at full positive Mana and rounds retained Block down.
+
 Tattered Pages rolls once for each committed Burn packet against an enemy from a
 living party source, including Block absorbed, using the same packet boundary as
 Cutpurse Knife. Direct hits, periodic damage, detonations and ordinary copied or

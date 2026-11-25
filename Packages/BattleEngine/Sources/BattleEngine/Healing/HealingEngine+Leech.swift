@@ -163,12 +163,16 @@ package extension HealingEngine {
             ),
             in: &context,
         )
+        let redTemperBlock = attackHit && target?.role == .enemy
+            ? CombatTriggerEngine.afterRedTemperOverheal(healing.allocation.remaining, by: actorCombatant, in: &context)
+            : 0
+        let unspentOverflow = max(0, healing.allocation.remaining - redTemperBlock)
         let goldChance = profile.triggers.excessLeechHealthToGoldChancePercent > 0
             ? profile.triggers.excessLeechHealthToGoldChancePercent : (profile.triggers.excessLeechHealthToGold ? 0.10 : 0)
-        if healing.allocation.remaining > 0,
+        if unspentOverflow > 0,
            BattleChance.succeeds(probability: goldChance, using: &context.rng) {
             _ = await context.grantGold(
-                healing.allocation.remaining, to: actorCombatant, abilityName: "Flawless Bounty",
+                unspentOverflow, to: actorCombatant, abilityName: "Flawless Bounty",
                 isLeechOverflow: true,
             )
         }

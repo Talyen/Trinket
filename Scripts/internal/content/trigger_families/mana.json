@@ -325,6 +325,12 @@
         "kind": "int",
         "order": 94
       }
+    },
+    "allyFreezeCardDiscountsNextFreeze": {
+      "type": "Bool",
+      "affix_roll": {
+        "reason": "Fixed effect at both equipment tiers."
+      }
     }
   }
 }

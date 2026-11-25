@@ -109,6 +109,10 @@ package enum DoTApplicator {
                 ))
             }
         }
+        if keyword == .burn, let newEffectID, effectTarget.role == .enemy, application != .reflection,
+           context.modifiers(for: sourceActorID).triggers.firstBurnTickPreserveFlat > 0 {
+            context.resolution.bankedEmberEffectID = newEffectID
+        }
         if application.triggersApplicationReactions {
             CombatTriggerEngine.afterDecayingDoTApplied(keyword: keyword, to: effectTarget, sourceActorID: sourceActorID, in: &context)
         }

@@ -1163,6 +1163,48 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "灰燼餘波"}}
       }
     },
+    "affixes.banked_ember.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: banked_ember, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Beim ersten Tick verliert dein <keyword id=\"burn\">Brand</keyword> bis zu <value id=\"quantity_1\">%1$lld</value> weniger Stärke"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Your <keyword id=\"burn\">Burn</keyword> loses up to <value id=\"quantity_1\">%1$lld</value> less potency on its first tick"}},
+        "es": {"stringUnit": {"state": "translated", "value": "En su primer pulso, la pérdida de potencia de tu <keyword id=\"burn\">Quemadura</keyword> se reduce hasta en <value id=\"quantity_1\">%1$lld</value>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Au premier déclenchement de votre <keyword id=\"burn\">Brûlure</keyword>, la perte de puissance est réduite de <value id=\"quantity_1\">%1$lld</value> au maximum"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自分が付与した<keyword id=\"burn\">炎上</keyword>は、最初のダメージ発生時に効果量の減少幅が最大<value id=\"quantity_1\">%1$lld</value>小さくなる"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "내가 부여한 <keyword id=\"burn\">화상</keyword>의 위력은 첫 틱에 최대 <value id=\"quantity_1\">%1$lld</value>만큼 덜 감소합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A perda de potência da sua <keyword id=\"burn\">Queimadura</keyword> no primeiro pulso é reduzida em até <value id=\"quantity_1\">%1$lld</value>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你施加的<keyword id=\"burn\">燃燒</keyword>首次結算時，強度的衰減量最多減少<value id=\"quantity_1\">%1$lld</value>點"}}
+      }
+    },
+    "affixes.banked_ember.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: banked_ember, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Beim ersten Tick verliert dein <keyword id=\"burn\">Brand</keyword> bis zu <value id=\"quantity_1\">%1$lld</value> weniger Stärke"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Your <keyword id=\"burn\">Burn</keyword> loses up to <value id=\"quantity_1\">%1$lld</value> less potency on its first tick"}},
+        "es": {"stringUnit": {"state": "translated", "value": "En su primer pulso, la pérdida de potencia de tu <keyword id=\"burn\">Quemadura</keyword> se reduce hasta en <value id=\"quantity_1\">%1$lld</value>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Au premier déclenchement de votre <keyword id=\"burn\">Brûlure</keyword>, la perte de puissance est réduite de <value id=\"quantity_1\">%1$lld</value> au maximum"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自分が付与した<keyword id=\"burn\">炎上</keyword>は、最初のダメージ発生時に効果量の減少幅が最大<value id=\"quantity_1\">%1$lld</value>小さくなる"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "내가 부여한 <keyword id=\"burn\">화상</keyword>의 위력은 첫 틱에 최대 <value id=\"quantity_1\">%1$lld</value>만큼 덜 감소합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A perda de potência da sua <keyword id=\"burn\">Queimadura</keyword> no primeiro pulso é reduzida em até <value id=\"quantity_1\">%1$lld</value>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你施加的<keyword id=\"burn\">燃燒</keyword>首次結算時，強度的衰減量最多減少<value id=\"quantity_1\">%1$lld</value>點"}}
+      }
+    },
+    "affixes.banked_ember.title": {
+      "comment": "ContentManifest/affixes.tsv: banked_ember, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Gehütete Glut"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Banked Ember"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Brasa latente"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Braise sous la cendre"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "埋み火"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "잿속의 불씨"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Brasa Abafada"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "藏火餘燼"}}
+      }
+    },
     "affixes.barbed.astral_description": {
       "comment": "ContentManifest/affixes.tsv: barbed, astral_description",
       "extractionState": "manual",
@@ -1331,6 +1373,48 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "野獸羈絆"}}
       }
     },
+    "affixes.bell_metal.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: bell_metal, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Blockst du einen Treffer vollständig, erhöht dein nächster Angriff mit <keyword id=\"stun\">Betäubung</keyword> den Füllstand der Betäubungsleiste um zusätzlich <value id=\"quantity_1\">%1$lld</value>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Fully Blocking a hit adds <value id=\"quantity_1\">%1$lld</value> buildup to your next <keyword id=\"stun\">Stun</keyword> attack"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Al bloquear por completo un golpe, aumentas en <value id=\"quantity_1\">%1$lld</value> la acumulación que aplica tu próximo ataque de <keyword id=\"stun\">Aturdimiento</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Bloquer entièrement un coup augmente de <value id=\"quantity_1\">%1$lld</value> l’accumulation d’<keyword id=\"stun\">Étourdissement</keyword> produite par votre prochaine attaque de ce type"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "一撃を完全にブロックすると、次に自分が行う<keyword id=\"stun\">スタン</keyword>攻撃の蓄積量が<value id=\"quantity_1\">%1$lld</value>増える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "방어도로 타격을 완전히 막으면 내 다음 <keyword id=\"stun\">기절</keyword> 공격의 축적량이 <value id=\"quantity_1\">%1$lld</value>만큼 증가합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Bloquear totalmente um golpe aumenta em <value id=\"quantity_1\">%1$lld</value> o acúmulo de <keyword id=\"stun\">Atordoamento</keyword> do seu próximo ataque desse tipo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "完全格擋一擊後，你下一次<keyword id=\"stun\">暈眩</keyword>攻擊會額外累積<value id=\"quantity_1\">%1$lld</value>點"}}
+      }
+    },
+    "affixes.bell_metal.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: bell_metal, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Blockst du einen Treffer vollständig, erhöht dein nächster Angriff mit <keyword id=\"stun\">Betäubung</keyword> den Füllstand der Betäubungsleiste um zusätzlich <value id=\"quantity_1\">%1$lld</value>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Fully Blocking a hit adds <value id=\"quantity_1\">%1$lld</value> buildup to your next <keyword id=\"stun\">Stun</keyword> attack"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Al bloquear por completo un golpe, aumentas en <value id=\"quantity_1\">%1$lld</value> la acumulación que aplica tu próximo ataque de <keyword id=\"stun\">Aturdimiento</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Bloquer entièrement un coup augmente de <value id=\"quantity_1\">%1$lld</value> l’accumulation d’<keyword id=\"stun\">Étourdissement</keyword> produite par votre prochaine attaque de ce type"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "一撃を完全にブロックすると、次に自分が行う<keyword id=\"stun\">スタン</keyword>攻撃の蓄積量が<value id=\"quantity_1\">%1$lld</value>増える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "방어도로 타격을 완전히 막으면 내 다음 <keyword id=\"stun\">기절</keyword> 공격의 축적량이 <value id=\"quantity_1\">%1$lld</value>만큼 증가합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Bloquear totalmente um golpe aumenta em <value id=\"quantity_1\">%1$lld</value> o acúmulo de <keyword id=\"stun\">Atordoamento</keyword> do seu próximo ataque desse tipo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "完全格擋一擊後，你下一次<keyword id=\"stun\">暈眩</keyword>攻擊會額外累積<value id=\"quantity_1\">%1$lld</value>點"}}
+      }
+    },
+    "affixes.bell_metal.title": {
+      "comment": "ContentManifest/affixes.tsv: bell_metal, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Glockenbronze"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Bell-Metal"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Bronce de campana"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Bronze de cloche"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "鐘用青銅"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "종 주조용 청동"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Bronze de Sino"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "鐘銅"}}
+      }
+    },
     "affixes.biting.astral_description": {
       "comment": "ContentManifest/affixes.tsv: biting, astral_description",
       "extractionState": "manual",
@@ -1371,6 +1455,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "날카로운"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Mordaz"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "利齒"}}
+      }
+    },
+    "affixes.blood_groove.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: blood_groove, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Deine Angriffe mit <keyword id=\"bleed\">Blutung</keyword> fügen Gegnern ohne <keyword id=\"bleed\">Blutung</keyword> <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden zu"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Your <keyword id=\"bleed\">Bleed</keyword> attacks deal <value id=\"quantity_1\">%1$lld</value> additional damage to enemies without <keyword id=\"bleed\">Bleed</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Tus ataques de <keyword id=\"bleed\">Sangrado</keyword> infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional a los enemigos sin <keyword id=\"bleed\">Sangrado</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de vos attaques de <keyword id=\"bleed\">Saignement</keyword> augmentent de <value id=\"quantity_1\">%1$lld</value> contre les ennemis qui ne sont pas sous l’effet du <keyword id=\"bleed\">Saignement</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自分が使う<keyword id=\"bleed\">出血</keyword>付与攻撃は、<keyword id=\"bleed\">出血</keyword>状態でない敵に<value id=\"quantity_1\">%1$lld</value>の追加ダメージを与える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "내 <keyword id=\"bleed\">출혈</keyword> 공격은 <keyword id=\"bleed\">출혈</keyword> 상태가 아닌 적에게 <value id=\"quantity_1\">%1$lld</value>의 추가 피해를 줍니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Seus ataques de <keyword id=\"bleed\">Sangramento</keyword> causam <value id=\"quantity_1\">%1$lld</value> de dano adicional a inimigos sem <keyword id=\"bleed\">Sangramento</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你的<keyword id=\"bleed\">流血</keyword>攻擊對未處於<keyword id=\"bleed\">流血</keyword>狀態的敵人額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"}}
+      }
+    },
+    "affixes.blood_groove.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: blood_groove, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Deine Angriffe mit <keyword id=\"bleed\">Blutung</keyword> fügen Gegnern ohne <keyword id=\"bleed\">Blutung</keyword> <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden zu"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Your <keyword id=\"bleed\">Bleed</keyword> attacks deal <value id=\"quantity_1\">%1$lld</value> additional damage to enemies without <keyword id=\"bleed\">Bleed</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Tus ataques de <keyword id=\"bleed\">Sangrado</keyword> infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional a los enemigos sin <keyword id=\"bleed\">Sangrado</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de vos attaques de <keyword id=\"bleed\">Saignement</keyword> augmentent de <value id=\"quantity_1\">%1$lld</value> contre les ennemis qui ne sont pas sous l’effet du <keyword id=\"bleed\">Saignement</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自分が使う<keyword id=\"bleed\">出血</keyword>付与攻撃は、<keyword id=\"bleed\">出血</keyword>状態でない敵に<value id=\"quantity_1\">%1$lld</value>の追加ダメージを与える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "내 <keyword id=\"bleed\">출혈</keyword> 공격은 <keyword id=\"bleed\">출혈</keyword> 상태가 아닌 적에게 <value id=\"quantity_1\">%1$lld</value>의 추가 피해를 줍니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Seus ataques de <keyword id=\"bleed\">Sangramento</keyword> causam <value id=\"quantity_1\">%1$lld</value> de dano adicional a inimigos sem <keyword id=\"bleed\">Sangramento</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你的<keyword id=\"bleed\">流血</keyword>攻擊對未處於<keyword id=\"bleed\">流血</keyword>狀態的敵人額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"}}
+      }
+    },
+    "affixes.blood_groove.title": {
+      "comment": "ContentManifest/affixes.tsv: blood_groove, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Blutrinne"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Blood Groove"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Surco de sangre"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Rainure de sang"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "血溝"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "핏물 홈"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sulco de Sangue"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "血槽"}}
       }
     },
     "affixes.blood_price.astral_description": {
@@ -2505,6 +2631,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "죽음의 손아귀"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Abraço da Morte"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "死亡之握"}}
+      }
+    },
+    "affixes.deepwell.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: deepwell, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Bei vollem <keyword id=\"mana\">Mana</keyword> behältst du zwischen den Zügen <value id=\"quantity_1\">%1$lld</value> %% deines <keyword id=\"block\">Block</keyword>s"}},
+        "en": {"stringUnit": {"state": "translated", "value": "While at full <keyword id=\"mana\">Mana</keyword>, keep <value id=\"quantity_1\">%1$lld</value>%% of your <keyword id=\"block\">Block</keyword> between turns"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Mientras tengas el <keyword id=\"mana\">Maná</keyword> al máximo, conservas el <value id=\"quantity_1\">%1$lld</value>\u0000%% de tu <keyword id=\"block\">Bloqueo</keyword> entre turnos"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Tant que votre <keyword id=\"mana\">Mana</keyword> est au maximum, conservez <value id=\"quantity_1\">%1$lld</value> %% de votre <keyword id=\"block\">Blocage</keyword> d’un tour à l’autre"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">マナ</keyword>が最大の間、自分の<keyword id=\"block\">ブロック</keyword>の<value id=\"quantity_1\">%1$lld</value>%%を次のターンに持ち越す"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">마나</keyword>가 가득 차 있으면 턴이 넘어갈 때 내 <keyword id=\"block\">방어도</keyword>의 <value id=\"quantity_1\">%1$lld</value>%%를 유지합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Enquanto sua <keyword id=\"mana\">Mana</keyword> estiver no máximo, você mantém <value id=\"quantity_1\">%1$lld</value>%% do seu <keyword id=\"block\">Bloqueio</keyword> entre turnos"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">魔力</keyword>全滿時，將<value id=\"quantity_1\">%1$lld</value>%%的<keyword id=\"block\">格擋</keyword>保留到下一回合"}}
+      }
+    },
+    "affixes.deepwell.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: deepwell, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Bei vollem <keyword id=\"mana\">Mana</keyword> behältst du zwischen den Zügen <value id=\"quantity_1\">%1$lld</value> %% deines <keyword id=\"block\">Block</keyword>s"}},
+        "en": {"stringUnit": {"state": "translated", "value": "While at full <keyword id=\"mana\">Mana</keyword>, keep <value id=\"quantity_1\">%1$lld</value>%% of your <keyword id=\"block\">Block</keyword> between turns"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Mientras tengas el <keyword id=\"mana\">Maná</keyword> al máximo, conservas el <value id=\"quantity_1\">%1$lld</value>\u0000%% de tu <keyword id=\"block\">Bloqueo</keyword> entre turnos"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Tant que votre <keyword id=\"mana\">Mana</keyword> est au maximum, conservez <value id=\"quantity_1\">%1$lld</value> %% de votre <keyword id=\"block\">Blocage</keyword> d’un tour à l’autre"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">マナ</keyword>が最大の間、自分の<keyword id=\"block\">ブロック</keyword>の<value id=\"quantity_1\">%1$lld</value>%%を次のターンに持ち越す"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">마나</keyword>가 가득 차 있으면 턴이 넘어갈 때 내 <keyword id=\"block\">방어도</keyword>의 <value id=\"quantity_1\">%1$lld</value>%%를 유지합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Enquanto sua <keyword id=\"mana\">Mana</keyword> estiver no máximo, você mantém <value id=\"quantity_1\">%1$lld</value>%% do seu <keyword id=\"block\">Bloqueio</keyword> entre turnos"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "<keyword id=\"mana\">魔力</keyword>全滿時，將<value id=\"quantity_1\">%1$lld</value>%%的<keyword id=\"block\">格擋</keyword>保留到下一回合"}}
+      }
+    },
+    "affixes.deepwell.title": {
+      "comment": "ContentManifest/affixes.tsv: deepwell, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Tiefbrunnen"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Deepwell"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Pozo profundo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Puits profond"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "深井戸"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "깊은 우물"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Poço Profundo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "深井"}}
       }
     },
     "affixes.defenders.astral_description": {
@@ -4565,6 +4733,90 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "反應"}}
       }
     },
+    "affixes.red_temper.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: red_temper, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Überschüssige Heilung durch <keyword id=\"leech\">Lebensraub</keyword> gewährt pro Angriff bis zu <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Excess <keyword id=\"leech\">Leech</keyword> healing grants up to <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> per attack"}},
+        "es": {"stringUnit": {"state": "translated", "value": "La curación sobrante de <keyword id=\"leech\">Robo de vida</keyword> te otorga hasta <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> por ataque"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Le surplus de soins du <keyword id=\"leech\">Vol de vie</keyword> augmente votre <keyword id=\"block\">Blocage</keyword> de <value id=\"quantity_1\">%1$lld</value> au maximum par attaque"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸収</keyword>による余剰回復分は、攻撃1回につき最大<value id=\"quantity_1\">%1$lld</value>の<keyword id=\"block\">ブロック</keyword>になる"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격당 <keyword id=\"leech\">흡혈</keyword>의 초과 회복량에 따라 최대 <value id=\"quantity_1\">%1$lld</value>의 <keyword id=\"block\">방어도</keyword>를 얻습니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A cura excedente de <keyword id=\"leech\">Roubo de Vida</keyword> concede até <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> por ataque"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每次攻擊時，<keyword id=\"leech\">吸血</keyword>的溢出治療量最多可轉為<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
+      }
+    },
+    "affixes.red_temper.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: red_temper, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Überschüssige Heilung durch <keyword id=\"leech\">Lebensraub</keyword> gewährt pro Angriff bis zu <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Excess <keyword id=\"leech\">Leech</keyword> healing grants up to <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword> per attack"}},
+        "es": {"stringUnit": {"state": "translated", "value": "La curación sobrante de <keyword id=\"leech\">Robo de vida</keyword> te otorga hasta <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword> por ataque"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Le surplus de soins du <keyword id=\"leech\">Vol de vie</keyword> augmente votre <keyword id=\"block\">Blocage</keyword> de <value id=\"quantity_1\">%1$lld</value> au maximum par attaque"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"leech\">吸収</keyword>による余剰回復分は、攻撃1回につき最大<value id=\"quantity_1\">%1$lld</value>の<keyword id=\"block\">ブロック</keyword>になる"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "공격당 <keyword id=\"leech\">흡혈</keyword>의 초과 회복량에 따라 최대 <value id=\"quantity_1\">%1$lld</value>의 <keyword id=\"block\">방어도</keyword>를 얻습니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A cura excedente de <keyword id=\"leech\">Roubo de Vida</keyword> concede até <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword> por ataque"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每次攻擊時，<keyword id=\"leech\">吸血</keyword>的溢出治療量最多可轉為<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
+      }
+    },
+    "affixes.red_temper.title": {
+      "comment": "ContentManifest/affixes.tsv: red_temper, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Rotgehärtet"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Red Temper"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Temple rojo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Trempe rouge"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "紅の焼き戻し"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "붉은 뜨임"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Têmpera Rubra"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "赤紅回火"}}
+      }
+    },
+    "affixes.red_thread.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: red_thread, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wenn der letzte Tick deiner <keyword id=\"bleed\">Blutung</keyword> Schaden an der <keyword id=\"health\">Gesundheit</keyword> verursacht, erhält dein Verbündeter <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> zurück"}},
+        "en": {"stringUnit": {"state": "translated", "value": "When your <keyword id=\"bleed\">Bleed</keyword>'s final tick deals <keyword id=\"health\">Health</keyword> damage, restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> to your ally"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cuando el último pulso de tu <keyword id=\"bleed\">Sangrado</keyword> inflige daño a la <keyword id=\"health\">Salud</keyword>, tu aliado recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Lorsque le dernier déclenchement de votre <keyword id=\"bleed\">Saignement</keyword> retire des points de <keyword id=\"health\">Santé</keyword> à la cible, votre allié récupère de la <keyword id=\"health\">Santé</keyword> à hauteur de <value id=\"quantity_1\">%1$lld</value>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自分が付与した<keyword id=\"bleed\">出血</keyword>の最後のダメージ判定で敵の<keyword id=\"health\">体力</keyword>が減ると、味方の<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "내가 부여한 <keyword id=\"bleed\">출혈</keyword>의 마지막 틱이 <keyword id=\"health\">체력</keyword>에 피해를 주면 아군의 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value>만큼 회복시킵니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Quando o último pulso do seu <keyword id=\"bleed\">Sangramento</keyword> causar dano à <keyword id=\"health\">Vida</keyword>, seu aliado recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "若你施加的<keyword id=\"bleed\">流血</keyword>在最後一次結算時扣除目標的<keyword id=\"health\">生命值</keyword>，便為你的隊友恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"}}
+      }
+    },
+    "affixes.red_thread.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: red_thread, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wenn der letzte Tick deiner <keyword id=\"bleed\">Blutung</keyword> Schaden an der <keyword id=\"health\">Gesundheit</keyword> verursacht, erhält dein Verbündeter <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Gesundheit</keyword> zurück"}},
+        "en": {"stringUnit": {"state": "translated", "value": "When your <keyword id=\"bleed\">Bleed</keyword>'s final tick deals <keyword id=\"health\">Health</keyword> damage, restore <value id=\"quantity_1\">%1$lld</value> <keyword id=\"health\">Health</keyword> to your ally"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cuando el último pulso de tu <keyword id=\"bleed\">Sangrado</keyword> inflige daño a la <keyword id=\"health\">Salud</keyword>, tu aliado recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Salud</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Lorsque le dernier déclenchement de votre <keyword id=\"bleed\">Saignement</keyword> retire des points de <keyword id=\"health\">Santé</keyword> à la cible, votre allié récupère de la <keyword id=\"health\">Santé</keyword> à hauteur de <value id=\"quantity_1\">%1$lld</value>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自分が付与した<keyword id=\"bleed\">出血</keyword>の最後のダメージ判定で敵の<keyword id=\"health\">体力</keyword>が減ると、味方の<keyword id=\"health\">体力</keyword>を<value id=\"quantity_1\">%1$lld</value>回復する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "내가 부여한 <keyword id=\"bleed\">출혈</keyword>의 마지막 틱이 <keyword id=\"health\">체력</keyword>에 피해를 주면 아군의 <keyword id=\"health\">체력</keyword>을 <value id=\"quantity_1\">%1$lld</value>만큼 회복시킵니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Quando o último pulso do seu <keyword id=\"bleed\">Sangramento</keyword> causar dano à <keyword id=\"health\">Vida</keyword>, seu aliado recupera <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"health\">Vida</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "若你施加的<keyword id=\"bleed\">流血</keyword>在最後一次結算時扣除目標的<keyword id=\"health\">生命值</keyword>，便為你的隊友恢復<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"health\">生命值</keyword>"}}
+      }
+    },
+    "affixes.red_thread.title": {
+      "comment": "ContentManifest/affixes.tsv: red_thread, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Roter Faden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Red Thread"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Hilo rojo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Fil rouge"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "赤い糸"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "붉은 실"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Fio Vermelho"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "紅線"}}
+      }
+    },
     "affixes.rekindled.astral_description": {
       "comment": "ContentManifest/affixes.tsv: rekindled, astral_description",
       "extractionState": "manual",
@@ -4941,6 +5193,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "서리 덮인"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Coberto de Geada"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "覆霜"}}
+      }
+    },
+    "affixes.rimeglass.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: rimeglass, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Nachdem dein Verbündeter eine <keyword id=\"freeze\">Frost</keyword>-Karte gespielt hat, kostet dich in diesem Zug das nächste Verstärken einer <keyword id=\"freeze\">Frost</keyword>-Karte <value id=\"quantity_1\">%1$lld</value> weniger <keyword id=\"mana\">Mana</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "After your ally plays a <keyword id=\"freeze\">Freeze</keyword> card, your next <keyword id=\"freeze\">Freeze</keyword> empowerment this turn costs <value id=\"quantity_1\">%1$lld</value> less <keyword id=\"mana\">Mana</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Después de que tu aliado juegue una carta de <keyword id=\"freeze\">Congelación</keyword>, la próxima carta de <keyword id=\"freeze\">Congelación</keyword> que potencies ese mismo turno te cuesta <value id=\"quantity_1\">%1$lld</value> menos de <keyword id=\"mana\">Maná</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Après que votre allié a joué une carte de <keyword id=\"freeze\">Gel</keyword>, le coût en <keyword id=\"mana\">Mana</keyword> de votre prochain renforcement d’une carte de <keyword id=\"freeze\">Gel</keyword> ce tour-ci diminue de <value id=\"quantity_1\">%1$lld</value>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "味方が<keyword id=\"freeze\">凍結</keyword>カードを使うと、このターン中に自分が次に<keyword id=\"freeze\">凍結</keyword>カードを強化する際の消費<keyword id=\"mana\">マナ</keyword>が<value id=\"quantity_1\">%1$lld</value>減る"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "아군이 <keyword id=\"freeze\">빙결</keyword> 카드를 사용하면, 이번 턴에 내가 다음번에 <keyword id=\"freeze\">빙결</keyword> 카드를 강화할 때 <keyword id=\"mana\">마나</keyword>가 <value id=\"quantity_1\">%1$lld</value>만큼 적게 듭니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Depois que seu aliado jogar uma carta de <keyword id=\"freeze\">Congelamento</keyword>, sua próxima potencialização de uma carta de <keyword id=\"freeze\">Congelamento</keyword> neste turno custa <value id=\"quantity_1\">%1$lld</value> a menos de <keyword id=\"mana\">Mana</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "隊友打出一張<keyword id=\"freeze\">冰凍</keyword>牌後，你本回合下一次強化<keyword id=\"freeze\">冰凍</keyword>牌時少消耗<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"mana\">魔力</keyword>"}}
+      }
+    },
+    "affixes.rimeglass.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: rimeglass, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Nachdem dein Verbündeter eine <keyword id=\"freeze\">Frost</keyword>-Karte gespielt hat, kostet dich in diesem Zug das nächste Verstärken einer <keyword id=\"freeze\">Frost</keyword>-Karte <value id=\"quantity_1\">%1$lld</value> weniger <keyword id=\"mana\">Mana</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "After your ally plays a <keyword id=\"freeze\">Freeze</keyword> card, your next <keyword id=\"freeze\">Freeze</keyword> empowerment this turn costs <value id=\"quantity_1\">%1$lld</value> less <keyword id=\"mana\">Mana</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Después de que tu aliado juegue una carta de <keyword id=\"freeze\">Congelación</keyword>, la próxima carta de <keyword id=\"freeze\">Congelación</keyword> que potencies ese mismo turno te cuesta <value id=\"quantity_1\">%1$lld</value> menos de <keyword id=\"mana\">Maná</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Après que votre allié a joué une carte de <keyword id=\"freeze\">Gel</keyword>, le coût en <keyword id=\"mana\">Mana</keyword> de votre prochain renforcement d’une carte de <keyword id=\"freeze\">Gel</keyword> ce tour-ci diminue de <value id=\"quantity_1\">%1$lld</value>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "味方が<keyword id=\"freeze\">凍結</keyword>カードを使うと、このターン中に自分が次に<keyword id=\"freeze\">凍結</keyword>カードを強化する際の消費<keyword id=\"mana\">マナ</keyword>が<value id=\"quantity_1\">%1$lld</value>減る"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "아군이 <keyword id=\"freeze\">빙결</keyword> 카드를 사용하면, 이번 턴에 내가 다음번에 <keyword id=\"freeze\">빙결</keyword> 카드를 강화할 때 <keyword id=\"mana\">마나</keyword>가 <value id=\"quantity_1\">%1$lld</value>만큼 적게 듭니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Depois que seu aliado jogar uma carta de <keyword id=\"freeze\">Congelamento</keyword>, sua próxima potencialização de uma carta de <keyword id=\"freeze\">Congelamento</keyword> neste turno custa <value id=\"quantity_1\">%1$lld</value> a menos de <keyword id=\"mana\">Mana</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "隊友打出一張<keyword id=\"freeze\">冰凍</keyword>牌後，你本回合下一次強化<keyword id=\"freeze\">冰凍</keyword>牌時少消耗<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"mana\">魔力</keyword>"}}
+      }
+    },
+    "affixes.rimeglass.title": {
+      "comment": "ContentManifest/affixes.tsv: rimeglass, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Reifglas"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Rimeglass"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cristal de escarcha"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Verre de givre"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "霧氷ガラス"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "서리 유리"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Vidro de Geada"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "霜璃"}}
       }
     },
     "affixes.riposte.astral_description": {
@@ -5363,6 +5657,48 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "撕碎"}}
       }
     },
+    "affixes.side_laced.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: side_laced, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Spielst du eine Unterstützungskarte, die ausschließlich deinen Verbündeten als Ziel hat, erhältst du bis zu deinem nächsten Zug eine Chance von <value id=\"quantity_1\">%1$lld</value> %% auf <keyword id=\"dodge\">Ausweichen</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Playing a support card that targets only your ally grants <value id=\"quantity_1\">%1$lld</value>%% <keyword id=\"dodge\">Dodge</keyword> chance until your next turn"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Si juegas una carta de apoyo cuyo único objetivo es tu aliado, ganas un <value id=\"quantity_1\">%1$lld</value>\u0000%% de probabilidad de <keyword id=\"dodge\">Esquiva</keyword> hasta tu próximo turno"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Jouer une carte de soutien qui cible uniquement votre allié vous confère <value id=\"quantity_1\">%1$lld</value> %% de chances d’<keyword id=\"dodge\">Esquive</keyword> jusqu’à votre prochain tour"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "味方だけを対象とする支援カードを使うと、自分の次のターンまで<value id=\"quantity_1\">%1$lld</value>%%の<keyword id=\"dodge\">回避</keyword>率を得る"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "아군만을 대상으로 하는 지원 카드를 사용하면 내 다음 턴까지 <value id=\"quantity_1\">%1$lld</value>%%의 <keyword id=\"dodge\">회피</keyword> 확률을 얻습니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ao jogar uma carta de suporte que tem apenas seu aliado como alvo, você ganha <value id=\"quantity_1\">%1$lld</value>%% de chance de <keyword id=\"dodge\">Esquiva</keyword> até seu próximo turno"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "打出一張僅以隊友為目標的輔助牌時，你獲得<value id=\"quantity_1\">%1$lld</value>%%的<keyword id=\"dodge\">閃避</keyword>機率，直到你的下個回合開始"}}
+      }
+    },
+    "affixes.side_laced.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: side_laced, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Spielst du eine Unterstützungskarte, die ausschließlich deinen Verbündeten als Ziel hat, erhältst du bis zu deinem nächsten Zug eine Chance von <value id=\"quantity_1\">%1$lld</value> %% auf <keyword id=\"dodge\">Ausweichen</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Playing a support card that targets only your ally grants <value id=\"quantity_1\">%1$lld</value>%% <keyword id=\"dodge\">Dodge</keyword> chance until your next turn"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Si juegas una carta de apoyo cuyo único objetivo es tu aliado, ganas un <value id=\"quantity_1\">%1$lld</value>\u0000%% de probabilidad de <keyword id=\"dodge\">Esquiva</keyword> hasta tu próximo turno"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Jouer une carte de soutien qui cible uniquement votre allié vous confère <value id=\"quantity_1\">%1$lld</value> %% de chances d’<keyword id=\"dodge\">Esquive</keyword> jusqu’à votre prochain tour"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "味方だけを対象とする支援カードを使うと、自分の次のターンまで<value id=\"quantity_1\">%1$lld</value>%%の<keyword id=\"dodge\">回避</keyword>率を得る"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "아군만을 대상으로 하는 지원 카드를 사용하면 내 다음 턴까지 <value id=\"quantity_1\">%1$lld</value>%%의 <keyword id=\"dodge\">회피</keyword> 확률을 얻습니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Ao jogar uma carta de suporte que tem apenas seu aliado como alvo, você ganha <value id=\"quantity_1\">%1$lld</value>%% de chance de <keyword id=\"dodge\">Esquiva</keyword> até seu próximo turno"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "打出一張僅以隊友為目標的輔助牌時，你獲得<value id=\"quantity_1\">%1$lld</value>%%的<keyword id=\"dodge\">閃避</keyword>機率，直到你的下個回合開始"}}
+      }
+    },
+    "affixes.side_laced.title": {
+      "comment": "ContentManifest/affixes.tsv: side_laced, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Seitlich geschnürt"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Side-Laced"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Con cordones laterales"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Laçage latéral"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "脇の編み上げ"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "옆끈 여밈"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Amarração Lateral"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "側邊繫帶"}}
+      }
+    },
     "affixes.sidestep.astral_description": {
       "comment": "ContentManifest/affixes.tsv: sidestep, astral_description",
       "extractionState": "manual",
@@ -5529,6 +5865,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "그을린"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Fumegante"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "悶燒"}}
+      }
+    },
+    "affixes.smugglers_lining.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: smugglers_lining, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wenn du in einem Kampf zum ersten Mal <keyword id=\"gold\">Gold</keyword> stiehlst, erhält dein Verbündeter <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Your first <keyword id=\"gold\">Gold</keyword> theft each battle grants your ally <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "La primera vez que robas <keyword id=\"gold\">Oro</keyword> en cada combate, tu aliado gana <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Votre premier vol d’<keyword id=\"gold\">Or</keyword> de chaque combat augmente de <value id=\"quantity_1\">%1$lld</value> le <keyword id=\"block\">Blocage</keyword> de votre allié"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘ごとに自分が初めて<keyword id=\"gold\">ゴールド</keyword>を盗んだとき、味方に<value id=\"quantity_1\">%1$lld</value>の<keyword id=\"block\">ブロック</keyword>を付与する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전투마다 내가 처음으로 <keyword id=\"gold\">골드</keyword>를 훔치면 아군이 <value id=\"quantity_1\">%1$lld</value>의 <keyword id=\"block\">방어도</keyword>를 얻습니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Seu primeiro roubo de <keyword id=\"gold\">Ouro</keyword> em cada batalha concede ao seu aliado <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每場戰鬥中，你首次偷取<keyword id=\"gold\">金幣</keyword>時，隊友獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
+      }
+    },
+    "affixes.smugglers_lining.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: smugglers_lining, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wenn du in einem Kampf zum ersten Mal <keyword id=\"gold\">Gold</keyword> stiehlst, erhält dein Verbündeter <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Your first <keyword id=\"gold\">Gold</keyword> theft each battle grants your ally <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "La primera vez que robas <keyword id=\"gold\">Oro</keyword> en cada combate, tu aliado gana <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Votre premier vol d’<keyword id=\"gold\">Or</keyword> de chaque combat augmente de <value id=\"quantity_1\">%1$lld</value> le <keyword id=\"block\">Blocage</keyword> de votre allié"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "戦闘ごとに自分が初めて<keyword id=\"gold\">ゴールド</keyword>を盗んだとき、味方に<value id=\"quantity_1\">%1$lld</value>の<keyword id=\"block\">ブロック</keyword>を付与する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "전투마다 내가 처음으로 <keyword id=\"gold\">골드</keyword>를 훔치면 아군이 <value id=\"quantity_1\">%1$lld</value>의 <keyword id=\"block\">방어도</keyword>를 얻습니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Seu primeiro roubo de <keyword id=\"gold\">Ouro</keyword> em cada batalha concede ao seu aliado <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "每場戰鬥中，你首次偷取<keyword id=\"gold\">金幣</keyword>時，隊友獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
+      }
+    },
+    "affixes.smugglers_lining.title": {
+      "comment": "ContentManifest/affixes.tsv: smugglers_lining, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Futter des Schmugglers"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Smuggler's Lining"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Forro de contrabandista"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Doublure de contrebandier"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "密輸人の裏地"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "밀수꾼의 안감"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Forro do Contrabandista"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "走私者的內襯"}}
       }
     },
     "affixes.smugglers_map.astral_description": {
@@ -6077,6 +6455,48 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "厚實皮膚"}}
       }
     },
+    "affixes.thornstitch.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: thornstitch, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Heilt eine von dir gespielte Karte deinen Verbündeten, erhält er <keyword id=\"thorns\">Dornen</keyword> in Höhe von <value id=\"quantity_1\">%1$lld</value>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Grant your ally <value id=\"quantity_1\">%1$lld</value> <keyword id=\"thorns\">Thorns</keyword> when a card you play heals them"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cuando una carta que juegas cura a tu aliado, este gana <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"thorns\">Espinas</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Lorsqu’une carte que vous jouez soigne votre allié, augmentez ses <keyword id=\"thorns\">Épines</keyword> de <value id=\"quantity_1\">%1$lld</value>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自分が使ったカードで味方を回復すると、その味方に<value id=\"quantity_1\">%1$lld</value>の<keyword id=\"thorns\">棘</keyword>を付与する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "내가 사용한 카드로 아군을 치유하면 그 아군에게 <value id=\"quantity_1\">%1$lld</value>의 <keyword id=\"thorns\">가시</keyword>를 부여합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Quando uma carta que você jogar curar seu aliado, ele ganha <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"thorns\">Espinhos</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你打出的牌治療隊友時，該隊友獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"thorns\">荊棘</keyword>"}}
+      }
+    },
+    "affixes.thornstitch.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: thornstitch, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Heilt eine von dir gespielte Karte deinen Verbündeten, erhält er <keyword id=\"thorns\">Dornen</keyword> in Höhe von <value id=\"quantity_1\">%1$lld</value>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Grant your ally <value id=\"quantity_1\">%1$lld</value> <keyword id=\"thorns\">Thorns</keyword> when a card you play heals them"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cuando una carta que juegas cura a tu aliado, este gana <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"thorns\">Espinas</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Lorsqu’une carte que vous jouez soigne votre allié, augmentez ses <keyword id=\"thorns\">Épines</keyword> de <value id=\"quantity_1\">%1$lld</value>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "自分が使ったカードで味方を回復すると、その味方に<value id=\"quantity_1\">%1$lld</value>の<keyword id=\"thorns\">棘</keyword>を付与する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "내가 사용한 카드로 아군을 치유하면 그 아군에게 <value id=\"quantity_1\">%1$lld</value>의 <keyword id=\"thorns\">가시</keyword>를 부여합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Quando uma carta que você jogar curar seu aliado, ele ganha <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"thorns\">Espinhos</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你打出的牌治療隊友時，該隊友獲得<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"thorns\">荊棘</keyword>"}}
+      }
+    },
+    "affixes.thornstitch.title": {
+      "comment": "ContentManifest/affixes.tsv: thornstitch, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Dornennaht"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Thornstitch"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Puntada de espinas"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Couture d’épines"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "棘縫い"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "가시 바느질"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Costura de Espinhos"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "荊棘縫線"}}
+      }
+    },
     "affixes.thornwrought.astral_description": {
       "comment": "ContentManifest/affixes.tsv: thornwrought, astral_description",
       "extractionState": "manual",
@@ -6159,6 +6579,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "폭풍 돌파"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Ruptura da Tempestade"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "風暴破擊"}}
+      }
+    },
+    "affixes.tolltaker.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: tolltaker, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Stiehlst du <keyword id=\"gold\">Gold</keyword>, ignoriert dein nächster Treffer bis zu <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Stealing <keyword id=\"gold\">Gold</keyword> lets your next landed hit ignore up to <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Robar <keyword id=\"gold\">Oro</keyword> hace que el próximo golpe que aciertes ignore hasta <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Lorsque vous volez de l’<keyword id=\"gold\">Or</keyword>, votre prochain coup qui atteint sa cible ignore jusqu’à <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"gold\">ゴールド</keyword>を盗むと、次に命中する自分の一撃が敵の<keyword id=\"block\">ブロック</keyword>を最大<value id=\"quantity_1\">%1$lld</value>無視する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"gold\">골드</keyword>를 훔친 뒤 처음 적중하는 내 공격은 최대 <value id=\"quantity_1\">%1$lld</value>의 <keyword id=\"block\">방어도</keyword>를 무시합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Depois que você roubar <keyword id=\"gold\">Ouro</keyword>, o próximo golpe que você acertar ignora até <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "偷取<keyword id=\"gold\">金幣</keyword>後，你下一次命中的攻擊最多可無視<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
+      }
+    },
+    "affixes.tolltaker.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: tolltaker, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Stiehlst du <keyword id=\"gold\">Gold</keyword>, ignoriert dein nächster Treffer bis zu <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Stealing <keyword id=\"gold\">Gold</keyword> lets your next landed hit ignore up to <value id=\"quantity_1\">%1$lld</value> <keyword id=\"block\">Block</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Robar <keyword id=\"gold\">Oro</keyword> hace que el próximo golpe que aciertes ignore hasta <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Lorsque vous volez de l’<keyword id=\"gold\">Or</keyword>, votre prochain coup qui atteint sa cible ignore jusqu’à <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword>"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "<keyword id=\"gold\">ゴールド</keyword>を盗むと、次に命中する自分の一撃が敵の<keyword id=\"block\">ブロック</keyword>を最大<value id=\"quantity_1\">%1$lld</value>無視する"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "<keyword id=\"gold\">골드</keyword>를 훔친 뒤 처음 적중하는 내 공격은 최대 <value id=\"quantity_1\">%1$lld</value>의 <keyword id=\"block\">방어도</keyword>를 무시합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Depois que você roubar <keyword id=\"gold\">Ouro</keyword>, o próximo golpe que você acertar ignora até <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Bloqueio</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "偷取<keyword id=\"gold\">金幣</keyword>後，你下一次命中的攻擊最多可無視<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
+      }
+    },
+    "affixes.tolltaker.title": {
+      "comment": "ContentManifest/affixes.tsv: tolltaker, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Zöllner"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Tolltaker"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cobrador de peajes"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Péager"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "通行料の徴収人"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "통행료 징수원"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Cobrador de Pedágio"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "通行費徵收者"}}
       }
     },
     "affixes.unburdened.astral_description": {
@@ -6455,6 +6917,90 @@
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "毒液蹤跡"}}
       }
     },
+    "affixes.verdigris.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: verdigris, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Trifft dein Verbündeter in einem Zug zum ersten Mal einen Gegner, auf dem <keyword id=\"poison\">Gift</keyword> liegt, entfernt der Treffer bis zu <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"block\">Block</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Your ally's first hit against a <keyword id=\"poison\">Poisoned</keyword> enemy each turn removes up to <value id=\"quantity_1\">%1$lld</value> extra <keyword id=\"block\">Block</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "En cada turno, el primer golpe de tu aliado contra un enemigo con <keyword id=\"poison\">Veneno</keyword> le quita hasta <value id=\"quantity_1\">%1$lld</value> más de <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "À chaque tour, le premier coup que votre allié porte à un ennemi sous l’effet du <keyword id=\"poison\">Poison</keyword> lui retire jusqu’à <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword> en plus"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "各ターン、味方が<keyword id=\"poison\">毒</keyword>状態の敵に当てた最初の一撃は、その敵の<keyword id=\"block\">ブロック</keyword>を追加で最大<value id=\"quantity_1\">%1$lld</value>削る"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "매 턴 아군이 <keyword id=\"poison\">독</keyword>에 걸린 적에게 적중시킨 첫 공격은 그 적의 <keyword id=\"block\">방어도</keyword>를 최대 <value id=\"quantity_1\">%1$lld</value>만큼 추가로 제거합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A cada turno, o primeiro golpe do seu aliado contra um inimigo <keyword id=\"poison\">Envenenado</keyword> remove até <value id=\"quantity_1\">%1$lld</value> a mais de <keyword id=\"block\">Bloqueio</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你的隊友每回合首次擊中<keyword id=\"poison\">中毒</keyword>的敵人時，最多額外移除目標<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
+      }
+    },
+    "affixes.verdigris.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: verdigris, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Trifft dein Verbündeter in einem Zug zum ersten Mal einen Gegner, auf dem <keyword id=\"poison\">Gift</keyword> liegt, entfernt der Treffer bis zu <value id=\"quantity_1\">%1$lld</value> zusätzlichen <keyword id=\"block\">Block</keyword>"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Your ally's first hit against a <keyword id=\"poison\">Poisoned</keyword> enemy each turn removes up to <value id=\"quantity_1\">%1$lld</value> extra <keyword id=\"block\">Block</keyword>"}},
+        "es": {"stringUnit": {"state": "translated", "value": "En cada turno, el primer golpe de tu aliado contra un enemigo con <keyword id=\"poison\">Veneno</keyword> le quita hasta <value id=\"quantity_1\">%1$lld</value> más de <keyword id=\"block\">Bloqueo</keyword>"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "À chaque tour, le premier coup que votre allié porte à un ennemi sous l’effet du <keyword id=\"poison\">Poison</keyword> lui retire jusqu’à <value id=\"quantity_1\">%1$lld</value> de <keyword id=\"block\">Blocage</keyword> en plus"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "各ターン、味方が<keyword id=\"poison\">毒</keyword>状態の敵に当てた最初の一撃は、その敵の<keyword id=\"block\">ブロック</keyword>を追加で最大<value id=\"quantity_1\">%1$lld</value>削る"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "매 턴 아군이 <keyword id=\"poison\">독</keyword>에 걸린 적에게 적중시킨 첫 공격은 그 적의 <keyword id=\"block\">방어도</keyword>를 최대 <value id=\"quantity_1\">%1$lld</value>만큼 추가로 제거합니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "A cada turno, o primeiro golpe do seu aliado contra um inimigo <keyword id=\"poison\">Envenenado</keyword> remove até <value id=\"quantity_1\">%1$lld</value> a mais de <keyword id=\"block\">Bloqueio</keyword>"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你的隊友每回合首次擊中<keyword id=\"poison\">中毒</keyword>的敵人時，最多額外移除目標<value id=\"quantity_1\">%1$lld</value>點<keyword id=\"block\">格擋</keyword>"}}
+      }
+    },
+    "affixes.verdigris.title": {
+      "comment": "ContentManifest/affixes.tsv: verdigris, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Grünspan"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Verdigris"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Cardenillo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Vert-de-gris"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "緑青"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "녹청"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Azinhavre"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "銅綠"}}
+      }
+    },
+    "affixes.vigil_bell.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: vigil_bell, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"variations": {"plural": {"one": {"stringUnit": {"state": "translated", "value": "Ziehe <value id=\"quantity_1\">%1$lld</value> Karte aus dem Deck deines Verbündeten, wenn ein Gegner durch deine <keyword id=\"stun\">Betäubung</keyword> eine Aktion auslassen muss"}}, "other": {"stringUnit": {"state": "translated", "value": "Ziehe <value id=\"quantity_1\">%1$lld</value> Karten aus dem Deck deines Verbündeten, wenn ein Gegner durch deine <keyword id=\"stun\">Betäubung</keyword> eine Aktion auslassen muss"}}}}},
+        "en": {"variations": {"plural": {"one": {"stringUnit": {"state": "translated", "value": "Draw <value id=\"quantity_1\">%1$lld</value> card from your ally's deck when your <keyword id=\"stun\">Stun</keyword> makes an enemy skip an action"}}, "other": {"stringUnit": {"state": "translated", "value": "Draw <value id=\"quantity_1\">%1$lld</value> cards from your ally's deck when your <keyword id=\"stun\">Stun</keyword> makes an enemy skip an action"}}}}},
+        "es": {"variations": {"plural": {"many": {"stringUnit": {"state": "translated", "value": "Roba <value id=\"quantity_1\">%1$lld</value> cartas del mazo de tu aliado cuando tu <keyword id=\"stun\">Aturdimiento</keyword> haga que un enemigo pierda una acción"}}, "one": {"stringUnit": {"state": "translated", "value": "Roba <value id=\"quantity_1\">%1$lld</value> carta del mazo de tu aliado cuando tu <keyword id=\"stun\">Aturdimiento</keyword> haga que un enemigo pierda una acción"}}, "other": {"stringUnit": {"state": "translated", "value": "Roba <value id=\"quantity_1\">%1$lld</value> cartas del mazo de tu aliado cuando tu <keyword id=\"stun\">Aturdimiento</keyword> haga que un enemigo pierda una acción"}}}}},
+        "fr": {"variations": {"plural": {"many": {"stringUnit": {"state": "translated", "value": "Piochez <value id=\"quantity_1\">%1$lld</value> cartes dans le paquet de votre allié lorsque votre <keyword id=\"stun\">Étourdissement</keyword> fait perdre une action à un ennemi"}}, "one": {"stringUnit": {"state": "translated", "value": "Piochez <value id=\"quantity_1\">%1$lld</value> carte dans le paquet de votre allié lorsque votre <keyword id=\"stun\">Étourdissement</keyword> fait perdre une action à un ennemi"}}, "other": {"stringUnit": {"state": "translated", "value": "Piochez <value id=\"quantity_1\">%1$lld</value> cartes dans le paquet de votre allié lorsque votre <keyword id=\"stun\">Étourdissement</keyword> fait perdre une action à un ennemi"}}}}},
+        "ja": {"variations": {"plural": {"other": {"stringUnit": {"state": "translated", "value": "自分が付与した<keyword id=\"stun\">スタン</keyword>で敵が行動を1回失うと、味方のデッキからカードを<value id=\"quantity_1\">%1$lld</value>枚引く"}}}}},
+        "ko": {"variations": {"plural": {"other": {"stringUnit": {"state": "translated", "value": "내가 부여한 <keyword id=\"stun\">기절</keyword>로 적이 행동을 건너뛰면 아군의 덱에서 카드 <value id=\"quantity_1\">%1$lld</value>장을 뽑습니다"}}}}},
+        "pt-BR": {"variations": {"plural": {"many": {"stringUnit": {"state": "translated", "value": "Compre <value id=\"quantity_1\">%1$lld</value> cartas do baralho do seu aliado quando seu <keyword id=\"stun\">Atordoamento</keyword> fizer um inimigo perder uma ação"}}, "one": {"stringUnit": {"state": "translated", "value": "Compre <value id=\"quantity_1\">%1$lld</value> carta do baralho do seu aliado quando seu <keyword id=\"stun\">Atordoamento</keyword> fizer um inimigo perder uma ação"}}, "other": {"stringUnit": {"state": "translated", "value": "Compre <value id=\"quantity_1\">%1$lld</value> cartas do baralho do seu aliado quando seu <keyword id=\"stun\">Atordoamento</keyword> fizer um inimigo perder uma ação"}}}}},
+        "zh-Hant": {"variations": {"plural": {"other": {"stringUnit": {"state": "translated", "value": "你施加的<keyword id=\"stun\">暈眩</keyword>使敵人跳過一次行動時，你便從隊友的牌組抽出<value id=\"quantity_1\">%1$lld</value>張牌"}}}}}
+      }
+    },
+    "affixes.vigil_bell.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: vigil_bell, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"variations": {"plural": {"one": {"stringUnit": {"state": "translated", "value": "Ziehe <value id=\"quantity_1\">%1$lld</value> Karte aus dem Deck deines Verbündeten, wenn ein Gegner durch deine <keyword id=\"stun\">Betäubung</keyword> eine Aktion auslassen muss"}}, "other": {"stringUnit": {"state": "translated", "value": "Ziehe <value id=\"quantity_1\">%1$lld</value> Karten aus dem Deck deines Verbündeten, wenn ein Gegner durch deine <keyword id=\"stun\">Betäubung</keyword> eine Aktion auslassen muss"}}}}},
+        "en": {"variations": {"plural": {"one": {"stringUnit": {"state": "translated", "value": "Draw <value id=\"quantity_1\">%1$lld</value> card from your ally's deck when your <keyword id=\"stun\">Stun</keyword> makes an enemy skip an action"}}, "other": {"stringUnit": {"state": "translated", "value": "Draw <value id=\"quantity_1\">%1$lld</value> cards from your ally's deck when your <keyword id=\"stun\">Stun</keyword> makes an enemy skip an action"}}}}},
+        "es": {"variations": {"plural": {"many": {"stringUnit": {"state": "translated", "value": "Roba <value id=\"quantity_1\">%1$lld</value> cartas del mazo de tu aliado cuando tu <keyword id=\"stun\">Aturdimiento</keyword> haga que un enemigo pierda una acción"}}, "one": {"stringUnit": {"state": "translated", "value": "Roba <value id=\"quantity_1\">%1$lld</value> carta del mazo de tu aliado cuando tu <keyword id=\"stun\">Aturdimiento</keyword> haga que un enemigo pierda una acción"}}, "other": {"stringUnit": {"state": "translated", "value": "Roba <value id=\"quantity_1\">%1$lld</value> cartas del mazo de tu aliado cuando tu <keyword id=\"stun\">Aturdimiento</keyword> haga que un enemigo pierda una acción"}}}}},
+        "fr": {"variations": {"plural": {"many": {"stringUnit": {"state": "translated", "value": "Piochez <value id=\"quantity_1\">%1$lld</value> cartes dans le paquet de votre allié lorsque votre <keyword id=\"stun\">Étourdissement</keyword> fait perdre une action à un ennemi"}}, "one": {"stringUnit": {"state": "translated", "value": "Piochez <value id=\"quantity_1\">%1$lld</value> carte dans le paquet de votre allié lorsque votre <keyword id=\"stun\">Étourdissement</keyword> fait perdre une action à un ennemi"}}, "other": {"stringUnit": {"state": "translated", "value": "Piochez <value id=\"quantity_1\">%1$lld</value> cartes dans le paquet de votre allié lorsque votre <keyword id=\"stun\">Étourdissement</keyword> fait perdre une action à un ennemi"}}}}},
+        "ja": {"variations": {"plural": {"other": {"stringUnit": {"state": "translated", "value": "自分が付与した<keyword id=\"stun\">スタン</keyword>で敵が行動を1回失うと、味方のデッキからカードを<value id=\"quantity_1\">%1$lld</value>枚引く"}}}}},
+        "ko": {"variations": {"plural": {"other": {"stringUnit": {"state": "translated", "value": "내가 부여한 <keyword id=\"stun\">기절</keyword>로 적이 행동을 건너뛰면 아군의 덱에서 카드 <value id=\"quantity_1\">%1$lld</value>장을 뽑습니다"}}}}},
+        "pt-BR": {"variations": {"plural": {"many": {"stringUnit": {"state": "translated", "value": "Compre <value id=\"quantity_1\">%1$lld</value> cartas do baralho do seu aliado quando seu <keyword id=\"stun\">Atordoamento</keyword> fizer um inimigo perder uma ação"}}, "one": {"stringUnit": {"state": "translated", "value": "Compre <value id=\"quantity_1\">%1$lld</value> carta do baralho do seu aliado quando seu <keyword id=\"stun\">Atordoamento</keyword> fizer um inimigo perder uma ação"}}, "other": {"stringUnit": {"state": "translated", "value": "Compre <value id=\"quantity_1\">%1$lld</value> cartas do baralho do seu aliado quando seu <keyword id=\"stun\">Atordoamento</keyword> fizer um inimigo perder uma ação"}}}}},
+        "zh-Hant": {"variations": {"plural": {"other": {"stringUnit": {"state": "translated", "value": "你施加的<keyword id=\"stun\">暈眩</keyword>使敵人跳過一次行動時，你便從隊友的牌組抽出<value id=\"quantity_1\">%1$lld</value>張牌"}}}}}
+      }
+    },
+    "affixes.vigil_bell.title": {
+      "comment": "ContentManifest/affixes.tsv: vigil_bell, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Wachtglocke"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Vigil Bell"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Campana de vigilia"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Cloche de veille"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "夜警の鐘"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "철야의 종"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Sino de Vigília"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "守夜鐘"}}
+      }
+    },
     "affixes.vital.astral_description": {
       "comment": "ContentManifest/affixes.tsv: vital, astral_description",
       "extractionState": "manual",
@@ -6495,6 +7041,48 @@
         "ko": {"stringUnit": {"state": "translated", "value": "생기 넘치는"}},
         "pt-BR": {"stringUnit": {"state": "translated", "value": "Vital"}},
         "zh-Hant": {"stringUnit": {"state": "translated", "value": "活力"}}
+      }
+    },
+    "affixes.votive.astral_description": {
+      "comment": "ContentManifest/affixes.tsv: votive, astral_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Nachdem du deinen Verbündeten geheilt hast, verursachen deine <keyword id=\"holy\">Heilig</keyword>-Angriffe für den Rest des Zugs <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Your <keyword id=\"holy\">Holy</keyword> attacks deal <value id=\"quantity_1\">%1$lld</value> additional damage after you heal your ally this turn"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Tras curar a tu aliado, tus ataques de daño <keyword id=\"holy\">Sagrado</keyword> infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional durante el resto del turno"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de vos attaques de type <keyword id=\"holy\">Sacré</keyword> augmentent de <value id=\"quantity_1\">%1$lld</value> si vous avez soigné votre allié plus tôt dans le tour"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "味方を回復すると、そのターンが終わるまで、自分の<keyword id=\"holy\">聖</keyword>属性の攻撃で与えるダメージが<value id=\"quantity_1\">%1$lld</value>増える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "이번 턴에 내가 아군을 치유하면, 그 뒤부터 턴이 끝날 때까지 내 <keyword id=\"holy\">신성</keyword> 공격이 <value id=\"quantity_1\">%1$lld</value>의 추가 피해를 줍니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Neste turno, depois que você curar seu aliado, seus ataques <keyword id=\"holy\">Sagrados</keyword> causam <value id=\"quantity_1\">%1$lld</value> de dano adicional"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你在本回合治療隊友後，本回合的<keyword id=\"holy\">神聖</keyword>攻擊額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"}}
+      }
+    },
+    "affixes.votive.basic_description": {
+      "comment": "ContentManifest/affixes.tsv: votive, basic_description",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Nachdem du deinen Verbündeten geheilt hast, verursachen deine <keyword id=\"holy\">Heilig</keyword>-Angriffe für den Rest des Zugs <value id=\"quantity_1\">%1$lld</value> zusätzlichen Schaden"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Your <keyword id=\"holy\">Holy</keyword> attacks deal <value id=\"quantity_1\">%1$lld</value> additional damage after you heal your ally this turn"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Tras curar a tu aliado, tus ataques de daño <keyword id=\"holy\">Sagrado</keyword> infligen <value id=\"quantity_1\">%1$lld</value> de daño adicional durante el resto del turno"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Les dégâts de vos attaques de type <keyword id=\"holy\">Sacré</keyword> augmentent de <value id=\"quantity_1\">%1$lld</value> si vous avez soigné votre allié plus tôt dans le tour"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "味方を回復すると、そのターンが終わるまで、自分の<keyword id=\"holy\">聖</keyword>属性の攻撃で与えるダメージが<value id=\"quantity_1\">%1$lld</value>増える"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "이번 턴에 내가 아군을 치유하면, 그 뒤부터 턴이 끝날 때까지 내 <keyword id=\"holy\">신성</keyword> 공격이 <value id=\"quantity_1\">%1$lld</value>의 추가 피해를 줍니다"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Neste turno, depois que você curar seu aliado, seus ataques <keyword id=\"holy\">Sagrados</keyword> causam <value id=\"quantity_1\">%1$lld</value> de dano adicional"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "你在本回合治療隊友後，本回合的<keyword id=\"holy\">神聖</keyword>攻擊額外造成<value id=\"quantity_1\">%1$lld</value>點傷害"}}
+      }
+    },
+    "affixes.votive.title": {
+      "comment": "ContentManifest/affixes.tsv: votive, title",
+      "extractionState": "manual",
+      "localizations": {
+        "de": {"stringUnit": {"state": "translated", "value": "Votivgabe"}},
+        "en": {"stringUnit": {"state": "translated", "value": "Votive"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Votivo"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Votif"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "奉納"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "봉헌"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Votivo"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "祈願供品"}}
       }
     },
     "affixes.whiplash.astral_description": {

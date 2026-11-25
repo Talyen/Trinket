@@ -139,6 +139,11 @@ private extension BattleTurnEngine {
         if blockCost > 0 {
             DefensePoolEngine.set(block - blockCost, on: actor, in: &context)
         }
+        if quote.rimeglassAllyFreezeCount > 0 {
+            context.roster.mutateRuntime(for: actor) {
+                $0.talents.turn.rimeglassUsedAllyFreezeCount = quote.rimeglassAllyFreezeCount
+            }
+        }
         let spent = context.payMana(quote.ownMana, for: actor)
         var payment = [spent]
         if let partner = budget.partner, quote.partnerMana > 0 {

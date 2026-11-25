@@ -50,6 +50,12 @@ enum QuietAffixRules {
             0
         }
         bonus = SaturatedArithmetic.saturatingAdd(bonus, prismatic)
+        if state.damageKeyword == .bleed, !state.targetStatus.isBleeding {
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.bleedAttackVsUnbledBonus)
+        }
+        if state.damageKeyword == .holy, source.talents.turn.healedAlly {
+            bonus = SaturatedArithmetic.saturatingAdd(bonus, triggers.holyAttackBonusAfterAllyHeal)
+        }
         if triggers.attackDamageVsHigherBlockBonus != 0,
            DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: state.combatant))
            > DefensePoolEngine.blockPoints(in: sourceEffects) {

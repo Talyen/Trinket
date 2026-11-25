@@ -250,6 +250,20 @@
       "affix_roll": {
         "reason": "Fixed Merchant's Favor victory cap; different card identities determine the payout."
       }
+    },
+    "goldTheftNextHitBlockBypass": {
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 114
+      }
+    },
+    "firstGoldTheftAllyBlock": {
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 118
+      }
     }
   }
 }

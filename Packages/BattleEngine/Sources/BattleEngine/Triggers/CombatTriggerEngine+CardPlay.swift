@@ -18,6 +18,7 @@ package extension CombatTriggerEngine {
 
         guard context.roster[owner].isAlive else { return }
         QuietAffixRules.afterAttackCard(facts, in: &context)
+        afterAffixSupportCard(facts, in: &context)
         if !facts.damageKeywords.isEmpty, triggers.attackDelayEnemyTurnChancePercent > 0, context.roster.enemy.isAlive,
            BattleChance.succeeds(probability: triggers.attackDelayEnemyTurnChancePercent, using: &context.rng) {
             context.roster.enemy.talents.delayAction()

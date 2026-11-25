@@ -9,6 +9,8 @@ struct CombatResolution {
     var controlDepth = 0
     var reactionPayoff: CombatReaction?
     var reactionHealthLost = 0
+    var bankedEmberEffectID: Int?
+    var vigilBellStun: (effectID: Int, sourceActorID: String)?
 
     mutating func beginFeedbackGroup(eventID: Int) -> Int? {
         let previous = feedbackGroupID
@@ -38,6 +40,7 @@ struct CombatResolution {
         var authoredOperation: Int?
         var didReleaseReaction = false
         var toxicShockWeakened = false
+        var redTemperBlockReserved = 0
     }
 
     private struct Card {
@@ -75,6 +78,16 @@ struct CombatResolution {
         guard let id = standaloneRestorationID else { preconditionFailure() }
         claims.finish(.standaloneRestoration(id))
         standaloneRestorationID = nil
+    }
+
+    mutating func reserveRedTemperBlock(_ overflow: Int, cap: Int, actorID: String) -> Int {
+        guard let index = actions.indices.last, actions[index].context.actor.id == actorID else {
+            return min(overflow, cap)
+        }
+        let available = max(0, cap - actions[index].redTemperBlockReserved)
+        let amount = min(overflow, available)
+        actions[index].redTemperBlockReserved += amount
+        return amount
     }
 
     var actionID: Int? {

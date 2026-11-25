@@ -160,8 +160,17 @@ package extension DamagePipeline {
         } else {
             1
         }
+        let bellMetalBonus: Int = if damageKeyword == .stun, !wasControlled, state.options.isPrimaryAttack, state.combatant.role == .enemy,
+                                     let source = state.partySource(in: context) {
+            context.consumeTalentPreparation(\.bellMetalStunBuildup, for: source.combatant) ?? 0
+        } else {
+            0
+        }
+        let buildup = SaturatedArithmetic.saturatingAdd(
+            CombatRounding.scaled(state.remaining, multiplier: criticalMultiplier), bellMetalBonus,
+        )
         await ControlMeterEngine.applyMeterCharge(
-            CombatRounding.scaled(state.remaining, multiplier: criticalMultiplier),
+            buildup,
             keyword: damageKeyword,
             to: state.combatant,
             sourceActorID: state.sourceActorID,

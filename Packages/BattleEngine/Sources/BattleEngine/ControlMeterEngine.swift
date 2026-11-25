@@ -62,6 +62,11 @@ package enum ControlMeterEngine {
             on: combatant, sourceActorID: sourceActorID, in: &context,
         )
         if triggered {
+            if keyword == .stun, combatant.role == .enemy, let sourceActorID,
+               context.modifiers(for: sourceActorID).triggers.stunSkipDrawsAllyCard,
+               let effectID = meter(.stun, on: combatant, in: context)?.id {
+                context.resolution.vigilBellStun = (effectID, sourceActorID)
+            }
             await triggerControl(
                 keyword, on: combatant, sourceActorID: sourceActorID,
                 triggeredAmount: effectiveThreshold, setupHealthDamage: setupHealthDamage, in: &context,

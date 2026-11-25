@@ -2,6 +2,106 @@ import TrinketContent
 import TrinketCore
 
 package extension CombatTriggerEngine {
+    static func afterAffixAllyHeal(_ request: HealRequest, in context: inout BattleState) {
+        guard let sourceID = request.sourceActorID, sourceID != request.target.id,
+              request.target.role != .enemy,
+              let source = context.roster.combatant(for: sourceID), source.role != .enemy, source.isAlive else { return }
+        let triggers = context.modifiers(for: sourceID).triggers
+        if triggers.holyAttackBonusAfterAllyHeal > 0 {
+            context.roster.mutateRuntime(for: source.combatant) { $0.talents.turn.healedAlly = true }
+        }
+        if request.isDirectCardHeal, triggers.cardHealAllyThorns > 0 {
+            heroTalentThorns(
+                to: request.target, source: source.combatant, amount: triggers.cardHealAllyThorns,
+                name: triggerAbilityName(.cardHealAllyThorns, for: source.combatant, fallback: "Thornstitch", in: context),
+                in: &context,
+            )
+        }
+    }
+
+    static func afterRedTemperOverheal(_ overflow: Int, by actor: Combatant, in context: inout BattleState) -> Int {
+        let cap = context.modifiers(for: actor.id).triggers.attackLeechOverflowBlockCap
+        guard cap > 0, overflow > 0, context.roster.health(for: actor) > 0 else { return 0 }
+        let amount = context.resolution.reserveRedTemperBlock(overflow, cap: cap, actorID: actor.id)
+        guard amount > 0 else { return 0 }
+        return context.applyBlockGain(
+            amount, to: actor, source: actor,
+            abilityName: triggerAbilityName(.attackLeechOverflowBlockCap, for: actor, fallback: "Red Temper", in: context),
+            amountBasis: .resolved,
+        )
+    }
+
+    internal static func afterAffixSupportCard(_ facts: ResolvedActionFacts, in context: inout BattleState) {
+        let actor = facts.action.actor
+        let amount = context.modifiers(for: actor.id).triggers.allySupportCardDodgePercent
+        guard facts.targetsOnlyAlly, amount > 0 else { return }
+        context.roster.mutateRuntime(for: actor) {
+            $0.talents.turn.sideLacedDodgeBonus = max($0.talents.turn.sideLacedDodgeBonus, amount)
+        }
+    }
+
+    static func afterAffixGoldTheft(by actor: Combatant, amount: Int, in context: inout BattleState) {
+        guard amount > 0, let owner = context.roster.participant(for: actor), owner.isPartyMember else { return }
+        let triggers = context.modifiers(for: actor.id).triggers
+        context.prepareAttackBonus(triggers.goldTheftNextHitBlockBypass, \.tolltakerBlockBypass, for: actor)
+        let block = triggers.firstGoldTheftAllyBlock
+        guard block > 0, context.resolution.claim(.affix(.smugglersLining), actorID: actor.id, cadence: .battle) else { return }
+        let ally = owner == .hero ? context.roster.companion : context.roster.hero
+        guard ally.isAlive else { return }
+        emitBlock(.firstGoldTheftAllyBlock, "Smuggler's Lining", amount: block, to: ally.combatant, source: actor, in: &context)
+    }
+
+    static func reserveVerdigris(
+        _ hit: DamageResolutionState,
+        in context: inout BattleState,
+    ) -> (wearer: Combatant, amount: Int)? {
+        guard hit.options.isPrimaryAttack, hit.amount > 0, hit.combatant.role == .enemy, hit.targetStatus.isPoisoned,
+              let source = hit.partySource(in: context), source.isAlive else { return nil }
+        let wearer = source.role == .hero ? context.roster.companion : context.roster.hero
+        let amount = context.modifiers(for: wearer.id).triggers.allyHitPoisonedExtraBlockRemoval
+        guard wearer.isAlive, amount > 0,
+              context.resolution.claim(.affix(.verdigris), actorID: wearer.id, cadence: .turn(context.turnCount)) else { return nil }
+        return (wearer.combatant, amount)
+    }
+
+    static func applyVerdigris(
+        wearer: Combatant, amount: Int, target: Combatant, in context: inout BattleState,
+    ) {
+        let before = DefensePoolEngine.blockPoints(in: context.roster.activeEffects(for: target))
+        let removed = min(before, amount)
+        guard removed > 0 else { return }
+        DefensePoolEngine.set(before - removed, on: target, in: &context)
+        context.nextEvent(
+            kind: .effect(.blockStripped), source: .init(wearer),
+            abilityName: triggerAbilityName(.allyHitPoisonedExtraBlockRemoval, for: wearer, fallback: "Verdigris", in: context),
+            target: target, amount: removed, keyword: .block,
+        )
+    }
+
+    static func afterFinalBleedTick(sourceID: String?, in context: inout BattleState) async {
+        guard let sourceID, let source = context.roster.combatant(for: sourceID),
+              source.role != .enemy, source.isAlive else { return }
+        let ally = source.role == .hero ? context.roster.companion : context.roster.hero
+        let amount = context.modifiers(for: sourceID).triggers.finalBleedTickAllyHeal
+        guard ally.isAlive, amount > 0 else { return }
+        await emitHeal(.finalBleedTickAllyHeal, "Red Thread", amount: amount, to: ally.combatant, source: source.combatant, in: &context)
+    }
+
+    static func afterVigilBellSkip(effectID: Int, in context: inout BattleState) {
+        guard let stun = context.resolution.vigilBellStun, stun.effectID == effectID,
+              let source = context.roster.combatant(for: stun.sourceActorID), source.role != .enemy, source.isAlive,
+              let sourceOwner = context.roster.participant(for: source.combatant) else { return }
+        let ally: BattleParticipant = sourceOwner == .hero ? .companion : .hero
+        guard context.roster[ally].isAlive else { return }
+        let drawn = BattleCardCombatEngine.drawCards(count: 1, for: ally, context: &context)
+        guard drawn > 0 else { return }
+        context.nextEvent(
+            kind: .effect(.cardsDrawn), source: .init(source.combatant),
+            abilityName: triggerAbilityName(.stunSkipDrawsAllyCard, for: source.combatant, fallback: "Vigil Bell", in: context),
+            target: context.roster[ally].combatant, amount: drawn, keyword: .stun,
+        )
+    }
+
     static func afterAffixStun(sourceActorID: String?, in context: inout BattleState) async {
         guard let sourceActorID, let source = context.roster.combatant(for: sourceActorID),
               source.role != .enemy, source.isAlive, context.roster.enemy.isAlive else { return }

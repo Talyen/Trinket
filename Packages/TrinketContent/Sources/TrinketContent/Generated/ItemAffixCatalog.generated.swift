@@ -5,7 +5,7 @@ import TrinketCore
 enum ItemAffixCatalogGenerated {
     static let definitions: [ItemAffixDefinition] = {
         var list = [ItemAffixDefinition]()
-        list.reserveCapacity(136)
+        list.reserveCapacity(150)
         list.append(contentsOf: chunk0())
         list.append(contentsOf: chunk1())
         list.append(contentsOf: chunk2())
@@ -15,6 +15,7 @@ enum ItemAffixCatalogGenerated {
         list.append(contentsOf: chunk6())
         list.append(contentsOf: chunk7())
         list.append(contentsOf: chunk8())
+        list.append(contentsOf: chunk9())
         return list
     }()
 
@@ -1319,6 +1320,137 @@ enum ItemAffixCatalogGenerated {
             weight: 8,
             basic: ItemAffixPower(description: "Gain 15% more Block while your ally has Block", modifiers: [], triggers: CombatTraitTriggers { $0.blockGainWhileAllyBlockedPercent = 0.15 }, triggerRollRanges: [.blockGainWhileAllyBlockedPercent: 0.1 ... 0.15]),
             astral: ItemAffixPower(description: "Gain 25% more Block while your ally has Block", modifiers: [], triggers: CombatTraitTriggers { $0.blockGainWhileAllyBlockedPercent = 0.25 }, triggerRollRanges: [.blockGainWhileAllyBlockedPercent: 0.2 ... 0.25])
+        ),
+        ItemAffixCatalog.affix(
+            id: "blood_groove",
+            title: "Blood Groove",
+            slot: .weapon,
+            keywords: [.bleed],
+            weight: 8,
+            basic: ItemAffixPower(description: "Your Bleed attacks deal 1 additional damage to enemies without Bleed", modifiers: [], triggers: CombatTraitTriggers { $0.bleedAttackVsUnbledBonus = 1 }, triggerRollRanges: [.bleedAttackVsUnbledBonus: 1 ... 1]),
+            astral: ItemAffixPower(description: "Your Bleed attacks deal 3 additional damage to enemies without Bleed", modifiers: [], triggers: CombatTraitTriggers { $0.bleedAttackVsUnbledBonus = 3 }, triggerRollRanges: [.bleedAttackVsUnbledBonus: 2 ... 3])
+        ),
+        ItemAffixCatalog.affix(
+            id: "red_temper",
+            title: "Red Temper",
+            slot: .weapon,
+            keywords: [.leech],
+            weight: 8,
+            basic: ItemAffixPower(description: "Excess Leech healing grants up to 2 Block per attack", modifiers: [], triggers: CombatTraitTriggers { $0.attackLeechOverflowBlockCap = 2 }, triggerRollRanges: [.attackLeechOverflowBlockCap: 1 ... 2]),
+            astral: ItemAffixPower(description: "Excess Leech healing grants up to 4 Block per attack", modifiers: [], triggers: CombatTraitTriggers { $0.attackLeechOverflowBlockCap = 4 }, triggerRollRanges: [.attackLeechOverflowBlockCap: 3 ... 4])
+        ),
+        ItemAffixCatalog.affix(
+            id: "bell_metal",
+            title: "Bell-Metal",
+            slot: .weapon,
+            keywords: [.stun],
+            weight: 8,
+            basic: ItemAffixPower(description: "Fully Blocking a hit adds 2 buildup to your next Stun attack", modifiers: [], triggers: CombatTraitTriggers { $0.fullBlockNextStunBuildup = 2 }, triggerRollRanges: [.fullBlockNextStunBuildup: 1 ... 2]),
+            astral: ItemAffixPower(description: "Fully Blocking a hit adds 4 buildup to your next Stun attack", modifiers: [], triggers: CombatTraitTriggers { $0.fullBlockNextStunBuildup = 4 }, triggerRollRanges: [.fullBlockNextStunBuildup: 3 ... 4])
+        ),
+        ItemAffixCatalog.affix(
+            id: "banked_ember",
+            title: "Banked Ember",
+            slot: .weapon,
+            keywords: [.burn],
+            weight: 8,
+            basic: ItemAffixPower(description: "Your Burn loses up to 1 less potency on its first tick", modifiers: [], triggers: CombatTraitTriggers { $0.firstBurnTickPreserveFlat = 1 }, triggerRollRanges: [.firstBurnTickPreserveFlat: 1 ... 1]),
+            astral: ItemAffixPower(description: "Your Burn loses up to 3 less potency on its first tick", modifiers: [], triggers: CombatTraitTriggers { $0.firstBurnTickPreserveFlat = 3 }, triggerRollRanges: [.firstBurnTickPreserveFlat: 2 ... 3])
+        ),
+        ItemAffixCatalog.affix(
+            id: "tolltaker",
+            title: "Tolltaker",
+            slot: .weapon,
+            keywords: [.gold],
+            weight: 8,
+            basic: ItemAffixPower(description: "Stealing Gold lets your next landed hit ignore up to 2 Block", modifiers: [], triggers: CombatTraitTriggers { $0.goldTheftNextHitBlockBypass = 2 }, triggerRollRanges: [.goldTheftNextHitBlockBypass: 1 ... 2]),
+            astral: ItemAffixPower(description: "Stealing Gold lets your next landed hit ignore up to 5 Block", modifiers: [], triggers: CombatTraitTriggers { $0.goldTheftNextHitBlockBypass = 5 }, triggerRollRanges: [.goldTheftNextHitBlockBypass: 3 ... 5])
+        ),
+        ItemAffixCatalog.affix(
+            id: "votive",
+            title: "Votive",
+            slot: .weapon,
+            keywords: [.holy],
+            weight: 8,
+            basic: ItemAffixPower(description: "Your Holy attacks deal 2 additional damage after you heal your ally this turn", modifiers: [], triggers: CombatTraitTriggers { $0.holyAttackBonusAfterAllyHeal = 2 }, triggerRollRanges: [.holyAttackBonusAfterAllyHeal: 1 ... 2]),
+            astral: ItemAffixPower(description: "Your Holy attacks deal 4 additional damage after you heal your ally this turn", modifiers: [], triggers: CombatTraitTriggers { $0.holyAttackBonusAfterAllyHeal = 4 }, triggerRollRanges: [.holyAttackBonusAfterAllyHeal: 3 ... 4])
+        ),
+        ItemAffixCatalog.affix(
+            id: "thornstitch",
+            title: "Thornstitch",
+            slot: .armor,
+            keywords: [.thorns],
+            weight: 8,
+            basic: ItemAffixPower(description: "Grant your ally 1 Thorns when a card you play heals them", modifiers: [], triggers: CombatTraitTriggers { $0.cardHealAllyThorns = 1 }, triggerRollRanges: [.cardHealAllyThorns: 1 ... 1]),
+            astral: ItemAffixPower(description: "Grant your ally 3 Thorns when a card you play heals them", modifiers: [], triggers: CombatTraitTriggers { $0.cardHealAllyThorns = 3 }, triggerRollRanges: [.cardHealAllyThorns: 2 ... 3])
+        ),
+        ItemAffixCatalog.affix(
+            id: "side_laced",
+            title: "Side-Laced",
+            slot: .armor,
+            keywords: [.dodge],
+            weight: 8,
+            basic: ItemAffixPower(description: "Playing a support card that targets only your ally grants 10% Dodge chance until your next turn", modifiers: [], triggers: CombatTraitTriggers { $0.allySupportCardDodgePercent = 0.10 }, triggerRollRanges: [.allySupportCardDodgePercent: 0.08 ... 0.10]),
+            astral: ItemAffixPower(description: "Playing a support card that targets only your ally grants 18% Dodge chance until your next turn", modifiers: [], triggers: CombatTraitTriggers { $0.allySupportCardDodgePercent = 0.18 }, triggerRollRanges: [.allySupportCardDodgePercent: 0.14 ... 0.18])
+        )
+        ]
+    }
+
+    private static func chunk9() -> [ItemAffixDefinition] {
+        [
+        ItemAffixCatalog.affix(
+            id: "smugglers_lining",
+            title: "Smuggler's Lining",
+            slot: .armor,
+            keywords: [.gold],
+            weight: 8,
+            basic: ItemAffixPower(description: "Your first Gold theft each battle grants your ally 4 Block", modifiers: [], triggers: CombatTraitTriggers { $0.firstGoldTheftAllyBlock = 4 }, triggerRollRanges: [.firstGoldTheftAllyBlock: 3 ... 4]),
+            astral: ItemAffixPower(description: "Your first Gold theft each battle grants your ally 7 Block", modifiers: [], triggers: CombatTraitTriggers { $0.firstGoldTheftAllyBlock = 7 }, triggerRollRanges: [.firstGoldTheftAllyBlock: 5 ... 7])
+        ),
+        ItemAffixCatalog.affix(
+            id: "verdigris",
+            title: "Verdigris",
+            slot: .accessory,
+            keywords: [.poison],
+            weight: 8,
+            basic: ItemAffixPower(description: "Your ally's first hit against a Poisoned enemy each turn removes up to 2 extra Block", modifiers: [], triggers: CombatTraitTriggers { $0.allyHitPoisonedExtraBlockRemoval = 2 }, triggerRollRanges: [.allyHitPoisonedExtraBlockRemoval: 1 ... 2]),
+            astral: ItemAffixPower(description: "Your ally's first hit against a Poisoned enemy each turn removes up to 4 extra Block", modifiers: [], triggers: CombatTraitTriggers { $0.allyHitPoisonedExtraBlockRemoval = 4 }, triggerRollRanges: [.allyHitPoisonedExtraBlockRemoval: 3 ... 4])
+        ),
+        ItemAffixCatalog.affix(
+            id: "red_thread",
+            title: "Red Thread",
+            slot: .accessory,
+            keywords: [.bleed],
+            weight: 8,
+            basic: ItemAffixPower(description: "When your Bleed's final tick deals Health damage, restore 1 Health to your ally", modifiers: [], triggers: CombatTraitTriggers { $0.finalBleedTickAllyHeal = 1 }, triggerRollRanges: [.finalBleedTickAllyHeal: 1 ... 1]),
+            astral: ItemAffixPower(description: "When your Bleed's final tick deals Health damage, restore 3 Health to your ally", modifiers: [], triggers: CombatTraitTriggers { $0.finalBleedTickAllyHeal = 3 }, triggerRollRanges: [.finalBleedTickAllyHeal: 2 ... 3])
+        ),
+        ItemAffixCatalog.affix(
+            id: "rimeglass",
+            title: "Rimeglass",
+            slot: .accessory,
+            keywords: [.freeze],
+            weight: 8,
+            basic: ItemAffixPower(description: "After your ally plays a Freeze card, your next Freeze empowerment this turn costs 1 less Mana", modifiers: [], triggers: CombatTraitTriggers { $0.allyFreezeCardDiscountsNextFreeze = true }),
+            astral: ItemAffixPower(description: "After your ally plays a Freeze card, your next Freeze empowerment this turn costs 1 less Mana", modifiers: [], triggers: CombatTraitTriggers { $0.allyFreezeCardDiscountsNextFreeze = true })
+        ),
+        ItemAffixCatalog.affix(
+            id: "deepwell",
+            title: "Deepwell",
+            slot: .accessory,
+            keywords: [.mana],
+            weight: 8,
+            basic: ItemAffixPower(description: "While at full Mana, keep 64% of your Block between turns", modifiers: [], triggers: CombatTraitTriggers { $0.fullManaBlockRetentionPercent = 0.64 }, triggerRollRanges: [.fullManaBlockRetentionPercent: 0.60 ... 0.64]),
+            astral: ItemAffixPower(description: "While at full Mana, keep 70% of your Block between turns", modifiers: [], triggers: CombatTraitTriggers { $0.fullManaBlockRetentionPercent = 0.70 }, triggerRollRanges: [.fullManaBlockRetentionPercent: 0.65 ... 0.70])
+        ),
+        ItemAffixCatalog.affix(
+            id: "vigil_bell",
+            title: "Vigil Bell",
+            slot: .accessory,
+            keywords: [.stun],
+            weight: 8,
+            basic: ItemAffixPower(description: "Draw 1 card from your ally's deck when your Stun makes an enemy skip an action", modifiers: [], triggers: CombatTraitTriggers { $0.stunSkipDrawsAllyCard = true }),
+            astral: ItemAffixPower(description: "Draw 1 card from your ally's deck when your Stun makes an enemy skip an action", modifiers: [], triggers: CombatTraitTriggers { $0.stunSkipDrawsAllyCard = true })
         )
         ]
     }

@@ -41,6 +41,9 @@ struct CombatantTalentState: Hashable, Sendable {
 
     struct Turn: Hashable, Sendable {
         var dodgeChanceBonus = 0.0
+        var sideLacedDodgeBonus = 0.0
+        var healedAlly = false
+        var rimeglassUsedAllyFreezeCount = 0
         var goldTheftDodgeApplied = false
         var cleansedKeywordProtection: Set<Keyword> = []
         var negativeStatusImmune = false
@@ -83,6 +86,8 @@ struct CombatantTalentState: Hashable, Sendable {
         var nextManaEmpowerDiscount = 0
         var nextManaSpendAttackBonus: PreparedTalentBonus<Int>?
         var nextRelayAttackBonus: PreparedTalentBonus<Int>?
+        var tolltakerBlockBypass: PreparedTalentBonus<Int>?
+        var bellMetalStunBuildup: PreparedTalentBonus<Int>?
         var nextAttackBlockBonus: PreparedTalentBonus<Int>?
         var nextBlockGainMultiplier: PreparedTalentBonus<Double>?
         var nextFreezeIgnoresBlock: PreparedTalentBonus<Bool>?
@@ -154,7 +159,7 @@ struct CombatantTalentState: Hashable, Sendable {
 
     func dodgeChanceBonus(atTurn currentTurn: Int) -> Double {
         let timedAmount = timed.dodge.expiresAtTurn == 0 || currentTurn < timed.dodge.expiresAtTurn ? timed.dodge.amount : 0
-        return turn.dodgeChanceBonus + timedAmount
+        return turn.dodgeChanceBonus + turn.sideLacedDodgeBonus + timedAmount
     }
 
     mutating func beginTurn(_ currentTurn: Int) {

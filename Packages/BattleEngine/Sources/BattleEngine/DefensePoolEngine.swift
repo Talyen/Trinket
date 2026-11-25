@@ -153,11 +153,19 @@ package enum DefensePoolEngine {
         let current = blockPoints(in: context.roster.activeEffects(for: target))
         guard current > 0 else { return }
         let triggers = context.modifiers(for: target.id).triggers
+        let runtime = context.roster.runtime(for: target)
+        let fullManaRetention = if let runtime, runtime.maxMana > 0, runtime.currentMana == runtime.maxMana {
+            CombatRounding.rounded(min(0.99, triggers.fullManaBlockRetentionPercent) * 100)
+        } else {
+            0
+        }
         let retained: Int = if triggers.retainAllBlockBetweenTurns
             || triggers.retainAllBlockDuringDeathsDoor && context.roster.isDeathsDoorActive(for: target) {
             current
         } else if triggers.blockRetainsThreeQuarters {
             current / 4 * 3 + current % 4 * 3 / 4
+        } else if fullManaRetention > 50 {
+            current / 100 * fullManaRetention + current % 100 * fullManaRetention / 100
         } else if triggers.blockRetainsHalf {
             min(30, current / 2)
         } else {

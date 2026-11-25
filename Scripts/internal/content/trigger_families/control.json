@@ -228,6 +228,19 @@
         "kind": "int",
         "order": 95
       }
+    },
+    "fullBlockNextStunBuildup": {
+      "type": "Int",
+      "affix_roll": {
+        "kind": "int",
+        "order": 112
+      }
+    },
+    "stunSkipDrawsAllyCard": {
+      "type": "Bool",
+      "affix_roll": {
+        "reason": "Fixed effect at both equipment tiers."
+      }
     }
   }
 }

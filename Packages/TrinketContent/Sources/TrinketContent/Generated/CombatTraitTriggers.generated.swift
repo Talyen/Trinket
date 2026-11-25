@@ -237,6 +237,8 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case burnAttackDamageBonus
     case attackHolyBonusVsBelowHalf
     case attackDamageReductionBelowHalf
+    case bleedAttackVsUnbledBonus
+    case holyAttackBonusAfterAllyHeal
     case sealedSarcophagus
     case retainAllBlockBetweenTurns
     case blockedAttackBasicOncePerTurn
@@ -338,6 +340,8 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case attackPreparesBlockBonus
     case blockGainWhileAllyBlockedPercent
     case attackStealBlock
+    case allyHitPoisonedExtraBlockRemoval
+    case fullManaBlockRetentionPercent
     case passiveMitigationFlat
     case passivePhysicalMitigationFlat
     case thornsPercent
@@ -447,6 +451,8 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case burnDamageVsPoisonedFlat
     case bleedDamageVsBurningFlat
     case bleedDamageVsPoisonedFlat
+    case firstBurnTickPreserveFlat
+    case finalBleedTickAllyHeal
     case stunDamageAddsEnemyBlock
     case stunRetainedBuildupPercent
     case freezeExtraActionSkips
@@ -503,6 +509,8 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case dodgeNextStunAttackBonus
     case dodgeNextFreezeAttackBonus
     case freezeDealPhysicalFlat
+    case fullBlockNextStunBuildup
+    case stunSkipDrawsAllyCard
     case wintersWake
     case killingGrace
     case dodgeNextHitPoisonAndBleedPercent
@@ -577,6 +585,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case partyDodgeChanceBonus
     case partyDodgeWhileBlockedBonus
     case dodgeNextBleedAttackBonus
+    case allySupportCardDodgePercent
     case dragonPatronage
     case prismaticScales
     case freezeEmpowermentBlockPerMana
@@ -663,6 +672,7 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case threefoldElementalDamageManaChancePercent
     case excessManaRestorationBlockPerMana
     case stunManaIfNone
+    case allyFreezeCardDiscountsNextFreeze
     case carrionClaim
     case lightFingered
     case goldGainedNextHolyDamage
@@ -731,6 +741,8 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case bleedDamageGoldStealChancePercent
     case excessLeechHealthToGoldChancePercent
     case victoryGoldPerDifferentCardCap
+    case goldTheftNextHitBlockBypass
+    case firstGoldTheftAllyBlock
     case contagiousJoy
     case livingArchive
     case marrowmend
@@ -853,6 +865,8 @@ public enum CombatTriggerField: String, CodingKey, CaseIterable, Sendable {
     case healOnOpponentPoisonDamage
     case healthAtTurnStart
     case cannotBeLeeched
+    case attackLeechOverflowBlockCap
+    case cardHealAllyThorns
     case undyingEmber
     case borrowedLife
     case onceDeathReviveHealth
@@ -1172,6 +1186,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var burnAttackDamageBonus: Int = 0
         public var attackHolyBonusVsBelowHalf: Int = 0
         public var attackDamageReductionBelowHalf: Int = 0
+        public var bleedAttackVsUnbledBonus: Int = 0
+        public var holyAttackBonusAfterAllyHeal: Int = 0
         public var sealedSarcophagus: Bool = false
         public var retainAllBlockBetweenTurns: Bool = false
         public var blockedAttackBasicOncePerTurn: Bool = false
@@ -1273,6 +1289,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var attackPreparesBlockBonus: Int = 0
         public var blockGainWhileAllyBlockedPercent: Double = 0
         public var attackStealBlock: Int = 0
+        public var allyHitPoisonedExtraBlockRemoval: Int = 0
+        public var fullManaBlockRetentionPercent: Double = 0
         public var passiveMitigationFlat: Int = 0
         public var passivePhysicalMitigationFlat: Int = 0
         public var thornsPercent: Double = 0
@@ -1382,6 +1400,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var burnDamageVsPoisonedFlat: Int = 0
         public var bleedDamageVsBurningFlat: Int = 0
         public var bleedDamageVsPoisonedFlat: Int = 0
+        public var firstBurnTickPreserveFlat: Int = 0
+        public var finalBleedTickAllyHeal: Int = 0
         public var stunDamageAddsEnemyBlock: Bool = false
         public var stunRetainedBuildupPercent: Double = 0
         public var freezeExtraActionSkips: Int = 0
@@ -1438,6 +1458,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var dodgeNextStunAttackBonus: Int = 0
         public var dodgeNextFreezeAttackBonus: Int = 0
         public var freezeDealPhysicalFlat: Int = 0
+        public var fullBlockNextStunBuildup: Int = 0
+        public var stunSkipDrawsAllyCard: Bool = false
         public var wintersWake: Bool = false
         public var killingGrace: Bool = false
         public var dodgeNextHitPoisonAndBleedPercent: Double = 0
@@ -1512,6 +1534,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var partyDodgeChanceBonus: Double = 0
         public var partyDodgeWhileBlockedBonus: Double = 0
         public var dodgeNextBleedAttackBonus: Int = 0
+        public var allySupportCardDodgePercent: Double = 0
         public var dragonPatronage: Bool = false
         public var prismaticScales: Bool = false
         public var freezeEmpowermentBlockPerMana: Int = 0
@@ -1598,6 +1621,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var threefoldElementalDamageManaChancePercent: Double = 0
         public var excessManaRestorationBlockPerMana: Int = 1
         public var stunManaIfNone: Int = 0
+        public var allyFreezeCardDiscountsNextFreeze: Bool = false
         public var carrionClaim: Bool = false
         public var lightFingered: Bool = false
         public var goldGainedNextHolyDamage: Bool = false
@@ -1666,6 +1690,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var bleedDamageGoldStealChancePercent: Double = 0
         public var excessLeechHealthToGoldChancePercent: Double = 0
         public var victoryGoldPerDifferentCardCap: Int = 0
+        public var goldTheftNextHitBlockBypass: Int = 0
+        public var firstGoldTheftAllyBlock: Int = 0
         public var contagiousJoy: Bool = false
         public var livingArchive: Bool = false
         public var marrowmend: Bool = false
@@ -1788,6 +1814,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         public var healOnOpponentPoisonDamage: Int = 0
         public var healthAtTurnStart: Int = 0
         public var cannotBeLeeched: Bool = false
+        public var attackLeechOverflowBlockCap: Int = 0
+        public var cardHealAllyThorns: Int = 0
         public var undyingEmber: Bool = false
         public var borrowedLife: Bool = false
         public var onceDeathReviveHealth: Int = 0
@@ -2110,6 +2138,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.burnAttackDamageBonus, .burnAttackDamageBonus, default: 0, merging: .add),
         .init(\.attackHolyBonusVsBelowHalf, .attackHolyBonusVsBelowHalf, default: 0, merging: .add),
         .init(\.attackDamageReductionBelowHalf, .attackDamageReductionBelowHalf, default: 0, merging: .add),
+        .init(\.bleedAttackVsUnbledBonus, .bleedAttackVsUnbledBonus, default: 0, merging: .add),
+        .init(\.holyAttackBonusAfterAllyHeal, .holyAttackBonusAfterAllyHeal, default: 0, merging: .add),
         .init(\.sealedSarcophagus, .sealedSarcophagus, default: false, merging: .or),
         .init(\.retainAllBlockBetweenTurns, .retainAllBlockBetweenTurns, default: false, merging: .or),
         .init(\.blockedAttackBasicOncePerTurn, .blockedAttackBasicOncePerTurn, default: false, merging: .or),
@@ -2211,6 +2241,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.attackPreparesBlockBonus, .attackPreparesBlockBonus, default: 0, merging: .add),
         .init(\.blockGainWhileAllyBlockedPercent, .blockGainWhileAllyBlockedPercent, default: 0, merging: .add),
         .init(\.attackStealBlock, .attackStealBlock, default: 0, merging: .add),
+        .init(\.allyHitPoisonedExtraBlockRemoval, .allyHitPoisonedExtraBlockRemoval, default: 0, merging: .add),
+        .init(\.fullManaBlockRetentionPercent, .fullManaBlockRetentionPercent, default: 0, merging: .max),
         .init(\.passiveMitigationFlat, .passiveMitigationFlat, default: 0, merging: .add),
         .init(\.passivePhysicalMitigationFlat, .passivePhysicalMitigationFlat, default: 0, merging: .add),
         .init(\.thornsPercent, .thornsPercent, default: 0, merging: .add),
@@ -2320,6 +2352,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.burnDamageVsPoisonedFlat, .burnDamageVsPoisonedFlat, default: 0, merging: .add),
         .init(\.bleedDamageVsBurningFlat, .bleedDamageVsBurningFlat, default: 0, merging: .add),
         .init(\.bleedDamageVsPoisonedFlat, .bleedDamageVsPoisonedFlat, default: 0, merging: .add),
+        .init(\.firstBurnTickPreserveFlat, .firstBurnTickPreserveFlat, default: 0, merging: .add),
+        .init(\.finalBleedTickAllyHeal, .finalBleedTickAllyHeal, default: 0, merging: .add),
         .init(\.stunDamageAddsEnemyBlock, .stunDamageAddsEnemyBlock, default: false, merging: .or),
         .init(\.stunRetainedBuildupPercent, .stunRetainedBuildupPercent, default: 0, merging: .max),
         .init(\.freezeExtraActionSkips, .freezeExtraActionSkips, default: 0, merging: .add),
@@ -2376,6 +2410,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.dodgeNextStunAttackBonus, .dodgeNextStunAttackBonus, default: 0, merging: .add),
         .init(\.dodgeNextFreezeAttackBonus, .dodgeNextFreezeAttackBonus, default: 0, merging: .add),
         .init(\.freezeDealPhysicalFlat, .freezeDealPhysicalFlat, default: 0, merging: .add),
+        .init(\.fullBlockNextStunBuildup, .fullBlockNextStunBuildup, default: 0, merging: .add),
+        .init(\.stunSkipDrawsAllyCard, .stunSkipDrawsAllyCard, default: false, merging: .or),
         .init(\.wintersWake, .wintersWake, default: false, merging: .or),
         .init(\.killingGrace, .killingGrace, default: false, merging: .or),
         .init(\.dodgeNextHitPoisonAndBleedPercent, .dodgeNextHitPoisonAndBleedPercent, default: 0, merging: .max),
@@ -2450,6 +2486,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.partyDodgeChanceBonus, .partyDodgeChanceBonus, default: 0, merging: .add),
         .init(\.partyDodgeWhileBlockedBonus, .partyDodgeWhileBlockedBonus, default: 0, merging: .add),
         .init(\.dodgeNextBleedAttackBonus, .dodgeNextBleedAttackBonus, default: 0, merging: .add),
+        .init(\.allySupportCardDodgePercent, .allySupportCardDodgePercent, default: 0, merging: .add),
         .init(\.dragonPatronage, .dragonPatronage, default: false, merging: .or),
         .init(\.prismaticScales, .prismaticScales, default: false, merging: .or),
         .init(\.freezeEmpowermentBlockPerMana, .freezeEmpowermentBlockPerMana, default: 0, merging: .max),
@@ -2536,6 +2573,7 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.threefoldElementalDamageManaChancePercent, .threefoldElementalDamageManaChancePercent, default: 0, merging: .add),
         .init(\.excessManaRestorationBlockPerMana, .excessManaRestorationBlockPerMana, default: 1, merging: .max),
         .init(\.stunManaIfNone, .stunManaIfNone, default: 0, merging: .add),
+        .init(\.allyFreezeCardDiscountsNextFreeze, .allyFreezeCardDiscountsNextFreeze, default: false, merging: .or),
         .init(\.carrionClaim, .carrionClaim, default: false, merging: .or),
         .init(\.lightFingered, .lightFingered, default: false, merging: .or),
         .init(\.goldGainedNextHolyDamage, .goldGainedNextHolyDamage, default: false, merging: .or),
@@ -2604,6 +2642,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.bleedDamageGoldStealChancePercent, .bleedDamageGoldStealChancePercent, default: 0, merging: .max),
         .init(\.excessLeechHealthToGoldChancePercent, .excessLeechHealthToGoldChancePercent, default: 0, merging: .max),
         .init(\.victoryGoldPerDifferentCardCap, .victoryGoldPerDifferentCardCap, default: 0, merging: .max),
+        .init(\.goldTheftNextHitBlockBypass, .goldTheftNextHitBlockBypass, default: 0, merging: .add),
+        .init(\.firstGoldTheftAllyBlock, .firstGoldTheftAllyBlock, default: 0, merging: .add),
         .init(\.contagiousJoy, .contagiousJoy, default: false, merging: .or),
         .init(\.livingArchive, .livingArchive, default: false, merging: .or),
         .init(\.marrowmend, .marrowmend, default: false, merging: .or),
@@ -2726,6 +2766,8 @@ public struct CombatTraitTriggers: Codable, @unchecked Sendable, Equatable, Hash
         .init(\.healOnOpponentPoisonDamage, .healOnOpponentPoisonDamage, default: 0, merging: .add),
         .init(\.healthAtTurnStart, .healthAtTurnStart, default: 0, merging: .add),
         .init(\.cannotBeLeeched, .cannotBeLeeched, default: false, merging: .or),
+        .init(\.attackLeechOverflowBlockCap, .attackLeechOverflowBlockCap, default: 0, merging: .add),
+        .init(\.cardHealAllyThorns, .cardHealAllyThorns, default: 0, merging: .add),
         .init(\.undyingEmber, .undyingEmber, default: false, merging: .or),
         .init(\.borrowedLife, .borrowedLife, default: false, merging: .or),
         .init(\.onceDeathReviveHealth, .onceDeathReviveHealth, default: 0, merging: .max),

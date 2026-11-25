@@ -6,6 +6,20 @@ package extension DamagePipeline {
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) async {
+        let verdigris = CombatTriggerEngine.reserveVerdigris(state, in: &context)
+        defer {
+            if let verdigris {
+                CombatTriggerEngine.applyVerdigris(
+                    wearer: verdigris.wearer, amount: verdigris.amount, target: state.combatant, in: &context,
+                )
+            }
+        }
+        let tolltakerBypass: Int = if state.options.isPrimaryAttack, state.amount > 0, state.combatant.role == .enemy,
+                                      let source = state.partySource(in: context) {
+            context.consumeTalentPreparation(\.tolltakerBlockBypass, for: source.combatant) ?? 0
+        } else {
+            0
+        }
         let blockMultiplier = DamageDefensePolicy.blockMultiplier(state: state, in: context)
         guard blockMultiplier > 0 else { return }
 
@@ -21,7 +35,7 @@ package extension DamagePipeline {
         // changed either participant's effects or the attacker's modifiers.
         _ = await absorbBlock(
             ownedBy: state.combatant, blockMultiplier: blockMultiplier,
-            previouslyStripped: borrowedStrip, to: &state, in: &context,
+            previouslyStripped: borrowedStrip, flatBypass: tolltakerBypass, to: &state, in: &context,
         )
     }
 
@@ -31,6 +45,7 @@ package extension DamagePipeline {
         abilityName: String? = nil,
         blockMultiplier: Double,
         previouslyStripped: Int = 0,
+        flatBypass: Int = 0,
         to state: inout DamageResolutionState,
         in context: inout BattleState,
     ) async -> Int {
@@ -50,7 +65,9 @@ package extension DamagePipeline {
             ? sourceTriggers?.poisonStripsBlockBeforeHealth ?? 0
             : 0
         let absorptionMultiplier = blockAbsorptionMultiplier(for: owner, state: state, in: context)
-        let effectiveBlock = CombatRounding.scaled(max(0, buffer - stripBeforeAbsorption), multiplier: blockMultiplier)
+        let unstripped = max(0, buffer - stripBeforeAbsorption)
+        let scaledBlock = CombatRounding.scaled(unstripped, multiplier: blockMultiplier)
+        let effectiveBlock = flatBypass > 0 ? min(scaledBlock, max(0, unstripped - flatBypass)) : scaledBlock
         let available = CombatRounding.scaled(effectiveBlock, multiplier: absorptionMultiplier)
         let absorbed = min(state.remaining, available)
         let consumedBlock = max(absorbed > 0 ? 1 : 0, CombatRounding.scaled(absorbed, multiplier: 1 / absorptionMultiplier))
@@ -170,6 +187,11 @@ package extension DamagePipeline {
     ) {
         guard absorbed > 0 else { return }
         state.blockAbsorbingOwners.append(owner)
+        if state.options.isPrimaryAttack, state.sourceActorID == context.enemy.id, owner.role != .enemy,
+           state.remaining == 0, state.blockedAmount == absorbed {
+            let bonus = context.modifiers(for: owner.id).triggers.fullBlockNextStunBuildup
+            context.prepareAttackBonus(bonus, \.bellMetalStunBuildup, for: owner)
+        }
         guard state.options.isPrimaryAttack,
               context.modifiers(for: owner.id).triggers.blockPreparesCritical
         else { return }
