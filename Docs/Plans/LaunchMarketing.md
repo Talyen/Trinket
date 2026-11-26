@@ -2,7 +2,7 @@
 type: execution-plan
 status: active
 created: 2026-11-15
-updated: 2026-11-23
+updated: 2026-11-26
 expires: 2026-11-30
 ---
 
@@ -295,17 +295,20 @@ one unsolicited follow-up per outlet across both dates.
 | --- | ---: | --- |
 | Editorial, press, and community launch | $0 | Approved assets and outreach |
 | Apple Ads pilot | $100 | Organic baseline, working Full Game offer, approved measurement setup and spend |
-| Repeat test | $150 | Mature pilot clears the proceeds and sample rules below |
-| Reserve | $500 | Repeat clears the same rules and total U.S. proceeds also lift against comparable no-ad periods |
+| Repeat test | $150 | Mature pilot breaks even or better with measurable net proceeds |
+| Reserve | $500 | Repeat breaks even or better and total U.S. proceeds also lift against comparable no-ad periods |
 | Initial ceiling | **$750** | A separate owner decision is required to exceed it |
 
 - [ ] **Agents · pilot setup.** Prepare one U.S. Apple Ads Advanced
   search-results campaign using Manage Bids, a few exact-match genre terms
   such as `card battler` and `offline card rpg`, and Search Match off.
-  Create an approved custom product page for the ad using existing assets.
-  Keep that page out of organic keyword targeting and public outreach so
-  its Full Game proceeds can be tied to the ad traffic. Confirm the ad
-  serves the intended page and check for fallback to the default ad.
+  Use the `Apple Ads | US Card RPG Search` custom product page. It was
+  submitted separately on November 26 with the existing U.S. English store
+  assets and is waiting for App Review. Keep its organic search keywords
+  empty and its link out of public outreach so its Full Game proceeds can
+  be tied to the ad traffic. After approval, confirm the ad serves the
+  intended page and check for fallback to the default ad.
+  [Custom page in App Store Connect](https://appstoreconnect.apple.com/apps/6811284921/distribution/productpages/eb25b38e-b7ea-4c51-8ff5-f07efcd40826) ·
   [Apple Ads controls](https://ads.apple.com/app-store/help/apple-ads-basic/0001-compare-apple-ads-solutions) ·
   [Ad variations](https://ads.apple.com/app-store/help/ads/0078-manage-ad-variations) ·
   [Custom product page analytics](https://developer.apple.com/help/app-store-connect-analytics/acquisition/custom-product-pages)
@@ -320,27 +323,27 @@ one unsolicited follow-up per outlet across both dates.
   page and download dates in App Store Connect to measure Full Game net
   proceeds for the paid cohort. Check early reads at days 7 and 14. Make
   the repeat decision after the last included download has had 30 days
-  to convert and reporting has caught up. Treat missing, suppressed,
-  contaminated, or low-volume data as inconclusive and hold further spend.
+  to convert and reporting has caught up. Hold further spend if reporting
+  gaps, suppression, or mixed traffic prevent a reliable comparison.
   [Apple Ads reporting](https://ads.apple.com/app-store/help/reporting/0023-reporting-options-and-definitions) ·
   [App Store Purchases report](https://developer.apple.com/documentation/analytics-reports/app-store-purchase)
-- [ ] **Owner · repeat or stop.** Repeat only with at least 20 paid Full
-  Game unlocks and at least **$1.50 in net proceeds per $1 of ad spend**.
-  These are proposed decision rules. Use matured cohorts and exclude free
-  codes. If the repeat also passes and U.S. proceeds rise against comparable
-  no-ad periods, authorize reserve spend in steps. Note any featuring,
-  coverage, or sale that overlaps the comparison. If the impact cannot be
-  isolated, hold the reserve. Keep broader paid promotion out of the first
-  round.
+- [ ] **Owner · repeat or stop.** Break-even is **$1.00 in Full Game net
+  proceeds per $1 of ad spend**. Use mature cohorts and exclude free codes.
+  A result at or above break-even qualifies for a repeat. If the margin is
+  narrow or the measurable sample is small, repeat at the original cap to
+  check whether it holds. Stop a setup with a measurable loss. If the
+  repeat covers spend and U.S. proceeds rise against comparable no-ad periods,
+  authorize reserve spend in steps. Note any featuring, coverage, or sale
+  that overlaps the comparison. If the impact cannot be isolated, hold the
+  reserve. Keep broader paid promotion out of the first round.
 
 **Bid math.** At $3.50 per unlock, $100 needs 29 paid unlocks to break even.
 A 5% download-to-paid rate implies about $0.18 in break-even cost per
 first-time download. That conversion is illustrative. Use the measured
 rate times actual net proceeds per unlock to estimate break-even cost per
-download. Divide by 1.5 for the proposed proceeds target, then multiply by
-the observed tap-to-first-time-download rate to estimate the corresponding
-cost-per-tap ceiling. If the campaign delivers little volume at that bid,
-record the result and retain the budget.
+download. Multiply by the observed tap-to-first-time-download rate to
+estimate the break-even cost-per-tap ceiling. If the campaign delivers
+little volume at that bid, record the result and retain the budget.
 
 ## Progress and handoff
 
