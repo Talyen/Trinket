@@ -17,8 +17,14 @@ def package(press, master, preview, *, output=None):
     html = page.read_text()
     full_marker = "<!-- full kit download -->"
     image_marker = "<!-- image bundle link -->"
-    if any(html.count(marker) != 1 for marker in (full_marker, image_marker)):
+    hosted_footer_marker = "<!-- hosted footer only -->"
+    if (
+        any(html.count(marker) != 1 for marker in (full_marker, image_marker))
+        or html.count(hosted_footer_marker) != 2
+    ):
         raise ValueError("Prepare downloads in a fresh copy of Website/press")
+    before_footer_badge, _, after_footer_badge = html.split(hosted_footer_marker)
+    offline_html = before_footer_badge.rstrip() + after_footer_badge
 
     shutil.copyfile(master, press / "art/trinket-logo.png")
     shutil.copyfile(preview, press / "previews/trinket-logo.png")
@@ -34,11 +40,13 @@ def package(press, master, preview, *, output=None):
         for path in sorted(files):
             archive.write(path, path.relative_to(base))
         captions_link = '<a href="screenshots/Captions.txt" download>Image descriptions and credits (.txt)</a>'
-        archive.writestr(str(page.relative_to(base)), html.replace(full_marker, "").replace(image_marker, captions_link))
+        offline_page = offline_html.replace(full_marker, "").replace(image_marker, captions_link)
+        archive.writestr(str(page.relative_to(base)), offline_page)
 
     image_link = f'<a href="{image_zip.name}" download>Download images, captions and credits (.zip, {image_zip.stat().st_size / 1e6:.0f} MB)</a>'
     full_link = f'<a href="{full_url}" download>Download press kit (.zip, {full.stat().st_size / 1e6:.0f} MB)</a>'
-    page.write_text(html.replace(full_marker, full_link).replace(image_marker, image_link))
+    hosted_html = html.replace(full_marker, full_link).replace(image_marker, image_link)
+    page.write_text(hosted_html.replace(hosted_footer_marker, ""))
 
 
 if __name__ == "__main__":
