@@ -219,15 +219,20 @@ one unsolicited follow-up per outlet across both dates.
   The English (U.S.) test splits eligible traffic 50/50. The original has the
   approved video and the treatment has zero previews. The ten iPhone and ten
   iPad screenshots match in both arms, including order. Optimization-only
-  submission `3b5c3d7e-6681-4832-b38c-737d2a0b9ec7` was Waiting for Review
-  on November 23.
+  submission `3b5c3d7e-6681-4832-b38c-737d2a0b9ec7` entered review November
+  23. The test started November 24 and was Collecting Data on November 26.
   [App preview vs screenshots](https://appstoreconnect.apple.com/apps/6811284921/distribution/optimization/096be046-6cae-414b-9c6a-4e14eb1b65a8)
-- [ ] **Agents · read the comparison after approval.** Confirm the test
-  starts and record conversions, qualified impressions and confidence.
-  Record when downloads become available so a mixed pre-order and live
-  window is visible in the readout. Wait for a meaningful result before
-  choosing a winner or starting the separate header experiment.
-  [Apple test instructions](https://developer.apple.com/help/app-store-connect/create-product-page-optimization-tests/run-a-test/)
+- [ ] **Agents · read the randomized storefront test.** Record eligible
+  unique impressions, conversions, estimated lift and confidence. Apple
+  includes pre-orders in its conversion metric. Mark the change from
+  pre-orders to live downloads and inspect the periods separately where
+  data permits. Keep the underlying assets stable. Wait for at least 90%
+  confidence and a meaningful lift before applying a winner. A test that
+  collects too little data can end inconclusive. Product Page Optimization
+  assigns eligible visitors at random on the default page. A dedicated
+  custom page for a paid campaign does not enter this test.
+  [Apple test analytics](https://developer.apple.com/help/app-store-connect-analytics/acquisition/product-page-optimization/)
+  · [Apple test scope](https://developer.apple.com/help/app-store-connect/create-product-page-optimization-tests/overview-of-product-page-optimization/)
 - [x] **Agents · submit the three selected product page headers.** On November
   21, App Store Connect validated all three as header-only PNGs. Standalone
   asset submission `a54e83a5-e5b7-4249-bf48-6058c5dc4531` is complete.
@@ -243,9 +248,14 @@ one unsolicited follow-up per outlet across both dates.
   [Apple's test setup](https://developer.apple.com/help/app-store-connect/create-product-page-optimization-tests/create-a-test)
 - [ ] **Agents · public checks.** Confirm the U.S. listing, build, free
   download, iPhone and iPad galleries, support and privacy links, and
-  Full Game offer. Use the release checklist for purchase and restore
-  verification. Hold promotion while a listing, install, or purchase issue
-  blocks players. Route confirmed defects to the release owner.
+  Full Game offer. In the native store, check that the first gallery
+  items show actual combat and character choice, and that the 29-second
+  preview remains legible with sound off. Review representative localized
+  storefronts and on-device renders before directing spend to them.
+  Use the release checklist for purchase and restore verification. Hold
+  promotion while a listing, install, or purchase issue blocks players.
+  Route confirmed defects to the release owner.
+  [Apple product-page guidance](https://developer.apple.com/app-store/product-page/)
 - [x] **Agents · stage community copy.** The private packet at
   `~/.local/share/trinket/launch-day/2026-12-21/Community-posts.txt` contains
   the December 21 social draft, a link to verified 60 fps gameplay, and a Developer
@@ -259,12 +269,11 @@ one unsolicited follow-up per outlet across both dates.
   [staged 60 fps download-badge trailer](LaunchTrailer.md#gameplay-feature-reel)
   and update the website badges. Push to `main` so GitHub Pages rebuilds
   both `Trinket-Press-Kit.zip` and `Trinket-images.zip`, then send approved
-  launch messages and posts. Start with the ordinary App Store URL.
-  As soon as Apple enables campaign links, use one link per channel group
-  such as press, creators, and community. Pool small sources so the results
-  have a chance to reach Apple's reporting thresholds. A campaign typically
-  needs five first-time downloads to appear, and hidden metrics should be
-  recorded as unavailable. [Apple campaign links](https://developer.apple.com/help/app-store-connect-analytics/acquisition/campaign-links/)
+  launch messages and posts. Apple's link generator was available November
+  26. Use the staged organic link for each group (press, creators, community,
+  or social) to pool small sources. Existing pre-order posts can continue
+  to use the ordinary link. Keep links reserved for paid campaigns in the
+  private register below.
 - [ ] **Agents · baseline and follow-up.** Keep the first seven live days
   free of ad spend. On launch days 7, 14, and 30, pull App Store impressions,
   product page views, first-time downloads, download-to-paid cohorts,
@@ -291,27 +300,75 @@ one unsolicited follow-up per outlet across both dates.
 
 ## Paid test and budget
 
+### Store page and measurement
+
+- [x] **Agents · verify page parity.** The U.S. English default page for
+  version 1.1.0 and the custom page use the same preview, iPhone and iPad
+  screenshot order, promotional text, and standard store header. The
+  custom page's first submission had alternate copy. It was replaced
+  November 26 by a standalone submission matching the default and is
+  Waiting for Review. This pilot tests paid acquisition. The separate
+  randomized video-versus-screenshots test measures default-page conversion.
+  If the default changes before the pilot, review parity again and record
+  the change. Check both pages in the native store once available.
+  [Custom page in App Store Connect](https://appstoreconnect.apple.com/apps/6811284921/distribution/productpages/eb25b38e-b7ea-4c51-8ff5-f07efcd40826)
+  · [Apple custom product pages](https://developer.apple.com/app-store/custom-product-pages/)
+- [x] **Agents · stage first-party links.** The private
+  `~/.local/share/trinket/social-launch/2026-11-26/App-Store-Campaign-Links.md`
+  holds Apple-generated links for the organic groups and each off-store
+  test. A separate QA link resolved to Trinket's U.S. pre-order listing in
+  Safari. The paid Reddit, Meta and TikTok drafts use their own Apple
+  links. YouTube and PixelPicked links are staged in the register.
+- [ ] **Agents · confirm attribution after launch.** On an iPhone, open the
+  final placement preview or destination and verify the native store
+  handoff. For off-store traffic, keep Apple's `pt` and `ct` parameters
+  intact in the outgoing link. Platform UTMs alone do not supply Apple
+  campaign attribution. Apple credits eligible first-time downloads
+  within 24 hours of the campaign tap. The most recent eligible campaign
+  link receives credit. Apple's campaign dashboard and custom-page
+  reporting have small-sample thresholds, and detailed reports can also
+  suppress rows. Mark suppressed or unavailable figures that way. A
+  storefront URL does not geofence delivery.
+  [Apple campaign links](https://developer.apple.com/help/app-store-connect-analytics/acquisition/campaign-links/)
+  · [Custom-page analytics](https://developer.apple.com/help/app-store-connect-analytics/acquisition/custom-product-pages/)
+- [ ] **Agents · confirm purchase evidence.** After the first live purchases,
+  confirm that the detailed App Store Purchases report supplies the Full
+  Game item, page title or campaign, app download date, territory, pre-order
+  flag, refunds, and estimated net proceeds. Distinguish pre-order fulfillment
+  from new paid acquisition. Use App Store Connect proceeds and the
+  platform's actual media spend for break-even. Log any promotional
+  credit separately so a repeat can be evaluated at normal cost.
+  Keep Apple Ads tap-through, view-through,
+  new downloads and redownloads distinct. Treat direct installs without a
+  page value and default-ad delivery as unallocated proceeds. Apple reports
+  organic and paid search together under App Store search, so that source
+  total alone cannot allocate paid proceeds.
+  [App Store Purchases report](https://developer.apple.com/documentation/analytics-reports/app-store-purchase)
+  · [Apple Ads reporting](https://ads.apple.com/app-store/help/reporting/0023-reporting-options-and-definitions)
+
+### Apple Ads pilot
+
 | Stage | Proposed limit | What unlocks it |
 | --- | ---: | --- |
 | Editorial, press, and community launch | $0 | Approved assets and outreach |
 | Apple Ads pilot | $100 | Organic baseline, working Full Game offer, approved measurement setup and spend |
-| Repeat test | $150 | Mature pilot breaks even or better with measurable net proceeds |
+| Follow-up tests and repeats | $150 combined | Review each channel's cap. Repeat a setup after the mature pilot breaks even or better with measurable net proceeds. |
 | Reserve | $500 | Repeat breaks even or better and total U.S. proceeds also lift against comparable no-ad periods |
 | Initial ceiling | **$750** | A separate owner decision is required to exceed it |
 
 - [ ] **Agents · pilot setup.** Prepare one U.S. Apple Ads Advanced
-  search-results campaign using Manage Bids, a few exact-match genre terms
-  such as `card battler` and `offline card rpg`, and Search Match off.
-  Use the `Apple Ads | US Card RPG Search` custom product page. It was
-  submitted separately on November 26 with the existing U.S. English store
-  assets and is waiting for App Review. Keep its organic search keywords
-  empty and its link out of public outreach so its Full Game proceeds can
-  be tied to the ad traffic. After approval, confirm the ad serves the
-  intended page and check for fallback to the default ad.
-  [Custom page in App Store Connect](https://appstoreconnect.apple.com/apps/6811284921/distribution/productpages/eb25b38e-b7ea-4c51-8ff5-f07efcd40826) ·
+  Search Results campaign. Start with one Manage Bids ad group, Search Match
+  off, and a few exact-match genre terms such as `card battler` and
+  `offline card rpg`. Check close variants in Search Terms and exclude
+  irrelevant queries. Hold brand, competitor and discovery groups for
+  separate tests. Use `Apple Ads | US Card RPG Search` after approval.
+  Keep its organic search keywords empty and its URL out of outreach.
+  Verify the intended ad variation is serving and check whether the default
+  ad received delivery. If the dedicated page is on hold, stop delivery
+  until the intended setup is restored.
   [Apple Ads controls](https://ads.apple.com/app-store/help/apple-ads-basic/0001-compare-apple-ads-solutions) ·
-  [Ad variations](https://ads.apple.com/app-store/help/ads/0078-manage-ad-variations) ·
-  [Custom product page analytics](https://developer.apple.com/help/app-store-connect-analytics/acquisition/custom-product-pages)
+  [Campaign structure](https://ads.apple.com/app-store/best-practices/campaign-structure) ·
+  [Ad variations and fallback](https://ads.apple.com/app-store/help/ads/0078-manage-ad-variations)
 - [ ] **Owner · authorize the pilot.** Review the bid ceiling, dates, budget,
   and source of purchase data. Configure a fixed end date and a daily
   budget whose product with the run length stays within the approved cap.
@@ -321,10 +378,13 @@ one unsolicited follow-up per outlet across both dates.
 - [ ] **Agents · measure and decide.** Record search terms, spend, taps, and
   tap-through first-time downloads in Apple Ads. Use the dedicated custom
   page and download dates in App Store Connect to measure Full Game net
-  proceeds for the paid cohort. Check early reads at days 7 and 14. Make
-  the repeat decision after the last included download has had 30 days
-  to convert and reporting has caught up. Hold further spend if reporting
-  gaps, suppression, or mixed traffic prevent a reliable comparison.
+  proceeds for the paid cohort. Record the first delivery check, then read
+  early results at days 7 and 14. Apple Ads can credit a download up to 30
+  days after the ad tap. Define the included acquisition window before
+  spending and record any late downloads separately until mature. Make the
+  repeat decision after the last included download has had 30 days to convert
+  and reporting has caught up. Hold further spend if reporting gaps,
+  suppression, or mixed traffic prevent a reliable comparison.
   [Apple Ads reporting](https://ads.apple.com/app-store/help/reporting/0023-reporting-options-and-definitions) ·
   [App Store Purchases report](https://developer.apple.com/documentation/analytics-reports/app-store-purchase)
 - [ ] **Owner · repeat or stop.** Break-even is **$1.00 in Full Game net
@@ -344,6 +404,50 @@ rate times actual net proceeds per unlock to estimate break-even cost per
 download. Multiply by the observed tap-to-first-time-download rate to
 estimate the break-even cost-per-tap ceiling. If the campaign delivers
 little volume at that bid, record the result and retain the budget.
+
+### Off-store pilots
+
+Keep the first seven live days at $0. Draw these tests from the follow-up
+pool. Run one channel at a time,
+with one U.S. iOS audience and one destination link per pilot where the
+platform supports it. Hold the creative and targeting steady for each run.
+With a tiny cap, the two approved clips are staged options. Pick one for
+the first spend, and use the other for a follow-up only if there is enough
+volume to compare. Check for automatic creative additions, audio changes,
+and placement expansion that would change the test. View or link-click
+optimization can diagnose delivery and traffic costs. Use Apple installs
+and Full Game net proceeds to judge payback. Check the iPhone render, safe
+areas, captions, the download badge, applicable AI disclosures, and paid-use
+rights for the soundtrack and narration before approval. Recheck the
+duration, renewal terms, and accepted cap before any purchase or activation.
+Keep any campaign with an unmet gate on hold.
+[TikTok advertiser disclosure guidance](https://ads.tiktok.com/business/library/AI_Safety_Essentials_for_TikTok_Advertisers.pdf)
+· [Reddit asset disclosures](https://business.reddithelp.com/s/article/ai-transparency)
+
+| Test | Proposed cap | Staged setup and decision before spend |
+| --- | ---: | --- |
+| PixelPicked | $29 for one week | Keep the existing listing as a baseline. Confirm self-serve checkout, exact placement, reporting and the ability to stop after one week. Use the paid link if it accepts a separate destination. If it shares the existing link, use one stable listing token across matched unpaid and paid weeks and log any editorial feature. [PixelPicked visibility](https://pixelpicked.com/features/mobile-game-visibility) |
+| Reddit | $25 total | Standard Traffic, U.S. iOS and the r/iosgaming audience, with expansion off. Community targeting follows those users across Reddit. This single community is a narrow fit check. Consider more relevant communities in a later run if delivery is too small. Check the 3:4 feed crop and room for daily overdelivery. The current editor has both tagged ads. Rebuild from the private `Reddit-Campaign-Recovery.md` if the Safari draft is lost. [Reddit audiences](https://business.reddithelp.com/s/article/reddit-audiences) · [Campaign setup](https://business.reddithelp.com/articles/Knowledge/Set-up-a-Reddit-Ads-Campaign) |
+| YouTube | $20 total | After advertiser verification and billing checks, assess a tagged YouTube Shorts-only Demand Gen traffic test with iOS phones/tablets. Verify the subtype offers the required destination, targeting, accepted cost controls and reporting in this account. If it does not fit the cap, hold it. [Channel controls](https://support.google.com/google-ads/answer/15973205?hl=en) · [Device and campaign setup](https://support.google.com/google-ads/answer/13695389?hl=en) |
+| Facebook and Instagram | $25 total | Both tagged Traffic ads are in draft. Start with Facebook and Instagram iOS placements and read delivery by placement. The saved ad set uses landing page views. Check that the chosen goal registers usable traffic to the App Store, and read outbound clicks alongside Apple results. [Meta Traffic](https://business-auth.facebook.com/business/ads/ad-objectives/traffic) |
+| TikTok | $42 proposed | The tagged Traffic draft is saved. TikTok and TikTok Ad Network are both selected. If the account's contract and billing blockers clear through self-serve, set TikTok-only placement before building the final ad group or rebuild if required. Verify the lifetime minimum and end time. [TikTok placements](https://ads.tiktok.com/resources/help/article/eligible-placements) · [TikTok budgets](https://ads.tiktok.com/resources/help/article/about-daily-budgets?lang=en) |
+| AppLovin | Hold | In-game inventory can reach players at scale. AppLovin requires a mobile measurement partner and recommends at least 15–20 events a day across the campaign for stable optimization. Revisit after measured proceeds per download and a budget that can support the intended event. [Required measurement](https://support.applovin.com/en/growth/promoting-your-apps/track-and-optimize/set-up-mmp-tracking) · [Volume guidance](https://support.applovin.com/en/growth/promoting-your-apps/track-and-optimize/scale-your-campaign) |
+
+Use Apple's first-party reporting for these pilots. Revisit privacy-preserving
+app promotion measurement when there is a specific optimization event,
+enough expected volume, and a supported SDK or measurement partner worth
+maintaining. Review privacy disclosures and tracking rules before any
+integration. Reddit App Promotion requires a supported measurement
+partner, and Google Ads can import in-app events from Firebase or a partner.
+[Apple AdAttributionKit](https://developer.apple.com/app-store/ad-attribution/)
+· [Reddit App Promotion](https://business.reddithelp.com/articles/Knowledge/app-install-ads)
+· [Google mobile conversion tracking](https://support.google.com/google-ads/answer/16056245?hl=en)
+
+Estimate additional sales before scaling by cross-checking comparable
+no-spend weekdays, keeping major creative or listing changes out of the
+window, and logging simultaneous press, featuring, and release effects.
+Record ratings and reviews as separate outcomes. Use the same **$1 in net
+Full Game proceeds per $1 spent** threshold across platforms.
 
 ## Progress and handoff
 
