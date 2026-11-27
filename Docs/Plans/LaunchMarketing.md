@@ -10,9 +10,9 @@ expires: 2026-11-30
 
 Launch Trinket for iPhone and iPad in 173 App Store storefronts with a free
 download and a one-time **Full Game** unlock (US$4.99 in the U.S.). Lead with
-Apple editorial and targeted mobile game coverage at **$0 in promotion spend**.
-Measure whether players
-buy Full Game before paying to reach more of them.
+Apple editorial and targeted mobile game coverage. Start one capped paid
+pilot shortly after launch when the storefront, purchase flow, attribution
+setup, and spend approval are in place.
 
 Agents prepare assets, research recipients, draft outreach, verify the
 storefront, and report results. The owner reviews the creative and outreach
@@ -274,14 +274,17 @@ one unsolicited follow-up per outlet across both dates.
   or social) to pool small sources. Existing pre-order posts can continue
   to use the ordinary link. Keep links reserved for paid campaigns in the
   private register below.
-- [ ] **Agents · baseline and follow-up.** Keep the first seven live days
-  free of ad spend. On launch days 7, 14, and 30, pull App Store impressions,
-  product page views, first-time downloads, download-to-paid cohorts,
-  Full Game purchases and net proceeds, refunds, and material support
-  issues. Use Sales and Trends to cross-check aggregate Full Game sales.
-  Include U.S. and international totals and the strongest storefronts in each
-  snapshot, with reporting dates, cohort age, and lag. Read the same cohort at
-  the same age when comparing channels.
+- [ ] **Agents · pre-spend snapshot and follow-up.** Record the available
+  pre-spend store data and the exact time of first paid delivery. If the
+  first snapshot is short or reports are still catching up, record the
+  gap and backfill it when data arrives. On launch days 7, 14, and 30, pull
+  App Store impressions, product page views, first-time downloads,
+  download-to-paid cohorts, Full Game purchases and net proceeds, refunds,
+  and material support issues. Mark any launch reporting day that contains
+  both pre-spend and paid activity. Use Sales and Trends to cross-check
+  aggregate Full Game sales. Include U.S. and international totals and the
+  strongest storefronts in each snapshot, with reporting dates, cohort age,
+  and lag. Read cohorts at the same age when comparing channels.
   [Apple cohort reporting](https://developer.apple.com/help/app-store-connect-analytics/monetization/cohorts/) ·
   [Analytics Reports API](https://developer.apple.com/help/app-store-connect-analytics/overview/analytics-reports-api)
 - [ ] **Agents · respond to the funnel.** If qualified reach is low, revise
@@ -299,6 +302,23 @@ one unsolicited follow-up per outlet across both dates.
   storefront before distributing market-specific links or local price claims.
 
 ## Paid test and budget
+
+### When to start
+
+- [ ] **Agents and owner · early launch check.** Review the first pilot at
+  the first clean post-launch check. This can be in the first day or two
+  if the correct U.S. build is downloadable, a fresh Full Game purchase
+  and restore work, and there is no unresolved issue that blocks players
+  from installing, playing, or purchasing. Verify the intended destination
+  on iPhone, the ad account's readiness, the reporting path, and the
+  campaign cap and end time. Capture the latest available pre-spend
+  snapshot and obtain spend approval. Reporting latency can be backfilled
+  during the pilot. Verify attributed results before a repeat or increase.
+- [ ] **Owner · choose the ready pilot.** Apple Ads remains the first
+  choice once the dedicated page is approved and can be selected. If
+  review is still pending and an approved tagged traffic test is ready,
+  that test can run first. Keep to one paid pilot at a time and record press,
+  featuring, and other campaigns that overlap its dates.
 
 ### Store page and measurement
 
@@ -346,12 +366,23 @@ one unsolicited follow-up per outlet across both dates.
   [App Store Purchases report](https://developer.apple.com/documentation/analytics-reports/app-store-purchase)
   · [Apple Ads reporting](https://ads.apple.com/app-store/help/reporting/0023-reporting-options-and-definitions)
 
+Use the same acquisition dates and storefront when comparing sources. Keep
+unallocated or suppressed rows visible in the readout. A source's install or
+purchase attribution assigns credit. Estimate additional sales separately
+using the comparable no-spend periods described below.
+
+| Traffic | How to identify installs | How to identify Full Game purchases |
+| --- | --- | --- |
+| Apple Ads | Apple Ads first-time tap-through downloads by campaign, ad group, ad variation, and keyword where shown. Use the dedicated custom page in App Store Connect for store conversion. | Filter detailed Apple purchase rows by the paid page title and download cohort where available. Purchases with missing page attribution and default-ad fallback stay unallocated to the paid cohort. |
+| Off-store paid | Filter App Store Connect by the Apple campaign token for Reddit, Meta, TikTok, YouTube, or PixelPicked. Report each platform's outbound clicks separately from store downloads. | Filter detailed purchase rows by the same paid campaign token. Both variants share one token in each pilot, so use ad-level platform reports for creative delivery and clicks. |
+| Organic referrals and store discovery | Filter tagged press, creators, community, and social separately. Use App Store Browse and available referral dimensions for untagged discovery. App Store Search can include paid and organic downloads. | Read tagged revenue by organic campaign and other revenue by available source. Keep untagged search or missing attribution in the mixed or unallocated totals. |
+
 ### Apple Ads pilot
 
 | Stage | Proposed limit | What unlocks it |
 | --- | ---: | --- |
 | Editorial, press, and community launch | $0 | Approved assets and outreach |
-| Apple Ads pilot | $100 | Organic baseline, working Full Game offer, approved measurement setup and spend |
+| Apple Ads pilot | $100 | Passing early launch check, approved custom page, approved spend |
 | Follow-up tests and repeats | $150 combined | Review each channel's cap. Repeat a setup after the mature pilot breaks even or better with measurable net proceeds. |
 | Reserve | $500 | Repeat breaks even or better and total U.S. proceeds also lift against comparable no-ad periods |
 | Initial ceiling | **$750** | A separate owner decision is required to exceed it |
@@ -370,7 +401,8 @@ one unsolicited follow-up per outlet across both dates.
   [Campaign structure](https://ads.apple.com/app-store/best-practices/campaign-structure) ·
   [Ad variations and fallback](https://ads.apple.com/app-store/help/ads/0078-manage-ad-variations)
 - [ ] **Owner · authorize the pilot.** Review the bid ceiling, dates, budget,
-  and source of purchase data. Configure a fixed end date and a daily
+  and source of purchase data. Confirm the posted credit balance and billing
+  terms before authorizing spend. Configure a fixed end date and a daily
   budget whose product with the run length stays within the approved cap.
   For example, seven days at $14 sets a $98 scheduled campaign budget.
   Apple can spend above the daily average on an individual day, so verify
@@ -405,10 +437,38 @@ download. Multiply by the observed tap-to-first-time-download rate to
 estimate the break-even cost-per-tap ceiling. If the campaign delivers
 little volume at that bid, record the result and retain the budget.
 
+### Advertiser credits
+
+Before approving a campaign, check its account's Billing or Promotions
+screen. Record the amount actually posted, eligible campaign types,
+qualifying cash spend, enrollment and earn-by dates, use-by date, and any
+taxes or fees. Favor credits already available and spend-to-earn offers
+whose requirements fit an independently justified test. Qualified credits
+can pay for a follow-up within its approved media cap. Keep campaigns on
+fixed stop dates and check delivery near credit exhaustion. A promo deadline
+does not change the go-live check or approved spend.
+
+| Channel | Offer and account state checked November 26, 2026 | How to use it |
+| --- | --- | --- |
+| Apple Ads | Apple offers eligible linked developer accounts an automatic one-time **$100** credit, with no matching spend threshold. Trinket Billing shows a promo credit applied November 26 and a saved payment method. [Apple promo credit](https://ads.apple.com/app-store/help/billing/0032-apple-ads-promo-credit) | Give the first pilot priority once the store and dedicated page pass their checks. Confirm the remaining balance and any non-credit charges. Set the gross media cap within the balance if planning a credit-funded pilot. |
+| Google Ads / YouTube | Trinket has a redeemed **spend $500, get $500** offer. Spend must qualify by **January 25, 2027**. The credit has yet to be granted, and the account says it expires 60 days after it is earned. The account has a saved primary card. [Google promotion rules](https://support.google.com/google-ads/answer/16915411?hl=en) | Keep the $20 YouTube pilot as proposed. Consider the offer only if results independently justify a separately approved $500 test that can finish before the deadline. The credit covers later delivery once posted. |
+| Reddit | The offer is already applied to the account. It shows **$500 credit after $500 spend**, **valid through December 11, 2026**, and $0 progress. The account has no saved card. [Reddit offer](https://www.business.reddit.com/marketing/ad-credit-offer) | Let this offer lapse under the December 21 release plan. Check for a new self-serve offer at launch and keep the $25 pilot cap. |
+| Facebook and Instagram | No credit or payment method was visible in Trinket's Meta billing settings. Account-specific offers may surface separately. | Recheck the account before spending and apply any verified offer that fits the $25 test. |
+| TikTok | The account showed zero available promotions and requires billing setup. TikTok publishes account-specific tiers, including an eligible signup offer at **$200 spend for $200 credit**. The account still showed the inactive agreement banner. [TikTok signup offers](https://ads.tiktok.com/affiliate/university/tiktok-ads-coupon-signup-offers?language=en) | Keep it on hold until the self-serve blockers clear. Use the account's actual offer if a claimable promotion fits the intended test. |
+| PixelPicked | Spotlight is **$29 for one week**. The public site offers **four weeks for the price of three ($87)** and says delivery continues free until the promised impression count is reached. The signed-in account and any saved card were unavailable for verification. [PixelPicked pricing](https://pixelpicked.com/pricing) | Buy one week only after approval. Record the actual delivery window for comparison, including any unpaid extension. Consider the bundle after measurable payback supports a repeat. |
+| AppLovin | No public new-advertiser credit for AppDiscovery was verified. The channel remains deferred under the measurement and volume requirements below. | Check only if the channel later qualifies on its own merits. |
+
+Record gross media spend, credit actually applied, and cash charged,
+including fees and taxes where relevant. Use **net Full Game proceeds
+minus cash charged** for the cash result. Use **net Full Game proceeds
+divided by gross media spend** for the repeat decision. If a credit covers
+the full charge, report the cash result in dollars. Record any pending
+credit separately until it posts.
+
 ### Off-store pilots
 
-Keep the first seven live days at $0. Draw these tests from the follow-up
-pool. Run one channel at a time,
+Use the early launch check to decide when an off-store pilot can begin.
+Draw these tests from the follow-up pool. Run one channel at a time,
 with one U.S. iOS audience and one destination link per pilot where the
 platform supports it. Hold the creative and targeting steady for each run.
 With a tiny cap, the two approved clips are staged options. Pick one for
@@ -426,7 +486,7 @@ Keep any campaign with an unmet gate on hold.
 
 | Test | Proposed cap | Staged setup and decision before spend |
 | --- | ---: | --- |
-| PixelPicked | $29 for one week | Keep the existing listing as a baseline. Confirm self-serve checkout, exact placement, reporting and the ability to stop after one week. Use the paid link if it accepts a separate destination. If it shares the existing link, use one stable listing token across matched unpaid and paid weeks and log any editorial feature. [PixelPicked visibility](https://pixelpicked.com/features/mobile-game-visibility) |
+| PixelPicked | $29 for one week | Keep the existing listing as a baseline. Confirm self-serve checkout, exact placement, reporting and that the purchase covers a single Spotlight week. Allow for an unpaid extension if delivery misses the impression guarantee. Use the paid link if it accepts a separate destination. If it shares the existing link, use one stable listing token across matched unpaid and paid periods and log any editorial feature. [PixelPicked visibility](https://pixelpicked.com/features/mobile-game-visibility) |
 | Reddit | $25 total | Standard Traffic, U.S. iOS and the r/iosgaming audience, with expansion off. Community targeting follows those users across Reddit. This single community is a narrow fit check. Consider more relevant communities in a later run if delivery is too small. Check the 3:4 feed crop and room for daily overdelivery. The current editor has both tagged ads. Rebuild from the private `Reddit-Campaign-Recovery.md` if the Safari draft is lost. [Reddit audiences](https://business.reddithelp.com/s/article/reddit-audiences) · [Campaign setup](https://business.reddithelp.com/articles/Knowledge/Set-up-a-Reddit-Ads-Campaign) |
 | YouTube | $20 total | After advertiser verification and billing checks, assess a tagged YouTube Shorts-only Demand Gen traffic test with iOS phones/tablets. Verify the subtype offers the required destination, targeting, accepted cost controls and reporting in this account. If it does not fit the cap, hold it. [Channel controls](https://support.google.com/google-ads/answer/15973205?hl=en) · [Device and campaign setup](https://support.google.com/google-ads/answer/13695389?hl=en) |
 | Facebook and Instagram | $25 total | Both tagged Traffic ads are in draft. Start with Facebook and Instagram iOS placements and read delivery by placement. The saved ad set uses landing page views. Check that the chosen goal registers usable traffic to the App Store, and read outbound clicks alongside Apple results. [Meta Traffic](https://business-auth.facebook.com/business/ads/ad-objectives/traffic) |
@@ -462,14 +522,14 @@ here. Keep access codes, credentials, and private recipient details out of Git.
 | Stills, copy, eight pitches, nomination and reporting worksheet | Drafts prepared | Nov 17, retained Release evidence folder `LaunchMarketing-Nov17` |
 | Trailer | Narrated feature reel cleared for press | Nov 19, Wizard and Frost Whelp face the Blood Countess. The cut includes three Homestead buildings, Bear recruitment, a skill and an ultimate, two Contract rewards, and a Desert Voyage. The revised 93-second master carries the Countess’s song across the end card. Prelaunch kit includes English captions. [Script and review master](LaunchTrailer.md#gameplay-feature-reel) |
 | Prelaunch press kit | Public and checked on iPhone | Nov 19, retained Release folder `Trinket-Ambush-Launch/Press`. A full ZIP and an image-only ZIP accompany the press page. The public edition is live on [the press page](https://trinketrpg.com/press/) with silent creator footage, seven screenshots, original artwork, a fact sheet and offline downloads. The narrated trailer played in Safari on the iPhone 14 Pro. Anonymous requests retrieved all 26 linked assets. The downloaded press ZIP (27 entries) and image ZIP (11 entries) passed integrity checks. The developer cleared the Blood Countess soundtrack for press publication, download and editorial use. The full edition adds the 93-second narrated trailer and English captions. |
-| Reporting access | Ongoing analytics enabled Nov 19 | Apple accepted the request. The download and purchase report catalogs are readable. Both had zero delivered instances before launch. Sales and Trends accepted the vendor number and returned its no-sales response for November 12 and 17. Verify the first delivered report after sales begin. First-month reporting and the $0 opening baseline are in Release evidence under `LaunchReadiness-Nov19/Reporting.md`. |
+| Reporting access | Ongoing analytics enabled Nov 19 | Apple accepted the request. The download and purchase report catalogs are readable. Both had zero delivered instances before launch. Sales and Trends accepted the vendor number and returned its no-sales response for November 12 and 17. Verify the first delivered report after sales begin. The first-month reporting rehearsal is in Release evidence under `LaunchReadiness-Nov19/Reporting.md`. |
 | Global launch date | Confirmed by owner | December 21, 2026 in the U.S. and 172 eligible additional storefronts. The prelaunch film and press fact sheet carry the date. |
 | Launch candidate | Build 14 submitted for App Review | On November 19 at 5:28 p.m. Pacific, Apple confirmed version 1.0.0 (14) was Waiting for Review with manual release after build 13 was withdrawn. Submission `9d37fa8c-814c-4cb7-bd94-d05d98057908`. TestFlight opened 1.0.0 (14) over Wi-Fi. Ranger and Wolf remained at chapter 1, stage 1, and the save database and write-ahead log matched the pre-update backup byte for byte. After restore and sign-in, Options showed Full Game — Unlocked. Reuse this result and the prior first-purchase evidence for unchanged commerce behavior. [Hosted release checks](https://github.com/Talyen/Trinket/actions/runs/44630048041) passed with one coverage gap for declined Ask to Buy. The build comparison and device evidence are in `LaunchReadiness-Nov19/Candidate.md`. |
 | U.S. App Store pre-order | Public and verified November 21 | Version 1.0.0 build 14. Apple confirmed United States only and the public page shows the expected December 21, 2026 release, Free, and In-App Purchases. [U.S. listing](https://apps.apple.com/us/app/trinket/id6811284921) |
 | International App Store pre-order | Confirmed November 21 | App Store Connect shows all 173 pre-orders available with the same date and Full Game lineup. Public spot checks passed in 14 storefronts. |
 | Press access | Direct link verified November 21 | Build 13 is attached to Press Preview and expires February 11, 2027. The direct link was initially capped at 20 testers. The current cap and enrollment are in the press outreach tracker. Apple rejected build 14 for external TestFlight because version 1.0.0 is closed to new beta review submissions. Build 13 remains available to press, and the App Store uses build 14. |
 | Featuring nomination | Submitted November 19, updated November 21 | Apple confirmed nomination `9a7f1d2d-b137-40ca-af15-432c455ae3ab` stayed submitted with the December 21 date, 173 storefronts, a gameplay-led pitch, the press kit, trailer, still and App Store link. |
-| First-week reporting | Reporting access verified before launch | The active Analytics request and four standard report catalogs were readable on November 21 with no daily instances. The Sales and Trends check returned explicit no sales for November 17. Start with the D+7 snapshot, then refresh after data is complete through the seventh live day. |
+| First-week reporting | Reporting access verified before launch | The active Analytics request and four standard report catalogs were readable on November 21 with no daily instances. The Sales and Trends check returned explicit no sales for November 17. Capture the available pre-spend snapshot at the early launch check and backfill once reports arrive. Keep the D+7 snapshot as a reporting checkpoint. |
 | Editorial review | Shared-hand opener selected | The preceding editorial drafts are in the retained Release folder `LaunchPitch-Nov20/`. The press page and offline downloads share one set of captions and release facts. The owner accepted the existing trailer. The second editorial pass covers press copy, outreach and image assets. |
 | Press outreach dispatched | All three November 23 batches sent | [Press outreach tracker](#press-outreach-tracker) records dispatch, the single bounce, reply and coverage checks, and TestFlight enrollment. |
 | Launch-day rehearsal | Private preview verified November 21 | The launch-day badge and fact sheet switch apply cleanly. The assembled press ZIP and both corrected videos passed integrity checks. Analytics access and a historical Sales and Trends no-sales response were verified. |
